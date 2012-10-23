@@ -1,0 +1,14 @@
+{
+        "userid":       "thewizkid",
+        "first":        "anand",
+        "last":         "ammundi",
+        "company":      "wiz inc.",
+        "title":        "founder",
+        "phone":        "(408)-xxx-yyyy",
+        "email":        "thewizkid@whiz.selfip.com",
+        "street":       "dunholme ave",
+        "city":         "sunnyvale",
+        "state":        "california",
+        "zip":          "94087",
+        "location":     [{"lat":37.32300, "lng":-122.03218}]
+}
