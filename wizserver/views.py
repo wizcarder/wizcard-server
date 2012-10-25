@@ -63,16 +63,18 @@ class WizRequestHandler(View):
     def processIncomingMessage(self, message):
         self.response = Response()
         msgHandlers = {
-            'register' : self.processRegister,
-            'add_card' : self.processAddWizcard,
-            'edit_card': self.processModifyWizcard,
-            'delete_card': self.processDeleteWizcard,
-            'update'   : self.processLocationUpdate,
-            'add_notification_card' : self.processAcceptCard,
-            'get_cards': self.processGetNotifications,
-            'send_card_to_contacts' : self.processSendCardToContacts,
-            'send_card_to_user' : self.processSendCardUC,
-            'send_query_user' : self.processQueryUser
+            'register'                  : self.processRegister,
+            'add_card'                  : self.processAddWizcard,
+            'edit_card'                 : self.processModifyWizcard,
+            'delete_card'               : self.processDeleteWizcardOwn,
+            'delete_notification_card'  : self.processDeleteWizcardNotification,
+            'delete_rolodex_card'       : self.processDeleteWizcardRolodex,
+            'update'                    : self.processLocationUpdate,
+            'add_notification_card'     : self.processAcceptCard,
+            'get_cards'                 : self.processGetNotifications,
+            'send_card_to_contacts'     : self.processSendCardToContacts,
+            'send_card_to_user'         : self.processSendCardUC,
+            'send_query_user'           : self.processQueryUser
         }
 
         # Dispatch to appropriate message handler
@@ -127,9 +129,18 @@ class WizRequestHandler(View):
 
         return self.response.response
 
-    def processDeleteWizcard(self, message):
+    def processDeleteWizcardOwn(self, message):
+        return self.response.response
+
+    def processDeleteWizcardRolodex(self, message):
+        return self.response.response
+
+    def processDeleteWizcardNotification(self, message):
         body = message['message']
-        wizcard1 = get_object_or_404(Wizcard, id=message['wizCardID'])
+        user = User.objects.get(id=message['wizUserID'])
+        #TODO: AA: change this to handle multple wizcards
+        wizcard1 = user.wizcards.all()[0]
+        #wizcard1 = get_object_or_404(Wizcard, id=message['wizCardID'])
         wizcard2 = get_object_or_404(Wizcard, id=body['wizCardID'])
         Wizcard.objects.uncard(wizcard1, wizcard2)
         #Q a notif to other guy so that the app on the other side can react
@@ -316,10 +327,10 @@ class WizRequestHandler(View):
             try:
                 emails = recipient['emailAddresses']
                 for email in emails:
-                    target_user = find_users(name=None, phone=None, email=email)
+                    target_user, query_count = find_users(name=None, phone=None, email=email)
                     #AA:TODO: Fix for multiple wizcards. Get it by default flag
-                    assert target_user.count() == 1
-                    if (target_user.count()):
+                    assert query_count == 1
+                    if query_count:
                         #AA:TODO: [0] is no good. Also handle the case where 
                         # target_user doesn't have any wizcards
                         wizcard2 = target_user[0].wizcards.all()[0]
@@ -355,6 +366,7 @@ class WizRequestHandler(View):
                 source_user = User.objects.get(username = message['userID'])
             target_user = User.objects.get(id=recipient)
             #AA: TODO: Extend to support multiple wizcards per user
+            ##AA: TODO: What if the recipient has no wizcard ?
             wizcard2 = target_user.wizcards.all()[0]
 
             #create bidir cardship
@@ -401,15 +413,16 @@ class WizRequestHandler(View):
         except:
             email = None
 
-        recipients = find_users(name, phone, email)
+        recipients, count = find_users(name, phone, email)
         #send back to app for selection
 
-        if (recipients.count()):
+        if (count):
             response_fields = ["id", "username", "first_name", "last_name"]
             dumper = DataDumper()
             dumper.selectObjectFields('User', response_fields)
             users = dumper.dump(recipients, 'json')
-            self.response.add_data("data", users)
+            self.response.add_data("queryResult", users)
+            self.response.add_data("count", count)
         else:
             self.response.add_result("Error", 1)
             self.response.add_result("Description", "Query returned no results")
@@ -417,7 +430,6 @@ class WizRequestHandler(View):
         return self.response.response
 
 def find_users(name, phone, email):
-
     #name can be first name, last name or even combined
     #any of the arguments may be null
 
@@ -444,7 +456,7 @@ def find_users(name, phone, email):
     #not sure at this point whether it should be OR or AND
     result = User.objects.filter(reduce(operator.or_, qlist))
 
-    return result
+    return result, result.count()
 
 def accept_wizconnection(from_wizcard, to_wizcard):
     get_object_or_404(WizConnectionRequest, from_wizcard=from_wizcard,

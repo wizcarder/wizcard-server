@@ -46,11 +46,11 @@ class WizcardManager(models.Manager):
     def uncard(self, wizcard1, wizcard2):
         # Break cardship link between users
         wizcard1.wizconnections.remove(wizcard2)
-        # Delete Wizcard's as well
-        Wizcard.objects.filter(from_wizcard=wizcard1,
-                                         to_wizcard=wizcard2).delete()
-        Wizcard.objects.filter(from_wizcard=wizcard2,
-                                         to_wizcard=wizcard1).delete()
+        # Delete Wizcconnection request as well
+        WizConnectionRequest.objects.filter(from_wizcard=wizcard1,
+                                            to_wizcard=wizcard2).delete()
+        WizConnectionRequest.objects.filter(from_wizcard=wizcard2,
+                                            to_wizcard=wizcard1).delete()
 
 
 class Wizcard(models.Model):

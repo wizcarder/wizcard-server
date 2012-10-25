@@ -40,26 +40,35 @@ class ResponseN(Response):
         self.response['data']['numElements'] = 0
         self.response['data']['elementList'] = []
         
-    def add_data(self, d, n):
-        a = dict(data=d, notifType=n)
+    def add_data(self, d, c):
+        a = dict(data=d)
         self.response['data']['elementList'].append(a)
-        self.response['data']['numElements'] += 1
+        self.response['data']['numElements'] += c
+        return a
 
-    def add_notif_type(self, type):
-        self.response['data']['notifType'] = type
+    def add_notif_type(self, d, type):
+        d['notifType'] = type
+
+    def add_data_with_notif(self, d, n, c):
+        a = self.add_data(d, c)
+        self.add_notif_type(a, n)
+
 
 class NotifResponse(ResponseN):
 
+    ACCEPT_IMPLICIT     = 0
+    ACCEPT_EXPLICIT     = 1
+    DELETE_IMPLICIT     = 2
+
+    NOTIF_NULL                      = 0
     NOTIF_WIZCARD_ADD_ROLODEX       = 1
     NOTIF_WIZCARD_ADD_NOTIFICATION  = 2
     NOTIF_WIZCARD_DEL               = 3
 
-    ACCEPT_IMPLICIT     = 0
-    ACCEPT_EXPLICIT     = 1
-
     notifMapping = {
         ACCEPT_IMPLICIT : NOTIF_WIZCARD_ADD_ROLODEX,
-        ACCEPT_EXPLICIT : NOTIF_WIZCARD_ADD_NOTIFICATION
+        ACCEPT_EXPLICIT : NOTIF_WIZCARD_ADD_NOTIFICATION,
+        DELETE_IMPLICIT  : NOTIF_WIZCARD_DEL
     }
 
 
@@ -75,7 +84,7 @@ class NotifResponse(ResponseN):
                   "address_state", "address_country", "address_zip"]
         dumper.selectObjectFields('Wizcard', fields)
         out = dumper.dump(wizcard, 'json')
-        self.add_data(out, self.notifMapping[accept])
+        self.add_data_with_notif(out, self.notifMapping[accept], 1)
         return self.response
 
     def notifWizConnectionT(self, notif):
@@ -89,10 +98,7 @@ class NotifResponse(ResponseN):
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
-
         obj = Wizcard.objects.get(id=notif.target_object_id)
         out = dict(wizCardId=obj.id)
-        self.add_data(out, self.NOTIF_WIZCARD_DEL)
+        self.add_data_with_notif(out, self.notifMapping[DELETE_IMPLICIT], 1)
         return self.response
-
-
