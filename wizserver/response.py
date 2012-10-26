@@ -94,7 +94,7 @@ class NotifResponse(ResponseN):
         return self.notifWizcard(notif, self.ACCEPT_EXPLICIT)
 
     def notifAcceptedWizcard(self, notif):
-        return self.notifWizconnectionT(self, notif)
+        return self.notifWizConnectionT(notif)
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
