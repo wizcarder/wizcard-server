@@ -130,9 +130,33 @@ class WizRequestHandler(View):
         return self.response.response
 
     def processDeleteWizcardOwn(self, message):
+        body = message['message']
+        user = User.objects.get(id=message['wizUserID'])
+        wizcard1 = get_object_or_404(Wizcard, id=body['wizCardID'])
+
+        #go through all connections and uncard them
+        qs = wizcard1.wizconnections.all()
+        for wizcard2 in qs:
+            Wizcard.objects.uncard(wizcard1, wizcard2)
+            #Q a notif to other guy so that the app on the other side can react
+            notify.send(wizcard1.user, recipient=wizcard2.user, 
+                        verb='revoked wizcard', target=wizcard1)
+
+        wizcard1.delete()
         return self.response.response
 
     def processDeleteWizcardRolodex(self, message):
+        pdb.set_trace()
+        body = message['message']
+        user = User.objects.get(id=message['wizUserID'])
+        #TODO: AA: change this to handle multple wizcards
+        wizcard1 = user.wizcards.all()[0]
+        #wizcard1 = get_object_or_404(Wizcard, id=message['wizCardID'])
+        wizcard2 = get_object_or_404(Wizcard, id=body['wizCardID'])
+        Wizcard.objects.uncard(wizcard1, wizcard2)
+        #Q a notif to other guy so that the app on the other side can react
+        notify.send(wizcard1.user, recipient=wizcard2.user,
+                    verb='revoked wizcard', target=wizcard1)
         return self.response.response
 
     def processDeleteWizcardNotification(self, message):
@@ -142,7 +166,8 @@ class WizRequestHandler(View):
         wizcard1 = user.wizcards.all()[0]
         #wizcard1 = get_object_or_404(Wizcard, id=message['wizCardID'])
         wizcard2 = get_object_or_404(Wizcard, id=body['wizCardID'])
-        Wizcard.objects.uncard(wizcard1, wizcard2)
+        #wizcard1 must have sent a wizconnection_request, lets clear it
+        Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
         #Q a notif to other guy so that the app on the other side can react
         notify.send(wizcard1.user, recipient=wizcard2.user,
                     verb='revoked wizcard', target=wizcard1)
@@ -329,8 +354,8 @@ class WizRequestHandler(View):
                 for email in emails:
                     target_user, query_count = find_users(name=None, phone=None, email=email)
                     #AA:TODO: Fix for multiple wizcards. Get it by default flag
-                    assert query_count == 1
                     if query_count:
+                        assert query_count == 1
                         #AA:TODO: [0] is no good. Also handle the case where 
                         # target_user doesn't have any wizcards
                         wizcard2 = target_user[0].wizcards.all()[0]

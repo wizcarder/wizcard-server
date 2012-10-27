@@ -35,6 +35,11 @@ class WizcardManager(models.Manager):
     def are_wizconnections(self, wizcard1, wizcard2):
         return bool((wizcard1.wizconnections.filter(
             id=wizcard2.id)).exists())
+
+    def wizconnection_req_clear(self, from_wizcard, to_wizcard):
+        WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
+                                            to_wizcard=to_wizcard).delete()
+
 		
     def becard(self, wizcard1, wizcard2):
         wizcard1.wizconnections.add(wizcard2)
@@ -47,11 +52,8 @@ class WizcardManager(models.Manager):
         # Break cardship link between users
         wizcard1.wizconnections.remove(wizcard2)
         # Delete Wizcconnection request as well
-        WizConnectionRequest.objects.filter(from_wizcard=wizcard1,
-                                            to_wizcard=wizcard2).delete()
-        WizConnectionRequest.objects.filter(from_wizcard=wizcard2,
-                                            to_wizcard=wizcard1).delete()
-
+        self.wizconnection_req_clear(wizcard1, wizcard2)
+        self.wizconnection_req_clear(wizcard2, wizcard1)
 
 class Wizcard(models.Model):
     user = models.ForeignKey(User, related_name='wizcards')

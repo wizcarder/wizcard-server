@@ -22,29 +22,29 @@ conn = httplib.HTTPConnection("localhost", 8000)
 #objs = json.loads( objs )
 #print objs
 
-register1 = {
-    "deviceID": "A000111",
-    "userID": "anand",
-    "firstname":"Anand",
-    "lastname":"Ammundi",
-    "email": "aammundi@oz.com",
-    "phone1":"408-464-1727",
-    "seqNum": "1000",
-    "msgType":"register",
-    "message": {"lat":37.32300, "lng":-122.03218}
-}
-
-register2 = {
-    "deviceID": "A000113",
-    "userID": "ishaan",
-    "firstname":"Ishaan",
-    "lastname":"Ammundi",
-    "email": "ishaan@oz.com",
-    "phone1":"408-464-1337",
-    "seqNum": "1000",
-    "msgType":"register",
-    "message": {"lat":37.32300, "lng":-122.03218}
-}
+#register1 = {
+#    "deviceID": "A000111",
+#    "userID": "anand",
+#    "firstname":"Anand",
+#    "lastname":"Ammundi",
+#    "email": "anand@oz.com",
+#    "phone1":"408-464-1727",
+#    "seqNum": "1000",
+#    "msgType":"register",
+#    "message": {"lat":37.32300, "lng":-122.03218}
+#}
+#
+#register2 = {
+#    "deviceID": "A000113",
+#    "userID": "ishaan",
+#    "firstname":"Ishaan",
+#    "lastname":"Ammundi",
+#    "email": "ishaan@oz.com",
+#    "phone1":"408-464-1337",
+#    "seqNum": "1000",
+#    "msgType":"register",
+#    "message": {"lat":37.32300, "lng":-122.03218}
+#}
 
 register3 = {
     "deviceID": "A000112",
@@ -114,32 +114,32 @@ register6 = {
 #    "userID" : "aammundi",
 #}
 
-add_card2 = {
-    "deviceID" : "A00195EE-2A42-4E2F-9EFF-8FBD3475164B",
-    "message": {
-        "city" : "CityName",
-        "company" : "2",
-        "email" : "2@test.com",
-        "first" : "Ishaan",
-        "last" : "Ammundi",
-        "phone" : "123456789",
-        "state" : "StateName",
-        "street" : "StreetName",
-        "thumbnailImage" : "...",
-        "title" : "My position",
-        "zip" : "00000",
-    },
-    "msgType" : "add_card",
-    "seqNum" : "1000",
-    "userID" : "ishaan"
-}
+#add_card2 = {
+##    "deviceID" : "A00195EE-2A42-4E2F-9EFF-8FBD3475164B",
+#    "message": {
+#        "city" : "CityName",
+#        "company" : "2",
+#        "email" : "2@test.com",
+#        "first" : "Ishaan",
+#        "last" : "Ammundi",
+#        "phone" : "123456789",
+#        "state" : "StateName",
+#        "street" : "StreetName",
+#        "thumbnailImage" : "...",
+#        "title" : "My position",
+#        "zip" : "00000",
+#    },
+#    "msgType" : "add_card",
+#    "seqNum" : "1000",
+#    "userID" : "ishaan"
+#}
 
 add_card3 = {
     "deviceID" : "A00195EE-2A42-4E2F-9EFF-8FBD3475164B",
     "message": {
         "city" : "CityName",
         "company" : "3",
-        "email" : "3@test.com",
+        "email" : "ronak@oz.com",
         "first" : "Ronak",
         "last" : "Shah",
         "phone" : "123456789",
@@ -159,7 +159,7 @@ add_card4 = {
     "message": {
         "city" : "CityName",
         "company" : "4",
-        "email" : "4@test.com",
+        "email" : "mariya@oz.com",
         "first" : "Mariya",
         "last" : "Kholod",
         "phone" : "123456789",
@@ -178,8 +178,8 @@ add_card5 = {
     "deviceID" : "A00195EE-2A42-4E2F-9EFF-8FBD3475164B",
     "message": {
         "city" : "CityName",
-        "company" : "4",
-        "email" : "4@test.com",
+        "company" : "5",
+        "email" : "rudra@oz.com",
         "first" : "Rudra",
         "last" : "Rugge",
         "phone" : "123456789",
@@ -199,7 +199,7 @@ add_card6 = {
     "message": {
         "city" : "CityName",
         "company" : "6",
-        "email" : "6@test.com",
+        "email" : "pranay@oz.com",
         "first" : "Pranay",
         "last" : "Pogde",
         "phone" : "123456789",
@@ -227,29 +227,29 @@ def handle_response(connection):
 
     
 
-r1 = json.dumps(register1)
-r2 = json.dumps(register2)
+#r1 = json.dumps(register1)
+#r2 = json.dumps(register2)
 r3 = json.dumps(register3)
 r4 = json.dumps(register4)
 r5 = json.dumps(register5)
 r6 = json.dumps(register6)
 #a1 = json.dumps(add_card1)
-a2 = json.dumps(add_card2)
+#a2 = json.dumps(add_card2)
 a3 = json.dumps(add_card3)
 a4 = json.dumps(add_card4)
 a5 = json.dumps(add_card5)
 a6 = json.dumps(add_card6)
 
 #register
-conn.request("POST","", r1)
+#conn.request("POST","", r1)
 #Parse and dump the JSON response from server
-objs = handle_response(conn)
-r1_id = objs['data']['wizUserID']
+#objs = handle_response(conn)
+#r1_id = objs['data']['wizUserID']
 
-conn.request("POST","", r2)
+#conn.request("POST","", r2)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
-r2_id = objs['data']['wizUserID']
+#objs = handle_response(conn)
+#r2_id = objs['data']['wizUserID']
 
 conn.request("POST","", r3)
 # Parse and dump the JSON response from server
@@ -277,10 +277,10 @@ r6_id = objs['data']['wizUserID']
 #objs = handle_response(conn)
 #a1wc = objs['data']['wizCardID']
 
-conn.request("POST","", a2)
+#conn.request("POST","", a2)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
-a2wc = objs['data']['wizCardID']
+#objs = handle_response(conn)
+#a2wc = objs['data']['wizCardID']
 
 conn.request("POST","", a3)
 # Parse and dump the JSON response from server
