@@ -129,8 +129,8 @@ INSTALLED_APPS = (
 
 import logging
 logging.basicConfig(
-    level = logging.DEBUG,
-    format = '%(funcName)s %(levelname)s %(message)s',
+    #level = logging.DEBUG,
+    #format = '%(funcName)s %(levelname)s %(message)s',
 )
 
 
