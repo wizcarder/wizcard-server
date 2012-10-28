@@ -313,7 +313,7 @@ class WizRequestHandler(View):
 
     def processGetNotifications(self, message):
         #AA: TODO: Change this to get userId from session
-        
+
         try:
             #user = get_object_or_404(User, id=message['wizUserID'])
             user = get_object_or_404(User, id=message['wizUserID'])
@@ -329,7 +329,8 @@ class WizRequestHandler(View):
             'wizconnection request untrusted' : notifResponse.notifWizConnectionU,
             'wizconnection request trusted'   : notifResponse.notifWizConnectionT,
             'accepted wizcard'      : notifResponse.notifAcceptedWizcard,
-            'revoked wizcard'       : notifResponse.notifRevokedWizcard
+            'revoked wizcard'       : notifResponse.notifRevokedWizcard,
+            'deleted wizcard'       : notifResponse.notifRevokedWizcard
         }
 
         for notification in notifications:

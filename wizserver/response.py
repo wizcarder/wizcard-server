@@ -98,7 +98,6 @@ class NotifResponse(ResponseN):
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
-        obj = Wizcard.objects.get(id=notif.target_object_id)
-        out = dict(wizCardId=obj.id)
-        self.add_data_with_notif(out, self.notifMapping[DELETE_IMPLICIT], 1)
+        out = dict(wizCardId=notif.target_object_id)
+        self.add_data_with_notif(out, self.notifMapping[self.DELETE_IMPLICIT], 1)
         return self.response

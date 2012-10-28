@@ -10,7 +10,7 @@ import pdb
 # Wiz specific imports
 
 # Open the connection to Wiz server
-conn = httplib.HTTPConnection("localhost", 8000)
+conn = httplib.HTTPConnection("www.totastyle.com", 8000)
 
 #Send a test GET request
 #conn.request("GET", "")

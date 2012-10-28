@@ -15,7 +15,7 @@ DATABASES = {
         'NAME': 'wizcard',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
