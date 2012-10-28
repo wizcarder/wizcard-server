@@ -146,7 +146,6 @@ class WizRequestHandler(View):
         return self.response.response
 
     def processDeleteWizcardRolodex(self, message):
-        pdb.set_trace()
         body = message['message']
         user = User.objects.get(id=message['wizUserID'])
         #TODO: AA: change this to handle multple wizcards
