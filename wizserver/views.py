@@ -140,7 +140,7 @@ class WizRequestHandler(View):
             Wizcard.objects.uncard(wizcard1, wizcard2)
             #Q a notif to other guy so that the app on the other side can react
             notify.send(wizcard1.user, recipient=wizcard2.user, 
-                        verb='revoked wizcard', target=wizcard1)
+                        verb='deleted wizcard', target=wizcard1)
 
         wizcard1.delete()
         return self.response.response
@@ -352,7 +352,7 @@ class WizRequestHandler(View):
             try:
                 emails = recipient['emailAddresses']
                 for email in emails:
-                    target_user, query_count = find_users(name=None, phone=None, email=email)
+                    target_user, query_count = find_users(user.id, name=None, phone=None, email=email)
                     #AA:TODO: Fix for multiple wizcards. Get it by default flag
                     if query_count:
                         assert query_count == 1
@@ -425,6 +425,7 @@ class WizRequestHandler(View):
     #AA: This can be the same message as above. Treat it separately for now
     def processQueryUser(self, message):
         body = message['message']
+        userID = message['wizUserID']
         try:
             name = body['name']
         except:
@@ -438,7 +439,7 @@ class WizRequestHandler(View):
         except:
             email = None
 
-        recipients, count = find_users(name, phone, email)
+        recipients, count = find_users(userID, name, phone, email)
         #send back to app for selection
 
         if (count):
@@ -454,7 +455,7 @@ class WizRequestHandler(View):
 
         return self.response.response
 
-def find_users(name, phone, email):
+def find_users(userID, name, phone, email):
     #name can be first name, last name or even combined
     #any of the arguments may be null
 
@@ -479,7 +480,7 @@ def find_users(name, phone, email):
         qlist.append(email_result)
 
     #not sure at this point whether it should be OR or AND
-    result = User.objects.filter(reduce(operator.or_, qlist))
+    result = User.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
 
     return result, result.count()
 
