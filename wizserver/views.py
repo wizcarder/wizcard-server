@@ -374,7 +374,6 @@ class WizRequestHandler(View):
                     #AA:TODO: Fix for multiple wizcards. Get it by default flag
                     if query_count:
                         for wizcard2 in target_wizcards:
-                            wizcard2 = target_user[0].wizcards.all()[0]
                             #create bidir cardship
                             if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
                                 self.response.add_result("Error", 2)
@@ -384,9 +383,9 @@ class WizRequestHandler(View):
                                 Wizcard.objects.becard(wizcard1, wizcard2) 
                                 Wizcard.objects.becard(wizcard2, wizcard1) 
                                 #Q this to the receiver and vice-versa
-                                notify.send(user, recipient=target_user[0], 
+                                notify.send(user, recipient=wizcard2.user,
                                             verb='wizconnection request trusted', target=wizcard1)
-                                notify.send(target_user[0], recipient=user,
+                                notify.send(wizcard2.user, recipient=user,
                                             verb='wizconnection request trusted', target=wizcard2)
             except:
                 #AA:TODO: what to do ?
