@@ -370,26 +370,24 @@ class WizRequestHandler(View):
             try:
                 emails = recipient['emailAddresses']
                 for email in emails:
-                    target_user, query_count = find_users(user.id, name=None, phone=None, email=email)
+                    target_wizcards, query_count = find_users(user.id, name=None, phone=None, email=email)
                     #AA:TODO: Fix for multiple wizcards. Get it by default flag
                     if query_count:
-                        assert query_count == 1
-                        #AA:TODO: [0] is no good. Also handle the case where 
-                        # target_user doesn't have any wizcards
-                        wizcard2 = target_user[0].wizcards.all()[0]
-                        #create bidir cardship
-                        if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
-                            self.response.add_result("Error", 2)
-                            self.response.add_result("Description", "already connected to user")
-                        else:
-                            count += 1
-                            Wizcard.objects.becard(wizcard1, wizcard2) 
-                            Wizcard.objects.becard(wizcard2, wizcard1) 
-                            #Q this to the receiver and vice-versa
-                            notify.send(user, recipient=target_user[0], 
-                                        verb='wizconnection request trusted', target=wizcard1)
-                            notify.send(target_user[0], recipient=user,
-                                        verb='wizconnection request trusted', target=wizcard2)
+                        for wizcard2 in target_wizcards:
+                            wizcard2 = target_user[0].wizcards.all()[0]
+                            #create bidir cardship
+                            if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
+                                self.response.add_result("Error", 2)
+                                self.response.add_result("Description", "already connected to user")
+                            else:
+                                count += 1
+                                Wizcard.objects.becard(wizcard1, wizcard2) 
+                                Wizcard.objects.becard(wizcard2, wizcard1) 
+                                #Q this to the receiver and vice-versa
+                                notify.send(user, recipient=target_user[0], 
+                                            verb='wizconnection request trusted', target=wizcard1)
+                                notify.send(target_user[0], recipient=user,
+                                            verb='wizconnection request trusted', target=wizcard2)
             except:
                 #AA:TODO: what to do ?
                 self.response.add_result("Error", 2)
@@ -407,7 +405,9 @@ class WizRequestHandler(View):
                 source_user = User.objects.get(id = message['wizUserID'])
             except:
                 source_user = User.objects.get(username = message['userID'])
-            target_user = User.objects.get(id=recipient)
+            #target_user = User.objects.get(id=recipient)
+            #AA: TODO: Change after app changes
+            target_user = Wizcard.objects.get(id=recipient).user
             #AA: TODO: Extend to support multiple wizcards per user
             ##AA: TODO: What if the recipient has no wizcard ?
             wizcard2 = target_user.wizcards.all()[0]
@@ -463,7 +463,7 @@ class WizRequestHandler(View):
         if (count):
             response_fields = ["id", "username", "first_name", "last_name"]
             dumper = DataDumper()
-            dumper.selectObjectFields('User', response_fields)
+            dumper.selectObjectFields('Wizcard', response_fields)
             users = dumper.dump(recipients, 'json')
             self.response.add_data("queryResult", users)
             self.response.add_data("count", count)
@@ -495,9 +495,9 @@ def find_users(userID, name, phone, email):
         email_result = Q(email=email)
         qlist.append(email_result)
 
-    query_list = Wizcard.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
+    result = Wizcard.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
     #result = User.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
-    result = map((lambda x: x.user), query_list)
+    #result = map((lambda x: x.user), query_list)
 
     return result, len(result)
 
