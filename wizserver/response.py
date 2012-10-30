@@ -79,8 +79,8 @@ class NotifResponse(ResponseN):
     def notifWizcard(self, notif, accept):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         dumper = DataDumper()
-        fields = ["id", "company", "title", "phone1", 
-                  "phone2", "email", "address_street1", "address_city",
+        fields = ["id", "first_name", "last_name", "company", "title", 
+                  "phone1", "phone2", "email", "address_street1", "address_city",
                   "address_state", "address_country", "address_zip"]
         dumper.selectObjectFields('Wizcard', fields)
         out = dumper.dump(wizcard, 'json')

@@ -4,4 +4,4 @@ DELETE FROM wizcardship_wizcard;
 DELETE FROM wizcardship_userblocks_blocks;
 DELETE FROM wizcardship_userblocks;
 DELETE FROM notifications_notification;
-DELETE FROM auth_user;
+DELETE FROM wizcard.auth_user;

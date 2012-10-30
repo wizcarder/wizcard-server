@@ -10,7 +10,8 @@ import pdb
 # Wiz specific imports
 
 # Open the connection to Wiz server
-conn = httplib.HTTPConnection("www.totastyle.com", 8000)
+#conn = httplib.HTTPConnection("www.totastyle.com", 8000)
+conn = httplib.HTTPConnection("localhost", 8000)
 
 #Send a test GET request
 #conn.request("GET", "")
@@ -99,7 +100,7 @@ add_card1 = {
     "message": {
         "city" : "CityName",
         "company" : "1",
-        "email" : "1@test.com",
+        "email" : "anand@oz.com",
         "first" : "Anand",
         "last" : "Ammundi",
         "phone" : "123456789",
@@ -119,7 +120,7 @@ add_card2 = {
     "message": {
         "city" : "CityName",
         "company" : "2",
-        "email" : "2@test.com",
+        "email" : "ishaan@oz.com",
         "first" : "Ishaan",
         "last" : "Ammundi",
         "phone" : "123456789",
@@ -139,7 +140,7 @@ add_card3 = {
     "message": {
         "city" : "CityName",
         "company" : "3",
-        "email" : "3@test.com",
+        "email" : "ronak@oz.com",
         "first" : "Ronak",
         "last" : "Shah",
         "phone" : "123456789",
@@ -159,7 +160,7 @@ add_card4 = {
     "message": {
         "city" : "CityName",
         "company" : "4",
-        "email" : "4@test.com",
+        "email" : "mariya@oz.com",
         "first" : "Mariya",
         "last" : "Kholod",
         "phone" : "123456789",
@@ -179,7 +180,7 @@ add_card5 = {
     "message": {
         "city" : "CityName",
         "company" : "4",
-        "email" : "4@test.com",
+        "email" : "rudra@oz.com",
         "first" : "Rudra",
         "last" : "Rugge",
         "phone" : "123456789",
@@ -199,7 +200,7 @@ add_card6 = {
     "message": {
         "city" : "CityName",
         "company" : "6",
-        "email" : "6@test.com",
+        "email" : "pranay@oz.com",
         "first" : "Pranay",
         "last" : "Pogde",
         "phone" : "123456789",

@@ -183,10 +183,17 @@ class WizRequestHandler(View):
             user = User.objects.get(username=message['userID'])
 
         try:
+            first_name = body['first']
+        except:
+            first_name = ""
+        try:
+            last_name = body['last']
+        except:
+            last_name = ""
+        try:
             company = body['company']
         except:
             company = ""
-
         try:
             title = body['title']
         except:
@@ -220,7 +227,8 @@ class WizRequestHandler(View):
         except:
             zipcode = ""
 
-        wizcard = Wizcard(user=user, company=company,
+        wizcard = Wizcard(user=user, first_name=first_name, last_name=last_name,
+                          company=company,
                           title=title, phone1=phone1,
                           email=email, address_street1=street,
                           address_city=city, address_state=state,
@@ -236,6 +244,16 @@ class WizRequestHandler(View):
         #find card
         wizcard = get_object_or_404(Wizcard, id=body['wizCardID'])
 
+        try:
+            first_name = body['first']
+            wizcard.first_name = first_name
+        except:
+            first_name = ""
+        try:
+            last_name = body['last']
+            wizcard.last_name = last_name
+        except:
+            last_name = ""
         try:
             company = body['company']
             wizcard.company = company
@@ -467,22 +485,21 @@ def find_users(userID, name, phone, email):
             name_result = (Q(first_name__icontains=n) | Q(last_name__icontains=n))
             qlist.append(name_result)
 
-    #AA:TODO: Phone is not present in the django user (among other fields).
-    # needs user profile addition
     #phone
-    #if phone != None:
-    #    phone_result = (Q(phone1__contains=phone) | Q(phone2__contains=phone))
-    #    qlist.append(phone_result)
+    if phone != None:
+        phone_result = (Q(phone1__contains=phone) | Q(phone2__contains=phone))
+        qlist.append(phone_result)
 
     #email
     if email != None:
         email_result = Q(email=email)
         qlist.append(email_result)
 
-    #not sure at this point whether it should be OR or AND
-    result = User.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
+    query_list = Wizcard.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
+    #result = User.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
+    result = map((lambda x: x.user), query_list)
 
-    return result, result.count()
+    return result, len(result)
 
 def accept_wizconnection(from_wizcard, to_wizcard):
     get_object_or_404(WizConnectionRequest, from_wizcard=from_wizcard,

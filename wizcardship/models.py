@@ -58,6 +58,8 @@ class WizcardManager(models.Manager):
 class Wizcard(models.Model):
     user = models.ForeignKey(User, related_name='wizcards')
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
+    first_name = models.CharField(max_length=40, blank=True)
+    last_name = models.CharField(max_length=40, blank=True)
     company = models.CharField(max_length=40, blank=True)
     title = models.CharField(max_length=200, blank=True)
     phone1 = models.CharField(max_length=20, blank=True)
