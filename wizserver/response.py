@@ -1,6 +1,7 @@
 # define all outbound responses here
 from wizcardship.models import WizConnectionRequest, Wizcard
 from json_wrapper import DataDumper
+import fields
 import pdb
 
 #This is the basic Response class used to send simple result and data
@@ -79,10 +80,8 @@ class NotifResponse(ResponseN):
     def notifWizcard(self, notif, accept):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         dumper = DataDumper()
-        fields = ["id", "first_name", "last_name", "company", "title", 
-                  "phone1", "phone2", "email", "address_street1", "address_city",
-                  "address_state", "address_country", "address_zip"]
-        dumper.selectObjectFields('Wizcard', fields)
+        response_fields = fields.fields['wizcard_fields']
+        dumper.selectObjectFields('Wizcard', response_fields)
         out = dumper.dump(wizcard, 'json')
         self.add_data_with_notif(out, self.notifMapping[accept], 1)
         return self.response

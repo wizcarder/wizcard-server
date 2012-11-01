@@ -30,7 +30,7 @@ from wizcardship.models import WizConnectionRequest, Wizcard
 from notifications.models import notify, Notification
 from json_wrapper import DataDumper
 from response import Response, NotifResponse
-import msg_test
+import msg_test, fields
 
 logger = logging.getLogger(__name__)
 
@@ -109,20 +109,49 @@ class WizRequestHandler(View):
             #create case
             #AA:TODO: ideally just create should be here. Did this to get around
             # a bug in the app for now
+            do_sync = True
             user, created = User.objects.get_or_create(username=l_userid,
                                                        defaults={'first_name':firstname,
                                                                  'last_name':lastname,
                                                                  'email':email})
-            
             user.set_password(password)
             user.save()
 
         user = authenticate(username=l_userid, password=password)
 
+        try:
+            wizCardID = message['wizCardID']
+        except:
+            #sync the app from server
+            wizcards = []
+            rolodex = []
+            notifications = []
+            count = 0
+            #sync own card
+            for wizcard in user.wizcards.all():
+                wizcards.append(wizcard)
+                dumper = DataDumper()
+                response_fields = fields.fields['wizcard_fields']
+                dumper.selectObjectFields('Wizcard', response_fields)
+                wizcards_out = dumper.dump(wizcards, 'json')
+                
+                #add connected wizcards in order
+                rolodex.append(wizcard.wizconnections.all())
+                count += 1
+
+            dumper = DataDumper()
+            response_fields = fields.fields['wizcard_fields']
+            dumper.selectObjectFields('Wizcard', response_fields)
+            rolodex_out = dumper.dump(rolodex, 'json')
+
         if user is not None and user.is_active:
             # Correct password, and the user is marked "active"
             login(self.request, user)
             self.response.add_data("wizUserID", user.id)
+            if count != 0:
+                self.response.add_data("wizcards", wizcards_out)
+                self.response.add_data("rolodex", rolodex_out)
+                
         else:
             self.response.add_result("Error", 1)
             self.response.add_result("Description", "User authentication failed")
@@ -460,7 +489,7 @@ class WizRequestHandler(View):
         #send back to app for selection
 
         if (count):
-            response_fields = ["id", "username", "first_name", "last_name"]
+            response_fields = fields.fields['query_fields']
             dumper = DataDumper()
             dumper.selectObjectFields('Wizcard', response_fields)
             users = dumper.dump(recipients, 'json')
