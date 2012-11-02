@@ -251,7 +251,7 @@ class ParseMsgAndDispatch:
         user = User.objects.get(id=self.sender['wizUserID'])
         #TODO: AA: change this to handle multple wizcards
         #wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
-	wizcard1 = user.wizcards.all()[0]
+        wizcard1 = user.wizcards.all()[0]
         wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
         Wizcard.objects.uncard(wizcard1, wizcard2)
         #Q a notif to other guy so that the app on the other side can react
@@ -264,7 +264,7 @@ class ParseMsgAndDispatch:
         #TODO: AA: change this to handle multple wizcards
         #wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
         #wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
-	wizcard1 = user.wizcards.all()[0]
+        wizcard1 = user.wizcards.all()[0]
         wizcard2 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
 
         #wizcard2 must have sent a wizconnection_request, lets clear it
