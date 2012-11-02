@@ -250,7 +250,8 @@ class ParseMsgAndDispatch:
     def processDeleteWizcardRolodex(self):
         user = User.objects.get(id=self.sender['wizUserID'])
         #TODO: AA: change this to handle multple wizcards
-        wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+        #wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+	wizcard1 = user.wizcards.all()[0]
         wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
         Wizcard.objects.uncard(wizcard1, wizcard2)
         #Q a notif to other guy so that the app on the other side can react
@@ -261,10 +262,12 @@ class ParseMsgAndDispatch:
     def processDeleteWizcardNotification(self):
         user = User.objects.get(id=self.sender['wizUserID'])
         #TODO: AA: change this to handle multple wizcards
-        wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
-        wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
+        #wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+        #wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
+	wizcard1 = user.wizcards.all()[0]
+        wizcard2 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
 
-        #wizcard1 must have sent a wizconnection_request, lets clear it
+        #wizcard2 must have sent a wizconnection_request, lets clear it
         Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
 
         #Q a notif to other guy so that the app on the other side can react
@@ -348,12 +351,13 @@ class ParseMsgAndDispatch:
         return response
 
     def processAcceptCard(self):
-        pdb.set_trace()
         #To Do. if app returns the connection id cookie sent by server
         #we'd just need to lookup connection from there
         user = User.objects.get(id=self.sender['wizUserID'])
-        wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
-        wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+
+	wizcard1 = user.wizcards.all()[0]
+        #wizcard1 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+        wizcard2 = Wizcard.objects.get(id=self.sender['wizCardID'])
         accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender 
         notify.send(user, recipient=wizcard2.user,
@@ -362,7 +366,6 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processGetNotifications(self):
-        pdb.set_trace()
         #AA: TODO: Change this to get userId from session
 
         user = get_object_or_404(User, id=self.sender['wizUserID'])
@@ -389,14 +392,11 @@ class ParseMsgAndDispatch:
 
 
     def processSendCardToContacts(self):
-        pdb.set_trace()
         #implicitly create a bidir cardship (since this is from contacts)
         #and also Q the other guys cards here
         count = 0
         source_user = User.objects.get(id = self.sender['wizUserID'])
-        target_user = User.objects.get(id=recipient['wizUserID'])
         wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
-        wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
         recipients = self.receiver['contacts']
         for recipient in recipients:
             try:
@@ -428,14 +428,14 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processSendCardUC(self):
-        pdb.set_trace()
         try:
             source_user = User.objects.get(id = self.sender['wizUserID'])
-            target_user = User.objects.get(id=recipient['wizUserID'])
+            target_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
             #AA: TODO: Extend to support multiple wizcards per user
             ##AA: TODO: What if the recipient has no wizcard ?
-            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            #wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            wizcard2 = target_user.wizcards.all()[0]
 
             #create bidir cardship
             if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
@@ -475,6 +475,7 @@ class ParseMsgAndDispatch:
         try:
             phone = self.receiver['phone']
         except:
+	    phone = None
         try:
             email = self.receiver['email']
         except:
@@ -499,7 +500,6 @@ class ParseMsgAndDispatch:
 def find_users(userID, name, phone, email):
     #name can be first name, last name or even combined
     #any of the arguments may be null
-
     qlist = []
 
     if name != None:
@@ -518,7 +518,7 @@ def find_users(userID, name, phone, email):
         email_result = Q(email=email)
         qlist.append(email_result)
 
-    result = Wizcard.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
+    result = Wizcard.objects.filter(reduce(operator.or_, qlist)).exclude(user_id=userID)
 
     return result, len(result)
 
