@@ -32,9 +32,11 @@ from json_wrapper import DataDumper
 from response import Response, NotifResponse
 import msg_test, fields
 
+
 logger = logging.getLogger(__name__)
 
 class WizRequestHandler(View):
+    parsed_msg = {}
 
     def get(self, request, *args, **kwargs):
         message = msg_test.get_cards1
@@ -43,7 +45,6 @@ class WizRequestHandler(View):
         # process request
         ret = self.processIncomingMessage(message)
         #send response
-        logger.debug('sending response')
         return HttpResponse(json.dumps(ret))
 
     def test(self, request):
@@ -51,17 +52,33 @@ class WizRequestHandler(View):
 
     def post(self, request, *args, **kwargs):
         self.request = request
-        msg = json.loads(request.body)
 
-        logger.debug('Received POST request, msgType: %s', msg['msgType'])
 
         # Dispatch to appropriate message handler
-        ret = self.processIncomingMessage(msg)
+        pdispatch = ParseMsgAndDispatch(request)
+        ret =  pdispatch.processIncomingMessage()
         #send response
+        pdb.set_trace()
         return HttpResponse(json.dumps(ret))
 
-    def processIncomingMessage(self, message):
+
+class ParseMsgAndDispatch:
+    def __init__(self, request):
+        self.request = request
+        msg = json.loads(self.request.body)
+        self.header = msg['header']
+        self.sender = msg['sender']
+        try:
+            self.receiver = msg['receiver']
+        except:
+            pass
+        self.msgType = self.header['msgType']
+        logger.debug('Received POST request, msgType: %s', self.msgType)
         self.response = Response()
+
+
+
+    def processIncomingMessage(self):
         msgHandlers = {
             'register'                  : self.processRegister,
             'add_card'                  : self.processAddWizcard,
@@ -78,32 +95,30 @@ class WizRequestHandler(View):
         }
 
         # Dispatch to appropriate message handler
-        return msgHandlers[message['msgType']](message)
+        return msgHandlers[self.msgType]()
 
-    def processRegister(self, message):
-
-        logger.debug("")
+    def processRegister(self):
         try:
-            firstname = message['firstname']
+            firstname = self.sender['firstname']
         except:
             firstname = ""
 
         try:
-            lastname = message['lastname']
+            lastname = self.sender['lastname']
         except:
             lastname = ""
 
         try:
-            email = message['email']
+            email = self.sender['email']
         except:
             email = ""
 
-        l_userid = message['userID'] 
+        l_userid = self.sender['userID'] 
         password = "wizard"
 
         try: 
             #existing user
-            w_userid = message['wizUserID']
+            w_userid = self.sender['wizUserID']
             user = User.objects.get(id=w_userid)
         except:
             #create case
@@ -120,7 +135,7 @@ class WizRequestHandler(View):
         user = authenticate(username=l_userid, password=password)
 
         try:
-            wizCardID = message['wizCardID']
+            wizCardID = self.sender['wizCardID']
         except:
             #sync the app from server
             wizcards = []
@@ -158,101 +173,53 @@ class WizRequestHandler(View):
 
         return self.response.response
 
-    def processDeleteWizcardOwn(self, message):
-        body = message['message']
-        user = User.objects.get(id=message['wizUserID'])
-        wizcard1 = get_object_or_404(Wizcard, id=body['wizCardID'])
-
-        #go through all connections and uncard them
-        qs = wizcard1.wizconnections.all()
-        for wizcard2 in qs:
-            Wizcard.objects.uncard(wizcard1, wizcard2)
-            #Q a notif to other guy so that the app on the other side can react
-            notify.send(wizcard1.user, recipient=wizcard2.user, 
-                        verb='deleted wizcard', target=wizcard1)
-
-        wizcard1.delete()
-        return self.response.response
-
-    def processDeleteWizcardRolodex(self, message):
-        body = message['message']
-        user = User.objects.get(id=message['wizUserID'])
-        #TODO: AA: change this to handle multple wizcards
-        wizcard1 = user.wizcards.all()[0]
-        #wizcard1 = get_object_or_404(Wizcard, id=message['wizCardID'])
-        wizcard2 = get_object_or_404(Wizcard, id=body['wizCardID'])
-        Wizcard.objects.uncard(wizcard1, wizcard2)
-        #Q a notif to other guy so that the app on the other side can react
-        notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb='revoked wizcard', target=wizcard1)
-        return self.response.response
-
-    def processDeleteWizcardNotification(self, message):
-        body = message['message']
-        user = User.objects.get(id=message['wizUserID'])
-        #TODO: AA: change this to handle multple wizcards
-        wizcard1 = user.wizcards.all()[0]
-        #wizcard1 = get_object_or_404(Wizcard, id=message['wizCardID'])
-        wizcard2 = get_object_or_404(Wizcard, id=body['wizCardID'])
-        #wizcard1 must have sent a wizconnection_request, lets clear it
-        Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
-        #Q a notif to other guy so that the app on the other side can react
-        notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb='revoked wizcard', target=wizcard1)
-        return self.response.response
-
-    def processAddWizcard(self, message):
+    def processAddWizcard(self):
+        pdb.set_trace()
         #find user
-        body = message['message']
+        user = User.objects.get(id=self.sender['wizUserID'])
 
         try:
-            #user = get_object_or_404(User, id=message['wizUserID'])
-            user = User.objects.get(id=message['wizUserID'])
-        except:
-            user = User.objects.get(username=message['userID'])
-
-        try:
-            first_name = body['first']
+            first_name = self.sender['first']
         except:
             first_name = ""
         try:
-            last_name = body['last']
+            last_name = self.sender['last']
         except:
             last_name = ""
         try:
-            company = body['company']
+            company = self.sender['company']
         except:
             company = ""
         try:
-            title = body['title']
+            title = self.sender['title']
         except:
             title = ""
         try:
-            phone1 = body['phone']
+            phone1 = self.sender['phone']
         except:
             phone1 = ""
         try:
-            email = body['email']
+            email = self.sender['email']
         except:
             email = ""
         try:
-            street = body['street']
+            street = self.sender['street']
         except:
             street = ""
         try:
-            city = body['city']
+            city = self.sender['city']
         except:
             city = ""
         try:
-            state = body['state']
+            state = self.sender['state']
         except:
             state = ""
         try:
-            country = body['country']
+            country = self.sender['country']
         except:
             country = ""
         try:
-            zipcode = body['zip']
+            zipcode = self.sender['zip']
         except:
             zipcode = ""
 
@@ -268,68 +235,109 @@ class WizRequestHandler(View):
         return self.response.response
 
 
-    def processModifyWizcard(self, message):
-        body = message['message']
+    def processDeleteWizcardOwn(self):
+        user = User.objects.get(id=self.sender['wizUserID'])
+        wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+
+        #go through all connections and uncard them
+        qs = wizcard1.wizconnections.all()
+        for wizcard2 in qs:
+            Wizcard.objects.uncard(wizcard1, wizcard2)
+            #Q a notif to other guy so that the app on the other side can react
+            notify.send(wizcard1.user, recipient=wizcard2.user, 
+                        verb='deleted wizcard', target=wizcard1)
+
+        wizcard1.delete()
+        return self.response.response
+
+    def processDeleteWizcardRolodex(self):
+        user = User.objects.get(id=self.sender['wizUserID'])
+        #TODO: AA: change this to handle multple wizcards
+        wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+        wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
+        Wizcard.objects.uncard(wizcard1, wizcard2)
+        #Q a notif to other guy so that the app on the other side can react
+        notify.send(wizcard1.user, recipient=wizcard2.user,
+                    verb='revoked wizcard', target=wizcard1)
+        return self.response.response
+
+    def processDeleteWizcardNotification(self):
+        user = User.objects.get(id=self.sender['wizUserID'])
+        #TODO: AA: change this to handle multple wizcards
+        wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+        wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
+
+        #wizcard1 must have sent a wizconnection_request, lets clear it
+        Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
+
+        #Q a notif to other guy so that the app on the other side can react
+        notify.send(wizcard1.user, recipient=wizcard2.user,
+                    verb='revoked wizcard', target=wizcard1)
+        return self.response.response
+
+ 
+    def processModifyWizcard(self):
+        pdb.set_trace()
         #find card
-        wizcard = get_object_or_404(Wizcard, id=body['wizCardID'])
+        wizcard = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
 
         try:
-            first_name = body['first']
+            first_name = self.sender['first']
             wizcard.first_name = first_name
         except:
             first_name = ""
         try:
-            last_name = body['last']
+            last_name = self.sender['last']
             wizcard.last_name = last_name
         except:
             last_name = ""
         try:
-            company = body['company']
+            company = self.sender['company']
             wizcard.company = company
         except:
             company = ""
         try:
-            title = body['title']
+            title = self.sender['title']
             wizcard.title = title
         except:
             title = ""
         try:
-            phone1 = body['phone']
+            phone1 = self.sender['phone']
             wizcard.phone1 = phone1
         except:
             phone1 = ""
         try:
-            phone2 = body['phone']
+            phone2 = self.sender['phone']
             wizcard.phone2 = phone2
         except:
             phone2 = ""
         try:
-            email = body['email']
+            email = self.sender['email']
             wizcard.email = email
         except:
             email = ""
         try:
-            street1 = body['address_street1']
+            street1 = self.sender['address_street1']
             wizcard.street1 = street1
         except:
             street1 = ""
         try:
-            city = body['address_city']
+            city = self.sender['address_city']
             wizcard.city = city
         except:
             city = ""
         try:
-            state = body['address_state']
+            state = self.sender['address_state']
             wizcard.state = state
         except:
             state = ""
         try:
-            country = body['address_country']
+            country = self.sender['address_country']
             wizcard.country = country
         except:
             country = ""
         try:
-            zipcode = body['address_zip']
+            zipcode = self.sender['address_zip']
             wizcard.zipcode = zipcode
         except:
             zipcode = ""
@@ -339,17 +347,17 @@ class WizRequestHandler(View):
         self.response.add_data("wizCardID", wizcard.id)
         return self.response.response
 
-    def processLocationUpdate(self, message):
+    def processLocationUpdate(self):
         response = "location update"
         return response
 
-    def processAcceptCard(self, message):
+    def processAcceptCard(self):
+        pdb.set_trace()
         #To Do. if app returns the connection id cookie sent by server
         #we'd just need to lookup connection from there
-        body = message['message']
-        user = User.objects.get(id=message['wizUserID'])
-        wizcard1 = user.wizcards.all()[0]
-        wizcard2 = Wizcard.objects.get(id=body['wizCardID'])
+        user = User.objects.get(id=self.sender['wizUserID'])
+        wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
+        wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
         accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender 
         notify.send(user, recipient=wizcard2.user,
@@ -357,14 +365,11 @@ class WizRequestHandler(View):
 
         return self.response.response
 
-    def processGetNotifications(self, message):
+    def processGetNotifications(self):
+        pdb.set_trace()
         #AA: TODO: Change this to get userId from session
 
-        try:
-            #user = get_object_or_404(User, id=message['wizUserID'])
-            user = get_object_or_404(User, id=message['wizUserID'])
-        except:
-            user = User.objects.get(username=message['userID'])
+        user = get_object_or_404(User, id=self.sender['wizUserID'])
 
         #AA: TODO: Check if this is sorted by time
         notifications = Notification.objects.unread(user)
@@ -387,19 +392,21 @@ class WizRequestHandler(View):
 
 
 
-    def processSendCardToContacts(self, message):
+    def processSendCardToContacts(self):
+        pdb.set_trace()
         #implicitly create a bidir cardship (since this is from contacts)
         #and also Q the other guys cards here
         count = 0
-        body = message['message']
-        wizcard1 = Wizcard.objects.get(id=body['wizCardID'])
-        user = wizcard1.user
-        recipients = body['contacts']
+        source_user = User.objects.get(id = self.sender['wizUserID'])
+        target_user = User.objects.get(id=recipient['wizUserID'])
+        wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
+        wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+        recipients = self.receiver['contacts']
         for recipient in recipients:
             try:
                 emails = recipient['emailAddresses']
                 for email in emails:
-                    target_wizcards, query_count = find_users(user.id, name=None, phone=None, email=email)
+                    target_wizcards, query_count = find_users(source_user.id, name=None, phone=None, email=email)
                     #AA:TODO: Fix for multiple wizcards. Get it by default flag
                     if query_count:
                         for wizcard2 in target_wizcards:
@@ -412,9 +419,9 @@ class WizRequestHandler(View):
                                 Wizcard.objects.becard(wizcard1, wizcard2) 
                                 Wizcard.objects.becard(wizcard2, wizcard1) 
                                 #Q this to the receiver and vice-versa
-                                notify.send(user, recipient=wizcard2.user,
+                                notify.send(source_user, recipient=wizcard2.user,
                                             verb='wizconnection request trusted', target=wizcard1)
-                                notify.send(wizcard2.user, recipient=user,
+                                notify.send(wizcard2.user, recipient=source_user,
                                             verb='wizconnection request trusted', target=wizcard2)
             except:
                 #AA:TODO: what to do ?
@@ -424,21 +431,15 @@ class WizRequestHandler(View):
         self.response.add_data("count", count)
         return self.response.response
 
-    def processSendCardUC(self, message):
-        body = message['message']
-        wizcard1 = Wizcard.objects.get(id=body['wizCardID'])
-        recipient = body['wizUserID']
+    def processSendCardUC(self):
+        pdb.set_trace()
         try:
-            try:
-                source_user = User.objects.get(id = message['wizUserID'])
-            except:
-                source_user = User.objects.get(username = message['userID'])
-            #target_user = User.objects.get(id=recipient)
-            #AA: TODO: Change after app changes
-            target_user = Wizcard.objects.get(id=recipient).user
+            source_user = User.objects.get(id = self.sender['wizUserID'])
+            target_user = User.objects.get(id=recipient['wizUserID'])
+            wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
             #AA: TODO: Extend to support multiple wizcards per user
             ##AA: TODO: What if the recipient has no wizcard ?
-            wizcard2 = target_user.wizcards.all()[0]
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
 
             #create bidir cardship
             if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
@@ -469,19 +470,19 @@ class WizRequestHandler(View):
 
 
     #AA: This can be the same message as above. Treat it separately for now
-    def processQueryUser(self, message):
-        body = message['message']
-        userID = message['wizUserID']
+    def processQueryUser(self):
+        pdb.set_trace()
+        userID = self.sender['wizUserID']
         try:
-            name = body['name']
+            name = self.sender['name']
         except:
             name = None
         try:
-            phone = body['phone']
+            phone = self.sender['phone']
         except:
             phone = None
         try:
-            email = body['email']
+            email = self.sender['email']
         except:
             email = None
 
