@@ -354,8 +354,7 @@ class ParseMsgAndDispatch:
         #To Do. if app returns the connection id cookie sent by server
         #we'd just need to lookup connection from there
         user = User.objects.get(id=self.sender['wizUserID'])
-
-	wizcard1 = user.wizcards.all()[0]
+        wizcard1 = user.wizcards.all()[0]
         #wizcard1 = Wizcard.objects.get(id=self.receiver['wizCardID'])
         wizcard2 = Wizcard.objects.get(id=self.sender['wizCardID'])
         accept_wizconnection(wizcard2, wizcard1)
