@@ -53,12 +53,10 @@ class WizRequestHandler(View):
     def post(self, request, *args, **kwargs):
         self.request = request
 
-
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(request)
         ret =  pdispatch.processIncomingMessage()
         #send response
-        pdb.set_trace()
         return HttpResponse(json.dumps(ret))
 
 
@@ -174,7 +172,6 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processAddWizcard(self):
-        pdb.set_trace()
         #find user
         user = User.objects.get(id=self.sender['wizUserID'])
 
@@ -277,7 +274,6 @@ class ParseMsgAndDispatch:
 
  
     def processModifyWizcard(self):
-        pdb.set_trace()
         #find card
         wizcard = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
 
@@ -471,18 +467,16 @@ class ParseMsgAndDispatch:
 
     #AA: This can be the same message as above. Treat it separately for now
     def processQueryUser(self):
-        pdb.set_trace()
         userID = self.sender['wizUserID']
         try:
-            name = self.sender['name']
+            name = self.receiver['name']
         except:
             name = None
         try:
-            phone = self.sender['phone']
+            phone = self.receiver['phone']
         except:
-            phone = None
         try:
-            email = self.sender['email']
+            email = self.receiver['email']
         except:
             email = None
 
@@ -525,8 +519,6 @@ def find_users(userID, name, phone, email):
         qlist.append(email_result)
 
     result = Wizcard.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
-    #result = User.objects.filter(reduce(operator.or_, qlist)).exclude(id=userID)
-    #result = map((lambda x: x.user), query_list)
 
     return result, len(result)
 
