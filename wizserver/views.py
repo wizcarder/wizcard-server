@@ -79,6 +79,8 @@ class ParseMsgAndDispatch:
         except:
             pass
 
+        #print '{sender} at location [{locX} , {locY}] sent "{type}"'.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'], type=self.header['msgType'])
+
         self.response = Response()
 
 
@@ -245,11 +247,22 @@ class ParseMsgAndDispatch:
 
         #go through all connections and uncard them
         qs = wizcard1.wizconnections.all()
+        deleted_wizcards = []
+        count = 0
         for wizcard2 in qs:
             Wizcard.objects.uncard(wizcard1, wizcard2)
             #Q a notif to other guy so that the app on the other side can react
             notify.send(wizcard1.user, recipient=wizcard2.user, 
                         verb='deleted wizcard', target=wizcard1)
+            deleted_wizcards.append(wizcard2)
+            count += 1
+
+        response_fields = fields.fields['delete_wizcard_fields']
+        dumper = DataDumper()
+        dumper.selectObjectFields('Wizcard', response_fields)
+        wizcards = dumper.dump(deleted_wizcards, 'json')
+        self.response.add_data("deletedWizcards", wizcards)
+        self.response.add_data("count", count)
 
         wizcard1.delete()
         return self.response.response
@@ -363,11 +376,12 @@ class ParseMsgAndDispatch:
         user = User.objects.get(id=self.sender['wizUserID'])
         wizcard1 = user.wizcards.all()[0]
         #wizcard1 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-        wizcard2 = Wizcard.objects.get(id=self.sender['wizCardID'])
+        wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
         accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender 
         notify.send(user, recipient=wizcard2.user,
-                    verb='accepted wizcard', target=wizcard1)
+                    verb='accepted wizcard', target=wizcard1, 
+                    action_object = wizcard2)
 
         return self.response.response
 
@@ -400,6 +414,7 @@ class ParseMsgAndDispatch:
     def processSendCardToContacts(self):
         #implicitly create a bidir cardship (since this is from contacts)
         #and also Q the other guys cards here
+        pdb.set_trace()
         count = 0
         source_user = User.objects.get(id = self.sender['wizUserID'])
         wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
@@ -422,9 +437,11 @@ class ParseMsgAndDispatch:
                                 Wizcard.objects.becard(wizcard2, wizcard1) 
                                 #Q this to the receiver and vice-versa
                                 notify.send(source_user, recipient=wizcard2.user,
-                                            verb='wizconnection request trusted', target=wizcard1)
+                                            verb='wizconnection request trusted', 
+                                            target=wizcard1, action_object=wizcard2)
                                 notify.send(wizcard2.user, recipient=source_user,
-                                            verb='wizconnection request trusted', target=wizcard2)
+                                            verb='wizconnection request trusted', 
+                                            target=wizcard2, action_object=wizcard1)
             except:
                 #AA:TODO: what to do ?
                 self.response.add_result("Error", 2)
@@ -462,7 +479,8 @@ class ParseMsgAndDispatch:
 
                     #Q this to the receiver
                     notify.send(source_user, recipient=target_user, 
-                                verb='wizconnection request untrusted', target=wizcard1)
+                                verb='wizconnection request untrusted', 
+                                target=wizcard1, action_object=wizcard2)
         except:
             #AA:TODO: what to do ?
             self.response.add_result("Error", 1)

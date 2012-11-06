@@ -41,7 +41,7 @@ class ResponseN(Response):
         self.response['data']['numElements'] = 0
         self.response['data']['elementList'] = []
         
-    def add_data(self, d, c):
+    def add_data_array(self, d, c):
         a = dict(data=d)
         self.response['data']['elementList'].append(a)
         self.response['data']['numElements'] += c
@@ -51,7 +51,7 @@ class ResponseN(Response):
         d['notifType'] = type
 
     def add_data_with_notif(self, d, n, c):
-        a = self.add_data(d, c)
+        a = self.add_data_array(d, c)
         self.add_notif_type(a, n)
 
 
@@ -83,6 +83,7 @@ class NotifResponse(ResponseN):
         response_fields = fields.fields['wizcard_fields']
         dumper.selectObjectFields('Wizcard', response_fields)
         out = dumper.dump(wizcard, 'json')
+        self.add_data("wizCardID", notif.action_object_id)
         self.add_data_with_notif(out, self.notifMapping[accept], 1)
         return self.response
 
