@@ -38,6 +38,7 @@ class ResponseN(Response):
     def clear(self):
         self.response['result']['Error'] = "0"
         self.response['result']['Description'] = "Ok"
+        self.response['data'] = {}
         self.response['data']['numElements'] = 0
         self.response['data']['elementList'] = []
         
@@ -83,7 +84,7 @@ class NotifResponse(ResponseN):
         response_fields = fields.fields['wizcard_fields']
         dumper.selectObjectFields('Wizcard', response_fields)
         out = dumper.dump(wizcard, 'json')
-        self.add_data("wizCardID", notif.action_object_id)
+        self.add_data("wizCardID", notif.action_object_object_id)
         self.add_data_with_notif(out, self.notifMapping[accept], 1)
         return self.response
 

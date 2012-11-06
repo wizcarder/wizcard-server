@@ -414,7 +414,6 @@ class ParseMsgAndDispatch:
     def processSendCardToContacts(self):
         #implicitly create a bidir cardship (since this is from contacts)
         #and also Q the other guys cards here
-        pdb.set_trace()
         count = 0
         source_user = User.objects.get(id = self.sender['wizUserID'])
         wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
@@ -453,12 +452,13 @@ class ParseMsgAndDispatch:
     def processSendCardUC(self):
         try:
             source_user = User.objects.get(id = self.sender['wizUserID'])
-            target_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
             #AA: TODO: Extend to support multiple wizcards per user
             ##AA: TODO: What if the recipient has no wizcard ?
             #wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-            wizcard2 = target_user.wizcards.all()[0]
+            ##change after bug fix in app: AA:TODO
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizUserID'])
+            target_user = wizcard2.user
 
             #create bidir cardship
             if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
@@ -468,19 +468,23 @@ class ParseMsgAndDispatch:
                 #send a connection request
                 try:
                     # If there's a wizconnection request from the other user accept it.
-                    accept_wizconnection(wizcard1, wizcard2)
+                    accept_wizconnection(wizcard2, wizcard1)
                 except Http404:
                     # If we already have an active wizconnection request IntegrityError
                     # will be raised and the transaction will be rolled back.
-                    wizconnection = WizConnectionRequest.objects.create(
-                        from_wizcard=wizcard1,
-                        to_wizcard=wizcard2,
-                        message="wizconnection request")
+                    try: 
+                        wizconnection = WizConnectionRequest.objects.create(
+                            from_wizcard=wizcard1,
+                            to_wizcard=wizcard2,
+                            message="wizconnection request")
 
-                    #Q this to the receiver
-                    notify.send(source_user, recipient=target_user, 
-                                verb='wizconnection request untrusted', 
-                                target=wizcard1, action_object=wizcard2)
+                        #Q this to the receiver
+                        notify.send(source_user, recipient=target_user, 
+                                    verb='wizconnection request untrusted', 
+                                    target=wizcard1, action_object=wizcard2)
+                    except: #AA: TODO: Put integrity error
+                        #nothing to do, just return silently
+                        pass 
         except:
             #AA:TODO: what to do ?
             self.response.add_result("Error", 1)
