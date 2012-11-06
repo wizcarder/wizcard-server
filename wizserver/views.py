@@ -71,7 +71,14 @@ class ParseMsgAndDispatch:
         except:
             pass
         self.msgType = self.header['msgType']
-        logger.debug('Received POST request, msgType: %s', self.msgType)
+
+        print '{sender} sent "{type}"'.format (sender=self.sender['userID'], type=self.header['msgType'])
+        print self.sender 
+        try:
+            print self.receiver
+        except:
+            pass
+
         self.response = Response()
 
 
