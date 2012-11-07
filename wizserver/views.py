@@ -33,7 +33,7 @@ from response import Response, NotifResponse
 import msg_test, fields
 
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
 
 class WizRequestHandler(View):
     parsed_msg = {}
@@ -72,12 +72,7 @@ class ParseMsgAndDispatch:
             pass
         self.msgType = self.header['msgType']
 
-        print '{sender} sent "{type}"'.format (sender=self.sender['userID'], type=self.header['msgType'])
-        print self.sender 
-        try:
-            print self.receiver
-        except:
-            pass
+        #print '{sender} sent "{type}"'.format (sender=self.sender['userID'], type=self.header['msgType'])
 
         #print '{sender} at location [{locX} , {locY}] sent "{type}"'.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'], type=self.header['msgType'])
 
@@ -237,7 +232,7 @@ class ParseMsgAndDispatch:
                           address_country=country, address_zip=zipcode)
         wizcard.save()
         
-        self.response.add_data("wizCardID", wizcard.id)
+        self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
 
@@ -254,15 +249,10 @@ class ParseMsgAndDispatch:
             #Q a notif to other guy so that the app on the other side can react
             notify.send(wizcard1.user, recipient=wizcard2.user, 
                         verb='deleted wizcard', target=wizcard1)
-            deleted_wizcards.append(wizcard2)
-            count += 1
-
-        response_fields = fields.fields['delete_wizcard_fields']
-        dumper = DataDumper()
-        dumper.selectObjectFields('Wizcard', response_fields)
-        wizcards = dumper.dump(deleted_wizcards, 'json')
-        self.response.add_data("deletedWizcards", wizcards)
-        self.response.add_data("count", count)
+            #Q a notif to sender to let him know of all wizconnections to delete
+            notify.send(wizcard2.user, recipient=user,
+                        verb='deleted wizcard', target=wizcard2, 
+                        action_object = wizcard2)
 
         wizcard1.delete()
         return self.response.response
@@ -270,8 +260,7 @@ class ParseMsgAndDispatch:
     def processDeleteWizcardRolodex(self):
         user = User.objects.get(id=self.sender['wizUserID'])
         #TODO: AA: change this to handle multple wizcards
-        #wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
-        wizcard1 = user.wizcards.all()[0]
+        wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
         wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
         Wizcard.objects.uncard(wizcard1, wizcard2)
         #Q a notif to other guy so that the app on the other side can react
@@ -281,11 +270,8 @@ class ParseMsgAndDispatch:
 
     def processDeleteWizcardNotification(self):
         user = User.objects.get(id=self.sender['wizUserID'])
-        #TODO: AA: change this to handle multple wizcards
-        #wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
-        #wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
-        wizcard1 = user.wizcards.all()[0]
-        wizcard2 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+        wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+        wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
 
         #wizcard2 must have sent a wizconnection_request, lets clear it
         Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
@@ -363,7 +349,7 @@ class ParseMsgAndDispatch:
 
         wizcard.save()
 
-        self.response.add_data("wizCardID", wizcard.id)
+        self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
     def processLocationUpdate(self):
@@ -455,9 +441,7 @@ class ParseMsgAndDispatch:
             wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
             #AA: TODO: Extend to support multiple wizcards per user
             ##AA: TODO: What if the recipient has no wizcard ?
-            #wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-            ##change after bug fix in app: AA:TODO
-            wizcard2 = Wizcard.objects.get(id=self.receiver['wizUserID'])
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
             target_user = wizcard2.user
 
             #create bidir cardship
@@ -522,6 +506,9 @@ class ParseMsgAndDispatch:
         else:
             self.response.add_result("Error", 1)
             self.response.add_result("Description", "Query returned no results")
+ 
+        print "returning processQueryResponse"
+        print self.response.response
 
         return self.response.response
 
@@ -558,3 +545,4 @@ def accept_wizconnection(from_wizcard, to_wizcard):
 
 wizrequest_handler = WizRequestHandler.as_view()
 #wizconnection_request = login_required(WizConnectionRequestView.as_view())
+

@@ -54,6 +54,9 @@ class ResponseN(Response):
     def add_data_with_notif(self, d, n, c):
         a = self.add_data_array(d, c)
         self.add_notif_type(a, n)
+    
+    def add_data_to_dict(self, dict, k, v):
+        dict[k] = v
 
 
 class NotifResponse(ResponseN):
@@ -84,8 +87,10 @@ class NotifResponse(ResponseN):
         response_fields = fields.fields['wizcard_fields']
         dumper.selectObjectFields('Wizcard', response_fields)
         out = dumper.dump(wizcard, 'json')
-        self.add_data("wizCardID", notif.action_object_object_id)
+        self.add_data_to_dict(out, "wizCardID", notif.action_object_object_id)
         self.add_data_with_notif(out, self.notifMapping[accept], 1)
+        print "sending notification"
+        print self.response
         return self.response
 
     def notifWizConnectionT(self, notif):
@@ -99,6 +104,8 @@ class NotifResponse(ResponseN):
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
-        out = dict(wizCardId=notif.target_object_id)
+        out = dict(wizCardID=notif.target_object_id)
         self.add_data_with_notif(out, self.notifMapping[self.DELETE_IMPLICIT], 1)
+        print "sending revoke notification"
+        print self.response
         return self.response
