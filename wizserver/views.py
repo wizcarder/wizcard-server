@@ -56,6 +56,7 @@ class WizRequestHandler(View):
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(request)
         ret =  pdispatch.processIncomingMessage()
+        print ret
         #send response
         return HttpResponse(json.dumps(ret))
 
@@ -100,6 +101,7 @@ class ParseMsgAndDispatch:
         return msgHandlers[self.msgType]()
 
     def processRegister(self):
+        print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
         try:
             firstname = self.sender['firstname']
         except:
@@ -143,30 +145,47 @@ class ParseMsgAndDispatch:
             wizcards = []
             rolodex = []
             notifications = []
-            count = 0
+            w_count = 0
+            r_count = 0
             #sync own card
             for wizcard in user.wizcards.all():
+                w_count += 1
                 wizcards.append(wizcard)
+                #add connected wizcards in order
+                if wizcard.wizconnection_count():
+                    rolodex.append(wizcard.wizconnections.all())
+                    r_count += 1
+
+            if w_count:
                 dumper = DataDumper()
                 response_fields = fields.fields['wizcard_fields']
                 dumper.selectObjectFields('Wizcard', response_fields)
                 wizcards_out = dumper.dump(wizcards, 'json')
-                
-                #add connected wizcards in order
-                rolodex.append(wizcard.wizconnections.all())
-                count += 1
 
-            dumper = DataDumper()
-            response_fields = fields.fields['wizcard_fields']
-            dumper.selectObjectFields('Wizcard', response_fields)
-            rolodex_out = dumper.dump(rolodex, 'json')
+            if r_count:
+                dumper = DataDumper()
+                response_fields = fields.fields['wizcard_fields']
+                dumper.selectObjectFields('Wizcard', response_fields)
+                rolodex_out = dumper.dump(rolodex, 'json')
+
+                #AA:TODO: Ugly. Find a better way to add arbitrary data into json
+                # via json_wrapper
+                # for now, walking the rolodex 2d array and adding the self wizCardID
+                for i in range(r_count):
+                    r = rolodex_out[i]
+                    for j in range(len(r)):
+                        r[j]['wizCardID'] = wizcards[i].pk
+
+                #prune out empty elements
+                rolodex_out = filter(lambda a:len(a) != 0, rolodex_out)
 
         if user is not None and user.is_active:
             # Correct password, and the user is marked "active"
             login(self.request, user)
             self.response.add_data("wizUserID", user.id)
-            if count != 0:
+            if w_count != 0:
                 self.response.add_data("wizcards", wizcards_out)
+            if r_count != 0:
                 self.response.add_data("rolodex", rolodex_out)
                 
         else:
