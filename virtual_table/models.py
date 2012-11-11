@@ -35,7 +35,7 @@ class VirtualTable(models.Model):
     numSitting = models.IntegerField(null=True, blank=True)
     isSecure = models.BooleanField(default=False)
     password = models.CharField(max_length=40, blank=True)
-    creator = models.OneToOneField(User, related_name='tables')
+    creator = models.ForeignKey(User, related_name='tables')
     users = models.ManyToManyField(User, through='Membership')
 
     objects = VirtualTableManager()
