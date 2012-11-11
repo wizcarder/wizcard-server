@@ -28,6 +28,7 @@ from django.db.models import Q
 from django.core import serializers
 from wizcardship.models import WizConnectionRequest, Wizcard
 from notifications.models import notify, Notification
+from virtual_table.models import VirtualTable
 from json_wrapper import DataDumper
 from response import Response, NotifResponse
 import msg_test, fields
@@ -94,7 +95,12 @@ class ParseMsgAndDispatch:
             'get_cards'                 : self.processGetNotifications,
             'send_card_to_contacts'     : self.processSendCardToContacts,
             'send_card_to_user'         : self.processSendCardUC,
-            'send_query_user'           : self.processQueryUser
+            'send_query_user'           : self.processQueryUser,
+            'show_table_list'           : self.processQueryTable,
+            'create_table'              : self.processCreateTable,
+            'join_table'                : self.processJoinTable,
+            'leave_table'               : self.processLeaveTable,
+            'destroy_table'             : self.processDestroyTable
         }
 
         # Dispatch to appropriate message handler
@@ -512,14 +518,14 @@ class ParseMsgAndDispatch:
         except:
             email = None
 
-        recipients, count = find_users(userID, name, phone, email)
+        result, count = find_users(userID, name, phone, email)
         #send back to app for selection
 
         if (count):
             response_fields = fields.fields['query_fields']
             dumper = DataDumper()
             dumper.selectObjectFields('Wizcard', response_fields)
-            users = dumper.dump(recipients, 'json')
+            users = dumper.dump(result, 'json')
             self.response.add_data("queryResult", users)
             self.response.add_data("count", count)
         else:
@@ -530,6 +536,64 @@ class ParseMsgAndDispatch:
         print self.response.response
 
         return self.response.response
+
+    def processQueryTable(self):
+        lat = self.sender['lat']
+        lng = self.sender['lng']
+        result, count = VirtualTable.objects.get_closest_n(3, lat, lng)
+        if count:
+            response_fields = fields.fields['table_fields']
+            dumper = DataDumper()
+            dumper.selectObjectFields('VirtualTable', response_fields)
+            tables = dumper.dump(result, 'json')
+            self.response.add_data("queryResult", tables)
+            self.response.add_data("count", count)
+        else:
+            self.response.add_result("Error", 1)
+            self.response.add_result("Description", "Query returned no results")
+
+        return self.response.response
+
+    def processCreateTable(self):
+        user = User.objects.get(id=self.sender['wizUserID'])
+        tablename = self.sender['table_name']
+        lat = self.sender['lat']
+        lng = self.sender['lng']
+        secure = self.sender['lat']
+        try:
+            password = self.sender['password']
+        except:
+            password = ""
+        table = VirtualTable.objects.create(tablename=tablename, lat=lat, lng=lng,
+                                           isSecure=secure, password=password,
+                                           creator=user)
+
+        table.join_table(user)
+        table.save()
+        self.response.add_data("tableID", table.pk)
+        return self.response.response
+
+    def processJoinTable(self):
+        user = User.objects.get(id=self.sender['wizUserID'])
+        table = VirtualTable.objects.get(id=self.sender['tableID'])
+        join = table.join_table(user)
+
+        self.response.add_data("tableID", join.pk)
+        return self.response.response
+
+    def processLeaveTable(self):
+        user = User.objects.get(id=self.sender['wizUserID'])
+        table = VirtualTable.objects.get(id=self.sender['tableID'])
+        leave = table.leave_table(user)
+
+        self.response.add_data("tableID", leave.pk)
+        return self.response.response
+
+    def processDestroyTable(self):
+        table = VirtualTable.objects.get(id=self.sender['tableID'])
+        table.delete_table()
+        return self.response.response
+
 
 def find_users(userID, name, phone, email):
     #name can be first name, last name or even combined
