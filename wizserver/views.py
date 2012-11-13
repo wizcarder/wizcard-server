@@ -188,7 +188,7 @@ class ParseMsgAndDispatch:
         if user is not None and user.is_active:
             # Correct password, and the user is marked "active"
             login(self.request, user)
-            self.response.add_data("wizUserID", user.id)
+            self.response.add_data("wizUserID", user.pk)
             if w_count != 0:
                 self.response.add_data("wizcards", wizcards_out)
             if r_count != 0:
@@ -433,7 +433,7 @@ class ParseMsgAndDispatch:
             try:
                 emails = recipient['emailAddresses']
                 for email in emails:
-                    target_wizcards, query_count = find_users(source_user.id, name=None, phone=None, email=email)
+                    target_wizcards, query_count = find_users(source_user.pk, name=None, phone=None, email=email)
                     #AA:TODO: Fix for multiple wizcards. Get it by default flag
                     if query_count:
                         for wizcard2 in target_wizcards:

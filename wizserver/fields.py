@@ -5,5 +5,5 @@ fields = {
                                "address_zip"],
     'query_fields'          : ["id", "username", "first_name", "last_name"],
     'delete_wizcard_fields' : ["id"],
-    'table_fields'          : ["id", "tablename"]
+    'table_fields'          : ["id", "tablename", "isSecure"]
 }
