@@ -32,7 +32,7 @@ class VirtualTable(models.Model):
     lat = models.FloatField()
     lng = models.FloatField()
     #centroid = models.FloatField(null=True, blank=True)
-    numSitting = models.IntegerField(null=True, blank=True)
+    numSitting = models.IntegerField(default=0, blank=True)
     isSecure = models.BooleanField(default=False)
     password = models.CharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
@@ -41,7 +41,7 @@ class VirtualTable(models.Model):
     objects = VirtualTableManager()
 
     def __unicode__(self):
-        return self.name
+        return self.tablename
 
     def set_location(self, lat, lng):
         self.lat = lat
@@ -51,19 +51,26 @@ class VirtualTable(models.Model):
         return self
 
     def name(self):
-        return self.name
+        return self.tablename
 
     def join_table(self, user):
         m, created = Membership.objects.get_or_create(user=user, table=self)
+        self.inc_numsitting()
         return self
 
     def leave_table(self, user):
-        self.users.remove(user)
+        user.membership_set.get(table=self).delete()
+        self.dec_numsitting()
         return self
 
     def delete_table(self, user):
-        self.users.clear()
-        self.delete()
+        #only the creator can destroy
+        if self.creator == user:
+            self.users.clear()
+            self.delete()
+        else:
+            return False
+        return True
 
     def lifetime(self, time):
         return self.lifetime
@@ -74,6 +81,14 @@ class VirtualTable(models.Model):
     def distance_from(self, lat, lng):
         return 0
 
+    def inc_numsitting(self):
+        self.numSitting += 1
+
+    def dec_numsitting(self):
+        self.numSitting -= 1
+        #we can destroy this table if no one is active
+        if self.numSitting == 0:
+            self.delete()
 
 
 class Membership(models.Model):
@@ -81,6 +96,7 @@ class Membership(models.Model):
     date_modified = models.DateTimeField()
     user = models.ForeignKey(User)
     table = models.ForeignKey(VirtualTable)
+
 
     def save(self, *args, **kwargs):
         if self.date_created == None:

@@ -590,8 +590,12 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processDestroyTable(self):
+        user = User.objects.get(id=self.sender['wizUserID'])
         table = VirtualTable.objects.get(id=self.sender['tableID'])
-        table.delete_table()
+        ret = table.delete_table(user)
+        if ret is not True:
+            self.response.add_result("Error", 1)
+            self.response.add_result("Description", "User is not the creator")
         return self.response.response
 
 
