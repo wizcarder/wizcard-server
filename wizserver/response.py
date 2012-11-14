@@ -42,17 +42,17 @@ class ResponseN(Response):
         self.response['data']['numElements'] = 0
         self.response['data']['elementList'] = []
         
-    def add_data_array(self, d, c):
+    def add_data_array(self, d):
         a = dict(data=d)
         self.response['data']['elementList'].append(a)
-        self.response['data']['numElements'] += c
+        self.response['data']['numElements'] += 1
         return a
 
     def add_notif_type(self, d, type):
         d['notifType'] = type
 
-    def add_data_with_notif(self, d, n, c):
-        a = self.add_data_array(d, c)
+    def add_data_with_notif(self, d, n):
+        a = self.add_data_array(d)
         self.add_notif_type(a, n)
     
     def add_data_to_dict(self, dict, k, v):
@@ -69,6 +69,7 @@ class NotifResponse(ResponseN):
     NOTIF_WIZCARD_ADD_ROLODEX       = 1
     NOTIF_WIZCARD_ADD_NOTIFICATION  = 2
     NOTIF_WIZCARD_DEL               = 3
+    NOTIF_TABLE_DEL                 = 4
 
     notifMapping = {
         ACCEPT_IMPLICIT : NOTIF_WIZCARD_ADD_ROLODEX,
@@ -88,7 +89,7 @@ class NotifResponse(ResponseN):
         dumper.selectObjectFields('Wizcard', response_fields)
         out = dumper.dump(wizcard, 'json')
         self.add_data_to_dict(out, "wizCardID", notif.action_object_object_id)
-        self.add_data_with_notif(out, self.notifMapping[accept], 1)
+        self.add_data_with_notif(out, self.notifMapping[accept])
         print "sending notification"
         print self.response
         return self.response
@@ -105,7 +106,14 @@ class NotifResponse(ResponseN):
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
         out = dict(wizCardID=notif.target_object_id)
-        self.add_data_with_notif(out, self.notifMapping[self.DELETE_IMPLICIT], 1)
+        self.add_data_with_notif(out, self.notifMapping[self.DELETE_IMPLICIT])
         print "sending revoke notification"
         print self.response
         return self.response
+
+    def notifDestroyedTable(self, notif):
+        out = dict(tableID=notif.target_object_id)
+        self.add_data_with_notif(out, self.NOTIF_TABLE_DEL)
+        print self.response
+        return self.response
+

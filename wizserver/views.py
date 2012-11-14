@@ -411,7 +411,8 @@ class ParseMsgAndDispatch:
             'wizconnection request trusted'   : notifResponse.notifWizConnectionT,
             'accepted wizcard'      : notifResponse.notifAcceptedWizcard,
             'revoked wizcard'       : notifResponse.notifRevokedWizcard,
-            'deleted wizcard'       : notifResponse.notifRevokedWizcard
+            'deleted wizcard'       : notifResponse.notifRevokedWizcard,
+            'destroy table'         : notifResponse.notifDestroyedTable
         }
 
         for notification in notifications:
@@ -592,8 +593,14 @@ class ParseMsgAndDispatch:
     def processDestroyTable(self):
         user = User.objects.get(id=self.sender['wizUserID'])
         table = VirtualTable.objects.get(id=self.sender['tableID'])
-        ret = table.delete_table(user)
-        if ret is not True:
+        #we need to notify all members of deletion
+        members = table.users.all()
+        for member in members:
+            notify.send(user, recipient=member, verb='destroy table', target=table)
+
+        if table.creator == user:
+            table.delete_table(user)
+        else:
             self.response.add_result("Error", 1)
             self.response.add_result("Description", "User is not the creator")
         return self.response.response

@@ -55,22 +55,19 @@ class VirtualTable(models.Model):
 
     def join_table(self, user):
         m, created = Membership.objects.get_or_create(user=user, table=self)
+        self.exchange(user)
         self.inc_numsitting()
         return self
 
     def leave_table(self, user):
+        pdb.set_trace()
         user.membership_set.get(table=self).delete()
         self.dec_numsitting()
         return self
 
     def delete_table(self, user):
-        #only the creator can destroy
-        if self.creator == user:
-            self.users.clear()
-            self.delete()
-        else:
-            return False
-        return True
+        self.users.clear()
+        self.delete()
 
     def lifetime(self, time):
         return self.lifetime
