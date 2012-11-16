@@ -388,7 +388,7 @@ class ParseMsgAndDispatch:
         wizcard1 = user.wizcards.all()[0]
         #wizcard1 = Wizcard.objects.get(id=self.receiver['wizCardID'])
         wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-        accept_wizconnection(wizcard2, wizcard1)
+        wizlib.accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender 
         notify.send(user, recipient=wizcard2.user,
                     verb='accepted wizcard', target=wizcard1, 

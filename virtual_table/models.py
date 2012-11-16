@@ -78,6 +78,10 @@ class VirtualTable(models.Model):
             pass
         else:
             self.dec_numsitting()
+
+        #we can destroy this table if no one is active
+        if self.numSitting == 0:
+            self.delete()
         return self
 
     def delete_table(self, user):
@@ -99,9 +103,6 @@ class VirtualTable(models.Model):
 
     def dec_numsitting(self):
         self.numSitting -= 1
-        #we can destroy this table if no one is active
-        if self.numSitting == 0:
-            self.delete()
         self.save()
 
 
