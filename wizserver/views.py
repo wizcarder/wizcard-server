@@ -16,7 +16,6 @@
 import pdb
 import json
 import logging
-import operator
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest, Http404
 from django.views.generic import View
@@ -24,13 +23,14 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.core import serializers
 from wizcardship.models import WizConnectionRequest, Wizcard
 from notifications.models import notify, Notification
 from virtual_table.models import VirtualTable
 from json_wrapper import DataDumper
 from response import Response, NotifResponse
+from wizserver import wizlib
+import wizlib
 import msg_test, fields
 
 
@@ -429,30 +429,21 @@ class ParseMsgAndDispatch:
         count = 0
         source_user = User.objects.get(id = self.sender['wizUserID'])
         wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
+        #A:TODO: Cross verify user agains wizcard
         recipients = self.receiver['contacts']
         for recipient in recipients:
             try:
                 emails = recipient['emailAddresses']
                 for email in emails:
-                    target_wizcards, query_count = find_users(source_user.pk, name=None, phone=None, email=email)
+                    target_wizcards, query_count = wizlib.find_users(source_user.pk, name=None, phone=None, email=email)
                     #AA:TODO: Fix for multiple wizcards. Get it by default flag
                     if query_count:
                         for wizcard2 in target_wizcards:
                             #create bidir cardship
-                            if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
-                                self.response.add_result("Error", 2)
-                                self.response.add_result("Description", "already connected to user")
-                            else:
+                            if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
+                                err = wizlib.exchange(wizcard1, wizcard2, True)
+                                exchange_implicit(wizcard1, wizcard2)
                                 count += 1
-                                Wizcard.objects.becard(wizcard1, wizcard2) 
-                                Wizcard.objects.becard(wizcard2, wizcard1) 
-                                #Q this to the receiver and vice-versa
-                                notify.send(source_user, recipient=wizcard2.user,
-                                            verb='wizconnection request trusted', 
-                                            target=wizcard1, action_object=wizcard2)
-                                notify.send(wizcard2.user, recipient=source_user,
-                                            verb='wizconnection request trusted', 
-                                            target=wizcard2, action_object=wizcard1)
             except:
                 #AA:TODO: what to do ?
                 self.response.add_result("Error", 2)
@@ -463,38 +454,17 @@ class ParseMsgAndDispatch:
 
     def processSendCardUC(self):
         try:
-            source_user = User.objects.get(id = self.sender['wizUserID'])
             wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
             #AA: TODO: Extend to support multiple wizcards per user
             ##AA: TODO: What if the recipient has no wizcard ?
             wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            source_user = wizcard1.user
             target_user = wizcard2.user
 
-            #create bidir cardship
-            if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
-                self.response.add_result("Error", 2)
-                self.response.add_result("Description", "Already connected to user")
-            else:
-                #send a connection request
-                try:
-                    # If there's a wizconnection request from the other user accept it.
-                    accept_wizconnection(wizcard2, wizcard1)
-                except Http404:
-                    # If we already have an active wizconnection request IntegrityError
-                    # will be raised and the transaction will be rolled back.
-                    try: 
-                        wizconnection = WizConnectionRequest.objects.create(
-                            from_wizcard=wizcard1,
-                            to_wizcard=wizcard2,
-                            message="wizconnection request")
+            err = wizlib.exchange(wizcard1, wizcard2, False)
+            self.response.add_result("Error", err['Error'])
+            self.response.add_result("Description". err['Description'])
 
-                        #Q this to the receiver
-                        notify.send(source_user, recipient=target_user, 
-                                    verb='wizconnection request untrusted', 
-                                    target=wizcard1, action_object=wizcard2)
-                    except: #AA: TODO: Put integrity error
-                        #nothing to do, just return silently
-                        pass 
         except:
             #AA:TODO: what to do ?
             self.response.add_result("Error", 1)
@@ -519,7 +489,7 @@ class ParseMsgAndDispatch:
         except:
             email = None
 
-        result, count = find_users(userID, name, phone, email)
+        result, count = wizlib.find_users(userID, name, phone, email)
         #send back to app for selection
 
         if (count):
@@ -604,37 +574,6 @@ class ParseMsgAndDispatch:
             self.response.add_result("Error", 1)
             self.response.add_result("Description", "User is not the creator")
         return self.response.response
-
-
-def find_users(userID, name, phone, email):
-    #name can be first name, last name or even combined
-    #any of the arguments may be null
-    qlist = []
-
-    if name != None:
-        split = name.split()
-        for n in split:
-            name_result = (Q(first_name__icontains=n) | Q(last_name__icontains=n))
-            qlist.append(name_result)
-
-    #phone
-    if phone != None:
-        phone_result = (Q(phone1__contains=phone) | Q(phone2__contains=phone))
-        qlist.append(phone_result)
-
-    #email
-    if email != None:
-        email_result = Q(email=email)
-        qlist.append(email_result)
-
-    result = Wizcard.objects.filter(reduce(operator.or_, qlist)).exclude(user_id=userID)
-
-    return result, len(result)
-
-def accept_wizconnection(from_wizcard, to_wizcard):
-    get_object_or_404(WizConnectionRequest, from_wizcard=from_wizcard,
-                      to_wizcard=to_wizcard).accept()
-
 
 
 wizrequest_handler = WizRequestHandler.as_view()

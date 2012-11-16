@@ -21,6 +21,7 @@ from django.contrib.auth.models import User
 import pdb
 from django.db.models import Q
 from datetime import datetime
+from wizserver import wizlib
 
 class VirtualTableManager(models.Manager):
     def get_closest_n(self, n, lat, lng):
@@ -47,22 +48,36 @@ class VirtualTable(models.Model):
         self.lat = lat
         self.lng = lng
 
-    def exchange(self, joinee):
+    def table_exchange(self, joinee):
+        pdb.set_trace()
+        joined = self.users.all().exclude(id=joinee.id)
+        wizcard1 = joinee.wizcards.all()[0]
+
+        wizcards = map(lambda u: u.wizcards.all()[0], joined)
+
+        for wizcard2 in wizcards:
+            wizlib.exchange(wizcard1, wizcard2, True)
+
         return self
 
     def name(self):
         return self.tablename
 
     def join_table(self, user):
+        pdb.set_trace()
         m, created = Membership.objects.get_or_create(user=user, table=self)
-        self.exchange(user)
+        self.table_exchange(user)
         self.inc_numsitting()
         return self
 
     def leave_table(self, user):
         pdb.set_trace()
-        user.membership_set.get(table=self).delete()
-        self.dec_numsitting()
+        try:
+            user.membership_set.get(table=self).delete()
+        except:
+            pass
+        else:
+            self.dec_numsitting()
         return self
 
     def delete_table(self, user):
@@ -80,12 +95,14 @@ class VirtualTable(models.Model):
 
     def inc_numsitting(self):
         self.numSitting += 1
+        self.save()
 
     def dec_numsitting(self):
         self.numSitting -= 1
         #we can destroy this table if no one is active
         if self.numSitting == 0:
             self.delete()
+        self.save()
 
 
 class Membership(models.Model):
