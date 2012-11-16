@@ -565,11 +565,11 @@ class ParseMsgAndDispatch:
         table = VirtualTable.objects.get(id=self.sender['tableID'])
         #we need to notify all members of deletion
         members = table.users.all()
-        for member in members:
-            notify.send(user, recipient=member, verb='destroy table', target=table)
 
         if table.creator == user:
             table.delete_table(user)
+            for member in members:
+                notify.send(user, recipient=member, verb='destroy table', target=table)
         else:
             self.response.add_result("Error", 1)
             self.response.add_result("Description", "User is not the creator")

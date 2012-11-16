@@ -12,7 +12,6 @@ def accept_wizconnection(from_wizcard, to_wizcard):
 
 
 def exchange_implicit(wizcard1, wizcard2):
-    pdb.set_trace()
     source_user = wizcard1.user
     target_user = wizcard2.user
 
@@ -27,7 +26,6 @@ def exchange_implicit(wizcard1, wizcard2):
                 target=wizcard2, action_object=wizcard1)
 
 def exchange_explicit(wizcard1, wizcard2):
-    pdb.set_trace()
     source_user = wizcard1.user
     target_user = wizcard2.user
 
@@ -54,7 +52,6 @@ def exchange_explicit(wizcard1, wizcard2):
 
 def exchange(wizcard1, wizcard2, implicit):
     #create bidir cardship
-    pdb.set_trace()
     ret = dict(Error="OK", Description="")
     if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
         ret['Error'] = 2

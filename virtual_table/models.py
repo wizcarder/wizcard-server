@@ -49,7 +49,6 @@ class VirtualTable(models.Model):
         self.lng = lng
 
     def table_exchange(self, joinee):
-        pdb.set_trace()
         joined = self.users.all().exclude(id=joinee.id)
         wizcard1 = joinee.wizcards.all()[0]
 
@@ -64,14 +63,12 @@ class VirtualTable(models.Model):
         return self.tablename
 
     def join_table(self, user):
-        pdb.set_trace()
         m, created = Membership.objects.get_or_create(user=user, table=self)
         self.table_exchange(user)
         self.inc_numsitting()
         return self
 
     def leave_table(self, user):
-        pdb.set_trace()
         try:
             user.membership_set.get(table=self).delete()
         except:
