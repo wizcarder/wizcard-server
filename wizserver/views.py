@@ -567,9 +567,9 @@ class ParseMsgAndDispatch:
         members = table.users.all()
 
         if table.creator == user:
-            table.delete_table(user)
             for member in members:
                 notify.send(user, recipient=member, verb='destroy table', target=table)
+            table.delete_table(user)
         else:
             self.response.add_result("Error", 1)
             self.response.add_result("Description", "User is not the creator")
