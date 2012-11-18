@@ -62,10 +62,14 @@ class VirtualTable(models.Model):
     def name(self):
         return self.tablename
 
-    def join_table(self, user):
-        m, created = Membership.objects.get_or_create(user=user, table=self)
-        self.table_exchange(user)
-        self.inc_numsitting()
+    def join_table(self, user, password):
+        #check password
+        if self.password == password:
+            m, created = Membership.objects.get_or_create(user=user, table=self)
+            self.table_exchange(user)
+            self.inc_numsitting()
+        else:
+            return None
         return self
 
     def leave_table(self, user):

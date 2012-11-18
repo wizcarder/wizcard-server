@@ -530,34 +530,46 @@ class ParseMsgAndDispatch:
         tablename = self.sender['table_name']
         lat = self.sender['lat']
         lng = self.sender['lng']
-        secure = self.sender['lat']
-        try:
+        secure = self.sender['isSecure']
+        if secure == 1:
             password = self.sender['password']
-        except:
+        else:
             password = ""
         table = VirtualTable.objects.create(tablename=tablename, lat=lat, lng=lng,
                                            isSecure=secure, password=password,
                                            creator=user)
 
-        table.join_table(user)
+        table.join_table(user, password)
         table.save()
         self.response.add_data("tableID", table.pk)
         return self.response.response
 
     def processJoinTable(self):
+        pdb.set_trace()
         user = User.objects.get(id=self.sender['wizUserID'])
         table = VirtualTable.objects.get(id=self.sender['tableID'])
-        join = table.join_table(user)
+        if table.isSecure:
+            password = self.sender['password']
+        else:
+            password = ""
+        
+        joined = table.join_table(user, password)
 
-        self.response.add_data("tableID", join.pk)
-        return self.response.response
+        if joined is None:
+            self.response.add_result("Error", 1)
+            self.response.add_result("Description", "Invalid Password")
+        else:
+            self.response.add_data("tableID", join.pk)
+            return self.response.response
 
     def processLeaveTable(self):
         user = User.objects.get(id=self.sender['wizUserID'])
-        table = VirtualTable.objects.get(id=self.sender['tableID'])
-        leave = table.leave_table(user)
-
-        self.response.add_data("tableID", leave.pk)
+        try:
+            table = VirtualTable.objects.get(id=self.sender['tableID'])
+            leave = table.leave_table(user)
+            self.response.add_data("tableID", leave.pk)
+        except:
+            pass
         return self.response.response
 
     def processDestroyTable(self):
