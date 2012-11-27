@@ -550,14 +550,14 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processGetTableDetails(self):
-        table_id = self.sender['tableID']
         #get the members
-        membership = VirtualTable.objects.get(id=table_id)
-        count = membership.count()
+        table = VirtualTable.objects.get(id=self.sender['tableID'])
+        memberships = table.membership_set.all()
+        count = memberships.count()
         if count:
             members = map(lambda m: (User.objects.get(id=m.user_id).first_name, 
                                      User.objects.get(id=m.user_id).last_name),
-                          membership)
+                          memberships)
             self.response.add_result("Members", members)
             self.response.add_result("Count", count)
         return self.response.response
