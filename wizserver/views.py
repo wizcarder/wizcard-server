@@ -159,7 +159,7 @@ class ParseMsgAndDispatch:
                 wizcards.append(wizcard)
                 #add connected wizcards in order
                 if wizcard.wizconnection_count():
-                    rolodex.append(wizcard.wizconnections.all())
+                    rolodex.extend(wizcard.wizconnections.all())
                     r_count += 1
 
             if w_count:
@@ -178,9 +178,7 @@ class ParseMsgAndDispatch:
                 # via json_wrapper
                 # for now, walking the rolodex 2d array and adding the self wizCardID
                 for i in range(r_count):
-                    r = rolodex_out[i]
-                    for j in range(len(r)):
-                        r[j]['wizCardID'] = wizcards[i].pk
+                    rolodex_out[i]['wizCardID'] = wizcards[i].pk
 
                 #prune out empty elements
                 rolodex_out = filter(lambda a:len(a) != 0, rolodex_out)
@@ -539,13 +537,12 @@ class ParseMsgAndDispatch:
                                            isSecure=secure, password=password,
                                            creator=user)
 
-        table.join_table(user, password)
+        table.join_table_and_exchange(user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)
         return self.response.response
 
     def processJoinTable(self):
-        pdb.set_trace()
         user = User.objects.get(id=self.sender['wizUserID'])
         table = VirtualTable.objects.get(id=self.sender['tableID'])
         if table.isSecure:
@@ -553,14 +550,14 @@ class ParseMsgAndDispatch:
         else:
             password = ""
         
-        joined = table.join_table(user, password)
+        joined = table.join_table_and_exchange(user, password, True)
 
         if joined is None:
             self.response.add_result("Error", 1)
             self.response.add_result("Description", "Invalid Password")
         else:
-            self.response.add_data("tableID", join.pk)
-            return self.response.response
+            self.response.add_data("tableID", joined.pk)
+        return self.response.response
 
     def processLeaveTable(self):
         user = User.objects.get(id=self.sender['wizUserID'])
