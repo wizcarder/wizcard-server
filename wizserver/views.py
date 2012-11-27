@@ -1,5 +1,4 @@
-"""
-.. autofunction:: wizconnection_request
+""" .. autofunction:: wizconnection_request
 
 .. autofunction:: wizconnection_accept
 
@@ -16,6 +15,7 @@
 import pdb
 import json
 import logging
+from django.db.models import Q
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest, Http404
 from django.views.generic import View
@@ -97,6 +97,7 @@ class ParseMsgAndDispatch:
             'send_card_to_user'         : self.processSendCardUC,
             'send_query_user'           : self.processQueryUser,
             'show_table_list'           : self.processQueryTable,
+            'table_details'             : self.processGetTableDetails,
             'create_table'              : self.processCreateTable,
             'join_table'                : self.processJoinTable,
             'leave_table'               : self.processLeaveTable,
@@ -108,6 +109,10 @@ class ParseMsgAndDispatch:
 
     def processRegister(self):
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
+
+        do_sync = False
+        w_count = 0
+        r_count = 0
         try:
             firstname = self.sender['firstname']
         except:
@@ -144,15 +149,11 @@ class ParseMsgAndDispatch:
 
         user = authenticate(username=l_userid, password=password)
 
-        try:
-            wizCardID = self.sender['wizCardID']
-        except:
+        if do_sync == True:
             #sync the app from server
             wizcards = []
             rolodex = []
             notifications = []
-            w_count = 0
-            r_count = 0
             #sync own card
             for wizcard in user.wizcards.all():
                 w_count += 1
@@ -507,8 +508,33 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processQueryTable(self):
-        lat = self.sender['lat']
-        lng = self.sender['lng']
+        try:
+            lat = self.sender['lat']
+            lng = self.sender['lng']
+            self.processQueryTableByLocation(lat, lng)
+        except:
+            name = self.sender['table_name']
+            self.processQueryTableByName(name)
+
+        return self.response.response
+
+
+    def processQueryTableByName(self, name):
+        tables = VirtualTable.objects.filter(Q(tablename__icontains=name))
+        count = tables.count()
+
+        if count:
+            response_fields = fields.fields['table_fields']
+            dumper = DataDumper()
+            dumper.selectObjectFields('VirtualTable', response_fields)
+            tables = dumper.dump(tables, 'json')
+            self.response.add_data("queryResult", tables)
+            self.response.add_data("count", count)
+            
+
+        return self.response.response
+
+    def processQueryTableByLocation(self, lat, lng):
         result, count = VirtualTable.objects.get_closest_n(3, lat, lng)
         if count:
             response_fields = fields.fields['table_fields']
@@ -522,6 +548,20 @@ class ParseMsgAndDispatch:
             self.response.add_result("Description", "Query returned no results")
 
         return self.response.response
+
+    def processGetTableDetails(self):
+        table_id = self.sender['tableID']
+        #get the members
+        membership = VirtualTable.objects.get(id=table_id)
+        count = membership.count()
+        if count:
+            members = map(lambda m: (User.objects.get(id=m.user_id).first_name, 
+                                     User.objects.get(id=m.user_id).last_name),
+                          membership)
+            self.response.add_result("Members", members)
+            self.response.add_result("Count", count)
+        return self.response.response
+
 
     def processCreateTable(self):
         user = User.objects.get(id=self.sender['wizUserID'])
