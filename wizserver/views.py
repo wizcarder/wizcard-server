@@ -114,12 +114,12 @@ class ParseMsgAndDispatch:
         w_count = 0
         r_count = 0
         try:
-            firstname = self.sender['firstname']
+            firstname = self.sender['first']
         except:
             firstname = ""
 
         try:
-            lastname = self.sender['lastname']
+            lastname = self.sender['last']
         except:
             lastname = ""
 
