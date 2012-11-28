@@ -555,11 +555,14 @@ class ParseMsgAndDispatch:
         memberships = table.membership_set.all()
         count = memberships.count()
         if count:
-            members = map(lambda m: (User.objects.get(id=m.user_id).first_name, 
-                                     User.objects.get(id=m.user_id).last_name),
-                          memberships)
-            self.response.add_result("Members", members)
-            self.response.add_result("Count", count)
+            members = map(lambda m: dict(
+                firstName=User.objects.get(id=m.user_id).first_name, 
+                lastName=User.objects.get(id=m.user_id).last_name
+            ), memberships)
+
+            self.response.add_data("Members", members)
+            self.response.add_data("Count", count)
+
         return self.response.response
 
 
