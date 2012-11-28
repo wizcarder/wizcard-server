@@ -1,0 +1,12 @@
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from django.core import serializers
+from wizcardship.models import WizConnectionRequest, Wizcard
+from notifications.models import notify, Notification
+from virtual_table.models import VirtualTable
+from virtual_table.models import Membership
+user = User.objects.get(id=239)
+table = VirtualTable.objects.get(id=6)
+

@@ -55,6 +55,9 @@ class WizcardManager(models.Manager):
         self.wizconnection_req_clear(wizcard1, wizcard2)
         self.wizconnection_req_clear(wizcard2, wizcard1)
 
+    def default_wizcard(self, user):
+        return user.wizcards.all().filter(isDefault=True)
+
 class Wizcard(models.Model):
     user = models.ForeignKey(User, related_name='wizcards')
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
@@ -70,6 +73,7 @@ class Wizcard(models.Model):
     address_state = models.CharField(max_length = 20, blank=True)
     address_country = models.CharField(max_length = 20, blank=True)
     address_zip = models.CharField(max_length = 20, blank=True)
+    isDefault = models.BooleanField(default=False)
 
 
     objects = WizcardManager()

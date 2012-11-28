@@ -48,14 +48,19 @@ class VirtualTable(models.Model):
         self.lat = lat
         self.lng = lng
 
+    def isSecure(self):
+        return self.isSecure
+    
+
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
-        wizcard1 = joinee.wizcards.all()[0]
+        wizcard1 = Wizcard.objects.default_wizcard(joinee)
 
-        wizcards = map(lambda u: u.wizcards.all()[0], joined)
+        wizcards = map(lambda u: Wizcard.objects.default_wizcard(u), joined)
+        implicit_exchange = self.isSecure()
 
         for wizcard2 in wizcards:
-            wizlib.exchange(wizcard1, wizcard2, True)
+            wizlib.exchange(wizcard1, wizcard2, implicit_exchange)
 
         return self
 

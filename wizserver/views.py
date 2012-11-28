@@ -137,13 +137,11 @@ class ParseMsgAndDispatch:
             user = User.objects.get(id=w_userid)
         except:
             #create case
-            #AA:TODO: ideally just create should be here. Did this to get around
-            # a bug in the app for now
             do_sync = True
-            user, created = User.objects.get_or_create(username=l_userid,
-                                                       defaults={'first_name':firstname,
-                                                                 'last_name':lastname,
-                                                                 'email':email})
+            user, created = User.objects.create(username=l_userid,
+                                                defaults={'first_name':firstname,
+                                                          'last_name':lastname,
+                                                          'email':email})
             user.set_password(password)
             user.save()
 
@@ -283,7 +281,6 @@ class ParseMsgAndDispatch:
 
     def processDeleteWizcardRolodex(self):
         user = User.objects.get(id=self.sender['wizUserID'])
-        #TODO: AA: change this to handle multple wizcards
         wizcard1 = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
         wizcard2 = get_object_or_404(Wizcard, id=self.receiver['wizCardID'])
         Wizcard.objects.uncard(wizcard1, wizcard2)
@@ -397,7 +394,6 @@ class ParseMsgAndDispatch:
 
     def processGetNotifications(self):
         #AA: TODO: Change this to get userId from session
-
         user = get_object_or_404(User, id=self.sender['wizUserID'])
 
         #AA: TODO: Check if this is sorted by time
@@ -435,7 +431,6 @@ class ParseMsgAndDispatch:
                 emails = recipient['emailAddresses']
                 for email in emails:
                     target_wizcards, query_count = wizlib.find_users(source_user.pk, name=None, phone=None, email=email)
-                    #AA:TODO: Fix for multiple wizcards. Get it by default flag
                     if query_count:
                         for wizcard2 in target_wizcards:
                             #create bidir cardship
