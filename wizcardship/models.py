@@ -55,9 +55,6 @@ class WizcardManager(models.Manager):
         self.wizconnection_req_clear(wizcard1, wizcard2)
         self.wizconnection_req_clear(wizcard2, wizcard1)
 
-    def default_wizcard(self, user):
-        return user.wizcards.all().filter(isDefault=True)
-
 class Wizcard(models.Model):
     user = models.ForeignKey(User, related_name='wizcards')
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
@@ -94,6 +91,14 @@ class Wizcard(models.Model):
         return u'[%s%s]' % (u', '.join(unicode(f.user) for f in wizconnection_list),
                             u', ...' if self.wizconnection_count() > count else u'')
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
+
+    def set_default(self):
+        self.isDefault = True
+    
+    def clear_default(self):
+        self.isDefault = False
+        self.save()
+
 
 
 

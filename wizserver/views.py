@@ -30,6 +30,7 @@ from virtual_table.models import VirtualTable
 from json_wrapper import DataDumper
 from response import Response, NotifResponse
 from wizserver import wizlib
+from wizserver.models import MyUser
 import wizlib
 import msg_test, fields
 
@@ -138,10 +139,10 @@ class ParseMsgAndDispatch:
         except:
             #create case
             do_sync = True
-            user, created = User.objects.create(username=l_userid,
-                                                defaults={'first_name':firstname,
-                                                          'last_name':lastname,
-                                                          'email':email})
+            user, created = User.objects.get_or_create(username=l_userid,
+                                                       defaults={'first_name':firstname,
+                                                                 'last_name':lastname,
+                                                                 'email':email})
             user.set_password(password)
             user.save()
 
@@ -199,7 +200,7 @@ class ParseMsgAndDispatch:
 
     def processAddWizcard(self):
         #find user
-        user = User.objects.get(id=self.sender['wizUserID'])
+        user = MyUser.objects.get(id=self.sender['wizUserID'])
 
         try:
             first_name = self.sender['first']
@@ -245,15 +246,24 @@ class ParseMsgAndDispatch:
             zipcode = self.sender['zip']
         except:
             zipcode = ""
+        try:
+            default = self.sender['isDefaultCard']
+        except:
+            default = True
 
         wizcard = Wizcard(user=user, first_name=first_name, last_name=last_name,
                           company=company,
                           title=title, phone1=phone1,
                           email=email, address_street1=street,
                           address_city=city, address_state=state,
-                          address_country=country, address_zip=zipcode)
-        wizcard.save()
+                          address_country=country, address_zip=zipcode,
+                          isDefault=default)
+
+
+        if default:
+            user.clear_default_wizcard_all()
         
+        wizcard.save()
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
@@ -306,6 +316,8 @@ class ParseMsgAndDispatch:
     def processModifyWizcard(self):
         #find card
         wizcard = get_object_or_404(Wizcard, id=self.sender['wizCardID'])
+        #AA: TODO: Change to Custom User Model
+        user = MyUser.objects.get(id=self.sender['wizUserID'])
 
         try:
             first_name = self.sender['first']
@@ -367,9 +379,17 @@ class ParseMsgAndDispatch:
             wizcard.zipcode = zipcode
         except:
             zipcode = ""
+        try:
+            default = self.sender['isDefaultCard']
+            wizcard.isDefault = default
+        except:
+            pass
+
+
+        if default:
+            user.clear_default_wizcard_all()
 
         wizcard.save()
-
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
@@ -562,17 +582,18 @@ class ParseMsgAndDispatch:
 
 
     def processCreateTable(self):
-        user = User.objects.get(id=self.sender['wizUserID'])
+        pdb.set_trace()
+        user = MyUser.objects.get(id=self.sender['wizUserID'])
         tablename = self.sender['table_name']
         lat = self.sender['lat']
         lng = self.sender['lng']
         secure = self.sender['isSecure']
-        if secure == 1:
+        if secure:
             password = self.sender['password']
         else:
             password = ""
         table = VirtualTable.objects.create(tablename=tablename, lat=lat, lng=lng,
-                                           isSecure=secure, password=password,
+                                           secureTable=secure, password=password,
                                            creator=user)
 
         table.join_table_and_exchange(user, password, False)
@@ -581,7 +602,7 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processJoinTable(self):
-        user = User.objects.get(id=self.sender['wizUserID'])
+        user = MyUser.objects.get(id=self.sender['wizUserID'])
         table = VirtualTable.objects.get(id=self.sender['tableID'])
         if table.isSecure:
             password = self.sender['password']

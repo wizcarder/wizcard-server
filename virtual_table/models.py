@@ -32,9 +32,9 @@ class VirtualTable(models.Model):
     tablename = models.CharField(max_length=40)
     lat = models.FloatField()
     lng = models.FloatField()
-    #centroid = models.FloatField(null=True, blank=True)
+    #centroid = models.BooleanField(default=False)
     numSitting = models.IntegerField(default=0, blank=True)
-    isSecure = models.BooleanField(default=False)
+    secureTable = models.BooleanField(default=False)
     password = models.CharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
     users = models.ManyToManyField(User, through='Membership')
@@ -49,14 +49,14 @@ class VirtualTable(models.Model):
         self.lng = lng
 
     def isSecure(self):
-        return self.isSecure
+        return self.secureTable
     
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
-        wizcard1 = Wizcard.objects.default_wizcard(joinee)
+        wizcard1 = MyUser.objects.get(id=joinee.pk).default_wizcard(joinee)
 
-        wizcards = map(lambda u: Wizcard.objects.default_wizcard(u), joined)
+        wizcards = map(lambda u: MyUser.objects.get(id=u.pk).default_wizcard(u), joined)
         implicit_exchange = self.isSecure()
 
         for wizcard2 in wizcards:
