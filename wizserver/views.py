@@ -582,7 +582,6 @@ class ParseMsgAndDispatch:
 
 
     def processCreateTable(self):
-        pdb.set_trace()
         user = MyUser.objects.get(id=self.sender['wizUserID'])
         tablename = self.sender['table_name']
         lat = self.sender['lat']
