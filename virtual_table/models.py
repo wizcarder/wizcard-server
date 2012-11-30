@@ -22,6 +22,7 @@ import pdb
 from django.db.models import Q
 from datetime import datetime
 from wizserver import wizlib
+from wizserver.models import MyUser
 
 class VirtualTableManager(models.Manager):
     def get_closest_n(self, n, lat, lng):
@@ -54,9 +55,9 @@ class VirtualTable(models.Model):
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
-        wizcard1 = MyUser.objects.get(id=joinee.pk).default_wizcard(joinee)
+        wizcard1 = MyUser.objects.get(id=joinee.pk).default_wizcard()
 
-        wizcards = map(lambda u: MyUser.objects.get(id=u.pk).default_wizcard(u), joined)
+        wizcards = map(lambda u: MyUser.objects.get(id=u.pk).default_wizcard(), joined)
         implicit_exchange = self.isSecure()
 
         for wizcard2 in wizcards:

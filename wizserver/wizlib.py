@@ -56,7 +56,7 @@ def exchange(wizcard1, wizcard2, implicit):
     if Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
         ret['Error'] = 2
         ret['Description'] = "Already connected to user"
-    elif implicit is True:
+    elif implicit:
         exchange_implicit(wizcard1, wizcard2)
     else:
         exchange_explicit(wizcard1, wizcard2)

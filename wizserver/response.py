@@ -23,6 +23,11 @@ class Response:
 
     def add_data(self, k, v):
         self.response['data'][k] = v
+
+    def error_response(self, errno, errorStr):
+        self.add_result("Error", errno)
+        self.add_result("Description", errorStr)
+        self.response
         
 #subclass of above. This handles arrays of Data and used by Notifications
 class ResponseN(Response):
