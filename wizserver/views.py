@@ -422,8 +422,7 @@ class ParseMsgAndDispatch:
         #we'd just need to lookup connection from there
         try:
             user = User.objects.get(id=self.sender['wizUserID'])
-            wizcard1 = user.wizcards.all()[0]
-            #wizcard1 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
             wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
         except ObjectDoesNotExist:
             self.response.error_response(errno=1, errorStr="Object does not exist")
