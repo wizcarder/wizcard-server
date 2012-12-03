@@ -15,8 +15,8 @@ DATABASES = {
         'NAME': 'wizcard',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -46,7 +46,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/Users/aammundi/stuff/WizCard/trunk/wizcard-server/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -129,6 +129,9 @@ INSTALLED_APPS = (
     'virtual_table'
 
 )
+
+#AUTH_PROFILE_MODULE = 'accounts.UserProfile'
+
 
 import logging
 logging.basicConfig(

@@ -20,6 +20,8 @@ from django.contrib.auth.models import User
 import signals
 import pdb
 from django.db.models import Q
+from django.core.files.base import ContentFile
+#from django.db.models import ImageField
 
 class WizcardManager(models.Manager):
     def except_wizcard(self, except_user):
@@ -70,7 +72,12 @@ class Wizcard(models.Model):
     address_state = models.CharField(max_length = 20, blank=True)
     address_country = models.CharField(max_length = 20, blank=True)
     address_zip = models.CharField(max_length = 20, blank=True)
-    isDefault = models.BooleanField(default=False)
+    isDefaultCard = models.BooleanField(default=False)
+    #media objects
+    #AA:TODO: This(image/video management) is quite primitive
+    thumbnailImage = models.ImageField(upload_to="image/")
+    video = models.FileField(upload_to="video/")
+
 
 
     objects = WizcardManager()
@@ -93,10 +100,10 @@ class Wizcard(models.Model):
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
 
     def set_default(self):
-        self.isDefault = True
+        self.isDefaultCard = True
     
     def clear_default(self):
-        self.isDefault = False
+        self.isDefaultCard = False
         self.save()
 
 

@@ -19,6 +19,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.views.generic import View
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -32,6 +33,7 @@ from wizserver import wizlib
 from wizserver.models import MyUser
 import wizlib
 import msg_test, fields
+import datetime
 
 
 #logger = logging.getLogger(__name__)
@@ -166,6 +168,9 @@ class ParseMsgAndDispatch:
                 response_fields = fields.fields['wizcard_fields']
                 dumper.selectObjectFields('Wizcard', response_fields)
                 wizcards_out = dumper.dump(wizcards, 'json')
+                for i in range(w_count):
+                    image_file = Wizcard.objects.get(id=wizcards_out[i]['id']).thumbnailImage.file.read()
+                    wizcards_out[i]['thumbnailImage'] = image_file
 
             if r_count:
                 dumper = DataDumper()
@@ -205,11 +210,11 @@ class ParseMsgAndDispatch:
             return self.response.response
 
         try:
-            first_name = self.sender['first']
+            first_name = self.sender['first_name']
         except:
             first_name = ""
         try:
-            last_name = self.sender['last']
+            last_name = self.sender['last_name']
         except:
             last_name = ""
         try:
@@ -221,7 +226,7 @@ class ParseMsgAndDispatch:
         except:
             title = ""
         try:
-            phone1 = self.sender['phone']
+            phone1 = self.sender['phone1']
         except:
             phone1 = ""
         try:
@@ -229,23 +234,23 @@ class ParseMsgAndDispatch:
         except:
             email = ""
         try:
-            street = self.sender['street']
+            street = self.sender['address_street1']
         except:
             street = ""
         try:
-            city = self.sender['city']
+            city = self.sender['address_city']
         except:
             city = ""
         try:
-            state = self.sender['state']
+            state = self.sender['address_state']
         except:
             state = ""
         try:
-            country = self.sender['country']
+            country = self.sender['address_country']
         except:
             country = ""
         try:
-            zipcode = self.sender['zip']
+            zipcode = self.sender['addreess_zip']
         except:
             zipcode = ""
         try:
@@ -259,13 +264,21 @@ class ParseMsgAndDispatch:
                           email=email, address_street1=street,
                           address_city=city, address_state=state,
                           address_country=country, address_zip=zipcode,
-                          isDefault=default)
+                          isDefaultCard=default)
 
 
         if default:
             user.clear_default_wizcard_all()
         
         wizcard.save()
+
+        try:
+            rawimage = self.sender['thumbnailImage']
+            upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
+            wizcard.thumbnailImage.save(upfile.name, upfile) 
+        except:
+            pass
+        
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
@@ -340,76 +353,81 @@ class ParseMsgAndDispatch:
             return self.response.response
 
         try:
-            first_name = self.sender['first']
+            first_name = self.sender['first_name']
             wizcard.first_name = first_name
         except:
-            first_name = ""
+            pass
         try:
-            last_name = self.sender['last']
+            last_name = self.sender['last_name']
             wizcard.last_name = last_name
         except:
-            last_name = ""
+            pass
         try:
             company = self.sender['company']
             wizcard.company = company
         except:
-            company = ""
+            pass
         try:
             title = self.sender['title']
             wizcard.title = title
         except:
-            title = ""
+            pass
         try:
-            phone1 = self.sender['phone']
+            phone1 = self.sender['phone1']
             wizcard.phone1 = phone1
         except:
-            phone1 = ""
+            pass
         try:
-            phone2 = self.sender['phone']
+            phone2 = self.sender['phone2']
             wizcard.phone2 = phone2
         except:
-            phone2 = ""
+            pass
         try:
             email = self.sender['email']
             wizcard.email = email
         except:
-            email = ""
+            pass
         try:
             street1 = self.sender['address_street1']
             wizcard.street1 = street1
         except:
-            street1 = ""
+            pass
         try:
             city = self.sender['address_city']
             wizcard.city = city
         except:
-            city = ""
+            pass
         try:
             state = self.sender['address_state']
             wizcard.state = state
         except:
-            state = ""
+            pass
         try:
             country = self.sender['address_country']
             wizcard.country = country
         except:
-            country = ""
+            pass
         try:
             zipcode = self.sender['address_zip']
             wizcard.zipcode = zipcode
         except:
-            zipcode = ""
+            pass
         try:
-            default = self.sender['isDefaultCard']
-            wizcard.isDefault = default
+            if self.sender['isDefaultCard']:
+                user.clear_default_wizcard_all()
+                wizcard.set_default()
         except:
             pass
 
-
-        if default:
-            user.clear_default_wizcard_all()
-
         wizcard.save()
+
+        try:
+            rawimage = self.sender['thumbnailImage']
+            upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
+            wizcard.thumbnailImage.save(upfile.name, upfile) 
+        except:
+            pass
+
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
