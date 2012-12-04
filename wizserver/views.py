@@ -139,7 +139,7 @@ class ParseMsgAndDispatch:
             #create case
             do_sync = True
             user, created = User.objects.get_or_create(username=l_userid,
-                                                       defaults={'first_name':firs_tname,
+                                                       defaults={'first_name':first_name,
                                                                  'last_name':last_name,
                                                                  'email':email})
             user.set_password(password)
@@ -342,6 +342,8 @@ class ParseMsgAndDispatch:
 
  
     def processModifyWizcard(self):
+        #some fields needn't invoke the flood behaviour. eg: isDefaultCard
+        modify = False
         try:
             #find card
             wizcard = Wizcard.objects.get(id=self.sender['wizCardID'])
@@ -354,61 +356,73 @@ class ParseMsgAndDispatch:
         try:
             first_name = self.sender['first_name']
             wizcard.first_name = first_name
+            modify = True
         except:
             pass
         try:
             last_name = self.sender['last_name']
             wizcard.last_name = last_name
+            modify = True
         except:
             pass
         try:
             company = self.sender['company']
             wizcard.company = company
+            modify = True
         except:
             pass
         try:
             title = self.sender['title']
             wizcard.title = title
+            modify = True
         except:
             pass
         try:
             phone1 = self.sender['phone1']
             wizcard.phone1 = phone1
+            modify = True
         except:
             pass
         try:
             phone2 = self.sender['phone2']
             wizcard.phone2 = phone2
+            modify = True
         except:
             pass
         try:
             email = self.sender['email']
             wizcard.email = email
+            modify = True
         except:
             pass
         try:
             street1 = self.sender['address_street1']
             wizcard.street1 = street1
+            modify = True
         except:
             pass
         try:
             city = self.sender['address_city']
             wizcard.city = city
+            modify = True
         except:
             pass
         try:
             state = self.sender['address_state']
             wizcard.state = state
+            modify = True
         except:
             pass
         try:
             country = self.sender['address_country']
             wizcard.country = country
+            modify = True
         except:
             pass
         try:
             zipcode = self.sender['address_zip']
             wizcard.zipcode = zipcode
+            modify = True
         except:
             pass
         try:
@@ -428,7 +442,8 @@ class ParseMsgAndDispatch:
             pass
 
         #flood to contacts
-        wizcard.flood()
+        if modify:
+            wizcard.flood()
 
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
@@ -469,13 +484,15 @@ class ParseMsgAndDispatch:
 
         notifResponse = NotifResponse()
 
+        #AA:TOOD: Move this to Notif class or response class
         notifHandler = {
             'wizconnection request untrusted' : notifResponse.notifWizConnectionU,
             'wizconnection request trusted'   : notifResponse.notifWizConnectionT,
             'accepted wizcard'      : notifResponse.notifAcceptedWizcard,
             'revoked wizcard'       : notifResponse.notifRevokedWizcard,
             'deleted wizcard'       : notifResponse.notifRevokedWizcard,
-            'destroy table'         : notifResponse.notifDestroyedTable
+            'destroy table'         : notifResponse.notifDestroyedTable,
+            'wizcard update'        : notifResponse.notifWizcardUpdate,
         }
 
         for notification in notifications:

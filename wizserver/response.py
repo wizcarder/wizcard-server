@@ -66,35 +66,24 @@ class ResponseN(Response):
 
 class NotifResponse(ResponseN):
 
-    ACCEPT_IMPLICIT     = 0
-    ACCEPT_EXPLICIT     = 1
-    DELETE_IMPLICIT     = 2
-
-    NOTIF_NULL                      = 0
-    NOTIF_WIZCARD_ADD_ROLODEX       = 1
-    NOTIF_WIZCARD_ADD_NOTIFICATION  = 2
-    NOTIF_WIZCARD_DEL               = 3
-    NOTIF_TABLE_DEL                 = 4
-
-    notifMapping = {
-        ACCEPT_IMPLICIT : NOTIF_WIZCARD_ADD_ROLODEX,
-        ACCEPT_EXPLICIT : NOTIF_WIZCARD_ADD_NOTIFICATION,
-        DELETE_IMPLICIT : NOTIF_WIZCARD_DEL
-    }
-
-
+    NOTIF_NULL          = 0
+    ACCEPT_IMPLICIT     = 1
+    ACCEPT_EXPLICIT     = 2
+    DELETE_IMPLICIT     = 3
+    DELETE_TABLE        = 4
+    UPDATE_WIZCARD      = 5
 
     def __init__(self):
         self.clear()
 
-    def notifWizcard(self, notif, accept):
+    def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         dumper = DataDumper()
         response_fields = fields.fields['wizcard_fields']
         dumper.selectObjectFields('Wizcard', response_fields)
         out = dumper.dump(wizcard, 'json')
         self.add_data_to_dict(out, "wizCardID", notif.action_object_object_id)
-        self.add_data_with_notif(out, self.notifMapping[accept])
+        self.add_data_with_notif(out, notifType)
         if wizcard.thumbnailImage:
             self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
         print "sending notification"
@@ -113,14 +102,18 @@ class NotifResponse(ResponseN):
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
         out = dict(wizCardID=notif.target_object_id)
-        self.add_data_with_notif(out, self.notifMapping[self.DELETE_IMPLICIT])
+        self.add_data_with_notif(out, self.DELETE_IMPLICIT)
         print "sending revoke notification"
         print self.response
         return self.response
 
     def notifDestroyedTable(self, notif):
         out = dict(tableID=notif.target_object_id)
-        self.add_data_with_notif(out, self.NOTIF_TABLE_DEL)
+        self.add_data_with_notif(out, self.DELETE_TABLE)
         print self.response
         return self.response
+
+    def notifWizcardUpdate(self, notif):
+        return self.notifWizcard(notif, self.UPDATE_WIZCARD)
+
 

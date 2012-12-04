@@ -63,6 +63,12 @@ def exchange(wizcard1, wizcard2, implicit):
         exchange_explicit(wizcard1, wizcard2)
     return ret
 
+def update_wizconnection(wizcard1, wizcard2):
+    notify.send(wizcard1.user, recipient=wizcard2.user,
+                verb='wizcard update',
+                target=wizcard1, action_object=wizcard2)
+    
+
 
 def find_users(userID, name, phone, email):
     #name can be first name, last name or even combined
