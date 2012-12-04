@@ -95,6 +95,8 @@ class NotifResponse(ResponseN):
         out = dumper.dump(wizcard, 'json')
         self.add_data_to_dict(out, "wizCardID", notif.action_object_object_id)
         self.add_data_with_notif(out, self.notifMapping[accept])
+        if wizcard.thumbnailImage:
+            self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
         print "sending notification"
         print self.response
         return self.response

@@ -169,8 +169,9 @@ class ParseMsgAndDispatch:
                 dumper.selectObjectFields('Wizcard', response_fields)
                 wizcards_out = dumper.dump(wizcards, 'json')
                 for i in range(w_count):
-                    image_file = Wizcard.objects.get(id=wizcards_out[i]['id']).thumbnailImage.file.read()
-                    wizcards_out[i]['thumbnailImage'] = image_file
+                    image = Wizcard.objects.get(id=wizcards_out[i]['id']).thumbnailImage
+                    if image:
+                        wizcards_out[i]['thumbnailImage'] = image.file.read()
 
             if r_count:
                 dumper = DataDumper()
@@ -428,6 +429,9 @@ class ParseMsgAndDispatch:
         except:
             pass
 
+        #flood to contacts
+        wizcard.flood()
+
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
@@ -507,7 +511,6 @@ class ParseMsgAndDispatch:
                             #create bidir cardship
                             if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
                                 err = wizlib.exchange(wizcard1, wizcard2, True)
-                                exchange_implicit(wizcard1, wizcard2)
                                 count += 1
             except:
                 #AA:TODO: what to do ?

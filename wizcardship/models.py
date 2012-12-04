@@ -106,6 +106,12 @@ class Wizcard(models.Model):
         self.isDefaultCard = False
         self.save()
 
+    def flood(self):
+        for wizcard in self.wizconnections.all():
+            wizlib.exchange(self, wizcard, True)
+
+            
+
 
 
 
