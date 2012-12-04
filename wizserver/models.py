@@ -14,6 +14,6 @@ class MyUser(User):
         map(lambda a: a.clear_default(), self.wizcards.all())
 
     def default_wizcard(self):
-        q = self.wizcards.all().filter(isDefault=True)
+        q = self.wizcards.all().filter(isDefaultCard=True)
         return q[0]
 

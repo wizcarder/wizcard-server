@@ -76,9 +76,7 @@ class ParseMsgAndDispatch:
             pass
         self.msgType = self.header['msgType']
 
-        #print '{sender} sent "{type}"'.format (sender=self.sender['userID'], type=self.header['msgType'])
-
-        #print '{sender} at location [{locX} , {locY}] sent "{type}"'.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'], type=self.header['msgType'])
+        print '{sender} sent "{type}"'.format (sender=self.sender['userID'], type=self.header['msgType'])
 
         self.response = Response()
 
@@ -116,14 +114,14 @@ class ParseMsgAndDispatch:
         w_count = 0
         r_count = 0
         try:
-            firstname = self.sender['first']
+            first_name = self.sender['first_name']
         except:
-            firstname = ""
+            first_name = ""
 
         try:
-            lastname = self.sender['last']
+            last_name = self.sender['last_name']
         except:
-            lastname = ""
+            last_name = ""
 
         try:
             email = self.sender['email']
@@ -141,8 +139,8 @@ class ParseMsgAndDispatch:
             #create case
             do_sync = True
             user, created = User.objects.get_or_create(username=l_userid,
-                                                       defaults={'first_name':firstname,
-                                                                 'last_name':lastname,
+                                                       defaults={'first_name':firs_tname,
+                                                                 'last_name':last_name,
                                                                  'email':email})
             user.set_password(password)
             user.save()

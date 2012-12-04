@@ -107,13 +107,9 @@ class Wizcard(models.Model):
         self.save()
 
     def flood(self):
+        from wizserver import wizlib
         for wizcard in self.wizconnections.all():
-            wizlib.exchange(self, wizcard, True)
-
-            
-
-
-
+            wizlib.exchange_implicit(self, wizcard)
 
 class WizConnectionRequest(models.Model):
     from_wizcard = models.ForeignKey(Wizcard, related_name="invitations_from")

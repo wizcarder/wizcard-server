@@ -3,7 +3,8 @@ import operator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest, Http404
-from wizcardship.models import WizConnectionRequest, Wizcard
+#AA:TODO remove *
+from wizcardship.models import *
 from notifications.models import notify, Notification
 
 def accept_wizconnection(from_wizcard, to_wizcard):
