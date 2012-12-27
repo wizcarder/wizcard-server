@@ -22,17 +22,18 @@ import pdb
 from django.db.models import Q
 from datetime import datetime
 from wizserver import wizlib
-from wizserver.models import MyUser
+from location_mgr.models import LocationMgr
+from pytrie import SortedStringTrie as trie
+
+vtree = trie()
 
 class VirtualTableManager(models.Manager):
     def get_closest_n(self, n, lat, lng):
         return self.all(), self.all().count()
 
 
-class VirtualTable(models.Model):
+class VirtualTable(LocationMgr):
     tablename = models.CharField(max_length=40)
-    lat = models.FloatField()
-    lng = models.FloatField()
     #centroid = models.BooleanField(default=False)
     numSitting = models.IntegerField(default=0, blank=True)
     secureTable = models.BooleanField(default=False)
@@ -45,19 +46,17 @@ class VirtualTable(models.Model):
     def __unicode__(self):
         return self.tablename
 
-    def set_location(self, lat, lng):
-        self.lat = lat
-        self.lng = lng
+    def save(self, *args, **kwargs):
+        super(VirtualTable, self).save(tree=vtree, *args, **kwargs)
 
     def isSecure(self):
         return self.secureTable
-    
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
-        wizcard1 = MyUser.objects.get(id=joinee.pk).default_wizcard()
+        wizcard1 = User.objects.get(id=joinee.pk).wizcard
 
-        wizcards = map(lambda u: MyUser.objects.get(id=u.pk).default_wizcard(), joined)
+        wizcards = map(lambda u: User.objects.get(id=u.pk).wizcard, joined)
         implicit_exchange = self.isSecure()
 
         for wizcard2 in wizcards:
@@ -126,5 +125,3 @@ class Membership(models.Model):
             self.date_created = datetime.now()
         self.date_modified = datetime.now()
         super(Membership, self).save(*args, **kwargs)
-
-

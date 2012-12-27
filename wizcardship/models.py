@@ -21,6 +21,8 @@ import signals
 import pdb
 from django.db.models import Q
 from django.core.files.base import ContentFile
+from preserialize.serialize import serialize
+from wizserver import fields
 #from django.db.models import ImageField
 
 class WizcardManager(models.Manager):
@@ -57,13 +59,12 @@ class WizcardManager(models.Manager):
         self.wizconnection_req_clear(wizcard1, wizcard2)
         self.wizconnection_req_clear(wizcard2, wizcard1)
 
+
 class Wizcard(models.Model):
-    user = models.ForeignKey(User, related_name='wizcards')
+    user = models.OneToOneField(User, related_name='wizcard')
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
     first_name = models.CharField(max_length=40, blank=True)
     last_name = models.CharField(max_length=40, blank=True)
-    company = models.CharField(max_length=40, blank=True)
-    title = models.CharField(max_length=200, blank=True)
     phone1 = models.CharField(max_length=20, blank=True)
     phone2 = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
@@ -72,12 +73,10 @@ class Wizcard(models.Model):
     address_state = models.CharField(max_length = 20, blank=True)
     address_country = models.CharField(max_length = 20, blank=True)
     address_zip = models.CharField(max_length = 20, blank=True)
-    isDefaultCard = models.BooleanField(default=False)
     #media objects
     #AA:TODO: This(image/video management) is quite primitive
-    thumbnailImage = models.ImageField(upload_to="image/")
+    #thumbnailImage = models.ImageField(upload_to="image/")
     video = models.FileField(upload_to="video/")
-
 
 
     objects = WizcardManager()
@@ -89,6 +88,28 @@ class Wizcard(models.Model):
     def __unicode__(self):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
 
+    def serialize_wizconnections(self):
+        return serialize(self.wizconnections.all(), **fields.wizconnection_template)
+
+
+    def create_company_list(self, l):
+        map(lambda x: CompanyList(wizcard=self, company=x).save(), l)
+
+    def create_designation_list(self, l):
+        map(lambda x: DesignationList(wizcard=self, designation=x).save(), l)
+
+    def create_wizcard_image_list(self, l):
+        map(lambda x: WizcardImageList(wizcard=self, image=x).save(), l)
+
+    def company_list(self):
+        self.company_list.all()
+
+    def designation_list(self):
+        self.designation_list.all()
+        
+    def wizcard_image_list(self):
+        self.wizcard_image_list.all()
+        
     def wizconnection_count(self):
         return self.wizconnections.count()
     wizconnection_count.short_description = _(u'Cards count')
@@ -99,17 +120,24 @@ class Wizcard(models.Model):
                             u', ...' if self.wizconnection_count() > count else u'')
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
 
-    def set_default(self):
-        self.isDefaultCard = True
-    
-    def clear_default(self):
-        self.isDefaultCard = False
-        self.save()
-
     def flood(self):
         from wizserver import wizlib
         for wizcard in self.wizconnections.all():
             wizlib.update_wizconnection(self, wizcard)
+
+class ContactContainer(models.Model):
+    wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
+    company = models.CharField(max_length=40, blank=True)
+    title = models.CharField(max_length=200, blank=True)
+    image = models.ImageField(upload_to="image/")
+    def __unicode__(self):
+        return _(u'%(user)s\'s contact container') % {'user': unicode(self.wizcard.user)}
+
+
+
+    class Meta:
+        ordering = ['id']
+
 
 class WizConnectionRequest(models.Model):
     from_wizcard = models.ForeignKey(Wizcard, related_name="invitations_from")
@@ -142,8 +170,6 @@ class WizConnectionRequest(models.Model):
     def cancel(self):
         signals.wizcardship_cancelled.send(sender=self)
         self.delete()
-
-
 
 
 class UserBlocks(models.Model):

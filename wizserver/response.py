@@ -82,6 +82,16 @@ class NotifResponse(ResponseN):
         response_fields = fields.fields['wizcard_fields']
         dumper.selectObjectFields('Wizcard', response_fields)
         out = dumper.dump(wizcard, 'json')
+
+        contact_container = wizcard.contact_container
+        dumper = DataDumper()
+        response_fields = fields.fields['contact_container_fields']
+        dumper.selectObjectFields('ContactContainer', response_fields)
+        c_out = dumper.dump(contact_container, 'json')
+        self.add_data_to_dict(out, "contactContainer", c_out)
+        self.add_data_to_dict(out, "companyList", wizcard.company_list)
+        self.add_data_to_dict(out, "designationList", wizcard.designation_list)
+
         self.add_data_to_dict(out, "wizCardID", notif.action_object_object_id)
         self.add_data_with_notif(out, notifType)
         if wizcard.thumbnailImage:

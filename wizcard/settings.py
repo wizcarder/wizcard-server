@@ -15,8 +15,8 @@ DATABASES = {
         'NAME': 'wizcard',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -99,6 +99,11 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+SERIALIZATION_MODULES = {
+    'json': 'wadofstuff.django.serializers.json'
+}
+
+
 ROOT_URLCONF = 'wizcard.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
@@ -123,14 +128,17 @@ INSTALLED_APPS = (
     'django.utils.timezone',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
+    'django_extensions',
+    'userprofile',
     'wizserver', 
     'wizcardship',
     'notifications',
-    'virtual_table'
+    'virtual_table',
+    'location_mgr'
 
 )
 
-#AUTH_PROFILE_MODULE = 'accounts.UserProfile'
+AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
 
 import logging

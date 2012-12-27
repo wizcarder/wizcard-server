@@ -3,6 +3,7 @@ import operator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest, Http404
+import geohash
 #AA:TODO remove *
 from wizcardship.models import *
 from notifications.models import notify, Notification
@@ -94,6 +95,19 @@ def find_users(userID, name, phone, email):
     result = Wizcard.objects.filter(reduce(operator.or_, qlist)).exclude(user_id=userID)
 
     return result, len(result)
+
+#Geohash related stuff
+
+def create_geohash(lat, lng):
+    return geohash.encode(lat, lng)
+
+def lookup_closest_n(tree, key, n):
+    return tree.longest_prefix_item(key)
+            
+
+
+        
+        
 
 
 
