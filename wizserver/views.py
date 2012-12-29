@@ -261,7 +261,7 @@ class ParseMsgAndDispatch:
         for wizcard2 in qs:
             Wizcard.objects.uncard(wizcard1, wizcard2)
             #Q a notif to other guy so that the app on the other side can react
-            notify.send(wizcard1.user, recipient=wizcard2.user, 
+            notify.send(user, recipient=wizcard2.user, 
                         verb='deleted wizcard', target=wizcard1)
             #Q a notif to sender to let him know of all wizconnections to delete
             notify.send(wizcard2.user, recipient=user,
@@ -283,7 +283,7 @@ class ParseMsgAndDispatch:
 
         Wizcard.objects.uncard(wizcard1, wizcard2)
         #Q a notif to other guy so that the app on the other side can react
-        notify.send(wizcard1.user, recipient=wizcard2.user,
+        notify.send(sender, recipient=receiver,
                     verb='revoked wizcard', target=wizcard1)
         return self.response.response
 
@@ -301,7 +301,7 @@ class ParseMsgAndDispatch:
         Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
 
         #Q a notif to other guy so that the app on the other side can react
-        notify.send(wizcard1.user, recipient=wizcard2.user,
+        notify.send(sender, recipient=receiver,
                     verb='revoked wizcard', target=wizcard1)
 
         return self.response.response
@@ -465,7 +465,7 @@ class ParseMsgAndDispatch:
 
         wizlib.accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender 
-        notify.send(user, recipient=wizcard2.user,
+        notify.send(sender, recipient=receiver,
                     verb='accepted wizcard', target=wizcard1, 
                     action_object = wizcard2)
 
@@ -516,7 +516,6 @@ class ParseMsgAndDispatch:
 
         #A:TODO: Cross verify user agains wizcard
         receivers = self.receiver['contacts']
-        pdb.set_trace()
         for receiver in receivers:
             try:
                 emails = receiver['email']
@@ -573,10 +572,6 @@ class ParseMsgAndDispatch:
         #send back to app for selection
 
         if (count):
-            #response_fields = fields.fields['query_fields']
-            #dumper = DataDumper()
-            #dumper.selectObjectFields('Wizcard', response_fields)
-            #users = dumper.dump(result, 'json')
             users = serialize(result, **fields.query_template)
             self.response.add_data("queryResult", users)
             self.response.add_data("count", count)

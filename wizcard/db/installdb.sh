@@ -12,7 +12,7 @@ echo $ACTION
 mysql -u$USER -p$PWD -D$DB < ./wizcard/db/schema.sql
 
 
-if [ "$ACTION"=="delete" ];
+if [ "$ACTION" = "delete" ];
 then
 echo "dropping tables"
 mysql -u$USER -p$PWD -D$DB < ./wizcard/db/drop.sql

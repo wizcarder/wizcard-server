@@ -29,7 +29,7 @@ class UserProfile(LocationMgr):
             return w, wc
 
         #wizcards
-        w = serialize(qs, **fields.wizcard_template)
+        w = qs.serialize()
 
         #wizconnections
         if qs.wizconnections.count():

@@ -78,24 +78,11 @@ class NotifResponse(ResponseN):
 
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
-        dumper = DataDumper()
-        response_fields = fields.fields['wizcard_fields']
-        dumper.selectObjectFields('Wizcard', response_fields)
-        out = dumper.dump(wizcard, 'json')
-
-        contact_container = wizcard.contact_container
-        dumper = DataDumper()
-        response_fields = fields.fields['contact_container_fields']
-        dumper.selectObjectFields('ContactContainer', response_fields)
-        c_out = dumper.dump(contact_container, 'json')
-        self.add_data_to_dict(out, "contactContainer", c_out)
-        self.add_data_to_dict(out, "companyList", wizcard.company_list)
-        self.add_data_to_dict(out, "designationList", wizcard.designation_list)
-
-        self.add_data_to_dict(out, "wizCardID", notif.action_object_object_id)
+        out = wizcard.serialize()
+        self.add_data_to_dict(out, "user_id", notif.actor_object_id)
         self.add_data_with_notif(out, notifType)
-        if wizcard.thumbnailImage:
-            self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
+        #if wizcard.thumbnailImage:
+        #    self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
         print "sending notification"
         print self.response
         return self.response
@@ -111,7 +98,7 @@ class NotifResponse(ResponseN):
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
-        out = dict(wizCardID=notif.target_object_id)
+        out = dict(user_id=notif.actor_object_id)
         self.add_data_with_notif(out, self.DELETE_IMPLICIT)
         print "sending revoke notification"
         print self.response
