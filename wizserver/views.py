@@ -355,8 +355,8 @@ class ParseMsgAndDispatch:
             pass
         try:
             phone1 = self.sender['phone1']
-            if wizcard.phone != phone:
-                wizcard.phone = phone
+            if wizcard.phone1 != phone1:
+                wizcard.phone1 = phone1
                 modify = True
         except:
             pass

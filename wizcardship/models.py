@@ -92,7 +92,7 @@ class Wizcard(models.Model):
         return serialize(self, **fields.wizcard_template)
 
     def serialize_wizconnections(self):
-        return serialize(self.wizconnections.all(), **fields.wizconnection_template)
+        return serialize(self.wizconnections.all(), **fields.wizcard_template)
 
 
     def create_company_list(self, l):

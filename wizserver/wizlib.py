@@ -99,16 +99,9 @@ def find_users(userID, name, phone, email):
 #Geohash related stuff
 
 def create_geohash(lat, lng):
-    return geohash.encode(lat, lng)
+    encode = geohash.encode(lat, lng)
+    print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
+    return encode
 
 def lookup_closest_n(tree, key, n):
     return tree.longest_prefix_item(key)
-            
-
-
-        
-        
-
-
-
-
