@@ -24,6 +24,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
+from preserialize.serialize import serialize
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer
 from notifications.models import notify, Notification
 from virtual_table.models import VirtualTable
@@ -110,8 +111,8 @@ class ParseMsgAndDispatch:
     def processRegister(self):
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
 
-        wizcard_s = []
-        rolodex_s = []
+        wizcard_s = None
+        rolodex_s = None
 
         do_sync = False
         w_count = 0
@@ -147,7 +148,6 @@ class ParseMsgAndDispatch:
                                                        defaults={'first_name':first_name,
                                                                  'last_name':last_name,
                                                                  'email':email})
-            profile = user.profile
             do_sync = not created
 
             user.set_password(password)
@@ -157,6 +157,7 @@ class ParseMsgAndDispatch:
         user = authenticate(username=l_userid, password=password)
 
         #sync the app from server
+        profile = user.profile
         if do_sync:
             #sync own card and rolodex
 
@@ -176,7 +177,7 @@ class ParseMsgAndDispatch:
 
             self.response.add_data("wizUserID", user.pk)
             if wizcard_s:
-                self.response.add_data("wizcards", wizcards_s)
+                self.response.add_data("wizcards", wizcard_s)
             if rolodex_s:
                 self.response.add_data("rolodex", rolodex_s)
         else:
@@ -515,9 +516,10 @@ class ParseMsgAndDispatch:
 
         #A:TODO: Cross verify user agains wizcard
         receivers = self.receiver['contacts']
+        pdb.set_trace()
         for receiver in receivers:
             try:
-                emails = receiver['emailAddresses']
+                emails = receiver['email']
                 for email in emails:
                     target_wizcards, query_count = wizlib.find_users(sender.pk, name=None, phone=None, email=email)
                     if query_count:
@@ -571,10 +573,11 @@ class ParseMsgAndDispatch:
         #send back to app for selection
 
         if (count):
-            response_fields = fields.fields['query_fields']
-            dumper = DataDumper()
-            dumper.selectObjectFields('Wizcard', response_fields)
-            users = dumper.dump(result, 'json')
+            #response_fields = fields.fields['query_fields']
+            #dumper = DataDumper()
+            #dumper.selectObjectFields('Wizcard', response_fields)
+            #users = dumper.dump(result, 'json')
+            users = serialize(result, **fields.query_template)
             self.response.add_data("queryResult", users)
             self.response.add_data("count", count)
         else:

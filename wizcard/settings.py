@@ -99,11 +99,6 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-SERIALIZATION_MODULES = {
-    'json': 'wadofstuff.django.serializers.json'
-}
-
-
 ROOT_URLCONF = 'wizcard.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.

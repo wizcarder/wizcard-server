@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from location_mgr.models import LocationMgr
 from pytrie import SortedStringTrie as trie
+from preserialize.serialize import serialize
+from wizserver import fields
 
 import pdb
 
@@ -19,19 +21,21 @@ class UserProfile(LocationMgr):
 
     def serialize_objects(self):
         #add callouts to all serializable objects here
-        wizcard = []
-        wizconnections = []
+        w = None
+        wc = None
         try:
             qs = self.user.wizcard
         except:
-            return None, None
+            return w, wc
 
         #wizcards
-        wizcard = serialize(qs, **fields.wizcard_template)
+        w = serialize(qs, **fields.wizcard_template)
 
         #wizconnections
         if qs.wizconnections.count():
-            wizconnections = qs.serialize_wizconnections()
+            wc = qs.serialize_wizconnections()
+
+        return w, wc
 
 
 def create_user_profile(sender, instance, created, **kwargs):
