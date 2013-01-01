@@ -30,6 +30,7 @@ from notifications.models import notify, Notification
 from virtual_table.models import VirtualTable
 from json_wrapper import DataDumper
 from response import Response, NotifResponse
+from userprofile.models import UserProfile
 from wizserver import wizlib
 from location_mgr.models import LocationMgr
 import msg_test, fields
@@ -174,6 +175,10 @@ class ParseMsgAndDispatch:
                     profile.update()
             except:
                 pass
+
+            closest = profile.lookup(3)
+
+            print 'looking up  gives result [{closest}]'.format (closest=closest)
 
             self.response.add_data("wizUserID", user.pk)
             if wizcard_s:

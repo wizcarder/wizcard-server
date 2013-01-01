@@ -32,7 +32,6 @@ class LocationMgr(models.Model):
             self.key = wizlib.create_geohash(self.lat, self.lng)
             tree[self.key] = self.pk
         super(LocationMgr, self).save(*args, **kwargs)
-        print tree
 
 
     def update(self, tree, *args, **kwargs):
@@ -44,9 +43,17 @@ class LocationMgr(models.Model):
                 #only reason could/should be that server was restarted
                 pass
         #save new node
-        #self.save(tree=tree, *args, **kwargs)
         self.save()
 
     def lookup(self, tree, num_results):
-        return wizlib.lookup_closest_n(tree, self.key, num_results)
+        print 'looking up tree [{tree}]'.format (tree=tree)
+        #AA:TODO: Kludge to dis-include self.key from the results
+        del tree[self.key]
+        result =  wizlib.lookup_closest_n(tree, self.key, num_results)
+        print 'lookup result [{result}]'.format (result=result)
+
+        #add self back
+        tree[self.key] = self.pk
+        return result
+
 

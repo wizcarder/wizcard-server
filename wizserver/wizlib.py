@@ -104,4 +104,4 @@ def create_geohash(lat, lng):
     return encode
 
 def lookup_closest_n(tree, key, n):
-    return tree.longest_prefix_item(key)
+    return tree.longest_common_prefix_item(key)

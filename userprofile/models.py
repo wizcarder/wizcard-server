@@ -9,15 +9,18 @@ from wizserver import fields
 import pdb
 
 ptree = trie()
+
 class UserProfile(LocationMgr):
     # This field is required.
     user = models.OneToOneField(User, related_name='profile')
 
     def save(self, *args, **kwargs):
         super(UserProfile, self).save(tree=ptree, *args, **kwargs)
+        print 'saving to tree [{ptree}]'.format (ptree=ptree)
 
     def update(self, *args, **kwargs):
         super(UserProfile, self).update(tree=ptree, *args, **kwargs)
+        print 'updating to tree [{ptree}]'.format (ptree=ptree)
 
     def serialize_objects(self):
         #add callouts to all serializable objects here
@@ -36,6 +39,9 @@ class UserProfile(LocationMgr):
             wc = qs.serialize_wizconnections()
 
         return w, wc
+
+    def lookup(self, n):
+        return super(UserProfile, self).lookup(tree=ptree, num_results=n)
 
 
 def create_user_profile(sender, instance, created, **kwargs):
