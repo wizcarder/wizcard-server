@@ -10,9 +10,15 @@ import pdb
 
 ptree = trie()
 
+class UserProfileManager(models.Manager):
+    def lookup(self, key, n):
+        return UserProfile.objects.lookup_by_key(tree=ptree, key=key, num_results=n)
+
 class UserProfile(LocationMgr):
     # This field is required.
     user = models.OneToOneField(User, related_name='profile')
+
+    default_manager = UserProfileManager()
 
     def save(self, *args, **kwargs):
         super(UserProfile, self).save(tree=ptree, *args, **kwargs)
@@ -39,9 +45,6 @@ class UserProfile(LocationMgr):
             wc = qs.serialize_wizconnections()
 
         return w, wc
-
-    def lookup(self, n):
-        return super(UserProfile, self).lookup(tree=ptree, num_results=n)
 
 
 def create_user_profile(sender, instance, created, **kwargs):

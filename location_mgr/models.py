@@ -7,6 +7,24 @@ from wizserver import wizlib
 import random
 import pdb
 
+class LocationMgrManager(models.Manager):
+    def lookup_by_key(self, key, tree, num_results, key_in_tree=True):
+        print 'looking up tree [{tree}] using key [{key}]'.format (tree=tree, key=key)
+        #AA:TODO: Kludge to dis-include self.key from the results
+        if key_in_tree:
+            del tree[key]
+        result =  wizlib.lookup_closest_n(tree, key, num_results)
+        print 'lookup result [{result}]'.format (result=result)
+
+        #add self back
+        if key_in_tree:
+            tree[key] = self.pk
+        return result
+
+    def lookup_by_lat_lng(self, lat, lng, tree, num_results, key_in_tree=False):
+        key = wizlib.create_geohash(lat, lng)
+        return self.lookup_by_key(key, tree, num_results, key_in_tree)
+
 class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
@@ -14,12 +32,16 @@ class LocationMgr(models.Model):
     lastseen = models.DateTimeField(default=datetime.datetime.now,
                                     editable=False)
 
+    objects = LocationMgrManager()
+
+    class Meta:
+        abstract = True
+
     def set_location(self, lat, lng):
         changed = False
         lat = lat+random.random()
         lng = lng+random.random()
         if self.lat != lat:
-            #self.lat = lat
             self.lat = lat
             changed = True
         if self.lng != lng:
@@ -44,16 +66,3 @@ class LocationMgr(models.Model):
                 pass
         #save new node
         self.save()
-
-    def lookup(self, tree, num_results):
-        print 'looking up tree [{tree}]'.format (tree=tree)
-        #AA:TODO: Kludge to dis-include self.key from the results
-        del tree[self.key]
-        result =  wizlib.lookup_closest_n(tree, self.key, num_results)
-        print 'lookup result [{result}]'.format (result=result)
-
-        #add self back
-        tree[self.key] = self.pk
-        return result
-
-

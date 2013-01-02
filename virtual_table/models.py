@@ -28,20 +28,20 @@ from pytrie import SortedStringTrie as trie
 vtree = trie()
 
 class VirtualTableManager(models.Manager):
-    def get_closest_n(self, n, lat, lng):
-        return self.all(), self.all().count()
+    def lookup(self, lat, lng, n):
+        #AA:TODO: Is this the right "pythonic way" ?:w
+        return VirtualTable.objects.lookup_by_lat_lng(tree=vtree, lat=lat, lng=lng, num_results=n)
 
 
 class VirtualTable(LocationMgr):
     tablename = models.CharField(max_length=40)
-    #centroid = models.BooleanField(default=False)
     numSitting = models.IntegerField(default=0, blank=True)
     secureTable = models.BooleanField(default=False)
     password = models.CharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
     users = models.ManyToManyField(User, through='Membership')
 
-    objects = VirtualTableManager()
+    default_manager = VirtualTableManager()
 
     def __unicode__(self):
         return self.tablename

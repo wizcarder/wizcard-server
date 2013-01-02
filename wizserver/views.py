@@ -118,6 +118,7 @@ class ParseMsgAndDispatch:
         do_sync = False
         w_count = 0
         r_count = 0
+        #AA:TODO: a better idiom is has_key
         try:
             first_name = self.sender['first_name']
         except:
@@ -176,7 +177,8 @@ class ParseMsgAndDispatch:
             except:
                 pass
 
-            closest = profile.lookup(3)
+            #AA:TODO: get num_results from user settings
+            closest = UserProfile.default_manager.lookup(key=profile.key, n=3)
 
             print 'looking up  gives result [{closest}]'.format (closest=closest)
 
@@ -586,13 +588,16 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processQueryTable(self):
-        try:
+        if self.sender.has_key('lat') and self.sender.has_key('lng'):
             lat = self.sender['lat']
             lng = self.sender['lng']
             self.processQueryTableByLocation(lat, lng)
-        except:
+        elif self.sender.has_key('table_name'):
             name = self.sender['table_name']
             self.processQueryTableByName(name)
+        else:
+            self.response.error_response(errno=1, errorStr="invalid table detail")
+
 
         return self.response.response
 
@@ -606,24 +611,18 @@ class ParseMsgAndDispatch:
         count = tables.count()
 
         if count:
-            response_fields = fields.fields['table_fields']
-            dumper = DataDumper()
-            dumper.selectObjectFields('VirtualTable', response_fields)
-            tables = dumper.dump(tables, 'json')
-            self.response.add_data("queryResult", tables)
+            tables_s = serialize(tables, **fields.table_template)
+            self.response.add_data("queryResult", tables_s)
             self.response.add_data("count", count)
             
 
         return self.response.response
 
     def processQueryTableByLocation(self, lat, lng):
-        result, count = VirtualTable.objects.get_closest_n(3, lat, lng)
+        result, count = VirtualTable.default_manager.lookup(lat=lat, lng=lng, n=3)
         if count:
-            response_fields = fields.fields['table_fields']
-            dumper = DataDumper()
-            dumper.selectObjectFields('VirtualTable', response_fields)
-            tables = dumper.dump(result, 'json')
-            self.response.add_data("queryResult", tables)
+            tables_s = serialize(tables, **fields.table_template)
+            self.response.add_data("queryResult", tables_s)
             self.response.add_data("count", count)
         else:
             self.response.error_response(errno=1, errorStr="Query returned no results")
@@ -641,6 +640,8 @@ class ParseMsgAndDispatch:
                 lastName=User.objects.get(id=m.user_id).last_name
             ), memberships)
 
+            #AA:TODO: extend member details to show more about each member. Maybe 
+            # another query from app may be required for drill-down details
             self.response.add_data("Members", members)
             self.response.add_data("Count", count)
 
