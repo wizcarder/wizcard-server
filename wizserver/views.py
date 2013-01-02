@@ -426,7 +426,7 @@ class ParseMsgAndDispatch:
             pass
 
         try:
-            contactContainerList = self.sender['positions']
+            contactContainerList = self.sender['contact_container']
             #AA: TODO: Optimize using isModified flag from app
             wizcard.contact_container.all().delete()
         except:
