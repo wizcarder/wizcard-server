@@ -30,7 +30,10 @@ vtree = trie()
 class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n):
         #AA:TODO: Is this the right "pythonic way" ?:w
-        return VirtualTable.objects.lookup_by_lat_lng(tree=vtree, lat=lat, lng=lng, num_results=n)
+        result, count =  VirtualTable.objects.lookup_by_lat_lng(tree=vtree, lat=lat, lng=lng, num_results=n)
+        #convert result to query set result
+        tables = map(lambda m: self.get(id=m), result)
+        return tables, count
 
 
 class VirtualTable(LocationMgr):

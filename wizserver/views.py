@@ -330,6 +330,11 @@ class ParseMsgAndDispatch:
             wizcard = Wizcard(user=user)
             wizcard.save()
 
+            #this is also the time User object can get first/last name
+            user.first_name = self.sender['first_name']
+            user.last_name = self.sender['last_name']
+            user.save()
+
         try:
             first_name = self.sender['first_name']
             if wizcard.first_name != first_name:
@@ -615,11 +620,10 @@ class ParseMsgAndDispatch:
             self.response.add_data("queryResult", tables_s)
             self.response.add_data("count", count)
             
-
         return self.response.response
 
     def processQueryTableByLocation(self, lat, lng):
-        result, count = VirtualTable.default_manager.lookup(lat=lat, lng=lng, n=3)
+        tables, count = VirtualTable.default_manager.lookup(lat=lat, lng=lng, n=3)
         if count:
             tables_s = serialize(tables, **fields.table_template)
             self.response.add_data("queryResult", tables_s)

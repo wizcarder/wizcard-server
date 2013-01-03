@@ -15,5 +15,4 @@ drop table `wizcard`.`auth_permission`;
 drop table `wizcard`.`auth_user_groups`;
 drop table `wizcard`.`auth_group`;
 drop table `wizcard`.`auth_user`;
-drop table `wizcard`.`location_mgr_locationmgr`;
 

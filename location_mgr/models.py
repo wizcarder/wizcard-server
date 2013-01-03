@@ -10,20 +10,25 @@ import pdb
 class LocationMgrManager(models.Manager):
     def lookup_by_key(self, key, tree, num_results, key_in_tree=True):
         print 'looking up tree [{tree}] using key [{key}]'.format (tree=tree, key=key)
+        if not tree:
+            return None, None
+
         #AA:TODO: Kludge to dis-include self.key from the results
         if key_in_tree:
             #cache value
             val = tree[key]
             del tree[key]
-        result =  wizlib.lookup_closest_n(tree, key, num_results)
-        print 'lookup result [{result}]'.format (result=result)
+        result, count =  wizlib.lookup_closest_n_values(tree, key, num_results)
+        print '{count} lookup result [{result}]'.format (count=count, result=result)
 
         #add self back
         if key_in_tree:
             tree[key] = val
-        return result
+        return result, count
 
     def lookup_by_lat_lng(self, lat, lng, tree, num_results, key_in_tree=False):
+        if not tree:
+            return None, None
         key = wizlib.create_geohash(lat, lng)
         return self.lookup_by_key(key, tree, num_results, key_in_tree)
 
