@@ -1,9 +1,9 @@
 from django.db import models
 from django.db import models
 import datetime
-from pytrie import SortedStringTrie as trie
+from lib.pytrie import SortedStringTrie as trie
 from django.contrib.auth.models import User
-from wizserver import wizlib
+from lib import wizlib
 import random
 import pdb
 

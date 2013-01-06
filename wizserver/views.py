@@ -24,14 +24,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
-from preserialize.serialize import serialize
+from lib.preserialize.serialize import serialize
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer
 from notifications.models import notify, Notification
 from virtual_table.models import VirtualTable
-from json_wrapper import DataDumper
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
-from wizserver import wizlib
+from lib import wizlib
 from location_mgr.models import LocationMgr
 import msg_test, fields
 import datetime
@@ -707,7 +706,7 @@ class ParseMsgAndDispatch:
             self.response.error_response(errno=1, errorStr="Object does not exist")
             return self.response.response
 
-        if table.isSecure:
+        if table.isSecure():
             password = self.sender['password']
         else:
             password = ""

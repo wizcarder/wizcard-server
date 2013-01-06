@@ -21,7 +21,7 @@ import signals
 import pdb
 from django.db.models import Q
 from django.core.files.base import ContentFile
-from preserialize.serialize import serialize
+from lib.preserialize.serialize import serialize
 from wizserver import fields
 #from django.db.models import ImageField
 
@@ -124,7 +124,7 @@ class Wizcard(models.Model):
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
 
     def flood(self):
-        from wizserver import wizlib
+        from lib import wizlib
         for wizcard in self.wizconnections.all():
             wizlib.update_wizconnection(self, wizcard)
 

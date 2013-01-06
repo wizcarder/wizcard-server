@@ -21,18 +21,20 @@ from django.contrib.auth.models import User
 import pdb
 from django.db.models import Q
 from datetime import datetime
-from wizserver import wizlib
+from lib import wizlib
 from location_mgr.models import LocationMgr
-from pytrie import SortedStringTrie as trie
+from lib.pytrie import SortedStringTrie as trie
 
 vtree = trie()
 
 class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n):
+        tables = None
         #AA:TODO: Is this the right "pythonic way" ?:w
         result, count =  VirtualTable.objects.lookup_by_lat_lng(tree=vtree, lat=lat, lng=lng, num_results=n)
-        #convert result to query set result
-        tables = map(lambda m: self.get(id=m), result)
+        if result:
+            #convert result to query set result
+            tables = map(lambda m: self.get(id=m), result)
         return tables, count
 
 

@@ -2,8 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from location_mgr.models import LocationMgr
-from pytrie import SortedStringTrie as trie
-from preserialize.serialize import serialize
+from lib.pytrie import SortedStringTrie as trie
+from lib.preserialize.serialize import serialize
 from wizserver import fields
 
 import pdb
@@ -12,9 +12,11 @@ ptree = trie()
 
 class UserProfileManager(models.Manager):
     def lookup(self, key, n):
+        users = None
         result, count = UserProfile.objects.lookup_by_key(tree=ptree, key=key, num_results=n)
         #convert result to query set result
-        users = map(lambda m: self.get(id=m).user, result)
+        if result:
+            users = map(lambda m: self.get(id=m).user, result)
         return users, count
 
 class UserProfile(LocationMgr):
