@@ -96,8 +96,8 @@ class ParseMsgAndDispatch:
             'get_cards'                 : self.processGetNotifications,
             'send_card_to_contacts'     : self.processSendCardToContacts,
             'send_card_to_user'         : self.processSendCardUC,
-            'send_query_user'           : self.processQueryUser,
-            'send_query_user_location'  : self.processQueryUser,
+            'send_query_user'           : self.processQueryUserByName,
+            'find_users_by_location'    : self.processQueryUserByLocation,
             'show_table_list'           : self.processQueryTable,
             'table_details'             : self.processGetTableDetails,
             'create_table'              : self.processCreateTable,
@@ -176,11 +176,6 @@ class ParseMsgAndDispatch:
                     profile.update()
             except:
                 pass
-
-            #AA:TODO: get num_results from user settings
-            closest = UserProfile.default_manager.lookup(key=profile.key, n=3)
-
-            print 'looking up  gives result [{closest}]'.format (closest=closest)
 
             self.response.add_data("wizUserID", user.pk)
             if wizcard_s:
@@ -549,22 +544,44 @@ class ParseMsgAndDispatch:
     def processSendCardUC(self):
         try:
             sender = User.objects.get(id=self.sender['wizUserID'])
-            receiver = User.objects.get(id=self.receiver['wizUserID'])
+            receivers = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = sender.wizcard
-            wizcard2 = receiver.wizcard
         except ObjectDoesNotExist:
             self.response.error_response(errno=1, errorStr="Object does not exist")
             return self.response.response
 
-        err = wizlib.exchange(wizcard1, wizcard2, False)
-        self.response.error_response(errno=err['Error'],
-                                     errorStr=err['Description'])
+        for receiver in receivers:
+            wizcard2 = receiver.wizcard
+            err = wizlib.exchange(wizcard1, wizcard2, False)
+            if err['Error']:
+                self.response.error_response(errno=err['Error'], 
+                                             errorStr=err['Description'])
 
         return self.response.response
 
+    def processQueryUserByLocation(self):
+        user = User.objects.get(id=self.sender['wizUserID'])
+        profile = user.profile
+        #update location in ptree
+        try:
+            changed = profile.set_location(self.sender['lat'], self.sender['lng'])
+            if changed:
+                profile.update()
+        except:
+            pass
 
-    #AA: This can be the same message as above. Treat it separately for now
-    def processQueryUser(self):
+        users, count = UserProfile.default_manager.lookup(profile.key, n=3)
+        print 'looking up  gives result [{users}]'.format (users=users)
+        if count:
+            users_s = serialize(tables, **fields.user_query_template)
+            self.response.add_data("queryResult", users_s)
+            self.response.add_data("count", count)
+        else:
+            self.response.error_response(errno=1, errorStr="Query returned no results")
+
+        return self.response.response
+
+    def processQueryUserByName(self):
         excludeUserID = self.sender['wizUserID']
 
         try:
@@ -584,7 +601,7 @@ class ParseMsgAndDispatch:
         #send back to app for selection
 
         if (count):
-            users = serialize(result, **fields.query_template)
+            users = serialize(result, **fields.user_query_template)
             self.response.add_data("queryResult", users)
             self.response.add_data("count", count)
         else:

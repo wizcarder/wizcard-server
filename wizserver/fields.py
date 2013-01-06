@@ -21,7 +21,7 @@ wizconnection_template = {
     'allow_missing': True
 }
 
-query_template = { 
+user_query_template = { 
     'fields': ['user_id', 'first_name', 'last_name']
 }
 
