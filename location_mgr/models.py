@@ -56,14 +56,7 @@ class LocationMgr(models.Model):
             changed = True
         return changed
 
-    def save(self, tree, *args, **kwargs):
-        if self.lat and self.lng:
-            self.key = wizlib.create_geohash(self.lat, self.lng)
-            tree[self.key] = self.pk
-        super(LocationMgr, self).save(*args, **kwargs)
-
-
-    def update(self, tree, *args, **kwargs):
+    def update_tree(self, tree, *args, **kwargs):
         #location changed. Delete old node
         if self.key:
             try:
@@ -72,4 +65,8 @@ class LocationMgr(models.Model):
                 #only reason could/should be that server was restarted
                 pass
         #save new node
+        if self.lat and self.lng:
+            self.key = wizlib.create_geohash(self.lat, self.lng)
+            tree[self.key] = self.pk
+        print 'current tree [{tree}]'.format (tree=tree)
         self.save()

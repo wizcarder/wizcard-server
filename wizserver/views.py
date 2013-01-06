@@ -173,7 +173,7 @@ class ParseMsgAndDispatch:
             try:
                 changed = profile.set_location(self.sender['lat'], self.sender['lng'])
                 if changed:
-                    profile.update()
+                    profile.update_tree()
             except:
                 pass
 
@@ -566,7 +566,7 @@ class ParseMsgAndDispatch:
         try:
             changed = profile.set_location(self.sender['lat'], self.sender['lng'])
             if changed:
-                profile.update()
+                profile.update_tree()
         except:
             pass
 
@@ -684,9 +684,15 @@ class ParseMsgAndDispatch:
             password = self.sender['password']
         else:
             password = ""
-        table = VirtualTable.objects.create(tablename=tablename, lat=lat, lng=lng,
-                                           secureTable=secure, password=password,
-                                           creator=user)
+        table = VirtualTable.objects.create(tablename=tablename, secureTable=secure, 
+                                            password=password, creator=user)
+        #update location in ptree
+        try:
+            changed = table.set_location(lat, lng)
+            if changed:
+                table.update_tree()
+        except:
+            pass
 
         table.join_table_and_exchange(user, password, False)
         table.save()

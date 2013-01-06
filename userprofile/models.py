@@ -23,12 +23,8 @@ class UserProfile(LocationMgr):
 
     default_manager = UserProfileManager()
 
-    def save(self, *args, **kwargs):
-        super(UserProfile, self).save(tree=ptree, *args, **kwargs)
-        print 'saving to tree [{ptree}]'.format (ptree=ptree)
-
-    def update(self, *args, **kwargs):
-        super(UserProfile, self).update(tree=ptree, *args, **kwargs)
+    def update_tree(self, *args, **kwargs):
+        super(UserProfile, self).update_tree(tree=ptree, *args, **kwargs)
         print 'updating to tree [{ptree}]'.format (ptree=ptree)
 
     def serialize_objects(self):

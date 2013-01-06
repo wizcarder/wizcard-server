@@ -49,8 +49,9 @@ class VirtualTable(LocationMgr):
     def __unicode__(self):
         return self.tablename
 
-    def save(self, *args, **kwargs):
-        super(VirtualTable, self).save(tree=vtree, *args, **kwargs)
+    def update_tree(self, *args, **kwargs):
+        super(VirtualTable, self).update_tree(tree=vtree, *args, **kwargs)
+        print 'updating to tree [{ptree}]'.format (ptree=vtree)
 
     def isSecure(self):
         return self.secureTable
