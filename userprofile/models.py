@@ -14,7 +14,7 @@ class UserProfileManager(models.Manager):
     def lookup(self, key, n):
         result, count = UserProfile.objects.lookup_by_key(tree=ptree, key=key, num_results=n)
         #convert result to query set result
-        users = map(lambda m: self.get(id=m), result)
+        users = map(lambda m: self.get(id=m).user, result)
         return users, count
 
 class UserProfile(LocationMgr):

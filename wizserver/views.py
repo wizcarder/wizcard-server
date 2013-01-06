@@ -573,7 +573,7 @@ class ParseMsgAndDispatch:
         users, count = UserProfile.default_manager.lookup(profile.key, n=3)
         print 'looking up  gives result [{users}]'.format (users=users)
         if count:
-            users_s = serialize(tables, **fields.user_query_template)
+            users_s = serialize(users, **fields.user_query_template)
             self.response.add_data("queryResult", users_s)
             self.response.add_data("count", count)
         else:
