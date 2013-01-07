@@ -29,6 +29,9 @@ class UserProfile(LocationMgr):
         super(UserProfile, self).update_tree(tree=ptree, *args, **kwargs)
         print 'updating to tree [{ptree}]'.format (ptree=ptree)
 
+    def check_set_location(self, lat, lng):
+        return super(UserProfile, self).check_set_location(tree=ptree, lat=lat, lng=lng)
+
     def serialize_objects(self):
         #add callouts to all serializable objects here
         w = None

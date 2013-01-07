@@ -169,12 +169,9 @@ class ParseMsgAndDispatch:
             login(self.request, user)
 
             #update location in ptree
-            try:
-                changed = profile.set_location(self.sender['lat'], self.sender['lng'])
-                if changed:
-                    profile.update_tree()
-            except:
-                pass
+            update = profile.set_location(self.sender['lat'], self.sender['lng'])
+            if update:
+                profile.update_tree()
 
             self.response.add_data("wizUserID", user.pk)
             if wizcard_s:
@@ -530,12 +527,9 @@ class ParseMsgAndDispatch:
         user = User.objects.get(id=self.sender['wizUserID'])
         profile = user.profile
         #update location in ptree
-        try:
-            changed = profile.set_location(self.sender['lat'], self.sender['lng'])
-            if changed:
-                profile.update_tree()
-        except:
-            pass
+        update = profile.check_set_location(self.sender['lat'], self.sender['lng'])
+        if update:
+            profile.update_tree()
 
         users, count = UserProfile.default_manager.lookup(profile.key, n=3)
         print 'looking up  gives result [{users}]'.format (users=users)
@@ -654,12 +648,9 @@ class ParseMsgAndDispatch:
         table = VirtualTable.objects.create(tablename=tablename, secureTable=secure, 
                                             password=password, creator=user)
         #update location in ptree
-        try:
-            changed = table.set_location(lat, lng)
-            if changed:
-                table.update_tree()
-        except:
-            pass
+        update = table.set_location(lat, lng)
+        if update:
+            table.update_tree()
 
         table.join_table_and_exchange(user, password, False)
         table.save()

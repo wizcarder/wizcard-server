@@ -44,17 +44,27 @@ class LocationMgr(models.Model):
     class Meta:
         abstract = True
 
-    def set_location(self, lat, lng):
-        changed = False
-        lat = lat+random.random()
-        lng = lng+random.random()
+    def check_set_location(self, tree, lat, lng):
+        update = False
+        #lat = lat+random.random()
+        #lng = lng+random.random()
+        #handle restart case. Tree will not have key but instances will have it
+        key = wizlib.create_geohash(lat, lng)
+        if not tree.has_key(key):
+            update = True
+
+        update = self.set_location(tree, lat, lng)
+        return update
+
+    def set_location(self, tree, lat, lng):
+        update = False
         if self.lat != lat:
             self.lat = lat
-            changed = True
+            update = True
         if self.lng != lng:
             self.lng = lng
-            changed = True
-        return changed
+            update = True
+        return update
 
     def update_tree(self, tree, *args, **kwargs):
         #location changed. Delete old node

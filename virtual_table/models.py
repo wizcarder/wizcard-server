@@ -55,6 +55,9 @@ class VirtualTable(LocationMgr):
         super(VirtualTable, self).update_tree(tree=vtree, *args, **kwargs)
         print 'updating to tree [{ptree}]'.format (ptree=vtree)
 
+    def check_set_location(self, lat, lng):
+        return super(UserProfile, self).check_set_location(tree=vtree, lat=lat, lng=lng)
+
 
     def isSecure(self):
         return self.secureTable
