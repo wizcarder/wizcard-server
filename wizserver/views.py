@@ -329,122 +329,89 @@ class ParseMsgAndDispatch:
             user.last_name = self.sender['last_name']
             user.save()
 
-        try:
+        if self.sender.has_key('first_name'):
             first_name = self.sender['first_name']
             if wizcard.first_name != first_name:
                 wizcard.first_name = first_name
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('last_name'):
             last_name = self.sender['last_name']
             if wizcard.last_name != last_name:
                 wizcard.last_name = last_name
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('company'):
             company = self.sender['company']
             if wizcard.company != company:
                 wizcard.company = company
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('title'):
             title = self.sender['title']
             if wizcard.title != title:
                 wizcard.title = title
                 modify = True
             wizcard.title = title
             modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('phone1'):
             phone1 = self.sender['phone1']
             if wizcard.phone1 != phone1:
                 wizcard.phone1 = phone1
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('phone2'):
             phone2 = self.sender['phone2']
             if wizcard.phone2 != phone2:
                 wizcard.phone2 = phone2
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('email'):
             email = self.sender['email']
             if wizcard.email != email:
                 wizcard.email = email
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('address_street1'):
             street1 = self.sender['address_street1']
-            if wizcard.street1 != street1:
-                wizcard.street1 = street1
+            if wizcard.address_street1 != street1:
+                wizcard.address_street1 = street1
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('address_city'):
             city = self.sender['address_city']
-            if wizcard.city != city:
-                wizcard.city = city
+            if wizcard.address_city != city:
+                wizcard.address_city = city
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('address_state'):
             state = self.sender['address_state']
-            if wizcard.state != state:
-                wizcard.state = state
+            if wizcard.address_state != state:
+                wizcard.address_state = state
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('address_country'):
             country = self.sender['address_country']
-            if wizcard.country != country:
-                wizcard.country = country
+            if wizcard.address_country != country:
+                wizcard.address_country = country
                 modify = True
-        except:
-            pass
-        try:
+        if self.sender.has_key('address_zip'):
             zipcode = self.sender['address_zip']
-            if wizcard.zipcode != zipcode:
-                wizcard.zipcode = zipcode
+            if wizcard.address_zipcode != zipcode:
+                wizcard.address_zipcode = zipcode
                 modify = True
-        except:
-            pass
-
-
-        try:
+        if self.sender.has_key('thumbnailImage') and self.sender['imageWasEdited']:
             rawimage = self.sender['thumbnailImage']
             upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
             wizcard.thumbnailImage.save(upfile.name, upfile) 
-        except:
-            pass
 
-        try:
+        if self.sender.has_key('contact_container'):
             contactContainerList = self.sender['contact_container']
             #AA: TODO: Optimize using isModified flag from app
             wizcard.contact_container.all().delete()
             modify = True
-        except:
-            contactContainerList = []
 
-        for contactItems in contactContainerList:
-            try:
-                title = contactItems['title']
-            except:
-                title = ""
-            try:
-                company = contactItems['company']
-            except:
-                company = ""
-
-            ContactContainer(wizcard=wizcard, title=title, company=company).save()
-
-
+            for contactItems in contactContainerList:
+                if contactItems.has_key('title'):
+                    title = contactItems['title']
+                else:
+                    title = ""
+                if contactItems.has_key('company'):
+                    company = contactItems['company']
+                else:
+                    company = ""
+                ContactContainer(wizcard=wizcard, title=title, company=company).save()
 
         #flood to contacts
         if modify:

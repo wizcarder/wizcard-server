@@ -55,6 +55,7 @@ class VirtualTable(LocationMgr):
         super(VirtualTable, self).update_tree(tree=vtree, *args, **kwargs)
         print 'updating to tree [{ptree}]'.format (ptree=vtree)
 
+
     def isSecure(self):
         return self.secureTable
 
@@ -98,6 +99,7 @@ class VirtualTable(LocationMgr):
         return self
 
     def delete_table(self, user):
+        super(VirtualTable, self).delete_tree(tree=vtree)
         self.users.clear()
         self.delete()
 

@@ -70,3 +70,7 @@ class LocationMgr(models.Model):
             tree[self.key] = self.pk
         print 'current tree [{tree}]'.format (tree=tree)
         self.save()
+
+    def delete_tree(self, tree):
+        del tree[self.key]
+

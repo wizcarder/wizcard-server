@@ -81,10 +81,9 @@ class NotifResponse(ResponseN):
         out = wizcard.serialize()
         self.add_data_to_dict(out, "user_id", notif.actor_object_id)
         self.add_data_with_notif(out, notifType)
-        #if wizcard.thumbnailImage:
-        #    self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
-        print "sending notification"
-        print self.response
+        if wizcard.thumbnailImage:
+            self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
+        print "sending wizcard notification"
         return self.response
 
     def notifWizConnectionT(self, notif):

@@ -75,7 +75,7 @@ class Wizcard(models.Model):
     address_zip = models.CharField(max_length = 20, blank=True)
     #media objects
     #AA:TODO: This(image/video management) is quite primitive
-    #thumbnailImage = models.ImageField(upload_to="image/")
+    thumbnailImage = models.ImageField(upload_to="image/")
     video = models.FileField(upload_to="video/")
 
 
