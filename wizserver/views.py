@@ -59,7 +59,6 @@ class WizRequestHandler(View):
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(request)
         ret =  pdispatch.processIncomingMessage()
-        print ret
         #send response
         return HttpResponse(json.dumps(ret))
 
@@ -385,8 +384,8 @@ class ParseMsgAndDispatch:
                 modify = True
         if self.sender.has_key('address_zip'):
             zipcode = self.sender['address_zip']
-            if wizcard.address_zipcode != zipcode:
-                wizcard.address_zipcode = zipcode
+            if wizcard.address_zip != zipcode:
+                wizcard.address_zip = zipcode
                 modify = True
         if self.sender.has_key('thumbnailImage') and self.sender['imageWasEdited']:
             rawimage = self.sender['thumbnailImage']
@@ -486,7 +485,7 @@ class ParseMsgAndDispatch:
             return self.response.response
 
         #A:TODO: Cross verify user agains wizcard
-        receivers = self.receiver['contacts']
+        receivers = self.receiver['wizUserIDs']
         for receiver in receivers:
             try:
                 emails = receiver['email']
@@ -508,14 +507,18 @@ class ParseMsgAndDispatch:
     def processSendCardUC(self):
         try:
             sender = User.objects.get(id=self.sender['wizUserID'])
-            receivers = User.objects.get(id=self.receiver['wizUserID'])
+            receivers = self.receiver['wizUserIDs']
             wizcard1 = sender.wizcard
         except ObjectDoesNotExist:
             self.response.error_response(errno=1, errorStr="Object does not exist")
             return self.response.response
 
         for receiver in receivers:
-            wizcard2 = receiver.wizcard
+            try:
+                wizcard2 = User.objects.get(id=receiver).wizcard
+            except:
+                self.response.error_response(errno=1, errorStr="something went wrong")
+                
             err = wizlib.exchange(wizcard1, wizcard2, False)
             if err['Error']:
                 self.response.error_response(errno=err['Error'], 

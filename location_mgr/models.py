@@ -52,11 +52,11 @@ class LocationMgr(models.Model):
         key = wizlib.create_geohash(lat, lng)
         if not tree.has_key(key):
             update = True
-
-        update = self.set_location(tree, lat, lng)
+        if self.set_location(lat, lng):
+            update = True
         return update
 
-    def set_location(self, tree, lat, lng):
+    def set_location(self, lat, lng):
         update = False
         if self.lat != lat:
             self.lat = lat
