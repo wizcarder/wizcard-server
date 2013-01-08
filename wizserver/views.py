@@ -89,7 +89,7 @@ class ParseMsgAndDispatch:
             'delete_card'               : self.processDeleteWizcardOwn,
             'delete_notification_card'  : self.processDeleteWizcardNotification,
             'delete_rolodex_card'       : self.processDeleteWizcardRolodex,
-            'update'                    : self.processLocationUpdate,
+            'current_location'          : self.processLocationUpdate,
             'add_notification_card'     : self.processAcceptCard,
             'get_cards'                 : self.processGetNotifications,
             'send_card_to_contacts'     : self.processSendCardToContacts,
@@ -418,8 +418,15 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processLocationUpdate(self):
-        response = "location update"
-        return response
+        user = User.objects.get(id=self.sender['wizUserID'])
+        profile = user.profile
+        #update location in ptree
+        update = profile.check_set_location(self.sender['lat'], self.sender['lng'])
+        if update:
+            profile.update_tree()
+
+
+        return self.response.response
 
     def processAcceptCard(self):
         #To Do. if app returns the connection id cookie sent by server
