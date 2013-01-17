@@ -92,7 +92,7 @@ class ParseMsgAndDispatch:
             'current_location'          : self.processLocationUpdate,
             'add_notification_card'     : self.processAcceptCard,
             'get_cards'                 : self.processGetNotifications,
-            'send_card_to_contacts'     : self.processSendCardToContacts,
+            'send_card_to_contacts'     : self.processSendCardToFutureContacts,
             'send_card_to_user'         : self.processSendCardUC,
             'send_query_user'           : self.processQueryUserByName,
             'find_users_by_location'    : self.processQueryUserByLocation,
@@ -307,8 +307,6 @@ class ParseMsgAndDispatch:
     def processModifyWizcard(self):
         modify = False
         try:
-            #find card
-            #AA: TODO: Change to Custom User Model
             user = User.objects.get(id=self.sender['wizUserID'])
         except ObjectDoesNotExist:
             self.response.error_response(errno=1, errorStr="Object does not exist")
@@ -324,6 +322,20 @@ class ParseMsgAndDispatch:
             user.first_name = self.sender['first_name']
             user.last_name = self.sender['last_name']
             user.save()
+
+        #AA:TODO phone1 currently should always be there 
+        phone1 = self.sender['phone1']
+
+        #check if futureUser existed for this phoneNum
+
+        future_user =  UserProfile.default_manager.future_user(phone1)
+        if future_user:
+            wizlib.migrate_future_user(future_user, user)
+            future_user.delete()
+
+        if wizcard.phone1 != phone1:
+            wizcard.phone1 = phone1
+            modify = True
 
         if self.sender.has_key('first_name'):
             first_name = self.sender['first_name']
@@ -347,11 +359,6 @@ class ParseMsgAndDispatch:
                 modify = True
             wizcard.title = title
             modify = True
-        if self.sender.has_key('phone1'):
-            phone1 = self.sender['phone1']
-            if wizcard.phone1 != phone1:
-                wizcard.phone1 = phone1
-                modify = True
         if self.sender.has_key('phone2'):
             phone2 = self.sender['phone2']
             if wizcard.phone2 != phone2:
@@ -492,23 +499,54 @@ class ParseMsgAndDispatch:
             return self.response.response
 
         #A:TODO: Cross verify user agains wizcard
-        receivers = self.receiver['wizUserIDs']
-        for receiver in receivers:
+        contacts = self.receiver['contacts']
+        for contact in contacts:
             try:
-                emails = receiver['email']
-                for email in emails:
-                    target_wizcards, query_count = wizlib.find_users(sender.pk, name=None, phone=None, email=email)
+                #AA:TODO: phone should just be the mobile phone. App needs to change
+                # to adjust this. Also, array is not required
+                phones = contact['phone']
+                for phone in phones:
+                    target_wizcards, query_count = wizlib.find_users(sender.pk, None, phone, None)
                     if query_count:
                         for wizcard2 in target_wizcards:
                             #create bidir cardship
                             if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
                                 err = wizlib.exchange(wizcard1, wizcard2, True)
                                 count += 1
+
             except:
                 #AA:TODO: what to do ?
                 self.response.error_response(errno=2, errorStr="something's not right")
 
         self.response.add_data("count", count)
+        return self.response.response
+
+
+    def processVerifyContacts(self):
+        return self.response.response
+
+    def processSendCardToFutureContacts(self):
+        sender = User.objects.get(id=self.sender['wizUserID'])
+        wizcard1 = sender.wizcard
+        contacts = self.receiver['contacts']
+        for contact in contacts:
+            #create a dummy user using the phone number as userID
+            try:
+                username = contact['phone']
+                user, created = User.objects.get_or_create(username=username)
+                if created:
+                    Wizcard(user=user).save()
+                    user.profile.set_future()
+                else:
+                    assert user.profile.is_future(), 'not a future user'
+
+
+                err = wizlib.exchange(wizcard1, user.wizcard, False)
+                if err['Error']:
+                    self.response.error_response(errno=err['Error'], 
+                                                 errorStr=err['Description'])
+            except:
+                pass
         return self.response.response
 
     def processSendCardUC(self):

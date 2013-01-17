@@ -96,6 +96,7 @@ def find_users(userID, name, phone, email):
 
     return result, len(result)
 
+
 #Geohash related stuff
 
 def create_geohash(lat, lng):
@@ -108,3 +109,12 @@ def lookup_closest_n(tree, key, n):
 
 def lookup_closest_n_values(tree, key, n):
     return tree.longest_common_prefix_value(key)
+
+#future user stuff
+def migrate_future_user(future, current):
+    #migrate wizconnections, notifications and delete the future user
+    Wizcard.objects.migrate_future_user(future, current)
+    Notification.objects.migrate_future_user(future, current)
+    future.delete()
+    
+

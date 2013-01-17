@@ -24,6 +24,9 @@ class NotificationManager(models.Manager):
     def mark_all_as_read(self, recipient):
         return self.filter(recipient=recipient, readed=False).update(readed=True)
 
+    def migrate_future_user(self, future, current):
+        return self.filter(recipient=future.pk).update(recipient=current.update)
+
 class Notification(models.Model):
     """
     Action model describing the actor acting out a verb (on an optional

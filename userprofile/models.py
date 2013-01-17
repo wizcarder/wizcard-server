@@ -10,6 +10,8 @@ import pdb
 
 ptree = trie()
 
+
+
 class UserProfileManager(models.Manager):
     def lookup(self, key, n):
         users = None
@@ -19,11 +21,29 @@ class UserProfileManager(models.Manager):
             users = map(lambda m: self.get(id=m).user, result)
         return users, count
 
+    def future_user(self, username):
+        try:
+            user = UserProfile.objects.get(id=username, future_user=True)
+        except:
+            user = None
+
+        return user
+
 class UserProfile(LocationMgr):
+
     # This field is required.
     user = models.OneToOneField(User, related_name='profile')
+    future_user = models.BooleanField(default=False, blank=False)
+    
 
     default_manager = UserProfileManager()
+
+    def is_future(self):
+        return self.future_user
+
+    def set_future(self):
+        self.future_user = True
+        self.save()
 
     def update_tree(self, *args, **kwargs):
         super(UserProfile, self).update_tree(tree=ptree, *args, **kwargs)
