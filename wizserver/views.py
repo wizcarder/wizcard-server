@@ -431,8 +431,6 @@ class ParseMsgAndDispatch:
         update = profile.check_set_location(self.sender['lat'], self.sender['lng'])
         if update:
             profile.update_tree()
-
-
         return self.response.response
 
     def processAcceptCard(self):
@@ -561,13 +559,12 @@ class ParseMsgAndDispatch:
         for receiver in receivers:
             try:
                 wizcard2 = User.objects.get(id=receiver).wizcard
+                err = wizlib.exchange(wizcard1, wizcard2, False)
+                if err['Error']:
+                    self.response.error_response(errno=err['Error'], 
+                                                 errorStr=err['Description'])
             except:
                 self.response.error_response(errno=1, errorStr="something went wrong")
-                
-            err = wizlib.exchange(wizcard1, wizcard2, False)
-            if err['Error']:
-                self.response.error_response(errno=err['Error'], 
-                                             errorStr=err['Description'])
 
         return self.response.response
 
@@ -711,6 +708,10 @@ class ParseMsgAndDispatch:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
         except ObjectDoesNotExist:
             self.response.error_response(errno=1, errorStr="Object does not exist")
+            return self.response.response
+
+        if user is table.creator:
+            self.response.error_response(errno=1, errorStr="Already joined table")
             return self.response.response
 
         if table.isSecure():

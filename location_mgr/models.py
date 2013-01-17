@@ -82,5 +82,8 @@ class LocationMgr(models.Model):
         self.save()
 
     def delete_tree(self, tree):
-        del tree[self.key]
+        try:
+            del tree[self.key]
+        except:
+            pass
 
