@@ -328,10 +328,13 @@ class ParseMsgAndDispatch:
 
         #check if futureUser existed for this phoneNum
 
-        future_user =  UserProfile.default_manager.future_user(phone1)
-        if future_user:
-            wizlib.migrate_future_user(future_user, user)
+        try:
+            future_user = User.objects.get(username=phone1)
+            if future_user.profile.is_future():
+                wizlib.migrate_future_user(future_user, user)
             future_user.delete()
+        except:
+            pass
 
         if wizcard.phone1 != phone1:
             wizcard.phone1 = phone1
@@ -530,7 +533,8 @@ class ParseMsgAndDispatch:
         for contact in contacts:
             #create a dummy user using the phone number as userID
             try:
-                username = contact['phone']
+                #TODO: handle multiple phones or restrict app to send one
+                username = wizlib.convert_phone(contact['phone'][0])
                 user, created = User.objects.get_or_create(username=username)
                 if created:
                     Wizcard(user=user).save()

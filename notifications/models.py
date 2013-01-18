@@ -25,7 +25,7 @@ class NotificationManager(models.Manager):
         return self.filter(recipient=recipient, readed=False).update(readed=True)
 
     def migrate_future_user(self, future, current):
-        return self.filter(recipient=future.pk).update(recipient=current.update)
+        return self.filter(recipient=future.pk).update(recipient=current.pk)
 
 class Notification(models.Model):
     """

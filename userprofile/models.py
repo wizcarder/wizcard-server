@@ -21,14 +21,6 @@ class UserProfileManager(models.Manager):
             users = map(lambda m: self.get(id=m).user, result)
         return users, count
 
-    def future_user(self, username):
-        try:
-            user = UserProfile.objects.get(id=username, future_user=True)
-        except:
-            user = None
-
-        return user
-
 class UserProfile(LocationMgr):
 
     # This field is required.

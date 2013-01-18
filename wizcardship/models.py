@@ -60,11 +60,7 @@ class WizcardManager(models.Manager):
         self.wizconnection_req_clear(wizcard2, wizcard1)
 
     def migrate_future_user(self, future, current):
-        WizconnectionRequest.objects.filter(to_wizcard=future.wizcard).update(to_wizcard=current.pk)
-
-        
-
-
+        WizConnectionRequest.objects.filter(to_wizcard=future.wizcard).update(to_wizcard=current.wizcard.pk)
 
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')

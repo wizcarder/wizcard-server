@@ -115,6 +115,11 @@ def migrate_future_user(future, current):
     #migrate wizconnections, notifications and delete the future user
     Wizcard.objects.migrate_future_user(future, current)
     Notification.objects.migrate_future_user(future, current)
-    future.delete()
     
 
+#general purpose utils
+def convert_phone(phone):
+    import string
+    remove = '() -:+'
+    remove_map = dict((ord(char), None) for char in remove)
+    return phone.translate(remove_map)
