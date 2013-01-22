@@ -22,42 +22,49 @@ import pdb
 from django.db.models import Q
 from datetime import datetime
 from lib import wizlib
-from location_mgr.models import LocationMgr
 from lib.pytrie import SortedStringTrie as trie
+from location_mgr.models import location, LocationMgr
+from django.contrib.contenttypes import generic
 
 vtree = trie()
 
 class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n):
-        tables = None
-        #AA:TODO: Is this the right "pythonic way" ?:w
-        result, count =  VirtualTable.objects.lookup_by_lat_lng(tree=vtree, lat=lat, lng=lng, num_results=n)
+        result, count = LocationMgr.objects.lookup_by_lat_lng(lat=lat,
+                                                              lng=lng,
+                                                              tree=vtree, 
+                                                              n=n)
+        #convert result to query set result
         if result:
-            #convert result to query set result
             tables = map(lambda m: self.get(id=m), result)
-        return tables, count
+            return tables, count
+        return None, None
 
 
-class VirtualTable(LocationMgr):
+class VirtualTable(models.Model):
     tablename = models.CharField(max_length=40)
     numSitting = models.IntegerField(default=0, blank=True)
     secureTable = models.BooleanField(default=False)
     password = models.CharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
     users = models.ManyToManyField(User, through='Membership')
+    location = generic.GenericRelation(LocationMgr)
 
-    default_manager = VirtualTableManager()
+    objects = VirtualTableManager()
 
     def __unicode__(self):
         return self.tablename
 
-    def update_tree(self, *args, **kwargs):
-        super(VirtualTable, self).update_tree(tree=vtree, *args, **kwargs)
-        print 'updating to tree [{ptree}]'.format (ptree=vtree)
+    def get_location(self):
+        location_qs = self.location.all()
+        if location_qs:
+            return location_qs[0]
+        else:
+            return None
 
-    def check_set_location(self, lat, lng):
-        return super(UserProfile, self).check_set_location(tree=vtree, lat=lat, lng=lng)
-
+    def create_location(self, lat, lng):
+        key = wizlib.create_geohash(lat, lng)
+        location.send(sender=self, lat=lat, lng=lng, key=key, tree=vtree)
 
     def isSecure(self):
         return self.secureTable
@@ -102,8 +109,12 @@ class VirtualTable(LocationMgr):
         return self
 
     def delete_table(self, user):
-        super(VirtualTable, self).delete_tree(tree=vtree)
         self.users.clear()
+        #no clean way of getting locationMgr delete method to clean up the tree
+        #since the tree is visible only to this model. Tried a pre-delete signal,
+        #but that cannot carry arguments and so locationMgr cannot see the tree/key
+        #to delete. Hence delete the key from here
+        self.get_location().delete_key(vtree)
         self.delete()
 
     def lifetime(self, time):

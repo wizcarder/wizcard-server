@@ -23,7 +23,12 @@ from django.db.models import Q
 from django.core.files.base import ContentFile
 from lib.preserialize.serialize import serialize
 from wizserver import fields
+from lib.pytrie import SortedStringTrie as trie
+from django.contrib.contenttypes import generic
+from location_mgr.models import location, LocationMgr
 #from django.db.models import ImageField
+
+wtree = trie()
 
 class WizcardManager(models.Manager):
     def except_wizcard(self, except_user):
@@ -62,6 +67,15 @@ class WizcardManager(models.Manager):
     def migrate_future_user(self, future, current):
         WizConnectionRequest.objects.filter(to_wizcard=future.wizcard).update(to_wizcard=current.wizcard.pk)
 
+    def lookup(self, key, n):
+        wizcards = None
+        result, count =  Wizcard.objects.lookup_by_lat_lng(tree=wtree, lat=lat, lng=lng, num_results=n)
+        #convert result to query set result
+        if result:
+            wizcards = map(lambda m: self.get(id=m), result)
+        return users, count
+
+
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
@@ -79,7 +93,7 @@ class Wizcard(models.Model):
     #AA:TODO: This(image/video management) is quite primitive
     thumbnailImage = models.ImageField(upload_to="image/")
     video = models.FileField(upload_to="video/")
-
+    location = generic.GenericRelation(LocationMgr)
 
     objects = WizcardManager()
 
@@ -129,6 +143,28 @@ class Wizcard(models.Model):
         from lib import wizlib
         for wizcard in self.wizconnections.all():
             wizlib.update_wizconnection(self, wizcard)
+
+    def get_location(self):
+        return self.location.all()
+
+    def get_or_create_location(self, lat, lng):
+        created = True
+        location_qs = self.location.filter(lat=lat, 
+                                           lng=lng, 
+                                           content_type=ContentType.objects.get_for_model(self))
+        if location_qs:
+            created = False
+        else:
+            #create
+            key = wizlib.create_geohash(lat, lng)
+            location_qs = location.send(sender=self, 
+                                        lat=lat, 
+                                        lng=lng, 
+                                        key=key, 
+                                        tree=wtree)
+
+        return location_qs, created
+
 
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")

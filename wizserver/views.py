@@ -92,7 +92,7 @@ class ParseMsgAndDispatch:
             'current_location'          : self.processLocationUpdate,
             'add_notification_card'     : self.processAcceptCard,
             'get_cards'                 : self.processGetNotifications,
-            'send_card_to_contacts'     : self.processSendCardToFutureContacts,
+            'send_card_to_contacts'     : self.processSendCardToContacts,
             'send_card_to_user'         : self.processSendCardUC,
             'send_query_user'           : self.processQueryUserByName,
             'find_users_by_location'    : self.processQueryUserByLocation,
@@ -168,9 +168,7 @@ class ParseMsgAndDispatch:
             login(self.request, user)
 
             #update location in ptree
-            update = profile.set_location(self.sender['lat'], self.sender['lng'])
-            if update:
-                profile.update_tree()
+            profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
 
             self.response.add_data("wizUserID", user.pk)
             if wizcard_s:
@@ -431,9 +429,7 @@ class ParseMsgAndDispatch:
         user = User.objects.get(id=self.sender['wizUserID'])
         profile = user.profile
         #update location in ptree
-        update = profile.check_set_location(self.sender['lat'], self.sender['lng'])
-        if update:
-            profile.update_tree()
+        profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
         return self.response.response
 
     def processAcceptCard(self):
@@ -485,8 +481,6 @@ class ParseMsgAndDispatch:
 
         Notification.objects.mark_all_as_read(user)
         return notifResponse.response
-
-
 
     def processSendCardToContacts(self):
         #implicitly create a bidir cardship (since this is from contacts)
@@ -576,12 +570,9 @@ class ParseMsgAndDispatch:
         user = User.objects.get(id=self.sender['wizUserID'])
         profile = user.profile
         #update location in ptree
-        update = profile.check_set_location(self.sender['lat'], self.sender['lng'])
-        if update:
-            profile.update_tree()
-
-        users, count = UserProfile.default_manager.lookup(profile.key, n=3)
-        print 'looking up  gives result [{users}]'.format (users=users)
+        profile.create_or_update_location(self.sender['lat'], 
+                                          self.sender['lng'])
+        lookup_result, count = profile.lookup(3)
         if count:
             users_s = serialize(users, **fields.user_query_template)
             self.response.add_data("queryResult", users_s)
@@ -650,7 +641,7 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processQueryTableByLocation(self, lat, lng):
-        tables, count = VirtualTable.default_manager.lookup(lat=lat, lng=lng, n=3)
+        tables, count = VirtualTable.objects.lookup(lat=lat, lng=lng, n=3)
         if count:
             tables_s = serialize(tables, **fields.table_template)
             self.response.add_data("queryResult", tables_s)
@@ -678,6 +669,25 @@ class ParseMsgAndDispatch:
 
         return self.response.response
 
+    def processWizcardFlick(self):
+        try:
+            user = User.objects.get(id=self.sender['wizUserID'])
+        except ObjectDoesNotExist:
+            self.response.error_response(errno=1, errorStr="Object does not exist")
+            return self.response.response
+        try:
+            wizcard = user.wizcard
+        except:
+            self.response.error_response(errno=1, errorStr="Object does not exist")
+            return self.response.response
+        
+        lat = self.sender['lat']
+        lng = self.sender['lng']
+        
+        w_location, created = wizcard.get_or_create_location(lat, lng)
+        if not created:
+            #AA:TODO: Maybe update timestamp or something to keep the card alive longer
+            pass
 
     def processCreateTable(self):
         try:
@@ -697,10 +707,8 @@ class ParseMsgAndDispatch:
         table = VirtualTable.objects.create(tablename=tablename, secureTable=secure, 
                                             password=password, creator=user)
         #update location in ptree
-        update = table.set_location(lat, lng)
-        if update:
-            table.update_tree()
-
+        #AA:TODO move create to overridden create in VirtualTable
+        table.create_location(lat, lng)
         table.join_table_and_exchange(user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)

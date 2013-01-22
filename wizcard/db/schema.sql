@@ -11,3 +11,4 @@ DELETE FROM wizcard.django_admin_log;
 DELETE FROM wizcard.django_session;
 DELETE FROM wizcard.userprofile_userprofile;
 DELETE FROM wizcard.auth_user;
+DELETE FROM wizcard.location_mgr_locationmgr;

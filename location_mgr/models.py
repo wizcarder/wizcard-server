@@ -3,34 +3,27 @@ from django.db import models
 import datetime
 from lib.pytrie import SortedStringTrie as trie
 from django.contrib.auth.models import User
+from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.models import ContentType
+from location_mgr.signals import location
+from django.db.models.signals import pre_delete
 from lib import wizlib
 import random
 import pdb
 
 class LocationMgrManager(models.Manager):
-    def lookup_by_key(self, key, tree, num_results, key_in_tree=True):
-        print 'looking up tree [{tree}] using key [{key}]'.format (tree=tree, key=key)
-        if not tree:
-            return None, None
-
-        #AA:TODO: Kludge to dis-include self.key from the results
-        if key_in_tree:
-            #cache value
-            val = tree[key]
-            del tree[key]
-        result, count =  wizlib.lookup_closest_n_values(tree, key, num_results)
-        print '{count} lookup result [{result}]'.format (count=count, result=result)
-
-        #add self back
-        if key_in_tree:
-            tree[key] = val
+    def lookup_by_key(self, tree, key, n):
+        print 'current tree [{tree}]'.format (tree=tree)
+        result, count = wizlib.lookup_by_key(tree=tree, key=key, num_results=n)
+        print 'looking up  gives result [{result}]'.format (result=result)
         return result, count
 
-    def lookup_by_lat_lng(self, lat, lng, tree, num_results, key_in_tree=False):
+    def lookup_by_lat_lng(self, tree, lat, lng, n):
         if not tree:
             return None, None
         key = wizlib.create_geohash(lat, lng)
-        return self.lookup_by_key(key, tree, num_results, key_in_tree)
+        return self.lookup_by_key(key, tree, n, False)
+
 
 class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
@@ -39,51 +32,64 @@ class LocationMgr(models.Model):
     lastseen = models.DateTimeField(default=datetime.datetime.now,
                                     editable=False)
 
+    #GenericForeignKey to LocationMgr
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+
     objects = LocationMgrManager()
 
-    class Meta:
-        abstract = True
-
-    def check_set_location(self, tree, lat, lng):
+    def do_update(self, lat, lng, tree):
         update = False
-        #lat = lat+random.random()
-        #lng = lng+random.random()
-        #handle restart case. Tree will not have key but instances will have it
-        key = wizlib.create_geohash(lat, lng)
-        if not tree.has_key(key):
-            update = True
-        if self.set_location(lat, lng):
-            update = True
-        return update
-
-    def set_location(self, lat, lng):
-        update = False
+        update_object = None
         if self.lat != lat:
             self.lat = lat
             update = True
         if self.lng != lng:
             self.lng = lng
             update = True
-        return update
-
-    def update_tree(self, tree, *args, **kwargs):
-        #location changed. Delete old node
-        if self.key:
-            try:
-                del tree[self.key]
-            except:
-                #only reason could/should be that server was restarted
-                pass
-        #save new node
-        if self.lat and self.lng:
-            self.key = wizlib.create_geohash(self.lat, self.lng)
+        if update:
+            self.delete_key(tree)
+            newkey = wizlib.create_geohash(self.lat, self.lng)
+            self.key = newkey
+            self.save()
+            tree[newkey] = self.pk
+            update_object = self
+        elif not tree.has_key(self.key):
             tree[self.key] = self.pk
+        
         print 'current tree [{tree}]'.format (tree=tree)
-        self.save()
+        return update, update_object
 
-    def delete_tree(self, tree):
+    def delete_key(self, tree):
         try:
             del tree[self.key]
         except:
             pass
+        print 'current tree [{tree}]'.format (tree=tree)
+
+def location_update_handler(**kwargs):
+    kwargs.pop('signal', None)
+    sender = kwargs.pop('sender')
+    lat = kwargs.pop('lat')
+    lng = kwargs.pop('lng')
+    key = kwargs.pop('key', None)
+    tree = kwargs.pop('tree')
+
+    newlocation = LocationMgr(
+        lat=lat,
+        lng=lng,
+        key=key,
+        content_type=ContentType.objects.get_for_model(sender),
+        object_id=sender.pk)
+
+    newlocation.save()
+    #update tree
+    tree[key] = sender.pk
+    print 'current tree [{tree}]'.format (tree=tree)
+    return newlocation
+
+location.connect(location_update_handler, dispatch_uid='location_mgr.models.location_mgr')
+
+
 

@@ -1,3 +1,4 @@
+drop table `wizcard`.`location_mgr_locationmgr`;
 drop table `wizcard`.`wizcardship_wizconnectionrequest`;
 drop table `wizcard`.`wizcardship_wizcard_wizconnections`;
 drop table `wizcard`.`wizcardship_userblocks_blocks`;
