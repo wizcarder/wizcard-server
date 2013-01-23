@@ -49,14 +49,19 @@ class LocationMgr(models.Model):
             self.lng = lng
             update = True
         if update:
+            #get pk from tree instead of db
+            pk = tree[self.key]
+            #delete old guy
             self.delete_key(tree)
+            #add new guy
             newkey = wizlib.create_geohash(self.lat, self.lng)
             self.key = newkey
             self.save()
-            tree[newkey] = self.pk
+            #update tree with new key (and old id)
+            tree[newkey] = pk
             update_object = self
         elif not tree.has_key(self.key):
-            tree[self.key] = self.pk
+            tree[self.key] = self.object_id
         
         print 'current tree [{tree}]'.format (tree=tree)
         return update, update_object
