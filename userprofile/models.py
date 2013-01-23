@@ -48,12 +48,9 @@ class UserProfile(models.Model):
                                                           
         #convert result to query set result
         if result:
-            users = map(lambda m: self.get(id=m).user, result)
+            users = map(lambda m: UserProfile.objects.get(id=m).user, result)
             return users, count
         return None, None
-
-
-
 
     def serialize_objects(self):
         #add callouts to all serializable objects here

@@ -574,7 +574,7 @@ class ParseMsgAndDispatch:
                                           self.sender['lng'])
         lookup_result, count = profile.lookup(3)
         if count:
-            users_s = serialize(users, **fields.user_query_template)
+            users_s = serialize(lookup_result, **fields.user_query_template)
             self.response.add_data("queryResult", users_s)
             self.response.add_data("count", count)
         else:
