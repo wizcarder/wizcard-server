@@ -22,8 +22,7 @@ wizconnection_template = {
 }
 
 user_query_template = { 
-    'fields': ['user_id', 'first_name', 'last_name'],
-    'key_map' : {'user_id':'id'}
+    'fields': ['user_id', 'first_name', 'last_name']
 }
 
 delete_wizcard_template = {

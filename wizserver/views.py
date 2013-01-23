@@ -329,7 +329,8 @@ class ParseMsgAndDispatch:
         try:
             future_user = User.objects.get(username=phone1)
             if future_user.profile.is_future():
-                wizlib.migrate_future_user(future_user, user)
+                Wizcard.objects.migrate_future_user(future, current)
+                Notification.objects.migrate_future_user(future, current)
             future_user.delete()
         except:
             pass
@@ -444,7 +445,7 @@ class ParseMsgAndDispatch:
             self.response.error_response(errno=1, errorStr="Object does not exist")
             return self.response.response
 
-        wizlib.accept_wizconnection(wizcard2, wizcard1)
+        Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender 
         notify.send(sender, recipient=receiver,
                     verb='accepted wizcard', target=wizcard1, 
@@ -501,12 +502,17 @@ class ParseMsgAndDispatch:
                 # to adjust this. Also, array is not required
                 phones = contact['phone']
                 for phone in phones:
-                    target_wizcards, query_count = wizlib.find_users(sender.pk, None, phone, None)
+                    cphone = wizlib.convert_phone(phone)
+                    target_wizcards, query_count = Wizcard.objects.find_users(
+                        sender.pk, 
+                        None, 
+                        cphone, 
+                        None)
                     if query_count:
                         for wizcard2 in target_wizcards:
                             #create bidir cardship
                             if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
-                                err = wizlib.exchange(wizcard1, wizcard2, True)
+                                err = Wizcard.objects.exchange(wizcard1, wizcard2, True)
                                 count += 1
 
             except:
@@ -536,8 +542,7 @@ class ParseMsgAndDispatch:
                 else:
                     assert user.profile.is_future(), 'not a future user'
 
-
-                err = wizlib.exchange(wizcard1, user.wizcard, False)
+                err = Wizcard.objects.exchange(wizcard1, user.wizcard, False)
                 if err['Error']:
                     self.response.error_response(errno=err['Error'], 
                                                  errorStr=err['Description'])
@@ -557,7 +562,7 @@ class ParseMsgAndDispatch:
         for receiver in receivers:
             try:
                 wizcard2 = User.objects.get(id=receiver).wizcard
-                err = wizlib.exchange(wizcard1, wizcard2, False)
+                err = Wizcard.objects.exchange(wizcard1, wizcard2, False)
                 if err['Error']:
                     self.response.error_response(errno=err['Error'], 
                                                  errorStr=err['Description'])
@@ -598,7 +603,7 @@ class ParseMsgAndDispatch:
         except:
             email = None
 
-        result, count = wizlib.find_users(excludeUserID, name, phone, email)
+        result, count = Wizcard.objects.find_users(excludeUserID, name, phone, email)
         #send back to app for selection
 
         if (count):
