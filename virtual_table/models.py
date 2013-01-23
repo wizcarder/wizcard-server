@@ -24,6 +24,7 @@ from datetime import datetime
 from lib import wizlib
 from lib.pytrie import SortedStringTrie as trie
 from location_mgr.models import location, LocationMgr
+from wizcardship.models import Wizcard
 from django.contrib.contenttypes import generic
 
 vtree = trie()
