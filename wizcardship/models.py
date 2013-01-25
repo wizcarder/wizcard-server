@@ -31,6 +31,7 @@ from django.http import HttpResponseBadRequest, Http404
 from notifications.models import notify
 import operator
 from django.db.models import Q
+from lib import wizlib
 #from django.db.models import ImageField
 
 wtree = trie()
@@ -72,6 +73,9 @@ class WizcardManager(models.Manager):
     def accept_wizconnection(self, from_wizcard, to_wizcard):
         get_object_or_404(WizConnectionRequest, from_wizcard=from_wizcard,
                           to_wizcard=to_wizcard).accept()
+
+    def serialize(self, wizcards):
+        return serialize(wizcards, **fields.wizcard_template)
 
 
     def exchange_implicit(self, wizcard1, wizcard2):
@@ -158,13 +162,16 @@ class WizcardManager(models.Manager):
     def migrate_future_user(self, future, current):
         WizConnectionRequest.objects.filter(to_wizcard=future.wizcard).update(to_wizcard=current.wizcard.pk)
 
-    def lookup(self, key, n):
+    def lookup(self, lat, lng, n):
         wizcards = None
-        result, count =  Wizcard.objects.lookup_by_lat_lng(tree=wtree, lat=lat, lng=lng, num_results=n)
+        result, count =  LocationMgr.objects.lookup_by_lat_lng(tree=wtree, 
+                                                               lat=lat, 
+                                                               lng=lng, 
+                                                               n=n)
         #convert result to query set result
-        if result:
+        if count:
             wizcards = map(lambda m: self.get(id=m), result)
-        return users, count
+        return wizcards, count
 
 
 class Wizcard(models.Model):
@@ -184,7 +191,7 @@ class Wizcard(models.Model):
     #AA:TODO: This(image/video management) is quite primitive
     thumbnailImage = models.ImageField(upload_to="image/")
     video = models.FileField(upload_to="video/")
-    location = generic.GenericRelation(LocationMgr)
+    locations = generic.GenericRelation(LocationMgr)
 
     objects = WizcardManager()
 
@@ -194,9 +201,6 @@ class Wizcard(models.Model):
 
     def __unicode__(self):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
-
-    def serialize(self):
-        return serialize(self, **fields.wizcard_template)
 
     def serialize_wizconnections(self):
         return serialize(self.wizconnections.all(), **fields.wizcard_template)
@@ -231,7 +235,6 @@ class Wizcard(models.Model):
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
 
     def flood(self):
-        from lib import wizlib
         for wizcard in self.wizconnections.all():
             Wizcard.objects.update_wizconnection(self, wizcard)
 
@@ -240,12 +243,15 @@ class Wizcard(models.Model):
 
     def get_or_create_location(self, lat, lng):
         created = True
-        location_qs = self.location.filter(lat=lat, 
-                                           lng=lng, 
-                                           content_type=ContentType.objects.get_for_model(self))
-        if location_qs:
+        try:
+            location_qs = self.locations.get(lat=lat, 
+                                             lng=lng) 
             created = False
-        else:
+            #AA:TODO: For now, check for wtree and re-populate if not there (server 
+            #restart) this eventually needs to come from db read during init
+            if not wtree.has_key(location_qs.key):
+                wtree[location_qs.key] = location_qs.object_id
+        except:
             #create
             key = wizlib.create_geohash(lat, lng)
             location_qs = location.send(sender=self, 
@@ -253,6 +259,7 @@ class Wizcard(models.Model):
                                         lng=lng, 
                                         key=key, 
                                         tree=wtree)
+            print 'new flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
 
         return location_qs, created
 

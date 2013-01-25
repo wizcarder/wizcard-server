@@ -62,7 +62,7 @@ class UserProfile(models.Model):
             return w, wc
 
         #wizcards
-        w = qs.serialize()
+        w = Wizcard.objects.serialize(qs)
 
         #wizconnections
         if qs.wizconnections.count():

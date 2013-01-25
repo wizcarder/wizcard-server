@@ -72,13 +72,14 @@ class NotifResponse(ResponseN):
     DELETE_IMPLICIT     = 3
     DELETE_TABLE        = 4
     UPDATE_WIZCARD      = 5
+    FLICKED_WIZCARD     = 6
 
     def __init__(self):
         self.clear()
 
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
-        out = wizcard.serialize()
+        out = Wizcard.objects.serialize(wizcard)
         self.add_data_to_dict(out, "user_id", notif.actor_object_id)
         self.add_data_with_notif(out, notifType)
         if wizcard.thumbnailImage:
@@ -111,5 +112,10 @@ class NotifResponse(ResponseN):
 
     def notifWizcardUpdate(self, notif):
         return self.notifWizcard(notif, self.UPDATE_WIZCARD)
+
+    def notifWizcardLookup(self, wizcards):
+        out = Wizcard.objects.serialize(wizcards)
+        self.add_data_with_notif(out, self.FLICKED_WIZCARD)
+        return self.response
 
 

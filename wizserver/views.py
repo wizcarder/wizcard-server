@@ -83,25 +83,26 @@ class ParseMsgAndDispatch:
 
     def processIncomingMessage(self):
         msgHandlers = {
-            'register'                  : self.processRegister,
-            'add_card'                  : self.processAddWizcard,
-            'edit_card'                 : self.processModifyWizcard,
-            'delete_card'               : self.processDeleteWizcardOwn,
-            'delete_notification_card'  : self.processDeleteWizcardNotification,
-            'delete_rolodex_card'       : self.processDeleteWizcardRolodex,
-            'current_location'          : self.processLocationUpdate,
-            'add_notification_card'     : self.processAcceptCard,
-            'get_cards'                 : self.processGetNotifications,
-            'send_card_to_contacts'     : self.processSendCardToContacts,
-            'send_card_to_user'         : self.processSendCardUC,
-            'send_query_user'           : self.processQueryUserByName,
-            'find_users_by_location'    : self.processQueryUserByLocation,
-            'show_table_list'           : self.processQueryTable,
-            'table_details'             : self.processGetTableDetails,
-            'create_table'              : self.processCreateTable,
-            'join_table'                : self.processJoinTable,
-            'leave_table'               : self.processLeaveTable,
-            'destroy_table'             : self.processDestroyTable
+            'register'                      : self.processRegister,
+            #'add_card'                      : self.processAddWizcard,
+            'edit_card'                     : self.processModifyWizcard,
+            #'delete_card'                   : self.processDeleteWizcardOwn,
+            'delete_notification_card'      : self.processDeleteWizcardNotification,
+            'delete_rolodex_card'           : self.processDeleteWizcardRolodex,
+            'current_location'              : self.processLocationUpdate,
+            'add_notification_card'         : self.processAcceptCard,
+            'get_cards'                     : self.processGetNotifications,
+            'send_card_to_contacts'         : self.processSendCardToContacts,
+            'send_card_to_future_contacts'  : self.processSendCardToFutureContacts,
+            'send_card_to_user'             : self.processSendCardUC,
+            'send_query_user'               : self.processQueryUserByName,
+            'find_users_by_location'        : self.processQueryUserByLocation,
+            'show_table_list'               : self.processQueryTable,
+            'table_details'                 : self.processGetTableDetails,
+            'create_table'                  : self.processCreateTable,
+            'join_table'                    : self.processJoinTable,
+            'leave_table'                   : self.processLeaveTable,
+            'destroy_table'                 : self.processDestroyTable
         }
 
         # Dispatch to appropriate message handler
@@ -329,8 +330,8 @@ class ParseMsgAndDispatch:
         try:
             future_user = User.objects.get(username=phone1)
             if future_user.profile.is_future():
-                Wizcard.objects.migrate_future_user(future, current)
-                Notification.objects.migrate_future_user(future, current)
+                Wizcard.objects.migrate_future_user(future_user, user)
+                Notification.objects.migrate_future_user(future_user, user)
             future_user.delete()
         except:
             pass
@@ -477,8 +478,19 @@ class ParseMsgAndDispatch:
             'wizcard update'        : notifResponse.notifWizcardUpdate,
         }
 
+        #process notifications
         for notification in notifications:
             notifHandler[notification.verb](notification)
+
+        #any wizcards dropped nearby
+        try:
+            lat = self.sender['lat']
+            lng = self.sender['lng']
+            wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
+            if count:
+                notifResponse.notifWizcardLookup(wizcards)
+        except:
+            pass
 
         Notification.objects.mark_all_as_read(user)
         return notifResponse.response
@@ -607,7 +619,7 @@ class ParseMsgAndDispatch:
         #send back to app for selection
 
         if (count):
-            users = serialize(result, **fields.user_query_template)
+            users = serialize(result, **fields.wizcard_user_query_template)
             self.response.add_data("queryResult", users)
             self.response.add_data("count", count)
         else:
@@ -686,11 +698,13 @@ class ParseMsgAndDispatch:
             self.response.error_response(errno=1, errorStr="Object does not exist")
             return self.response.response
         
-        lat = self.sender['lat']
-        lng = self.sender['lng']
+        #lat = self.sender['lat']
+        #lng = self.sender['lng']
+        lat = user.profile.get_location().lat
+        lng = user.profile.get_location().lng
         
         w_location, created = wizcard.get_or_create_location(lat, lng)
-        if not created:
+        if w_location and not created:
             #AA:TODO: Maybe update timestamp or something to keep the card alive longer
             pass
 
