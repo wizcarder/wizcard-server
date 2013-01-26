@@ -424,6 +424,8 @@ class ParseMsgAndDispatch:
             wizcard.save()
             wizcard.flood()
 
+        self.processWizcardFlick()
+
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 

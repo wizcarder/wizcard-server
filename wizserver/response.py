@@ -115,7 +115,7 @@ class NotifResponse(ResponseN):
 
     def notifWizcardLookup(self, wizcards):
         out = Wizcard.objects.serialize(wizcards)
-        self.add_data_with_notif(out, self.FLICKED_WIZCARD)
+        self.add_data_with_notif(out, self.ACCEPT_IMPLICIT)
         return self.response
 
 
