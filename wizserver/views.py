@@ -424,8 +424,6 @@ class ParseMsgAndDispatch:
             wizcard.save()
             wizcard.flood()
 
-        self.processWizcardFlick()
-
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
@@ -700,8 +698,6 @@ class ParseMsgAndDispatch:
             self.response.error_response(errno=1, errorStr="Object does not exist")
             return self.response.response
         
-        #lat = self.sender['lat']
-        #lng = self.sender['lng']
         lat = user.profile.get_location().lat
         lng = user.profile.get_location().lng
         
