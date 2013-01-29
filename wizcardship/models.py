@@ -29,6 +29,7 @@ from location_mgr.models import location, LocationMgr
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest, Http404
 from notifications.models import notify
+from django.core.files.storage import default_storage
 import operator
 from django.db.models import Q
 from lib import wizlib
@@ -169,6 +170,7 @@ class WizcardManager(models.Manager):
                                                                lng=lng, 
                                                                n=n)
         #convert result to query set result
+        #AA:TODO: filter out self and connected
         if count:
             wizcards = map(lambda m: self.get(id=m), result)
         return wizcards, count

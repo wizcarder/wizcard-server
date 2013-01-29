@@ -75,7 +75,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -124,6 +124,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'django_extensions',
+    'storages',
     'userprofile',
     'wizserver', 
     'wizcardship',
@@ -132,6 +133,19 @@ INSTALLED_APPS = (
     'location_mgr'
 
 )
+
+#django-storage settings
+DEFAULT_FILE_STORAGE = 'storages.backends.s3.S3Storage'
+AWS_ACCESS_KEY_ID = 'AKIAJWT7M6E35TTP7HKA'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'amsaha1234'
+S3_URL = 'http://%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+STATIC_DIRECTORY = '/static/'
+MEDIA_DIRECTORY = '/media/'
+STATIC_URL = S3_URL + STATIC_DIRECTORY
+MEDIA_URL = S3_URL + MEDIA_DIRECTORY
+
+
 
 AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
