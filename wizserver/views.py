@@ -326,7 +326,6 @@ class ParseMsgAndDispatch:
         phone1 = self.sender['phone1']
 
         #check if futureUser existed for this phoneNum
-
         try:
             future_user = User.objects.get(username=phone1)
             if future_user.profile.is_future():
@@ -397,10 +396,15 @@ class ParseMsgAndDispatch:
             if wizcard.address_zip != zipcode:
                 wizcard.address_zip = zipcode
                 modify = True
-        if self.sender.has_key('thumbnailImage') and self.sender['imageWasEdited']:
-            rawimage = self.sender['thumbnailImage']
-            upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
-            wizcard.thumbnailImage.save(upfile.name, upfile) 
+        #if self.sender.has_key('thumbnailImage') and self.sender['imageWasEdited']:
+        #    rawimage = self.sender['thumbnailImage']
+        #    upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
+        #    wizcard.thumbnailImage.save(upfile.name, upfile) 
+
+        if self.sender.has_key('VideoUrl'):
+            rawvideo = self.sender['VideoUrl']
+            upfile = SimpleUploadedFile("%s-%s.mp4" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawvideo, "video/mp4")
+            wizcard.video.save(upfile.name, upfile) 
 
         if self.sender.has_key('contact_container'):
             contactContainerList = self.sender['contact_container']
@@ -526,6 +530,12 @@ class ParseMsgAndDispatch:
                             if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
                                 err = Wizcard.objects.exchange(wizcard1, wizcard2, True)
                                 count += 1
+                    else:
+                        #future contacts
+                        err = self.processSendCardToFutureContacts(phones, wizcard1)
+                        if err['Error']:
+                            self.response.error_response(errno=err['Error'], 
+                                                         errorStr=err['Description'])
 
             except:
                 #AA:TODO: what to do ?
@@ -538,15 +548,12 @@ class ParseMsgAndDispatch:
     def processVerifyContacts(self):
         return self.response.response
 
-    def processSendCardToFutureContacts(self):
-        sender = User.objects.get(id=self.sender['wizUserID'])
-        wizcard1 = sender.wizcard
-        contacts = self.receiver['contacts']
-        for contact in contacts:
+    def processSendCardToFutureContacts(self, phones, wizcard):
+        for phone in phones:
+            username = wizlib.convert_phone(phone)
             #create a dummy user using the phone number as userID
             try:
                 #TODO: handle multiple phones or restrict app to send one
-                username = wizlib.convert_phone(contact['phone'][0])
                 user, created = User.objects.get_or_create(username=username)
                 if created:
                     Wizcard(user=user).save()
@@ -554,8 +561,8 @@ class ParseMsgAndDispatch:
                 else:
                     assert user.profile.is_future(), 'not a future user'
 
-                err = Wizcard.objects.exchange(wizcard1, user.wizcard, False)
-                if err['Error']:
+                err = Wizcard.objects.exchange(wizcard, user.wizcard, False)
+                if err['Error'] != "OK":
                     self.response.error_response(errno=err['Error'], 
                                                  errorStr=err['Description'])
             except:

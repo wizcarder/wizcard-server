@@ -80,7 +80,6 @@ class NotifResponse(ResponseN):
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         out = Wizcard.objects.serialize(wizcard)
-        self.add_data_to_dict(out, "user_id", notif.actor_object_id)
         self.add_data_with_notif(out, notifType)
         if wizcard.thumbnailImage:
             self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())

@@ -6,6 +6,7 @@ from lib.preserialize.serialize import serialize
 from wizserver import fields
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
+from wizcardship.models import Wizcard
 from lib import wizlib
 import pdb
 
