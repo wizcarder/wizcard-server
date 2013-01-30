@@ -23,6 +23,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import default_storage
 from django.core import serializers
 from lib.preserialize.serialize import serialize
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer
@@ -396,6 +397,7 @@ class ParseMsgAndDispatch:
             if wizcard.address_zip != zipcode:
                 wizcard.address_zip = zipcode
                 modify = True
+
         if self.sender.has_key('thumbnailImage') and self.sender['imageWasEdited']:
             rawimage = self.sender['thumbnailImage']
             upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
