@@ -29,7 +29,7 @@ from location_mgr.models import location, LocationMgr
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest, Http404
 from notifications.models import notify
-from django.core.files.storage import default_storage
+from django.core.files.storage import default_storage as s3_storage
 import operator
 from django.db.models import Q
 from lib import wizlib
@@ -191,8 +191,8 @@ class Wizcard(models.Model):
     address_zip = models.CharField(max_length = 20, blank=True)
     #media objects
     #AA:TODO: This(image/video management) is quite primitive
-    thumbnailImage = models.ImageField(upload_to="image/")
-    video = models.FileField(upload_to="video/")
+    thumbnailImage = models.ImageField(storage=s3_storage, upload_to="image/")
+    video = models.FileField(storage=s3_storage, upload_to="video/")
     locations = generic.GenericRelation(LocationMgr)
 
     objects = WizcardManager()

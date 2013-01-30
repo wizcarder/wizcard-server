@@ -135,7 +135,7 @@ INSTALLED_APPS = (
 )
 
 #django-storage settings
-DEFAULT_FILE_STORAGE = 'storages.backends.s3.S3Storage'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_ACCESS_KEY_ID = 'AKIAJWT7M6E35TTP7HKA'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'amsaha1234'
