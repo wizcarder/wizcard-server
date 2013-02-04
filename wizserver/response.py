@@ -85,7 +85,7 @@ class NotifResponse(ResponseN):
         if wizcard.thumbnailImage:
             self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
         if wizcard.video:
-            self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
+            self.add_data_to_dict(out, "videoUrl", wizcard.video.url)
         print "sending wizcard notification"
         return self.response
 

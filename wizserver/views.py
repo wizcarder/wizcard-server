@@ -26,6 +26,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
 from django.core import serializers
 from lib.preserialize.serialize import serialize
+from django.core.files.storage import default_storage
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer
 from notifications.models import notify, Notification
 from virtual_table.models import VirtualTable
