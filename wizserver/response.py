@@ -1,6 +1,5 @@
 # define all outbound responses here
 from wizcardship.models import WizConnectionRequest, Wizcard
-from json_wrapper import DataDumper
 import fields
 import pdb
 
