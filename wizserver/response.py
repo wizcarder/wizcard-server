@@ -1,5 +1,7 @@
 # define all outbound responses here
 from wizcardship.models import WizConnectionRequest, Wizcard
+from virtual_table.models import VirtualTable
+from userprofile.models import UserProfile
 import fields
 import pdb
 
@@ -72,6 +74,8 @@ class NotifResponse(ResponseN):
     DELETE_TABLE        = 4
     UPDATE_WIZCARD      = 5
     FLICKED_WIZCARD     = 6
+    NEARBY_USERS        = 7
+    NEARBY_TABLES       = 8
 
     def __init__(self):
         self.clear()
@@ -117,6 +121,16 @@ class NotifResponse(ResponseN):
     def notifWizcardLookup(self, wizcards):
         out = Wizcard.objects.serialize(wizcards)
         self.add_data_with_notif(out, self.FLICKED_WIZCARD)
+        return self.response
+
+    def notifUserLookup(self, users):
+        out = UserProfile.objects.serialize(users)
+        self.add_data_with_notif(out, self.NEARBY_USERS)
+        return self.response
+
+    def notifTableLookup(self, tables):
+        out = VirtualTable.objects.serialize(tables)
+        self.add_data_with_notif(out, self.NEARBY_TABLES)
         return self.response
 
 

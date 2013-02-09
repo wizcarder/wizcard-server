@@ -93,6 +93,7 @@ class ParseMsgAndDispatch:
             'delete_rolodex_card'           : self.processDeleteWizcardRolodex,
             'current_location'              : self.processLocationUpdate,
             'add_notification_card'         : self.processAcceptCard,
+            'card_flick'                    : self.processWizcardFlick,
             'get_cards'                     : self.processGetNotifications,
             'send_card_to_contacts'         : self.processSendCardToContacts,
             'send_card_to_future_contacts'  : self.processSendCardToFutureContacts,
@@ -493,11 +494,23 @@ class ParseMsgAndDispatch:
         try:
             lat = self.sender['lat']
             lng = self.sender['lng']
-            wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
-            if count:
-                notifResponse.notifWizcardLookup(wizcards)
         except:
-            pass
+            lat = user.profile.get_location().lat
+            lng = user.profile.get_location().lng
+
+
+        #AA:TODO: Use come caching framework to cache these
+        wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
+        if count:
+            notifResponse.notifWizcardLookup(wizcards)
+
+        users, count = user.profile.lookup(3)
+        if count:
+            notifResponse.notifUserLookup(users)
+
+        tables, count = VirtualTable.objects.lookup(lat, lng, 3)
+        if count:
+            notifResponse.notifTableLookup(tables)
 
         Notification.objects.mark_all_as_read(user)
         return notifResponse.response
@@ -601,7 +614,8 @@ class ParseMsgAndDispatch:
                                           self.sender['lng'])
         lookup_result, count = profile.lookup(3)
         if count:
-            users_s = serialize(lookup_result, **fields.user_query_template)
+            users_s = UserProfile.objects.serialize(lookup_result, 
+                                                    **fields.user_query_template)
             self.response.add_data("queryResult", users_s)
             self.response.add_data("count", count)
         else:
@@ -670,7 +684,7 @@ class ParseMsgAndDispatch:
     def processQueryTableByLocation(self, lat, lng):
         tables, count = VirtualTable.objects.lookup(lat=lat, lng=lng, n=3)
         if count:
-            tables_s = serialize(tables, **fields.table_template)
+            tables_s = VirtualTable.objects.serialize(tables), **fields.table_template)
             self.response.add_data("queryResult", tables_s)
             self.response.add_data("count", count)
         else:

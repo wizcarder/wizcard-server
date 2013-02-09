@@ -26,6 +26,8 @@ from lib.pytrie import SortedStringTrie as trie
 from location_mgr.models import location, LocationMgr
 from wizcardship.models import Wizcard
 from django.contrib.contenttypes import generic
+from lib.preserialize.serialize import serialize
+from wizserver import fields
 
 vtree = trie()
 
@@ -40,6 +42,9 @@ class VirtualTableManager(models.Manager):
             tables = map(lambda m: self.get(id=m), result)
             return tables, count
         return None, None
+
+    def serialize(self, tables):
+        return serialize(tables, **fields.table.table_template)
 
 
 class VirtualTable(models.Model):

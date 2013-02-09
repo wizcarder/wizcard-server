@@ -12,11 +12,17 @@ import pdb
 
 ptree = trie()
 
+class UserProfileManager(models.Manager):
+    def serialize(self, users):
+        return serialize(users, **fields.user_query_template)
+
 class UserProfile(models.Model):
     # This field is required.
     user = models.OneToOneField(User, related_name='profile')
     future_user = models.BooleanField(default=False, blank=False)
     location = generic.GenericRelation(LocationMgr)
+
+    objects = UserProfileManager()
 
     def is_future(self):
         return self.future_user
@@ -52,6 +58,10 @@ class UserProfile(models.Model):
             users = map(lambda m: UserProfile.objects.get(id=m).user, result)
             return users, count
         return None, None
+
+    def serialize(self, users):
+        return serialize(users, **fields.user_query_template)
+
 
     def serialize_objects(self):
         #add callouts to all serializable objects here
