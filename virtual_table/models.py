@@ -44,7 +44,7 @@ class VirtualTableManager(models.Manager):
         return tables, count
 
     def serialize(self, tables):
-        return serialize(tables, **fields.table.table_template)
+        return serialize(tables, **fields.table_template)
 
 
 class VirtualTable(models.Model):
