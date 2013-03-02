@@ -163,15 +163,15 @@ class WizcardManager(models.Manager):
     def migrate_future_user(self, future, current):
         WizConnectionRequest.objects.filter(to_wizcard=future.wizcard).update(to_wizcard=current.wizcard.pk)
 
-    def lookup(self, lat, lng, n):
+    def lookup(self, lat, lng, n, count_only=False):
         wizcards = None
-        result, count =  LocationMgr.objects.lookup_by_lat_lng(tree=wtree, 
-                                                               lat=lat, 
-                                                               lng=lng, 
-                                                               n=n)
+        result, count =  LocationMgr.objects.lookup_by_lat_lng(wtree, 
+                                                               lat, 
+                                                               lng, 
+                                                               n)
         #convert result to query set result
         #AA:TODO: filter out self and connected
-        if count:
+        if count and not count_only:
             wizcards = map(lambda m: self.get(id=m), result)
         return wizcards, count
 

@@ -32,16 +32,16 @@ from wizserver import fields
 vtree = trie()
 
 class VirtualTableManager(models.Manager):
-    def lookup(self, lat, lng, n):
-        result, count = LocationMgr.objects.lookup_by_lat_lng(lat=lat,
-                                                              lng=lng,
-                                                              tree=vtree, 
-                                                              n=n)
+    def lookup(self, lat, lng, n, count_only=False):
+        tables = None
+        result, count = LocationMgr.objects.lookup_by_lat_lng(vtree, 
+                                                              lat,
+                                                              lng,
+                                                              n)
         #convert result to query set result
-        if result:
+        if count and not count_only:
             tables = map(lambda m: self.get(id=m), result)
-            return tables, count
-        return None, None
+        return tables, count
 
     def serialize(self, tables):
         return serialize(tables, **fields.table.table_template)

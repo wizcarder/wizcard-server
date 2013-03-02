@@ -48,17 +48,18 @@ class ResponseN(Response):
         self.response['data']['numElements'] = 0
         self.response['data']['elementList'] = []
         
-    def add_data_array(self, d):
-        a = dict(data=d)
-        self.response['data']['elementList'].append(a)
-        self.response['data']['numElements'] += 1
+    def add_data_array(self, d, count=1):
+        if d:
+            a = dict(data=d)
+            self.response['data']['elementList'].append(a)
+        self.response['data']['numElements'] += count
         return a
 
     def add_notif_type(self, d, type):
         d['notifType'] = type
 
-    def add_data_with_notif(self, d, n):
-        a = self.add_data_array(d)
+    def add_data_with_notif(self, d, n, c=1):
+        a = self.add_data_array(d, c)
         self.add_notif_type(a, n)
     
     def add_data_to_dict(self, dict, k, v):
@@ -118,19 +119,27 @@ class NotifResponse(ResponseN):
     def notifWizcardUpdate(self, notif):
         return self.notifWizcard(notif, self.UPDATE_WIZCARD)
 
-    def notifWizcardLookup(self, wizcards):
-        out = Wizcard.objects.serialize(wizcards)
-        self.add_data_with_notif(out, self.FLICKED_WIZCARD)
+    def notifWizcardLookup(self, count, wizcards):
+        out = None
+        if wizcards:
+            out = Wizcard.objects.serialize(wizcards)
+        self.add_data_with_notif(out, self.FLICKED_WIZCARD, count)
         return self.response
 
-    def notifUserLookup(self, users):
-        out = UserProfile.objects.serialize(users)
-        self.add_data_with_notif(out, self.NEARBY_USERS)
+    def notifUserLookup(self, count, users):
+        out = None
+        if users:
+            out = UserProfile.objects.serialize(users)
+            #AA:TODO: Not good if both dictionary have common names
+        self.add_data_with_notif(out, self.NEARBY_USERS, count)
         return self.response
 
-    def notifTableLookup(self, tables):
-        out = VirtualTable.objects.serialize(tables)
-        self.add_data_with_notif(out, self.NEARBY_TABLES)
+    def notifTableLookup(self, count, tables):
+        out = None
+        if tables:
+            out = VirtualTable.objects.serialize(tables)
+            #AA:TODO: Not good if both dictionary have common names
+        self.add_data_with_notif(out, self.NEARBY_TABLES, count)
         return self.response
 
 

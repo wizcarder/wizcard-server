@@ -13,10 +13,10 @@ import pdb
 class LocationMgrManager(models.Manager):
     def lookup_by_key(self, tree, key, n, key_in_tree=True):
         print 'current tree [{tree}]'.format (tree=tree)
-        result, count = wizlib.lookup_by_key(tree=tree, 
-                                             key=key, 
-                                             num_results=n, 
-                                             key_in_tree=key_in_tree)
+        result, count = wizlib.lookup_by_key(key, 
+                                             tree, 
+                                             n,
+                                             key_in_tree)
         print 'looking up  gives result [{result}]'.format (result=result)
         return result, count
 
@@ -25,7 +25,6 @@ class LocationMgrManager(models.Manager):
             return None, None
         key = wizlib.create_geohash(lat, lng)
         return self.lookup_by_key(tree, key, n, False)
-
 
 class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)

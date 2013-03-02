@@ -85,6 +85,8 @@ class ParseMsgAndDispatch:
 
     def processIncomingMessage(self):
         msgHandlers = {
+            'signup'                        : self.processSignUp,
+            'login'                         : self.processLogin,
             'register'                      : self.processRegister,
             #'add_card'                      : self.processAddWizcard,
             'edit_card'                     : self.processModifyWizcard,
@@ -110,6 +112,74 @@ class ParseMsgAndDispatch:
 
         # Dispatch to appropriate message handler
         return msgHandlers[self.msgType]()
+
+    def processSignUp(self):
+        email = self.sender['email']
+        username = email
+        #password = self.sender['password']
+        password = "wizard"
+
+        user = User.objects.create_user(username, email, password)
+        user.set_password(password)
+        user.save()
+
+        #generate a uniue userid
+        user.profile.userid = UserProfile.objects.id_generator()
+        user.profile.save()
+        
+        user = authenticate(username=username, password=password)
+        login(self.request, user)
+
+        #update location in ptree
+        try:
+            lat = self.sender['lat']
+            lng = self.sender['lng']
+            user.profile.create_or_update_location(self.sender['lat'], 
+                                                   self.sender['lng'])
+        except:
+            pass
+
+        self.response.add_data("wizUserID", user.pk)
+        self.response.add_data("userID", user.profile.userid)
+        return self.response.response
+
+    def processLogin(self):
+        do_sync = False
+        try:
+            username = self.sender['email']
+            user = User.objects.get(username=username)
+        except ObjectDoesNotExist:
+            self.response.error_response(errno=1, errorStr="invalid username or password")
+            return self.response.response
+
+        #cross verify userID
+        try:
+            w_userid = self.sender['userID']
+            #take this out for now...need to figure out ios app's userid
+            if not self.sender['userID'] == user.profile.userid:
+                pass
+                #self.response.error_response(errno=1, errorStr="invalid user")
+                #return self.response.response
+        except:
+            do_sync = True
+
+        #password = self.sender['pasword']
+        password = "wizard"
+        user = authenticate(username=username, password=password)
+        if not user.is_authenticated():
+            self.response.error_response(errno=1, errorStr="User login failed")
+            return self.response.response
+        login(self.request, user) 
+
+        if do_sync:
+            #sync own card and rolodex
+            wizcard_s, rolodex_s = profile.serialize_objects()
+            if wizcard_s:
+                self.response.add_data("wizcards", wizcard_s)
+            if rolodex_s:
+                self.response.add_data("rolodex", rolodex_s)
+
+        return self.response.response
 
     def processRegister(self):
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
@@ -138,6 +208,7 @@ class ParseMsgAndDispatch:
 
         l_userid = self.sender['userID'] 
         password = "wizard"
+        #password = self.sender['password']
 
 
         #AA:TODO: refactor. get_or_create can do the same thing without having
@@ -159,28 +230,27 @@ class ParseMsgAndDispatch:
 
         #AA: TODO: Handle auth error
         user = authenticate(username=l_userid, password=password)
+        if not user.is_authenticated():
+            self.response.error_response(errno=1, errorStr="User authentication failed")
+            return self.response.response
+
+        # Correct password, and the user is marked "active"
+        login(self.request, user)
 
         #sync the app from server
         profile = user.profile
         if do_sync:
             #sync own card and rolodex
-
             wizcard_s, rolodex_s = profile.serialize_objects()
 
-        if user.is_authenticated() and user.is_active:
-            # Correct password, and the user is marked "active"
-            login(self.request, user)
+        #update location in ptree
+        profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
 
-            #update location in ptree
-            profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
-
-            self.response.add_data("wizUserID", user.pk)
-            if wizcard_s:
-                self.response.add_data("wizcards", wizcard_s)
-            if rolodex_s:
-                self.response.add_data("rolodex", rolodex_s)
-        else:
-            self.response.error_response(errno=1, errorStr="User authentication failed")
+        self.response.add_data("wizUserID", user.pk)
+        if wizcard_s:
+            self.response.add_data("wizcards", wizcard_s)
+        if rolodex_s:
+            self.response.add_data("rolodex", rolodex_s)
 
         return self.response.response
 
@@ -500,17 +570,18 @@ class ParseMsgAndDispatch:
 
 
         #AA:TODO: Use come caching framework to cache these
-        wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
+        wizcards, count = Wizcard.objects.lookup(lat, lng, 3, count_only=True)
         if count:
-            notifResponse.notifWizcardLookup(wizcards)
+            notifResponse.notifWizcardLookup(count, wizcards, count_only=True)
 
-        users, count = user.profile.lookup(3)
+        users, count = user.profile.lookup(3, count_only=True)
         if count:
-            notifResponse.notifUserLookup(users)
+            notifResponse.notifUserLookup(count, users, count_only=True)
 
+        #tables is a smaller entity...get the tables as well instead of just count
         tables, count = VirtualTable.objects.lookup(lat, lng, 3)
         if count:
-            notifResponse.notifTableLookup(tables)
+            notifResponse.notifTableLookup(count, tables)
 
         Notification.objects.mark_all_as_read(user)
         return notifResponse.response
@@ -549,7 +620,7 @@ class ParseMsgAndDispatch:
                     else:
                         #future contacts
                         err = self.processSendCardToFutureContacts(phones, wizcard1)
-                        if err['Error']:
+                        if err['result']['Error']:
                             self.response.error_response(errno=err['Error'], 
                                                          errorStr=err['Description'])
 
@@ -684,7 +755,7 @@ class ParseMsgAndDispatch:
     def processQueryTableByLocation(self, lat, lng):
         tables, count = VirtualTable.objects.lookup(lat=lat, lng=lng, n=3)
         if count:
-            tables_s = VirtualTable.objects.serialize(tables), **fields.table_template)
+            tables_s = VirtualTable.objects.serialize(tables, **fields.table_template)
             self.response.add_data("queryResult", tables_s)
             self.response.add_data("count", count)
         else:

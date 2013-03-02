@@ -35,6 +35,7 @@ def lookup_closest_n(tree, key, n):
 def lookup_closest_n_values(tree, key, n):
     return tree.longest_common_prefix_value(key)
 
+
 #general purpose utils
 def convert_phone(phone):
     import string

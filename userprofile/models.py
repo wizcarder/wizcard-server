@@ -7,7 +7,10 @@ from wizserver import fields
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
 from wizcardship.models import Wizcard
+from django.core.exceptions import ObjectDoesNotExist
 from lib import wizlib
+import string
+import random
 import pdb
 
 ptree = trie()
@@ -16,9 +19,19 @@ class UserProfileManager(models.Manager):
     def serialize(self, users):
         return serialize(users, **fields.user_query_template)
 
+    def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
+        userid =  ''.join(random.choice(chars) for x in range(size))
+        try:
+            User.objects.get(username=userid)
+            userid = self.id_generator()
+        except ObjectDoesNotExist:
+            pass
+        return userid
+
 class UserProfile(models.Model):
     # This field is required.
     user = models.OneToOneField(User, related_name='profile')
+    userid = models.CharField(max_length=100)
     future_user = models.BooleanField(default=False, blank=False)
     location = generic.GenericRelation(LocationMgr)
 
@@ -47,17 +60,16 @@ class UserProfile(models.Model):
             key = wizlib.create_geohash(lat, lng)
             location.send(sender=self, lat=lat, lng=lng, key=key, tree=ptree)
 
-    def lookup(self, n):
+    def lookup(self, n, count_only=False):
+        users = None
         l = self.get_location()
-        result, count = LocationMgr.objects.lookup_by_key(tree=ptree, 
-                                                          key=l.key, 
-                                                          n=n)
-                                                          
+        result, count = LocationMgr.objects.lookup_by_key(ptree, 
+                                                          l.key, 
+                                                          n)
         #convert result to query set result
-        if result:
+        if count and not count_only:
             users = map(lambda m: UserProfile.objects.get(id=m).user, result)
-            return users, count
-        return None, None
+        return users, count
 
     def serialize(self, users):
         return serialize(users, **fields.user_query_template)
