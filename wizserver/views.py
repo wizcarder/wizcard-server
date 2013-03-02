@@ -687,8 +687,7 @@ class ParseMsgAndDispatch:
                                           self.sender['lng'])
         lookup_result, count = profile.lookup(3)
         if count:
-            users_s = UserProfile.objects.serialize(lookup_result, 
-                                                    **fields.user_query_template)
+            users_s = UserProfile.objects.serialize(lookup_result)
             self.response.add_data("queryResult", users_s)
             self.response.add_data("count", count)
         else:
@@ -748,7 +747,7 @@ class ParseMsgAndDispatch:
         count = tables.count()
 
         if count:
-            tables_s = serialize(tables, **fields.table_template)
+            tables_s = VirtualTable.objects.serialize(tables)
             self.response.add_data("queryResult", tables_s)
             self.response.add_data("count", count)
             
@@ -757,7 +756,7 @@ class ParseMsgAndDispatch:
     def processQueryTableByLocation(self, lat, lng):
         tables, count = VirtualTable.objects.lookup(lat=lat, lng=lng, n=3)
         if count:
-            tables_s = VirtualTable.objects.serialize(tables, **fields.table_template)
+            tables_s = VirtualTable.objects.serialize(tables)
             self.response.add_data("queryResult", tables_s)
             self.response.add_data("count", count)
         else:
