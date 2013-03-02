@@ -572,11 +572,11 @@ class ParseMsgAndDispatch:
         #AA:TODO: Use come caching framework to cache these
         wizcards, count = Wizcard.objects.lookup(lat, lng, 3, count_only=True)
         if count:
-            notifResponse.notifWizcardLookup(count, wizcards, count_only=True)
+            notifResponse.notifWizcardLookup(count, wizcards)
 
         users, count = user.profile.lookup(3, count_only=True)
         if count:
-            notifResponse.notifUserLookup(count, users, count_only=True)
+            notifResponse.notifUserLookup(count, users)
 
         #tables is a smaller entity...get the tables as well instead of just count
         tables, count = VirtualTable.objects.lookup(lat, lng, 3)
