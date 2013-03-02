@@ -53,7 +53,6 @@ class ResponseN(Response):
             a = dict(data=d)
             self.response['data']['elementList'].append(a)
         self.response['data']['numElements'] += count
-        return a
 
     def add_notif_type(self, d, type):
         d['notifType'] = type
@@ -123,7 +122,7 @@ class NotifResponse(ResponseN):
         out = None
         if wizcards:
             out = Wizcard.objects.serialize(wizcards)
-        self.add_data_with_notif(out, self.FLICKED_WIZCARD, count)
+            self.add_data_with_notif(out, self.FLICKED_WIZCARD, count)
         return self.response
 
     def notifUserLookup(self, count, users):
@@ -131,7 +130,7 @@ class NotifResponse(ResponseN):
         if users:
             out = UserProfile.objects.serialize(users)
             #AA:TODO: Not good if both dictionary have common names
-        self.add_data_with_notif(out, self.NEARBY_USERS, count)
+            self.add_data_with_notif(out, self.NEARBY_USERS, count)
         return self.response
 
     def notifTableLookup(self, count, tables):
@@ -139,7 +138,7 @@ class NotifResponse(ResponseN):
         if tables:
             out = VirtualTable.objects.serialize(tables)
             #AA:TODO: Not good if both dictionary have common names
-        self.add_data_with_notif(out, self.NEARBY_TABLES, count)
+            self.add_data_with_notif(out, self.NEARBY_TABLES, count)
         return self.response
 
 
