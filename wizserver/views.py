@@ -570,11 +570,11 @@ class ParseMsgAndDispatch:
 
 
         #AA:TODO: Use come caching framework to cache these
-        wizcards, count = Wizcard.objects.lookup(lat, lng, 3, count_only=True)
+        wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
         if count:
             notifResponse.notifWizcardLookup(count, wizcards)
 
-        users, count = user.profile.lookup(3, count_only=True)
+        users, count = user.profile.lookup(3)
         if count:
             notifResponse.notifUserLookup(count, users)
 
