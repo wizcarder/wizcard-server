@@ -22,13 +22,13 @@ def lookup_by_key(key, tree, num_results, key_in_tree=True):
             del tree[key]
         #on restart, it may not be there...pass
         except:
-            pass
+            val = None
 
     result, count =  lookup_closest_n_values(tree, key, num_results)
     print '{count} lookup result [{result}]'.format (count=count, result=result)
 
     #add self back
-    if key_in_tree:
+    if key_in_tree and val:
         tree[key] = val
 
     return result, count

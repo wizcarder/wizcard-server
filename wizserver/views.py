@@ -570,18 +570,20 @@ class ParseMsgAndDispatch:
 
 
         #AA:TODO: Use come caching framework to cache these
+        #comment for now. ios app crashes since the new notifs are i
+        #not yet handled
         wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
-        if count:
-            notifResponse.notifWizcardLookup(count, wizcards)
+        #if count:
+        #    notifResponse.notifWizcardLookup(count, wizcards)
 
         users, count = user.profile.lookup(3)
-        if count:
-            notifResponse.notifUserLookup(count, users)
+        #if count:
+        #    notifResponse.notifUserLookup(count, users)
 
         #tables is a smaller entity...get the tables as well instead of just count
         tables, count = VirtualTable.objects.lookup(lat, lng, 3)
-        if count:
-            notifResponse.notifTableLookup(count, tables)
+        #if count:
+            #notifResponse.notifTableLookup(count, tables)
 
         Notification.objects.mark_all_as_read(user)
         return notifResponse.response
