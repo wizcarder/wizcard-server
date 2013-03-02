@@ -49,8 +49,8 @@ class ResponseN(Response):
         self.response['data']['elementList'] = []
         
     def add_data_array(self, d, count=1):
-	a = dict(data=d)
-	self.response['data']['elementList'].append(a)
+        a = dict(data=d)
+        self.response['data']['elementList'].append(a)
         self.response['data']['numElements'] += count
         return a
 
