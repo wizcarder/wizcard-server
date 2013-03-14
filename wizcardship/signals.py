@@ -1,5 +1,5 @@
 from django.dispatch import Signal
-
+from lib import wizlib
 
 wizcardship_accepted = Signal()
 
@@ -8,6 +8,8 @@ wizcardship_declined = Signal()
 
 
 wizcardship_cancelled = Signal()
+
+wizcard_wtree_timeout = Signal(providing_args=['key_list'])
 
 
 def create_wizcardship_instance(sender, instance, created, raw, **kwargs):
@@ -58,3 +60,4 @@ def create_userblock_instance_post_syncdb(sender,
                 print "User block created for %s" % user
     if verbosity >= 1:
         print "%d user blocks created" % created
+

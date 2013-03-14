@@ -15,8 +15,8 @@ DATABASES = {
         'NAME': 'wizcard',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -99,6 +99,22 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+# Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'default-cache'
+    }
+}
+
+# Number of seconds of inactivity before a user is marked offline
+USER_ONLINE_TIMEOUT = 10
+
+# Number of seconds that we will keep track of inactive users for before 
+# their last seen is removed from the cache
+USER_LASTSEEN_TIMEOUT = 60 * 60 * 24 * 7
+
+
 ROOT_URLCONF = 'wizcard.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
@@ -124,13 +140,15 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'django_extensions',
+    'djcelery',
     'storages',
     'userprofile',
     'wizserver', 
     'wizcardship',
     'notifications',
     'virtual_table',
-    'location_mgr'
+    'location_mgr',
+    'celerytest',
 
 )
 
@@ -156,4 +174,19 @@ logging.basicConfig(
     #format = '%(funcName)s %(levelname)s %(message)s',
 )
 
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+
+#from datetime import timedelta
+
+CELERYBEAT_SCHEDULE = {
+    'add-every-30-seconds': {
+        'task': 'tasks.add',
+        'schedule': timedelta(seconds=30),
+        'args': (16, 16)
+    },
+}
+
+CELERY_TIMEZONE = 'UTC'
 

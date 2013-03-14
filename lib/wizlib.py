@@ -33,6 +33,14 @@ def lookup_by_key(key, tree, num_results, key_in_tree=True):
 
     return result, count
 
+def delete_key(key, tree):
+    try:
+        del tree[self.key]
+    except:
+        pass
+    print 'current tree [{tree}]'.format (tree=tree)
+
+
 def lookup_closest_n(tree, key, n):
     return tree.longest_common_prefix_item(key)
 

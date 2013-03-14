@@ -28,6 +28,7 @@ from wizcardship.models import Wizcard
 from django.contrib.contenttypes import generic
 from lib.preserialize.serialize import serialize
 from wizserver import fields
+from virtual_table.signals import virtualtable_vtree_timeout
 
 vtree = trie()
 
@@ -54,6 +55,7 @@ class VirtualTable(models.Model):
     password = models.CharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
     users = models.ManyToManyField(User, through='Membership')
+    life_time = models.IntegerField(default=30)
     location = generic.GenericRelation(LocationMgr)
 
     objects = VirtualTableManager()
@@ -123,11 +125,11 @@ class VirtualTable(models.Model):
         self.get_location().delete_key(vtree)
         self.delete()
 
-    def lifetime(self, time):
-        return self.lifetime
+    def lifetime(self):
+        return self.table_lifetime
 
     def set_lifetime(self, time):
-        self.lifetime = time
+        self.life_time = time
 
     def distance_from(self, lat, lng):
         return 0
@@ -153,3 +155,14 @@ class Membership(models.Model):
             self.date_created = datetime.now()
         self.date_modified = datetime.now()
         super(Membership, self).save(*args, **kwargs)
+
+def vtree_entry_timeout_handler(**kwargs):
+    key_list = kwargs.pop('key_list')
+
+    for key in key_list:
+        wizlib.delete_key(key, vtree)
+
+# Signal connections
+virtualtable_vtree_timeout.connect(vtree_entry_timeout_handler, 
+                                   dispatch_uid='wizcardship.models.wizcardship')
+

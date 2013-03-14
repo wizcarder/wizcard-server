@@ -36,6 +36,9 @@ from lib import wizlib
 from location_mgr.models import LocationMgr
 import msg_test, fields
 import datetime
+from django.core.cache import cache
+from django.conf import settings
+
 
 
 #logger = logging.getLogger(__name__)
@@ -111,7 +114,16 @@ class ParseMsgAndDispatch:
         }
 
         # Dispatch to appropriate message handler
-        return msgHandlers[self.msgType]()
+        retval =  msgHandlers[self.msgType]()
+
+        #do the user tracking here
+        if not self.response.is_error_response():
+            current_user = self.request.user
+            now = datetime.datetime.now()
+            cache.set('seen_%s' % (current_user.username), now, 
+                      settings.USER_LASTSEEN_TIMEOUT)
+
+        return retval
 
     def processSignUp(self):
         email = self.sender['email']
@@ -621,10 +633,7 @@ class ParseMsgAndDispatch:
                                 count += 1
                     else:
                         #future contacts
-                        err = self.processSendCardToFutureContacts(phones, wizcard1)
-                        if err['result']['Error']:
-                            self.response.error_response(errno=err['Error'], 
-                                                         errorStr=err['Description'])
+                        return self.processSendCardToFutureContacts(phones, wizcard1)
 
             except:
                 #AA:TODO: what to do ?
@@ -813,12 +822,16 @@ class ParseMsgAndDispatch:
         lat = self.sender['lat']
         lng = self.sender['lng']
         secure = self.sender['secureTable']
+        lifetime = self.sender['lifetime']
+        if not lifetime:
+            lifetime = 30
         if secure:
             password = self.sender['password']
         else:
             password = ""
         table = VirtualTable.objects.create(tablename=tablename, secureTable=secure, 
-                                            password=password, creator=user)
+                                            password=password, creator=user, 
+                                            life_time=lifetime)
         #update location in ptree
         #AA:TODO move create to overridden create in VirtualTable
         table.create_location(lat, lng)

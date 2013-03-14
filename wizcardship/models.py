@@ -22,6 +22,7 @@ import pdb
 from django.db.models import Q
 from django.core.files.base import ContentFile
 from lib.preserialize.serialize import serialize
+from wizcardship.signals import wizcard_wtree_timeout
 from wizserver import fields
 from lib.pytrie import SortedStringTrie as trie
 from django.contrib.contenttypes import generic
@@ -334,7 +335,18 @@ class UserBlocks(models.Model):
     block_summary.short_description = _(u'Summary of blocks')
 
 
+def wtree_entry_timeout_handler(**kwargs):
+    key_list = kwargs.pop('key_list')
+
+    for key in key_list:
+        wizlib.delete_key(key, wtree)
+
+
 # Signal connections
+
+wizcard_wtree_timeout.connect(wtree_entry_timeout_handler, 
+                              dispatch_uid='wizcardship.models.wizcardship')
+
 #models.signals.post_save.connect(signals.create_wizcardship_instance,
 #                                 sender=User,
 #                                 dispatch_uid='cards.signals.create_' \

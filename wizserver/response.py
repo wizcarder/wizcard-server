@@ -29,6 +29,11 @@ class Response:
         self.add_result("Error", errno)
         self.add_result("Description", errorStr)
         self.response
+    
+    def is_error_response(self):
+        if self.response['result']['Error']:
+            return True
+        return False
         
 #subclass of above. This handles arrays of Data and used by Notifications
 class ResponseN(Response):

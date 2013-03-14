@@ -147,6 +147,8 @@ def notify_handler(verb, **kwargs):
 
     newnotify.save()
 
+    #check if the target user is online and do APNS if not
+
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

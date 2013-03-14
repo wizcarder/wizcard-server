@@ -30,10 +30,10 @@ class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     key = models.CharField(null=True, max_length=100)
-    lastseen = models.DateTimeField(default=datetime.datetime.now,
-                                    editable=False)
+    time_created = models.DateTimeField(default=datetime.datetime.now)
+    time_expires = models.IntegerField(default=300)
 
-    #GenericForeignKey to LocationMgr
+    #GenericForeignKey to objects requiring locationMgr services
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
@@ -53,7 +53,7 @@ class LocationMgr(models.Model):
         if update:
             try:
                 #delete old guy
-                self.delete_key(tree)
+                wizlib.delete_key(self.key, tree)
             except:
                 #can happen when server is restarted
                 pass
@@ -70,12 +70,11 @@ class LocationMgr(models.Model):
         print 'current tree [{tree}]'.format (tree=tree)
         return update, update_object
 
-    def delete_key(self, tree):
-        try:
-            del tree[self.key]
-        except:
-            pass
-        print 'current tree [{tree}]'.format (tree=tree)
+    def is_expired(self):
+        if (datetime.datetime.now() - self.time_created) > datetime.timedelta(seconds=self.time_expires):
+            return True
+        return False
+
 
 def location_update_handler(**kwargs):
     kwargs.pop('signal', None)
