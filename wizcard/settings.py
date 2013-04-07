@@ -15,8 +15,8 @@ DATABASES = {
         'NAME': 'wizcard',
         'USER': 'root',
         'PASSWORD': '',
-        #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -148,7 +148,7 @@ INSTALLED_APPS = (
     'notifications',
     'virtual_table',
     'location_mgr',
-    'celerytest',
+    #'celerytest',
 
 )
 
@@ -178,7 +178,7 @@ import djcelery
 djcelery.setup_loader()
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
-#from datetime import timedelta
+from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {
     'add-every-30-seconds': {
