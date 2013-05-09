@@ -27,6 +27,20 @@ class NotificationManager(models.Manager):
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
 
+    def pushNotificationToApp(self, receiver, sender, verb):
+        push_to_app_handler = {
+            'iphone' 	: self.pushIOS,
+            'android'	: self.pushAndroid
+        }
+        push_to_app_handler[receiver.device_type](receiver, sender, verb)
+
+    def pushIOS(self, receiver, sender, verb):
+        return
+
+    def pushAndroid(self, receiver, sender, verb):
+        return
+
+
 class Notification(models.Model):
     """
     Action model describing the actor acting out a verb (on an optional
@@ -148,7 +162,12 @@ def notify_handler(verb, **kwargs):
     newnotify.save()
 
     #check if the target user is online and do APNS if not
-
+    profile = recipient.profile
+    if not profile.online():
+        NotificationManager.objects.pushNotificationToApp(
+                profile,
+                actor,
+                verb)
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')
