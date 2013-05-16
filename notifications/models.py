@@ -4,9 +4,15 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
 from django.utils.timezone import utc
+from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
+from userprofile.models import UserProfile
+from pyapns import notify as apns_notify
+from pyapns import configure, provision
 import pdb
+
+
 
 try:
     from django.utils import timezone
@@ -27,18 +33,6 @@ class NotificationManager(models.Manager):
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
 
-    def pushNotificationToApp(self, receiver, sender, verb):
-        push_to_app_handler = {
-            'iphone' 	: self.pushIOS,
-            'android'	: self.pushAndroid
-        }
-        push_to_app_handler[receiver.device_type](receiver, sender, verb)
-
-    def pushIOS(self, receiver, sender, verb):
-        return
-
-    def pushAndroid(self, receiver, sender, verb):
-        return
 
 
 class Notification(models.Model):
@@ -70,6 +64,54 @@ class Notification(models.Model):
         <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
     """
+    WIZREQ_U = 'wizconnection request untrusted'
+    WIZREQ_T = 'wizconnection request trusted'
+    WIZ_ACCEPT = 'accepted wizcard'
+    WIZ_REVOKE = 'revoked wizcard'
+    WIZ_DELETE = 'deleted wizcard'
+    WIZ_TABLE_DESTROY = 'destroy table'
+    WIZ_CARD_UPDATE = 'wizcard update'
+
+
+
+    apns_notification_dictionary = {
+        WIZREQ_U	: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZREQ_T	: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZ_ACCEPT: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZ_REVOKE: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZ_DELETE: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZ_TABLE_DESTROY: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZ_CARD_UPDATE: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+    }
+
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     readed = models.BooleanField(default=False, blank=False)
 
@@ -135,6 +177,26 @@ class Notification(models.Model):
             self.readed = True
             self.save()
 
+    def pushNotificationToApp(self, receiver, sender, verb):
+        push_to_app_handler = {
+            UserProfile.IOS	: self.pushIOS,
+            UserProfile.ANDROID	: self.pushAndroid
+        }
+        push_to_app_handler[receiver.device_type](receiver, sender, verb)
+
+    def pushIOS(self, receiver, sender, verb):
+	apns_notify('wizcard-ios', 
+		    receiver.reg_token, 
+		    push_notification_dictionary[verb])
+
+        return
+
+    def pushAndroid(self, receiver, sender, verb):
+	send_gcm_message(settings.GCM_API_KEY, 
+			receiver.reg_token,
+			push_notification_dictionary[verb])
+        return
+
 def notify_handler(verb, **kwargs):
     """
     Handler function to create Notification instance upon action signal call.
@@ -164,10 +226,10 @@ def notify_handler(verb, **kwargs):
     #check if the target user is online and do APNS if not
     profile = recipient.profile
     if not profile.online():
-        NotificationManager.objects.pushNotificationToApp(
-                profile,
-                actor,
-                verb)
+        newnotify.pushNotificationToApp(
+			profile,
+			actor,
+			verb)
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

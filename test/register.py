@@ -8,8 +8,8 @@ import json
 import pdb
 import messages
 
-#server_url = "www.totastyle.com"
-server_url = "127.0.0.1"
+server_url = "www.totastyle.com"
+#server_url = "127.0.0.1"
 
 server_port = 8000
 
@@ -18,6 +18,7 @@ conn = httplib.HTTPConnection(server_url, server_port)
 
 def handle_response(connection):
     res = conn.getresponse()
+    pdb.set_trace()
     print res.status, res.reason
     objs = res.read()    
     objs = json.loads( objs )

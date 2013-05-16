@@ -39,7 +39,15 @@ class UserProfile(models.Model):
     location = generic.GenericRelation(LocationMgr)
 
     #AA:TODO: should be extended into a 1:many for supporting multiple devices
-    device_type = models.CharField(max_length=10)
+    IOS = 'ios'
+    ANDROID='android'
+    DEVICE_CHOICES = (
+	(IOS, 'iPhone'),
+	(ANDROID, 'Android'),
+    )
+    device_type = models.CharField(max_length=10, 
+		    		   choices=DEVICE_CHOICES, 
+				   default=IOS)
     device_id = models.CharField(max_length=30)
     reg_token = models.CharField(max_length=30)
 

@@ -2,6 +2,7 @@
 from wizcardship.models import WizConnectionRequest, Wizcard
 from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
+from notifications.models import Notification
 import fields
 import pdb
 
@@ -82,8 +83,21 @@ class NotifResponse(ResponseN):
     NEARBY_USERS        = 7
     NEARBY_TABLES       = 8
 
-    def __init__(self):
+    def __init__(self, notifications):
+        notifHandler = {
+            WIZREQ_U 		: self.notifWizConnectionU,
+            WIZREQ_T  	 	: self.notifWizConnectionT,
+            WIZ_ACCEPT      	: self.notifAcceptedWizcard,
+            WIZ_REVOKE		: self.notifRevokedWizcard,
+            WIZ_DELETE		: self.notifRevokedWizcard,
+            WIZ_TABLE_DESTROY   : self.notifDestroyedTable,
+            WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
+        }
+
         self.clear()
+        for notification in notifications:
+	    self.notifHandler[notification.verb](notification)
+	    
 
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)

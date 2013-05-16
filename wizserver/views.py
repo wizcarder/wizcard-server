@@ -84,8 +84,6 @@ class ParseMsgAndDispatch:
 
         self.response = Response()
 
-
-
     def processIncomingMessage(self):
         msgHandlers = {
             'signup'                        : self.processSignUp,
@@ -569,23 +567,7 @@ class ParseMsgAndDispatch:
 
         #AA: TODO: Check if this is sorted by time
         notifications = Notification.objects.unread(user)
-
-        notifResponse = NotifResponse()
-
-        #AA:TOOD: Move this to Notif class or response class
-        notifHandler = {
-            'wizconnection request untrusted' : notifResponse.notifWizConnectionU,
-            'wizconnection request trusted'   : notifResponse.notifWizConnectionT,
-            'accepted wizcard'      : notifResponse.notifAcceptedWizcard,
-            'revoked wizcard'       : notifResponse.notifRevokedWizcard,
-            'deleted wizcard'       : notifResponse.notifRevokedWizcard,
-            'destroy table'         : notifResponse.notifDestroyedTable,
-            'wizcard update'        : notifResponse.notifWizcardUpdate,
-        }
-
-        #process notifications
-        for notification in notifications:
-            notifHandler[notification.verb](notification)
+        notifResponse = NotifResponse(notifications)
 
         #any wizcards dropped nearby
         try:
@@ -594,7 +576,6 @@ class ParseMsgAndDispatch:
         except:
             lat = user.profile.get_location().lat
             lng = user.profile.get_location().lng
-
 
         #AA:TODO: Use come caching framework to cache these
         #comment for now. ios app crashes since the new notifs are i

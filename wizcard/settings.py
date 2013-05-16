@@ -170,8 +170,8 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
 import logging
 logging.basicConfig(
-    #level = logging.DEBUG,
-    #format = '%(funcName)s %(levelname)s %(message)s',
+    level = logging.DEBUG,
+    format = '%(funcName)s %(levelname)s %(message)s',
 )
 
 import djcelery
@@ -187,6 +187,17 @@ CELERYBEAT_SCHEDULE = {
         'args': (16, 16)
     },
 }
+
+PYAPNS_CONFIG = {
+  'HOST': 'http://localhost:8077/',
+  'TIMEOUT': 15,                    # OPTIONAL, host timeout in seconds
+  'INITIAL': [                      # OPTIONAL, see below
+    ('wizcard-ios', 'apscert.pem', 'sandbox'),
+  ]
+}
+
+GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
+
 
 CELERY_TIMEZONE = 'UTC'
 
