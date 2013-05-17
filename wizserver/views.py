@@ -252,18 +252,20 @@ class ParseMsgAndDispatch:
 
         #fill in device details
         try:
-            profile.device_type = self.sender['device_type']
+            profile.device_type = self.sender['deviceType']
         except:
             pass
         try:
-            profile.device_id = self.sender['device_id']
+            profile.device_id = self.sender['deviceID']
         except:
             pass
         try:
             profile.reg_token = self.sender['reg_token']
         except:
             pass
+
         profile.save()
+
         if do_sync:
             #sync own card and rolodex
             wizcard_s, rolodex_s = profile.serialize_objects()

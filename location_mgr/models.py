@@ -7,11 +7,31 @@ from django.contrib.contenttypes.models import ContentType
 from location_mgr.signals import location
 from django.db.models.signals import pre_delete
 from lib import wizlib
+import threading
 import random
 import pdb
 
+ptree = trie()
+wtree = trie()
+vtree = trie()
+
 class LocationMgrManager(models.Manager):
-    def lookup_by_key(self, tree, key, n, key_in_tree=True):
+
+    PTREE = 1 
+    WTREE = 2
+    VTREE = 3
+
+    location_tree_handles = {
+        PTREE : ptree,
+        WTREE : wtree,
+        VTREE : vtree
+    }
+
+    def get_tree_from_type(self, type):
+	return self.location_tree_handles[type]
+
+    def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
+	tree = self.get_tree_from_type(tree_type)
         print 'current tree [{tree}]'.format (tree=tree)
         result, count = wizlib.lookup_by_key(key, 
                                              tree, 
@@ -20,11 +40,9 @@ class LocationMgrManager(models.Manager):
         print 'looking up  gives result [{result}]'.format (result=result)
         return result, count
 
-    def lookup_by_lat_lng(self, tree, lat, lng, n):
-        if not tree:
-            return None, None
+    def lookup_by_lat_lng(self, tree_type, lat, lng, n):
         key = wizlib.create_geohash(lat, lng)
-        return self.lookup_by_key(tree, key, n, False)
+        return self.lookup_by_key(tree_type, key, n, False)
 
 class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
@@ -40,7 +58,8 @@ class LocationMgr(models.Model):
 
     objects = LocationMgrManager()
 
-    def do_update(self, lat, lng, tree):
+    def do_update(self, lat, lng, tree_type):
+	tree = LocationMgr.objects.get_tree_from_type(tree_type)
         update = False
         update_object = None
         object_id = self.object_id
@@ -82,7 +101,7 @@ def location_update_handler(**kwargs):
     lat = kwargs.pop('lat')
     lng = kwargs.pop('lng')
     key = kwargs.pop('key', None)
-    tree = kwargs.pop('tree')
+    tree_type = kwargs.pop('tree')
 
     newlocation = LocationMgr(
         lat=lat,
@@ -93,6 +112,7 @@ def location_update_handler(**kwargs):
 
     newlocation.save()
     #update tree
+    tree = LocationMgr.objects.get_tree_from_type(tree_type)
     tree[key] = sender.pk
     print 'current tree [{tree}]'.format (tree=tree)
     return newlocation

@@ -36,7 +36,6 @@ from django.db.models import Q
 from lib import wizlib
 #from django.db.models import ImageField
 
-wtree = trie()
 
 class WizcardManager(models.Manager):
     def except_wizcard(self, except_user):
@@ -166,10 +165,11 @@ class WizcardManager(models.Manager):
 
     def lookup(self, lat, lng, n, count_only=False):
         wizcards = None
-        result, count =  LocationMgr.objects.lookup_by_lat_lng(wtree, 
-                                                               lat, 
-                                                               lng, 
-                                                               n)
+        result, count =  LocationMgr.objects.lookup_by_lat_lng(
+                                LocationMgr.objects.WTREE,
+                                lat, 
+                                lng, 
+                                n)
         #convert result to query set result
         #AA:TODO: filter out self and connected
         if count and not count_only:
@@ -252,8 +252,8 @@ class Wizcard(models.Model):
             created = False
             #AA:TODO: For now, check for wtree and re-populate if not there (server 
             #restart) this eventually needs to come from db read during init
-            if not wtree.has_key(location_qs.key):
-                wtree[location_qs.key] = location_qs.object_id
+            #if not wtree.has_key(location_qs.key):
+            #    wtree[location_qs.key] = location_qs.object_id
         except:
             #create
             key = wizlib.create_geohash(lat, lng)
@@ -261,7 +261,7 @@ class Wizcard(models.Model):
                                         lat=lat, 
                                         lng=lng, 
                                         key=key, 
-                                        tree=wtree)
+                                        tree=LocationMgr.objects.WTREE)
             print 'new flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
 
         return location_qs, created

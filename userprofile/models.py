@@ -16,8 +16,6 @@ import string
 import random
 import pdb
 
-ptree = trie()
-
 class UserProfileManager(models.Manager):
     def serialize(self, users):
         return serialize(users, **fields.user_query_template)
@@ -77,6 +75,7 @@ class UserProfile(models.Model):
     def get_location(self):
         location_qs = self.location.all()
         if location_qs:
+	    #AA_TODO: ideally should only be 1 object present..check why/when it'll be more
             return location_qs[0]
         else:
             return None
@@ -84,18 +83,20 @@ class UserProfile(models.Model):
     def create_or_update_location(self, lat, lng):
         l = self.get_location()
         if l:
-            l.do_update(lat, lng, ptree)
+            l.do_update(lat, lng, LocationMgr.objects.PTREE)
         else:
             #create
             key = wizlib.create_geohash(lat, lng)
-            location.send(sender=self, lat=lat, lng=lng, key=key, tree=ptree)
+            location.send(sender=self, lat=lat, lng=lng, key=key, 
+                    tree=LocationMgr.objects.PTREE)
 
     def lookup(self, n, count_only=False):
         users = None
         l = self.get_location()
-        result, count = LocationMgr.objects.lookup_by_key(ptree, 
-                                                          l.key, 
-                                                          n)
+        result, count = LocationMgr.objects.lookup_by_key(
+                            LocationMgr.objects.PTREE, 
+                            l.key, 
+                            n)
         #convert result to query set result
         if count and not count_only:
             users = map(lambda m: UserProfile.objects.get(id=m).user, result)

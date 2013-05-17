@@ -30,15 +30,14 @@ from lib.preserialize.serialize import serialize
 from wizserver import fields
 from virtual_table.signals import virtualtable_vtree_timeout
 
-vtree = trie()
-
 class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         tables = None
-        result, count = LocationMgr.objects.lookup_by_lat_lng(vtree, 
-                                                              lat,
-                                                              lng,
-                                                              n)
+        result, count = LocationMgr.objects.lookup_by_lat_lng(
+                            LocationMgr.objects.VTREE, 
+                            lat,
+                            lng,
+                            n)
         #convert result to query set result
         if count and not count_only:
             tables = map(lambda m: self.get(id=m), result)
@@ -72,7 +71,12 @@ class VirtualTable(models.Model):
 
     def create_location(self, lat, lng):
         key = wizlib.create_geohash(lat, lng)
-        location.send(sender=self, lat=lat, lng=lng, key=key, tree=vtree)
+        location.send(
+                sender=self, 
+                lat=lat, 
+                lng=lng, 
+                key=key, 
+                tree=LocationMgr.objects.VTREE)
 
     def isSecure(self):
         return self.secureTable
@@ -122,7 +126,7 @@ class VirtualTable(models.Model):
         #since the tree is visible only to this model. Tried a pre-delete signal,
         #but that cannot carry arguments and so locationMgr cannot see the tree/key
         #to delete. Hence delete the key from here
-        self.get_location().delete_key(vtree)
+        self.get_location().delete_tree(LocationMgr.objects.VTREE)
         self.delete()
 
     def lifetime(self):

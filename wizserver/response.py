@@ -85,20 +85,18 @@ class NotifResponse(ResponseN):
 
     def __init__(self, notifications):
         notifHandler = {
-            WIZREQ_U 		: self.notifWizConnectionU,
-            WIZREQ_T  	 	: self.notifWizConnectionT,
-            WIZ_ACCEPT      	: self.notifAcceptedWizcard,
-            WIZ_REVOKE		: self.notifRevokedWizcard,
-            WIZ_DELETE		: self.notifRevokedWizcard,
-            WIZ_TABLE_DESTROY   : self.notifDestroyedTable,
-            WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
+            Notification.WIZREQ_U 	     : self.notifWizConnectionU,
+            Notification.WIZREQ_T  	     : self.notifWizConnectionT,
+            Notification.WIZ_ACCEPT          : self.notifAcceptedWizcard,
+            Notification.WIZ_REVOKE	     : self.notifRevokedWizcard,
+            Notification.WIZ_DELETE	     : self.notifRevokedWizcard,
+            Notification.WIZ_TABLE_DESTROY   : self.notifDestroyedTable,
+            Notification.WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
         }
-
         self.clear()
-        for notification in notifications:
+	for notification in notifications:
 	    self.notifHandler[notification.verb](notification)
 	    
-
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         out = Wizcard.objects.serialize(wizcard)
