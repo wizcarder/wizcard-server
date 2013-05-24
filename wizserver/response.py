@@ -95,7 +95,7 @@ class NotifResponse(ResponseN):
         }
         self.clear()
 	for notification in notifications:
-	    self.notifHandler[notification.verb](notification)
+	    notifHandler[notification.verb](notification)
 	    
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)

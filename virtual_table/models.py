@@ -117,16 +117,16 @@ class VirtualTable(models.Model):
 
         #we can destroy this table if no one is active
         if self.numSitting == 0:
-            self.delete()
+            self.delete_table()
         return self
 
-    def delete_table(self, user):
+    def delete_table(self):
         self.users.clear()
         #no clean way of getting locationMgr delete method to clean up the tree
         #since the tree is visible only to this model. Tried a pre-delete signal,
         #but that cannot carry arguments and so locationMgr cannot see the tree/key
         #to delete. Hence delete the key from here
-        self.get_location().delete_tree(LocationMgr.objects.VTREE)
+        self.get_location().delete_key_from_tree(LocationMgr.objects.VTREE)
         self.delete()
 
     def lifetime(self):

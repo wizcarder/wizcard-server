@@ -192,6 +192,7 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processRegister(self):
+        pdb.set_trace()
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
 
         wizcard_s = None
@@ -891,7 +892,7 @@ class ParseMsgAndDispatch:
         if table.creator == user:
             for member in members:
                 notify.send(user, recipient=member, verb='destroy table', target=table)
-            table.delete_table(user)
+            table.delete_table()
         else:
             self.response.error_response(errno=1, errorStr="User is not the creator")
         return self.response.response

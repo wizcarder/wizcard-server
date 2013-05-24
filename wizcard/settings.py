@@ -148,7 +148,7 @@ INSTALLED_APPS = (
     'notifications',
     'virtual_table',
     'location_mgr',
-    #'celerytest',
+    'periodic',
 
 )
 
