@@ -3,6 +3,7 @@ import pdb
 from lib import bisect_wrapper
 from operator import itemgetter
 from pprint import pprint
+from celery import task
 
 class Timer:
     _timerlist = bisect_wrapper.SortedCollection(key=itemgetter(1))
@@ -27,6 +28,7 @@ class Timer:
         return False
 
     @classmethod
+    @task
     def process_timer(cls, count=0):
         #record a tick
         Timer.tick()

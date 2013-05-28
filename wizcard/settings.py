@@ -179,9 +179,9 @@ BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {
-    'add-every-30-seconds': {
-        'task': 'tasks.add',
-        'schedule': timedelta(seconds=30),
+    'timer-tick-60': {
+        'task': 'lib.timer.process_timer',
+        'schedule': timedelta(seconds=60),
         'args': (16, 16)
     },
 }
