@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from location_mgr.signals import location
 from django.db.models.signals import pre_delete
 from lib import wizlib
-import threading
+from lib import timer
 import random
 import pdb
 
@@ -49,13 +49,13 @@ class LocationMgrManager(models.Manager):
         return self.lookup_by_key(tree_type, key, n, False)
 
     def default_callback_fn(self, id):
-        LocationMgr.objects.get(id=id).delete_key_from_tree()
+        self.get(id=id).delete_key_from_tree()
         
 class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     key = models.CharField(null=True, max_length=100)
-    tree_type = models.IntegerField(default=LocationMgr.objects.PTREE)
+    tree_type = models.IntegerField(default=LocationMgrManager.PTREE)
     timer_id = models.PositiveIntegerField(null=True)
 
     #GenericForeignKey to objects requiring locationMgr services
@@ -107,7 +107,9 @@ class LocationMgr(models.Model):
     def start_timer(self, *args, **kwargs):
         callback_fn = kwargs.pop('callback_fn', default_callback_fn)
         timeout = kwargs.pop('timeout')
-        t = timer.Timer(timeout=timeout, callback_fn=callback_fn, kwargs)
+        t = timer.Timer(timeout=timeout, 
+                        callback_fn=callback_fn, 
+                        kwargs=kwargs)
 	self.timer_id = t.start()
 
     def stop_timer(self):

@@ -1,6 +1,6 @@
 import weakref
 import pdb
-import bisect_wrapper
+from lib import bisect_wrapper
 from operator import itemgetter
 from pprint import pprint
 
@@ -48,13 +48,13 @@ class Timer:
         print("ID2OBJ map:")
         pprint(dict(Timer._id2obj_dict))
 
-    def __init__(self, timeout=t, callback_fn=f, args = **kwargs):
-        self.timeout = timeout
-        self.timeout_delta = timeout
-        self.adjusted_timeout = timeout
+    def __init__(self, t, callback_fn, **kwargs):
+        self.timeout = t
+        self.timeout_delta = t
+        self.adjusted_timeout = t
         self.id = id(self)
         self.callback_fn = callback_fn
-        self.kwargs = args
+        self.kwargs = kwargs
         Timer._id2obj_dict[self.id] = self
 
     def __repr__(self):

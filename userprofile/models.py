@@ -104,7 +104,6 @@ class UserProfile(models.Model):
         users = None
         l = self.get_location()
         result, count = LocationMgr.objects.lookup_by_key(
-                            l.tree_type,
                             l.key, 
                             n)
         #convert result to query set result
@@ -114,7 +113,6 @@ class UserProfile(models.Model):
 
     def serialize(self, users):
         return serialize(users, **fields.user_query_template)
-
 
     def serialize_objects(self):
         #add callouts to all serializable objects here

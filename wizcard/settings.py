@@ -143,13 +143,11 @@ INSTALLED_APPS = (
     'djcelery',
     'storages',
     'userprofile',
-    'wizserver', 
+    'wizserver',
     'wizcardship',
     'notifications',
     'virtual_table',
     'location_mgr',
-    'periodic',
-
 )
 
 #django-storage settings
