@@ -166,7 +166,6 @@ class WizcardManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         wizcards = None
         result, count =  LocationMgr.objects.lookup_by_lat_lng(
-                                LocationMgr.objects.WTREE,
                                 lat, 
                                 lng, 
                                 n)
@@ -250,10 +249,6 @@ class Wizcard(models.Model):
             location_qs = self.locations.get(lat=lat, 
                                              lng=lng) 
             created = False
-            #AA:TODO: For now, check for wtree and re-populate if not there (server 
-            #restart) this eventually needs to come from db read during init
-            #if not wtree.has_key(location_qs.key):
-            #    wtree[location_qs.key] = location_qs.object_id
         except:
             #create
             key = wizlib.create_geohash(lat, lng)

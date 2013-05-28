@@ -801,14 +801,23 @@ class ParseMsgAndDispatch:
         except:
             self.response.error_response(errno=1, errorStr="Object does not exist")
             return self.response.response
+        try:
+            flick_timeout = self.sender['flickTimeout']
+        except:
+            flick_timeout = 1
         
         lat = user.profile.get_location().lat
         lng = user.profile.get_location().lng
         
         w_location, created = wizcard.get_or_create_location(lat, lng)
-        if w_location and not created:
-            #AA:TODO: Maybe update timestamp or something to keep the card alive longer
-            pass
+        if w_location and created:
+            #kick a timer
+            w_location.reset_timer()
+        else:
+            #Maybe update timestamp or something to keep the card alive longer
+            w_location.start_timer(timeout=flick_timeout,
+                                   tree=LocationMgr.objects.WTREE,
+                                   key=w_location.key)
 
     def processCreateTable(self):
         try:
@@ -834,6 +843,9 @@ class ParseMsgAndDispatch:
         #update location in ptree
         #AA:TODO move create to overridden create in VirtualTable
         table.create_location(lat, lng)
+	table.location.start_timer(timeout=lifetime,
+                                   tree=LocationMgr.objects.VTREE,
+                                   key=table.location.key)
         table.join_table_and_exchange(user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)

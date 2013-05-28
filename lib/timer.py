@@ -34,6 +34,7 @@ class Timer:
         index = 0
         while(Timer.has_expiry()):
             t = list(Timer._timerlist).pop(index)
+            t[0].callback_fn(t[0].kwargs)
             pprint(t)
             t[0].remove_index(index) 
       
@@ -47,11 +48,13 @@ class Timer:
         print("ID2OBJ map:")
         pprint(dict(Timer._id2obj_dict))
 
-    def __init__(self, timeout, callback_fn, ):
+    def __init__(self, timeout=t, callback_fn=f, args = **kwargs):
         self.timeout = timeout
         self.timeout_delta = timeout
         self.adjusted_timeout = timeout
         self.id = id(self)
+        self.callback_fn = callback_fn
+        self.kwargs = args
         Timer._id2obj_dict[self.id] = self
 
     def __repr__(self):
@@ -89,3 +92,8 @@ class Timer:
     def reset(self):
         self.stop()
         self.start()
+
+    def destroy(self):
+        self.stop()
+        self.delete()
+

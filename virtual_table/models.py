@@ -34,7 +34,6 @@ class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         tables = None
         result, count = LocationMgr.objects.lookup_by_lat_lng(
-                            LocationMgr.objects.VTREE, 
                             lat,
                             lng,
                             n)
@@ -126,7 +125,7 @@ class VirtualTable(models.Model):
         #since the tree is visible only to this model. Tried a pre-delete signal,
         #but that cannot carry arguments and so locationMgr cannot see the tree/key
         #to delete. Hence delete the key from here
-        self.get_location().delete_key_from_tree(LocationMgr.objects.VTREE)
+        self.get_location().delete_key_from_tree()
         self.delete()
 
     def lifetime(self):

@@ -83,18 +83,28 @@ class UserProfile(models.Model):
     def create_or_update_location(self, lat, lng):
         l = self.get_location()
         if l:
-            l.do_update(lat, lng, LocationMgr.objects.PTREE)
+            updated = l.do_update(lat, lng)
+	    if not updated:
+                #reset the timer
+                l.reset_timer()
+            else:
+                #updated location, so key must have changed, need to re-install timer
+                l.destroy_timer()
+		l.start_timer(timeout=10, l_id=l.id)
+	    return l
         else:
             #create
             key = wizlib.create_geohash(lat, lng)
-            location.send(sender=self, lat=lat, lng=lng, key=key, 
-                    tree=LocationMgr.objects.PTREE)
+            l_tuple = location.send(sender=self, lat=lat, lng=lng, key=key, 
+                                    tree=LocationMgr.objects.PTREE)
+	    l_tuple[1].start_timer(timeout=10, 
+                                   key=l_tuple[1].id)
 
     def lookup(self, n, count_only=False):
         users = None
         l = self.get_location()
         result, count = LocationMgr.objects.lookup_by_key(
-                            LocationMgr.objects.PTREE, 
+                            l.tree_type,
                             l.key, 
                             n)
         #convert result to query set result
