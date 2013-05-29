@@ -50,10 +50,10 @@ class Timer:
         print("ID2OBJ map:")
         pprint(dict(Timer._id2obj_dict))
 
-    def __init__(self, t, callback_fn, **kwargs):
-        self.timeout = t
-        self.timeout_delta = t
-        self.adjusted_timeout = t
+    def __init__(self, timeout, callback_fn, **kwargs):
+        self.timeout = timeout
+        self.timeout_delta = timeout
+        self.adjusted_timeout = timeout
         self.id = id(self)
         self.callback_fn = callback_fn
         self.kwargs = kwargs

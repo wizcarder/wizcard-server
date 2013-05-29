@@ -34,6 +34,7 @@ class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         tables = None
         result, count = LocationMgr.objects.lookup_by_lat_lng(
+                            LocationMgr.objects.VTREE,
                             lat,
                             lng,
                             n)

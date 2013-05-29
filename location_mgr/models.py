@@ -27,15 +27,15 @@ class LocationMgrManager(models.Manager):
         VTREE : vtree
     }
 
-    def get_tree_from_type(self):
-	return self.location_tree_handles[self.tree_type]
+    def get_tree_from_type(self, tree_type):
+	return self.location_tree_handles[tree_type]
   
     def get_tree_from_content_type(self, type):
 	#AA_TODO
 	return PTREE
 
-    def lookup_by_key(self, key, n, key_in_tree=True):
-	tree = self.get_tree_from_type(self.tree_type)
+    def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
+	tree = self.get_tree_from_type(tree_type)
         print 'current tree [{tree}]'.format (tree=tree)
         result, count = wizlib.lookup_by_key(key, 
                                              tree, 
@@ -105,7 +105,8 @@ class LocationMgr(models.Model):
         super(VirtualTable, self).delete(*args, **kwargs)
 
     def start_timer(self, *args, **kwargs):
-        callback_fn = kwargs.pop('callback_fn', default_callback_fn)
+        callback_fn = kwargs.pop('callback_fn', 
+                                  LocationMgr.objects.default_callback_fn)
         timeout = kwargs.pop('timeout')
         t = timer.Timer(timeout=timeout, 
                         callback_fn=callback_fn, 
@@ -113,14 +114,17 @@ class LocationMgr(models.Model):
 	self.timer_id = t.start()
 
     def stop_timer(self):
-        timer.Timer.id2obj(self.timer_id).stop()
+        if self.timer_id:
+            timer.Timer.id2obj(self.timer_id).stop()
 
     def reset_timer(self):
-        timer.Timer.id2obj(self.timer_id).reset()
+        if self.timer_id:
+            timer.Timer.id2obj(self.timer_id).reset()
 
     def destroy_timer(self):
-        timer.Timer.id2obj(self.timer_id).destroy()
-        self.timer_id = None
+        if self.timer_id:
+            timer.Timer.id2obj(self.timer_id).destroy()
+            self.timer_id = None
 
 def location_update_handler(**kwargs):
     kwargs.pop('signal', None)
@@ -128,18 +132,19 @@ def location_update_handler(**kwargs):
     lat = kwargs.pop('lat')
     lng = kwargs.pop('lng')
     key = kwargs.pop('key', None)
-    tree_type = kwargs.pop('tree')
+    tree_type = kwargs.pop('tree', None)
 
     newlocation = LocationMgr(
         lat=lat,
         lng=lng,
         key=key,
+        tree_type = tree_type,
         content_type=ContentType.objects.get_for_model(sender),
         object_id=sender.pk)
 
     newlocation.save()
     #update tree
-    tree = LocationMgr.objects.get_tree_from_type(tree_type)
+    tree = LocationMgr.objects.get_tree_from_type(newlocation.tree_type)
     tree[key] = sender.pk
     print 'current tree [{tree}]'.format (tree=tree)
     return newlocation

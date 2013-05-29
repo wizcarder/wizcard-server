@@ -97,13 +97,14 @@ class UserProfile(models.Model):
             key = wizlib.create_geohash(lat, lng)
             l_tuple = location.send(sender=self, lat=lat, lng=lng, key=key, 
                                     tree=LocationMgr.objects.PTREE)
-	    l_tuple[1].start_timer(timeout=10, 
-                                   key=l_tuple[1].id)
+	    l_tuple[0][1].start_timer(timeout=10, 
+                                   key=l_tuple[0][1].id)
 
     def lookup(self, n, count_only=False):
         users = None
         l = self.get_location()
         result, count = LocationMgr.objects.lookup_by_key(
+                            l.tree_type,
                             l.key, 
                             n)
         #convert result to query set result

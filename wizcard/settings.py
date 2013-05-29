@@ -168,8 +168,8 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
 import logging
 logging.basicConfig(
-#    level = logging.DEBUG,
-#    format = '%(funcName)s %(levelname)s %(message)s',
+    level = logging.DEBUG,
+    format = '%(funcName)s %(levelname)s %(message)s',
 )
 
 import djcelery

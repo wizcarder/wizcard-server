@@ -192,7 +192,6 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processRegister(self):
-        pdb.set_trace()
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
 
         wizcard_s = None

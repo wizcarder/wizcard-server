@@ -166,6 +166,7 @@ class WizcardManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         wizcards = None
         result, count =  LocationMgr.objects.lookup_by_lat_lng(
+                                LocationMgr.objects.WTREE,
                                 lat, 
                                 lng, 
                                 n)
