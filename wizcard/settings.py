@@ -1,6 +1,7 @@
 # Django settings for wizcard project.
 
 DEBUG = True
+DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -182,7 +183,6 @@ CELERYBEAT_SCHEDULE = {
     'timer-tick-60': {
         'task': 'lib.timer.process_timer',
         'schedule': timedelta(seconds=60),
-        'args': (16, 16)
     },
 }
 
