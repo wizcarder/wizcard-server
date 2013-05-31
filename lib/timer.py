@@ -64,9 +64,16 @@ class Timer:
     def __repr__(self):
 	    return '[' + 'id:'+str(self.id) + ' timeout:'+ str(self.timeout) + ' adjusted timeout:'+ str(self.adjusted_timeout) + ' timeout_delta:'+str(self.timeout_delta) + ']'
 
-    def remove_index(self, index):
+    def remove_timerlist(self, index):
         Timer._timerlist.remove_index(index)
+
+    def remove_id2obj(self, index):
         del Timer._id2obj_dict[self.id]
+
+
+    def remove_index(self, index):
+        self.remove_timerlist(index)
+        self,remove_id2obj(index)
         
     def is_expired(self):
         return not self.timeout_delta
@@ -86,18 +93,19 @@ class Timer:
         Timer._timerlist.insert_right((self, self.adjusted_timeout))
         return self.id
 
+    #stop does not remove from id2obj map
     def stop(self):
         index = Timer._timerlist.index((self, self.adjusted_timeout))
         if (len(Timer._timerlist) - 1) > index:
             #removing non-last, adjust next guys delta
             Timer._timerlist[index+1][0].timeout_delta += Timer._timerlist[index][0].timeout_delta
-        self.pop(index)
+        self.remove_timerlist(index)
+        return index
+
+    def destroy(self):
+        index = self.stop()
+        self.remove_id2obj(index)
 
     def reset(self):
         self.stop()
         self.start()
-
-    def destroy(self):
-        self.stop()
-        self.delete()
-

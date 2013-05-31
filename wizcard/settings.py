@@ -169,7 +169,7 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
 import logging
 logging.basicConfig(
-    level = logging.DEBUG,
+    level = logging.ERROR,
     format = '%(funcName)s %(levelname)s %(message)s',
 )
 

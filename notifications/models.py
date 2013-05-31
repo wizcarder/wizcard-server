@@ -187,14 +187,14 @@ class Notification(models.Model):
     def pushIOS(self, receiver, sender, verb):
 	apns_notify('wizcard-ios', 
 		    receiver.reg_token, 
-		    push_notification_dictionary[verb])
+		    self.apns_notification_dictionary[verb])
 
         return
 
     def pushAndroid(self, receiver, sender, verb):
 	send_gcm_message(settings.GCM_API_KEY, 
 			receiver.reg_token,
-			push_notification_dictionary[verb])
+			self.apns_notification_dictionary[verb])
         return
 
 def notify_handler(verb, **kwargs):

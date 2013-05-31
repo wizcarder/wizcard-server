@@ -84,13 +84,12 @@ class UserProfile(models.Model):
         l = self.get_location()
         if l:
             updated = l.do_update(lat, lng)
-	    if not updated:
-                #reset the timer
+            if not updated: 
+                #reset the timer 
                 l.reset_timer()
             else:
-                #updated location, so key must have changed, need to re-install timer
                 l.destroy_timer()
-		l.start_timer(timeout=10, l_id=l.id)
+                l.start_timer(timeout=10, id=self.id)
 	    return l
         else:
             #create
@@ -98,7 +97,7 @@ class UserProfile(models.Model):
             l_tuple = location.send(sender=self, lat=lat, lng=lng, key=key, 
                                     tree=LocationMgr.objects.PTREE)
 	    l_tuple[0][1].start_timer(timeout=10, 
-                                   key=l_tuple[0][1].id)
+                                   id=l_tuple[0][1].id)
 
     def lookup(self, n, count_only=False):
         users = None

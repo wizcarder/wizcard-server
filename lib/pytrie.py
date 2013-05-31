@@ -202,7 +202,7 @@ class Trie(DictMixin, object):
             append(part)
             node = next 
         result =  self.values(self.KeyFactory(prefix))
-        return result, len(self)
+        return result, len(result)
 
 
     def longest_common_prefix_item(self, key, default=NULL):
@@ -223,7 +223,8 @@ class Trie(DictMixin, object):
             append(part)
             node = next 
         count = len(self) 
-        return self.items(self.KeyFactory(prefix)), count
+        result =  self.items(self.KeyFactory(prefix))
+        return result, len(result)
 
     def longest_common_prefix_item_modified(self, key, default=NULL):
         '''Return the item (``(key,value)`` tuple) associated with the longest

@@ -582,16 +582,16 @@ class ParseMsgAndDispatch:
         #AA:TODO: Use come caching framework to cache these
         #comment for now. ios app crashes since the new notifs are i
         #not yet handled
-        wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
+        #wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
         #if count:
         #    notifResponse.notifWizcardLookup(count, wizcards)
 
-        users, count = user.profile.lookup(3)
+        #users, count = user.profile.lookup(3)
         #if count:
         #    notifResponse.notifUserLookup(count, users)
 
         #tables is a smaller entity...get the tables as well instead of just count
-        tables, count = VirtualTable.objects.lookup(lat, lng, 3)
+        #tables, count = VirtualTable.objects.lookup(lat, lng, 3)
         #if count:
             #notifResponse.notifTableLookup(count, tables)
 
@@ -815,8 +815,7 @@ class ParseMsgAndDispatch:
         else:
             #Maybe update timestamp or something to keep the card alive longer
             w_location.start_timer(timeout=flick_timeout,
-                                   tree=LocationMgr.objects.WTREE,
-                                   key=w_location.key)
+                                   id=w_location.id)
 
     def processCreateTable(self):
         try:
@@ -842,9 +841,9 @@ class ParseMsgAndDispatch:
         #update location in ptree
         #AA:TODO move create to overridden create in VirtualTable
         table.create_location(lat, lng)
-	table.location.start_timer(timeout=lifetime,
-                                   tree=LocationMgr.objects.VTREE,
-                                   key=table.location.key)
+        l = table.get_location()
+	l.start_timer(timeout=lifetime,
+                      id=l.id)
         table.join_table_and_exchange(user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)

@@ -36,7 +36,7 @@ class LocationMgrManager(models.Manager):
 
     def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
 	tree = self.get_tree_from_type(tree_type)
-        print 'current tree [{tree}]'.format (tree=tree)
+        print 'current tree [{tree_type}.{tree}]'.format (tree_type=tree_type, tree=tree)
         result, count = wizlib.lookup_by_key(key, 
                                              tree, 
                                              n,
@@ -56,7 +56,7 @@ class LocationMgr(models.Model):
     lng = models.FloatField(null=True, default=None)
     key = models.CharField(null=True, max_length=100)
     tree_type = models.IntegerField(default=LocationMgrManager.PTREE)
-    timer_id = models.PositiveIntegerField(null=True)
+    timer_id = models.BigIntegerField(null=True)
 
     #GenericForeignKey to objects requiring locationMgr services
     content_type = models.ForeignKey(ContentType)
@@ -91,13 +91,14 @@ class LocationMgr(models.Model):
         elif not tree.has_key(self.key):
             tree[self.key] = object_id
         
-        print 'current tree [{tree}]'.format (tree=tree)
+        print 'current tree [{tree_type}.{tree}]'.format (tree_type=self.tree_type, tree=tree)
         return updated
 
     def delete_key_from_tree(self):
         wizlib.delete_key(
-                LocationMgr.objects.get_tree_from_type(self.tree_type),
-                self.key)
+                self.key,
+                LocationMgr.objects.get_tree_from_type(self.tree_type))
+        print 'current Vtree [{tree}]'.format (tree=vtree)
 
     def delete(self, *args, **kwargs):
         #AA_TODO: move above function here once treey_type usage 
@@ -112,6 +113,7 @@ class LocationMgr(models.Model):
                         callback_fn=callback_fn, 
                         kwargs=kwargs)
 	self.timer_id = t.start()
+        self.save()
 
     def stop_timer(self):
         if self.timer_id:
@@ -125,6 +127,7 @@ class LocationMgr(models.Model):
         if self.timer_id:
             timer.Timer.id2obj(self.timer_id).destroy()
             self.timer_id = None
+            self.save()
 
 def location_update_handler(**kwargs):
     kwargs.pop('signal', None)

@@ -35,7 +35,7 @@ def lookup_by_key(key, tree, num_results, key_in_tree=True):
 
 def delete_key(key, tree):
     try:
-        del tree[self.key]
+        del tree[key]
     except:
         pass
     print 'current tree [{tree}]'.format (tree=tree)
