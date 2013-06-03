@@ -149,6 +149,7 @@ INSTALLED_APPS = (
     'notifications',
     'virtual_table',
     'location_mgr',
+    'periodic'
 )
 
 #django-storage settings
@@ -181,8 +182,8 @@ from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {
     'timer-tick-60': {
-        'task': 'lib.timer.process_timer',
-        'schedule': timedelta(seconds=60),
+        'task': 'periodic.tasks.process_timer',
+        'schedule': timedelta(seconds=1),
     },
 }
 
