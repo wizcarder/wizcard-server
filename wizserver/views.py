@@ -586,7 +586,7 @@ class ParseMsgAndDispatch:
         #if count:
         #    notifResponse.notifWizcardLookup(count, wizcards)
 
-        #users, count = user.profile.lookup(3)
+        users, count = user.profile.lookup(3)
         #if count:
         #    notifResponse.notifUserLookup(count, users)
 
