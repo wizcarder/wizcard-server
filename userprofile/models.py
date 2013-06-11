@@ -84,20 +84,14 @@ class UserProfile(models.Model):
         l = self.get_location()
         if l:
             updated = l.do_update(lat, lng)
-            if not updated: 
-                #reset the timer 
-                l.reset_timer()
-            else:
-                l.destroy_timer()
-                l.start_timer(timeout=10, id=self.id)
+            l.reset_timer()
 	    return l
         else:
             #create
             key = wizlib.create_geohash(lat, lng)
             l_tuple = location.send(sender=self, lat=lat, lng=lng, key=key, 
                                     tree=LocationMgr.objects.PTREE)
-	    l_tuple[0][1].start_timer(timeout=10, 
-                                   id=l_tuple[0][1].id)
+	    l_tuple[0][1].start_timer(10)
 
     def lookup(self, n, count_only=False):
         users = None

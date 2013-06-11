@@ -143,7 +143,6 @@ INSTALLED_APPS = (
     'django_extensions',
     'djcelery',
     'storages',
-    'lib',
     'userprofile',
     'wizserver',
     'wizcardship',
@@ -180,11 +179,10 @@ djcelery.setup_loader()
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
 from datetime import timedelta
-from lib import timer
 
 CELERYBEAT_SCHEDULE = {
     'timer-tick-60': {
-        'task': 'lib.timer.process_timer',
+        'task': 'periodic.tasks.process_timer',
         'schedule': timedelta(seconds=60),
     },
 }

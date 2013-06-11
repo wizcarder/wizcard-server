@@ -26,11 +26,10 @@ def process_timer():
 
 
 class Timer:
-    _timerlist = bisect_wrapper.SortedCollection(key=itemgetter(1))
-    _id2obj_dict = weakref.WeakValueDictionary()
-    #shared_dict = Manager().dict(list(_timerlist))
-    shared_dict['timerlist'] =  _timerlist
-    shared_dict['idmap'] = _id2obj_dict
+    #_timerlist = bisect_wrapper.SortedCollection(key=itemgetter(1))
+    #_id2obj_dict = weakref.WeakValueDictionary()
+    #shared_dict['timerlist'] =  _timerlist
+    #shared_dict['idmap'] = _id2obj_dict
 
     @classmethod
     def timer_list(cls):

@@ -4,10 +4,10 @@ from lib.pytrie import SortedStringTrie as trie
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
-from location_mgr.signals import location
+from location_mgr.signals import location, location_timeout
 from django.db.models.signals import pre_delete
+from periodic.models import Periodic
 from lib import wizlib
-from lib import timer
 import random
 import pdb
 
@@ -30,10 +30,6 @@ class LocationMgrManager(models.Manager):
     def get_tree_from_type(self, tree_type):
 	return self.location_tree_handles[tree_type]
   
-    def get_tree_from_content_type(self, type):
-	#AA_TODO
-	return PTREE
-
     def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
 	tree = self.get_tree_from_type(tree_type)
         print 'current tree [{tree_type}.{tree}]'.format (tree_type=tree_type, tree=tree)
@@ -56,7 +52,6 @@ class LocationMgr(models.Model):
     lng = models.FloatField(null=True, default=None)
     key = models.CharField(null=True, max_length=100)
     tree_type = models.IntegerField(default=LocationMgrManager.PTREE)
-    timer_id = models.BigIntegerField(null=True)
 
     #GenericForeignKey to objects requiring locationMgr services
     content_type = models.ForeignKey(ContentType)
@@ -101,33 +96,21 @@ class LocationMgr(models.Model):
         print 'current Vtree [{tree}]'.format (tree=vtree)
 
     def delete(self, *args, **kwargs):
-        #AA_TODO: move above function here once treey_type usage 
-        #is not  required
-        super(VirtualTable, self).delete(*args, **kwargs)
+        self.delete_key_from_tree()
+        super(LocationMgr, self).delete(*args, **kwargs)
 
-    def start_timer(self, *args, **kwargs):
-        callback_fn = kwargs.pop('callback_fn', 
-                                  LocationMgr.objects.default_callback_fn)
-        timeout = kwargs.pop('timeout')
-        t = timer.Timer(timeout=timeout, 
-                        callback_fn=callback_fn, 
-                        kwargs=kwargs)
-	self.timer_id = t.start()
-        self.save()
-
-    def stop_timer(self):
-        if self.timer_id:
-            timer.Timer.id2obj(self.timer_id).stop()
+    #Database based timer implementation
+    def start_timer(self, timeout):
+        t = Periodic.objects.create(location=self,
+                timeout_value=timeout)
+        t.start()
 
     def reset_timer(self):
-        if self.timer_id:
-            timer.Timer.id2obj(self.timer_id).reset()
-
-    def destroy_timer(self):
-        if self.timer_id:
-            timer.Timer.id2obj(self.timer_id).destroy()
-            self.timer_id = None
-            self.save()
+        if self.timer.count():
+            self.timer.all()[0].start()
+        else:
+            #restart case ???
+            self.start_timer(10)
 
 def location_update_handler(**kwargs):
     kwargs.pop('signal', None)
@@ -152,7 +135,15 @@ def location_update_handler(**kwargs):
     print 'current tree [{tree}]'.format (tree=tree)
     return newlocation
 
+def location_timeout_handler(**kwargs):
+    ids = kwargs.pop('ids')
+    map(lambda x: LocationMgr.objects.get(id=x).delete, ids)
+
+
+
+
 location.connect(location_update_handler, dispatch_uid='location_mgr.models.location_mgr')
+location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
 
 
 

@@ -810,12 +810,11 @@ class ParseMsgAndDispatch:
         
         w_location, created = wizcard.get_or_create_location(lat, lng)
         if w_location and created:
+            w_location.start_timer(flick_timeout)
             #kick a timer
-            w_location.reset_timer()
         else:
+            w_location.reset_timer()
             #Maybe update timestamp or something to keep the card alive longer
-            w_location.start_timer(timeout=flick_timeout,
-                                   id=w_location.id)
 
     def processCreateTable(self):
         try:
@@ -842,8 +841,7 @@ class ParseMsgAndDispatch:
         #AA:TODO move create to overridden create in VirtualTable
         table.create_location(lat, lng)
         l = table.get_location()
-	l.start_timer(timeout=lifetime,
-                      id=l.id)
+	l.start_timer(lifetime)
         table.join_table_and_exchange(user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)
