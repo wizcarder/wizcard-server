@@ -7,7 +7,7 @@ TIME_RECURRING = 2
 
 class PeriodicManager(models.Manager):
     def get_expired(self):
-        return self.objects.all()
+        return self.all()
 
 
 class Periodic(models.Model):
@@ -17,6 +17,9 @@ class Periodic(models.Model):
     location = models.ForeignKey('location_mgr.LocationMgr', related_name="timer")
 
     objects = PeriodicManager()
+
+    def __unicode__(self):
+        return u'timeout: %s expires at: %s' % (self.timeout_value, self.expires_at)
 
     def start(self):
         self.expires_at = datetime.datetime.now() + datetime.timedelta(
