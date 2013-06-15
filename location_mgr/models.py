@@ -8,12 +8,23 @@ from location_mgr.signals import location, location_timeout
 from django.db.models.signals import pre_delete
 from periodic.models import Periodic
 from lib import wizlib
+from django_cron import Job
 import random
 import pdb
 
 ptree = trie()
 wtree = trie()
 vtree = trie()
+
+class Tick(Job):
+    run_every = 10
+
+    def job(self):
+        print 'TICK RECEIVED'
+        e = Periodic.objects.get_expired()
+        ids = map(lambda x:  x.location.pk, e)
+        location_timeout.send(sender=None, ids=ids)
+
 
 class LocationMgrManager(models.Manager):
 
@@ -96,21 +107,21 @@ class LocationMgr(models.Model):
         print 'current Vtree [{tree}]'.format (tree=vtree)
 
     def delete(self, *args, **kwargs):
+        print 'DELETING TREE'
+        print 'tree before delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         self.delete_key_from_tree()
+        print 'tree after delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         super(LocationMgr, self).delete(*args, **kwargs)
 
     #Database based timer implementation
     def start_timer(self, timeout):
         t = Periodic.objects.create(location=self,
-                timeout_value=timeout)
+                timeout_value=timeout*60)
         t.start()
 
     def reset_timer(self):
         if self.timer.count():
             self.timer.all()[0].start()
-        else:
-            #restart case ???
-            self.start_timer(10)
 
 def location_update_handler(**kwargs):
     kwargs.pop('signal', None)
@@ -137,7 +148,9 @@ def location_update_handler(**kwargs):
 
 def location_timeout_handler(**kwargs):
     ids = kwargs.pop('ids')
-    map(lambda x: LocationMgr.objects.get(id=x).delete, ids)
+    expired = map(lambda x: LocationMgr.objects.get(id=x), ids)
+    for e in expired:
+        e.delete()
 
 
 

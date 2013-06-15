@@ -111,6 +111,8 @@ class ParseMsgAndDispatch:
             'destroy_table'                 : self.processDestroyTable
         }
 
+        self.update_location(self.msgType)
+
         # Dispatch to appropriate message handler
         retval =  msgHandlers[self.msgType]()
 
@@ -190,6 +192,13 @@ class ParseMsgAndDispatch:
                 self.response.add_data("rolodex", rolodex_s)
 
         return self.response.response
+
+    def msg_has_location(self, msg_type):
+        return self.sender.has_key('lat')  and self.sender.has_key('lng') and msg_type not in ['signup', 'login', 'register']
+
+    def update_location(self, msg_type):
+        if self.msg_has_location(msg_type):
+            self.processLocationUpdate()
 
     def processRegister(self):
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
@@ -789,6 +798,7 @@ class ParseMsgAndDispatch:
 
         return self.response.response
 
+    DEFAULT_FLICK_TIMEOUT = 10
     def processWizcardFlick(self):
         try:
             user = User.objects.get(id=self.sender['wizUserID'])
@@ -803,8 +813,10 @@ class ParseMsgAndDispatch:
         try:
             flick_timeout = self.sender['flickTimeout']
         except:
-            flick_timeout = 1
-        
+            flick_timeout = DEFAULT_FLICK_TIMEOUT
+
+       
+        #AA:TODO: Check implications of LocationMgr object deletion when timeout happens
         lat = user.profile.get_location().lat
         lng = user.profile.get_location().lng
         

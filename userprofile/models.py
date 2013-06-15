@@ -16,6 +16,8 @@ import string
 import random
 import pdb
 
+USER_ACTIVE_TIMEOUT = 10
+
 class UserProfileManager(models.Manager):
     def serialize(self, users):
         return serialize(users, **fields.user_query_template)
@@ -91,7 +93,7 @@ class UserProfile(models.Model):
             key = wizlib.create_geohash(lat, lng)
             l_tuple = location.send(sender=self, lat=lat, lng=lng, key=key, 
                                     tree=LocationMgr.objects.PTREE)
-	    l_tuple[0][1].start_timer(10)
+	    l_tuple[0][1].start_timer(USER_ACTIVE_TIMEOUT)
 
     def lookup(self, n, count_only=False):
         users = None

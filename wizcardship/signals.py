@@ -9,7 +9,6 @@ wizcardship_declined = Signal()
 
 wizcardship_cancelled = Signal()
 
-wizcard_wtree_timeout = Signal(providing_args=['key_list'])
 
 
 def create_wizcardship_instance(sender, instance, created, raw, **kwargs):

@@ -141,7 +141,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'django_extensions',
-    'djcelery',
+    'django_cron',
     'storages',
     'userprofile',
     'wizserver',
@@ -149,8 +149,9 @@ INSTALLED_APPS = (
     'notifications',
     'virtual_table',
     'location_mgr',
-    'periodic'
+    'periodic',
 )
+
 
 #django-storage settings
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'

@@ -126,7 +126,7 @@ class VirtualTable(models.Model):
         #since the tree is visible only to this model. Tried a pre-delete signal,
         #but that cannot carry arguments and so locationMgr cannot see the tree/key
         #to delete. Hence delete the key from here
-        self.get_location().delete_key_from_tree()
+        self.get_location().delete()
         self.delete()
 
     def lifetime(self):
