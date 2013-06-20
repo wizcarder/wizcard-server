@@ -22,8 +22,10 @@ class Tick(Job):
     def job(self):
         print 'TICK RECEIVED'
         e = Periodic.objects.get_expired()
-        ids = map(lambda x:  x.location.pk, e)
-        location_timeout.send(sender=None, ids=ids)
+        if e.count():
+            print 'EXPIRED objects found {e}'.format(e=e)
+            ids = map(lambda x:  x.location.pk, e)
+            location_timeout.send(sender=None, ids=ids)
 
 
 class LocationMgrManager(models.Manager):
@@ -68,7 +70,6 @@ class LocationMgr(models.Model):
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
-
     objects = LocationMgrManager()
 
     def do_update(self, lat, lng):
@@ -150,13 +151,19 @@ def location_timeout_handler(**kwargs):
     ids = kwargs.pop('ids')
     expired = map(lambda x: LocationMgr.objects.get(id=x), ids)
     for e in expired:
-        e.delete()
+        timeout_callback[e.content_type.id](e)
 
+def location_timeout_cb(l):
+    l.delete()
 
-
+def virtual_table_timeout_cb(l):
+    l.content_object.delete()
+    
+timeout_callback = {
+    ContentType.objects.get(app_label="userprofile", model="userprofile").id   : location_timeout_cb,
+    ContentType.objects.get(app_label="wizcardship", model="wizcard").id   : location_timeout_cb,
+    ContentType.objects.get(app_label="virtual_table", model="virtualtable").id  : virtual_table_timeout_cb,
+}
 
 location.connect(location_update_handler, dispatch_uid='location_mgr.models.location_mgr')
 location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
-
-
-
