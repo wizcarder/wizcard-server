@@ -182,7 +182,7 @@ class Notification(models.Model):
             UserProfile.IOS	: self.pushIOS,
             UserProfile.ANDROID	: self.pushAndroid
         }
-        push_to_app_handler[receiver.device_type](receiver, sender, verb)
+        #push_to_app_handler[receiver.device_type](receiver, sender, verb)
 
     def pushIOS(self, receiver, sender, verb):
 	apns_notify('wizcard-ios', 

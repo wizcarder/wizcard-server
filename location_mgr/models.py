@@ -45,12 +45,12 @@ class LocationMgrManager(models.Manager):
   
     def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
 	tree = self.get_tree_from_type(tree_type)
-        print 'current tree [{tree_type}.{tree}]'.format (tree_type=tree_type, tree=tree)
+        #print 'current tree [{tree_type}.{tree}]'.format (tree_type=tree_type, tree=tree)
         result, count = wizlib.lookup_by_key(key, 
                                              tree, 
                                              n,
                                              key_in_tree)
-        print 'looking up  gives result [{result}]'.format (result=result)
+        #print 'looking up  gives result [{result}]'.format (result=result)
         return result, count
 
     def lookup_by_lat_lng(self, tree_type, lat, lng, n):
@@ -98,7 +98,7 @@ class LocationMgr(models.Model):
         elif not tree.has_key(self.key):
             tree[self.key] = object_id
         
-        print 'current tree [{tree_type}.{tree}]'.format (tree_type=self.tree_type, tree=tree)
+        #print 'current tree [{tree_type}.{tree}]'.format (tree_type=self.tree_type, tree=tree)
         return updated
 
     def delete_key_from_tree(self):
@@ -144,7 +144,7 @@ def location_update_handler(**kwargs):
     #update tree
     tree = LocationMgr.objects.get_tree_from_type(newlocation.tree_type)
     tree[key] = sender.pk
-    print 'current tree [{tree}]'.format (tree=tree)
+    #print 'current tree [{tree}]'.format (tree=tree)
     return newlocation
 
 def location_timeout_handler(**kwargs):

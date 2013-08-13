@@ -194,7 +194,7 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def msg_has_location(self, msg_type):
-        return self.sender.has_key('lat')  and self.sender.has_key('lng') and msg_type not in ['signup', 'login', 'register']
+        return self.sender.has_key('lat')  and self.sender.has_key('lng') and msg_type not in ['signup', 'login', 'register', 'current_location']
 
     def update_location(self, msg_type):
         if self.msg_has_location(msg_type):
@@ -585,24 +585,29 @@ class ParseMsgAndDispatch:
             lat = self.sender['lat']
             lng = self.sender['lng']
         except:
-            lat = user.profile.get_location().lat
-            lng = user.profile.get_location().lng
+            try:
+                lat = user.profile.get_location().lat
+                lng = user.profile.get_location().lng
+            except:
+                #maybe location timedout. Shouldn't happen if messages from app
+                #are coming correctly...
+                return notifResponse.response
 
         #AA:TODO: Use come caching framework to cache these
         #comment for now. ios app crashes since the new notifs are i
         #not yet handled
-        #wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
-        #if count:
-        #    notifResponse.notifWizcardLookup(count, wizcards)
+        wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
+        if count:
+            notifResponse.notifWizcardLookup(count, wizcards)
 
         users, count = user.profile.lookup(3)
-        #if count:
-        #    notifResponse.notifUserLookup(count, users)
+        if count:
+            notifResponse.notifUserLookup(count, users)
 
         #tables is a smaller entity...get the tables as well instead of just count
-        #tables, count = VirtualTable.objects.lookup(lat, lng, 3)
-        #if count:
-            #notifResponse.notifTableLookup(count, tables)
+        tables, count = VirtualTable.objects.lookup(lat, lng, 3)
+        if count:
+            notifResponse.notifTableLookup(count, tables)
 
         Notification.objects.mark_all_as_read(user)
         return notifResponse.response
