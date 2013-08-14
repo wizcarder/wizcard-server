@@ -151,7 +151,7 @@ def location_timeout_handler(**kwargs):
     ids = kwargs.pop('ids')
     expired = map(lambda x: LocationMgr.objects.get(id=x), ids)
     for e in expired:
-        timeout_callback[e.content_type.id](e)
+        timeout_callback_execute(e)
 
 def location_timeout_cb(l):
     l.delete()
@@ -159,11 +159,13 @@ def location_timeout_cb(l):
 def virtual_table_timeout_cb(l):
     l.content_object.delete()
     
-timeout_callback = {
-    ContentType.objects.get(app_label="userprofile", model="userprofile").id   : location_timeout_cb,
-    ContentType.objects.get(app_label="wizcardship", model="wizcard").id   : location_timeout_cb,
-    ContentType.objects.get(app_label="virtual_table", model="virtualtable").id  : virtual_table_timeout_cb,
-}
+def timeout_callback_execute(expired):
+    timeout_callback = {
+        ContentType.objects.get(app_label="userprofile", model="userprofile").id   : location_timeout_cb, 
+        ContentType.objects.get(app_label="wizcardship", model="wizcard").id   : location_timeout_cb, 
+        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id  : virtual_table_timeout_cb, 
+        } 
+    timeout_callback[e.content_type.id](e)
 
 location.connect(location_update_handler, dispatch_uid='location_mgr.models.location_mgr')
 location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
