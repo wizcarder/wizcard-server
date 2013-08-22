@@ -800,6 +800,7 @@ class ParseMsgAndDispatch:
             # another query from app may be required for drill-down details
             self.response.add_data("Members", members)
             self.response.add_data("Count", count)
+            self.response.add_data("CreatorID", table.creator.userID) 
 
         return self.response.response
 
