@@ -35,5 +35,5 @@ delete_wizcard_template = {
 }
 
 table_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'numSitting', 'creator']
+    'fields': ['id', 'tablename', 'secureTable', 'numSitting', 'creator_id']
 }
