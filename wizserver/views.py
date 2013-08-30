@@ -819,7 +819,7 @@ class ParseMsgAndDispatch:
         try:
             flick_timeout = self.sender['flickTimeout']
         except:
-            flick_timeout = DEFAULT_FLICK_TIMEOUT
+            flick_timeout = self.DEFAULT_FLICK_TIMEOUT
 
        
         #AA:TODO: Check implications of LocationMgr object deletion when timeout happens

@@ -9,7 +9,7 @@ import pdb
 import messages
 
 server_url = "www.totastyle.com"
-#server_url = "127.0.0.1"
+#server_url = "localhost"
 
 server_port = 8000
 
@@ -18,7 +18,6 @@ conn = httplib.HTTPConnection(server_url, server_port)
 
 def handle_response(connection):
     res = conn.getresponse()
-    pdb.set_trace()
     print res.status, res.reason
     objs = res.read()    
     objs = json.loads( objs )
@@ -72,6 +71,13 @@ conn.request("POST","", e3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 e3_id = objs['data']['wizCardID']
+
+card_flick_msg = messages.card_flick
+card_flick_msg['sender']['wizUserID'] = r3_id
+cf3 = json.dumps(card_flick_msg)
+conn.request("POST","", cf3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
 
 
 

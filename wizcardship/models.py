@@ -246,20 +246,22 @@ class Wizcard(models.Model):
     def get_or_create_location(self, lat, lng):
         created = True
         try:
-            location_qs = self.locations.get(lat=lat, 
-                                             lng=lng) 
+            loc = self.locations.get(lat=lat, 
+                                     lng=lng) 
+            print 'existing flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
             created = False
         except:
             #create
             key = wizlib.create_geohash(lat, lng)
-            location_qs = location.send(sender=self, 
-                                        lat=lat, 
-                                        lng=lng, 
-                                        key=key, 
-                                        tree=LocationMgr.objects.WTREE)
+            retval =location.send(sender=self, 
+                        lat=lat, 
+                        lng=lng, 
+                        key=key, 
+                        tree=LocationMgr.objects.WTREE)
             print 'new flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
+            loc= retval[0][1]
 
-        return location_qs, created
+        return loc, created
 
 
 class ContactContainer(models.Model):
