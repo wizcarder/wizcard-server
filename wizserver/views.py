@@ -96,6 +96,7 @@ class ParseMsgAndDispatch:
             'delete_rolodex_card'           : self.processDeleteWizcardRolodex,
             'current_location'              : self.processLocationUpdate,
             'add_notification_card'         : self.processAcceptCard,
+            'add_flicked_card'         	    : self.processAcceptFlickedCard,
             'card_flick'                    : self.processWizcardFlick,
             'get_cards'                     : self.processGetNotifications,
             'send_card_to_contacts'         : self.processSendCardToContacts,
@@ -546,6 +547,23 @@ class ParseMsgAndDispatch:
         profile = user.profile
         #update location in ptree
         profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
+        return self.response.response
+
+    def processAcceptFlickedCard(self):
+        #To Do. if app returns the connection id cookie sent by server
+        #we'd just need to lookup connection from there
+        try:
+            sender = User.objects.get(id=self.sender['wizUserID'])
+            receiver = User.objects.get(id=self.receiver['wizUserID'])
+            wizcard1 = sender.wizcard
+            wizcard2 = receiver.wizcard
+        except ObjectDoesNotExist:
+            self.response.error_response(errno=1, errorStr="Object does not exist")
+            return self.response.response
+
+	#create a wizconnection and then accept it
+	Wizcard.objects.exchange(wizcard1, wizcard2, True)
+
         return self.response.response
 
     def processAcceptCard(self):
