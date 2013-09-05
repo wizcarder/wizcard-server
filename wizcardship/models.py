@@ -74,10 +74,6 @@ class WizcardManager(models.Manager):
         get_object_or_404(WizConnectionRequest, from_wizcard=from_wizcard,
                           to_wizcard=to_wizcard).accept()
 
-    def serialize(self, wizcards):
-        return serialize(wizcards, **fields.wizcard_template)
-
-
     def exchange_implicit(self, wizcard1, wizcard2):
         source_user = wizcard1.user
         target_user = wizcard2.user
@@ -204,9 +200,11 @@ class Wizcard(models.Model):
     def __unicode__(self):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
 
+    def serialize(self):
+        return serialize(self, **fields.wizcard_template)
+
     def serialize_wizconnections(self):
         return serialize(self.wizconnections.all(), **fields.wizcard_template)
-
 
     def create_company_list(self, l):
         map(lambda x: CompanyList(wizcard=self, company=x).save(), l)

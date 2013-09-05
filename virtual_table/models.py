@@ -43,8 +43,12 @@ class VirtualTableManager(models.Manager):
             tables = map(lambda m: self.get(id=m), result)
         return tables, count
 
-    def serialize(self, tables):
-        return serialize(tables, **fields.table_template)
+    def serialize(self, tables, creator):
+	ret = {}
+	ret['çreated'] = serialize(tables.filter(creator=creator), **fields.table_template)
+	ret['joined'] = serialize(tables.filter(creator!=creator), **fields.table_template)
+
+	return ret
 
 
 class VirtualTable(models.Model):
@@ -100,7 +104,10 @@ class VirtualTable(models.Model):
         #check password
         if self.password == password:
             m, created = Membership.objects.get_or_create(user=user, table=self)
-            self.inc_numsitting()
+	    if not created:
+		#somehow already a member
+		return self
+	    self.inc_numsitting()
             if do_exchange is True:
                 self.table_exchange(user)
         else:
@@ -110,10 +117,9 @@ class VirtualTable(models.Model):
     def leave_table(self, user):
         try:
             user.membership_set.get(table=self).delete()
+            self.dec_numsitting()
         except:
             pass
-        else:
-            self.dec_numsitting()
 
         #we can destroy this table if no one is active
         if self.numSitting == 0:
@@ -141,7 +147,6 @@ class VirtualTable(models.Model):
     def dec_numsitting(self):
         self.numSitting -= 1
         self.save()
-
 
 class Membership(models.Model):
     date_created = models.DateTimeField()

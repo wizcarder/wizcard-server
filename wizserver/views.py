@@ -185,12 +185,14 @@ class ParseMsgAndDispatch:
         login(self.request, user) 
 
         if do_sync:
-            #sync own card and rolodex
-            wizcard_s, rolodex_s = profile.serialize_objects()
-            if wizcard_s:
-                self.response.add_data("wizcards", wizcard_s)
-            if rolodex_s:
-                self.response.add_data("rolodex", rolodex_s)
+            #sync  all syncables
+            s = profile.serialize_objects()
+	    if s.has_key('wizcard'):
+                self.response.add_data("wizcards", s['wizcard'])
+		if s.has_key('wizconnections'):
+                    self.response.add_data("rolodex", s['wizconnections'])
+		if s.has_key('tables'):
+                    self.response.add_data("tables", s['tables'])
 
         return self.response.response
 
@@ -277,8 +279,14 @@ class ParseMsgAndDispatch:
         profile.save()
 
         if do_sync:
-            #sync own card and rolodex
-            wizcard_s, rolodex_s = profile.serialize_objects()
+            #sync all syncables
+            s = profile.serialize_objects()
+	    if s.has_key('wizcard'):
+                self.response.add_data("wizcards", s['wizcard'])
+		if s.has_key('wizconnections'):
+                    self.response.add_data("rolodex", s['wizconnections'])
+		if s.has_key('tables'):
+                    self.response.add_data("tables", s['tables'])
 
         #update location in ptree
         profile.create_or_update_location(self.sender['lat'], self.sender['lng'])

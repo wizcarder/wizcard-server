@@ -112,21 +112,29 @@ class UserProfile(models.Model):
 
     def serialize_objects(self):
         #add callouts to all serializable objects here
-        w = None
-        wc = None
-        try:
-            qs = self.user.wizcard
-        except:
-            return w, wc
+	ret = {}
+	wizcard = self.wizcard
 
         #wizcards
-        w = Wizcard.objects.serialize(qs)
+	if wizcard:
+            w = self.wizcard.serialize()
+	else:
+            return ret
 
         #wizconnections
-        if qs.wizconnections.count():
-            wc = qs.serialize_wizconnections()
+        if wizcard.wizconnections.count():
+            wc = wizcard.serialize_wizconnections()
 
-        return w, wc
+        tables = self.tables
+	if tables.count():
+	    # serialize created and joined tables
+            tbls = VirtualTable.objects.serialize(tables, self.user)
+
+	ret['wizcards'] = w
+	ret['wizconnections'] = wc
+	ret['tables'] = tbls
+
+        return ret
 
 
 def create_user_profile(sender, instance, created, **kwargs):
