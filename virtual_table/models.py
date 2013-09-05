@@ -43,12 +43,15 @@ class VirtualTableManager(models.Manager):
             tables = map(lambda m: self.get(id=m), result)
         return tables, count
 
-    def serialize(self, tables, creator):
-	ret = {}
-	ret['çreated'] = serialize(tables.filter(creator=creator), **fields.table_template)
-	ret['joined'] = serialize(tables.filter(creator!=creator), **fields.table_template)
+    def serialize(self, tables):
+        return serialize(tables, **fields.table_template)
 
-	return ret
+    def serialize_sync(self, tables, creator):
+        ret = {}
+        ret['created'] = serialize(tables.filter(creator=creator), **fields.table_template)
+        ret['joined'] = serialize(tables.filter(~Q(creator=creator)), **fields.table_template)
+
+        return ret
 
 
 class VirtualTable(models.Model):

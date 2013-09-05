@@ -7,6 +7,7 @@ from wizserver import fields
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
 from wizcardship.models import Wizcard
+from virtual_table.models import VirtualTable
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 from django.conf import settings
@@ -111,30 +112,29 @@ class UserProfile(models.Model):
         return serialize(users, **fields.user_query_template)
 
     def serialize_objects(self):
+        s = {}
         #add callouts to all serializable objects here
-	ret = {}
-	wizcard = self.wizcard
+	wizcard = self.user.wizcard
 
         #wizcards
 	if wizcard:
-            w = self.wizcard.serialize()
+            w = wizcard.serialize()
+            s['wizcard'] = w
 	else:
-            return ret
+            return s
 
         #wizconnections
         if wizcard.wizconnections.count():
             wc = wizcard.serialize_wizconnections()
+	    s['wizconnections'] = wc
 
-        tables = self.tables
+        tables = self.user.tables
 	if tables.count():
 	    # serialize created and joined tables
-            tbls = VirtualTable.objects.serialize(tables, self.user)
+            tbls = VirtualTable.objects.serialize_sync(tables, self.user)
+	    s['tables'] = tbls
 
-	ret['wizcards'] = w
-	ret['wizconnections'] = wc
-	ret['tables'] = tbls
-
-        return ret
+        return s
 
 
 def create_user_profile(sender, instance, created, **kwargs):
