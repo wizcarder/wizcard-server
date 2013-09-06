@@ -561,11 +561,17 @@ class ParseMsgAndDispatch:
         #To Do. if app returns the connection id cookie sent by server
         #we'd just need to lookup connection from there
         try:
-            wizcard1 = Wizcard.objects.get(id=sender['wizCardID'])
-            wizcard2 = Wizcard.objects.get(id=receiver['wizCardID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
-            return self.response.response
+            sender = User.objects.get(id=self.sender['wizUserID'])
+            receiver = User.objects.get(id=self.receiver['wizUserID'])
+            wizcard1 = sender.wizcard
+            wizcard2 = receiver.wizcard
+        except:
+            try:
+                wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
+                wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            except:
+                self.response.error_response(errno=1, errorStr="Object does not exist")
+                return self.response.response
 
 	#create a wizconnection and then accept it
 	Wizcard.objects.exchange(wizcard1, wizcard2, True)
