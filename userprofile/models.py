@@ -118,7 +118,7 @@ class UserProfile(models.Model):
 
         #wizcards
 	if wizcard:
-            w = wizcard.serialize()
+            w = Wizcard.objects.serialize(wizcard)
             s['wizcard'] = w
 	else:
             return s

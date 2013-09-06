@@ -79,6 +79,16 @@ conn.request("POST","", cf3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 
+get_cards_u3_msg = messages.get_cards_u3
+get_cards_u3_msg['sender']['userID'] = "USER3"
+get_cards_u3_msg['sender']['wizUserID'] = r3_id
+gcu3 = json.dumps(get_cards_u3_msg)
+conn.request("POST","", gcu3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
+
+
+
 
 
 
