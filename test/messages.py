@@ -169,6 +169,8 @@ get_cards_u3 = {
         "msgType" : "get_cards",
     },
     "sender" : {
+        "lat" : 37.785838,
+        "lng" : -122.406419,
         "userID" : "",
         "wizUserID" : ""
     },

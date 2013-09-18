@@ -616,8 +616,8 @@ class ParseMsgAndDispatch:
             lng = self.sender['lng']
         except:
             try:
-                lat = user.profile.get_location().lat
-                lng = user.profile.get_location().lng
+                lat = user.profile.get().lat
+                lng = user.profile.get().lng
             except:
                 #maybe location timedout. Shouldn't happen if messages from app
                 #are coming correctly...
@@ -852,13 +852,13 @@ class ParseMsgAndDispatch:
             flick_timeout = self.DEFAULT_FLICK_TIMEOUT
 
         #AA:TODO: Check implications of LocationMgr object deletion when timeout happens
-        lat = user.profile.get_location().lat
-        lng = user.profile.get_location().lng
+        lat = user.profile.location.get().lat
+        lng = user.profile.location.get().lng
         
 	flick_card = WizcardFlick.objects.check_location(lat, lng)
 
 	if flick_card:
-	    flick_card.location.reset_timer()
+	    flick_card.location.get().reset_timer()
         else:
 	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=lat, lng=lng)
             location = flick_card.create_location(lat, lng)
@@ -891,7 +891,7 @@ class ParseMsgAndDispatch:
         #update location in ptree
         #AA:TODO move create to overridden create in VirtualTable
         table.create_location(lat, lng)
-        l = table.get_location()
+        l = table.location.get()
 	l.start_timer(lifetime)
         table.join_table_and_exchange(user, password, False)
         table.save()

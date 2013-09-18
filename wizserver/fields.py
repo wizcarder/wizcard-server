@@ -2,12 +2,6 @@ user_template = {
     'fields': ['id', 'wizcard']
 }
 
-flicked_wizcard_template = {
-    'fields': ['flick_id', wizcard'],
-    'key_map' : {'flick_id':'id'}
-    'related':wizcard_template
-}
-
 contact_container_template = {
     'fields': ['company', 'title']
 }
@@ -19,6 +13,11 @@ wizcard_related_objects_template = {
 wizcard_template = {
     'fields': ['user_id', 'first_name', 'last_name', 'phone1', 'phone2', 'email', 'address_street1', 'address_city', 'address_state', 'address_country', 'address_zip', 'contact_container'],
     'related':wizcard_related_objects_template
+}
+
+flicked_wizcard_template = {
+    'fields': ['id', 'wizcard'],
+    'related':wizcard_template
 }
 
 wizconnection_template = {

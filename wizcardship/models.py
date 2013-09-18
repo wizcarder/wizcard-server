@@ -223,9 +223,6 @@ class Wizcard(models.Model):
         for wizcard in self.wizconnections.all():
             Wizcard.objects.update_wizconnection(self, wizcard)
 
-    def get_location(self):
-        return self.location.all()
-
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
     company = models.CharField(max_length=40, blank=True)
@@ -233,8 +230,6 @@ class ContactContainer(models.Model):
     image = models.ImageField(upload_to="image/")
     def __unicode__(self):
         return _(u'%(user)s\'s contact container') % {'user': unicode(self.wizcard.user)}
-
-
 
     class Meta:
         ordering = ['id']
@@ -294,6 +289,9 @@ class WizcardFlickManager(models.Manager):
 	except:
 	    return None
 
+    def serialize(self, flicked_wizcards):
+        return serialize(flicked_wizcards, **fields.flicked_wizcard_template)
+
 class WizcardFlick(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')
     lat = models.FloatField(null=True, default=None)
@@ -313,14 +311,11 @@ class WizcardFlick(models.Model):
         print 'new flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
         loc= retval[0][1]
 
-        return loc, created
+        return loc
 
     def delete(self, *args, **kwargs):
 	notify.send(self.wizcard.user, recipient=self.wizcard.user, verb ='flick timeout', target=self, action_object=self.wizcard)
         super(WizcardFlick, self).delete(*args, **kwargs)
-
-    def serialize(self, flicked_wizcards):
-        return serialize(flicked_wizcards, **fields.flicked_wizcard_template)
 
 class UserBlocks(models.Model):
     user = models.ForeignKey(User, related_name='user_blocks')

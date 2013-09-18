@@ -1,5 +1,5 @@
 # define all outbound responses here
-from wizcardship.models import WizConnectionRequest, Wizcard
+from wizcardship.models import WizConnectionRequest, Wizcard, WizcardFlick
 from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
 from notifications.models import Notification

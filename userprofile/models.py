@@ -75,21 +75,13 @@ class UserProfile(models.Model):
         self.future_user = True
         self.save()
 
-    def get_location(self):
-        location_qs = self.location.all()
-        if location_qs:
-	    #AA_TODO: ideally should only be 1 object present..check why/when it'll be more
-            return location_qs[0]
-        else:
-            return None
-
     def create_or_update_location(self, lat, lng):
-        l = self.get_location()
-        if l:
+        try:
+            l = self.location.get()
             updated = l.do_update(lat, lng)
             l.reset_timer()
 	    return l
-        else:
+        except ObjectDoesNotExist:
             #create
             key = wizlib.create_geohash(lat, lng)
             l_tuple = location.send(sender=self, lat=lat, lng=lng, key=key, 
@@ -98,7 +90,11 @@ class UserProfile(models.Model):
 
     def lookup(self, n, count_only=False):
         users = None
-        l = self.get_location()
+        try:
+            l = self.location.get()
+        except ObjectDoesNotExist:
+            return None, None
+
         result, count = LocationMgr.objects.lookup_by_key(
                             l.tree_type,
                             l.key, 
@@ -114,13 +110,11 @@ class UserProfile(models.Model):
     def serialize_objects(self):
         s = {}
         #add callouts to all serializable objects here
-	wizcard = self.user.wizcard
-
-        #wizcards
-	if wizcard:
+        try:
+	    wizcard = self.user.wizcard
             w = Wizcard.objects.serialize(wizcard)
             s['wizcard'] = w
-	else:
+        except ObjectDoesNotExist:
             return s
 
         #wizconnections

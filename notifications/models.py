@@ -7,7 +7,6 @@ from django.utils.timezone import utc
 from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
-from userprofile.models import UserProfile
 from pyapns import notify as apns_notify
 from pyapns import configure, provision
 import pdb
@@ -179,6 +178,7 @@ class Notification(models.Model):
             self.save()
 
     def pushNotificationToApp(self, receiver, sender, verb):
+        from userprofile.models import UserProfile
         push_to_app_handler = {
             UserProfile.IOS	: self.pushIOS,
             UserProfile.ANDROID	: self.pushAndroid

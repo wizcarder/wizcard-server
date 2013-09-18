@@ -70,13 +70,6 @@ class VirtualTable(models.Model):
     def __unicode__(self):
         return self.tablename
 
-    def get_location(self):
-        location_qs = self.location.all()
-        if location_qs:
-            return location_qs[0]
-        else:
-            return None
-
     def create_location(self, lat, lng):
         key = wizlib.create_geohash(lat, lng)
         location.send(
