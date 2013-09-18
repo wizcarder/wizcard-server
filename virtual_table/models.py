@@ -29,6 +29,7 @@ from django.contrib.contenttypes import generic
 from lib.preserialize.serialize import serialize
 from wizserver import fields
 from virtual_table.signals import virtualtable_vtree_timeout
+from notifications.models import notify, Notification
 
 class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
@@ -130,8 +131,13 @@ class VirtualTable(models.Model):
         return self
 
     def delete(self, *args, **kwargs):
+	#notify members of deletion (including self)
+	members = table.users.all()
+	for member in members:
+	    notify.send(self.creator, recipient=member, verb ='destroy_table', target=self)
         self.users.clear()
-        self.get_location().delete()
+	#AA:TODO: This should happen automatically...check
+        #self.location.delete()
         super(VirtualTable, self).delete(*args, **kwargs)
 
     def lifetime(self):

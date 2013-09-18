@@ -27,7 +27,7 @@ from django.core.files.storage import default_storage
 from django.core import serializers
 from lib.preserialize.serialize import serialize
 from django.core.files.storage import default_storage
-from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer
+from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
 from virtual_table.models import VirtualTable
 from response import Response, NotifResponse
@@ -626,9 +626,9 @@ class ParseMsgAndDispatch:
         #AA:TODO: Use come caching framework to cache these
         #comment for now. ios app crashes since the new notifs are i
         #not yet handled
-        wizcards, count = Wizcard.objects.lookup(lat, lng, 3)
+        flicked_wizcards, count = WizcardFlick.objects.lookup(lat, lng, 3)
         if count:
-            notifResponse.notifWizcardLookup(count, wizcards)
+            notifResponse.notifFlickedWizcardLookup(count, flicked_wizcards)
 
         users, count = user.profile.lookup(3)
         if count:
@@ -851,18 +851,21 @@ class ParseMsgAndDispatch:
         except:
             flick_timeout = self.DEFAULT_FLICK_TIMEOUT
 
-       
         #AA:TODO: Check implications of LocationMgr object deletion when timeout happens
         lat = user.profile.get_location().lat
         lng = user.profile.get_location().lng
         
-        w_location, created = wizcard.get_or_create_location(lat, lng)
-        if w_location and created:
-            w_location.start_timer(flick_timeout)
-            #kick a timer
+	flick_card = WizcardFlick.objects.check_location(lat, lng)
+
+	if flick_card:
+	    flick_card.location.reset_timer()
         else:
-            w_location.reset_timer()
-            #Maybe update timestamp or something to keep the card alive longer
+	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=lat, lng=lng)
+            location = flick_card.create_location(lat, lng)
+            location.start_timer(flick_timeout)
+
+        self.response.add_data("flickCardID", flick_card.pk)
+        return self.response.response
 
     def processCreateTable(self):
         try:
@@ -942,12 +945,7 @@ class ParseMsgAndDispatch:
             self.response.error_response(errno=1, errorStr="Object does not exist")
             return self.response.response
 
-        #we need to notify all members of deletion
-        members = table.users.all()
-
         if table.creator == user:
-            for member in members:
-                notify.send(user, recipient=member, verb='destroy table', target=table)
             table.delete()
         else:
             self.response.error_response(errno=1, errorStr="User is not the creator")

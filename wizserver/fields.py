@@ -2,6 +2,12 @@ user_template = {
     'fields': ['id', 'wizcard']
 }
 
+flicked_wizcard_template = {
+    'fields': ['flick_id', wizcard'],
+    'key_map' : {'flick_id':'id'}
+    'related':wizcard_template
+}
+
 contact_container_template = {
     'fields': ['company', 'title']
 }

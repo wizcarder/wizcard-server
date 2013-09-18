@@ -82,6 +82,7 @@ class NotifResponse(ResponseN):
     FLICKED_WIZCARD     = 6
     NEARBY_USERS        = 7
     NEARBY_TABLES       = 8
+    FLICK_TIMEOUT       = 9
 
     def __init__(self, notifications):
         notifHandler = {
@@ -92,6 +93,7 @@ class NotifResponse(ResponseN):
             Notification.WIZ_DELETE	     : self.notifRevokedWizcard,
             Notification.WIZ_TABLE_DESTROY   : self.notifDestroyedTable,
             Notification.WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
+            Notification.WIZ_CARD_FLICK_TIMEOUT     : self.notifWizcardFlickTimeout
         }
         self.clear()
 	for notification in notifications:
@@ -135,10 +137,15 @@ class NotifResponse(ResponseN):
     def notifWizcardUpdate(self, notif):
         return self.notifWizcard(notif, self.UPDATE_WIZCARD)
 
-    def notifWizcardLookup(self, count, wizcards):
+    def notifWizcardFlickTimeout(self, notif):
+	out = dict(wizCardID=notif.action_object_id, wizCardFlickID=notif.target_object_id)
+        self.add_data_with_notif(out, self.FLICK_TIMEOUT)
+        return self.response
+
+    def notifFlickedWizcardLookup(self, count, flicked_wizcards):
         out = None
-        if wizcards:
-            out = Wizcard.objects.serialize(wizcards)
+        if flicked_wizcards:
+            out = WizcardFlick.objects.serialize(flicked_wizcards)
             self.add_data_with_notif(out, self.FLICKED_WIZCARD, count)
         return self.response
 

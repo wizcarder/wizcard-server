@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from location_mgr.signals import location, location_timeout
+from notifications.models import notify, Notification
 from django.db.models.signals import pre_delete
 from periodic.models import Periodic
 from lib import wizlib
@@ -57,9 +58,6 @@ class LocationMgrManager(models.Manager):
         key = wizlib.create_geohash(lat, lng)
         return self.lookup_by_key(tree_type, key, n, False)
 
-    def default_callback_fn(self, id):
-        self.get(id=id).delete_key_from_tree()
-        
 class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
@@ -156,14 +154,18 @@ def location_timeout_handler(**kwargs):
 def location_timeout_cb(l):
     l.delete()
 
+#AA:TODO: if this works, then it can be a generic function
+def wizcard_flick_timeout_cb(l):
+    l.content_object.delete()
+
 def virtual_table_timeout_cb(l):
     l.content_object.delete()
     
 def timeout_callback_execute(expired):
     timeout_callback = {
-        ContentType.objects.get(app_label="userprofile", model="userprofile").id   : location_timeout_cb, 
-        ContentType.objects.get(app_label="wizcardship", model="wizcard").id   : location_timeout_cb, 
-        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id  : virtual_table_timeout_cb, 
+        ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb, 
+        ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : wizcard_flick_timeout_cb, 
+        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb, 
         } 
     timeout_callback[e.content_type.id](e)
 

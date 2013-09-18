@@ -161,20 +161,6 @@ class WizcardManager(models.Manager):
     def migrate_future_user(self, future, current):
         WizConnectionRequest.objects.filter(to_wizcard=future.wizcard).update(to_wizcard=current.wizcard.pk)
 
-    def lookup(self, lat, lng, n, count_only=False):
-        wizcards = None
-        result, count =  LocationMgr.objects.lookup_by_lat_lng(
-                                LocationMgr.objects.WTREE,
-                                lat, 
-                                lng, 
-                                n)
-        #convert result to query set result
-        #AA:TODO: filter out self and connected
-        if count and not count_only:
-            wizcards = map(lambda m: self.get(id=m), result)
-        return wizcards, count
-
-
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
@@ -192,7 +178,6 @@ class Wizcard(models.Model):
     #AA:TODO: This(image/video management) is quite primitive
     thumbnailImage = models.ImageField(upload_to="image/")
     video = models.FileField(upload_to="video/")
-    locations = generic.GenericRelation(LocationMgr)
 
     objects = WizcardManager()
 
@@ -241,27 +226,6 @@ class Wizcard(models.Model):
     def get_location(self):
         return self.location.all()
 
-    def get_or_create_location(self, lat, lng):
-        created = True
-        try:
-            loc = self.locations.get(lat=lat, 
-                                     lng=lng) 
-            print 'existing flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
-            created = False
-        except:
-            #create
-            key = wizlib.create_geohash(lat, lng)
-            retval =location.send(sender=self, 
-                        lat=lat, 
-                        lng=lng, 
-                        key=key, 
-                        tree=LocationMgr.objects.WTREE)
-            print 'new flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
-            loc= retval[0][1]
-
-        return loc, created
-
-
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
     company = models.CharField(max_length=40, blank=True)
@@ -308,6 +272,55 @@ class WizConnectionRequest(models.Model):
         signals.wizcardship_cancelled.send(sender=self)
         self.delete()
 
+class WizcardFlickManager(models.Manager):
+    def lookup(self, lat, lng, n, count_only=False):
+        flicked_cards = None
+        result, count =  LocationMgr.objects.lookup_by_lat_lng(
+                                LocationMgr.objects.WTREE,
+                                lat, 
+                                lng, 
+                                n)
+        #convert result to query set result
+        #AA:TODO: filter out self and connected
+        if count and not count_only:
+            flicked_cards = map(lambda m: self.get(id=m), result)
+        return flicked_cards, count
+
+    def check_location(self, lat, lng):
+	#check if nearby cards can be combined...do we need to adjust centroid and all that ?
+	#AA:TODO: For now just check on exact location
+	try:
+	    return self.get(lat=lat, lng=lng)
+	except:
+	    return None
+
+class WizcardFlick(models.Model):
+    wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')
+    lat = models.FloatField(null=True, default=None)
+    lng = models.FloatField(null=True, default=None)
+    location = generic.GenericRelation(LocationMgr)
+
+    objects = WizcardFlickManager()
+
+    def create_location(self, lat, lng):
+        #create
+        key = wizlib.create_geohash(lat, lng)
+        retval = location.send(sender=self, 
+                    lat=lat, 
+                    lng=lng, 
+                    key=key, 
+                    tree=LocationMgr.objects.WTREE)
+        print 'new flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
+        loc= retval[0][1]
+
+        return loc, created
+
+    def delete(self, *args, **kwargs):
+	notify.send(self.wizcard.user, recipient=self.wizcard.user, verb ='flick timeout', target=self, action_object=self.wizcard)
+        super(WizcardFlick, self).delete(*args, **kwargs)
+
+    def serialize(self, flicked_wizcards):
+        return serialize(flicked_wizcards, **fields.flicked_wizcard_template)
 
 class UserBlocks(models.Model):
     user = models.ForeignKey(User, related_name='user_blocks')
