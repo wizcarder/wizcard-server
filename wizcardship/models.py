@@ -290,7 +290,8 @@ class WizcardFlickManager(models.Manager):
 	    return None
 
     def serialize(self, flicked_wizcards):
-        return serialize(flicked_wizcards, **fields.flicked_wizcard_template)
+        wizcards = map(lambda w: w.wizcard, flicked_wizcards)
+        return serialize(wizcards, **fields.wizcard_template)
 
 class WizcardFlick(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')

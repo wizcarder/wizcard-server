@@ -16,7 +16,8 @@ wizcard_template = {
 }
 
 flicked_wizcard_template = {
-    'fields': ['id', 'wizcard'],
+    'fields': ['id', 'flicked_cards'],
+    #'fields': ['id']
     'related':wizcard_template
 }
 
