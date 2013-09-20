@@ -8,6 +8,9 @@ class PeriodicManager(models.Manager):
     def get_expired(self):
         return self.filter(expires_at__lt = datetime.datetime.now())
 
+    def clear_expired(self, e):
+        map(lambda x: x.delete(), e)
+
 
 class Periodic(models.Model):
     #timeout_value is in seconds

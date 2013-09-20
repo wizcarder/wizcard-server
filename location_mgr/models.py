@@ -151,19 +151,20 @@ def location_timeout_handler(**kwargs):
     for e in expired:
         timeout_callback_execute(e)
 
-def location_timeout_cb(l):
+def user_location_timeout_cb(l):
     l.delete()
 
-#AA:TODO: if this works, then it can be a generic function
 def wizcard_flick_timeout_cb(l):
     l.content_object.delete()
+    l.delete()
 
 def virtual_table_timeout_cb(l):
     l.content_object.delete()
+    l.delete()
     
-def timeout_callback_execute(expired):
+def timeout_callback_execute(e):
     timeout_callback = {
-        ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb, 
+        ContentType.objects.get(app_label="userprofile", model="userprofile").id    : user_location_timeout_cb, 
         ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : wizcard_flick_timeout_cb, 
         ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb, 
         } 

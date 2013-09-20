@@ -138,7 +138,7 @@ class NotifResponse(ResponseN):
         return self.notifWizcard(notif, self.UPDATE_WIZCARD)
 
     def notifWizcardFlickTimeout(self, notif):
-	out = dict(wizCardID=notif.action_object_id, wizCardFlickID=notif.target_object_id)
+	out = dict(wizCardID=notif.action_object_object_id, wizCardFlickID=notif.target_object_id)
         self.add_data_with_notif(out, self.FLICK_TIMEOUT)
         return self.response
 

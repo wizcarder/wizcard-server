@@ -834,7 +834,7 @@ class ParseMsgAndDispatch:
 
         return self.response.response
 
-    DEFAULT_FLICK_TIMEOUT = 10
+    DEFAULT_FLICK_TIMEOUT = 1
     def processWizcardFlick(self):
         try:
             user = User.objects.get(id=self.sender['wizUserID'])

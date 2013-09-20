@@ -11,7 +11,8 @@ wizcard_related_objects_template = {
 }
 
 wizcard_template = {
-    'fields': ['user_id', 'first_name', 'last_name', 'phone1', 'phone2', 'email', 'address_street1', 'address_city', 'address_state', 'address_country', 'address_zip', 'contact_container'],
+    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone1', 'phone2', 'email', 'address_street1', 'address_city', 'address_state', 'address_country', 'address_zip', 'contact_container'],
+    'key_map' : {'wizcard_id':'id'},
     'related':wizcard_related_objects_template
 }
 

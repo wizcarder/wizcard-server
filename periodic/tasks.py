@@ -8,8 +8,10 @@ from location_mgr.signals import location_timeout
 def process_timer(count=0):
     print 'Timer Tick received'
     e = Periodic.objects.get_expired()
-    ids = map(lambda x:  x.location.pk, e)
-    location_timeout.send(sender=None, ids=ids)
+    if e.count():
+        print 'Expired objects found'
+        ids = map(lambda x:  x.location.pk, e)
+        location_timeout.send(sender=None, ids=ids)
       
       
       
