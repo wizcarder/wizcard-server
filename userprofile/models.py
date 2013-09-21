@@ -75,6 +75,9 @@ class UserProfile(models.Model):
         self.future_user = True
         self.save()
 
+    def is_ios(self):
+        return bool(self.device_type == self.IOS)
+
     def create_or_update_location(self, lat, lng):
         try:
             l = self.location.get()

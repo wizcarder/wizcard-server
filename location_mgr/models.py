@@ -103,13 +103,13 @@ class LocationMgr(models.Model):
         wizlib.delete_key(
                 self.key,
                 LocationMgr.objects.get_tree_from_type(self.tree_type))
-        print 'current Vtree [{tree}]'.format (tree=vtree)
+        print 'current tree [{type}.{tree}]'.format (type=self.tree_type, tree=LocationMgr.objects.get_tree_from_type(self.tree_type))
 
     def delete(self, *args, **kwargs):
         print 'DELETING TREE'
         print 'tree before delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         self.delete_key_from_tree()
-        print 'tree after delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
+        print 'tree after delete {type}.{tree}'.format(type=self.tree_type, tree=LocationMgr.objects.get_tree_from_type(self.tree_type))
         super(LocationMgr, self).delete(*args, **kwargs)
 
     #Database based timer implementation

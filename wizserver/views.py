@@ -609,6 +609,9 @@ class ParseMsgAndDispatch:
         #AA: TODO: Check if this is sorted by time
         notifications = Notification.objects.unread(user)
         notifResponse = NotifResponse(notifications)
+        #ios app crashes since the new notifs are not yet handled
+        if user.profile.is_ios():
+            return notifResponse.response
 
         #any wizcards dropped nearby
         try:
@@ -616,19 +619,17 @@ class ParseMsgAndDispatch:
             lng = self.sender['lng']
         except:
             try:
-                lat = user.profile.get().lat
-                lng = user.profile.get().lng
+                lat = user.profile.location.get().lat
+                lng = user.profile.location.get().lng
             except:
                 #maybe location timedout. Shouldn't happen if messages from app
                 #are coming correctly...
                 return notifResponse.response
 
         #AA:TODO: Use come caching framework to cache these
-        #comment for now. ios app crashes since the new notifs are i
-        #not yet handled
         flicked_wizcards, count = WizcardFlick.objects.lookup(lat, lng, 3)
         if count:
-            notifResponse.notifFlickedWizcardLookup(count, flicked_wizcards)
+            notifResponse.notifFlickedWizcards(count, flicked_wizcards)
 
         users, count = user.profile.lookup(3)
         if count:
@@ -878,7 +879,8 @@ class ParseMsgAndDispatch:
         lat = self.sender['lat']
         lng = self.sender['lng']
         secure = self.sender['secureTable']
-        lifetime = self.sender['lifetime']
+        #lifetime = self.sender['lifetime']
+        lifetime = 1
         if not lifetime:
             lifetime = 30
         if secure:

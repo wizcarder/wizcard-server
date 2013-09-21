@@ -125,9 +125,9 @@ class VirtualTable(models.Model):
 
     def delete(self, *args, **kwargs):
 	#notify members of deletion (including self)
-	members = table.users.all()
+	members = self.users.all()
 	for member in members:
-	    notify.send(self.creator, recipient=member, verb ='destroy_table', target=self)
+	    notify.send(self.creator, recipient=member, verb ='destroy table', target=self)
         self.users.clear()
 	#AA:TODO: This should happen automatically...check
         #self.location.delete()
