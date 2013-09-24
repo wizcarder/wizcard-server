@@ -35,7 +35,7 @@ class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         tables = None
         result, count = LocationMgr.objects.lookup_by_lat_lng(
-                            LocationMgr.objects.VTREE,
+                            "VTREE",
                             lat,
                             lng,
                             n)
@@ -77,7 +77,7 @@ class VirtualTable(models.Model):
                 lat=lat, 
                 lng=lng, 
                 key=key, 
-                tree=LocationMgr.objects.VTREE)
+                tree="VTREE")
 
     def isSecure(self):
         return self.secureTable

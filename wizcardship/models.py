@@ -271,7 +271,7 @@ class WizcardFlickManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
         result, count =  LocationMgr.objects.lookup_by_lat_lng(
-                                LocationMgr.objects.WTREE,
+                                "WTREE",
                                 lat, 
                                 lng, 
                                 n)
@@ -308,7 +308,7 @@ class WizcardFlick(models.Model):
                     lat=lat, 
                     lng=lng, 
                     key=key, 
-                    tree=LocationMgr.objects.WTREE)
+                    tree="WTREE")
         print 'new flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
         loc= retval[0][1]
 

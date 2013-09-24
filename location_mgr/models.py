@@ -13,10 +13,6 @@ from django_cron import Job
 import random
 import pdb
 
-ptree = trie()
-wtree = trie()
-vtree = trie()
-
 class Tick(Job):
     run_every = 10
 
@@ -31,18 +27,8 @@ class Tick(Job):
 
 class LocationMgrManager(models.Manager):
 
-    PTREE = 1 
-    WTREE = 2
-    VTREE = 3
-
-    location_tree_handles = {
-        PTREE : ptree,
-        WTREE : wtree,
-        VTREE : vtree
-    }
-
     def get_tree_from_type(self, tree_type):
-	return self.location_tree_handles[tree_type]
+	return LocationMgr.location_tree_handles[tree_type]
   
     def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
 	tree = self.get_tree_from_type(tree_type)
@@ -62,13 +48,30 @@ class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     key = models.CharField(null=True, max_length=100)
-    tree_type = models.IntegerField(default=LocationMgrManager.PTREE)
+    tree_type = models.CharField(default="PTREE", max_length=10)
 
     #GenericForeignKey to objects requiring locationMgr services
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     objects = LocationMgrManager()
+
+    __shared_state = {}
+
+    ptree = trie()
+    vtree = trie()
+    wtree = trie()
+
+    location_tree_handles = {
+        "PTREE" : ptree,
+        "WTREE" : wtree,
+        "VTREE" : vtree
+    }
+
+
+    def __init__(self, *args, **kwargs):
+	self.__dict__ = self.__shared_state
+        super(LocationMgr, self).__init__(*args, **kwargs)
 
     def do_update(self, lat, lng):
 	tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
@@ -100,16 +103,17 @@ class LocationMgr(models.Model):
         return updated
 
     def delete_key_from_tree(self):
+        tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
         wizlib.delete_key(
                 self.key,
-                LocationMgr.objects.get_tree_from_type(self.tree_type))
-        print 'current tree [{type}.{tree}]'.format (type=self.tree_type, tree=LocationMgr.objects.get_tree_from_type(self.tree_type))
+                tree)
+        print 'current tree [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
 
     def delete(self, *args, **kwargs):
         print 'DELETING TREE'
         print 'tree before delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         self.delete_key_from_tree()
-        print 'tree after delete {type}.{tree}'.format(type=self.tree_type, tree=LocationMgr.objects.get_tree_from_type(self.tree_type))
+        print 'tree after delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         super(LocationMgr, self).delete(*args, **kwargs)
 
     #Database based timer implementation
@@ -134,7 +138,7 @@ def location_update_handler(**kwargs):
         lat=lat,
         lng=lng,
         key=key,
-        tree_type = tree_type,
+        tree_type=tree_type,
         content_type=ContentType.objects.get_for_model(sender),
         object_id=sender.pk)
 
@@ -151,20 +155,19 @@ def location_timeout_handler(**kwargs):
     for e in expired:
         timeout_callback_execute(e)
 
-def user_location_timeout_cb(l):
+def location_timeout_cb(l):
     l.delete()
 
+#AA:TODO: if this works, then it can be a generic function
 def wizcard_flick_timeout_cb(l):
     l.content_object.delete()
-    l.delete()
 
 def virtual_table_timeout_cb(l):
     l.content_object.delete()
-    l.delete()
     
-def timeout_callback_execute(e):
+def timeout_callback_execute(expired):
     timeout_callback = {
-        ContentType.objects.get(app_label="userprofile", model="userprofile").id    : user_location_timeout_cb, 
+        ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb, 
         ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : wizcard_flick_timeout_cb, 
         ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb, 
         } 

@@ -88,7 +88,7 @@ class UserProfile(models.Model):
             #create
             key = wizlib.create_geohash(lat, lng)
             l_tuple = location.send(sender=self, lat=lat, lng=lng, key=key, 
-                                    tree=LocationMgr.objects.PTREE)
+                                    tree="PTREE")
 	    l_tuple[0][1].start_timer(USER_ACTIVE_TIMEOUT)
 
     def lookup(self, n, count_only=False):
