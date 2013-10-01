@@ -58,6 +58,7 @@ class LocationMgrManager(models.Manager):
         for row in rows:
             key = wizlib.create_geohash(row.lat, row.lng)
             LocationMgr.objects.get_tree_from_type(row.tree_type)[key] = row.object_id
+            row.timer.get().start()
         self.inited = True
         print 'Inited Location Trees, Inited={inited}'.format(inited=self.inited)
         self.print_trees()
