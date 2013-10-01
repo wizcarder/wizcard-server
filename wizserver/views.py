@@ -610,8 +610,8 @@ class ParseMsgAndDispatch:
         notifications = Notification.objects.unread(user)
         notifResponse = NotifResponse(notifications)
         #ios app crashes since the new notifs are not yet handled
-        if user.profile.is_ios():
-            return notifResponse.response
+        #if user.profile.is_ios():
+        #    return notifResponse.response
 
         #any wizcards dropped nearby
         try:

@@ -26,9 +26,21 @@ class Tick(Job):
 
 
 class LocationMgrManager(models.Manager):
+    __shared_state = {}
+
+    ptree = trie()
+    vtree = trie()
+    wtree = trie()
+
+    location_tree_handles = {
+        "PTREE" : ptree,
+        "WTREE" : wtree,
+        "VTREE" : vtree
+    }
+
 
     def get_tree_from_type(self, tree_type):
-	return LocationMgr.location_tree_handles[tree_type]
+	return self.location_tree_handles[tree_type]
   
     def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
 	tree = self.get_tree_from_type(tree_type)
@@ -56,21 +68,10 @@ class LocationMgr(models.Model):
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     objects = LocationMgrManager()
 
-    __shared_state = {}
-
-    ptree = trie()
-    vtree = trie()
-    wtree = trie()
-
-    location_tree_handles = {
-        "PTREE" : ptree,
-        "WTREE" : wtree,
-        "VTREE" : vtree
-    }
-
+    def __repr__(self):
+        return '[' + str(self.id) + ' at ' + '(' + str(self.lat) + ', ' + str(self.lng) + ')' + ']'
 
     def __init__(self, *args, **kwargs):
-	self.__dict__ = self.__shared_state
         super(LocationMgr, self).__init__(*args, **kwargs)
 
     def do_update(self, lat, lng):
@@ -165,7 +166,7 @@ def wizcard_flick_timeout_cb(l):
 def virtual_table_timeout_cb(l):
     l.content_object.delete()
     
-def timeout_callback_execute(expired):
+def timeout_callback_execute(e):
     timeout_callback = {
         ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb, 
         ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : wizcard_flick_timeout_cb, 

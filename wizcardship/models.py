@@ -315,6 +315,7 @@ class WizcardFlick(models.Model):
         return loc
 
     def delete(self, *args, **kwargs):
+        print 'deleting flicked wizcard'
 	notify.send(self.wizcard.user, recipient=self.wizcard.user, verb ='flick timeout', target=self, action_object=self.wizcard)
         super(WizcardFlick, self).delete(*args, **kwargs)
 
