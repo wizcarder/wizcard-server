@@ -11,8 +11,8 @@ register_sync = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "lat" : 37.785835,
-        "lng" : -122.406416,
+        "lat" : 37.785834,
+        "lng" : -122.406415,
         "userID" : "2UIPIEPbBk"
     },
 }
