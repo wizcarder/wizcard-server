@@ -32,20 +32,32 @@ class LocationMgrManager(models.Manager):
     vtree = trie()
     wtree = trie()
 
+    inited = False
+
     location_tree_handles = {
         "PTREE" : ptree,
         "WTREE" : wtree,
         "VTREE" : vtree
     }
 
+    def __init__(self, *args, **kwargs):
+        self.__dict__ = self.__shared_state
+        super(LocationMgrManager, self).__init__(*args, **kwargs)
 
     def init_from_db(self):
-        rows = wizlib.queryset_iterator(LocationMgr.objects.all())
-	    for row in rows:
-			key = wizlib.create_geohash(row.lat, row.lng)
-			LocationMgr.objects.get_tree_from_type(row.tree_type)[key] = row.object_id
-			print 'Inited Location Trees'
-		self.print_trees()
+        if self.inited is True:
+            print 'already inited...skipping'
+            return
+        try:
+            rows = wizlib.queryset_iterator(LocationMgr.objects.all())
+        except:
+            return
+        for row in rows:
+            key = wizlib.create_geohash(row.lat, row.lng)
+            LocationMgr.objects.get_tree_from_type(row.tree_type)[key] = row.object_id
+        self.inited = True
+        print 'Inited Location Trees, Inited={inited}'.format(inited=self.inited)
+        self.print_trees()
 	
     def get_tree_from_type(self, tree_type):
 	return self.location_tree_handles[tree_type]
@@ -66,10 +78,10 @@ class LocationMgrManager(models.Manager):
 
     def print_trees(self, tree_type=None):
 	if tree_type == None:
-		for ttype in location_tree_handles:
-		    print '{ttype} : {tree}'.format (ttype=ttype, tree=location_tree_handles[ttype])
+            for ttype in LocationMgr.objects.location_tree_handles:
+                print '{ttype} : {tree}'.format (ttype=ttype, tree=LocationMgr.objects.location_tree_handles[ttype])
 	else:
-	    print '{ttype} : {tree}'.format (ttype=ttype, tree=location_tree_handles[ttype])
+	    print '{ttype} : {tree}'.format (ttype=ttype, tree=LocationMgr.objects.location_tree_handles[ttype])
 	    
 class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
