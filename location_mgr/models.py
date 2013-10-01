@@ -8,6 +8,7 @@ from location_mgr.signals import location, location_timeout
 from notifications.models import notify, Notification
 from django.db.models.signals import pre_delete
 from periodic.models import Periodic
+from django.db.models.signals import class_prepared
 from lib import wizlib
 from django_cron import Job
 import random
@@ -44,7 +45,9 @@ class LocationMgrManager(models.Manager):
         self.__dict__ = self.__shared_state
         super(LocationMgrManager, self).__init__(*args, **kwargs)
 
-    def init_from_db(self):
+    def init_from_db(self, sender, **kwargs):
+        #AA:TODO: for some reason, this class isn't showing up in the class_prepared senders
+        # ideally, need to qualify this with the sender = location_mgr
         if self.inited is True:
             print 'already inited...skipping'
             return
@@ -203,3 +206,4 @@ def timeout_callback_execute(e):
 
 location.connect(location_update_handler, dispatch_uid='location_mgr.models.location_mgr')
 location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
+class_prepared.connect(LocationMgr.objects.init_from_db, dispatch_uid='location_mgr.models.location_mgr')
