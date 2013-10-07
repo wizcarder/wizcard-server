@@ -33,6 +33,7 @@ from django.core.files.storage import default_storage
 import operator
 from django.db.models import Q
 from lib import wizlib
+from wizcard import err
 from django.db.models import ImageField
 
 
@@ -111,17 +112,16 @@ class WizcardManager(models.Manager):
                 notify.send(source_user, recipient=target_user, 
                             verb='wizconnection request untrusted', 
                             target=wizcard1, action_object=wizcard2)
-            except: #AA: TODO: Put integrity error
+            except:
                 #nothing to do, just return silently
                 pass 
 
 
     def exchange(self, wizcard1, wizcard2, implicit):
         #create bidir cardship
-        ret = dict(Error="OK", Description="")
+        ret = dict(Error=0, Description="")
         if self.are_wizconnections(wizcard1, wizcard2):
-            ret['Error'] = 2
-            ret['Description'] = "Already connected to user"
+            return  err.EXISTING_CONNECTION
         elif implicit:
             self.exchange_implicit(wizcard1, wizcard2)
         else:
@@ -190,6 +190,9 @@ class Wizcard(models.Model):
 
     def serialize_wizconnections(self):
         return serialize(self.wizconnections.all(), **fields.wizcard_template)
+
+    def serialize_wizcardflicks(self):
+	return serialize(self.flicked_cards.all(), **fields.flicked_wizcard_template)
 
     def create_company_list(self, l):
         map(lambda x: CompanyList(wizcard=self, company=x).save(), l)
@@ -276,12 +279,11 @@ class WizcardFlickManager(models.Manager):
                                 lng, 
                                 n)
         #convert result to query set result
-        #AA:TODO: filter out self and connected
         if count and not count_only:
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def check_location(self, lat, lng):
+    def check_duplicates(self, lat, lng):
 	#check if nearby cards can be combined...do we need to adjust centroid and all that ?
 	#AA:TODO: For now just check on exact location
 	try:
@@ -290,8 +292,30 @@ class WizcardFlickManager(models.Manager):
 	    return None
 
     def serialize(self, flicked_wizcards):
-        wizcards = map(lambda w: w.wizcard, flicked_wizcards)
         return serialize(wizcards, **fields.wizcard_template)
+
+    def serialize_split(self, my_wizcard, flicked_wizcards):
+	s = dict()
+	own, connected, others = WizcardFlick.objects.split_wizcard_flick(my_wizcard, flicked_wizcards)
+	s['own'] = Wizcard.objects.serialize(my_wizcard)
+	s['connected'] = Wizcard.objects.serialize(connected)
+	s['others'] = Wizcard.objects.serialize(others)
+
+	return s
+	
+
+    def split_wizcard_flick(self, mine, flicked_wizcards):
+        own = None
+        connected = []
+	others = []
+	for w in flicked_wizcards:
+            if w is mine:
+	        own.append(w)
+	    elif Wizcard.objects.are_wizconnections(w, mine):
+	        connected.append(w)
+            else: others.append(w)
+
+	return own, connected, others
 
 class WizcardFlick(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')

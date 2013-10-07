@@ -33,12 +33,12 @@ from virtual_table.models import VirtualTable
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
 from lib import wizlib
+from wizcard import err
 from location_mgr.models import LocationMgr
 import msg_test, fields
 import datetime
 from django.core.cache import cache
 from django.conf import settings
-
 
 
 #logger = logging.getLogger(__name__)
@@ -69,6 +69,7 @@ class WizRequestHandler(View):
 
 
 class ParseMsgAndDispatch:
+
     def __init__(self, request):
         self.request = request
         msg = json.loads(self.request.body)
@@ -81,22 +82,18 @@ class ParseMsgAndDispatch:
         self.msgType = self.header['msgType']
 
         print '{sender} sent "{type}"'.format (sender=self.sender['userID'], type=self.header['msgType'])
-
-        self.response = Response()
-
-    def processIncomingMessage(self):
-        msgHandlers = {
+        self.msgHandlers = {
             'signup'                        : self.processSignUp,
             'login'                         : self.processLogin,
             'register'                      : self.processRegister,
-            #'add_card'                      : self.processAddWizcard,
+            #'add_card'                      : processAddWizcard,
             'edit_card'                     : self.processModifyWizcard,
-            #'delete_card'                   : self.processDeleteWizcardOwn,
+            #'delete_card'                   : processDeleteWizcardOwn,
             'delete_notification_card'      : self.processDeleteWizcardNotification,
             'delete_rolodex_card'           : self.processDeleteWizcardRolodex,
             'current_location'              : self.processLocationUpdate,
             'add_notification_card'         : self.processAcceptCard,
-            'add_flicked_card'         	    : self.processAcceptFlickedCard,
+            'add_flicked_card'              : self.processAcceptFlickedCard,
             'card_flick'                    : self.processWizcardFlick,
             'get_cards'                     : self.processGetNotifications,
             'send_card_to_contacts'         : self.processSendCardToContacts,
@@ -106,16 +103,61 @@ class ParseMsgAndDispatch:
             'find_users_by_location'        : self.processQueryUserByLocation,
             'show_table_list'               : self.processQueryTable,
             'table_details'                 : self.processGetTableDetails,
-            'create_table'                  : self.processCreateTable,
+            'create_table'                    : self.processCreateTable,
             'join_table'                    : self.processJoinTable,
             'leave_table'                   : self.processLeaveTable,
             'destroy_table'                 : self.processDestroyTable
         }
 
-        self.update_location(self.msgType)
+        self.response = Response()
+
+    def msg_has_location(self, msg_type):
+        return self.sender.has_key('lat')  and self.sender.has_key('lng') and msg_type not in ['signup', 'login', 'register', 'current_location']
+
+    def msg_is_initial(self, msg_type):
+	return msg_type in ['signup', 'login', 'register']
+
+    def msg_type_is_valid(self, msg_type):
+	return msg_type in self.msgHandlers
+
+    def validateIncomingMessage(self):
+	ret = dict(result=1, ignore=0, errorStr="")
+
+	if self.msg_is_initial(self.msgType):
+	    return ret, None
+
+	if not self.msg_type_is_valid(self.msgType):
+	    ret[result] = 0
+	    ret[ignore] = 1
+	    return ret, None
+	    
+        #valid user should exist
+	try:
+	    username = self.sender['userID']
+	    wizUserID = self.sender['wizUserID']
+            user = User.objects.get(username=username, id=wizUserID)
+	except:
+	    ret['result'] = 0
+	    ret['ignore'] = 1
+	    return ret, None
+
+        #TODO: AA: Can we cross-validate with userid from session ?
+        return ret, user
+    def processIncomingMessage(self):
+   
+	do_process, user = self.validateIncomingMessage()
+	if not do_process['result']:
+	    if do_process['ignore']:
+		return
+	    else:
+                self.response.error_response(err.INVALID_USERNAME_PASSWORD)
+	        return self.response.response
+        #user is kosher (one hopes) here
+
+        self.update_location(user)
 
         # Dispatch to appropriate message handler
-        retval =  msgHandlers[self.msgType]()
+        retval =  self.msgHandlers[self.msgType](user)
 
         #do the user tracking here
         if not self.response.is_error_response():
@@ -126,10 +168,16 @@ class ParseMsgAndDispatch:
 
         return retval
 
-    def processSignUp(self):
+    def securityException(self):
+	#AA TODO
+	print 'ALERT ALERT!! FIXME'
+	return None
+	
+    def processSignUp(self, user=None):
         email = self.sender['email']
         username = email
         #password = self.sender['password']
+	#AA: TODO
         password = "wizard"
 
         user = User.objects.create_user(username, email, password)
@@ -156,13 +204,13 @@ class ParseMsgAndDispatch:
         self.response.add_data("userID", user.profile.userid)
         return self.response.response
 
-    def processLogin(self):
+    def processLogin(self, user=None):
         do_sync = False
         try:
             username = self.sender['email']
             user = User.objects.get(username=username)
         except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="invalid username or password")
+            self.response.error_response(err.USER_DOESNT_EXIST)
             return self.response.response
 
         #cross verify userID
@@ -180,7 +228,7 @@ class ParseMsgAndDispatch:
         password = "wizard"
         user = authenticate(username=username, password=password)
         if not user.is_authenticated():
-            self.response.error_response(errno=1, errorStr="User login failed")
+            self.response.error_response(err.AUTHENTICATION_FAILED)
             return self.response.response
         login(self.request, user) 
 
@@ -191,19 +239,18 @@ class ParseMsgAndDispatch:
                 self.response.add_data("wizcards", s['wizcard'])
 		if s.has_key('wizconnections'):
                     self.response.add_data("rolodex", s['wizconnections'])
+		if s.has_key('wizcard_flicks'):
+                    self.response.add_data("wizcard_flicks", s['wizcard_flicks'])
 		if s.has_key('tables'):
                     self.response.add_data("tables", s['tables'])
 
         return self.response.response
 
-    def msg_has_location(self, msg_type):
-        return self.sender.has_key('lat')  and self.sender.has_key('lng') and msg_type not in ['signup', 'login', 'register', 'current_location']
+    def update_location(self, user):
+        if self.msg_has_location(self.msgType):
+            self.processLocationUpdate(user)
 
-    def update_location(self, msg_type):
-        if self.msg_has_location(msg_type):
-            self.processLocationUpdate()
-
-    def processRegister(self):
+    def processRegister(self, user=None):
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
 
         wizcard_s = None
@@ -212,7 +259,8 @@ class ParseMsgAndDispatch:
         do_sync = False
         w_count = 0
         r_count = 0
-        #AA:TODO: a better idiom is has_key
+
+        
         try:
             first_name = self.sender['first_name']
         except:
@@ -228,32 +276,37 @@ class ParseMsgAndDispatch:
         except:
             email = ""
 
-        l_userid = self.sender['userID'] 
+        try:
+            l_userid = self.sender['userID'] 
+	except KeyError:
+	    #malicious handling
+	    return self.securityException()
+
         password = "wizard"
         #password = self.sender['password']
 
-
-        #AA:TODO: refactor. get_or_create can do the same thing without having
-        # to do another lookup
         try: 
-            #existing user
             w_userid = self.sender['wizUserID']
-            user = User.objects.get(id=w_userid)
-        except:
-            #create case
+            #existing user
+	    try:
+                user = User.objects.get(id=w_userid, username=l_userid)
+	    except ObjectDoesNotExist:
+		return self.securityException()
+        except KeyError:
+            #create case or sync case
             user, created = User.objects.get_or_create(username=l_userid,
                                                        defaults={'first_name':first_name,
                                                                  'last_name':last_name,
                                                                  'email':email})
-            do_sync = not created
+            if not created:
+		do_sync = True
+	    else:
+                user.set_password(password)
+		user.save()
 
-            user.set_password(password)
-            user.save()
-
-        #AA: TODO: Handle auth error
         user = authenticate(username=l_userid, password=password)
         if not user.is_authenticated():
-            self.response.error_response(errno=1, errorStr="User authentication failed")
+            self.response.error_response(err.AUTHENTICATION_FAILED)
             return self.response.response
 
         # Correct password, and the user is marked "active"
@@ -285,6 +338,8 @@ class ParseMsgAndDispatch:
                 self.response.add_data("wizcards", s['wizcard'])
 		if s.has_key('wizconnections'):
                     self.response.add_data("rolodex", s['wizconnections'])
+		if s.has_key('wizcard_flicks'):
+                    self.response.add_data("wizcard_flicks", s['wizcard_flicks'])
 		if s.has_key('tables'):
                     self.response.add_data("tables", s['tables'])
 
@@ -299,13 +354,7 @@ class ParseMsgAndDispatch:
 
         return self.response.response
 
-    def processAddWizcard(self):
-        #find user
-        try:
-            user = User.objects.get(id=self.sender['wizUserID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="User authentication failed")
-            return self.response.response
+    def processAddWizcard(self, user):
 
         try:
             first_name = self.sender['first_name']
@@ -348,7 +397,6 @@ class ParseMsgAndDispatch:
                           address_city=city, address_state=state,
                           address_country=country, address_zip=zipcode)
 
-
         #try:
         #    rawimage = self.sender['thumbnailImage']
         #    upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
@@ -359,13 +407,11 @@ class ParseMsgAndDispatch:
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
-
-    def processDeleteWizcardOwn(self):
-        try:
-            user = User.objects.get(id=self.sender['wizUserID'])
-            wizcard1 = user.wizcard
-        except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+    def processDeleteWizcardOwn(self, user):
+	try:
+	    wizcard1 = user.wizcard
+	except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
 
         #go through all connections and uncard them
@@ -385,14 +431,13 @@ class ParseMsgAndDispatch:
         wizcard1.delete()
         return self.response.response
 
-    def processDeleteWizcardRolodex(self):
+    def processDeleteWizcardRolodex(self, sender):
         try:
-            sender = User.objects.get(id=self.sender['wizUserID'])
             receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = sender.wizcard
             wizcard2 = receiver.wizcard
         except:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
 
         Wizcard.objects.uncard(wizcard1, wizcard2)
@@ -401,14 +446,13 @@ class ParseMsgAndDispatch:
                     verb='revoked wizcard', target=wizcard1)
         return self.response.response
 
-    def processDeleteWizcardNotification(self):
+    def processDeleteWizcardNotification(self, sender):
         try:
-            sender = User.objects.get(id=self.sender['wizUserID'])
             receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = sender.wizcard
             wizcard2 = receiver.wizcard
         except:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
 
         #wizcard2 must have sent a wizconnection_request, lets clear it
@@ -421,13 +465,8 @@ class ParseMsgAndDispatch:
         return self.response.response
 
  
-    def processModifyWizcard(self):
+    def processModifyWizcard(self, user):
         modify = False
-        try:
-            user = User.objects.get(id=self.sender['wizUserID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
-            return self.response.response
         try:
             wizcard = user.wizcard
         except ObjectDoesNotExist:
@@ -440,7 +479,6 @@ class ParseMsgAndDispatch:
             user.last_name = self.sender['last_name']
             user.save()
 
-        #AA:TODO phone1 currently should always be there 
         phone1 = self.sender['phone1']
 
         #check if futureUser existed for this phoneNum
@@ -527,7 +565,6 @@ class ParseMsgAndDispatch:
 
         if self.sender.has_key('contact_container'):
             contactContainerList = self.sender['contact_container']
-            #AA: TODO: Optimize using isModified flag from app
             wizcard.contact_container.all().delete()
             modify = True
 
@@ -550,18 +587,14 @@ class ParseMsgAndDispatch:
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
 
-    def processLocationUpdate(self):
-        user = User.objects.get(id=self.sender['wizUserID'])
+    def processLocationUpdate(self, user):
         profile = user.profile
         #update location in ptree
         profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
         return self.response.response
 
-    def processAcceptFlickedCard(self):
-        #To Do. if app returns the connection id cookie sent by server
-        #we'd just need to lookup connection from there
+    def processAcceptFlickedCard(self, sender):
         try:
-            sender = User.objects.get(id=self.sender['wizUserID'])
             receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = sender.wizcard
             wizcard2 = receiver.wizcard
@@ -570,7 +603,7 @@ class ParseMsgAndDispatch:
                 wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
                 wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
             except:
-                self.response.error_response(errno=1, errorStr="Object does not exist")
+                self.response.error_response(err.OBJECT_DOESNT_EXIST)
                 return self.response.response
 
 	#create a wizconnection and then accept it
@@ -578,16 +611,13 @@ class ParseMsgAndDispatch:
 
         return self.response.response
 
-    def processAcceptCard(self):
-        #To Do. if app returns the connection id cookie sent by server
-        #we'd just need to lookup connection from there
+    def processAcceptCard(self, sender):
         try:
-            sender = User.objects.get(id=self.sender['wizUserID'])
             receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = sender.wizcard
             wizcard2 = receiver.wizcard
         except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
 
         Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
@@ -598,20 +628,10 @@ class ParseMsgAndDispatch:
 
         return self.response.response
 
-    def processGetNotifications(self):
+    def processGetNotifications(self, user):
         #AA: TODO: Change this to get userId from session
-        try:
-            user = User.objects.get(id=self.sender['wizUserID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
-            return self.response.response
-
-        #AA: TODO: Check if this is sorted by time
         notifications = Notification.objects.unread(user)
         notifResponse = NotifResponse(notifications)
-        #ios app crashes since the new notifs are not yet handled
-        #if user.profile.is_ios():
-        #    return notifResponse.response
 
         #any wizcards dropped nearby
         try:
@@ -629,7 +649,7 @@ class ParseMsgAndDispatch:
         #AA:TODO: Use come caching framework to cache these
         flicked_wizcards, count = WizcardFlick.objects.lookup(lat, lng, 3)
         if count:
-            notifResponse.notifFlickedWizcards(count, flicked_wizcards)
+            notifResponse.notifFlickedWizcards(count, user, flicked_wizcards)
 
         users, count = user.profile.lookup(3)
         if count:
@@ -643,15 +663,14 @@ class ParseMsgAndDispatch:
         Notification.objects.mark_all_as_read(user)
         return notifResponse.response
 
-    def processSendCardToContacts(self):
+    def processSendCardToContacts(self, sender):
         #implicitly create a bidir cardship (since this is from contacts)
         #and also Q the other guys cards here
         count = 0
         try:
-            sender = User.objects.get(id=self.sender['wizUserID'])
             wizcard1 = sender.wizcard
         except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
 
         #A:TODO: Cross verify user agains wizcard
@@ -676,11 +695,11 @@ class ParseMsgAndDispatch:
                                 count += 1
                     else:
                         #future contacts
-                        return self.processSendCardToFutureContacts(phones, wizcard1)
+                        return self.processSendCardToFutureContacts(phones, sender)
 
             except:
                 #AA:TODO: what to do ?
-                self.response.error_response(errno=2, errorStr="something's not right")
+	        self.response.error_response(err.INTERNAL_ERROR)
 
         self.response.add_data("count", count)
         return self.response.response
@@ -689,34 +708,32 @@ class ParseMsgAndDispatch:
     def processVerifyContacts(self):
         return self.response.response
 
-    def processSendCardToFutureContacts(self, phones, wizcard):
+    def processSendCardToFutureContacts(self, phones, sender):
         for phone in phones:
             username = wizlib.convert_phone(phone)
             #create a dummy user using the phone number as userID
             try:
                 #TODO: handle multiple phones or restrict app to send one
-                user, created = User.objects.get_or_create(username=username)
+                receiver, created = User.objects.get_or_create(username=username)
                 if created:
-                    Wizcard(user=user).save()
-                    user.profile.set_future()
+                    Wizcard(user=receiver).save()
+                    receiver.profile.set_future()
                 else:
-                    assert user.profile.is_future(), 'not a future user'
+                    assert receiver.profile.is_future(), 'not a future user'
 
-                err = Wizcard.objects.exchange(wizcard, user.wizcard, False)
-                if err['Error'] != "OK":
-                    self.response.error_response(errno=err['Error'], 
-                                                 errorStr=err['Description'])
+                err = Wizcard.objects.exchange(wizcard, receiver.wizcard, False)
+		if err['errno']:
+                    self.response.error_response(err)
             except:
                 pass
         return self.response.response
 
-    def processSendCardUC(self):
+    def processSendCardUC(self, sender):
         try:
-            sender = User.objects.get(id=self.sender['wizUserID'])
             receivers = self.receiver['wizUserIDs']
             wizcard1 = sender.wizcard
         except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
 
         for receiver in receivers:
@@ -724,15 +741,13 @@ class ParseMsgAndDispatch:
                 wizcard2 = User.objects.get(id=receiver).wizcard
                 err = Wizcard.objects.exchange(wizcard1, wizcard2, False)
                 if err['Error']:
-                    self.response.error_response(errno=err['Error'], 
-                                                 errorStr=err['Description'])
+                    self.response.error_response(err['Description'])
             except:
-                self.response.error_response(errno=1, errorStr="something went wrong")
+                self.response.error_response(err.INTERNAL_ERROR)
 
         return self.response.response
 
-    def processQueryUserByLocation(self):
-        user = User.objects.get(id=self.sender['wizUserID'])
+    def processQueryUserByLocation(self, user):
         profile = user.profile
         #update location in ptree
         profile.create_or_update_location(self.sender['lat'], 
@@ -742,13 +757,12 @@ class ParseMsgAndDispatch:
             users_s = UserProfile.objects.serialize(lookup_result)
             self.response.add_data("queryResult", users_s)
             self.response.add_data("count", count)
-        else:
-            self.response.error_response(errno=1, errorStr="Query returned no results")
+	else:
+            self.response.error_response(err.NONE_FOUND)
 
         return self.response.response
 
-    def processQueryUserByName(self):
-        excludeUserID = self.sender['wizUserID']
+    def processQueryUserByName(self, sender):
 
         try:
             name = self.receiver['name']
@@ -763,15 +777,15 @@ class ParseMsgAndDispatch:
         except:
             email = None
 
-        result, count = Wizcard.objects.find_users(excludeUserID, name, phone, email)
+        result, count = Wizcard.objects.find_users(sender, name, phone, email)
         #send back to app for selection
 
         if (count):
             users = serialize(result, **fields.wizcard_user_query_template)
             self.response.add_data("queryResult", users)
             self.response.add_data("count", count)
-        else:
-            self.response.error_response(errno=1, errorStr="Query returned no results")
+	else:
+            self.response.error_response(err.NONE_FOUND)
  
         return self.response.response
 
@@ -784,24 +798,21 @@ class ParseMsgAndDispatch:
             name = self.sender['table_name']
             self.processQueryTableByName(name)
         else:
-            self.response.error_response(errno=1, errorStr="invalid table detail")
-
+            return self.securityException()
 
         return self.response.response
-
 
     def processQueryTableByName(self, name):
         try:
             tables = VirtualTable.objects.filter(Q(tablename__icontains=name))
         except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+            self.response.error_response(err.NONE_FOUND)
             return self.response.response
         count = tables.count()
 
-        if count:
-            tables_s = VirtualTable.objects.serialize(tables)
-            self.response.add_data("queryResult", tables_s)
-            self.response.add_data("count", count)
+	tables_s = VirtualTable.objects.serialize(tables)
+        self.response.add_data("queryResult", tables_s)
+        self.response.add_data("count", count)
             
         return self.response.response
 
@@ -836,27 +847,30 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     DEFAULT_FLICK_TIMEOUT = 1
-    def processWizcardFlick(self):
-        try:
-            user = User.objects.get(id=self.sender['wizUserID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
-            return self.response.response
+    def processWizcardFlick(self, user):
         try:
             wizcard = user.wizcard
         except:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
         try:
             flick_timeout = self.sender['flickTimeout']
         except:
             flick_timeout = self.DEFAULT_FLICK_TIMEOUT
 
-        #AA:TODO: Check implications of LocationMgr object deletion when timeout happens
-        lat = user.profile.location.get().lat
-        lng = user.profile.location.get().lng
+        try:
+            lat = user.profile.location.get().lat
+	    lng = user.profile.location.get().lng
+	except:
+	    #should not happen since app is expected to send a register or something
+	    #everytime it wakes up...however, network issues can cause app to go offline 
+	    #while still in foreground. No option but to send back error response to app
+	    #However, if app had included location information, then we will update_location
+	    #before getting here and be ok
+            self.response.error_response(err.LOCATION_UNKOWN)
+	    return self.response.response
         
-	flick_card = WizcardFlick.objects.check_location(lat, lng)
+	flick_card = WizcardFlick.objects.check_duplicates(lat, lng)
 
 	if flick_card:
 	    flick_card.location.get().reset_timer()
@@ -868,13 +882,7 @@ class ParseMsgAndDispatch:
         self.response.add_data("flickCardID", flick_card.pk)
         return self.response.response
 
-    def processCreateTable(self):
-        try:
-            user = User.objects.get(id=self.sender['wizUserID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
-            return self.response.response
-
+    def processCreateTable(self, user):
         tablename = self.sender['table_name']
         lat = self.sender['lat']
         lng = self.sender['lng']
@@ -900,16 +908,15 @@ class ParseMsgAndDispatch:
         self.response.add_data("tableID", table.pk)
         return self.response.response
 
-    def processJoinTable(self):
+    def processJoinTable(self, user):
         try:
-            user = User.objects.get(id=self.sender['wizUserID'])
             table = VirtualTable.objects.get(id=self.sender['tableID'])
         except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
 
         if user is table.creator:
-            self.response.error_response(errno=1, errorStr="Already joined table")
+            self.response.error_response(err.EXISTING_MEMBER)
             return self.response.response
 
         if table.isSecure():
@@ -920,17 +927,12 @@ class ParseMsgAndDispatch:
         joined = table.join_table_and_exchange(user, password, True)
 
         if joined is None:
-            self.response.error_response(errno=1, errorStr="Invalid Password")
+            self.response.error_response(err.AUTHENTICATION_FAILED)
         else:
             self.response.add_data("tableID", joined.pk)
         return self.response.response
 
-    def processLeaveTable(self):
-        try:
-            user = User.objects.get(id=self.sender['wizUserID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
-            return self.response.response
+    def processLeaveTable(self, user):
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
             leave = table.leave_table(user)
@@ -939,18 +941,17 @@ class ParseMsgAndDispatch:
             pass
         return self.response.response
 
-    def processDestroyTable(self):
+    def processDestroyTable(self, user):
         try:
-            user = User.objects.get(id=self.sender['wizUserID'])
             table = VirtualTable.objects.get(id=self.sender['tableID'])
         except ObjectDoesNotExist:
-            self.response.error_response(errno=1, errorStr="Object does not exist")
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response.response
 
         if table.creator == user:
             table.delete()
         else:
-            self.response.error_response(errno=1, errorStr="User is not the creator")
+            self.response.error_response(err.NOT_AUTHORIZED)
         return self.response.response
 
 

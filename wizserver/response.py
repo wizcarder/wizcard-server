@@ -5,6 +5,14 @@ from userprofile.models import UserProfile
 from notifications.models import Notification
 import fields
 import pdb
+from wizcard import err
+
+class errMsg:
+
+    def __init__(self, err):
+	self.errno = err[errno]
+	self.description = err[str]
+	
 
 #This is the basic Response class used to send simple result and data
 class Response:
@@ -26,9 +34,9 @@ class Response:
     def add_data(self, k, v):
         self.response['data'][k] = v
 
-    def error_response(self, errno, errorStr):
-        self.add_result("Error", errno)
-        self.add_result("Description", errorStr)
+    def error_response(self, err):
+        self.add_result("Error", err['errno'])
+        self.add_result("Description", err['str'])
         self.response
     
     def is_error_response(self):
@@ -142,10 +150,12 @@ class NotifResponse(ResponseN):
         self.add_data_with_notif(out, self.FLICK_TIMEOUT)
         return self.response
 
-    def notifFlickedWizcards(self, count, flicked_wizcards):
+    def notifFlickedWizcards(self, count, user, flicked_wizcards):
         out = None
+	own_wizcard = user.wizcard
         if flicked_wizcards:
-            out = WizcardFlick.objects.serialize(flicked_wizcards)
+	    wizcards = map(lambda x: x.wizcard, flicked_wizcards)
+            out = WizcardFlick.objects.serialize_split(user.wizcard, wizcards)
             self.add_data_with_notif(out, self.FLICKED_WIZCARD, count)
         return self.response
 

@@ -17,7 +17,7 @@ import string
 import random
 import pdb
 
-USER_ACTIVE_TIMEOUT = 10
+USER_ACTIVE_TIMEOUT = 1
 
 class UserProfileManager(models.Manager):
     def serialize(self, users):
@@ -39,7 +39,6 @@ class UserProfile(models.Model):
     future_user = models.BooleanField(default=False, blank=False)
     location = generic.GenericRelation(LocationMgr)
 
-    #AA:TODO: should be extended into a 1:many for supporting multiple devices
     IOS = 'ios'
     ANDROID='android'
     DEVICE_CHOICES = (
@@ -124,6 +123,10 @@ class UserProfile(models.Model):
         if wizcard.wizconnections.count():
             wc = wizcard.serialize_wizconnections()
 	    s['wizconnections'] = wc
+
+	if wizcard.flicked_cards.count():
+	    wf = wizcard.serialize_wizcardflicks()
+	    s['wizcard_flicks'] = wf
 
         tables = self.user.tables
 	if tables.count():

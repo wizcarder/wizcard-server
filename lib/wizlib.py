@@ -18,18 +18,14 @@ def lookup_by_key(key, tree, num_results, key_in_tree=True):
     #AA:TODO: Kludge to dis-include self.key from the results
     if key_in_tree:
         #cache value
-        try:
-            val = tree[key]
-            del tree[key]
-        #on restart, it may not be there...pass
-        except:
-            val = None
+        val = tree[key]
+        del tree[key]
 
     result, count =  lookup_closest_n_values(tree, key, num_results)
     print '{count} lookup result [{result}]'.format (count=count, result=result)
 
     #add self back
-    if key_in_tree and val:
+    if key_in_tree:
         tree[key] = val
 
     return result, count

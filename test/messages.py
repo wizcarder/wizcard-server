@@ -156,7 +156,9 @@ card_flick = {
     },
     "sender" : {
         "userID" : "USER3",
-        "wizUserID" : ""
+        "wizUserID" : "",
+        "lat" : 37.785834,
+        "lng" : -122.406415,
     },
 }
 
