@@ -741,7 +741,7 @@ class ParseMsgAndDispatch:
                 wizcard2 = User.objects.get(id=receiver).wizcard
                 err = Wizcard.objects.exchange(wizcard1, wizcard2, False)
                 if err['Error']:
-                    self.response.error_response(err['Description'])
+                    self.response.error_response(err)
             except:
                 self.response.error_response(err.INTERNAL_ERROR)
 
@@ -789,7 +789,7 @@ class ParseMsgAndDispatch:
  
         return self.response.response
 
-    def processQueryTable(self):
+    def processQueryTable(self, user=None):
         if self.sender.has_key('lat') and self.sender.has_key('lng'):
             lat = self.sender['lat']
             lng = self.sender['lng']
@@ -823,7 +823,7 @@ class ParseMsgAndDispatch:
             self.response.add_data("queryResult", tables_s)
             self.response.add_data("count", count)
         else:
-            self.response.error_response(errno=1, errorStr="Query returned no results")
+            self.response.error_response(err.NONE_FOUND)
 
         return self.response.response
 

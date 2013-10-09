@@ -1,4 +1,4 @@
-NONE_FOUND = {'errno':1, 'str':"no results found"}
+NONE_FOUND = {'errno':1, 'str':"Query returned no results"}
 EXISTING_MEMBER = {'errno':1, 'str':"already joined table"}
 INVALID_USERNAME_PASSWORD = {'errno':1, 'str':"invalid username or password"}
 AUTHENTICATION_FAILED = {'errno':2, 'str':"authentication failed"}
