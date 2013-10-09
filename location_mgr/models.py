@@ -68,7 +68,7 @@ class LocationMgrManager(models.Manager):
   
     def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
 	tree = self.get_tree_from_type(tree_type)
-        #print 'current tree [{tree_type}.{tree}]'.format (tree_type=tree_type, tree=tree)
+        print 'lookup up {tree_type}'.format (tree_type=tree_type)
         result, count = wizlib.lookup_by_key(key, 
                                              tree, 
                                              n,
