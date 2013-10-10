@@ -13,7 +13,9 @@ register_sync = {
         #random index from there
         "lat" : 37.785834,
         "lng" : -122.406415,
+        "deviceType": "android",
         "userID" : "2UIPIEPbBk"
+
     },
 }
 
@@ -30,6 +32,7 @@ register1 = {
         #random index from there
         "lat" : 37.785835,
         "lng" : -122.406416,
+        "deviceType": "android",
         "userID" : "USER1"
     },
 }
@@ -46,6 +49,7 @@ register2 = {
         #random index from there
         "lat" : 37.785837,
         "lng" : -122.406418,
+        "deviceType": "android",
         "userID" : "USER2"
     },
 }
@@ -62,6 +66,7 @@ register3 = {
         #random index from there
         "lat" : 37.785838,
         "lng" : -122.406419,
+        "deviceType": "android",
         "userID" : "USER3"
     },
 }
@@ -88,6 +93,7 @@ edit_card1 = {
         "location" : "San Francisco Bay Area",
         "phone1" : 4084641727,
         "userID" : "USER1",
+        "deviceType": "android",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
     },
@@ -159,6 +165,7 @@ card_flick = {
         "wizUserID" : "",
         "lat" : 37.785834,
         "lng" : -122.406415,
+        "deviceType": "android",
     },
 }
 
@@ -173,6 +180,7 @@ get_cards_u3 = {
     "sender" : {
         "lat" : 37.785838,
         "lng" : -122.406419,
+        "deviceType": "android",
         "userID" : "",
         "wizUserID" : ""
     },

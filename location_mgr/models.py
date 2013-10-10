@@ -156,7 +156,7 @@ class LocationMgr(models.Model):
 
     def reset_timer(self):
         if self.timer.count():
-            self.timer.all()[0].start()
+            self.timer.get().start()
 
 def location_update_handler(**kwargs):
     kwargs.pop('signal', None)

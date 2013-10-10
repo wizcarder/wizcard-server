@@ -340,6 +340,10 @@ class WizcardFlick(models.Model):
 
     def delete(self, *args, **kwargs):
         print 'deleting flicked wizcard'
+        #AA:TODO - For some reason, django doesn't call delete method of generic FK object.
+        # Although it does delete it. Until I figure out why, need to explicitly call 
+        #delete method since other deletes need to happen there as well
+        self.location.get().delete()
 	notify.send(self.wizcard.user, recipient=self.wizcard.user, verb ='flick timeout', target=self, action_object=self.wizcard)
         super(WizcardFlick, self).delete(*args, **kwargs)
 

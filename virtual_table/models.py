@@ -129,6 +129,7 @@ class VirtualTable(models.Model):
 	for member in members:
 	    notify.send(self.creator, recipient=member, verb ='destroy table', target=self)
         self.users.clear()
+        self.location.get().delete()
         super(VirtualTable, self).delete(*args, **kwargs)
 
     def lifetime(self):

@@ -17,7 +17,7 @@ import string
 import random
 import pdb
 
-USER_ACTIVE_TIMEOUT = 1
+USER_ACTIVE_TIMEOUT = 10
 
 class UserProfileManager(models.Manager):
     def serialize(self, users):

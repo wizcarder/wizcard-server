@@ -103,10 +103,11 @@ class ParseMsgAndDispatch:
             'find_users_by_location'        : self.processQueryUserByLocation,
             'show_table_list'               : self.processQueryTable,
             'table_details'                 : self.processGetTableDetails,
-            'create_table'                    : self.processCreateTable,
+            'create_table'                  : self.processCreateTable,
             'join_table'                    : self.processJoinTable,
             'leave_table'                   : self.processLeaveTable,
-            'destroy_table'                 : self.processDestroyTable
+            'destroy_table'                 : self.processDestroyTable,
+            'rename_table'                  : self.processRenameTable
         }
 
         self.response = Response()
@@ -648,19 +649,22 @@ class ParseMsgAndDispatch:
 
         #AA:TODO: Use come caching framework to cache these
         flicked_wizcards, count = WizcardFlick.objects.lookup(lat, lng, 3)
-        if count:
+        if count and not user.profile.is_ios():
             notifResponse.notifFlickedWizcards(count, user, flicked_wizcards)
 
         users, count = user.profile.lookup(3)
-        if count:
+        if count and not user.profile.is_ios():
             notifResponse.notifUserLookup(count, users)
 
         #tables is a smaller entity...get the tables as well instead of just count
         tables, count = VirtualTable.objects.lookup(lat, lng, 3)
-        if count:
+        if count and not user.profile.is_ios():
             notifResponse.notifTableLookup(count, tables)
 
         Notification.objects.mark_all_as_read(user)
+
+        #tickle the timer to keep it going and update the location if required 
+        user.profile.create_or_update_location(lat, lng)
         return notifResponse.response
 
     def processSendCardToContacts(self, sender):
@@ -827,7 +831,7 @@ class ParseMsgAndDispatch:
 
         return self.response.response
 
-    def processGetTableDetails(self):
+    def processGetTableDetails(self, user=None):
         #get the members
         table = VirtualTable.objects.get(id=self.sender['tableID'])
         memberships = table.membership_set.all()
@@ -898,6 +902,8 @@ class ParseMsgAndDispatch:
         table = VirtualTable.objects.create(tablename=tablename, secureTable=secure, 
                                             password=password, creator=user, 
                                             life_time=lifetime)
+        
+        #TODO: AA handle create failure and/or unique name enforcement
         #update location in ptree
         #AA:TODO move create to overridden create in VirtualTable
         table.create_location(lat, lng)
@@ -906,6 +912,21 @@ class ParseMsgAndDispatch:
         table.join_table_and_exchange(user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)
+        return self.response.response
+
+    def processRenameTable(self, user):
+        tablename = self.sender['table_name']
+        table_id = self.sender['tableID']
+
+        try:
+            table = VirtualTable.objects.get(id=table_id)
+            table.tablename = tablename
+            table.save()
+            self.response.add_data("tableID", table.pk)
+            self.response.add_data("tableID", table.pk)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            #shouldn't/couldn't happen
         return self.response.response
 
     def processJoinTable(self, user):
