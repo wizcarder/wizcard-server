@@ -39,6 +39,7 @@ import msg_test, fields
 import datetime
 from django.core.cache import cache
 from django.conf import settings
+from sendsms.message import SmsMessage
 
 
 #logger = logging.getLogger(__name__)
@@ -85,6 +86,8 @@ class ParseMsgAndDispatch:
         self.msgHandlers = {
             'signup'                        : self.processSignUp,
             'login'                         : self.processLogin,
+	    'phone_check_req'		    : self.processPhoneCheckRequest,
+	    'phone_check_resp'		    : self.processPhoneCheckResponse,
             'register'                      : self.processRegister,
             #'add_card'                      : processAddWizcard,
             'edit_card'                     : self.processModifyWizcard,
@@ -116,7 +119,7 @@ class ParseMsgAndDispatch:
         return self.sender.has_key('lat')  and self.sender.has_key('lng') and msg_type not in ['signup', 'login', 'register', 'current_location']
 
     def msg_is_initial(self, msg_type):
-	return msg_type in ['signup', 'login', 'register']
+	return msg_type in ['signup', 'login', 'register', 'phone_check_req', 'phone_check_resp']
 
     def msg_type_is_valid(self, msg_type):
 	return msg_type in self.msgHandlers
@@ -144,6 +147,7 @@ class ParseMsgAndDispatch:
 
         #TODO: AA: Can we cross-validate with userid from session ?
         return ret, user
+
     def processIncomingMessage(self):
    
 	do_process, user = self.validateIncomingMessage()
@@ -251,6 +255,64 @@ class ParseMsgAndDispatch:
         if self.msg_has_location(self.msgType):
             self.processLocationUpdate(user)
 
+    def processPhoneCheckRequest(self, user=None):
+	user_id = self.sender.userID
+	response_mode = self.sender.checkMode
+	response_target = self.sender.target
+
+	k_user = (settings.PHONE_CHECK_USER_KEY % user_id)
+	k_rand = (settings.PHONE_CHECK_USER_RAND_KEY % user_id)
+	k_retry = (settings.PHONE_CHECK_USER_RETRY_KEY % user_id)
+
+	user = cache.get(k_user)
+	if user:
+	    #should not be. Lets just clear it
+	    cache.clear(k_user)
+
+        d = dict()
+	#new req, generate random num
+	d[k_user] = user_id
+	d[k_rand] = random.randint(settings.PHONE_CHECK_RAND_LOW, setting.PHONE_CHECK_RAND_HI)
+	d[k_retry] = 1
+	cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
+
+	if response_mode fs "voice":
+	    #TODO
+	    pass
+
+        #send a text with the rand
+	SmsMessage(body=settings.PHONE_CHECK_RESPONSE_GREETING % d[k_rand],
+			from_phone=settings.PHONE_CHECK_RESPONSE_FROM_ID,
+			to_phone=[response_target]).send()
+        
+
+        return self.response.response
+	
+    def processPhoneCheckResponse(self, user=None):
+	user_id = self.sender.userID
+	challenge_response = self.sender.challengeResponse
+	if not user_id or challenge_response:
+            return self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+
+	k_user = (settings.PHONE_CHECK_USER_KEY % user_id)
+	k_rand = (settings.PHONE_CHECK_USER_RAND_KEY % user_id)
+	k_retry = (settings.PHONE_CHECK_USER_RETRY_KEY % user_id)
+
+	d = cache.get_many([k_user, k_rand, k_retry])
+
+	if d[k_retry] > settings.MAX_PHONE_CHECK_RETRIES:
+	    cache.clear(k_user)
+            return self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
+
+        cache.incr(k_retry)
+	if challenge_response != d[k_rand]:
+            return self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+
+        #response is valid. all done. #clear cache
+	cache.delete_many([k_user, k_rand, k_retry])
+	    
+        return self.response.response
+
     def processRegister(self, user=None):
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
 
@@ -261,7 +323,6 @@ class ParseMsgAndDispatch:
         w_count = 0
         r_count = 0
 
-        
         try:
             first_name = self.sender['first_name']
         except:

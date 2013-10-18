@@ -9,5 +9,7 @@ INTERNAL_ERROR = {'errno':4, 'str':"internal error"}
 EXISTING_CONNECTION = {'errno':5, 'str':"already connected"}
 INVALID_MESSAGE = {'errno':5, 'str':"invalid message"}
 NOT_AUTHORIZED = {'errno':6, 'str':"user is not the creator"}
+PHONE_CHECK_RETRY_EXCEEDED = {'errno':8, 'str':"too many attempts...do you want to continue with a new code ?"}
+PHONE_CHECK_CHALLENGE_RESPONSE_DENIED = {'errno':9, 'str':"keys do not match"}
 
 
