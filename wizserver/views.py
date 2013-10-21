@@ -164,7 +164,6 @@ class ParseMsgAndDispatch:
 
         # Dispatch to appropriate message handler
         retval =  self.msgHandlers[self.msgType](user)
-        pdb.set_trace()
 
         #do the user tracking here
         if not self.response.is_error_response():
