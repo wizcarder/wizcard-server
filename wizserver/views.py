@@ -37,6 +37,7 @@ from wizcard import err
 from location_mgr.models import LocationMgr
 import msg_test, fields
 import datetime
+import random
 from django.core.cache import cache
 from django.conf import settings
 from sendsms.message import SmsMessage
@@ -163,6 +164,7 @@ class ParseMsgAndDispatch:
 
         # Dispatch to appropriate message handler
         retval =  self.msgHandlers[self.msgType](user)
+        pdb.set_trace()
 
         #do the user tracking here
         if not self.response.is_error_response():
@@ -256,9 +258,9 @@ class ParseMsgAndDispatch:
             self.processLocationUpdate(user)
 
     def processPhoneCheckRequest(self, user=None):
-	user_id = self.sender.userID
-	response_mode = self.sender.checkMode
-	response_target = self.sender.target
+	user_id = self.sender['userID']
+	response_mode = self.sender['checkMode']
+	response_target = self.sender['target']
 
 	k_user = (settings.PHONE_CHECK_USER_KEY % user_id)
 	k_rand = (settings.PHONE_CHECK_USER_RAND_KEY % user_id)
@@ -267,30 +269,32 @@ class ParseMsgAndDispatch:
 	user = cache.get(k_user)
 	if user:
 	    #should not be. Lets just clear it
-	    cache.clear(k_user)
+	    cache.delete(k_user)
 
         d = dict()
 	#new req, generate random num
 	d[k_user] = user_id
-	d[k_rand] = random.randint(settings.PHONE_CHECK_RAND_LOW, setting.PHONE_CHECK_RAND_HI)
+	d[k_rand] = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
 	d[k_retry] = 1
 	cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
-	if response_mode fs "voice":
+	if response_mode == "voice":
 	    #TODO
 	    pass
 
         #send a text with the rand
 	SmsMessage(body=settings.PHONE_CHECK_RESPONSE_GREETING % d[k_rand],
 			from_phone=settings.PHONE_CHECK_RESPONSE_FROM_ID,
-			to_phone=[response_target]).send()
+			to=[response_target]).send()
         
 
+        #TOD: Don' forget to remove this
+        self.response.add_data("key", d[k_rand])
         return self.response.response
 	
     def processPhoneCheckResponse(self, user=None):
-	user_id = self.sender.userID
-	challenge_response = self.sender.challengeResponse
+	user_id = self.sender['userID']
+	challenge_response = self.sender['challenge_response']
 	if not user_id or challenge_response:
             return self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
 
@@ -301,7 +305,7 @@ class ParseMsgAndDispatch:
 	d = cache.get_many([k_user, k_rand, k_retry])
 
 	if d[k_retry] > settings.MAX_PHONE_CHECK_RETRIES:
-	    cache.clear(k_user)
+	    cache.delete(k_user)
             return self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
 
         cache.incr(k_retry)
@@ -804,9 +808,9 @@ class ParseMsgAndDispatch:
         for receiver in receivers:
             try:
                 wizcard2 = User.objects.get(id=receiver).wizcard
-                err = Wizcard.objects.exchange(wizcard1, wizcard2, False)
-                if err['Error']:
-                    self.response.error_response(err)
+                ret = Wizcard.objects.exchange(wizcard1, wizcard2, False)
+                if ret['errno']:
+                    self.response.error_response(ret)
             except:
                 self.response.error_response(err.INTERNAL_ERROR)
 

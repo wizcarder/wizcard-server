@@ -186,4 +186,29 @@ get_cards_u3 = {
     },
 }
 
+phone_check_req = {
+    "header" : {
+        "msgType" : "phone_check_req",
+    },
+    "sender" : {
+        "userID" : "ANAND_AMMUNDI",
+        "checkMode" : "sms",
+        "target" : "+14084641727"
+    },
+}
+
+phone_check_resp = {
+    "header" : {
+        "msgType" : "phone_check_resp",
+    },
+    "sender" : {
+        "userID" : "ANAND_AMMUNDI",
+        "checkMode" : "sms",
+        "challenge_response" : ""
+    },
+}
+
+
+
+
 

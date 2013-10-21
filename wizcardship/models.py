@@ -119,14 +119,13 @@ class WizcardManager(models.Manager):
 
     def exchange(self, wizcard1, wizcard2, implicit):
         #create bidir cardship
-        ret = dict(Error=0, Description="")
         if self.are_wizconnections(wizcard1, wizcard2):
             return  err.EXISTING_CONNECTION
         elif implicit:
             self.exchange_implicit(wizcard1, wizcard2)
         else:
             self.exchange_explicit(wizcard1, wizcard2)
-        return ret
+        return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2):
         notify.send(wizcard1.user, recipient=wizcard2.user,

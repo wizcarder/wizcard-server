@@ -1,3 +1,4 @@
+OK = {'errno':0, 'Description':""}
 NONE_FOUND = {'errno':1, 'str':"Query returned no results"}
 EXISTING_MEMBER = {'errno':1, 'str':"already joined table"}
 INVALID_USERNAME_PASSWORD = {'errno':1, 'str':"invalid username or password"}
