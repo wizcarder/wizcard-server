@@ -132,8 +132,19 @@ PHONE_CHECK_USER_RAND_KEY = PHONE_CHECK_REQ_PREFIX + PHONE_CHECK_RAND
 PHONE_CHECK_USER_RETRY_KEY = PHONE_CHECK_REQ_PREFIX + PHONE_CHECK_RETRY
 
 PHONE_CHECK_RESPONSE_GREETING = "please use the following key to sign up: %s"
-PHONE_CHECK_RESPONSE_FROM_ID = "+14084641727"
+PHONE_CHECK_RESPONSE_FROM_ID = 12134657949
 
+NEXMO_API_KEY = '4788a696'
+NEXMO_API_SECRET = '185e2f6f'
+
+PHONE_CHECK_MESSAGE = {
+        'reqtype': 'json',
+        'api_key': NEXMO_API_KEY,
+        'api_secret': NEXMO_API_SECRET,
+        'from':12134657949,
+        'to':None,
+        'text':""
+    }
 
 ROOT_URLCONF = 'wizcard.urls'
 

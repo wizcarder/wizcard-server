@@ -40,7 +40,7 @@ import datetime
 import random
 from django.core.cache import cache
 from django.conf import settings
-from sendsms.message import SmsMessage
+from nexmomessage import NexmoMessage
 
 
 #logger = logging.getLogger(__name__)
@@ -282,10 +282,15 @@ class ParseMsgAndDispatch:
 	    pass
 
         #send a text with the rand
-	SmsMessage(body=settings.PHONE_CHECK_RESPONSE_GREETING % d[k_rand],
-			from_phone=settings.PHONE_CHECK_RESPONSE_FROM_ID,
-			to=[response_target]).send()
-        
+        msg = settings.PHONE_CHECK_MESSAGE
+        msg['to'] = response_target
+        msg['text'] = settings.PHONE_CHECK_RESPONSE_GREETING % d[k_rand]
+        sms = NexmoMessage(msg)
+        sms.set_text_info(msg['text'])
+        response = sms.send_request()
+        if response['messages'][0]['status'] != '0':
+            #some error...let the app know
+            return self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
 
         #TOD: Don' forget to remove this
         self.response.add_data("key", d[k_rand])
@@ -294,7 +299,7 @@ class ParseMsgAndDispatch:
     def processPhoneCheckResponse(self, user=None):
 	user_id = self.sender['userID']
 	challenge_response = self.sender['challenge_response']
-	if not user_id or challenge_response:
+	if not (user_id and challenge_response):
             return self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
 
 	k_user = (settings.PHONE_CHECK_USER_KEY % user_id)
