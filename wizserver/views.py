@@ -298,7 +298,7 @@ class ParseMsgAndDispatch:
 	
     def processPhoneCheckResponse(self, user=None):
 	user_id = self.sender['userID']
-	challenge_response = self.sender['challenge_response']
+	challenge_response = self.sender['responseKey']
 	if not (user_id and challenge_response):
             return self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
 

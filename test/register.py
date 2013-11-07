@@ -8,10 +8,12 @@ import json
 import pdb
 import messages
 
-server_url = "www.totastyle.com"
-#server_url = "localhost"
+#server_url = "www.totastyle.com"
+server_url = "localhost"
+#server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 
 server_port = 8000
+#server_port = 80
 
 # Open the connection to Wiz server
 conn = httplib.HTTPConnection(server_url, server_port)

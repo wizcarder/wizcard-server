@@ -205,18 +205,6 @@ logging.basicConfig(
     format = '%(funcName)s %(levelname)s %(message)s',
 )
 
-import djcelery
-djcelery.setup_loader()
-BROKER_URL = 'amqp://guest:guest@localhost:5672/'
-
-from datetime import timedelta
-
-CELERYBEAT_SCHEDULE = {
-    'timer-tick-60': {
-        'task': 'periodic.tasks.process_timer',
-        'schedule': timedelta(seconds=60),
-    },
-}
 
 PYAPNS_CONFIG = {
   'HOST': 'http://localhost:8077/',
