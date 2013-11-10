@@ -467,12 +467,12 @@ class ParseMsgAndDispatch:
                           address_city=city, address_state=state,
                           address_country=country, address_zip=zipcode)
 
-        #try:
-        #    rawimage = self.sender['thumbnailImage']
-        #    upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
-        #    wizcard.thumbnailImage.save(upfile.name, upfile) 
-        #except:
-        #    pass
+        try:
+            rawimage = self.sender['thumbnailImage']
+            upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
+            wizcard.thumbnailImage.save(upfile.name, upfile) 
+        except:
+            pass
         
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response.response
