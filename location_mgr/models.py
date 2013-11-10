@@ -52,13 +52,14 @@ class LocationMgrManager(models.Manager):
             print 'already inited...skipping'
             return
         try:
-            rows = wizlib.queryset_iterator(LocationMgr.objects.all())
+            qs = LocationMgr.objects.all()
+            rows = wizlib.queryset_iterator(qs) 
+            for row in rows:
+                key = wizlib.create_geohash(row.lat, row.lng)
+	        LocationMgr.objects.get_tree_from_type(row.tree_type)[key] = row.object_id
+                row.timer.get().start()
         except:
             return
-        for row in rows:
-            key = wizlib.create_geohash(row.lat, row.lng)
-            LocationMgr.objects.get_tree_from_type(row.tree_type)[key] = row.object_id
-            row.timer.get().start()
         self.inited = True
         print 'Inited Location Trees, Inited={inited}'.format(inited=self.inited)
         self.print_trees()

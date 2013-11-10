@@ -15,9 +15,10 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wizcard',
         'USER': 'root',
-        'PASSWORD': '',
+        'PASSWORD': 'go_WiZcArD#27',
         #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -180,6 +181,7 @@ INSTALLED_APPS = (
     'virtual_table',
     'location_mgr',
     'periodic',
+    'gunicorn',
 )
 
 
@@ -204,7 +206,6 @@ logging.basicConfig(
     level = logging.ERROR,
     format = '%(funcName)s %(levelname)s %(message)s',
 )
-
 
 PYAPNS_CONFIG = {
   'HOST': 'http://localhost:8077/',
