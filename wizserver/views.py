@@ -627,11 +627,13 @@ class ParseMsgAndDispatch:
             rawimage = self.sender['thumbnailImage']
             upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
             wizcard.thumbnailImage.save(upfile.name, upfile) 
+            modify = True
 
         if self.sender.has_key('VideoUrl'):
             rawvideo = self.sender['VideoUrl']
             upfile = SimpleUploadedFile("%s-%s.mp4" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawvideo, "video/mp4")
             wizcard.video.save(upfile.name, upfile) 
+            modify = True
 
         if self.sender.has_key('contact_container'):
             contactContainerList = self.sender['contact_container']
