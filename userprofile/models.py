@@ -97,13 +97,10 @@ class UserProfile(models.Model):
         except ObjectDoesNotExist:
             return None, None
 
-        result, count = LocationMgr.objects.lookup_by_key(
-                            l.tree_type,
-                            l.key, 
-                            n)
+        result, count = l.lookup(n)
         #convert result to query set result
         if count and not count_only:
-            users = filter(lambda m: m != self.id and UserProfile.objects.get(id=m).user, result)
+            users = filter(lambda m: UserProfile.objects.get(id=m).user, result)
         return users, count
 
     def serialize(self, users):

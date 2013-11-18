@@ -71,9 +71,9 @@ class LocationMgrManager(models.Manager):
 	return self.location_tree_handles[tree_type]
   
     def lookup_by_key(self, tree_type, key, n):
-	tree = self.get_tree_from_type(tree_type)
         print 'lookup up {tree_type}'.format (tree_type=tree_type)
-        result, count = wizlib.lookup_by_key(key, 
+	tree = self.get_tree_from_type(tree_type)
+        result, count = wizlib.lookup_by_key(key,
                                              tree, 
                                              n)
         #print 'looking up  gives result [{result}]'.format (result=result)
@@ -134,18 +134,39 @@ class LocationMgr(models.Model):
         #print 'current tree [{tree_type}.{tree}]'.format (tree_type=self.tree_type, tree=tree)
         return updated
 
+    def lookup(self, n):
+        print 'lookup up {tree_type}'.format (tree_type=self.tree_type)
+	tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
+
+	#remove self.key from the tree. Otherwise this skews the resuls towards
+	#us. Even if we were to do a partwise lookup, it might still skew things
+	#depending on the sparsity of the tree
+	cached_val = self.delete_from_tree()
+        result, count = wizlib.lookup_by_key(self.key, 
+                                             tree, 
+                                             n)
+	#add me back
+	if cached_val:
+	    self.insert_in_tree()
+
+        print 'looking up  gives {count} results [{result}]'.format (count=count, result=result)
+        return result, count
+
     def delete_from_tree(self):
         tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
-        wizlib.ptree_delete(
-                wizlib.modified_key(self.key, self.pk),
-                tree)
+        val = wizlib.ptree_delete(
+			wizlib.modified_key(self.key, self.pk),
+			tree)
         print 'current tree [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
+	return val
 
     def insert_in_tree(self):
+        tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
         wizlib.ptree_insert(
                 wizlib.modified_key(self.key, self.pk),
-                LocationMgr.objects.get_tree_from_type(self.tree_type),
+                tree,
                 self.object_id)
+        print 'current tree [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
 
     def delete(self, *args, **kwargs):
         print 'deleting key {key}.{tree} from tree'.format (key=self.key, tree=self.tree_type)
