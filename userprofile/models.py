@@ -100,7 +100,7 @@ class UserProfile(models.Model):
         result, count = l.lookup(n)
         #convert result to query set result
         if count and not count_only:
-            users = filter(lambda m: UserProfile.objects.get(id=m).user, result)
+            users = map(lambda m: UserProfile.objects.get(id=m).user, result)
         return users, count
 
     def serialize(self, users):
