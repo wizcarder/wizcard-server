@@ -47,12 +47,26 @@ class VirtualTableManager(models.Manager):
     def serialize(self, tables):
         return serialize(tables, **fields.table_template)
 
-    def serialize_sync(self, tables, creator):
+    def serialize_split(self, tables, creator):
         ret = {}
-        ret['created'] = serialize(tables.filter(creator=creator), **fields.table_template)
-        ret['joined'] = serialize(tables.filter(~Q(creator=creator)), **fields.table_template)
+
+        created, joined = self.split_table(tables, creator)
+        if created:
+            ret['created'] = serialize(created, **fields.table_template)
+        if joined:
+            ret['joined'] = serialize(joined, **fields.table_template)
 
         return ret
+
+    def split_table(self, tables, creator):
+        created = []
+        joined = []
+        for t in tables:
+            if t.creator == creator:
+                created.append(t)
+            else:
+                joined.append(t)
+        return created, joined
 
 
 class VirtualTable(models.Model):

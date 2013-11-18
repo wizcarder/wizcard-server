@@ -295,20 +295,23 @@ class WizcardFlickManager(models.Manager):
 
     def serialize_split(self, my_wizcard, flicked_wizcards):
 	s = dict()
-	own, connected, others = WizcardFlick.objects.split_wizcard_flick(my_wizcard, flicked_wizcards)
-	s['own'] = Wizcard.objects.serialize(my_wizcard)
-	s['connected'] = Wizcard.objects.serialize(connected)
-	s['others'] = Wizcard.objects.serialize(others)
+	own, connected, others = self.split_wizcard_flick(my_wizcard, flicked_wizcards)
+        if own:
+            s['own'] = Wizcard.objects.serialize(my_wizcard)
+        if connected:
+            s['connected'] = Wizcard.objects.serialize(connected)
+        if others:
+            s['others'] = Wizcard.objects.serialize(others)
 
 	return s
 	
 
     def split_wizcard_flick(self, mine, flicked_wizcards):
-        own = None
+        own = []
         connected = []
 	others = []
 	for w in flicked_wizcards:
-            if w is mine:
+            if w == mine:
 	        own.append(w)
 	    elif Wizcard.objects.are_wizconnections(w, mine):
 	        connected.append(w)

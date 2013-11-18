@@ -8,9 +8,9 @@ import json
 import pdb
 import messages
 
-#server_url = "www.totastyle.com"
+server_url = "www.totastyle.com"
 #server_url = "localhost"
-server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
+#server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 
 server_port = 8000
 #server_port = 80
@@ -81,13 +81,27 @@ conn.request("POST","", cf3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 
-get_cards_u3_msg = messages.get_cards_u3
+get_cards_u3_msg = messages.get_cards_u
 get_cards_u3_msg['sender']['userID'] = "USER3"
 get_cards_u3_msg['sender']['wizUserID'] = r3_id
 gcu3 = json.dumps(get_cards_u3_msg)
 conn.request("POST","", gcu3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
+
+tbl_create_1_msg = messages.table_create_1
+tbl_create_1_msg['sender']['userID'] = "USER1"
+tbl_create_1_msg['sender']['wizUserID'] = r1_id
+tbl_create_1_msg['sender']['table_name'] = "One"
+tbl_c_1 = json.dumps(tbl_create_1_msg)
+conn.request("POST","", tbl_c_1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
+
+
+
+
+
 
 
 

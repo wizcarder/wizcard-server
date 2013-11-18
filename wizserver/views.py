@@ -132,8 +132,8 @@ class ParseMsgAndDispatch:
 	    return ret, None
 
 	if not self.msg_type_is_valid(self.msgType):
-	    ret[result] = 0
-	    ret[ignore] = 1
+	    ret['result'] = 0
+	    ret['ignore'] = 1
 	    return ret, None
 	    
         #valid user should exist
@@ -730,7 +730,7 @@ class ParseMsgAndDispatch:
         #tables is a smaller entity...get the tables as well instead of just count
         tables, count = VirtualTable.objects.lookup(lat, lng, 3)
         if count and not user.profile.is_ios():
-            notifResponse.notifTableLookup(count, tables)
+            notifResponse.notifTableLookup(count, user, tables)
 
         Notification.objects.mark_all_as_read(user)
 

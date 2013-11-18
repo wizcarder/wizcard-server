@@ -167,10 +167,10 @@ class NotifResponse(ResponseN):
             self.add_data_with_notif(out, self.NEARBY_USERS, count)
         return self.response
 
-    def notifTableLookup(self, count, tables):
+    def notifTableLookup(self, count, user, tables):
         out = None
         if tables:
-            out = VirtualTable.objects.serialize(tables)
+            out = VirtualTable.objects.serialize_split(tables, user)
             #AA:TODO: Not good if both dictionary have common names
             self.add_data_with_notif(out, self.NEARBY_TABLES, count)
         return self.response
