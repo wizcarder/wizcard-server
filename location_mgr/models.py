@@ -56,7 +56,10 @@ class LocationMgrManager(models.Manager):
             rows = wizlib.queryset_iterator(qs) 
             for row in rows:
                 key = wizlib.create_geohash(row.lat, row.lng)
-	        LocationMgr.objects.get_tree_from_type(row.tree_type)[key] = row.object_id
+                wizlib.ptree_insert(
+                        wizlib.modified_key(key, row.pk),
+                        LocationMgr.objects.get_tree_from_type(row.tree_type),
+                        row.object_id)
                 row.timer.get().start()
         except:
             return
@@ -67,19 +70,18 @@ class LocationMgrManager(models.Manager):
     def get_tree_from_type(self, tree_type):
 	return self.location_tree_handles[tree_type]
   
-    def lookup_by_key(self, tree_type, key, n, key_in_tree=True):
+    def lookup_by_key(self, tree_type, key, n):
 	tree = self.get_tree_from_type(tree_type)
         print 'lookup up {tree_type}'.format (tree_type=tree_type)
         result, count = wizlib.lookup_by_key(key, 
                                              tree, 
-                                             n,
-                                             key_in_tree)
+                                             n)
         #print 'looking up  gives result [{result}]'.format (result=result)
         return result, count
 
     def lookup_by_lat_lng(self, tree_type, lat, lng, n):
         key = wizlib.create_geohash(lat, lng)
-        return self.lookup_by_key(tree_type, key, n, False)
+        return self.lookup_by_key(tree_type, key, n)
 
     def print_trees(self, tree_type=None):
 	if tree_type == None:
@@ -117,35 +119,38 @@ class LocationMgr(models.Model):
             self.lng = lng
             updated = True
         if updated:
-            try:
-                #delete old guy
-                wizlib.delete_key(self.key, tree)
-            except:
-                #can happen when server is restarted
-                pass
+            #delete old guy
+            self.delete_from_tree()
             #add new guy
             newkey = wizlib.create_geohash(self.lat, self.lng)
             self.key = newkey
             self.save()
             #update tree with new key (and old id)
-            tree[newkey] = object_id
-        elif not tree.has_key(self.key):
-            tree[self.key] = object_id
+            self.insert_in_tree(),
+        #remove me. Should never happen
+        #elif not tree.has_key(self.key):
+        #    tree[self.key] = object_id
         
         #print 'current tree [{tree_type}.{tree}]'.format (tree_type=self.tree_type, tree=tree)
         return updated
 
-    def delete_key_from_tree(self):
+    def delete_from_tree(self):
         tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
-        wizlib.delete_key(
-                self.key,
+        wizlib.ptree_delete(
+                wizlib.modified_key(self.key, self.pk),
                 tree)
         print 'current tree [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
 
+    def insert_in_tree(self):
+        wizlib.ptree_insert(
+                wizlib.modified_key(self.key, self.pk),
+                LocationMgr.objects.get_tree_from_type(self.tree_type),
+                self.object_id)
+
     def delete(self, *args, **kwargs):
-        print 'DELETING TREE'
+        print 'deleting key {key}.{tree} from tree'.format (key=self.key, tree=self.tree_type)
         print 'tree before delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
-        self.delete_key_from_tree()
+        self.delete_from_tree()
         print 'tree after delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         super(LocationMgr, self).delete(*args, **kwargs)
 
@@ -159,7 +164,7 @@ class LocationMgr(models.Model):
         if self.timer.count():
             self.timer.get().start()
 
-def location_update_handler(**kwargs):
+def location_create_handler(**kwargs):
     kwargs.pop('signal', None)
     sender = kwargs.pop('sender')
     lat = kwargs.pop('lat')
@@ -177,8 +182,7 @@ def location_update_handler(**kwargs):
 
     newlocation.save()
     #update tree
-    tree = LocationMgr.objects.get_tree_from_type(newlocation.tree_type)
-    tree[key] = sender.pk
+    newlocation.insert_in_tree()
     #print 'current tree [{tree}]'.format (tree=tree)
     return newlocation
 
@@ -206,6 +210,6 @@ def timeout_callback_execute(e):
         } 
     timeout_callback[e.content_type.id](e)
 
-location.connect(location_update_handler, dispatch_uid='location_mgr.models.location_mgr')
+location.connect(location_create_handler, dispatch_uid='location_mgr.models.location_mgr')
 location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
 class_prepared.connect(LocationMgr.objects.init_from_db, dispatch_uid='location_mgr.models.location_mgr')

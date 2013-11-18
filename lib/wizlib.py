@@ -10,40 +10,39 @@ def create_geohash(lat, lng):
     print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
     return encode
 
-def lookup_by_key(key, tree, num_results, key_in_tree=True):
+def lookup_by_key(key, tree, num_results):
     print 'looking up tree [{tree}] using key [{key}]'.format (tree=tree, key=key)
     if not tree:
         return None, None
 
-    #AA:TODO: Kludge to dis-include self.key from the results
-    if key_in_tree:
-        #cache value
-        val = tree[key]
-        del tree[key]
-
     result, count =  lookup_closest_n_values(tree, key, num_results)
     print '{count} lookup result [{result}]'.format (count=count, result=result)
-
-    #add self back
-    if key_in_tree:
-        tree[key] = val
-
     return result, count
 
-def delete_key(key, tree):
+def modified_key(key, val):
+    mkey = ("%s.%s") % (key, val)
+    print 'modified key :{key}'.format(key=mkey)
+    return mkey
+
+
+def demodify_key(key):
+    return key.split(".")[0]
+
+def ptree_insert(key, tree, val):
+    tree[key] = val
+
+def ptree_delete(key, tree):
     try:
         del tree[key]
     except:
         pass
     print 'current tree [{tree}]'.format (tree=tree)
 
-
 def lookup_closest_n(tree, key, n):
     return tree.longest_common_prefix_item(key)
 
 def lookup_closest_n_values(tree, key, n):
     return tree.longest_common_prefix_value(key)
-
 
 #general purpose utils
 def convert_phone(phone):

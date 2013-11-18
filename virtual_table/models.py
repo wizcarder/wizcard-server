@@ -166,7 +166,7 @@ def vtree_entry_timeout_handler(**kwargs):
     key_list = kwargs.pop('key_list')
 
     for key in key_list:
-        wizlib.delete_key(key, vtree)
+        wizlib.ptree_delete(key, vtree)
 
 # Signal connections
 virtualtable_vtree_timeout.connect(vtree_entry_timeout_handler, 

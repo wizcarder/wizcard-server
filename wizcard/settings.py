@@ -15,11 +15,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wizcard',
         'USER': 'root',
-        'PASSWORD': 'go_WiZcArD#27',
-        #'PASSWORD': '',
+        #'PASSWORD': 'go_WiZcArD#27',
+        'PASSWORD': '',
         #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -192,7 +192,7 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 #AWS_SECRET_ACCESS_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
 #AWS_STORAGE_BUCKET_NAME = 'amsaha1234'
 AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
-AWS_SECRET_ACCESS_KEY = '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 '
+AWS_SECRET_ACCESS_KEY = '23wDEZPCxXTs0zVnxcznzDsoDzm4KWo0NMimWe+0'
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket'
 S3_URL = 'http://%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 STATIC_DIRECTORY = '/static/'
