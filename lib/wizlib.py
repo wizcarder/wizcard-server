@@ -21,7 +21,7 @@ def lookup_by_key(key, tree, num_results):
     return result, count
 
 def modified_key(key, val):
-    mkey = settings.MKEY_SEP.join((key, val))
+    mkey = settings.MKEY_SEP.join((key, str(val)))
     print 'modified key :{key}'.format(key=mkey)
     return mkey
 
@@ -48,18 +48,23 @@ def lookup_closest_n(tree, key, n):
     left = 0
     right = len(key)
     part = right
-    result, count = tree.longest_common_prefix_item(key[:part])
-    if count > n:
-        return (result, count)
 
     while right - left > 1:
 	part = (right + left)//2
         result, count = tree.longest_common_prefix_item(key[:part])
 	if count < n:
 	    right = part 
-	else:
+        elif count > n:
             left = part
+        else:
+            return result, count
+
 	res_array.append((result, count))
+
+    result1 = res_array.pop()
+    result2 = res_array.pop()
+
+    return result1, result2
 
     
 
