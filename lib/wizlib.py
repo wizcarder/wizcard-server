@@ -1,6 +1,7 @@
 import pdb
 import geohash
 import gc
+from django.conf import settings
 
 
 #Geohash related stuff
@@ -20,12 +21,12 @@ def lookup_by_key(key, tree, num_results):
     return result, count
 
 def modified_key(key, val):
-    mkey = ("%s.%s") % (key, val)
+    mkey = settings.MKEY_SEP.join((key, val))
     print 'modified key :{key}'.format(key=mkey)
     return mkey
 
 def demodify_key(key):
-    return key.split(".")[0]
+    return key.split(settings.MKEY_SEP)[0]
 
 def ptree_insert(key, tree, val):
     tree[key] = val
@@ -41,7 +42,26 @@ def ptree_delete(key, tree):
     return val
 
 def lookup_closest_n(tree, key, n):
-    return tree.longest_common_prefix_item(key)
+    #lookup using top half of key
+    res_array = []
+    count = 0
+    left = 0
+    right = len(key)
+    part = right
+    result, count = tree.longest_common_prefix_item(key[:part])
+    if count > n:
+        return (result, count)
+
+    while right - left > 1:
+	part = (right + left)//2
+        result, count = tree.longest_common_prefix_item(key[:part])
+	if count < n:
+	    right = part 
+	else:
+            left = part
+	res_array.append((result, count))
+
+    
 
 def lookup_closest_n_values(tree, key, n):
     return tree.longest_common_prefix_value(key)

@@ -148,6 +148,9 @@ PHONE_CHECK_MESSAGE = {
         'text':""
     }
 
+#seperator for modified key
+MKEY_SEP = '.'
+
 ROOT_URLCONF = 'wizcard.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
