@@ -71,13 +71,16 @@ class LocationMgrManager(models.Manager):
     def get_tree_from_type(self, tree_type):
 	return self.location_tree_handles[tree_type]
   
-    def lookup(self, tree, lat, lng, key, n):
-        result, count = wizlib.lookup(
-                            lat,
-                            lng,
-                            key,
-                            tree, 
-                            n)
+    def lookup(self, tree_type, lat, lng, n, key=None):
+	tree = LocationMgr.objects.get_tree_from_type(tree_type)
+        result, count = wizlib.lookup(tree,
+                                      lat,
+                                      lng,
+                                      n,
+                                      key)
+
+        if not count:
+            return result, count
         #print 'looking up  gives result [{result}]'.format (result=result)
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
@@ -140,11 +143,11 @@ class LocationMgr(models.Model):
 	#us. Even if we were to do a partwise lookup, it might still skew things
 	#depending on the sparsity of the tree
 	cached_val = self.delete_from_tree()
-        result, count = LocationMgr.objects.lookup(tree,
+        result, count = LocationMgr.objects.lookup(self.tree_type,
                                                    self.lat,
                                                    self.lng, 
-                                                   self.key, 
-                                                   n)
+                                                   n,
+                                                   self.key)
 	#add me back
 	if cached_val:
 	    self.insert_in_tree()

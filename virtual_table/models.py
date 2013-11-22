@@ -34,7 +34,7 @@ from notifications.models import notify, Notification
 class VirtualTableManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         tables = None
-        result, count = LocationMgr.objects.lookup_by_lat_lng(
+        result, count = LocationMgr.objects.lookup(
                             "VTREE",
                             lat,
                             lng,

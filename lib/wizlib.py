@@ -11,7 +11,7 @@ def create_geohash(lat, lng):
     print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
     return encode
 
-def lookup(lat, lng, key, tree, num_results):
+def lookup(tree, lat, lng, num_results, key=None):
     #print 'looking up tree [{tree}] using key [{key}]'.format (tree=tree, key=key)
     if not tree:
         return None, None

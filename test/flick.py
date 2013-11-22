@@ -8,8 +8,8 @@ import json
 import pdb
 import messages
 
-#server_url = "www.totastyle.com"
-server_url = "localhost"
+server_url = "www.totastyle.com"
+#server_url = "localhost"
 
 server_port = 8000
 

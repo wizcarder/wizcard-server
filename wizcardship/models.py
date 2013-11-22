@@ -272,7 +272,7 @@ class WizConnectionRequest(models.Model):
 class WizcardFlickManager(models.Manager):
     def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
-        result, count =  LocationMgr.objects.lookup_by_lat_lng(
+        result, count =  LocationMgr.objects.lookup(
                                 "WTREE",
                                 lat, 
                                 lng, 
