@@ -150,7 +150,7 @@ class NotifResponse(ResponseN):
         self.add_data_with_notif(out, self.FLICK_TIMEOUT)
         return self.response
 
-    def notifFlickedWizcards(self, count, user, flicked_wizcards):
+    def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):
         out = None
 	own_wizcard = user.wizcard
         if flicked_wizcards:

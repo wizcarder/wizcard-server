@@ -11,18 +11,18 @@ def create_geohash(lat, lng):
     print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
     return encode
 
-def lookup_by_key(key, tree, num_results):
-    print 'looking up tree [{tree}] using key [{key}]'.format (tree=tree, key=key)
+def lookup(lat, lng, key, tree, num_results):
+    #print 'looking up tree [{tree}] using key [{key}]'.format (tree=tree, key=key)
     if not tree:
         return None, None
-
-    result, count =  lookup_closest_n_values(tree, key, num_results)
-    print '{count} lookup result [{result}]'.format (count=count, result=result)
-    return result, count
+    if not key:
+        key = create_geohash(lat, lng)
+    result =  lookup_closest_n(tree, key, num_results)
+    print '{count} lookup result [{result}]'.format (count=result[1], result=result[0])
+    return result[0], result[1]
 
 def modified_key(key, val):
     mkey = settings.MKEY_SEP.join((key, str(val)))
-    print 'modified key :{key}'.format(key=mkey)
     return mkey
 
 def demodify_key(key):
@@ -38,38 +38,36 @@ def ptree_delete(key, tree):
         del tree[key]
     except:
         pass
-    print 'current tree [{tree}]'.format (tree=tree)
     return val
 
-def lookup_closest_n(tree, key, n):
+def lookup_closest_n(tree, key, n, value_only = True):
     #lookup using top half of key
-    res_array = []
+    result = None
     count = 0
     left = 0
     right = len(key)
     part = right
+    done = False
 
-    while right - left > 1:
-	part = (right + left)//2
-        result, count = tree.longest_common_prefix_item(key[:part])
+    while not done:
+	part = ((right + left - 1)//2) + 1
+        result, count = tree.longest_common_prefix_value(key[:part])
+        if part == right:
+            done = True
+
+        prev_result = result
+        prev_count = count
+
 	if count < n:
-	    right = part 
+	    right = part
         elif count > n:
             left = part
         else:
-            return result, count
+            break
+            
+    #one result is over and one is under. take the larger one
 
-	res_array.append((result, count))
-
-    result1 = res_array.pop()
-    result2 = res_array.pop()
-
-    return result1, result2
-
-    
-
-def lookup_closest_n_values(tree, key, n):
-    return tree.longest_common_prefix_value(key)
+    return (result, count) if count > prev_count else (prev_result, prev_count)
 
 #general purpose utils
 def convert_phone(phone):

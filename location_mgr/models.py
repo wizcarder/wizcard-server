@@ -11,6 +11,7 @@ from periodic.models import Periodic
 from django.db.models.signals import class_prepared
 from lib import wizlib
 from django_cron import Job
+import heapq
 import random
 import pdb
 
@@ -59,7 +60,7 @@ class LocationMgrManager(models.Manager):
                 wizlib.ptree_insert(
                         wizlib.modified_key(key, row.pk),
                         LocationMgr.objects.get_tree_from_type(row.tree_type),
-                        row.object_id)
+                        row.pk)
                 row.timer.get().start()
         except:
             return
@@ -70,18 +71,20 @@ class LocationMgrManager(models.Manager):
     def get_tree_from_type(self, tree_type):
 	return self.location_tree_handles[tree_type]
   
-    def lookup_by_key(self, tree_type, key, n):
-        print 'lookup up {tree_type}'.format (tree_type=tree_type)
-	tree = self.get_tree_from_type(tree_type)
-        result, count = wizlib.lookup_by_key(key,
-                                             tree, 
-                                             n)
+    def lookup(self, tree, lat, lng, key, n):
+        result, count = wizlib.lookup(
+                            lat,
+                            lng,
+                            key,
+                            tree, 
+                            n)
         #print 'looking up  gives result [{result}]'.format (result=result)
-        return result, count
+        h = []
+        for l in LocationMgr.objects.filter(id__in=result):
+            heapq.heappush(h, (l.distance_from(lat, lng), l.object_id))
 
-    def lookup_by_lat_lng(self, tree_type, lat, lng, n):
-        key = wizlib.create_geohash(lat, lng)
-        return self.lookup_by_key(tree_type, key, n)
+        h_result = heapq.nsmallest(n, h)
+        return [r[1] for r in h_result], count
 
     def print_trees(self, tree_type=None):
 	if tree_type == None:
@@ -111,7 +114,6 @@ class LocationMgr(models.Model):
     def do_update(self, lat, lng):
 	tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
         updated = False
-        object_id = self.object_id
         if self.lat != lat:
             self.lat = lat
             updated = True
@@ -127,10 +129,6 @@ class LocationMgr(models.Model):
             self.save()
             #update tree with new key (and old id)
             self.insert_in_tree(),
-        #remove me. Should never happen
-        #elif not tree.has_key(self.key):
-        #    tree[self.key] = object_id
-        
         #print 'current tree [{tree_type}.{tree}]'.format (tree_type=self.tree_type, tree=tree)
         return updated
 
@@ -142,9 +140,11 @@ class LocationMgr(models.Model):
 	#us. Even if we were to do a partwise lookup, it might still skew things
 	#depending on the sparsity of the tree
 	cached_val = self.delete_from_tree()
-        result, count = wizlib.lookup_by_key(self.key, 
-                                             tree, 
-                                             n)
+        result, count = LocationMgr.objects.lookup(tree,
+                                                   self.lat,
+                                                   self.lng, 
+                                                   self.key, 
+                                                   n)
 	#add me back
 	if cached_val:
 	    self.insert_in_tree()
@@ -157,7 +157,7 @@ class LocationMgr(models.Model):
         val = wizlib.ptree_delete(
 			wizlib.modified_key(self.key, self.pk),
 			tree)
-        print 'current tree [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
+        print 'post deleted tree: [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
 	return val
 
     def insert_in_tree(self):
@@ -165,8 +165,8 @@ class LocationMgr(models.Model):
         wizlib.ptree_insert(
                 wizlib.modified_key(self.key, self.pk),
                 tree,
-                self.object_id)
-        print 'current tree [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
+                self.pk)
+        print 'post inset tree: [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
 
     def delete(self, *args, **kwargs):
         print 'deleting key {key}.{tree} from tree'.format (key=self.key, tree=self.tree_type)
@@ -184,6 +184,10 @@ class LocationMgr(models.Model):
     def reset_timer(self):
         if self.timer.count():
             self.timer.get().start()
+
+    def distance_from(self, lat, lng):
+        return random.random()
+
 
 def location_create_handler(**kwargs):
     kwargs.pop('signal', None)

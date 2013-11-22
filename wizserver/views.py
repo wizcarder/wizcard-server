@@ -721,7 +721,8 @@ class ParseMsgAndDispatch:
         #AA:TODO: Use come caching framework to cache these
         flicked_wizcards, count = WizcardFlick.objects.lookup(lat, lng, 3)
         if count and not user.profile.is_ios():
-            notifResponse.notifFlickedWizcards(count, user, flicked_wizcards)
+            notifResponse.notifFlickedWizcardsLookup(count, 
+                    user, flicked_wizcards)
 
         users, count = user.profile.lookup(3)
         if count and not user.profile.is_ios():
