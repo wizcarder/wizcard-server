@@ -719,17 +719,23 @@ class ParseMsgAndDispatch:
                 return notifResponse.response
 
         #AA:TODO: Use come caching framework to cache these
-        flicked_wizcards, count = WizcardFlick.objects.lookup(lat, lng, 3)
+        flicked_wizcards, count = WizcardFlick.objects.lookup(
+                lat, 
+                lng, 
+                settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count and not user.profile.is_ios():
             notifResponse.notifFlickedWizcardsLookup(count, 
                     user, flicked_wizcards)
 
-        users, count = user.profile.lookup(3)
+        users, count = user.profile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count and not user.profile.is_ios():
             notifResponse.notifUserLookup(count, users)
 
         #tables is a smaller entity...get the tables as well instead of just count
-        tables, count = VirtualTable.objects.lookup(lat, lng, 3)
+        tables, count = VirtualTable.objects.lookup(
+                lat, 
+                lng, 
+                settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count and not user.profile.is_ios():
             notifResponse.notifTableLookup(count, user, tables)
 
@@ -828,7 +834,7 @@ class ParseMsgAndDispatch:
         #update location in ptree
         profile.create_or_update_location(self.sender['lat'], 
                                           self.sender['lng'])
-        lookup_result, count = profile.lookup(3)
+        lookup_result, count = profile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             users_s = UserProfile.objects.serialize(lookup_result)
             self.response.add_data("queryResult", users_s)
@@ -893,7 +899,10 @@ class ParseMsgAndDispatch:
         return self.response.response
 
     def processQueryTableByLocation(self, lat, lng):
-        tables, count = VirtualTable.objects.lookup(lat=lat, lng=lng, n=3)
+        tables, count = VirtualTable.objects.lookup(
+                lat=lat, 
+                lng=lng, 
+                n=DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             tables_s = VirtualTable.objects.serialize(tables)
             self.response.add_data("queryResult", tables_s)
@@ -946,7 +955,7 @@ class ParseMsgAndDispatch:
             self.response.error_response(err.LOCATION_UNKOWN)
 	    return self.response.response
         
-	flick_card = WizcardFlick.objects.check_duplicates(lat, lng)
+	flick_card = wizcard.check_flick_duplicates(lat, lng)
 
 	if flick_card:
 	    flick_card.location.get().reset_timer()

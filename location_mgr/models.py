@@ -142,7 +142,10 @@ class LocationMgr(models.Model):
 	#remove self.key from the tree. Otherwise this skews the resuls towards
 	#us. Even if we were to do a partwise lookup, it might still skew things
 	#depending on the sparsity of the tree
-	cached_val = self.delete_from_tree()
+        try:
+	    cached_val = self.delete_from_tree()
+        except:
+            cached_val = None
         result, count = LocationMgr.objects.lookup(self.tree_type,
                                                    self.lat,
                                                    self.lng, 
@@ -189,7 +192,7 @@ class LocationMgr(models.Model):
             self.timer.get().start()
 
     def distance_from(self, lat, lng):
-        return random.random()
+        return wizlib.haversine(self.lng, self.lat, lng, lat)
 
 
 def location_create_handler(**kwargs):

@@ -125,7 +125,7 @@ class UserProfile(models.Model):
 	    wf = wizcard.serialize_wizcardflicks()
 	    s['wizcard_flicks'] = wf
 
-        tables = self.user.tables
+        tables = self.user.tables.all()
 	if tables.count():
 	    # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(tables, self.user)

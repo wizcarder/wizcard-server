@@ -161,7 +161,7 @@ card_flick = {
         "msgType" : "card_flick",
     },
     "sender" : {
-        "userID" : "USER3",
+        "userID" : "",
         "wizUserID" : "",
         "lat" : 37.785834,
         "lng" : -122.406415,
@@ -178,8 +178,8 @@ get_cards_u = {
         "msgType" : "get_cards",
     },
     "sender" : {
-        "lat" : 37.785838,
-        "lng" : -122.406419,
+        #"lat" : 37.785838,
+        #"lng" : -122.406419,
         "deviceType": "android",
         "userID" : "",
         "wizUserID" : ""

@@ -110,8 +110,13 @@ CACHES = {
     }
 }
 
+DEFAULT_MAX_LOOKUP_RESULTS = 20
+
 # Number of seconds of inactivity before a user is marked offline
 USER_ONLINE_TIMEOUT = 10
+
+#radius for agglomerating flicked cards (in meters)
+WIZCARD_FLICK_AGGLOMERATE_RADIUS = 1000
 
 # Number of seconds that we will keep track of inactive users for before 
 # their last seen is removed from the cache

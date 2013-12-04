@@ -30,6 +30,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest, Http404
 from notifications.signals import notify
 from django.core.files.storage import default_storage
+from django.conf import settings
 import operator
 from django.db.models import Q
 from lib import wizlib
@@ -225,6 +226,13 @@ class Wizcard(models.Model):
         for wizcard in self.wizconnections.all():
             Wizcard.objects.update_wizconnection(self, wizcard)
 
+    def check_flick_duplicates(self, lat, lng):
+	#check if nearby cards can be combined...do we need to adjust centroid and all that ?
+        for w in self.flicked_cards.all():
+            if wizlib.haversine(w.lng, w.lat, lng, lat) < settings.WIZCARD_FLICK_AGGLOMERATE_RADIUS:
+                return w
+        return None
+
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
     company = models.CharField(max_length=40, blank=True)
@@ -270,6 +278,7 @@ class WizConnectionRequest(models.Model):
         self.delete()
 
 class WizcardFlickManager(models.Manager):
+
     def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
         result, count =  LocationMgr.objects.lookup(
@@ -282,18 +291,12 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def check_duplicates(self, lat, lng):
-	#check if nearby cards can be combined...do we need to adjust centroid and all that ?
-	#AA:TODO: For now just check on exact location
-	try:
-	    return self.get(lat=lat, lng=lng)
-	except:
-	    return None
-
     def serialize(self, flicked_wizcards):
         return serialize(wizcards, **fields.wizcard_template)
 
     def serialize_split(self, my_wizcard, flicked_wizcards):
+        #AA:TODO No need to send own/connected full card data..just the id should be enough
+        # probably should send some flick related info for these
 	s = dict()
 	own, connected, others = self.split_wizcard_flick(my_wizcard, flicked_wizcards)
         if own:
@@ -304,7 +307,6 @@ class WizcardFlickManager(models.Manager):
             s['others'] = Wizcard.objects.serialize(others)
 
 	return s
-	
 
     def split_wizcard_flick(self, mine, flicked_wizcards):
         own = []
