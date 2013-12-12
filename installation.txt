@@ -8,6 +8,7 @@ geohash
 nexmo
 gunicorn
 libreadline (for gunicorn)
+colander
 
 ==
 SQL password : go_WiZcArD#27

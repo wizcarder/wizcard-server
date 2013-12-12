@@ -41,6 +41,7 @@ import random
 from django.core.cache import cache
 from django.conf import settings
 from nexmomessage import NexmoMessage
+from wizcard import message_format as message_format
 
 
 #logger = logging.getLogger(__name__)
@@ -54,6 +55,7 @@ class WizRequestHandler(View):
 
         # process request
         ret = self.processIncomingMessage(message)
+        print 'sending response to app', ret
         #send response
         return HttpResponse(json.dumps(ret))
 
@@ -64,8 +66,9 @@ class WizRequestHandler(View):
         self.request = request
 
         # Dispatch to appropriate message handler
-        pdispatch = ParseMsgAndDispatch(request)
+        pdispatch = ParseMsgAndDispatch(self.request)
         ret =  pdispatch.processIncomingMessage()
+        print 'sending response to app', ret
         #send response
         return HttpResponse(json.dumps(ret))
 
@@ -73,16 +76,20 @@ class WizRequestHandler(View):
 class ParseMsgAndDispatch:
 
     def __init__(self, request):
+        msg = json.loads(request.body)
         self.request = request
-        msg = json.loads(self.request.body)
-        self.header = msg['header']
-        self.sender = msg['sender']
+        #validate header
         try:
-            self.receiver = msg['receiver']
+            self.header = MsgHeader(message_format.CommonHeader().deserialize(msg['header']))
+        except Colander.Invalid:
+	    return err.IGNORE
         except:
+            #AA:TODO - Some kind of loggings ?
             pass
-        self.msgType = self.header['msgType']
 
+class MsgHdr(ParseMsgAndDispatch):
+    def __init__(self, hdr):
+        #invoke the appropriate handler based on message type
         print '{sender} sent "{type}"'.format (sender=self.sender['userID'], type=self.header['msgType'])
         self.msgHandlers = {
             'signup'                        : self.processSignUp,
@@ -150,7 +157,6 @@ class ParseMsgAndDispatch:
         return ret, user
 
     def processIncomingMessage(self):
-   
 	do_process, user = self.validateIncomingMessage()
 	if not do_process['result']:
 	    if do_process['ignore']:
@@ -167,9 +173,12 @@ class ParseMsgAndDispatch:
 
         #do the user tracking here
         if not self.response.is_error_response():
-            current_user = self.request.user
+            try:
+                current_user = self.request.user.username
+            except:
+                current_user = user
             now = datetime.datetime.now()
-            cache.set('seen_%s' % (current_user.username), now, 
+            cache.set('seen_%s' % (current_user), now, 
                       settings.USER_LASTSEEN_TIMEOUT)
 
         return retval

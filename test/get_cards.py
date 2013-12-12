@@ -26,16 +26,17 @@ def handle_response(connection):
 
 get_cards_u1_msg = messages.get_cards_u
 get_cards_u1_msg['sender']['userID'] = "USER1"
-get_cards_u1_msg['sender']['wizUserID'] = 1
+get_cards_u1_msg['sender']['wizUserID'] = 3
 gcu1 = json.dumps(get_cards_u1_msg)
 conn.request("POST","", gcu1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
+pdb.set_trace()
 
 
 get_cards_u3_msg = messages.get_cards_u
 get_cards_u3_msg['sender']['userID'] = "USER3"
-get_cards_u3_msg['sender']['wizUserID'] = 3
+get_cards_u3_msg['sender']['wizUserID'] = 5
 gcu3 = json.dumps(get_cards_u3_msg)
 conn.request("POST","", gcu3)
 # Parse and dump the JSON response from server

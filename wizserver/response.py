@@ -16,17 +16,9 @@ class errMsg:
 
 #This is the basic Response class used to send simple result and data
 class Response:
-    response = {
-        "result" : {
-        },
-        "data" : {
-        }
-    }
 
     def __init__(self):
-        self.response['result'].clear()
-        self.response['data'].clear()
-        self.response['result']['Error'] = 0
+        self.response = dict(result=dict(Error=0, Description=""), data=dict())
 
     def add_result(self, k, v):
         self.response['result'][k] = v
@@ -46,33 +38,22 @@ class Response:
         
 #subclass of above. This handles arrays of Data and used by Notifications
 class ResponseN(Response):
-    response = {
-        "result" : {
-        },
-        "data" : {
-            "numElements" : 0,
-            "elementList" : []
-        }
-    }
-
-    def clear(self):
-        self.response['result']['Error'] = "0"
-        self.response['result']['Description'] = "Ok"
-        self.response['data'] = {}
+    def __init__(self):
+        Response.__init__(self)
         self.response['data']['numElements'] = 0
         self.response['data']['elementList'] = []
-        
-    def add_data_array(self, d, count=1):
+
+    def add_data_array(self, d):
         a = dict(data=d)
         self.response['data']['elementList'].append(a)
-        self.response['data']['numElements'] += count
+        self.response['data']['numElements'] += 1
         return a
 
     def add_notif_type(self, d, type):
         d['notifType'] = type
 
-    def add_data_with_notif(self, d, n, c=1):
-        a = self.add_data_array(d, c)
+    def add_data_with_notif(self, d, n):
+        a = self.add_data_array(d)
         self.add_notif_type(a, n)
     
     def add_data_to_dict(self, dict, k, v):
@@ -93,6 +74,7 @@ class NotifResponse(ResponseN):
     FLICK_TIMEOUT       = 9
 
     def __init__(self, notifications):
+        ResponseN.__init__(self)
         notifHandler = {
             Notification.WIZREQ_U 	     : self.notifWizConnectionU,
             Notification.WIZREQ_T  	     : self.notifWizConnectionT,
@@ -103,7 +85,6 @@ class NotifResponse(ResponseN):
             Notification.WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
             Notification.WIZ_CARD_FLICK_TIMEOUT     : self.notifWizcardFlickTimeout
         }
-        self.clear()
 	for notification in notifications:
 	    notifHandler[notification.verb](notification)
 	    
@@ -156,7 +137,7 @@ class NotifResponse(ResponseN):
         if flicked_wizcards:
 	    wizcards = map(lambda x: x.wizcard, flicked_wizcards)
             out = WizcardFlick.objects.serialize_split(user.wizcard, wizcards)
-            self.add_data_with_notif(out, self.FLICKED_WIZCARD, count)
+            self.add_data_with_notif(out, self.FLICKED_WIZCARD)
         return self.response
 
     def notifUserLookup(self, count, users):
@@ -164,7 +145,7 @@ class NotifResponse(ResponseN):
         if users:
             out = UserProfile.objects.serialize(users)
             #AA:TODO: Not good if both dictionary have common names
-            self.add_data_with_notif(out, self.NEARBY_USERS, count)
+            self.add_data_with_notif(out, self.NEARBY_USERS)
         return self.response
 
     def notifTableLookup(self, count, user, tables):
@@ -172,7 +153,7 @@ class NotifResponse(ResponseN):
         if tables:
             out = VirtualTable.objects.serialize_split(tables, user)
             #AA:TODO: Not good if both dictionary have common names
-            self.add_data_with_notif(out, self.NEARBY_TABLES, count)
+            self.add_data_with_notif(out, self.NEARBY_TABLES)
         return self.response
 
 

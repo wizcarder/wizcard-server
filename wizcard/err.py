@@ -15,3 +15,7 @@ PHONE_CHECK_CHALLENGE_RESPONSE_DENIED = {'errno':9, 'str':"keys do not match"}
 NEXMO_SMS_SEND_FAILED = {'errno':10, 'str':"SMS send failed"}
 
 
+
+IGNORE = {'result':1, 'ignore':1, 'errStr':""}
+
+

@@ -7,10 +7,18 @@ import colander
 import limone
 
 class CommonHeader(colander.MappingSchema):
-    msgType = colander.String(),
-              validator=colander.OneOf(['signup', 'login', 'phone_check_req', 'phone_check_resp'])
-    deviceType = colander.String(),
-              validator=colander.OneOf(['ios', 'android'])
+    msgType = colander.SchemaNode(colander.String(),
+            validator=colander.OneOf(['signup', 'login', 'register', 'phone_check_req', 'phone_check_resp']))
+    deviceID = colander.SchemaNode(colander.String())
     
-class BaseMessage(colander.MappingSchema):
+class CommonSender(colander.MappingSchema):
+    userID = colander.SchemaNode(colander.String())
+
+class RegSender(CommonSender):
+    deviceType = colander.SchemaNode(colander.String(),
+              validator=colander.OneOf(['ios', 'android']))
+
+class RegisterMsg(colander.MappingSchema):
+    header = CommonHeader()
+    sender = RegSender()
     
