@@ -11,7 +11,7 @@ HANDLER = 1
 
 class CommonHeaderSchema(colander.MappingSchema):
     msgType = colander.SchemaNode(colander.String(),
-            validator=colander.OneOf(['signup', 'login', 'register', 'phone_check_req', 'phone_check_resp']))
+            validator=colander.OneOf(mvh.keys()))
     deviceID = colander.SchemaNode(colander.String())
     
 class CommonSenderSchema(colander.MappingSchema):

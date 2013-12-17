@@ -54,15 +54,14 @@ class WizRequestHandler(View):
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
         response =  pdispatch.dispatch()
-        print 'sending response to app', ret
+        print 'sending response to app', response
         #send response
         return response.respond()
 
 class ParseMsgAndDispatch:
     def __init__(self, request):
-        self.request = json.loads(request.body)
         #validate header
-        self.header = Header(self.request)
+        self.header = Header(request)
 
     def dispatch(self):
 	return self.header.process()
@@ -80,8 +79,11 @@ class Header(ParseMsgAndDispatch):
     def __init__(self, req):
         #invoke the appropriate handler based on message type
 	try:
+            #raw message
             self.request = req
-	    self.header = message_format.CommonHeaderSchema().deserialize(req['header'])
+            #json deserialized
+            self.msg = json.loads(self.request.body)
+	    self.header = message_format.CommonHeaderSchema().deserialize(self.msg['header'])
 	    self.msg_type = self.header['msgType']
 
 	    self.valid = True
@@ -95,7 +97,7 @@ class Header(ParseMsgAndDispatch):
 
 	handler = msgTypesValidatorsAndHandlers[self.header['msgType']][message_format.HANDLER]
 	validator = msgTypesValidatorsAndHandlers[self.header['msgType']][message_format.VALIDATOR]
-        handle = handler(self.request, validator)
+        handle = handler(self.msg, validator, self.request)
         #print '{sender} sent "{type}"'.format (sender=des.['sender']['userID'], type=self.msg_type)
 	response = handle.process()
 
@@ -121,11 +123,13 @@ class Header(ParseMsgAndDispatch):
 
 
 class SignUp(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
+        #req : Original http req/body
+        #msg : json serialized body - Wizcard portion of message
         self.request = req
 
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -162,11 +166,13 @@ class SignUp(ParseMsgAndDispatch):
         return self.response
 
 class Login(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
+        #req : Original http req/body
+        #msg : json serialized body - Wizcard portion of message
         self.request = req
 
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -224,9 +230,9 @@ class Login(ParseMsgAndDispatch):
         return self.response
 
 class PhoneCheckRequest(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
             self.sender = des['sender']
             self.valid = True
         except colander.Invalid:
@@ -278,9 +284,9 @@ class PhoneCheckRequest(ParseMsgAndDispatch):
         return self.response
 	
 class PhoneCheckResponse(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -317,9 +323,9 @@ class PhoneCheckResponse(ParseMsgAndDispatch):
         return self.response
 
 class Register(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(req)
+            des = self.dummy_validator(msg)
             self.request = req
 	    self.sender = des['sender']
 	    self.valid = True
@@ -432,12 +438,12 @@ class Register(ParseMsgAndDispatch):
         if rolodex_s:
             self.response.add_data("rolodex", rolodex_s)
 
-        self.response
+        return self.response
 
 class LocationUpdate(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -455,9 +461,9 @@ class LocationUpdate(ParseMsgAndDispatch):
         self.response
 
 class NotificationsGet(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -514,9 +520,9 @@ class NotificationsGet(ParseMsgAndDispatch):
         return notifResponse
 
 class WizcardEdit(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -649,12 +655,13 @@ class WizcardEdit(ParseMsgAndDispatch):
             wizcard.flood()
 
         self.response.add_data("wizCardID", wizcard.pk)
-        self.response
+
+        return self.response
 
 class WizcardAccept(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
@@ -681,12 +688,12 @@ class WizcardAccept(ParseMsgAndDispatch):
                     verb='accepted wizcard', target=wizcard1, 
                     action_object = wizcard2)
 
-        self.response
+        return self.response
 
 class WizConnectionRequestDecline(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
@@ -717,9 +724,9 @@ class WizConnectionRequestDecline(ParseMsgAndDispatch):
         return self.response
 
 class WizcardRolodexDelete(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
@@ -747,9 +754,9 @@ class WizcardRolodexDelete(ParseMsgAndDispatch):
         return self.response
 
 class WizcardFlick(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -796,9 +803,9 @@ class WizcardFlick(ParseMsgAndDispatch):
         return self.response
 
 class WizcardFlickAccept(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
@@ -829,9 +836,9 @@ class WizcardFlickAccept(ParseMsgAndDispatch):
         return self.response
 
 class WizcardSendToContacts(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
@@ -885,9 +892,9 @@ class WizcardSendToContacts(ParseMsgAndDispatch):
         return self.response
 
 class WizcardSendUnTrusted(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
@@ -919,7 +926,7 @@ class WizcardSendUnTrusted(ParseMsgAndDispatch):
         return self.response
 
 class WizcardSendToFutureContacts(ParseMsgAndDispatch):
-    def __init__(self, phones, sender):
+    def __init__(self, msg, validator, req=None):
         self.phones = phones
         self.sender = sender
 
@@ -949,9 +956,9 @@ class WizcardSendToFutureContacts(ParseMsgAndDispatch):
         return self.response
 
 class UserQueryByLocation(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -978,9 +985,9 @@ class UserQueryByLocation(ParseMsgAndDispatch):
         return self.response
 
 class UserQueryByName(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.receiver = des['receiver']
 	    self.valid = True
         except colander.Invalid:
@@ -1018,9 +1025,9 @@ class UserQueryByName(ParseMsgAndDispatch):
         return self.response
 
 class TableQuery(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -1042,7 +1049,7 @@ class TableQuery(ParseMsgAndDispatch):
         else:
             return self.securityException()
 
-        self.response
+        return self.response
 
     def QueryTableByName(self, name):
         try:
@@ -1073,9 +1080,9 @@ class TableQuery(ParseMsgAndDispatch):
         return self.response
 
 class TableDetails(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -1106,9 +1113,9 @@ class TableDetails(ParseMsgAndDispatch):
         return self.response
 
 class TableCreate(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -1148,9 +1155,9 @@ class TableCreate(ParseMsgAndDispatch):
         return self.response
 
 class TableJoin(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -1186,9 +1193,9 @@ class TableJoin(ParseMsgAndDispatch):
         return self.response
 
 class TableLeave(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:
@@ -1210,7 +1217,7 @@ class TableLeave(ParseMsgAndDispatch):
         return self.response
 
 class TableDestroy(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
             des = self.dummy_validator(req)
 	    self.sender = des['sender']
@@ -1238,9 +1245,9 @@ class TableDestroy(ParseMsgAndDispatch):
         return self.response
 
 class TableRename(ParseMsgAndDispatch):
-    def __init__(self, req, validator):
+    def __init__(self, msg, validator, req=None):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(msg)
 	    self.sender = des['sender']
 	    self.valid = True
         except colander.Invalid:

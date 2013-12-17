@@ -22,8 +22,12 @@ class Response:
     def __init__(self):
         self.response = dict(result=dict(Error=0, Description=""), data=dict())
 
-    def send_response(self):
-        return HttpResponse(json.dumps(self.response))
+    def __repr__(self):
+        return json.dumps(self.response)
+
+    def respond(self):
+        ret = json.dumps(self.response) if self.response else None
+        return HttpResponse(ret)
 
     def add_result(self, k, v):
         self.response['result'][k] = v
@@ -37,6 +41,7 @@ class Response:
         self.response
 
     def ignore(self):
+        self.response = None
         return self
     
     def is_error_response(self):
