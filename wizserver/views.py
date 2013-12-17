@@ -41,6 +41,7 @@ import random
 from django.core.cache import cache
 from django.conf import settings
 from nexmomessage import NexmoMessage
+import colander
 from wizcard import message_format as message_format
 
 
@@ -84,7 +85,7 @@ class Header(ParseMsgAndDispatch):
 	    self.msg_type = self.header['msgType']
 
 	    self.valid = True
-        except Colander.Invalid:
+        except:
             self.valid = False
 
     def process(self):
@@ -92,9 +93,9 @@ class Header(ParseMsgAndDispatch):
             response = Response()
             return response.ignore()
 
-	handler = message_format.msgTypesValidatorsAndHandlers[self.header['msgType'][message_format.HANDLER]
-	validator = message_format.msgTypesValidatorsAndHandlers[self.header['msgType'][message_format.VALIDATOR]
-        handle = handler(self.req, validator)
+	handler = msgTypesValidatorsAndHandlers[self.header['msgType']][message_format.HANDLER]
+	validator = msgTypesValidatorsAndHandlers[self.header['msgType']][message_format.VALIDATOR]
+        handle = handler(self.request, validator)
         #print '{sender} sent "{type}"'.format (sender=des.['sender']['userID'], type=self.msg_type)
 	response = handle.process()
 
@@ -127,7 +128,7 @@ class SignUp(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
             self.valid = False
 
         self.response = Response()
@@ -168,7 +169,7 @@ class Login(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
             self.valid = False
 
         self.response = Response()
@@ -186,7 +187,7 @@ class Login(ParseMsgAndDispatch):
         try:
             user = User.objects.get(username=username)
         except ObjectDoesNotExist:
-            self.
+            self.response.error_response(err.USER_DOESNT_EXIST)
             return self.response
 
         #cross verify userID
@@ -228,7 +229,7 @@ class PhoneCheckRequest(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
             self.sender = des['sender']
             self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -282,7 +283,7 @@ class PhoneCheckResponse(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -318,10 +319,11 @@ class PhoneCheckResponse(ParseMsgAndDispatch):
 class Register(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(req)
+            self.request = req
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -438,7 +440,7 @@ class LocationUpdate(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -458,7 +460,7 @@ class NotificationsGet(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -517,7 +519,7 @@ class WizcardEdit(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -649,14 +651,14 @@ class WizcardEdit(ParseMsgAndDispatch):
         self.response.add_data("wizCardID", wizcard.pk)
         self.response
 
-class WizcardAccept(self, sender):
+class WizcardAccept(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -681,14 +683,14 @@ class WizcardAccept(self, sender):
 
         self.response
 
-class WizConnectionRequestDecline(self, sender):
+class WizConnectionRequestDecline(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -714,14 +716,14 @@ class WizConnectionRequestDecline(self, sender):
 
         return self.response
 
-class WizcardRolodexDelete(self, sender):
+class WizcardRolodexDelete(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -750,7 +752,7 @@ class WizcardFlick(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -793,14 +795,14 @@ class WizcardFlick(ParseMsgAndDispatch):
         self.response.add_data("flickCardID", flick_card.pk)
         return self.response
 
-class WizcardFlickAccept(self, sender):
+class WizcardFlickAccept(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -826,14 +828,14 @@ class WizcardFlickAccept(self, sender):
 
         return self.response
 
-class WizcardSendToContacts(self, sender):
+class WizcardSendToContacts(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -882,14 +884,14 @@ class WizcardSendToContacts(self, sender):
         self.response.add_data("count", count)
         return self.response
 
-class WizcardSendUnTrusted(self, sender):
+class WizcardSendUnTrusted(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.receiver = des['receiver']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -916,14 +918,10 @@ class WizcardSendUnTrusted(self, sender):
 
         return self.response
 
-class WizcardSendToFutureContacts(self, phones, sender):
-    def __init__(self, req, validator):
-        try:
-            des = self.dummy_validator(self.request)
-	    self.sender = des['sender']
-	    self.valid = True
-        except Colander.Invalid:
-	    self.valid = False
+class WizcardSendToFutureContacts(ParseMsgAndDispatch):
+    def __init__(self, phones, sender):
+        self.phones = phones
+        self.sender = sender
 
         self.response = Response()
 
@@ -931,7 +929,7 @@ class WizcardSendToFutureContacts(self, phones, sender):
         if not self.valid:
             return self.response.ignore()
 
-        for phone in phones:
+        for phone in self.phones:
             username = wizlib.convert_phone(phone)
             #create a dummy user using the phone number as userID
             try:
@@ -956,7 +954,7 @@ class UserQueryByLocation(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -979,13 +977,13 @@ class UserQueryByLocation(ParseMsgAndDispatch):
 
         return self.response
 
-class UserQueryByName(self, sender):
+class UserQueryByName(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
             des = self.dummy_validator(self.request)
 	    self.receiver = des['receiver']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -1025,7 +1023,7 @@ class TableQuery(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -1080,7 +1078,7 @@ class TableDetails(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -1113,7 +1111,7 @@ class TableCreate(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -1155,7 +1153,7 @@ class TableJoin(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -1193,7 +1191,7 @@ class TableLeave(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -1214,10 +1212,10 @@ class TableLeave(ParseMsgAndDispatch):
 class TableDestroy(ParseMsgAndDispatch):
     def __init__(self, req, validator):
         try:
-            des = self.dummy_validator(self.request)
+            des = self.dummy_validator(req)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -1245,7 +1243,7 @@ class TableRename(ParseMsgAndDispatch):
             des = self.dummy_validator(self.request)
 	    self.sender = des['sender']
 	    self.valid = True
-        except Colander.Invalid:
+        except colander.Invalid:
 	    self.valid = False
 
         self.response = Response()
@@ -1268,6 +1266,34 @@ class TableRename(ParseMsgAndDispatch):
             #shouldn't/couldn't happen
         
 	return self.response
+
+msgTypesValidatorsAndHandlers = {
+    'signup'                      : (message_format.SignupSchema, SignUp),
+    'login'                       : (message_format.LoginSchema, Login),
+    'phone_check_req'             : (message_format.PhoneCheckRequestSchema, PhoneCheckRequest),
+    'phone_check_rsp'             : (message_format.PhoneCheckResponseSchema, PhoneCheckResponse),
+    'register'                    : (message_format.RegisterSchema,Register),
+    'current_location'            : (message_format.LocationUpdateSchema, LocationUpdate),
+    'get_card'                    : (message_format.NotificationsGetSchema, NotificationsGet),
+    'edit_card'                   : (message_format.WizcardEditSchema, WizcardEdit),
+    'add_notification_card'       : (message_format.WizcardAcceptSchema, WizcardAccept),
+    'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, WizConnectionRequestDecline),
+    'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, WizcardRolodexDelete),
+    'card_flick'                  : (message_format.WizcardFlickSchema, WizcardFlick),
+    'card_flick_accept'           : (message_format.WizcardFlickAcceptSchema, WizcardFlickAccept),
+    'send_card_to_contacts'       : (message_format.WizcardSendToContactsSchema, WizcardSendToContacts),
+    'send_card_to_user'           : (message_format.WizcardSendUnTrustedSchema, WizcardSendUnTrusted),
+    'send_card_to_future_contacts': (message_format.WizcardSendToFutureContactsSchema, WizcardSendToFutureContacts),
+    'find_users_by_location'      : (message_format.UserQueryByLocationSchema, UserQueryByLocation),
+    'send_query_user'             : (message_format.UserQueryByNameSchema, UserQueryByName),
+    'show_table_list'             : (message_format.TableQuerySchema, TableQuery),
+    'table_details'               : (message_format.TableDetailsSchema, TableDetails),
+    'create_table'                : (message_format.TableCreateSchema, TableCreate),
+    'join_table'                  : (message_format.TableJoinSchema, TableJoin),
+    'leave_table'                 : (message_format.TableLeaveSchema, TableLeave),
+    'destroy_table'               : (message_format.TableDestroySchema, TableDestroy),
+    'rename_table'                : (message_format.TableRenameSchema, TableRename)
+}
 
 
 wizrequest_handler = WizRequestHandler.as_view()
