@@ -47,186 +47,147 @@ from wizcard import message_format as message_format
 #logger = logging.getLogger(__name__)
 
 class WizRequestHandler(View):
-    parsed_msg = {}
-
-    def get(self, request, *args, **kwargs):
-        message = msg_test.get_cards1
-        #msg = json.loads(message)
-
-        # process request
-        ret = self.processIncomingMessage(message)
-        print 'sending response to app', ret
-        #send response
-        return HttpResponse(json.dumps(ret))
-
-    def test(self, request):
-        return HttpResponse("ok")
-
     def post(self, request, *args, **kwargs):
         self.request = request
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        ret =  pdispatch.processIncomingMessage()
+        response =  pdispatch.dispatch()
         print 'sending response to app', ret
         #send response
-        return HttpResponse(json.dumps(ret))
-
+        return response.respond()
 
 class ParseMsgAndDispatch:
-
     def __init__(self, request):
-        msg = json.loads(request.body)
-        self.request = request
+        self.request = json.loads(request.body)
         #validate header
-        try:
-            self.header = MsgHeader(message_format.CommonHeader().deserialize(msg['header']))
-        except Colander.Invalid:
-	    return err.IGNORE
-        except:
-            #AA:TODO - Some kind of loggings ?
-            pass
+        self.header = Header(self.request)
 
-class MsgHdr(ParseMsgAndDispatch):
-    def __init__(self, hdr):
-        #invoke the appropriate handler based on message type
-        print '{sender} sent "{type}"'.format (sender=self.sender['userID'], type=self.header['msgType'])
-        self.msgHandlers = {
-            'signup'                        : self.processSignUp,
-            'login'                         : self.processLogin,
-	    'phone_check_req'		    : self.processPhoneCheckRequest,
-	    'phone_check_resp'		    : self.processPhoneCheckResponse,
-            'register'                      : self.processRegister,
-            #'add_card'                      : processAddWizcard,
-            'edit_card'                     : self.processModifyWizcard,
-            #'delete_card'                   : processDeleteWizcardOwn,
-            'delete_notification_card'      : self.processDeleteWizcardNotification,
-            'delete_rolodex_card'           : self.processDeleteWizcardRolodex,
-            'current_location'              : self.processLocationUpdate,
-            'add_notification_card'         : self.processAcceptCard,
-            'add_flicked_card'              : self.processAcceptFlickedCard,
-            'card_flick'                    : self.processWizcardFlick,
-            'get_cards'                     : self.processGetNotifications,
-            'send_card_to_contacts'         : self.processSendCardToContacts,
-            'send_card_to_future_contacts'  : self.processSendCardToFutureContacts,
-            'send_card_to_user'             : self.processSendCardUC,
-            'send_query_user'               : self.processQueryUserByName,
-            'find_users_by_location'        : self.processQueryUserByLocation,
-            'show_table_list'               : self.processQueryTable,
-            'table_details'                 : self.processGetTableDetails,
-            'create_table'                  : self.processCreateTable,
-            'join_table'                    : self.processJoinTable,
-            'leave_table'                   : self.processLeaveTable,
-            'destroy_table'                 : self.processDestroyTable,
-            'rename_table'                  : self.processRenameTable
-        }
+    def dispatch(self):
+	return self.header.process()
 
-        self.response = Response()
-
-    def msg_has_location(self, msg_type):
-        return self.sender.has_key('lat')  and self.sender.has_key('lng') and msg_type not in ['signup', 'login', 'register', 'current_location']
-
-    def msg_is_initial(self, msg_type):
-	return msg_type in ['signup', 'login', 'register', 'phone_check_req', 'phone_check_resp']
-
-    def msg_type_is_valid(self, msg_type):
-	return msg_type in self.msgHandlers
-
-    def validateIncomingMessage(self):
-	ret = dict(result=1, ignore=0, errorStr="")
-
-	if self.msg_is_initial(self.msgType):
-	    return ret, None
-
-	if not self.msg_type_is_valid(self.msgType):
-	    ret['result'] = 0
-	    ret['ignore'] = 1
-	    return ret, None
-	    
-        #valid user should exist
-	try:
-	    username = self.sender['userID']
-	    wizUserID = self.sender['wizUserID']
-            user = User.objects.get(username=username, id=wizUserID)
-	except:
-	    ret['result'] = 0
-	    ret['ignore'] = 1
-	    return ret, None
-
-        #TODO: AA: Can we cross-validate with userid from session ?
-        return ret, user
-
-    def processIncomingMessage(self):
-	do_process, user = self.validateIncomingMessage()
-	if not do_process['result']:
-	    if do_process['ignore']:
-		return
-	    else:
-                self.response.error_response(err.INVALID_USERNAME_PASSWORD)
-	        return self.response.response
-        #user is kosher (one hopes) here
-
-        self.update_location(user)
-
-        # Dispatch to appropriate message handler
-        retval =  self.msgHandlers[self.msgType](user)
-
-        #do the user tracking here
-        if not self.response.is_error_response():
-            try:
-                current_user = self.request.user.username
-            except:
-                current_user = user
-            now = datetime.datetime.now()
-            cache.set('seen_%s' % (current_user), now, 
-                      settings.USER_LASTSEEN_TIMEOUT)
-
-        return retval
+    def dummy_validator(self, req):
+        return req
 
     def securityException(self):
 	#AA TODO
 	print 'ALERT ALERT!! FIXME'
 	return None
 	
-    def processSignUp(self, user=None):
-        email = self.sender['email']
-        username = email
-        #password = self.sender['password']
-	#AA: TODO
-        password = "wizard"
 
-        user = User.objects.create_user(username, email, password)
-        user.set_password(password)
-        user.save()
+class Header(ParseMsgAndDispatch):
+    def __init__(self, req):
+        #invoke the appropriate handler based on message type
+	try:
+            self.request = req
+	    self.header = message_format.CommonHeaderSchema().deserialize(req['header'])
+	    self.msg_type = self.header['msgType']
 
-        #generate a uniue userid
-        user.profile.userid = UserProfile.objects.id_generator()
-        user.profile.save()
+	    self.valid = True
+        except Colander.Invalid:
+            self.valid = False
 
-        user = authenticate(username=username, password=password)
-        login(self.request, user)
+    def process(self):
+        if not self.valid:
+            response = Response()
+            return response.ignore()
 
-        #update location in ptree
+	handler = message_format.msgTypesValidatorsAndHandlers[self.header['msgType'][message_format.HANDLER]
+	validator = message_format.msgTypesValidatorsAndHandlers[self.header['msgType'][message_format.VALIDATOR]
+        handle = handler(self.req, validator)
+        #print '{sender} sent "{type}"'.format (sender=des.['sender']['userID'], type=self.msg_type)
+	response = handle.process()
+
+        #user is kosher (one hopes) here
+        #self.update_location(user)
+
+        #if not response.is_error_response():
+        #try:
+        #    current_user = self.request.user.username
+        #except:
+        #    current_user = user
+        #now = datetime.datetime.now()
+        #cache.set('seen_%s' % (current_user), now, 
+        #          settings.USER_LASTSEEN_TIMEOUT)
+
+	return response
+
+    def msg_has_location(self):
+        return self.sender.has_key('lat')  and self.sender.has_key('lng') and self.msg_type not in ['signup', 'login', 'register', 'current_location']
+
+    def msg_is_initial(self):
+	return self.msg_type in ['signup', 'login', 'register', 'phone_check_req', 'phone_check_resp']
+
+
+class SignUp(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        self.request = req
+
         try:
-            lat = self.sender['lat']
-            lng = self.sender['lng']
-            user.profile.create_or_update_location(self.sender['lat'], 
-                                                   self.sender['lng'])
-        except:
-            pass
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+            self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        email = self.sender['email']
+	username = email
+	password = "wizard"
+
+	user = User.objects.create_user(username, email, password)
+	user.set_password(password)
+	user.save()
+
+	#generate a uniue userid
+	user.profile.userid = UserProfile.objects.id_generator()
+	user.profile.save()
+
+	user = authenticate(username=username, password=password)
+	login(self.request, user)
+
+	#update location in ptree
+	if self.sender.has_key('lat') and self.sender.has_key('lng'):
+            user.profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
 
         self.response.add_data("wizUserID", user.pk)
         self.response.add_data("userID", user.profile.userid)
-        return self.response.response
 
-    def processLogin(self, user=None):
-        do_sync = False
+        return self.response
+
+class Login(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        self.request = req
+
         try:
-            username = self.sender['email']
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+            self.valid = False
+
+        self.response = Response()
+            
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        do_sync = False
+	if seld.sender.has_key('email'):
+            username = seld.sender['email']
+        else:
+            self.response.error_response(err.USER_DOESNT_EXIST)
+	    return self.response
+        try:
             user = User.objects.get(username=username)
         except ObjectDoesNotExist:
-            self.response.error_response(err.USER_DOESNT_EXIST)
-            return self.response.response
+            self.
+            return self.response
 
         #cross verify userID
         try:
@@ -235,7 +196,7 @@ class MsgHdr(ParseMsgAndDispatch):
             if not self.sender['userID'] == user.profile.userid:
                 pass
                 #self.response.error_response(errno=1, errorStr="invalid user")
-                #return self.response.response
+                #return self.response
         except:
             do_sync = True
 
@@ -244,7 +205,7 @@ class MsgHdr(ParseMsgAndDispatch):
         user = authenticate(username=username, password=password)
         if not user.is_authenticated():
             self.response.error_response(err.AUTHENTICATION_FAILED)
-            return self.response.response
+            return self.response
         login(self.request, user) 
 
         if do_sync:
@@ -259,13 +220,23 @@ class MsgHdr(ParseMsgAndDispatch):
 		if s.has_key('tables'):
                     self.response.add_data("tables", s['tables'])
 
-        return self.response.response
+        return self.response
 
-    def update_location(self, user):
-        if self.msg_has_location(self.msgType):
-            self.processLocationUpdate(user)
+class PhoneCheckRequest(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+            self.sender = des['sender']
+            self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-    def processPhoneCheckRequest(self, user=None):
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
 	user_id = self.sender['userID']
 	response_mode = self.sender['checkMode']
 	response_target = self.sender['target']
@@ -303,9 +274,23 @@ class MsgHdr(ParseMsgAndDispatch):
 
         #TOD: Don' forget to remove this
         self.response.add_data("key", d[k_rand])
-        return self.response.response
+        return self.response
 	
-    def processPhoneCheckResponse(self, user=None):
+class PhoneCheckResponse(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
 	user_id = self.sender['userID']
 	challenge_response = self.sender['responseKey']
 	if not (user_id and challenge_response):
@@ -328,9 +313,23 @@ class MsgHdr(ParseMsgAndDispatch):
         #response is valid. all done. #clear cache
 	cache.delete_many([k_user, k_rand, k_retry])
 	    
-        return self.response.response
+        return self.response
 
-    def processRegister(self, user=None):
+class Register(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
 
         wizcard_s = None
@@ -386,7 +385,7 @@ class MsgHdr(ParseMsgAndDispatch):
         user = authenticate(username=l_userid, password=password)
         if not user.is_authenticated():
             self.response.error_response(err.AUTHENTICATION_FAILED)
-            return self.response.response
+            self.response
 
         # Correct password, and the user is marked "active"
         login(self.request, user)
@@ -431,120 +430,102 @@ class MsgHdr(ParseMsgAndDispatch):
         if rolodex_s:
             self.response.add_data("rolodex", rolodex_s)
 
-        return self.response.response
+        self.response
 
-    def processAddWizcard(self, user):
-
+class LocationUpdate(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
         try:
-            first_name = self.sender['first_name']
-        except:
-            first_name = ""
-        try:
-            last_name = self.sender['last_name']
-        except:
-            last_name = ""
-        try:
-            phone1 = self.sender['phone1']
-        except:
-            phone1 = ""
-        try:
-            email = self.sender['email']
-        except:
-            email = ""
-        try:
-            street = self.sender['address_street1']
-        except:
-            street = ""
-        try:
-            city = self.sender['address_city']
-        except:
-            city = ""
-        try:
-            state = self.sender['address_state']
-        except:
-            state = ""
-        try:
-            country = self.sender['address_country']
-        except:
-            country = ""
-        try:
-            zipcode = self.sender['addreess_zip']
-        except:
-            zipcode = ""
-        wizcard = Wizcard(user=user, first_name=first_name, last_name=last_name,
-                          phone1=phone1, email=email, address_street1=street,
-                          address_city=city, address_state=state,
-                          address_country=country, address_zip=zipcode)
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        profile = user.profile
+        #update location in ptree
+        profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
+        self.response
+
+class NotificationsGet(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
         try:
-            rawimage = self.sender['thumbnailImage']
-            upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
-            wizcard.thumbnailImage.save(upfile.name, upfile) 
-        except:
-            pass
-        
-        self.response.add_data("wizCardID", wizcard.pk)
-        return self.response.response
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-    def processDeleteWizcardOwn(self, user):
-	try:
-	    wizcard1 = user.wizcard
-	except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
+        self.response = Response()
 
-        #go through all connections and uncard them
-        qs = wizcard1.wizconnections.all()
-        deleted_wizcards = []
-        count = 0
-        for wizcard2 in qs:
-            Wizcard.objects.uncard(wizcard1, wizcard2)
-            #Q a notif to other guy so that the app on the other side can react
-            notify.send(user, recipient=wizcard2.user, 
-                        verb='deleted wizcard', target=wizcard1)
-            #Q a notif to sender to let him know of all wizconnections to delete
-            notify.send(wizcard2.user, recipient=user,
-                        verb='deleted wizcard', target=wizcard2, 
-                        action_object = wizcard2)
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
 
-        wizcard1.delete()
-        return self.response.response
+        #AA: TODO: Change this to get userId from session
+        notifications = Notification.objects.unread(user)
+        notifResponse = NotifResponse(notifications)
 
-    def processDeleteWizcardRolodex(self, sender):
+        #any wizcards dropped nearby
         try:
-            receiver = User.objects.get(id=self.receiver['wizUserID'])
-            wizcard1 = sender.wizcard
-            wizcard2 = receiver.wizcard
+            lat = self.sender['lat']
+            lng = self.sender['lng']
         except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
+            try:
+                lat = user.profile.location.get().lat
+                lng = user.profile.location.get().lng
+            except:
+                #maybe location timedout. Shouldn't happen if messages from app
+                #are coming correctly...
+                return notifResponse.response
 
-        Wizcard.objects.uncard(wizcard1, wizcard2)
-        #Q a notif to other guy so that the app on the other side can react
-        notify.send(sender, recipient=receiver,
-                    verb='revoked wizcard', target=wizcard1)
-        return self.response.response
+        #AA:TODO: Use come caching framework to cache these
+        flicked_wizcards, count = WizcardFlick.objects.lookup(
+                lat, 
+                lng, 
+                settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        if count and not user.profile.is_ios():
+            notifResponse.notifFlickedWizcardsLookup(count, 
+                    user, flicked_wizcards)
 
-    def processDeleteWizcardNotification(self, sender):
+        users, count = user.profile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        if count and not user.profile.is_ios():
+            notifResponse.notifUserLookup(count, users)
+
+        #tables is a smaller entity...get the tables as well instead of just count
+        tables, count = VirtualTable.objects.lookup(
+                lat, 
+                lng, 
+                settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        if count and not user.profile.is_ios():
+            notifResponse.notifTableLookup(count, user, tables)
+
+        Notification.objects.mark_all_as_read(user)
+
+        #tickle the timer to keep it going and update the location if required 
+        user.profile.create_or_update_location(lat, lng)
+        return notifResponse
+
+class WizcardEdit(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
         try:
-            receiver = User.objects.get(id=self.receiver['wizUserID'])
-            wizcard1 = sender.wizcard
-            wizcard2 = receiver.wizcard
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-        #wizcard2 must have sent a wizconnection_request, lets clear it
-        Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
+        self.response = Response()
 
-        #Q a notif to other guy so that the app on the other side can react
-        notify.send(sender, recipient=receiver,
-                    verb='revoked wizcard', target=wizcard1)
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
 
-        return self.response.response
-
- 
-    def processModifyWizcard(self, user):
         modify = False
         try:
             wizcard = user.wizcard
@@ -666,15 +647,168 @@ class MsgHdr(ParseMsgAndDispatch):
             wizcard.flood()
 
         self.response.add_data("wizCardID", wizcard.pk)
-        return self.response.response
+        self.response
 
-    def processLocationUpdate(self, user):
-        profile = user.profile
-        #update location in ptree
-        profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
-        return self.response.response
+class WizcardAccept(self, sender):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.receiver = des['receiver']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-    def processAcceptFlickedCard(self, sender):
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        try:
+            receiver = User.objects.get(id=self.receiver['wizUserID'])
+            wizcard1 = sender.wizcard
+            wizcard2 = receiver.wizcard
+        except ObjectDoesNotExist:
+	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            self.response
+
+        Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
+        #Q this to the sender 
+        notify.send(sender, recipient=receiver,
+                    verb='accepted wizcard', target=wizcard1, 
+                    action_object = wizcard2)
+
+        self.response
+
+class WizConnectionRequestDecline(self, sender):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.receiver = des['receiver']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        try:
+            receiver = User.objects.get(id=self.receiver['wizUserID'])
+            wizcard1 = sender.wizcard
+            wizcard2 = receiver.wizcard
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            self.response
+
+        #wizcard2 must have sent a wizconnection_request, lets clear it
+        Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
+
+        #Q a notif to other guy so that the app on the other side can react
+        notify.send(sender, recipient=receiver,
+                    verb='revoked wizcard', target=wizcard1)
+
+        return self.response
+
+class WizcardRolodexDelete(self, sender):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.receiver = des['receiver']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        try:
+            receiver = User.objects.get(id=self.receiver['wizUserID'])
+            wizcard1 = sender.wizcard
+            wizcard2 = receiver.wizcard
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            self.response
+
+        Wizcard.objects.uncard(wizcard1, wizcard2)
+        #Q a notif to other guy so that the app on the other side can react
+        notify.send(sender, recipient=receiver,
+                    verb='revoked wizcard', target=wizcard1)
+        return self.response
+
+class WizcardFlick(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        try:
+            wizcard = user.wizcard
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            self.response
+        try:
+            flick_timeout = self.sender['flickTimeout']
+        except:
+            flick_timeout = settings.WIZCARD_FLICK_DEFAULT_TIMEOUT
+
+        try:
+            lat = user.profile.location.get().lat
+	    lng = user.profile.location.get().lng
+	except:
+	    #should not happen since app is expected to send a register or something
+	    #everytime it wakes up...however, network issues can cause app to go offline 
+	    #while still in foreground. No option but to send back error response to app
+	    #However, if app had included location information, then we will update_location
+	    #before getting here and be ok
+            self.response.error_response(err.LOCATION_UNKOWN)
+	    self.response
+        
+	flick_card = wizcard.check_flick_duplicates(lat, lng)
+
+	if flick_card:
+	    flick_card.location.get().reset_timer()
+        else:
+	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=lat, lng=lng)
+            location = flick_card.create_location(lat, lng)
+            location.start_timer(flick_timeout)
+
+        self.response.add_data("flickCardID", flick_card.pk)
+        return self.response
+
+class WizcardFlickAccept(self, sender):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.receiver = des['receiver']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
         try:
             receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = sender.wizcard
@@ -685,76 +819,29 @@ class MsgHdr(ParseMsgAndDispatch):
                 wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
             except:
                 self.response.error_response(err.OBJECT_DOESNT_EXIST)
-                return self.response.response
+                self.response
 
 	#create a wizconnection and then accept it
 	Wizcard.objects.exchange(wizcard1, wizcard2, True)
 
-        return self.response.response
+        return self.response
 
-    def processAcceptCard(self, sender):
+class WizcardSendToContacts(self, sender):
+    def __init__(self, req, validator):
         try:
-            receiver = User.objects.get(id=self.receiver['wizUserID'])
-            wizcard1 = sender.wizcard
-            wizcard2 = receiver.wizcard
-        except ObjectDoesNotExist:
-	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.receiver = des['receiver']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-        Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
-        #Q this to the sender 
-        notify.send(sender, recipient=receiver,
-                    verb='accepted wizcard', target=wizcard1, 
-                    action_object = wizcard2)
+        self.response = Response()
 
-        return self.response.response
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
 
-    def processGetNotifications(self, user):
-        #AA: TODO: Change this to get userId from session
-        notifications = Notification.objects.unread(user)
-        notifResponse = NotifResponse(notifications)
-
-        #any wizcards dropped nearby
-        try:
-            lat = self.sender['lat']
-            lng = self.sender['lng']
-        except:
-            try:
-                lat = user.profile.location.get().lat
-                lng = user.profile.location.get().lng
-            except:
-                #maybe location timedout. Shouldn't happen if messages from app
-                #are coming correctly...
-                return notifResponse.response
-
-        #AA:TODO: Use come caching framework to cache these
-        flicked_wizcards, count = WizcardFlick.objects.lookup(
-                lat, 
-                lng, 
-                settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count and not user.profile.is_ios():
-            notifResponse.notifFlickedWizcardsLookup(count, 
-                    user, flicked_wizcards)
-
-        users, count = user.profile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count and not user.profile.is_ios():
-            notifResponse.notifUserLookup(count, users)
-
-        #tables is a smaller entity...get the tables as well instead of just count
-        tables, count = VirtualTable.objects.lookup(
-                lat, 
-                lng, 
-                settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count and not user.profile.is_ios():
-            notifResponse.notifTableLookup(count, user, tables)
-
-        Notification.objects.mark_all_as_read(user)
-
-        #tickle the timer to keep it going and update the location if required 
-        user.profile.create_or_update_location(lat, lng)
-        return notifResponse.response
-
-    def processSendCardToContacts(self, sender):
         #implicitly create a bidir cardship (since this is from contacts)
         #and also Q the other guys cards here
         count = 0
@@ -762,7 +849,7 @@ class MsgHdr(ParseMsgAndDispatch):
             wizcard1 = sender.wizcard
         except ObjectDoesNotExist:
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
+            self.response
 
         #A:TODO: Cross verify user agains wizcard
         contacts = self.receiver['contacts']
@@ -793,13 +880,57 @@ class MsgHdr(ParseMsgAndDispatch):
 	        self.response.error_response(err.INTERNAL_ERROR)
 
         self.response.add_data("count", count)
-        return self.response.response
+        return self.response
 
+class WizcardSendUnTrusted(self, sender):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.receiver = des['receiver']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-    def processVerifyContacts(self):
-        return self.response.response
+        self.response = Response()
 
-    def processSendCardToFutureContacts(self, phones, sender):
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        try:
+            receivers = self.receiver['wizUserIDs']
+            wizcard1 = sender.wizcard
+        except ObjectDoesNotExist:
+	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            self.response
+
+        for receiver in receivers:
+            try:
+                wizcard2 = User.objects.get(id=receiver).wizcard
+                ret = Wizcard.objects.exchange(wizcard1, wizcard2, False)
+                if ret['errno']:
+                    self.response.error_response(ret)
+            except:
+                self.response.error_response(err.INTERNAL_ERROR)
+
+        return self.response
+
+class WizcardSendToFutureContacts(self, phones, sender):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
         for phone in phones:
             username = wizlib.convert_phone(phone)
             #create a dummy user using the phone number as userID
@@ -817,28 +948,23 @@ class MsgHdr(ParseMsgAndDispatch):
                     self.response.error_response(err)
             except:
                 pass
-        return self.response.response
+        return self.response
 
-    def processSendCardUC(self, sender):
+class UserQueryByLocation(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
         try:
-            receivers = self.receiver['wizUserIDs']
-            wizcard1 = sender.wizcard
-        except ObjectDoesNotExist:
-	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-        for receiver in receivers:
-            try:
-                wizcard2 = User.objects.get(id=receiver).wizcard
-                ret = Wizcard.objects.exchange(wizcard1, wizcard2, False)
-                if ret['errno']:
-                    self.response.error_response(ret)
-            except:
-                self.response.error_response(err.INTERNAL_ERROR)
+        self.response = Response()
 
-        return self.response.response
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
 
-    def processQueryUserByLocation(self, user):
         profile = user.profile
         #update location in ptree
         profile.create_or_update_location(self.sender['lat'], 
@@ -851,9 +977,22 @@ class MsgHdr(ParseMsgAndDispatch):
 	else:
             self.response.error_response(err.NONE_FOUND)
 
-        return self.response.response
+        return self.response
 
-    def processQueryUserByName(self, sender):
+class UserQueryByName(self, sender):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.receiver = des['receiver']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
 
         try:
             name = self.receiver['name']
@@ -878,9 +1017,23 @@ class MsgHdr(ParseMsgAndDispatch):
 	else:
             self.response.error_response(err.NONE_FOUND)
  
-        return self.response.response
+        return self.response
 
-    def processQueryTable(self, user=None):
+class TableQuery(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
         if self.sender.has_key('lat') and self.sender.has_key('lng'):
             lat = self.sender['lat']
             lng = self.sender['lng']
@@ -891,23 +1044,23 @@ class MsgHdr(ParseMsgAndDispatch):
         else:
             return self.securityException()
 
-        return self.response.response
+        self.response
 
-    def processQueryTableByName(self, name):
+    def QueryTableByName(self, name):
         try:
             tables = VirtualTable.objects.filter(Q(tablename__icontains=name))
         except ObjectDoesNotExist:
             self.response.error_response(err.NONE_FOUND)
-            return self.response.response
+            self.response
         count = tables.count()
 
 	tables_s = VirtualTable.objects.serialize(tables)
         self.response.add_data("queryResult", tables_s)
         self.response.add_data("count", count)
             
-        return self.response.response
+        return self.response
 
-    def processQueryTableByLocation(self, lat, lng):
+    def QueryTableByLocation(self, lat, lng):
         tables, count = VirtualTable.objects.lookup(
                 lat=lat, 
                 lng=lng, 
@@ -919,9 +1072,23 @@ class MsgHdr(ParseMsgAndDispatch):
         else:
             self.response.error_response(err.NONE_FOUND)
 
-        return self.response.response
+        return self.response
 
-    def processGetTableDetails(self, user=None):
+class TableDetails(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
         #get the members
         table = VirtualTable.objects.get(id=self.sender['tableID'])
         memberships = table.membership_set.all()
@@ -938,45 +1105,23 @@ class MsgHdr(ParseMsgAndDispatch):
             self.response.add_data("Count", count)
             self.response.add_data("CreatorID", table.creator.id) 
 
-        return self.response.response
+        return self.response
 
-    DEFAULT_FLICK_TIMEOUT = 1
-    def processWizcardFlick(self, user):
+class TableCreate(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
         try:
-            wizcard = user.wizcard
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
-        try:
-            flick_timeout = self.sender['flickTimeout']
-        except:
-            flick_timeout = self.DEFAULT_FLICK_TIMEOUT
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-        try:
-            lat = user.profile.location.get().lat
-	    lng = user.profile.location.get().lng
-	except:
-	    #should not happen since app is expected to send a register or something
-	    #everytime it wakes up...however, network issues can cause app to go offline 
-	    #while still in foreground. No option but to send back error response to app
-	    #However, if app had included location information, then we will update_location
-	    #before getting here and be ok
-            self.response.error_response(err.LOCATION_UNKOWN)
-	    return self.response.response
-        
-	flick_card = wizcard.check_flick_duplicates(lat, lng)
+        self.response = Response()
 
-	if flick_card:
-	    flick_card.location.get().reset_timer()
-        else:
-	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=lat, lng=lng)
-            location = flick_card.create_location(lat, lng)
-            location.start_timer(flick_timeout)
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
 
-        self.response.add_data("flickCardID", flick_card.pk)
-        return self.response.response
-
-    def processCreateTable(self, user):
         tablename = self.sender['table_name']
         lat = self.sender['lat']
         lng = self.sender['lng']
@@ -1002,33 +1147,32 @@ class MsgHdr(ParseMsgAndDispatch):
         table.join_table_and_exchange(user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)
-        return self.response.response
+        return self.response
 
-    def processRenameTable(self, user):
-        tablename = self.sender['table_name']
-        table_id = self.sender['tableID']
-
+class TableJoin(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
         try:
-            table = VirtualTable.objects.get(id=table_id)
-            table.tablename = tablename
-            table.save()
-            self.response.add_data("tableID", table.pk)
-            self.response.add_data("tableID", table.pk)
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            #shouldn't/couldn't happen
-        return self.response.response
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
 
-    def processJoinTable(self, user):
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
+            self.response
 
         if user is table.creator:
             self.response.error_response(err.EXISTING_MEMBER)
-            return self.response.response
+            self.response
 
         if table.isSecure():
             password = self.sender['password']
@@ -1041,29 +1185,89 @@ class MsgHdr(ParseMsgAndDispatch):
             self.response.error_response(err.AUTHENTICATION_FAILED)
         else:
             self.response.add_data("tableID", joined.pk)
-        return self.response.response
+        return self.response
 
-    def processLeaveTable(self, user):
+class TableLeave(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
             leave = table.leave_table(user)
             self.response.add_data("tableID", leave.pk)
         except:
             pass
-        return self.response.response
 
-    def processDestroyTable(self, user):
+        return self.response
+
+class TableDestroy(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response.response
+            self.response
 
         if table.creator == user:
             table.delete()
         else:
             self.response.error_response(err.NOT_AUTHORIZED)
-        return self.response.response
+
+        return self.response
+
+class TableRename(ParseMsgAndDispatch):
+    def __init__(self, req, validator):
+        try:
+            des = self.dummy_validator(self.request)
+	    self.sender = des['sender']
+	    self.valid = True
+        except Colander.Invalid:
+	    self.valid = False
+
+        self.response = Response()
+
+    def process(self):
+        if not self.valid:
+            return self.response.ignore()
+
+        tablename = self.sender['table_name']
+        table_id = self.sender['tableID']
+
+        try:
+            table = VirtualTable.objects.get(id=table_id)
+            table.tablename = tablename
+            table.save()
+            self.response.add_data("tableID", table.pk)
+            self.response.add_data("tableID", table.pk)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            #shouldn't/couldn't happen
+        
+	return self.response
 
 
 wizrequest_handler = WizRequestHandler.as_view()

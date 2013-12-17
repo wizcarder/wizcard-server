@@ -3,7 +3,9 @@ from wizcardship.models import WizConnectionRequest, Wizcard, WizcardFlick
 from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
 from notifications.models import Notification
+from django.http import HttpResponse
 import fields
+import json
 import pdb
 from wizcard import err
 
@@ -20,6 +22,9 @@ class Response:
     def __init__(self):
         self.response = dict(result=dict(Error=0, Description=""), data=dict())
 
+    def send_response(self):
+        return HttpResponse(json.dumps(self.response))
+
     def add_result(self, k, v):
         self.response['result'][k] = v
 
@@ -30,6 +35,9 @@ class Response:
         self.add_result("Error", err['errno'])
         self.add_result("Description", err['str'])
         self.response
+
+    def ignore(self):
+        return self
     
     def is_error_response(self):
         if self.response['result']['Error']:

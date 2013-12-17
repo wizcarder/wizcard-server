@@ -117,6 +117,7 @@ USER_ONLINE_TIMEOUT = 10
 
 #radius for agglomerating flicked cards (in meters)
 WIZCARD_FLICK_AGGLOMERATE_RADIUS = 1000
+WIZCARD_FLICK_DEFAULT_TIMEOUT = 1
 
 # Number of seconds that we will keep track of inactive users for before 
 # their last seen is removed from the cache
