@@ -79,32 +79,31 @@ class ParseMsgAndDispatch:
 	
 
 class Header(ParseMsgAndDispatch):
-    def __init__(self, req):
+    def __init__(self, request):
         #invoke the appropriate handler based on message type
-	try:
-            #raw message
-            self.request = req
-            #json deserialized
-            self.msg = json.loads(self.request.body)
-	    self.handler = None
-	    self.handler_cls = None
-	    seld.validator = None
-	    self.valid = True
-	    self.msg_type = None
-     
+        #raw message self.request = req
+        #json deserialized
+        self.request = request
+        self.msg = json.loads(request.body)
+        self.handler_cls = None
+        self.valid = True
+        self.msg_type = None
+
     def prepare(self):
         try:
-	    self.header = message_format.CommonHeaderSchema().deserialize(self.msg['header'])
+            #self.header = message_format.CommonHeaderSchema().deserialize(self.msg['header'])
+            self.header = self.msg['header']
         except colander.Invalid:
-	    self.valid = False
+            self.valid = False
             response = Response()
             response.ignore()
-	    return response
+            return response
 
 	self.msg_type = self.header['msgType']
-	self.handler = msgTypesValidatorsAndHandlers[self.msg_type][message_format.HANDLER]
-	self.validator = msgTypesValidatorsAndHandlers[self.msg_Type][message_format.VALIDATOR]
-        self.handler_cls = self.handler(self.msg, validator, self.request)
+	handler = msgTypesValidatorsAndHandlers[self.msg_type][message_format.HANDLER]
+	#validator = msgTypesValidatorsAndHandlers[self.msg_Type][message_format.VALIDATOR]
+	validator = self.dummy_validator
+        self.handler_cls = handler(self.msg, validator, self.request)
 	response = self.handler_cls.prepare()
 	if response:
 	    return response
@@ -112,14 +111,15 @@ class Header(ParseMsgAndDispatch):
         #AA:TODO Do the user validation here
 
         #update location since it may have changed
-        if self.msg_has_location(handler_cls)
+        if self.msg_has_location(self.handler_cls):
             #user is kosher (one hopes) here
-            handler_cls.user.profile.create_or_update_location(handler_cls.lat, handler_cls.lng)
+            self.handler_cls.user.profile.create_or_update_location(self.handler_cls.lat, 
+                    self.handler_cls.lng)
 
         #make the user as alive
         if not self.msg_is_initial():
 	    now = datetime.datetime.now()
-	    cache.set('seen_%s' % (handler_cls.user), now, 
+	    cache.set('seen_%s' % (self.handler_cls.user), now, 
 		    settings.USER_LASTSEEN_TIMEOUT)
 
     def process(self):
@@ -486,13 +486,8 @@ class LocationUpdate(ParseMsgAndDispatch):
 
 class NotificationsGet(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-            des = self.validator(msg)
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -515,8 +510,8 @@ class NotificationsGet(ParseMsgAndDispatch):
 	    self.lng = self.sender['lng']
         except:
 	    try:
-	        self.lat = user.profile.location.get().lat
-		self.lng = user.profile.location.get().lng
+	        self.lat = self.user.profile.location.get().lat
+		self.lng = self.user.profile.location.get().lng
 	    except:
                 #maybe location timedout. Shouldn't happen if messages from app
                 #are coming correctly...
@@ -524,7 +519,7 @@ class NotificationsGet(ParseMsgAndDispatch):
 
     def process(self):
         #AA: TODO: Change this to get userId from session
-        notifications = Notification.objects.unread(user)
+        notifications = Notification.objects.unread(self.user)
         notifResponse = NotifResponse(notifications)
 
         #any wizcards dropped nearby
@@ -533,8 +528,8 @@ class NotificationsGet(ParseMsgAndDispatch):
             lng = self.sender['lng']
         except:
             try:
-                lat = user.profile.location.get().lat
-                lng = user.profile.location.get().lng
+                lat = self.user.profile.location.get().lat
+                lng = self.user.profile.location.get().lng
             except:
                 #maybe location timedout. Shouldn't happen if messages from app
                 #are coming correctly...
@@ -545,12 +540,12 @@ class NotificationsGet(ParseMsgAndDispatch):
                 lat, 
                 lng, 
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count and not user.profile.is_ios():
+        if count and not self.user.profile.is_ios():
             notifResponse.notifFlickedWizcardsLookup(count, 
-                    user, flicked_wizcards)
+                    self.user, flicked_wizcards)
 
-        users, count = user.profile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count and not user.profile.is_ios():
+        users, count = self.user.profile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        if count and not self.user.profile.is_ios():
             notifResponse.notifUserLookup(count, users)
 
         #tables is a smaller entity...get the tables as well instead of just count
@@ -558,25 +553,21 @@ class NotificationsGet(ParseMsgAndDispatch):
                 lat, 
                 lng, 
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count and not user.profile.is_ios():
-            notifResponse.notifTableLookup(count, user, tables)
+        if count and not self.user.profile.is_ios():
+            notifResponse.notifTableLookup(count, self.user, tables)
 
-        Notification.objects.mark_all_as_read(user)
+        Notification.objects.mark_all_as_read(self.user)
 
         #tickle the timer to keep it going and update the location if required 
-        user.profile.create_or_update_location(lat, lng)
+        self.user.profile.create_or_update_location(lat, lng)
         return notifResponse
 
 class WizcardEdit(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
-        self.response = Response()
+	self.response = Response()
 
     def prepare(self):
         try:
@@ -596,16 +587,16 @@ class WizcardEdit(ParseMsgAndDispatch):
     def process(self):
         modify = False
         try:
-            wizcard = user.wizcard
+            wizcard = self.user.wizcard
         except ObjectDoesNotExist:
             #create case
-            wizcard = Wizcard(user=user)
+            wizcard = Wizcard(user=self.user)
             wizcard.save()
 
             #this is also the time User object can get first/last name
-            user.first_name = self.sender['first_name']
-            user.last_name = self.sender['last_name']
-            user.save()
+            self.user.first_name = self.sender['first_name']
+            self.user.last_name = self.sender['last_name']
+            self.user.save()
 
         phone1 = self.sender['phone1']
 
@@ -613,8 +604,8 @@ class WizcardEdit(ParseMsgAndDispatch):
         try:
             future_user = User.objects.get(username=phone1)
             if future_user.profile.is_future():
-                Wizcard.objects.migrate_future_user(future_user, user)
-                Notification.objects.migrate_future_user(future_user, user)
+                Wizcard.objects.migrate_future_user(future_user, self.user)
+                Notification.objects.migrate_future_user(future_user, self.user)
             future_user.delete()
         except:
             pass
@@ -720,15 +711,10 @@ class WizcardEdit(ParseMsgAndDispatch):
 
 class WizcardAccept(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.receiver = des['receiver']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
-        self.response = Response()
+	self.response = Response()
 
     def prepare(self):
         try:
@@ -764,13 +750,8 @@ class WizcardAccept(ParseMsgAndDispatch):
 
 class WizConnectionRequestDecline(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.receiver = des['receiver']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -809,13 +790,8 @@ class WizConnectionRequestDecline(ParseMsgAndDispatch):
 
 class WizcardRolodexDelete(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.receiver = des['receiver']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -849,14 +825,10 @@ class WizcardRolodexDelete(ParseMsgAndDispatch):
                     verb='revoked wizcard', target=wizcard1)
         return self.response
 
-class WizcardFlick(ParseMsgAndDispatch):
+class WizCardFlick(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -887,15 +859,15 @@ class WizcardFlick(ParseMsgAndDispatch):
             flick_timeout = settings.WIZCARD_FLICK_DEFAULT_TIMEOUT
 
         try:
-            lat = user.profile.location.get().lat
-	    lng = user.profile.location.get().lng
+            lat = self.user.profile.location.get().lat
+	    lng = self.user.profile.location.get().lng
 	except:
 	    #should not happen since app is expected to send a register or something
 	    #everytime it wakes up...however, network issues can cause app to go offline 
 	    #while still in foreground. No option but to send back error response to app
 	    #However, if app had included location information, then we will update_location
 	    #before getting here and be ok
-            self.response.error_response(err.LOCATION_UNKOWN)
+            self.response.error_response(err.LOCATION_UNKNOWN)
 	    return self.response
         
 	flick_card = wizcard.check_flick_duplicates(lat, lng)
@@ -912,13 +884,8 @@ class WizcardFlick(ParseMsgAndDispatch):
 
 class WizcardFlickAccept(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.receiver = des['receiver']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -957,13 +924,8 @@ class WizcardFlickAccept(ParseMsgAndDispatch):
 
 class WizcardSendToContacts(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.receiver = des['receiver']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1025,13 +987,8 @@ class WizcardSendToContacts(ParseMsgAndDispatch):
 
 class WizcardSendUnTrusted(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.receiver = des['receiver']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1071,11 +1028,12 @@ class WizcardSendUnTrusted(ParseMsgAndDispatch):
 
 class WizcardSendToFutureContacts(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
+	self.msg = msg
+	self.valid = True
+	self.validator = validator
+	self.response = Response()
         self.phones = phones
         self.sender = sender
-
-	self.validator = validator
-        self.response = Response()
 
     def prepare(self):
         try:
@@ -1108,14 +1066,9 @@ class WizcardSendToFutureContacts(ParseMsgAndDispatch):
 
 class UserQueryByLocation(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
-        self.response = Response()
 
     def prepare(self):
         try:
@@ -1149,14 +1102,9 @@ class UserQueryByLocation(ParseMsgAndDispatch):
 
 class UserQueryByName(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.receiver = des['receiver']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
-        self.response = Response()
 
     def prepare(self):
         try:
@@ -1201,12 +1149,8 @@ class UserQueryByName(ParseMsgAndDispatch):
 
 class TableQuery(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1268,12 +1212,8 @@ class TableQuery(ParseMsgAndDispatch):
 
 class TableDetails(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1313,12 +1253,8 @@ class TableDetails(ParseMsgAndDispatch):
 
 class TableCreate(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1367,12 +1303,8 @@ class TableCreate(ParseMsgAndDispatch):
 
 class TableJoin(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1417,12 +1349,8 @@ class TableJoin(ParseMsgAndDispatch):
 
 class TableLeave(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1453,13 +1381,8 @@ class TableLeave(ParseMsgAndDispatch):
 
 class TableDestroy(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-            des = self.validator(req)
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1494,12 +1417,8 @@ class TableDestroy(ParseMsgAndDispatch):
 
 class TableRename(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
-        try:
-	    self.sender = des['sender']
-	    self.valid = True
-        except colander.Invalid:
-	    self.valid = False
-
+	self.msg = msg
+	self.valid = True
 	self.validator = validator
         self.response = Response()
 
@@ -1544,12 +1463,12 @@ msgTypesValidatorsAndHandlers = {
     'phone_check_rsp'             : (message_format.PhoneCheckResponseSchema, PhoneCheckResponse),
     'register'                    : (message_format.RegisterSchema,Register),
     'current_location'            : (message_format.LocationUpdateSchema, LocationUpdate),
-    'get_card'                    : (message_format.NotificationsGetSchema, NotificationsGet),
+    'get_cards'                    : (message_format.NotificationsGetSchema, NotificationsGet),
     'edit_card'                   : (message_format.WizcardEditSchema, WizcardEdit),
     'add_notification_card'       : (message_format.WizcardAcceptSchema, WizcardAccept),
     'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, WizConnectionRequestDecline),
     'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, WizcardRolodexDelete),
-    'card_flick'                  : (message_format.WizcardFlickSchema, WizcardFlick),
+    'card_flick'                  : (message_format.WizcardFlickSchema, WizCardFlick),
     'card_flick_accept'           : (message_format.WizcardFlickAcceptSchema, WizcardFlickAccept),
     'send_card_to_contacts'       : (message_format.WizcardSendToContactsSchema, WizcardSendToContacts),
     'send_card_to_user'           : (message_format.WizcardSendUnTrustedSchema, WizcardSendUnTrusted),

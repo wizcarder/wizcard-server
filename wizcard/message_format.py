@@ -9,9 +9,10 @@ import limone
 VALIDATOR = 0
 HANDLER = 1
 
+msg_types = ['signup', 'register']
 class CommonHeaderSchema(colander.MappingSchema):
     msgType = colander.SchemaNode(colander.String(),
-            validator=colander.OneOf(mvh.keys()))
+            validator=colander.OneOf(msg_types))
     deviceID = colander.SchemaNode(colander.String())
     
 class CommonSenderSchema(colander.MappingSchema):
