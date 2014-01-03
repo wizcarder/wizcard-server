@@ -88,6 +88,9 @@ class Header(ParseMsgAndDispatch):
         self.handler_cls = None
         self.msg_type = None
 
+    def __repr__(self):
+        return str(self.msg)
+
     def prepare(self):
         try:
             #self.header = message_format.CommonHeaderSchema().deserialize(self.msg['header'])
@@ -127,6 +130,7 @@ class Header(ParseMsgAndDispatch):
 		    settings.USER_LASTSEEN_TIMEOUT)
 
     def process(self):
+        print self
 	return self.handler_cls.process()
 
     def msg_has_location(self, cls):
@@ -490,8 +494,8 @@ class LocationUpdate(ParseMsgAndDispatch):
         self.lat = self.sender['lat']
 	self.lng = self.sender['lng']
 
-    def process(self, user):
-        profile = user.profile
+    def process(self):
+        profile = self.user.profile
         #update location in ptree
         profile.create_or_update_location(self.lat, self.lng)
         return self.response
@@ -728,24 +732,25 @@ class WizcardAccept(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
         self.sender = self.des['sender']
+        self.receiver = self.des['receiver']
 	try:
 	    self.user = User.objects.get(id=self.sender['wizUserID'])
+	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
 	except: 
             self.response.error_response(err.USER_DOESNT_EXIST)
 	    return self.response
 
     def process(self):
         try:
-            receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = self.user.wizcard
-            wizcard2 = receiver.wizcard
+            wizcard2 = self.r_user.wizcard
         except ObjectDoesNotExist:
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
         Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender 
-        notify.send(self.user, recipient=receiver,
+        notify.send(self.user, recipient=self.r_user,
                     verb='accepted wizcard', target=wizcard1, 
                     action_object = wizcard2)
 
@@ -764,17 +769,18 @@ class WizConnectionRequestDecline(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
         self.sender = self.des['sender']
+        self.receiver = self.des['receiver']
 	try:
 	    self.user = User.objects.get(id=self.sender['wizUserID'])
+	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
 	except: 
             self.response.error_response(err.USER_DOESNT_EXIST)
 	    return self.response
 
     def process(self):
         try:
-            receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = self.user.wizcard
-            wizcard2 = receiver.wizcard
+            wizcard2 = self.r_user.wizcard
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -783,7 +789,7 @@ class WizConnectionRequestDecline(ParseMsgAndDispatch):
         Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
 
         #Q a notif to other guy so that the app on the other side can react
-        notify.send(self.user, recipient=receiver,
+        notify.send(self.user, recipient=self.r_user,
                     verb='revoked wizcard', target=wizcard1)
 
         return self.response
@@ -801,24 +807,25 @@ class WizcardRolodexDelete(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
         self.sender = self.des['sender']
+        self.receiver = self.des['receiver']
 	try:
 	    self.user = User.objects.get(id=self.sender['wizUserID'])
+	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
 	except: 
             self.response.error_response(err.USER_DOESNT_EXIST)
 	    return self.response
 
     def process(self):
         try:
-            receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = self.user.wizcard
-            wizcard2 = receiver.wizcard
+            wizcard2 = self.r_user.wizcard
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
         Wizcard.objects.uncard(wizcard1, wizcard2)
         #Q a notif to other guy so that the app on the other side can react
-        notify.send(self.user, recipient=receiver,
+        notify.send(self.user, recipient=self.r_user,
                     verb='revoked wizcard', target=wizcard1)
         return self.response
 
@@ -889,17 +896,18 @@ class WizcardFlickAccept(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
         self.sender = self.des['sender']
+        self.receiver = self.des['receiver']
 	try:
 	    self.user = User.objects.get(id=self.sender['wizUserID'])
+	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
 	except: 
             self.response.error_response(err.USER_DOESNT_EXIST)
 	    return self.response
 
     def process(self):
         try:
-            receiver = User.objects.get(id=self.receiver['wizUserID'])
             wizcard1 = self.user.wizcard
-            wizcard2 = receiver.wizcard
+            wizcard2 = self.r_user.wizcard
         except:
             try:
                 wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
@@ -926,6 +934,7 @@ class WizcardSendToContacts(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
         self.sender = self.des['sender']
+        self.receiver = self.des['receiver']
 	try:
 	    self.user = User.objects.get(id=self.sender['wizUserID'])
 	except: 
@@ -986,6 +995,7 @@ class WizcardSendUnTrusted(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
         self.sender = self.des['sender']
+        self.receivers = self.des['receiver']['wizUserIDs']
 	try:
 	    self.user = User.objects.get(id=self.sender['wizUserID'])
 	except: 
@@ -994,13 +1004,12 @@ class WizcardSendUnTrusted(ParseMsgAndDispatch):
 
     def process(self):
         try:
-            receivers = self.receiver['wizUserIDs']
-            wizcard1 = self.sender.wizcard
+            wizcard1 = self.user.wizcard
         except ObjectDoesNotExist:
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        for receiver in receivers:
+        for receiver in self.receivers:
             try:
                 wizcard2 = User.objects.get(id=receiver).wizcard
                 ret = Wizcard.objects.exchange(wizcard1, wizcard2, False)
@@ -1051,6 +1060,7 @@ class UserQueryByLocation(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
 	self.msg = msg
 	self.validator = validator
+	self.response = Response()
 
     def prepare(self):
         try:
@@ -1084,6 +1094,7 @@ class UserQueryByName(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
 	self.msg = msg
 	self.validator = validator
+	self.response = Response()
 
     def prepare(self):
         try:
@@ -1092,6 +1103,7 @@ class UserQueryByName(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
         self.sender = self.des['sender']
+        self.receiver = self.des['receiver']
 	try:
 	    self.user = User.objects.get(id=self.sender['wizUserID'])
 	except: 
@@ -1147,10 +1159,10 @@ class TableQuery(ParseMsgAndDispatch):
         if self.sender.has_key('lat') and self.sender.has_key('lng'):
             lat = self.sender['lat']
             lng = self.sender['lng']
-            self.processQueryTableByLocation(lat, lng)
+            self.QueryTableByLocation(lat, lng)
         elif self.sender.has_key('table_name'):
             name = self.sender['table_name']
-            self.processQueryTableByName(name)
+            self.QueryTableByName(name)
         else:
             return self.securityException()
 
@@ -1174,7 +1186,7 @@ class TableQuery(ParseMsgAndDispatch):
         tables, count = VirtualTable.objects.lookup(
                 lat=lat, 
                 lng=lng, 
-                n=DEFAULT_MAX_LOOKUP_RESULTS)
+                n=settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             tables_s = VirtualTable.objects.serialize(tables)
             self.response.add_data("queryResult", tables_s)
@@ -1422,7 +1434,7 @@ msgTypesValidatorsAndHandlers = {
     'phone_check_rsp'             : (message_format.PhoneCheckResponseSchema, PhoneCheckResponse),
     'register'                    : (message_format.RegisterSchema,Register),
     'current_location'            : (message_format.LocationUpdateSchema, LocationUpdate),
-    'get_cards'                    : (message_format.NotificationsGetSchema, NotificationsGet),
+    'get_cards'                   : (message_format.NotificationsGetSchema, NotificationsGet),
     'edit_card'                   : (message_format.WizcardEditSchema, WizcardEdit),
     'add_notification_card'       : (message_format.WizcardAcceptSchema, WizcardAccept),
     'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, WizConnectionRequestDecline),

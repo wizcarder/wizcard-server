@@ -4,11 +4,12 @@ storages
 pytz
 django_extensions
 pyapns
-geohash
+geohash (download and python setup.py install)
 nexmo
 gunicorn
 libreadline (for gunicorn)
 colander
+pil
 
 ==
 SQL password : go_WiZcArD#27
