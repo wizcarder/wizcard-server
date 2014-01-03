@@ -683,7 +683,7 @@ class WizcardEdit(ParseMsgAndDispatch):
                 modify = True
 
         if self.sender.has_key('thumbnailImage') and self.sender['imageWasEdited']:
-            rawimage = self.sender['thumbnailImage']
+            rawimage = bytes(self.sender['thumbnailImage'])
             upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
             wizcard.thumbnailImage.save(upfile.name, upfile) 
             modify = True

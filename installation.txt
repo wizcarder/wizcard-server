@@ -1,6 +1,7 @@
 Installed Packages
 ==================
 storages
+boto
 pytz
 django_extensions
 pyapns
