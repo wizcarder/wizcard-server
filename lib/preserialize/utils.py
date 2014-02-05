@@ -1,3 +1,4 @@
+import pdb
 PSEUDO_SELECTORS = (':all', ':pk', ':local', ':related')
 DEFAULT_SELECTORS = (':pk', ':local')
 
@@ -123,5 +124,7 @@ def get_field_value(obj, name, allow_missing=False):
     elif value.__class__.__name__ in ('RelatedManager', 'ManyRelatedManager',
             'GenericRelatedObjectManager'):
         value = value.all()
+    elif value.__class__.__name__ is'ImageFieldFile':
+        value = value.read() if bool(value) else None
 
     return value

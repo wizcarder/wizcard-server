@@ -119,9 +119,9 @@ class Header(ParseMsgAndDispatch):
         #update location since it may have changed
         if self.msg_has_location(self.handler_cls):
             #user is kosher (one hopes) here
-                    self.handler_cls.user.profile.create_or_update_location(
-                            self.handler_cls.lat,
-                            self.handler_cls.lng)
+            self.handler_cls.user.profile.create_or_update_location(
+                     self.handler_cls.lat,
+                     self.handler_cls.lng)
 
         #make the user as alive
         if not self.msg_is_initial():
@@ -373,9 +373,6 @@ class Register(ParseMsgAndDispatch):
     def process(self):
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
 
-        wizcard_s = None
-        rolodex_s = None
-
         do_sync = False
         w_count = 0
         r_count = 0
@@ -466,11 +463,6 @@ class Register(ParseMsgAndDispatch):
         profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
 
         self.response.add_data("wizUserID", user.pk)
-        if wizcard_s:
-            self.response.add_data("wizcards", wizcard_s)
-        if rolodex_s:
-            self.response.add_data("rolodex", rolodex_s)
-
         return self.response
 
 class LocationUpdate(ParseMsgAndDispatch):
@@ -528,6 +520,7 @@ class NotificationsGet(ParseMsgAndDispatch):
 	    except:
                 #maybe location timedout. Shouldn't happen if messages from app
                 #are coming correctly...
+                print ' No location information available'
 		return self.response
 
     def process(self):
@@ -634,18 +627,6 @@ class WizcardEdit(ParseMsgAndDispatch):
             if wizcard.last_name != last_name:
                 wizcard.last_name = last_name
                 modify = True
-        if self.sender.has_key('company'):
-            company = self.sender['company']
-            if wizcard.company != company:
-                wizcard.company = company
-                modify = True
-        if self.sender.has_key('title'):
-            title = self.sender['title']
-            if wizcard.title != title:
-                wizcard.title = title
-                modify = True
-            wizcard.title = title
-            modify = True
         if self.sender.has_key('phone2'):
             phone2 = self.sender['phone2']
             if wizcard.phone2 != phone2:
@@ -683,10 +664,13 @@ class WizcardEdit(ParseMsgAndDispatch):
                 modify = True
 
         if self.sender.has_key('thumbnailImage') and self.sender['imageWasEdited']:
-            rawimage = bytes(self.sender['thumbnailImage'])
-            upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
-            wizcard.thumbnailImage.save(upfile.name, upfile) 
-            modify = True
+            try:
+                rawimage = bytes(self.sender['thumbnailImage'])
+                upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
+                wizcard.thumbnailImage.save(upfile.name, upfile) 
+                modify = True
+            except:
+                pass
 
         if self.sender.has_key('VideoUrl'):
             rawvideo = self.sender['VideoUrl']
@@ -1261,10 +1245,11 @@ class TableCreate(ParseMsgAndDispatch):
     def process(self):
         tablename = self.sender['table_name']
         secure = self.sender['secureTable']
-        #lifetime = self.sender['lifetime']
-        lifetime = 1
-        if not lifetime:
-            lifetime = 30
+        if self.sender.has_key('lifetime'):
+            lifetime = self.sender['lifetime'] if self.sender['lifetime'] else settings.WIZCARD_DEFAULT_TABLE_LIFETIME
+        else:
+            lifetime = settings.WIZCARD_DEFAULT_TABLE_LIFETIME
+
         if secure:
             password = self.sender['password']
         else:

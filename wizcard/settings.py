@@ -119,6 +119,9 @@ USER_ONLINE_TIMEOUT = 1
 WIZCARD_FLICK_AGGLOMERATE_RADIUS = 1000
 WIZCARD_FLICK_DEFAULT_TIMEOUT = 1
 
+#default table lifetime
+WIZCARD_DEFAULT_TABLE_LIFETIME = 5
+
 # Number of seconds that we will keep track of inactive users for before 
 # their last seen is removed from the cache
 USER_LASTSEEN_TIMEOUT = 60
