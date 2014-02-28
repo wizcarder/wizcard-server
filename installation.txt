@@ -4,6 +4,7 @@ storages
 boto
 pytz
 django_extensions
+pygraphviz (for schema generate)
 pyapns
 geohash (download and python setup.py install)
 nexmo
