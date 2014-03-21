@@ -68,7 +68,7 @@ class Notification(models.Model):
     WIZ_ACCEPT = 'accepted wizcard'
     WIZ_REVOKE = 'revoked wizcard'
     WIZ_DELETE = 'deleted wizcard'
-    WIZ_TABLE_DESTROY = 'destroy table'
+    WIZ_TABLE_TIMEOUT = 'table timeout'
     WIZ_CARD_UPDATE = 'wizcard update'
     WIZ_CARD_FLICK_TIMEOUT = 'flick timeout'
 

@@ -103,12 +103,11 @@ class UserProfile(models.Model):
             users = map(lambda m: UserProfile.objects.get(id=m).user, result)
         return users, count
 
-    def serialize(self, users):
-        return serialize(users, **fields.user_query_template)
-
     def serialize_objects(self):
         s = {}
         #add callouts to all serializable objects here
+
+	#wizcard
         try:
 	    wizcard = self.user.wizcard
             w = Wizcard.objects.serialize(wizcard)
@@ -121,10 +120,12 @@ class UserProfile(models.Model):
             wc = wizcard.serialize_wizconnections()
 	    s['wizconnections'] = wc
 
+        #flicks
 	if wizcard.flicked_cards.count():
 	    wf = wizcard.serialize_wizcardflicks()
 	    s['wizcard_flicks'] = wf
 
+        #tables
         tables = self.user.tables.all()
 	if tables.count():
 	    # serialize created and joined tables

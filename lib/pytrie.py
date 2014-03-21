@@ -356,7 +356,6 @@ class Trie(DictMixin, object):
         :param prefix: If not None, yield only the values associated with keys
             prefixed by ``prefix``.
         '''
-        #AA:TODO: Enhance this to support returning multiple values for the same key
         def generator(node, NULL=NULL):
             if node.value is not NULL:
                 yield node.value
@@ -428,7 +427,6 @@ class Trie(DictMixin, object):
                 node = node.children.setdefault(part, Node())
             else:
                 node = next
-        #AA:TODO: Enhance this to support multiple values for the same key
         node.value = value
 
     def __delitem__(self, key):
@@ -442,7 +440,6 @@ class Trie(DictMixin, object):
                 break
         if node is None or node.value is NULL:
             raise KeyError
-        #AA:TODO: Enhance this to support multiple values for the same key
         node.value = NULL
         pop = nodes_parts.pop
         while node.value is NULL and not node.children and nodes_parts:

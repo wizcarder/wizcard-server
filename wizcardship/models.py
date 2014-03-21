@@ -76,7 +76,7 @@ class WizcardManager(models.Manager):
         get_object_or_404(WizConnectionRequest, from_wizcard=from_wizcard,
                           to_wizcard=to_wizcard).accept()
 
-    def serialize(self, wizcards):
+    def serialize(self, wizcards, include_thumbnail=False):
         return serialize(wizcards, **fields.wizcard_template)
 
     def exchange_implicit(self, wizcard1, wizcard2):
@@ -175,7 +175,6 @@ class Wizcard(models.Model):
     address_country = models.CharField(max_length = 20, blank=True)
     address_zip = models.CharField(max_length = 20, blank=True)
     #media objects
-    #AA:TODO: This(image/video management) is quite primitive
     thumbnailImage = models.ImageField(upload_to="image/")
     video = models.FileField(upload_to="video/")
 

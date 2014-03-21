@@ -47,8 +47,6 @@ class LocationMgrManager(models.Manager):
         super(LocationMgrManager, self).__init__(*args, **kwargs)
 
     def init_from_db(self, sender, **kwargs):
-        #AA:TODO: for some reason, this class isn't showing up in the class_prepared senders
-        # ideally, need to qualify this with the sender = location_mgr
         if self.inited is True:
             print 'already inited...skipping'
             return
@@ -226,18 +224,14 @@ def location_timeout_handler(**kwargs):
 def location_timeout_cb(l):
     l.delete()
 
-#AA:TODO: if this works, then it can be a generic function
-def wizcard_flick_timeout_cb(l):
+def generic_timeout_cb(l):
     l.content_object.delete()
 
-def virtual_table_timeout_cb(l):
-    l.content_object.delete()
-    
 def timeout_callback_execute(e):
     timeout_callback = {
         ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb, 
-        ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : wizcard_flick_timeout_cb, 
-        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb, 
+        ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : generic_timeout_cb, 
+        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : generic_timeout_cb, 
         } 
     timeout_callback[e.content_type.id](e)
 

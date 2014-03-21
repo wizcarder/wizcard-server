@@ -110,7 +110,6 @@ class Header(ParseMsgAndDispatch):
 	if response:
 	    return response
 
-        #AA:TODO Do the user validation here
         if not self.msg_is_initial() and self.validateIncomingMessage():
             self.securityException()
             response.ignore()
@@ -173,21 +172,20 @@ class SignUp(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
         self.sender = self.des['sender']
+	self.username = self.sender['email']
+	self.password = self.sender['password']
 
     def process(self):
-        email = self.sender['email']
-	username = email
-	password = "wizard"
 
-	user = User.objects.create_user(username, email, password)
-	user.set_password(password)
+	user = User.objects.create_user(username=self.username, email=self.username, password=self.password)
+	user.set_password(self.password)
 	user.save()
 
 	#generate a uniue userid
 	user.profile.userid = UserProfile.objects.id_generator()
 	user.profile.save()
 
-	user = authenticate(username=username, password=password)
+	user = authenticate(username=self.username, password=self.password)
 	login(self.request, user)
 
 	#update location in ptree
@@ -213,14 +211,14 @@ class Login(ParseMsgAndDispatch):
             des = self.validator(self.msg)
 	    self.sender = des['sender']
             try:
-                username = self.sender['email']
-		self.user = User.objects.get(username=username)
+                self.username = self.sender['email']
+		self.user = User.objects.get(username=self.username)
+	        self.password = self.sender['pasword']
             except ObjectDoesNotExist:
                 self.response.error_response(err.USER_DOESNT_EXIST)
 		return self.response
         except colander.Invalid:
 	    self.response.ignore()
-	return self.response
             
     def process(self):
         do_sync = False
@@ -235,9 +233,7 @@ class Login(ParseMsgAndDispatch):
         except:
             do_sync = True
 
-        #password = self.sender['pasword']
-        password = "wizard"
-        authenticate(username=username, password=password)
+        authenticate(username=self.username, password=self.password)
         if not self.user.is_authenticated():
             self.response.error_response(err.AUTHENTICATION_FAILED)
             return self.response
@@ -276,6 +272,7 @@ class PhoneCheckRequest(ParseMsgAndDispatch):
 	response_mode = self.sender['checkMode']
 	response_target = self.sender['target']
 
+        #AA_TODO: security check for checkMode type
 	k_user = (settings.PHONE_CHECK_USER_KEY % user_id)
 	k_rand = (settings.PHONE_CHECK_USER_RAND_KEY % user_id)
 	k_retry = (settings.PHONE_CHECK_USER_RETRY_KEY % user_id)
@@ -524,7 +521,6 @@ class NotificationsGet(ParseMsgAndDispatch):
 		return self.response
 
     def process(self):
-        #AA: TODO: Change this to get userId from session
         notifications = Notification.objects.unread(self.user)
         notifResponse = NotifResponse(notifications)
 
@@ -547,12 +543,14 @@ class NotificationsGet(ParseMsgAndDispatch):
                 lng, 
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count and not self.user.profile.is_ios():
+	    #AA_TODO: ios app crashes if thumbnail is included. This should be
+	    #natively done when app is fixed (also for tables and users)
             notifResponse.notifFlickedWizcardsLookup(count, 
-                    self.user, flicked_wizcards)
+                    self.user, flicked_wizcards, True)
 
         users, count = self.user.profile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count and not self.user.profile.is_ios():
-            notifResponse.notifUserLookup(count, users)
+            notifResponse.notifUserLookup(count, users, True)
 
         #tables is a smaller entity...get the tables as well instead of just count
         tables, count = VirtualTable.objects.lookup(
@@ -773,6 +771,8 @@ class WizConnectionRequestDecline(ParseMsgAndDispatch):
         Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
 
         #Q a notif to other guy so that the app on the other side can react
+	#AA:TODO: Should we send this at all ?? better for the other 
+	#guy to not know
         notify.send(self.user, recipient=self.r_user,
                     verb='revoked wizcard', target=wizcard1)
 
@@ -935,7 +935,6 @@ class WizcardSendToContacts(ParseMsgAndDispatch):
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        #A:TODO: Cross verify user agains wizcard
         contacts = self.receiver['contacts']
         for contact in contacts:
             try:
@@ -960,7 +959,6 @@ class WizcardSendToContacts(ParseMsgAndDispatch):
                         return self.processSendCardToFutureContacts(phones, sender)
 
             except:
-                #AA:TODO: what to do ?
 	        self.response.error_response(err.INTERNAL_ERROR)
 
         self.response.add_data("count", count)
@@ -1108,11 +1106,11 @@ class UserQueryByName(ParseMsgAndDispatch):
         except:
             email = None
 
-        result, count = Wizcard.objects.find_users(self.user, name, phone, email)
+        lookup_result, count = Wizcard.objects.find_users(self.user, name, phone, email)
         #send back to app for selection
 
         if (count):
-            users = serialize(result, **fields.wizcard_user_query_template)
+            users = UserProfile.objects.serialize(lookup_result)
             self.response.add_data("queryResult", users)
             self.response.add_data("count", count)
 	else:
@@ -1217,6 +1215,28 @@ class TableDetails(ParseMsgAndDispatch):
             self.response.add_data("CreatorID", table.creator.id) 
 
         return self.response
+
+class UserGetDetail(ParseMsgAndDispatch):
+    def __init__(self, msg, validator, req=None):
+	self.msg = msg
+	self.validator = validator
+        self.response = Response()
+
+    def prepare(self):
+        try:
+            self.des = self.validator(self.msg)
+        except colander.Invalid:
+            self.response.ignore()
+            return self.response
+        self.sender = self.des['sender']
+	try:
+	    self.user = User.objects.get(id=self.sender['wizUserID'])
+	except: 
+            self.response.error_response(err.USER_DOESNT_EXIST)
+	    return self.response
+    
+    def process(self):
+        pass
 
 class TableCreate(ParseMsgAndDispatch):
     def __init__(self, msg, validator, req=None):
@@ -1394,7 +1414,8 @@ class TableRename(ParseMsgAndDispatch):
 	    return self.response
 
     def process(self):
-        tablename = self.sender['table_name']
+        old_name = self.sender['old_name']
+        new_name = self.sender['new_name']
         table_id = self.sender['tableID']
 
         try:
@@ -1402,7 +1423,11 @@ class TableRename(ParseMsgAndDispatch):
 	    if table.creator != self.user:
 		self.response.error_response(err.NOT_AUTHORIZED)
 		return self.response
-            table.tablename = tablename
+	    if old_name != table.tablename:
+		self.response.error_response(err.NAME_ERROR)
+		return self.response
+	        
+            table.tablename = new_name
             table.save()
             self.response.add_data("tableID", table.pk)
             self.response.add_data("tableID", table.pk)
@@ -1431,6 +1456,7 @@ msgTypesValidatorsAndHandlers = {
     'send_card_to_future_contacts': (message_format.WizcardSendToFutureContactsSchema, WizcardSendToFutureContacts),
     'find_users_by_location'      : (message_format.UserQueryByLocationSchema, UserQueryByLocation),
     'send_query_user'             : (message_format.UserQueryByNameSchema, UserQueryByName),
+    'show_user_details'           : (message_format.UserGetDetailSchema, UserGetDetail),
     'show_table_list'             : (message_format.TableQuerySchema, TableQuery),
     'table_details'               : (message_format.TableDetailsSchema, TableDetails),
     'create_table'                : (message_format.TableCreateSchema, TableCreate),

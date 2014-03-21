@@ -77,7 +77,7 @@ class NotifResponse(ResponseN):
     ACCEPT_IMPLICIT     = 1
     ACCEPT_EXPLICIT     = 2
     DELETE_IMPLICIT     = 3
-    DELETE_TABLE        = 4
+    TABLE_TIMEOUT       = 4
     UPDATE_WIZCARD      = 5
     FLICKED_WIZCARD     = 6
     NEARBY_USERS        = 7
@@ -92,7 +92,7 @@ class NotifResponse(ResponseN):
             Notification.WIZ_ACCEPT          : self.notifAcceptedWizcard,
             Notification.WIZ_REVOKE	     : self.notifRevokedWizcard,
             Notification.WIZ_DELETE	     : self.notifRevokedWizcard,
-            Notification.WIZ_TABLE_DESTROY   : self.notifDestroyedTable,
+            Notification.WIZ_TABLE_TIMEOUT   : self.notifDestroyedTable,
             Notification.WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
             Notification.WIZ_CARD_FLICK_TIMEOUT     : self.notifWizcardFlickTimeout
         }
@@ -103,7 +103,7 @@ class NotifResponse(ResponseN):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         out = Wizcard.objects.serialize(wizcard)
         self.add_data_with_notif(out, notifType)
-        #AA:TODO: enhanced notification to carry wasEdited information
+        #AA:TODO: enhance notification to carry wasEdited information
         if bool(wizcard.thumbnailImage):
             self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
         if wizcard.video:
@@ -130,7 +130,7 @@ class NotifResponse(ResponseN):
 
     def notifDestroyedTable(self, notif):
         out = dict(tableID=notif.target_object_id)
-        self.add_data_with_notif(out, self.DELETE_TABLE)
+        self.add_data_with_notif(out, self.TABLE_TIMEOUT)
         print self.response
         return self.response
 
@@ -142,28 +142,26 @@ class NotifResponse(ResponseN):
         self.add_data_with_notif(out, self.FLICK_TIMEOUT)
         return self.response
 
-    def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):
+    def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards, include_thumbnail=False):
         out = None
 	own_wizcard = user.wizcard
         if flicked_wizcards:
 	    wizcards = map(lambda x: x.wizcard, flicked_wizcards)
-            out = WizcardFlick.objects.serialize_split(user.wizcard, wizcards)
+            out = WizcardFlick.objects.serialize_split(user.wizcard, wizcards, include_thumbnail)
             self.add_data_with_notif(out, self.FLICKED_WIZCARD)
         return self.response
 
-    def notifUserLookup(self, count, users):
+    def notifUserLookup(self, count, users, include_thumbnail=False):
         out = None
         if users:
-            out = UserProfile.objects.serialize(users)
-            #AA:TODO: Not good if both dictionary have common names
+            out = UserProfile.objects.serialize(users, include_thumbnail)
             self.add_data_with_notif(out, self.NEARBY_USERS)
         return self.response
 
-    def notifTableLookup(self, count, user, tables):
+    def notifTableLookup(self, count, user, tables, include_thumbnail=False):
         out = None
         if tables:
             out = VirtualTable.objects.serialize_split(tables, user)
-            #AA:TODO: Not good if both dictionary have common names
             self.add_data_with_notif(out, self.NEARBY_TABLES)
         return self.response
 
