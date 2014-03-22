@@ -20,7 +20,7 @@ import pdb
 USER_ACTIVE_TIMEOUT = 10
 
 class UserProfileManager(models.Manager):
-    def serialize(self, users):
+    def serialize(self, users, include_thumbnail=False):
         return serialize(users, **fields.user_query_template)
 
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):

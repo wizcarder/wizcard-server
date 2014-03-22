@@ -293,7 +293,7 @@ class WizcardFlickManager(models.Manager):
     def serialize(self, flicked_wizcards):
         return serialize(wizcards, **fields.wizcard_template)
 
-    def serialize_split(self, my_wizcard, flicked_wizcards):
+    def serialize_split(self, my_wizcard, flicked_wizcards, include_thumbnail=False):
         #AA:TODO No need to send own/connected full card data..just the id should be enough
         # probably should send some flick related info for these
 	s = dict()

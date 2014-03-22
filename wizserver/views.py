@@ -185,12 +185,12 @@ class SignUp(ParseMsgAndDispatch):
 	user.profile.userid = UserProfile.objects.id_generator()
 	user.profile.save()
 
-	user = authenticate(username=self.username, password=self.password)
-	login(self.request, user)
+	#user = authenticate(username=self.username, password=self.password)
+	#login(self.request, user)
 
 	#update location in ptree
-	if self.sender.has_key('lat') and self.sender.has_key('lng'):
-            user.profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
+	#if self.sender.has_key('lat') and self.sender.has_key('lng'):
+        #    user.profile.create_or_update_location(self.sender['lat'], self.sender['lng'])
 
         self.response.add_data("wizUserID", user.pk)
         self.response.add_data("userID", user.profile.userid)
@@ -213,7 +213,7 @@ class Login(ParseMsgAndDispatch):
             try:
                 self.username = self.sender['email']
 		self.user = User.objects.get(username=self.username)
-	        self.password = self.sender['pasword']
+	        self.password = self.sender['password']
             except ObjectDoesNotExist:
                 self.response.error_response(err.USER_DOESNT_EXIST)
 		return self.response
@@ -233,10 +233,11 @@ class Login(ParseMsgAndDispatch):
         except:
             do_sync = True
 
-        authenticate(username=self.username, password=self.password)
+        self.user = authenticate(username=self.username, password=self.password)
         if not self.user.is_authenticated():
             self.response.error_response(err.AUTHENTICATION_FAILED)
             return self.response
+
         login(self.request, self.user) 
 
         if do_sync:

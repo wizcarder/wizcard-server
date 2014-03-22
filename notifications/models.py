@@ -101,7 +101,7 @@ class Notification(models.Model):
 		'badge': 0,
 		'message': WIZREQ_U,
 		},
-	WIZ_TABLE_DESTROY: {
+	WIZ_TABLE_TIMEOUT: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'message': WIZREQ_U,
