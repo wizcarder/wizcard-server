@@ -1388,7 +1388,7 @@ class TableDestroy(ParseMsgAndDispatch):
             return self.response
 
         if table.creator == self.user:
-            table.delete()
+            table.delete(type=Notification.WIZ_TABLE_DESTROY)
         else:
             self.response.error_response(err.NOT_AUTHORIZED)
 

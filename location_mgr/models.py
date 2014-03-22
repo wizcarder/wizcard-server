@@ -224,6 +224,9 @@ def location_timeout_handler(**kwargs):
 def location_timeout_cb(l):
     l.delete()
 
+def virtual_table_timeout_cb(l):
+    l.content_object.delete(type=Notification.WIZ_TABLE_TIMEOUT)
+    
 def generic_timeout_cb(l):
     l.content_object.delete()
 
@@ -231,7 +234,7 @@ def timeout_callback_execute(e):
     timeout_callback = {
         ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb, 
         ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : generic_timeout_cb, 
-        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : generic_timeout_cb, 
+        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb, 
         } 
     timeout_callback[e.content_type.id](e)
 

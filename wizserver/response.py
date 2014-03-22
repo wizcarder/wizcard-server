@@ -93,6 +93,7 @@ class NotifResponse(ResponseN):
             Notification.WIZ_REVOKE	     : self.notifRevokedWizcard,
             Notification.WIZ_DELETE	     : self.notifRevokedWizcard,
             Notification.WIZ_TABLE_TIMEOUT   : self.notifDestroyedTable,
+            Notification.WIZ_TABLE_DESTROY   : self.notifDestroyedTable,
             Notification.WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
             Notification.WIZ_CARD_FLICK_TIMEOUT     : self.notifWizcardFlickTimeout
         }

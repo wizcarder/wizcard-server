@@ -69,6 +69,7 @@ class Notification(models.Model):
     WIZ_REVOKE = 'revoked wizcard'
     WIZ_DELETE = 'deleted wizcard'
     WIZ_TABLE_TIMEOUT = 'table timeout'
+    WIZ_TABLE_DESTROY = 'table destroy'
     WIZ_CARD_UPDATE = 'wizcard update'
     WIZ_CARD_FLICK_TIMEOUT = 'flick timeout'
 
@@ -101,6 +102,11 @@ class Notification(models.Model):
 		'message': WIZREQ_U,
 		},
 	WIZ_TABLE_DESTROY: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZ_TABLE_TIMEOUT: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'message': WIZREQ_U,
