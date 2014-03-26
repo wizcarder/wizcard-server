@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 from django.conf import settings
 from lib import wizlib
-import datetime
+from django.utils import timezone
 import string
 import random
 import pdb
@@ -58,8 +58,8 @@ class UserProfile(models.Model):
 
     def online(self):
         if self.last_seen():
-            now = datetime.datetime.now()
-            if now > self.last_seen() + datetime.timedelta(
+            now = timezone.now()
+            if now > self.last_seen() + timezone.timedelta(
                 seconds=settings.USER_ONLINE_TIMEOUT):
                 return False
             else: 
