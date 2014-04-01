@@ -11,7 +11,7 @@ class PeriodicManager(models.Manager):
     def clear_expired(self, e):
         map(lambda x: x.delete(), e)
 
-
+#TODO: put start as callable into default
 class Periodic(models.Model):
     #timeout_value is in seconds
     timeout_value = models.IntegerField(blank=False, null=False)

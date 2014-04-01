@@ -11,6 +11,7 @@ from periodic.models import Periodic
 from django.db.models.signals import class_prepared
 from lib import wizlib
 from django_cron import Job
+from django.utils import timezone
 import heapq
 import random
 import pdb
@@ -19,12 +20,17 @@ class Tick(Job):
     run_every = 10
 
     def job(self):
-        print 'TICK RECEIVED'
-        e = Periodic.objects.get_expired()
-        if e.count():
-            print 'EXPIRED objects found {e}'.format(e=e)
-            ids = map(lambda x:  x.location.pk, e)
-            location_timeout.send(sender=None, ids=ids)
+        print 'TICK RECEIVED', timezone.now()
+        exp = Periodic.objects.get_expired()
+        if exp.count():
+            print 'EXPIRED objects found {e}'.format(e=exp)
+            ids = map(lambda x:  x.location.pk, exp)
+            try:
+                location_timeout.send(sender=None, ids=ids)
+            except Exception, e:
+                #AA:TODO. This needs to be fixed...some issue with datetime and naive datetime
+                print 'Timer Job Exception:', str(e)
+                pass
 
 
 class LocationMgrManager(models.Manager):
