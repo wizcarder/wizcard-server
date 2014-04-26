@@ -1,0 +1,2 @@
+#Server
+Async upload of image/video(django-queued-storage). Maybe app should upload directly

@@ -1,0 +1,19 @@
+from django.db.models import Q
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth.models import User
+from django.core import serializers
+from wizcardship.models import WizConnectionRequest, Wizcard
+from notifications.models import notify, Notification
+from virtual_table.models import VirtualTable
+from wizserver.response import Response, NotifResponse
+from wizserver import wizlib
+from wizserver.models import MyUser
+from django.db import models
+from django.db.models.query import QuerySet
+from preserialize.serialize import serialize
+from wizserver import fields
+
+u1 = User.objects.get(id=276)
+w1 = Wizcard.objects.get(id=1)
+serialize(w1.contact_container.all(), **fields.contact_container_template)
+#serialize(u1.wizcards.all(), **fields.wizcard_template)
