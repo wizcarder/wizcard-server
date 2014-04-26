@@ -139,6 +139,7 @@ class Header(ParseMsgAndDispatch):
 	return self.msg_type in ['signup', 'login', 'register', 'phone_check_req', 'phone_check_resp']
      
     def validateIncomingMessage(self):
+        pdb.set_trace()
         if self.handler_cls.sender.has_key('userID') and self.handler_cls.sender.has_key('wizUserID'):
                 try:
                     username = self.sender['userID']

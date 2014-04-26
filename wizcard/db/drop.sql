@@ -5,6 +5,7 @@ drop table `wizcard`.`wizcardship_wizcard_wizconnections`;
 drop table `wizcard`.`wizcardship_userblocks_blocks`;
 drop table `wizcard`.`wizcardship_userblocks`;
 drop table `wizcard`.`wizcardship_contactcontainer`;
+drop table `wizcard`.`wizcardship_wizcardflick`;
 drop table `wizcard`.`wizcardship_wizcard`;
 drop table `wizcard`.`virtual_table_membership`;
 drop table `wizcard`.`virtual_table_virtualtable`;
