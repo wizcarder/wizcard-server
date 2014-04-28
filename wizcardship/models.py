@@ -289,18 +289,21 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def serialize(self, flicked_wizcards):
-        return serialize(flicked_wizcards, **fields.flicked_wizcard_template)
+    def serialize(self, flicked_wizcards, extended=False):
+        if extended:
+            return serialize(flicked_wizcards, **fields.flicked_wizcard_extended_template)
+        else:
+            return serialize(flicked_wizcards, **fields.flicked_wizcard_template)
 
     def serialize_split(self, my_wizcard, flicked_wizcards, include_thumbnail=False):
 	s = dict()
 	own, connected, others = self.split_wizcard_flick(my_wizcard, flicked_wizcards)
         if own:
-            s['own'] = WizcardFlick.objects.serialize(my_wizcard)
+            s['own'] = WizcardFlick.objects.serialize(own)
         if connected:
             s['connected'] = WizcardFlick.objects.serialize(connected)
         if others:
-            s['others'] = Wizcard.objects.serialize(others)
+            s['others'] = WizcardFlick.objects.serialize(others, extended=True)
 
 	return s
 
@@ -309,9 +312,9 @@ class WizcardFlickManager(models.Manager):
         connected = []
 	others = []
 	for w in flicked_wizcards:
-            if w == mine:
+            if w.wizcard == mine:
 	        own.append(w)
-	    elif Wizcard.objects.are_wizconnections(w, mine):
+	    elif Wizcard.objects.are_wizconnections(w.wizcard, mine):
 	        connected.append(w)
             else: others.append(w)
 

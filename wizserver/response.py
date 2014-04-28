@@ -147,8 +147,8 @@ class NotifResponse(ResponseN):
         out = None
 	own_wizcard = user.wizcard
         if flicked_wizcards:
-	    wizcards = map(lambda x: x.wizcard, flicked_wizcards)
-            out = WizcardFlick.objects.serialize_split(user.wizcard, wizcards, include_thumbnail)
+	    #wizcards = map(lambda x: x.wizcard, flicked_wizcards)
+            out = WizcardFlick.objects.serialize_split(user.wizcard, flicked_wizcards, include_thumbnail)
             self.add_data_with_notif(out, self.FLICKED_WIZCARD)
         return self.response
 

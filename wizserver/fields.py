@@ -18,7 +18,15 @@ wizcard_template = {
 
 flicked_wizcard_template = {
     'fields': ['created', 'id'],
-    'allow_missing': True
+}
+
+flicked_wizcard_related_objects_template = {
+    'wizcard': wizcard_template
+}
+
+flicked_wizcard_extended_template = {
+    'fields': ['created', 'id', 'wizcard'],
+    'related': flicked_wizcard_related_objects_template
 }
 
 wizconnection_template = {
