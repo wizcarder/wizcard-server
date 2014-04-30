@@ -236,7 +236,8 @@ class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
     company = models.CharField(max_length=40, blank=True)
     title = models.CharField(max_length=200, blank=True)
-    image = models.ImageField(upload_to="image/")
+    f_bizCardImage = models.ImageField(upload_to="image/")
+    r_bizCardImage = models.ImageField(upload_to="image/")
     def __unicode__(self):
         return _(u'%(user)s\'s contact container') % {'user': unicode(self.wizcard.user)}
 
