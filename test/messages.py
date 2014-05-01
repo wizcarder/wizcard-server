@@ -147,6 +147,14 @@ contacts_verify = {
     },
 }
 
+contact_container = {
+    "company": "Wizcard Inc",
+    "title" : "CEO",
+    "f_bizCardImage" : "",
+    "r_bizCardImage" : ""
+}
+
+
 
 edit_card1 = {
     "header" : {
@@ -172,6 +180,7 @@ edit_card1 = {
         "deviceType": "android",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
+	"contactContainer" : contact_container
     },
 }
 
@@ -199,6 +208,7 @@ edit_card2 = {
         "userID" : "USER2",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
+	"contactContainer" : contact_container
     },
 }
 
@@ -226,6 +236,7 @@ edit_card3 = {
         "userID" : "USER3",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
+	"contactContainer" : contact_container
     },
 }
 

@@ -502,6 +502,7 @@ class Header(ParseMsgAndDispatch):
                 modify = True
 
         if 'thumbnailImage' in self.sender and self.sender['imageWasEdited']:
+	    #AA:TODO: Remove try
             try:
                 rawimage = bytes(self.sender['thumbnailImage'])
                 upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
@@ -521,16 +522,37 @@ class Header(ParseMsgAndDispatch):
             wizcard.contact_container.all().delete()
             modify = True
 
-            for contactItems in contactContainerList:
-	        if 'title' in contactItems:
-                    title = contactItems['title']
+            for count, contactItem in enumerate(contactContainerList):
+	        if 'title' in contactItem:
+                    title = contactItem['title']
                 else:
                     title = ""
-		if 'company' in contactItems:
-                    company = contactItems['company']
+		if 'company' in contactItem:
+                    company = contactItem['company']
                 else:
                     company = ""
-                ContactContainer(wizcard=wizcard, title=title, company=company).save()
+
+                #AA:TODO - Can there be 1 save with image
+                c = ContactContainer(wizcard=wizcard, title=title, company=company)
+		c.save()
+		if 'f_bizCardImage' in contactItem:
+	            #AA:TODO: Remove try
+                    try:
+                        rawimage = bytes(contactItem['f_bizCardImage'])
+			#AA:TODO: better file name
+                        upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % (wizcard.pk, c.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
+                        c.f_bizCardImage.save(upfile.name, upfile) 
+                    except:
+                        pass
+		if 'b_bizCardImage' in contactItem:
+	            #AA:TODO: Remove try
+                    try:
+                        rawimage = bytes(contactItem['b_bizCardImage'])
+			#AA:TODO: better file name
+                        upfile = SimpleUploadedFile("%s-b_bc.%s.%s.jpg" % (wizcard.pk, c.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
+                        c.b_bizCardImage.save(upfile.name, upfile) 
+                    except:
+                        pass
 
         #flood to contacts
         if modify:
