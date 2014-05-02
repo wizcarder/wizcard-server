@@ -517,8 +517,8 @@ class Header(ParseMsgAndDispatch):
             wizcard.video.save(upfile.name, upfile) 
             modify = True
 
-	if 'contact_container' in self.sender:
-            contactContainerList = self.sender['contact_container']
+	if 'contactContainer' in self.sender:
+            contactContainerList = self.sender['contactContainer']
             wizcard.contact_container.all().delete()
             modify = True
 
@@ -535,7 +535,7 @@ class Header(ParseMsgAndDispatch):
                 #AA:TODO - Can there be 1 save with image
                 c = ContactContainer(wizcard=wizcard, title=title, company=company)
 		c.save()
-		if 'f_bizCardImage' in contactItem:
+		if 'f_bizCardImage' in contactItem and contactItem['f_bizCardImage']:
 	            #AA:TODO: Remove try
                     try:
                         rawimage = bytes(contactItem['f_bizCardImage'])
@@ -544,7 +544,7 @@ class Header(ParseMsgAndDispatch):
                         c.f_bizCardImage.save(upfile.name, upfile) 
                     except:
                         pass
-		if 'b_bizCardImage' in contactItem:
+		if 'b_bizCardImage' in contactItem and contactItem['b_bizCardImage']:
 	            #AA:TODO: Remove try
                     try:
                         rawimage = bytes(contactItem['b_bizCardImage'])

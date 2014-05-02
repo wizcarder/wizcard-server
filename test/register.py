@@ -8,6 +8,8 @@ import json
 import pdb
 import messages
 
+TEST_IMAGE=False
+
 PHONE1 = "+14084641727"
 PHONE2 = "+14085332708"
 PHONE3 = "+14086892263"
@@ -41,6 +43,7 @@ server_url = "www.totastyle.com"
 server_port = 8000
 #server_port = 80
 
+test_image_path = "/Users/aammundi/Pictures/iChat Icons/Flags/Russia.png"
 # Open the connection to Wiz server
 conn = httplib.HTTPConnection(server_url, server_port)
 
@@ -120,6 +123,7 @@ pcrspmsg['header']['hash'] = HASH3
 pcrspmsg['sender']['username'] = USERNAME3
 pcrspmsg['sender']['responseKey'] = RESPONSE_KEY3
 pcrsp3 = json.dumps(pcrspmsg)
+test_image_path = "/Users/aammundi/Pictures/iChat Icons/Flags/Russia.png"
 print "sending phone_check_rsp", pcrsp3
 conn.request("POST","", pcrsp3)
 # Parse and dump the JSON response from server
@@ -185,9 +189,20 @@ print "sending register"
 objs = handle_response(conn)
 
 #send edit_cards for each
+if TEST_IMAGE:
+    f = open(test_image_path, 'rb')
+    out = f.read().encode('hex')
+else:
+    out = None
+
 edit_card_msg = messages.edit_card1
 edit_card_msg['sender']['userID'] = uid1
 edit_card_msg['sender']['wizUserID'] = wuid1
+contacts = edit_card_msg['sender']['contactContainer']
+#populate file
+for c in contacts:
+    c['f_bizCardImage'] = out
+    c['b_bizCardImage'] = out
 e1 = json.dumps(edit_card_msg)
 print "sending EDIT CARD for", edit_card_msg['sender']['userID']
 conn.request("POST","", e1)
@@ -199,6 +214,11 @@ e1_id = objs['data']['wizCardID']
 edit_card_msg = messages.edit_card2
 edit_card_msg['sender']['userID'] = uid2
 edit_card_msg['sender']['wizUserID'] = wuid2
+contacts = edit_card_msg['sender']['contactContainer']
+#populate file
+for c in contacts:
+    c['f_bizCardImage'] = out
+    c['b_bizCardImage'] = out
 e2 = json.dumps(edit_card_msg)
 print "sending EDIT CARD for", edit_card_msg['sender']['userID']
 conn.request("POST","", e2)
@@ -209,6 +229,11 @@ e2_id = objs['data']['wizCardID']
 edit_card_msg = messages.edit_card3
 edit_card_msg['sender']['userID'] = uid3
 edit_card_msg['sender']['wizUserID'] = wuid3
+contacts = edit_card_msg['sender']['contactContainer']
+#populate file
+for c in contacts:
+    c['f_bizCardImage'] = out
+    c['b_bizCardImage'] = out
 e3 = json.dumps(edit_card_msg)
 print "sending EDIT CARD for", edit_card_msg['sender']['userID']
 conn.request("POST","", e3)
