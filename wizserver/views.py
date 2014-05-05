@@ -140,6 +140,7 @@ class Header(ParseMsgAndDispatch):
 
 	self.msg_type = self.header['msgType']
         print 'received message', self.msg_type
+        print self
 
 	if not self.validateHeader():
             self.securityException()
@@ -501,7 +502,8 @@ class Header(ParseMsgAndDispatch):
                 wizcard.address_zip = zipcode
                 modify = True
 
-        if 'thumbnailImage' in self.sender and self.sender['imageWasEdited']:
+        if 'thumbnailImage' in self.sender:
+        #if 'thumbnailImage' in self.sender and self.sender['imageWasEdited']:
 	    #AA:TODO: Remove try
             try:
                 rawimage = bytes(self.sender['thumbnailImage'])
