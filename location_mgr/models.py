@@ -186,14 +186,15 @@ class LocationMgr(models.Model):
 
     #Database based timer implementation
     def start_timer(self, timeout):
+	#AA:TODO revert
         t = Periodic.objects.create(location=self,
-                timeout_value=timeout*60)
+                timeout_value=timeout*60000)
         t.start()
 
     def extend_time(self, timeout):
 	#timeout is the new timeout
         t = self.timer.get()
-	t.timeout_value = timeout*60
+	t.timeout_value = timeout*60000
 	t.save()
 	t.start()
 
