@@ -342,17 +342,20 @@ conn.request("POST","", gcu3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 
+print "Creating Table"
 tbl_create_msg = messages.table_create
 tbl_create_msg['sender']['userID'] = uid1
 tbl_create_msg['sender']['wizUserID'] = wuid1
 tbl_create_msg['sender']['table_name'] = "One"
 tbl_c_1 = json.dumps(tbl_create_msg)
+pdb.set_trace()
 conn.request("POST","", tbl_c_1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 tid_1 = objs['data']['tableID']
 
 #join created table
+print "Joining Table"
 tbl_join_msg = messages.table_join
 tbl_join_msg['sender']['userID'] = uid2
 tbl_join_msg['sender']['wizUserID'] = wuid2
@@ -360,6 +363,17 @@ tbl_join_msg['sender']['tableID'] = tid_1
 tbl_j_1 = json.dumps(tbl_join_msg)
 conn.request("POST","", tbl_j_1)
 # Parse and dump the JSON response from server
+objs = handle_response(conn)
+
+print "Joining Table with error password"
+tbl_join_msg = messages.table_join
+tbl_join_msg['sender']['userID'] = uid3
+tbl_join_msg['sender']['wizUserID'] = wuid3
+tbl_join_msg['sender']['tableID'] = tid_1
+tbl_join_msg['sender']['password'] = "xxx"
+tbl_j_1 = json.dumps(tbl_join_msg)
+# Parse and dump the JSON response from server
+conn.request("POST","", tbl_j_1)
 objs = handle_response(conn)
 
 get_cards_msg = messages.get_cards

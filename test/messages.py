@@ -270,7 +270,7 @@ table_join = {
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
-	"tableID": ""
+	"tableID": "",
         "password" : "test"
     },
 }
