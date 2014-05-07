@@ -47,26 +47,31 @@ class VirtualTableManager(models.Manager):
     def serialize(self, tables):
         return serialize(tables, **fields.table_template)
 
-    def serialize_split(self, tables, creator):
+    def serialize_split(self, tables, user):
         ret = {}
 
-        created, joined = self.split_table(tables, creator)
+        created, joined, others = self.split_table(tables, user)
         if created:
             ret['created'] = serialize(created, **fields.table_template)
         if joined:
             ret['joined'] = serialize(joined, **fields.table_template)
+        if others:
+            ret['others'] = serialize(others, **fields.table_template)
 
         return ret
 
-    def split_table(self, tables, creator):
+    def split_table(self, tables, user):
         created = []
         joined = []
+        others = []
         for t in tables:
-            if t.creator == creator:
+            if t.is_creator(user):
                 created.append(t)
-            else:
+            elif t.is_member(user):
                 joined.append(t)
-        return created, joined
+            else:
+                others.append(t) 
+        return created, joined, others
 
 
 class VirtualTable(models.Model):
@@ -110,6 +115,12 @@ class VirtualTable(models.Model):
 
     def name(self):
         return self.tablename
+
+    def is_member(self, user):
+        return bool(self.users.filter(id=user.id).exists())
+
+    def is_creator(self, user):
+        return bool(self.creator == user)
 
     def join_table_and_exchange(self, user, password, do_exchange):
         #check password
