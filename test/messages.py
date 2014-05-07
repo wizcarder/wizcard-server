@@ -241,7 +241,7 @@ edit_card3 = {
 }
 
 
-table_create_1 = {
+table_create = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
@@ -255,11 +255,25 @@ table_create_1 = {
         "userID" : "",
         "wizUserID" : "",
         "table_name" : "",
-        "secureTable" : "False",
-        "password" : ""
+        "secureTable" : "True",
+        "password" : "test"
     },
 }
 
+table_join = {
+    "header" : {
+        "deviceID" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f02460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "join_table",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+	"tableID": ""
+        "password" : "test"
+    },
+}
 
 card_flick = {
     "header" : {
