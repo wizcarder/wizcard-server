@@ -294,6 +294,7 @@ cf1 = json.dumps(card_flick_msg)
 conn.request("POST","", cf1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
+pdb.set_trace()
 
 card_flick_msg = messages.card_flick
 card_flick_msg['sender']['userID'] = uid3
@@ -304,6 +305,13 @@ conn.request("POST","", cf3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 cf3_id = objs['data']['flickCardID']
+
+print "pick up flicked card"
+card_flick_accept_msg = message.card_flick_accept
+card_flick_accept_msg['sender']['userID'] = uid3
+card_flick_accept_msg['sender']['wizUserID'] = wuid3
+card_flick_accept_msg['receiver']['wizcardID'] = wcid3
+card_flick_accept_msg['receiver']['flickCardID'] = cf3_id
 
 print "retrieving myFlicks"
 my_flick_msg = messages.my_flicks

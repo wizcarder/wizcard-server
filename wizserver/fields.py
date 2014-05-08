@@ -17,7 +17,8 @@ wizcard_template = {
 }
 
 flicked_wizcard_template = {
-    'fields': ['created', 'id'],
+    'fields': ['created', 'flick_id'],
+    'key_map': {'flick_id':'id'}
 }
 
 flicked_wizcard_related_objects_template = {
@@ -25,7 +26,8 @@ flicked_wizcard_related_objects_template = {
 }
 
 flicked_wizcard_extended_template = {
-    'fields': ['created', 'id', 'wizcard'],
+    'fields': ['created', 'flick_id', 'wizcard'],
+    'key_map': {'flick_id':'id'},
     'related': flicked_wizcard_related_objects_template
 }
 

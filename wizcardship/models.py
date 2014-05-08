@@ -327,6 +327,8 @@ class WizcardFlick(models.Model):
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     location = generic.GenericRelation(LocationMgr)
+    #who picked my flicked card?
+    flick_pickers = models.ManyToManyField(User)
 
     objects = WizcardFlickManager()
 

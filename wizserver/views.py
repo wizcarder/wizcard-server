@@ -104,7 +104,7 @@ class Header(ParseMsgAndDispatch):
 	#hashed passwd check
 
 
-	#username, userID, wizUserID
+	#username, userID, wizUserID, deviceID
 
 	#is_authenticated check
 
@@ -286,13 +286,14 @@ class Header(ParseMsgAndDispatch):
 	    password = "wizcard"
 	    #password = user.profile.gen_password(user.pk, device_id)
 	    user.set_password(password)
+	    #generate internal userid
 	    user.save()
+	    user.profile.userid = UserProfile.objects.id_generator()
 	else:
 	    # mark for sync.
 	    user.profile.do_sync = True
 
 	user.profile.device_id = device_id
-	user.profile.userid = UserProfile.objects.id_generator()
 	user.profile.save()
 
 	#AA TODO: Maybe not here, but making a note. profile is created as
@@ -303,7 +304,6 @@ class Header(ParseMsgAndDispatch):
 	#all done. #clear cache
 	cache.delete_many([k_user, k_device_id, k_rand, k_retry])
 
-	#generate internal userid
 	user.profile.save()
 
         self.response.add_data("userID", user.profile.userid)
@@ -337,10 +337,7 @@ class Header(ParseMsgAndDispatch):
         except:
             pass
 
-        self.userprofile.save()
-
-	#if profile.do_sync:
-        if False:
+	if profile.do_sync:
             #sync all syncables
             s = self.userprofile.serialize_objects()
 	    if 'wizcard' in s:
@@ -352,7 +349,8 @@ class Header(ParseMsgAndDispatch):
 	        if 'tables' in s:
                     self.response.add_data("tables", s['tables'])
 
-        self.userprofile.sync = False
+            self.userprofile.sync = False
+
 	self.userprofile.save()
 
         #update location in ptree
@@ -664,26 +662,29 @@ class Header(ParseMsgAndDispatch):
 
     def WizcardFlickAccept(self):
 	try:
-	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
-	except: 
-	    try:
-	        self.r_user = UserProfile.objects.get(id=self.receiver['userID']).user
-	    except:
-                self.response.error_response(err.USER_DOESNT_EXIST)
-	        return self.response
+            wizcard1 = self.user.wizcard
+            wizcard2 = self.receiver['wizcardID']
+	except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
         try:
-            wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
-            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+	    flick_id = self.receiver['flickCardID']
+	except:
+            #AA:TODO remove this error message...should silently discard
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
+
+        try:
+            flick_card = WizcardFlick.objects.get(id=flick_id)
         except:
-            try:
-                wizcard1 = self.user.wizcard
-                wizcard2 = self.r_user.wizcard
-            except:
-                self.response.error_response(err.OBJECT_DOESNT_EXIST)
-                return self.response
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
 
 	#create a wizconnection and then accept it
 	Wizcard.objects.exchange(wizcard1, wizcard2, True)
+
+	#associate flick with user
+	flick_card.flick_pickers.add(self.user)
 
         return self.response
 

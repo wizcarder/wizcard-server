@@ -291,6 +291,21 @@ card_flick = {
     },
 }
 
+card_flick_accept = {
+    "header" : {
+        "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f02460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "card_flick_accept",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+	"flickCardID": "",
+	"wizcardID": ""
+    },
+}
+
 my_flicks = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
