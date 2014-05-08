@@ -294,7 +294,7 @@ cf1 = json.dumps(card_flick_msg)
 conn.request("POST","", cf1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
-pdb.set_trace()
+
 
 card_flick_msg = messages.card_flick
 card_flick_msg['sender']['userID'] = uid3
@@ -307,11 +307,15 @@ objs = handle_response(conn)
 cf3_id = objs['data']['flickCardID']
 
 print "pick up flicked card"
-card_flick_accept_msg = message.card_flick_accept
-card_flick_accept_msg['sender']['userID'] = uid3
-card_flick_accept_msg['sender']['wizUserID'] = wuid3
-card_flick_accept_msg['receiver']['wizcardID'] = wcid3
+card_flick_accept_msg = messages.card_flick_accept
+card_flick_accept_msg['sender']['userID'] = uid1
+card_flick_accept_msg['sender']['wizUserID'] = wuid1
+card_flick_accept_msg['receiver']['wizcardID'] = e1_id
 card_flick_accept_msg['receiver']['flickCardID'] = cf3_id
+cfa1 = json.dumps(card_flick_accept_msg)
+conn.request("POST","", cfa1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
 
 print "retrieving myFlicks"
 my_flick_msg = messages.my_flicks
@@ -356,7 +360,6 @@ tbl_create_msg['sender']['userID'] = uid1
 tbl_create_msg['sender']['wizUserID'] = wuid1
 tbl_create_msg['sender']['table_name'] = "One"
 tbl_c_1 = json.dumps(tbl_create_msg)
-pdb.set_trace()
 conn.request("POST","", tbl_c_1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)

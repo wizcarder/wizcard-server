@@ -301,9 +301,11 @@ card_flick_accept = {
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
-	"flickCardID": "",
-	"wizcardID": ""
     },
+    "receiver" : {
+	"wizcardID": "",
+        "flickCardID" : "",
+    }
 }
 
 my_flicks = {
@@ -316,9 +318,10 @@ my_flicks = {
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
-        "cardFlickID" : "",
+        "wizCardID" : ""
     }
 }
+
 
 get_cards = {
     "header" : {

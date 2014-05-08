@@ -151,6 +151,8 @@ class Header(ParseMsgAndDispatch):
             self.securityException()
             self.response.ignore()
             return False, self.response
+        if 'receiver' in self.msg:
+            self.receiver = self.msg['receiver']
 
         return True, self.response
 
@@ -337,7 +339,7 @@ class Header(ParseMsgAndDispatch):
         except:
             pass
 
-	if profile.do_sync:
+	if self.userprofile.do_sync:
             #sync all syncables
             s = self.userprofile.serialize_objects()
 	    if 'wizcard' in s:
@@ -663,20 +665,13 @@ class Header(ParseMsgAndDispatch):
     def WizcardFlickAccept(self):
 	try:
             wizcard1 = self.user.wizcard
-            wizcard2 = self.receiver['wizcardID']
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizcardID'])
 	except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
         try:
-	    flick_id = self.receiver['flickCardID']
+            flick_card = WizcardFlick.objects.get(id=self.receiver['flickCardID'])
 	except:
-            #AA:TODO remove this error message...should silently discard
-            self.response.error_response(err.INVALID_MESSAGE)
-            return self.response
-
-        try:
-            flick_card = WizcardFlick.objects.get(id=flick_id)
-        except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
@@ -805,11 +800,10 @@ class Header(ParseMsgAndDispatch):
 
 
     def UserQueryByLocation(self):
-        profile = self.userprofile
         #update location in ptree
-        profile.create_or_update_location(self.sender['lat'], 
+        self.userprofile.create_or_update_location(self.sender['lat'], 
                                           self.sender['lng'])
-        lookup_result, count = profile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        lookup_result, count = self.userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             users_s = UserProfile.objects.serialize(lookup_result)
             self.response.add_data("queryResult", users_s)
