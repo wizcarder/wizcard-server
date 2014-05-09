@@ -128,6 +128,7 @@ class Header(ParseMsgAndDispatch):
             self.lng = sender['lng']
 	        
         self.sender = sender
+
         return True
 
     def validate(self):
@@ -384,6 +385,10 @@ class Header(ParseMsgAndDispatch):
     def NotificationsGet(self):
         notifications = Notification.objects.unread(self.user)
         notifResponse = NotifResponse(notifications)
+
+        if not Wizcard.objects.filter(user=self.user).exists():
+            return self.response
+
 
 	if self.lat == None and self.lng == None:
 	    try:
@@ -964,7 +969,7 @@ class Header(ParseMsgAndDispatch):
         if table.isSecure():
             password = self.sender['password']
         else:
-            password = ""
+            password = None
         
         joined = table.join_table_and_exchange(self.user, password, True)
 
