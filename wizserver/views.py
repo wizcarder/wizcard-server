@@ -368,11 +368,12 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def ContactsVerify(self):
-	address_book_entries = self.sender['contacts']
+        pdb.set_trace()
+	verify_list = self.receiver['verify_list']
 	l = list()
 	count = 0
 
-	for phone_number in address_book_entries:
+        for phone_number in verify_list:
 	    username = (phone_number + settings.WIZCARD_USERNAME_EXTENSION)
 	    if User.objects.filter(username=username).exists():
 		count += 1
