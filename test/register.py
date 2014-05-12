@@ -257,7 +257,7 @@ objs = handle_response(conn)
 contacts_verify_msg = messages.contacts_verify
 contacts_verify_msg['sender']['userID'] = uid1
 contacts_verify_msg['sender']['wizUserID'] = wuid1
-contacts_verify_msg['sender']['contacts'] = ContactList
+contacts_verify_msg['receiver']['verify_list'] = ContactList
 cv = json.dumps(contacts_verify_msg)
 print "sending Contact Verify", contacts_verify_msg['sender']['userID']
 conn.request("POST","", cv)

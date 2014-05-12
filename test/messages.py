@@ -143,8 +143,11 @@ contacts_verify = {
         #random index from there
         "userID" : "",
 	"wizUserID" : "",
-	"contacts" : ""
     },
+    "receiver" : {
+	"verify_list" : ""
+    }
+    
 }
 
 contact_container = {

@@ -782,7 +782,7 @@ class Header(ParseMsgAndDispatch):
 
 
     def WizcardSendToFutureContacts(self):
-        for phone in self.receiver['phones']
+        for phone in self.receiver['phones']:
             username = wizlib.convert_phone(phone)
             #create a dummy user using the phone number as userID
             try:
