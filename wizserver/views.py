@@ -368,7 +368,6 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def ContactsVerify(self):
-        pdb.set_trace()
 	verify_list = self.receiver['verify_list']
 	l = list()
 	count = 0
