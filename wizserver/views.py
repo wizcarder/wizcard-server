@@ -733,25 +733,23 @@ class Header(ParseMsgAndDispatch):
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        contacts = self.receiver['contacts']
-        for contact in contacts:
+        phones = self.receiver['phones']
+        for phone in phones:
             try:
                 #AA:TODO: phone should just be the mobile phone. App needs to change
                 # to adjust this. Also, array is not required
-                phones = contact['phone']
-                for phone in phones:
-                    cphone = wizlib.convert_phone(phone)
-                    target_wizcards, query_count = Wizcard.objects.find_users(
-                        sender.pk, 
-                        None, 
-                        cphone, 
-                        None)
-                    if query_count:
-                        for wizcard2 in target_wizcards:
-                            #create bidir cardship
-                            if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
-                                err = Wizcard.objects.exchange(wizcard1, wizcard2, True)
-                                count += 1
+                cphone = wizlib.convert_phone(phone)
+                target_wizcards, query_count = Wizcard.objects.find_users(
+				sender.pk, 
+				None, 
+				cphone, 
+				None)
+		if query_count:
+		    for wizcard2 in target_wizcards:
+		        #create bidir cardship
+                        if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
+			    err = Wizcard.objects.exchange(wizcard1, wizcard2, True)
+			    count += 1
                     else:
                         #future contacts
                         return self.processSendCardToFutureContacts(phones, sender)
@@ -784,7 +782,7 @@ class Header(ParseMsgAndDispatch):
 
 
     def WizcardSendToFutureContacts(self):
-        for phone in self.phones:
+        for phone in self.receiver['phones']
             username = wizlib.convert_phone(phone)
             #create a dummy user using the phone number as userID
             try:
