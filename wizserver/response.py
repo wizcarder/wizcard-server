@@ -96,7 +96,7 @@ class NotifResponse(ResponseN):
             Notification.WIZ_TABLE_TIMEOUT   : self.notifDestroyedTable,
             Notification.WIZ_TABLE_DESTROY   : self.notifDestroyedTable,
             Notification.WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
-            Notification.WIZ_CARD_FLICK_TIMEOUT     : self.notifWizcardFlickTimeout
+            Notification.WIZ_CARD_FLICK_TIMEOUT     : self.notifWizcardFlickTimeout,
             Notification.WIZ_CARD_FLICK_PICK : self.notifWizcardFlickPick
         }
 	for notification in notifications:
@@ -141,7 +141,7 @@ class NotifResponse(ResponseN):
         return self.notifWizcard(notif, self.UPDATE_WIZCARD)
 
     def notifWizcardFlickTimeout(self, notif):
-	out = dict(wizCardID=notif.action_object_object_id, flickCardID=notif.target_object_id)
+	out = dict(flickCardID=notif.action_object_object_id, wizCardID=notif.target_object_id)
         self.add_data_with_notif(out, self.FLICK_TIMEOUT)
         return self.response
 

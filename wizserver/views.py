@@ -690,7 +690,7 @@ class Header(ParseMsgAndDispatch):
 
 	#q notif to owner of flicked card 
         notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb='flick pick', target=wizcard2, 
+                    verb='flick pick', target=wizcard1, 
                     action_object = flick_card)
 
         return self.response

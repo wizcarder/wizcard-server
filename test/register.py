@@ -310,7 +310,7 @@ print "pick up flicked card"
 card_flick_accept_msg = messages.card_flick_accept
 card_flick_accept_msg['sender']['userID'] = uid1
 card_flick_accept_msg['sender']['wizUserID'] = wuid1
-card_flick_accept_msg['receiver']['wizcardID'] = e1_id
+card_flick_accept_msg['receiver']['wizcardID'] = e3_id
 card_flick_accept_msg['receiver']['flickCardID'] = cf3_id
 cfa1 = json.dumps(card_flick_accept_msg)
 conn.request("POST","", cfa1)
@@ -348,11 +348,14 @@ objs = handle_response(conn)
 get_cards_msg = messages.get_cards
 get_cards_msg['sender']['userID'] = uid3
 get_cards_msg['sender']['wizUserID'] = wuid3
-print "GET cards", get_cards_msg['sender']['userID']
+print "GET cards USER3", get_cards_msg['sender']['userID']
 gcu3 = json.dumps(get_cards_msg)
 conn.request("POST","", gcu3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
+
+pdb.set_trace()
+
 
 print "Creating Table"
 tbl_create_msg = messages.table_create
@@ -395,13 +398,3 @@ gcu3 = json.dumps(get_cards_msg)
 conn.request("POST","", gcu1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
-
-
-
-
-
-
-
-
-
-
