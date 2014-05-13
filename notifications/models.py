@@ -70,6 +70,7 @@ class Notification(models.Model):
     WIZ_TABLE_DESTROY = 'table destroy'
     WIZ_CARD_UPDATE = 'wizcard update'
     WIZ_CARD_FLICK_TIMEOUT = 'flick timeout'
+    WIZ_CARD_FLICK_PICK = 'flick pick'
 
 
 
@@ -110,6 +111,16 @@ class Notification(models.Model):
 		'message': WIZREQ_U,
 		},
 	WIZ_CARD_UPDATE: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZ_CARD_FLICK_TIMEOUT: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'message': WIZREQ_U,
+		},
+	WIZ_CARD_FLICK_PICK: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'message': WIZREQ_U,

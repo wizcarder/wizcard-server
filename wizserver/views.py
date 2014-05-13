@@ -351,6 +351,8 @@ class Header(ParseMsgAndDispatch):
                     self.response.add_data("wizcard_flicks", s['wizcard_flicks'])
 	        if 'tables' in s:
                     self.response.add_data("tables", s['tables'])
+                if 'flick_picks' in s:
+                    self.response.add_data("flick_picks", s["flick_picks"])
 
             self.userprofile.sync = False
 
@@ -685,6 +687,11 @@ class Header(ParseMsgAndDispatch):
 
 	#associate flick with user
 	flick_card.flick_pickers.add(self.user)
+
+	#q notif to owner of flicked card 
+        notify.send(wizcard1.user, recipient=wizcard2.user,
+                    verb='flick pick', target=wizcard2, 
+                    action_object = flick_card)
 
         return self.response
 
