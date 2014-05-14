@@ -294,7 +294,8 @@ class Header(ParseMsgAndDispatch):
 	    user.profile.userid = UserProfile.objects.id_generator()
 	else:
 	    # mark for sync.
-	    user.profile.do_sync = True
+            pass
+	    #user.profile.do_sync = True
 
 	user.profile.device_id = device_id
 	user.profile.save()
@@ -769,12 +770,12 @@ class Header(ParseMsgAndDispatch):
 
 
     def WizcardSendUnTrusted(self):
-        self.receivers = self.des['receiver']['wizUserIDs']
         try:
             wizcard1 = self.user.wizcard
         except ObjectDoesNotExist:
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
+        self.receivers = self.receiver['wizUserIDs']
 
         for receiver in self.receivers:
             try:
@@ -823,7 +824,6 @@ class Header(ParseMsgAndDispatch):
 
 
     def UserQueryByName(self):
-        self.receiver = self.des['receiver']
         try:
             name = self.receiver['name']
         except:
