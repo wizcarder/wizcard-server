@@ -1,3 +1,4 @@
+import pdb
 
 ACCEPT_IMPLICIT     = 1
 ACCEPT_EXPLICIT     = 2
@@ -11,59 +12,61 @@ FLICK_TIMEOUT       = 9
 FLICK_PICK	    = 10
 
 class NotifParser:
-    def __init__(self):
-	pdb.set_trace()
-	self.data = self['data']
-	for element in elementList:
+    def __init__(self, data):
+	self.data = data
+	for element in data['elementList']:
 	    notifType = element['notifType']
 	    notifData = element['data']
 	    self.process(notifType, notifData)
-    def process(notifType, data):
-	pdb.set_trace()
-        return self.notifTableHandler['notifType'](notifData)
 
-    def accept_implicit(data):
-	pdb.set_trace()
-        print "received accept implicit from" data.user_id
+    def process(self, notifType, data):
+        notifTableHandler = {
+            ACCEPT_IMPLICIT: self.accept_implicit,
+            ACCEPT_EXPLICIT: self.accept_explicit,
+            DELETE_IMPLICIT: self.delete_implicit,
+            TABLE_TIMEOUT:   self.table_timeout,
+            UPDATE_WIZCARD:  self.update_wizcard,
+            FLICKED_WIZCARD: self.flicked_wizcard,
+            NEARBY_USERS   : self.nearby_users,
+            NEARBY_TABLES  : self.nearby_tables,
+            FLICK_TIMEOUT  : self.flick_timeout,
+            FLICK_PICK     : self.flick_pick
+        }
+
+        return notifTableHandler[notifType](data)
+
+    def accept_implicit(self, data):
+        print "received accept implicit from",  data['user_id']
 	pass
 
-    def accept_explicit(data):
-	pdb.set_trace()
-        print "received accept explicit from" data.user_id
+    def accept_explicit(self, data):
+        print "received accept explicit from",  data['user_id']
 	pass
 
-    def delete_implicit(data):
-	pdb.set_trace()
+    def delete_implicit(self, data):
+        print "received delete implicit from"
 	pass
 
-    def table_timeout(data):
-	pdb.set_trace()
+    def table_timeout(self, data):
 	pass
 
-    def update_wizcard(data):
-	pdb.set_trace()
+    def update_wizcard(self, data):
 	pass
 
-    def flicked_wizcard(data):
-	pdb.set_trace()
+    def flicked_wizcard(self, data):
+        if data.has_key('connected'):
+            print "own flicked wizcard", map(lambda w: w['flick_id'], data['connected'])
 	pass
 
-    def nearby_users(data):
-	pdb.set_trace()
+    def nearby_users(self, data):
 	pass
 
-    def nearby_tables(data):
+    def nearby_tables(self, data):
 	pass
 
-    def flick_timeout(data):
+    def flick_timeout(self, data):
 	pass
 
-    def flick_pick(data):
+    def flick_pick(self, data):
 	pass
-
-
-
-	    
-        
-
 

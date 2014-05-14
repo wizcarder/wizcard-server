@@ -7,6 +7,7 @@ import httplib
 import json
 import pdb
 import messages
+from notifications import NotifParser
 
 TEST_IMAGE=False
 
@@ -283,6 +284,7 @@ cf1 = json.dumps(card_flick_msg)
 conn.request("POST","", cf1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
+cf1_id = objs['data']['flickCardID']
 
 #re flick to check agglomeration
 card_flick_msg = messages.card_flick
@@ -290,10 +292,11 @@ card_flick_msg['sender']['userID'] = uid1
 card_flick_msg['sender']['wizUserID'] = wuid1
 print "re-flicking card from close-by location", card_flick_msg['sender']['userID']
 card_flick_msg['sender']['lng'] += 0.000001
-cf1 = json.dumps(card_flick_msg)
-conn.request("POST","", cf1)
+cf2 = json.dumps(card_flick_msg)
+conn.request("POST","", cf2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
+cf2_id = objs['data']['flickCardID']
 
 
 card_flick_msg = messages.card_flick
@@ -369,6 +372,7 @@ tbl_j_1 = json.dumps(tbl_join_msg)
 conn.request("POST","", tbl_j_1)
 objs = handle_response(conn)
 
+print "get cards for user", uid1
 get_cards_msg = messages.get_cards
 get_cards_msg['sender']['userID'] = uid1
 get_cards_msg['sender']['wizUserID'] = wuid1
@@ -377,6 +381,7 @@ gcu1 = json.dumps(get_cards_msg)
 conn.request("POST","", gcu1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
+n1 = NotifParser(objs['data'])
 
 
 get_cards_msg = messages.get_cards
