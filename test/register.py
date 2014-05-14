@@ -336,27 +336,6 @@ conn.request("POST","", mcf3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 
-get_cards_msg = messages.get_cards
-get_cards_msg['sender']['userID'] = uid1
-get_cards_msg['sender']['wizUserID'] = wuid1
-print "GET cards", get_cards_msg['sender']['userID']
-gcu1 = json.dumps(get_cards_msg)
-conn.request("POST","", gcu1)
-# Parse and dump the JSON response from server
-objs = handle_response(conn)
-
-get_cards_msg = messages.get_cards
-get_cards_msg['sender']['userID'] = uid3
-get_cards_msg['sender']['wizUserID'] = wuid3
-print "GET cards USER3", get_cards_msg['sender']['userID']
-gcu3 = json.dumps(get_cards_msg)
-conn.request("POST","", gcu3)
-# Parse and dump the JSON response from server
-objs = handle_response(conn)
-
-pdb.set_trace()
-
-
 print "Creating Table"
 tbl_create_msg = messages.table_create
 tbl_create_msg['sender']['userID'] = uid1
@@ -394,7 +373,27 @@ get_cards_msg = messages.get_cards
 get_cards_msg['sender']['userID'] = uid1
 get_cards_msg['sender']['wizUserID'] = wuid1
 print "GET cards", get_cards_msg['sender']['userID']
-gcu3 = json.dumps(get_cards_msg)
+gcu1 = json.dumps(get_cards_msg)
 conn.request("POST","", gcu1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
+
+
+get_cards_msg = messages.get_cards
+get_cards_msg['sender']['userID'] = uid2
+get_cards_msg['sender']['wizUserID'] = wuid2
+print "GET cards", get_cards_msg['sender']['userID']
+gcu2 = json.dumps(get_cards_msg)
+conn.request("POST","", gcu2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
+
+
+get_cards_msg = messages.get_cards
+get_cards_msg['sender']['userID'] = uid3
+get_cards_msg['sender']['wizUserID'] = wuid3
+print "GET cards", get_cards_msg['sender']['userID']
+gcu3 = json.dumps(get_cards_msg)
+conn.request("POST","", gcu3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
