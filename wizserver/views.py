@@ -674,12 +674,12 @@ class Header(ParseMsgAndDispatch):
     def WizcardFlickAccept(self):
 	try:
             wizcard1 = self.user.wizcard
-            wizcard2 = Wizcard.objects.get(id=self.receiver['wizcardID'])
 	except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
         try:
             flick_card = WizcardFlick.objects.get(id=self.receiver['flickCardID'])
+            wizcard2 = flick_card.wizcard
 	except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
