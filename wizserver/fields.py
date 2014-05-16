@@ -17,18 +17,24 @@ wizcard_template = {
 }
 
 flicked_wizcard_template = {
-    'fields': ['created', 'flick_id'],
-    'key_map': {'flick_id':'id'}
-}
-
-flicked_wizcard_related_objects_template = {
-    'wizcard': wizcard_template
+    'fields': ['created', 'flick_id', 'wizcard'],
+    'key_map': {'flick_id':'id'},
+    'related': flicked_wizcard_related_objects_template
 }
 
 flicked_wizcard_extended_template = {
     'fields': ['created', 'flick_id', 'wizcard'],
     'key_map': {'flick_id':'id'},
-    'related': flicked_wizcard_related_objects_template
+    'related': flicked_wizcard_related_objects_extended_template
+}
+
+flicked_wizcard_related_objects_template = {
+    'wizcard': {'fields': ['id']},
+    'key_map' : {'wizcard_id':'id'},
+}
+
+flicked_wizcard_related_objects_extended_template = {
+    'wizcard': wizcard_template
 }
 
 wizconnection_template = {

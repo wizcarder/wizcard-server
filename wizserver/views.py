@@ -574,9 +574,9 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def WizcardAccept(self):
-	self.r_user = User.objects.get(id=self.receiver['wizUserID'])
         try:
             wizcard1 = self.user.wizcard
+	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard2 = self.r_user.wizcard
         except ObjectDoesNotExist:
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -593,6 +593,7 @@ class Header(ParseMsgAndDispatch):
     def WizConnectionRequestDecline(self):
         try:
             wizcard1 = self.user.wizcard
+	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard2 = self.r_user.wizcard
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)

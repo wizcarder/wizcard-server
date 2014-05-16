@@ -381,8 +381,15 @@ gcu1 = json.dumps(get_cards_msg)
 conn.request("POST","", gcu1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
-n1 = NotifParser(objs['data'])
+notif = NotifParser(objs['data'])
 
+nrsp = notif.process_one()
+while nrsp != False:
+    n = json.dumps(nrsp)
+    conn.request("POST","", n)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn)
+    nrsp = notif.process_one()
 
 get_cards_msg = messages.get_cards
 get_cards_msg['sender']['userID'] = uid2

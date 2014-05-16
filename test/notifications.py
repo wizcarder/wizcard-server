@@ -12,45 +12,46 @@ FLICK_TIMEOUT       = 9
 FLICK_PICK	    = 10
 
 class NotifParser:
-    def __init__(self, data):
-	self.data = data
-	for element in data['elementList']:
-	    notifType = element['notifType']
-	    notifData = element['data']
-	    self.process(notifType, notifData)
+    def __init__(self, userID, wizUserID):
+	pdb.set_trace()
+	self.data = self['data']
+	self.userID = userID
+	self.wizUserID = wizUserID
+	self.notifType = []
+	self.notifData = []
+	self.count = 0
+	for element in elementList:
+	    self.notifType.append(element['notifType'])
+	    self.notifData.append(element['data'])
+	    self.count += 1
 
-    def process(self, notifType, data):
-        notifTableHandler = {
-            ACCEPT_IMPLICIT: self.accept_implicit,
-            ACCEPT_EXPLICIT: self.accept_explicit,
-            DELETE_IMPLICIT: self.delete_implicit,
-            TABLE_TIMEOUT:   self.table_timeout,
-            UPDATE_WIZCARD:  self.update_wizcard,
-            FLICKED_WIZCARD: self.flicked_wizcard,
-            NEARBY_USERS   : self.nearby_users,
-            NEARBY_TABLES  : self.nearby_tables,
-            FLICK_TIMEOUT  : self.flick_timeout,
-            FLICK_PICK     : self.flick_pick
-        }
+    def process_one():
+	if self.count:
+	    self.count -= 1
+            return self.notifTableHandler[self.notifType.pop()](self.notifData.pop())
+        else:
+            return False
+        
 
-        return notifTableHandler[notifType](data)
-
-    def accept_implicit(self, data):
-        print "received accept implicit from",  data['user_id']
+    def accept_implicit(data):
+        print "received accept implicit from" data.user_id
 	pass
 
-    def accept_explicit(self, data):
-        print "received accept explicit from",  data['user_id']
+    def accept_explicit(data):
+        print "received accept explicit from" data.user_id
+	rsp = message.add_notification_card
+	rsp['receiver']['wizUserID'] = data['wizUserID']
+	return rsp
+
+    def delete_implicit(data):
+        print "received delete implicit from" data.user_id
 	pass
 
-    def delete_implicit(self, data):
-        print "received delete implicit from"
+    def table_timeout(data):
+        print "received table timeout from" data.id
 	pass
 
-    def table_timeout(self, data):
-	pass
-
-    def update_wizcard(self, data):
+    def update_wizcard(data):
 	pass
 
     def flicked_wizcard(self, data):
