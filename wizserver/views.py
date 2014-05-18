@@ -688,7 +688,7 @@ class Header(ParseMsgAndDispatch):
 	Wizcard.objects.exchange(wizcard1, wizcard2, True)
 
 	#associate flick with user
-	flick_card.flick_pickers.add(self.user)
+	flick_card.flick_pickers.add(wizcard1)
 
 	#q notif to owner of flicked card 
         notify.send(wizcard1.user, recipient=wizcard2.user,
