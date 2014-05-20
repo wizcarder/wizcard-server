@@ -200,7 +200,9 @@ class LocationMgr(models.Model):
 
     def reset_timer(self):
         if self.timer.count():
-            self.timer.get().start()
+            t = self.timer.get().start()
+	    return t
+        return None
 
     def distance_from(self, lat, lng):
         return wizlib.haversine(self.lng, self.lat, lng, lat)

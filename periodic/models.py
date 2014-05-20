@@ -27,3 +27,4 @@ class Periodic(models.Model):
         self.expires_at = timezone.now() + timezone.timedelta(
                 seconds=self.timeout_value)
         self.save()
+	return self

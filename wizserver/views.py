@@ -661,7 +661,9 @@ class Header(ParseMsgAndDispatch):
 	flick_card = wizcard.check_flick_duplicates(self.lat, self.lng)
 
 	if flick_card:
-	    flick_card.location.get().reset_timer()
+	    t = flick_card.location.get().reset_timer()
+            self.response.add_data("duplicate", True)
+	    self.response.add_data("timeout", t.timeout)
         else:
 	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=self.lat, lng=self.lng)
             location = flick_card.create_location(self.lat, self.lng)
