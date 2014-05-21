@@ -294,8 +294,7 @@ class Header(ParseMsgAndDispatch):
 	    user.profile.userid = UserProfile.objects.id_generator()
 	else:
 	    # mark for sync.
-            pass
-	    #user.profile.do_sync = True
+	    user.profile.do_sync = True
 
 	user.profile.device_id = device_id
 	user.profile.save()
@@ -676,6 +675,8 @@ class Header(ParseMsgAndDispatch):
     def WizcardFlickAccept(self):
 	try:
             wizcard1 = self.user.wizcard
+            #AA:TODO: 2 wizcard2's
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
 	except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -712,6 +713,7 @@ class Header(ParseMsgAndDispatch):
 
 
     def WizcardFlickWithdraw(self):
+        pdb.set_trace()
 	try:
 	    self.flicked_card = WizcardFlick.objects.get(id=self.sender['flickCardID'])
 	except: 
@@ -905,17 +907,11 @@ class Header(ParseMsgAndDispatch):
     def TableDetails(self):
         #get the members
         table = VirtualTable.objects.get(id=self.sender['tableID'])
-        memberships = table.membership_set.all()
-        count = memberships.count()
+        members = table.users.all()
+        count = members.count()
         if count:
-            members = map(lambda m: dict(
-                firstName=User.objects.get(id=m.user_id).first_name, 
-                lastName=User.objects.get(id=m.user_id).last_name
-            ), memberships)
-
-            #AA:TODO: extend member details to show more about each member. Maybe 
-            # another query from app may be required for drill-down details
-            self.response.add_data("Members", members)
+            out = UserProfile.objects.serialize(members, True)
+            self.response.add_data("Members", out)
             self.response.add_data("Count", count)
             self.response.add_data("CreatorID", table.creator.id) 
 
