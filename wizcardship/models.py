@@ -77,7 +77,11 @@ class WizcardManager(models.Manager):
                           to_wizcard=to_wizcard).accept()
 
     def serialize(self, wizcards, include_thumbnail=False):
-        return serialize(wizcards, **fields.wizcard_template)
+        if include_thumbnail:
+            #return serialize(wizcards, **fields.wizcard_template_thumbnail)
+            return serialize(wizcards, **fields.wizcard_template)
+        else:
+            return serialize(wizcards, **fields.wizcard_template)
 
     def exchange_implicit(self, wizcard1, wizcard2):
         source_user = wizcard1.user

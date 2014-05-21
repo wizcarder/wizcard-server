@@ -526,8 +526,8 @@ class Header(ParseMsgAndDispatch):
             wizcard.video.save(upfile.name, upfile) 
             modify = True
 
-	if 'contactContainer' in self.sender:
-            contactContainerList = self.sender['contactContainer']
+	if 'contact_container' in self.sender:
+            contactContainerList = self.sender['contact_container']
             wizcard.contact_container.all().delete()
             modify = True
 
@@ -662,7 +662,7 @@ class Header(ParseMsgAndDispatch):
 	if flick_card:
 	    t = flick_card.location.get().reset_timer()
             self.response.add_data("duplicate", True)
-	    self.response.add_data("timeout", t.timeout)
+	    self.response.add_data("timeout", t.timeout_value)
         else:
 	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=self.lat, lng=self.lng)
             location = flick_card.create_location(self.lat, self.lng)
@@ -713,7 +713,6 @@ class Header(ParseMsgAndDispatch):
 
 
     def WizcardFlickWithdraw(self):
-        pdb.set_trace()
 	try:
 	    self.flicked_card = WizcardFlick.objects.get(id=self.sender['flickCardID'])
 	except: 

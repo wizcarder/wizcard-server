@@ -11,7 +11,13 @@ wizcard_related_objects_template = {
 }
 
 wizcard_template = {
-    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone1', 'phone2', 'email', 'address_street1', 'address_city', 'address_state', 'address_country', 'address_zip', 'contact_container'],
+    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone1', 'email', 'contact_container'],
+    'key_map' : {'wizcard_id':'id'},
+    'related':wizcard_related_objects_template
+}
+
+wizcard_template_thumbnail = {
+    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone1', 'email', 'thumbnailImage', 'contact_container'],
     'key_map' : {'wizcard_id':'id'},
     'related':wizcard_related_objects_template
 }
@@ -36,14 +42,19 @@ flicked_wizcard_extended_template = {
     'related': flicked_wizcard_related_objects_extended_template
 }
 
-wizconnection_template = {
-    'fields': ['id', 'wizCardId', 'first_name', 'last_name', 'email', 'address_street1', 'address_city', 'address_state', 'address_country', 'address_zip', 'contact_container'],
+user_query_template = { 
+    'fields': ['user_id', 'first_name', 'last_name', 'wizcard'],
+    'merge': True,
     'related':wizcard_related_objects_template,
-    'allow_missing': True
+    'key_map' : {'user_id':'id'}
 }
 
-user_query_template = { 
-    'fields': ['user_id', 'first_name', 'last_name'],
+user_query_extended_template = { 
+    'fields': ['user_id', 'wizcard'],
+    'related': {
+        'wizcard': wizcard_template,
+        'merge':True
+    },
     'key_map' : {'user_id':'id'}
 }
 
