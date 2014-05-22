@@ -104,13 +104,13 @@ class NotifResponse(ResponseN):
 	    
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
-        out = Wizcard.objects.serialize(wizcard)
+        out = Wizcard.objects.serialize(wizcard, True)
         self.add_data_with_notif(out, notifType)
         #AA:TODO: enhance notification to carry wasEdited information
-        if bool(wizcard.thumbnailImage):
-            self.add_data_to_dict(out, "thumbnailImage", wizcard.thumbnailImage.file.read())
         if wizcard.video:
             self.add_data_to_dict(out, "videoUrl", wizcard.video.url)
+	if notif.action_object:
+	    self.add_data_to_dict(out, "flickCardID", notif.action_object_object_id)
         print "sending wizcard notification"
         return self.response
 

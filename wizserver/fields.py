@@ -32,7 +32,7 @@ flicked_wizcard_related_objects_extended_template = {
 }
 
 flicked_wizcard_template = {
-    'fields': ['created', 'flick_id'],
+    'fields': ['created', 'wizcard_id', 'flick_id'],
     'key_map': {'flick_id':'id'}
 }
 

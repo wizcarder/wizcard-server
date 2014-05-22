@@ -687,16 +687,12 @@ class Header(ParseMsgAndDispatch):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-	#create a wizconnection and then accept it
-	Wizcard.objects.exchange(wizcard1, wizcard2, True)
-
 	#associate flick with user
 	flick_card.flick_pickers.add(wizcard1)
 
-	#q notif to owner of flicked card 
-        notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb='flick pick', target=wizcard1, 
-                    action_object = flick_card)
+	#create a wizconnection and then accept it
+	Wizcard.objects.exchange(wizcard1, wizcard2, flick_card)
+
 
         return self.response
 

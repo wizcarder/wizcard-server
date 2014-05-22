@@ -83,19 +83,20 @@ class WizcardManager(models.Manager):
         else:
             return serialize(wizcards, **fields.wizcard_template)
 
-    def exchange_implicit(self, wizcard1, wizcard2):
+    def exchange_implicit(self, wizcard1, wizcard2, flick_card):
         source_user = wizcard1.user
         target_user = wizcard2.user
 
         self.becard(wizcard1, wizcard2) 
         self.becard(wizcard2, wizcard1) 
         #Q this to the receiver and vice-versa
-        notify.send(source_user, recipient=wizcard2.user,
+        notify.send(source_user, recipient=target_user,
                     verb='wizconnection request trusted', 
                     target=wizcard1, action_object=wizcard2)
-        notify.send(wizcard2.user, recipient=source_user,
+        notify.send(target_user, recipient=source_user,
                     verb='wizconnection request trusted', 
-                    target=wizcard2, action_object=wizcard1)
+		    description='via flick pick',
+                    target=wizcard2, action_object=flick_card)
 
     def exchange_explicit(self, wizcard1, wizcard2):
         source_user = wizcard1.user
@@ -122,12 +123,12 @@ class WizcardManager(models.Manager):
                 pass 
 
 
-    def exchange(self, wizcard1, wizcard2, implicit):
+    def exchange(self, wizcard1, wizcard2, implicit, flick_card=None):
         #create bidir cardship
         if self.are_wizconnections(wizcard1, wizcard2):
             return  err.EXISTING_CONNECTION
         elif implicit:
-            self.exchange_implicit(wizcard1, wizcard2)
+            self.exchange_implicit(wizcard1, wizcard2, flick_card)
         else:
             self.exchange_explicit(wizcard1, wizcard2)
         return err.OK

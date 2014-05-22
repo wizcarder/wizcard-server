@@ -70,7 +70,7 @@ class Notification(models.Model):
     WIZ_TABLE_DESTROY = 'table destroy'
     WIZ_CARD_UPDATE = 'wizcard update'
     WIZ_CARD_FLICK_TIMEOUT = 'flick timeout'
-    WIZ_CARD_FLICK_PICK = 'flick pick'
+    WIZ_CARD_FLICK_PICK = 'via flick pick'
 
 
 
