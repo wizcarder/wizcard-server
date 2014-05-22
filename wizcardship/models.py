@@ -92,6 +92,7 @@ class WizcardManager(models.Manager):
         #Q this to the receiver and vice-versa
         notify.send(source_user, recipient=target_user,
                     verb='wizconnection request trusted', 
+		    description='via flick pick',
                     target=wizcard1, action_object=wizcard2)
         notify.send(target_user, recipient=source_user,
                     verb='wizconnection request trusted', 

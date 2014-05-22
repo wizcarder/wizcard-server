@@ -298,7 +298,6 @@ conn.request("POST","", cf2)
 objs = handle_response(conn)
 cf2_id = objs['data']['flickCardID']
 
-
 card_flick_msg = messages.card_flick
 card_flick_msg['sender']['userID'] = uid3
 card_flick_msg['sender']['wizUserID'] = wuid3
@@ -401,6 +400,15 @@ conn.request("POST","", gcu2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 
+notif = NotifParser(objs['data'], uid2, wuid2)
+nrsp = notif.process_one()
+while nrsp != False:
+    if nrsp is not None:
+        nrsp = json.dumps(nrsp)
+        conn.request("POST","", n)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn)
+    nrsp = notif.process_one()
 
 get_cards_msg = messages.get_cards
 get_cards_msg['sender']['userID'] = uid3
@@ -410,3 +418,14 @@ gcu3 = json.dumps(get_cards_msg)
 conn.request("POST","", gcu3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
+
+notif = NotifParser(objs['data'], uid3, wuid3)
+nrsp = notif.process_one()
+while nrsp != False:
+    if nrsp is not None:
+        nrsp = json.dumps(nrsp)
+        conn.request("POST","", n)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn)
+    nrsp = notif.process_one()
+
