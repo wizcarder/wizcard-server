@@ -183,7 +183,7 @@ edit_card1 = {
         "deviceType": "android",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
-	"contactContainer" : [contact_container, contact_container, contact_container]
+	"contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
@@ -211,7 +211,7 @@ edit_card2 = {
         "userID" : "USER2",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
-	"contactContainer" : [contact_container, contact_container, contact_container]
+	"contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
@@ -239,7 +239,7 @@ edit_card3 = {
         "userID" : "USER3",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
-	"contactContainer" : [contact_container, contact_container, contact_container]
+	"contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
@@ -357,4 +357,21 @@ add_notification_card = {
         "wizUserID" : ""
     }
 }
+
+card_details = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "get_card_details",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : ""
+    },
+    "receiver" : {
+        "wizCardID" : ""
+    }
+}
+    
 

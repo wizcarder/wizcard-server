@@ -23,10 +23,9 @@ class UserProfileManager(models.Manager):
     def serialize(self, users, include_thumbnail=False):
         wizcards = map(lambda u: u.wizcard, users)
         if include_thumbnail:
-            #return serialize(wizcards, **fields.wizcard_template_thumbnail)
-            return serialize(wizcards, **fields.wizcard_template)
+            return serialize(wizcards, **fields.wizcard_template_brief_with_thumbnail)
         else:
-            return serialize(wizcards, **fields.wizcard_template)
+            return serialize(wizcards, **fields.wizcard_template_brief)
 
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         userid =  ''.join(random.choice(chars) for x in range(size))

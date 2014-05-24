@@ -67,7 +67,7 @@ class UserQueryByLocationSchema(colander.MappingSchema):
     pass
 class UserQueryByNameSchema(colander.MappingSchema):
     pass
-class UserGetDetailSchema(colander.MappingSchema):
+class WizcardGetDetailSchema(colander.MappingSchema):
     pass
 class TableQuerySchema(colander.MappingSchema):
     pass

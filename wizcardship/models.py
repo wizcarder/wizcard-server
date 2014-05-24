@@ -76,12 +76,13 @@ class WizcardManager(models.Manager):
         get_object_or_404(WizConnectionRequest, from_wizcard=from_wizcard,
                           to_wizcard=to_wizcard).accept()
 
-    def serialize(self, wizcards, include_thumbnail=False):
-        if include_thumbnail:
-            #return serialize(wizcards, **fields.wizcard_template_thumbnail)
-            return serialize(wizcards, **fields.wizcard_template)
+    def serialize(self, wizcards, extended=False, include_thumbnail=False):
+        if extended:
+            return serialize(wizcards, **fields.wizcard_template_extended)
+        elif include_thumbnail:
+            return serialize(wizcards, **fields.wizcard_template_brief_with_thumbnail)
         else:
-            return serialize(wizcards, **fields.wizcard_template)
+            return serialize(wizcards, **fields.wizcard_template_brief)
 
     def exchange_implicit(self, wizcard1, wizcard2, flick_card):
         source_user = wizcard1.user
@@ -188,7 +189,7 @@ class Wizcard(models.Model):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
 
     def serialize_wizconnections(self):
-        return serialize(self.wizconnections.all(), **fields.wizcard_template)
+        return serialize(self.wizconnections.all(), **fields.wizcard_template_extended)
 
     def serialize_wizcardflicks(self):
 	return serialize(self.flicked_cards.all(), **fields.flicked_wizcard_template)
@@ -292,13 +293,10 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def serialize(self, flicked_wizcards, extended=False):
-        if extended:
-            return serialize(flicked_wizcards, **fields.flicked_wizcard_extended_template)
-        else:
+    def serialize(self, flicked_wizcards):
             return serialize(flicked_wizcards, **fields.flicked_wizcard_template)
 
-    def serialize_split(self, my_wizcard, flicked_wizcards, include_thumbnail=False):
+    def serialize_split(self, my_wizcard, flicked_wizcards):
 	s = dict()
 	own, connected, others = self.split_wizcard_flick(my_wizcard, flicked_wizcards)
         if own:
@@ -306,7 +304,7 @@ class WizcardFlickManager(models.Manager):
         if connected:
             s['connected'] = WizcardFlick.objects.serialize(connected)
         if others:
-            s['others'] = WizcardFlick.objects.serialize(others, extended=True)
+            s['others'] = WizcardFlick.objects.serialize(others)
 
 	return s
 

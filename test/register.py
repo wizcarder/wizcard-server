@@ -199,7 +199,7 @@ else:
 edit_card_msg = messages.edit_card1
 edit_card_msg['sender']['userID'] = uid1
 edit_card_msg['sender']['wizUserID'] = wuid1
-contacts = edit_card_msg['sender']['contactContainer']
+contacts = edit_card_msg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
@@ -215,7 +215,7 @@ e1_id = objs['data']['wizCardID']
 edit_card_msg = messages.edit_card2
 edit_card_msg['sender']['userID'] = uid2
 edit_card_msg['sender']['wizUserID'] = wuid2
-contacts = edit_card_msg['sender']['contactContainer']
+contacts = edit_card_msg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
@@ -230,7 +230,7 @@ e2_id = objs['data']['wizCardID']
 edit_card_msg = messages.edit_card3
 edit_card_msg['sender']['userID'] = uid3
 edit_card_msg['sender']['wizUserID'] = wuid3
-contacts = edit_card_msg['sender']['contactContainer']
+contacts = edit_card_msg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
@@ -429,3 +429,32 @@ while nrsp != False:
         objs = handle_response(conn)
     nrsp = notif.process_one()
 
+card_details_msg = messages.card_details
+card_details_msg['sender']['userID'] = uid1
+card_details_msg['sender']['wizUserID'] = wuid1
+card_details_msg['receiver']['wizCardID'] = e1_id
+print "GET card DETAILS", card_details_msg['sender']['userID']
+cd1 = json.dumps(card_details_msg)
+conn.request("POST","", cd1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
+
+card_details_msg = messages.card_details
+card_details_msg['sender']['userID'] = uid2
+card_details_msg['sender']['wizUserID'] = wuid2
+card_details_msg['receiver']['wizCardID'] = e2_id
+print "GET card DETAILS", card_details_msg['sender']['userID']
+cd2 = json.dumps(card_details_msg)
+conn.request("POST","", cd2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
+
+card_details_msg = messages.card_details
+card_details_msg['sender']['userID'] = uid3
+card_details_msg['sender']['wizUserID'] = wuid3
+card_details_msg['receiver']['wizCardID'] = e3_id
+print "GET card DETAILS", card_details_msg['sender']['userID']
+cd3 = json.dumps(card_details_msg)
+conn.request("POST","", cd3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)

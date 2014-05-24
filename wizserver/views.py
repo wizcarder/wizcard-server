@@ -181,7 +181,7 @@ class Header(ParseMsgAndDispatch):
             'send_card_to_future_contacts': (message_format.WizcardSendToFutureContactsSchema, self.WizcardSendToFutureContacts),
             'find_users_by_location'      : (message_format.UserQueryByLocationSchema, self.UserQueryByLocation),
             'send_query_user'             : (message_format.UserQueryByNameSchema, self.UserQueryByName),
-            'get_card_details'           : (message_format.WizcardGetDetailSchema, self.WizcardGetDetail),
+            'get_card_details'            : (message_format.WizcardGetDetailSchema, self.WizcardGetDetail),
             'show_table_list'             : (message_format.TableQuerySchema, self.TableQuery),
             'my_tables'                   : (message_format.TableMyTablesSchema, self.TableMyTables),
             'table_details'               : (message_format.TableDetailsSchema, self.TableDetails),
@@ -388,6 +388,7 @@ class Header(ParseMsgAndDispatch):
         notifications = Notification.objects.unread(self.user)
         notifResponse = NotifResponse(notifications)
 
+
         if not Wizcard.objects.filter(user=self.user).exists():
             return self.response
 
@@ -413,7 +414,7 @@ class Header(ParseMsgAndDispatch):
 	    #AA_TODO: ios app crashes if thumbnail is included. This should be
 	    #natively done when app is fixed (also for tables and users)
             notifResponse.notifFlickedWizcardsLookup(count, 
-                    self.user, flicked_wizcards, True)
+                    self.user, flicked_wizcards)
 
         users, count = self.userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
@@ -513,8 +514,12 @@ class Header(ParseMsgAndDispatch):
                     company = ""
 		if 'start' in contactItem:
                     start = contactItem['start']
+                else:
+                    start = ""
 		if 'end' in contactItem:
                     end = contactItem['end']
+                else:
+                    end = ""
 
                 #AA:TODO - Can there be 1 save with image
                 c = ContactContainer(wizcard=wizcard, title=title, company=company, start=start, end=end)
@@ -889,8 +894,13 @@ class Header(ParseMsgAndDispatch):
 
     
     def WizcardGetDetail(self):
-	wizcard = receiver['wizCardID']
-        out = Wizcard.objects.serialize(wizcard, True)
+        try:
+	   wizcard = Wizcard.objects.get(id=self.receiver['wizCardID'])
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        out = Wizcard.objects.serialize(wizcard, extended=True)
         self.response.add_data("Details", out)
 	return self.response
 

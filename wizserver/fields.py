@@ -1,5 +1,5 @@
 contact_container_template = {
-    'exclude': [':pk']
+    'fields': ['company', 'title', 'start', 'end']
 }
 
 wizcard_related_objects_template = {
@@ -12,13 +12,17 @@ wizcard_template_brief = {
     'related':wizcard_related_objects_template
 }
 
+thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailImage']
+
 wizcard_template_brief_with_thumbnail = {
-    'fields': wizcard_template_brief['fields'].append('thumbnailImage'),
+    'fields': thumbnail_fields,
     'key_map' : wizcard_template_brief['key_map'],
     'related': wizcard_template_brief['related']
 }
 
+extended_fields = thumbnail_fields + ['contact_container']
 wizcard_template_extended = {
+    'fields': extended_fields,
     'key_map' : wizcard_template_brief['key_map'],
     'related': wizcard_template_brief['related']
 }
@@ -44,7 +48,7 @@ user_query_template = {
 user_query_extended_template = { 
     'fields': ['user_id', 'wizcard'],
     'related': {
-        'wizcard': wizcard_template,
+        'wizcard': wizcard_template_brief,
         'merge':True
     },
     'key_map' : {'user_id':'id'}

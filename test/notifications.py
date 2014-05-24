@@ -59,7 +59,7 @@ class NotifParser:
 	pass
 
     def table_timeout(self, data):
-        print "received table timeout from", data.tableID
+        print "received table timeout from", data
 	pass
 
     def update_wizcard(self, data):
