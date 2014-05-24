@@ -152,7 +152,7 @@ class WizcardManager(models.Manager):
 
         #phone
         if phone != None:
-            phone_result = (Q(phone1__contains=phone) | Q(phone2__contains=phone))
+            phone_result = (Q(phone=phone) | Q(phone2__contains=phone))
             qlist.append(phone_result)
 
         #email
@@ -172,14 +172,8 @@ class Wizcard(models.Model):
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
     first_name = models.CharField(max_length=40, blank=True)
     last_name = models.CharField(max_length=40, blank=True)
-    phone1 = models.CharField(max_length=20, blank=True)
-    phone2 = models.CharField(max_length=20, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
-    address_street1 = models.CharField(max_length=40, blank=True)
-    address_city = models.CharField(max_length=40, blank=True)
-    address_state = models.CharField(max_length = 20, blank=True)
-    address_country = models.CharField(max_length = 20, blank=True)
-    address_zip = models.CharField(max_length = 20, blank=True)
     #media objects
     thumbnailImage = models.ImageField(upload_to="image/")
     video = models.FileField(upload_to="video/")
@@ -242,6 +236,8 @@ class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
     company = models.CharField(max_length=40, blank=True)
     title = models.CharField(max_length=200, blank=True)
+    start = models.CharField(max_length=30, blank=True)
+    end = models.CharField(max_length=30, blank=True)
     f_bizCardImage = models.ImageField(upload_to="image/")
     r_bizCardImage = models.ImageField(upload_to="image/")
     def __unicode__(self):

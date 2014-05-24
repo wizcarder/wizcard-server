@@ -181,7 +181,7 @@ class Header(ParseMsgAndDispatch):
             'send_card_to_future_contacts': (message_format.WizcardSendToFutureContactsSchema, self.WizcardSendToFutureContacts),
             'find_users_by_location'      : (message_format.UserQueryByLocationSchema, self.UserQueryByLocation),
             'send_query_user'             : (message_format.UserQueryByNameSchema, self.UserQueryByName),
-            'show_user_details'           : (message_format.UserGetDetailSchema, self.UserGetDetail),
+            'get_card_details'           : (message_format.WizcardGetDetailSchema, self.WizcardGetDetail),
             'show_table_list'             : (message_format.TableQuerySchema, self.TableQuery),
             'my_tables'                   : (message_format.TableMyTablesSchema, self.TableMyTables),
             'table_details'               : (message_format.TableDetailsSchema, self.TableDetails),
@@ -447,20 +447,21 @@ class Header(ParseMsgAndDispatch):
             self.user.last_name = self.sender['last_name']
             self.user.save()
 
-        phone1 = self.sender['phone1']
+        #AA:TODO: Change app to call this phone as well
+        phone = self.sender['phone1']
 
         #check if futureUser existed for this phoneNum
         try:
-            future_user = User.objects.get(username=phone1)
+            future_user = User.objects.get(username=phone)
             if future_user.profile.is_future():
                 Wizcard.objects.migrate_future_user(future_user, self.user)
                 Notification.objects.migrate_future_user(future_user, self.user)
             future_user.delete()
         except:
             pass
-
-        if wizcard.phone1 != phone1:
-            wizcard.phone1 = phone1
+         
+        if wizcard.phone != phone:
+            wizcard.phone = phone
             modify = True
 
 	if 'first_name' in self.sender:
@@ -473,40 +474,10 @@ class Header(ParseMsgAndDispatch):
             if wizcard.last_name != last_name:
                 wizcard.last_name = last_name
                 modify = True
-	if 'phone2' in self.sender:
-            phone2 = self.sender['phone2']
-            if wizcard.phone2 != phone2:
-                wizcard.phone2 = phone2
-                modify = True
 	if 'email' in self.sender:
             email = self.sender['email']
             if wizcard.email != email:
                 wizcard.email = email
-                modify = True
-	if 'address_street1' in self.sender:
-            street1 = self.sender['address_street1']
-            if wizcard.address_street1 != street1:
-                wizcard.address_street1 = street1
-                modify = True
-	if 'address_city' in self.sender:
-            city = self.sender['address_city']
-            if wizcard.address_city != city:
-                wizcard.address_city = city
-                modify = True
-	if 'address_state' in self.sender:
-            state = self.sender['address_state']
-            if wizcard.address_state != state:
-                wizcard.address_state = state
-                modify = True
-	if 'address_country' in self.sender:
-            country = self.sender['address_country']
-            if wizcard.address_country != country:
-                wizcard.address_country = country
-                modify = True
-	if 'address_zip' in self.sender:
-            zipcode = self.sender['address_zip']
-            if wizcard.address_zip != zipcode:
-                wizcard.address_zip = zipcode
                 modify = True
 
         if 'thumbnailImage' in self.sender:
@@ -540,9 +511,13 @@ class Header(ParseMsgAndDispatch):
                     company = contactItem['company']
                 else:
                     company = ""
+		if 'start' in contactItem:
+                    start = contactItem['start']
+		if 'end' in contactItem:
+                    end = contactItem['end']
 
                 #AA:TODO - Can there be 1 save with image
-                c = ContactContainer(wizcard=wizcard, title=title, company=company)
+                c = ContactContainer(wizcard=wizcard, title=title, company=company, start=start, end=end)
 		c.save()
 		if 'f_bizCardImage' in contactItem and contactItem['f_bizCardImage']:
 	            #AA:TODO: Remove try
@@ -913,7 +888,10 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     
-    def UserGetDetail(self):
+    def WizcardGetDetail(self):
+	wizcard = receiver['wizCardID']
+        out = Wizcard.objects.serialize(wizcard, True)
+        self.response.add_data("Details", out)
 	return self.response
 
     def TableCreate(self):
