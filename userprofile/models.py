@@ -21,6 +21,7 @@ USER_ACTIVE_TIMEOUT = 10
 
 class UserProfileManager(models.Manager):
     def serialize(self, users, include_thumbnail=False):
+        #AA:TODO take care of unready users between login and edit_card
         wizcards = map(lambda u: u.wizcard, users)
         if include_thumbnail:
             return serialize(wizcards, **fields.wizcard_template_brief_with_thumbnail)

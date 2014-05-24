@@ -326,6 +326,7 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def Register(self):
+        #AA:TODO: User created here should not be visible in proximity or search by name
         print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
 
         #sync the app from server
@@ -506,10 +507,16 @@ class Header(ParseMsgAndDispatch):
             for count, contactItem in enumerate(contactContainerList):
 	        if 'title' in contactItem:
                     title = contactItem['title']
+                    if count is 0:
+                        wizcard.title = title
+                        modify = True
                 else:
                     title = ""
 		if 'company' in contactItem:
                     company = contactItem['company']
+                    if count is 0:
+                        wizcard.company = company
+                        modify = True
                 else:
                     company = ""
 		if 'start' in contactItem:

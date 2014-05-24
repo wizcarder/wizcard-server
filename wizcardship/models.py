@@ -173,6 +173,9 @@ class Wizcard(models.Model):
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
     first_name = models.CharField(max_length=40, blank=True)
     last_name = models.CharField(max_length=40, blank=True)
+    # putting the current title/desig here as well...easy for brief serialization
+    company = models.CharField(max_length=40, blank=True)
+    title = models.CharField(max_length=200, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     #media objects
@@ -241,6 +244,7 @@ class ContactContainer(models.Model):
     end = models.CharField(max_length=30, blank=True)
     f_bizCardImage = models.ImageField(upload_to="image/")
     r_bizCardImage = models.ImageField(upload_to="image/")
+
     def __unicode__(self):
         return _(u'%(user)s\'s contact container') % {'user': unicode(self.wizcard.user)}
 

@@ -7,7 +7,7 @@ wizcard_related_objects_template = {
 }
 
 wizcard_template_brief = {
-    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email'],
+    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email', 'company', 'title'],
     'key_map' : {'wizcard_id':'id'},
     'related':wizcard_related_objects_template
 }
