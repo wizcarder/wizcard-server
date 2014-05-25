@@ -419,7 +419,7 @@ class Header(ParseMsgAndDispatch):
 
         users, count = self.userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
-            notifResponse.notifUserLookup(count, users, True)
+            notifResponse.notifUserLookup(count, users)
 
         #tables is a smaller entity...get the tables as well instead of just count
         tables, count = VirtualTable.objects.lookup(
