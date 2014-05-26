@@ -159,10 +159,10 @@ class NotifResponse(ResponseN):
             self.add_data_with_notif(out, self.FLICKED_WIZCARD)
         return self.response
 
-    def notifUserLookup(self, count, users):
+    def notifUserLookup(self, count, me, users):
         out = None
         if users:
-            out = UserProfile.objects.serialize(users)
+            out = UserProfile.objects.serialize_split(me, users)
             self.add_data_with_notif(out, self.NEARBY_USERS)
         return self.response
 

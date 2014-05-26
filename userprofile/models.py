@@ -20,6 +20,26 @@ import pdb
 USER_ACTIVE_TIMEOUT = 10
 
 class UserProfileManager(models.Manager):
+    def serialize_split(self, me, users):
+	s = dict()
+	connected, others = self.split_users(me, users)
+        if connected:
+            s['connected'] = UserProfile.objects.serialize(connected)
+        if others:
+            s['others'] = UserProfile.objects.serialize(others)
+
+        return s
+
+    def split_users(self, me, users):
+        connected = []
+	others = []
+        for user in users:
+            if Wizcard.objects.are_wizconnections(user.wizcard, me.wizcard):
+                connected.append(user)
+            else:
+                others.append(user)
+        return connected, others
+
     def serialize(self, users, include_thumbnail=False):
         #AA:TODO take care of unready users between login and edit_card
         wizcards = map(lambda u: u.wizcard, users)
