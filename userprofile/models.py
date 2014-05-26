@@ -137,20 +137,22 @@ class UserProfile(models.Model):
 	#wizcard
         try:
 	    wizcard = self.user.wizcard
-            w = Wizcard.objects.serialize(wizcard)
+            w = Wizcard.objects.serialize(wizcard, extended=True)
             s['wizcard'] = w
         except ObjectDoesNotExist:
             return s
+
+        #flicks (put flicked before wizconnections since wizconnection 
+	#could refer to flicks)
+	if wizcard.flicked_cards.count():
+	    wf = wizcard.serialize_wizcardflicks()
+	    s['wizcard_flicks'] = wf
 
         #wizconnections
         if wizcard.wizconnections.count():
             wc = wizcard.serialize_wizconnections()
 	    s['wizconnections'] = wc
 
-        #flicks
-	if wizcard.flicked_cards.count():
-	    wf = wizcard.serialize_wizcardflicks()
-	    s['wizcard_flicks'] = wf
 
         #tables
         tables = self.user.tables.all()
