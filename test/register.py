@@ -312,7 +312,7 @@ print "pick up flicked card"
 card_flick_accept_msg = messages.card_flick_accept
 card_flick_accept_msg['sender']['userID'] = uid1
 card_flick_accept_msg['sender']['wizUserID'] = wuid1
-card_flick_accept_msg['receiver']['wizcardID'] = e3_id
+card_flick_accept_msg['receiver']['wizCardID'] = e3_id
 card_flick_accept_msg['receiver']['flickCardID'] = cf3_id
 cfa1 = json.dumps(card_flick_accept_msg)
 conn.request("POST","", cfa1)

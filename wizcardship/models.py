@@ -195,7 +195,7 @@ class Wizcard(models.Model):
         return serialize(self.wizconnections.all(), **fields.wizcard_template_extended)
 
     def serialize_wizcardflicks(self):
-	return serialize(self.flicked_cards.all(), **fields.flicked_wizcard_template)
+	return serialize(self.flicked_cards.all(), **fields.my_flicked_wizcard_template)
 
     def create_company_list(self, l):
         map(lambda x: CompanyList(wizcard=self, company=x).save(), l)
@@ -328,6 +328,7 @@ class WizcardFlickManager(models.Manager):
 class WizcardFlick(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')
+    lifetime = models.IntegerField(default=30)
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     location = generic.GenericRelation(LocationMgr)

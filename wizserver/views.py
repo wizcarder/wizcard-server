@@ -355,6 +355,7 @@ class Header(ParseMsgAndDispatch):
                 if 'flick_picks' in s:
                     self.response.add_data("flick_picks", s["flick_picks"])
 
+
             self.userprofile.sync = False
 
 	self.userprofile.save()
@@ -651,7 +652,7 @@ class Header(ParseMsgAndDispatch):
             self.response.add_data("duplicate", True)
 	    self.response.add_data("timeout", t.timeout_value)
         else:
-	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=self.lat, lng=self.lng)
+	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=self.lat, lng=self.lng, lifetime=flick_timeout)
             location = flick_card.create_location(self.lat, self.lng)
             location.start_timer(flick_timeout)
 

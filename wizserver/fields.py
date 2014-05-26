@@ -30,10 +30,26 @@ flicked_wizcard_related_objects_template = {
     'merge': True
 }
 
+flick_pickers_template = {
+    'fields': ['id'],
+    'merge': True,
+    'values_list': True
+}
+
+
 flicked_wizcard_template = {
     'fields': ['created', 'flick_id', 'wizcard'],
     'key_map': {'flick_id':'id'},
     'related': flicked_wizcard_related_objects_template
+}
+
+my_flicked_wizcard_template = {
+    'fields': ['created', 'flick_id', 'lat', 'lng', 'lifetime', 'flick_pickers'],
+    'key_map': {'flick_id':'id'},
+    'related': {
+        'flick_pickers': flick_pickers_template,
+        'merge': True
+    }
 }
 
 user_query_template = { 

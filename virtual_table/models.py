@@ -80,8 +80,9 @@ class VirtualTable(models.Model):
     secureTable = models.BooleanField(default=False)
     password = models.CharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
-    users = models.ManyToManyField(User, through='Membership')
+    #AA:TODO really weird...django doesn't like the name to be lifetime
     life_time = models.IntegerField(default=30)
+    users = models.ManyToManyField(User, through='Membership')
     location = generic.GenericRelation(LocationMgr)
 
     objects = VirtualTableManager()
@@ -158,7 +159,7 @@ class VirtualTable(models.Model):
         super(VirtualTable, self).delete(*args, **kwargs)
 
     def lifetime(self):
-        return self.table_lifetime
+        return self.life_time
 
     def set_lifetime(self, time):
         self.life_time = time
