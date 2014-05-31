@@ -1,5 +1,5 @@
 contact_container_template = {
-    'fields': ['company', 'title', 'start', 'end']
+    'fields': ['company', 'title', 'start', 'end', 'f_bizCardImage']
 }
 
 wizcard_related_objects_template = {
@@ -14,11 +14,11 @@ wizcard_template_brief = {
 thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailImage']
 
 wizcard_template_brief_with_thumbnail = {
-    'fields': thumbnail_fields,
+    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email', 'thumbnailImage'],
     'key_map' : wizcard_template_brief['key_map'],
 }
 
-extended_fields = thumbnail_fields + ['contact_container']
+extended_fields = wizcard_template_brief_with_thumbnail['fields'] + ['contact_container']
 wizcard_template_extended = {
     'fields': extended_fields,
     'key_map' : wizcard_template_brief['key_map'],
@@ -35,7 +35,6 @@ flick_pickers_template = {
     'merge': True,
     'values_list': True
 }
-
 
 flicked_wizcard_template = {
     'fields': ['created', 'flick_id', 'wizcard'],

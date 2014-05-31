@@ -191,6 +191,9 @@ class Wizcard(models.Model):
     def __unicode__(self):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
 
+    def serialize(self):
+        return serialize(self, **fields.wizcard_template_extended)
+
     def serialize_wizconnections(self):
         return serialize(self.wizconnections.all(), **fields.wizcard_template_extended)
 

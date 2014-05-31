@@ -137,7 +137,7 @@ class UserProfile(models.Model):
 	#wizcard
         try:
 	    wizcard = self.user.wizcard
-            w = Wizcard.objects.serialize(wizcard, extended=True)
+            w = wizcard.serialize()
             s['wizcard'] = w
         except ObjectDoesNotExist:
             return s

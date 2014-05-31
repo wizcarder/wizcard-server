@@ -345,7 +345,7 @@ class Header(ParseMsgAndDispatch):
             #sync all syncables
             s = self.userprofile.serialize_objects()
 	    if 'wizcard' in s:
-                self.response.add_data("wizcards", s['wizcard'])
+                self.response.add_data("wizcard", s['wizcard'])
 		if 'wizconnections' in s:
                     self.response.add_data("rolodex", s['wizconnections'])
 		if 'wizcard_flicks' in s:
