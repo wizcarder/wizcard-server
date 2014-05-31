@@ -829,7 +829,7 @@ class Header(ParseMsgAndDispatch):
         #send back to app for selection
 
         if (count):
-            users = UserProfile.objects.serialize(lookup_result)
+            users = Wizcard.objects.serialize(lookup_result)
             self.response.add_data("queryResult", users)
         self.response.add_data("count", count)
  
