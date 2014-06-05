@@ -669,18 +669,16 @@ class Header(ParseMsgAndDispatch):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
         try:
-            flick_card = WizcardFlick.objects.get(id=self.receiver['flickCardID'])
-            wizcard2 = flick_card.wizcard
+            for flick_id in self.receiver['flickCardIDs']:
+                flick_card = WizcardFlick.objects.get(id=flick_id)
+                wizcard2 = flick_card.wizcard
+	        #associate flick with user
+	        flick_card.flick_pickers.add(wizcard1)
+	        #create a wizconnection and then accept it
+	        Wizcard.objects.exchange(wizcard1, wizcard2, flick_card)
 	except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-
-	#associate flick with user
-	flick_card.flick_pickers.add(wizcard1)
-
-	#create a wizconnection and then accept it
-	Wizcard.objects.exchange(wizcard1, wizcard2, flick_card)
-
 
         return self.response
 
