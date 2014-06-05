@@ -14,7 +14,7 @@ wizcard_template_brief = {
 thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailImage']
 
 wizcard_template_brief_with_thumbnail = {
-    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email', 'thumbnailImage'],
+    'fields': thumbnail_fields,
     'key_map' : wizcard_template_brief['key_map'],
 }
 
