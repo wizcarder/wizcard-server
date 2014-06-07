@@ -60,6 +60,7 @@ class UserProfileManager(models.Manager):
 class UserProfile(models.Model):
     # This field is required.
     user = models.OneToOneField(User, related_name='profile')
+    activated = models.BooleanField(default=False)
     #this is the internal userid
     userid = models.CharField(max_length=100)
     future_user = models.BooleanField(default=False, blank=False)
@@ -127,7 +128,7 @@ class UserProfile(models.Model):
         result, count = l.lookup(n)
         #convert result to query set result
         if count and not count_only:
-            users = map(lambda m: UserProfile.objects.get(id=m).user, result)
+            users = [UserProfile.objects.get(id=x).user for x in result if UserProfile.objects.filter(id=x, activated=True).exists()]
         return users, count
 
     def serialize_objects(self):

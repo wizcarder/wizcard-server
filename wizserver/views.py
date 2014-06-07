@@ -355,14 +355,10 @@ class Header(ParseMsgAndDispatch):
                 if 'flick_picks' in s:
                     self.response.add_data("flick_picks", s["flick_picks"])
 
-
             self.userprofile.sync = False
+            self.userprofile.activated = True
 
 	self.userprofile.save()
-
-        #update location in ptree
-	if self.lat != None and self.lng != None:
-            self.userprofile.create_or_update_location(self.lat, self.lng)
 
         return self.response
 
@@ -390,10 +386,9 @@ class Header(ParseMsgAndDispatch):
         notifications = Notification.objects.unread(self.user)
         notifResponse = NotifResponse(notifications)
 
-
-        if not Wizcard.objects.filter(user=self.user).exists():
+        #i will be activated when I have a wizcard
+        if not self.userprofile.activated:
             return self.response
-
 
 	if self.lat == None and self.lng == None:
 	    try:
@@ -449,6 +444,9 @@ class Header(ParseMsgAndDispatch):
             self.user.first_name = self.sender['first_name']
             self.user.last_name = self.sender['last_name']
             self.user.save()
+
+            self.userprofile.activated = True
+            self.userprofile.save()
 
         #AA:TODO: Change app to call this phone as well
         phone = self.sender['phone1']
