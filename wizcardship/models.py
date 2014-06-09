@@ -140,7 +140,7 @@ class WizcardManager(models.Manager):
                     verb='wizcard update',
                     target=wizcard1, action_object=wizcard2)
         
-    def find_users(self, userID, name, phone, email):
+    def query_users(self, userID, name, phone, email):
         #name can be first name, last name or even combined
         #any of the arguments may be null
         qlist = []

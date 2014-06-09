@@ -306,8 +306,7 @@ card_flick_accept = {
         "wizUserID" : "",
     },
     "receiver" : {
-	"wizcardID": "",
-        "flickCardID" : "",
+        "flickCardIDs" : "",
     }
 }
 

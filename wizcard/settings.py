@@ -233,7 +233,7 @@ PYAPNS_CONFIG = {
   'HOST': 'http://localhost:8077/',
   'TIMEOUT': 15,                    # OPTIONAL, host timeout in seconds
   'INITIAL': [                      # OPTIONAL, see below
-    ('wizcard-ios', 'apscert.pem', 'sandbox'),
+    ('com.wizcard', '/Users/aammundi/projects/WizCard/trunk/wizcard-server/wizcard/aps_development.cer', 'sandbox'),
   ]
 }
 

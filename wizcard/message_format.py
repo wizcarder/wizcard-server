@@ -55,7 +55,11 @@ class WizcardMyFlickSchema(colander.MappingSchema):
     pass
 class WizcardFlickWithdrawSchema(colander.MappingSchema):
     pass
-class WizcardFlickExtendSchema(colander.MappingSchema):
+class WizcardFlickEditSchema(colander.MappingSchema):
+    pass
+class WizcardFlickQuerySchema(colander.MappingSchema):
+    pass
+class TableMyTablesSchema(colander.MappingSchema):
     pass
 class WizcardSendToContactsSchema(colander.MappingSchema):
     pass
@@ -83,6 +87,6 @@ class TableLeaveSchema(colander.MappingSchema):
     pass
 class TableDestroySchema(colander.MappingSchema):
     pass
-class TableRenameSchema(colander.MappingSchema):
+class TableEditSchema(colander.MappingSchema):
     pass
 

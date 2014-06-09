@@ -11,9 +11,9 @@ from notifications import NotifParser
 
 TEST_IMAGE=False
 
-PHONE1 = "+14084641727"
-PHONE2 = "+14085332708"
-PHONE3 = "+14086892263"
+PHONE1 = "+15084641727"
+PHONE2 = "+15085332708"
+PHONE3 = "+15086892263"
 
 USERNAME1 = PHONE1+'@wizcard.com'
 USERNAME2 = PHONE2+'@wizcard.com'
@@ -312,8 +312,7 @@ print "pick up flicked card"
 card_flick_accept_msg = messages.card_flick_accept
 card_flick_accept_msg['sender']['userID'] = uid1
 card_flick_accept_msg['sender']['wizUserID'] = wuid1
-card_flick_accept_msg['receiver']['wizCardID'] = e3_id
-card_flick_accept_msg['receiver']['flickCardID'] = cf3_id
+card_flick_accept_msg['receiver']['flickCardIDs'] = [cf3_id]
 cfa1 = json.dumps(card_flick_accept_msg)
 conn.request("POST","", cfa1)
 # Parse and dump the JSON response from server

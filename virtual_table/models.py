@@ -44,6 +44,11 @@ class VirtualTableManager(models.Manager):
             tables = map(lambda m: self.get(id=m), result)
         return tables, count
 
+    #AA: TODO : get some max limit on this
+    def query_tables(self, name):
+        tables = self.filter(Q(tablename__icontains=self.receiver['name']))
+        return tables, tables.count()
+
     def serialize(self, tables):
         return serialize(tables, **fields.table_template)
 
@@ -99,7 +104,7 @@ class VirtualTable(models.Model):
                 key=key, 
                 tree="VTREE")
 
-    def isSecure(self):
+    def is_secure(self):
         return self.secureTable
 
     def table_exchange(self, joinee):
@@ -107,7 +112,7 @@ class VirtualTable(models.Model):
         wizcard1 = User.objects.get(id=joinee.pk).wizcard
 
         wizcards = map(lambda u: User.objects.get(id=u.pk).wizcard, joined)
-        implicit_exchange = self.isSecure()
+        implicit_exchange = self.is_secure()
 
         for wizcard2 in wizcards:
             Wizcard.objects.exchange(wizcard1, wizcard2, implicit_exchange)
@@ -125,7 +130,7 @@ class VirtualTable(models.Model):
 
     def join_table_and_exchange(self, user, password, do_exchange):
         #check password
-        if not self.isSecure() or self.password == password:
+        if not self.is_secure() or self.password == password:
             m, created = Membership.objects.get_or_create(user=user, table=self)
 	    if not created:
 		#somehow already a member

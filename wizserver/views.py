@@ -175,21 +175,22 @@ class Header(ParseMsgAndDispatch):
             'card_flick_accept'           : (message_format.WizcardFlickAcceptSchema, self.WizcardFlickAccept),
             'my_flicks'                   : (message_format.WizcardMyFlickSchema, self.WizcardMyFlicks),
             'flick_withdraw'              : (message_format.WizcardFlickWithdrawSchema, self.WizcardFlickWithdraw),
-            'flick_extend'                : (message_format.WizcardFlickExtendSchema, self.WizcardFlickExtend),
+            'flick_extend'                : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
+            'query_flicks'                : (message_format.WizcardFlickQuerySchema, self.WizcardFlickQuery),
             'send_card_to_contacts'       : (message_format.WizcardSendToContactsSchema, self.WizcardSendToContacts),
             'send_card_to_user'           : (message_format.WizcardSendUnTrustedSchema, self.WizcardSendUnTrusted),
             'send_card_to_future_contacts': (message_format.WizcardSendToFutureContactsSchema, self.WizcardSendToFutureContacts),
             'find_users_by_location'      : (message_format.UserQueryByLocationSchema, self.UserQueryByLocation),
             'send_query_user'             : (message_format.UserQueryByNameSchema, self.UserQueryByName),
             'get_card_details'            : (message_format.WizcardGetDetailSchema, self.WizcardGetDetail),
-            'show_table_list'             : (message_format.TableQuerySchema, self.TableQuery),
+            'query_tables'                : (message_format.TableQuerySchema, self.TableQuery),
             'my_tables'                   : (message_format.TableMyTablesSchema, self.TableMyTables),
             'table_details'               : (message_format.TableDetailsSchema, self.TableDetails),
             'create_table'                : (message_format.TableCreateSchema, self.TableCreate),
             'join_table'                  : (message_format.TableJoinSchema, self.TableJoin),
             'leave_table'                 : (message_format.TableLeaveSchema, self.TableLeave),
             'destroy_table'               : (message_format.TableDestroySchema, self.TableDestroy),
-            'rename_table'                : (message_format.TableRenameSchema, self.TableRename)
+            'rename_table'                : (message_format.TableEditSchema, self.TableEdit)
         }
         #update location since it may have changed
 	if self.msg_has_location() and not self.msg_is_initial():
@@ -563,6 +564,10 @@ class Header(ParseMsgAndDispatch):
             wizcard1 = self.user.wizcard
 	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard2 = self.r_user.wizcard
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
         except ObjectDoesNotExist:
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -580,6 +585,10 @@ class Header(ParseMsgAndDispatch):
             wizcard1 = self.user.wizcard
 	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard2 = self.r_user.wizcard
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -608,6 +617,10 @@ class Header(ParseMsgAndDispatch):
         try:
             wizcard1 = self.user.wizcard
             wizcard2 = self.r_user.wizcard
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -672,6 +685,10 @@ class Header(ParseMsgAndDispatch):
 	        flick_card.flick_pickers.add(wizcard1)
 	        #create a wizconnection and then accept it
 	        Wizcard.objects.exchange(wizcard1, wizcard2, flick_card)
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
 	except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -681,6 +698,7 @@ class Header(ParseMsgAndDispatch):
     def WizcardMyFlicks(self):
 	self.wizcard = Wizcard.objects.get(id=self.sender['wizCardID'])
         my_flicked_cards = self.wizcard.flicked_cards.all()
+
 	count = my_flicked_cards.count()
 	if count:
 	    flicks_s = WizcardFlick.objects.serialize(my_flicked_cards)
@@ -693,6 +711,10 @@ class Header(ParseMsgAndDispatch):
     def WizcardFlickWithdraw(self):
 	try:
 	    self.flicked_card = WizcardFlick.objects.get(id=self.sender['flickCardID'])
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
 	except: 
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
 	    return self.response
@@ -700,18 +722,37 @@ class Header(ParseMsgAndDispatch):
 	self.flicked_card.delete()
 	return self.response
 
-
-    def WizcardFlickExtend(self):
-	try:
-	    self.flicked_card = WizcardFlick.objects.get(id=self.sender['flickCardID'])
-	except: 
+    def WizcardFlickEdit(self):
+        try:
+            flick_id = self.sender['flickCardID']
+            timeout = self.sender['timeout']
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
+        try:
+            flicked_card = WizcardFlick.objects.get(id=flick_id)
+        except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
 	    return self.response
 
-	location = self.flicked_card.location
-	location.extend_timer(self.timeout)
+        flicked_card.location.extend_timer(timeout)
         return self.response
 
+    def WizcardFlickQuery(self):
+        if not self.receiver.has_key('name'):
+            self.securityException()
+            self.response.ignore()
+            return self.response
+
+        result, count = WizcardFlick.objects.query_flicks(self.receiver['name'])
+
+        if count:
+	    flicks_s = WizcardFlick.objects.serialize(result)
+            self.response.add_data("queryResult", flicks_s)
+        self.response.add_data("count", count)
+            
+        return self.response
 
     def WizcardSendToContacts(self):
         #implicitly create a bidir cardship (since this is from contacts)
@@ -729,7 +770,7 @@ class Header(ParseMsgAndDispatch):
                 #AA:TODO: phone should just be the mobile phone. App needs to change
                 # to adjust this. Also, array is not required
                 cphone = wizlib.convert_phone(phone)
-                target_wizcards, query_count = Wizcard.objects.find_users(
+                target_wizcards, query_count = Wizcard.objects.query_users(
 				sender.pk, 
 				None, 
 				cphone, 
@@ -738,7 +779,7 @@ class Header(ParseMsgAndDispatch):
 		    for wizcard2 in target_wizcards:
 		        #create bidir cardship
                         if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
-			    err = Wizcard.objects.exchange(wizcard1, wizcard2, True)
+			    Wizcard.objects.exchange(wizcard1, wizcard2, True)
 			    count += 1
                     else:
                         #future contacts
@@ -754,10 +795,14 @@ class Header(ParseMsgAndDispatch):
     def WizcardSendUnTrusted(self):
         try:
             wizcard1 = self.user.wizcard
+            self.receivers = self.receiver['wizUserIDs']
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
         except ObjectDoesNotExist:
 	    self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-        self.receivers = self.receiver['wizUserIDs']
 
         for receiver in self.receivers:
             try:
@@ -819,57 +864,30 @@ class Header(ParseMsgAndDispatch):
         except:
             email = None
 
-        lookup_result, count = Wizcard.objects.find_users(self.user, name, phone, email)
+        result, count = Wizcard.objects.query_users(self.user, name, phone, email)
         #send back to app for selection
 
         if (count):
-            users = Wizcard.objects.serialize(lookup_result)
+            users = Wizcard.objects.serialize(result)
             self.response.add_data("queryResult", users)
         self.response.add_data("count", count)
  
         return self.response
 
-
     def TableQuery(self):
-        if self.sender.has_key('lat') and self.sender.has_key('lng'):
-            lat = self.sender['lat']
-            lng = self.sender['lng']
-            self.QueryTableByLocation(lat, lng)
-        elif self.sender.has_key('table_name'):
-            name = self.sender['table_name']
-            self.QueryTableByName(name)
-        else:
-            return self.securityException()
-
-        return self.response
-
-    def QueryTableByName(self, name):
-        try:
-            tables = VirtualTable.objects.filter(Q(tablename__icontains=name))
-        except ObjectDoesNotExist:
-            self.response.error_response(err.NONE_FOUND)
+        if not self.receiver.has_key('name'):
+            self.securityException()
+            self.response.ignore()
             return self.response
-        count = tables.count()
+
+        result, count = VirtualTables.objects.query_tables(self.receiver['name'])
 
         if count:
-	    tables_s = VirtualTable.objects.serialize(tables)
+	    tables_s = VirtualTable.objects.serialize(result)
             self.response.add_data("queryResult", tables_s)
         self.response.add_data("count", count)
             
         return self.response
-
-    def QueryTableByLocation(self, lat, lng):
-        tables, count = VirtualTable.objects.lookup(
-                lat=lat, 
-                lng=lng, 
-                n=settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count:
-            tables_s = VirtualTable.objects.serialize(tables)
-            self.response.add_data("queryResult", tables_s)
-        self.response.add_data("count", count)
-
-        return self.response
-
 
     def TableMyTables(self):
 	tables = self.user.tables.all()
@@ -884,6 +902,10 @@ class Header(ParseMsgAndDispatch):
     def TableDetails(self):
         #get the members
         table = VirtualTable.objects.get(id=self.sender['tableID'])
+        if table.is_secure() and not table.is_member(self.user):
+            self.response.error_response(err.NOT_AUTHORIZED)
+            return self.response
+
         members = table.users.all()
         count = members.count()
         if count:
@@ -897,7 +919,7 @@ class Header(ParseMsgAndDispatch):
     
     def WizcardGetDetail(self):
         try:
-	   wizcard = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            wizcard = Wizcard.objects.get(id=self.receiver['wizCardID'])
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -955,7 +977,7 @@ class Header(ParseMsgAndDispatch):
             self.response.error_response(err.EXISTING_MEMBER)
             return self.response
 
-        if table.isSecure():
+        if table.is_secure():
             password = self.sender['password']
         else:
             password = None
@@ -995,16 +1017,26 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
 
-    def TableRename(self):
-        old_name = self.sender['old_name']
-        new_name = self.sender['new_name']
-        table_id = self.sender['tableID']
+    def TableEdit(self):
+        try:
+            table_id = self.sender['tableID']
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
 
         try:
             table = VirtualTable.objects.get(id=table_id)
-	    if table.creator != self.user:
-		self.response.error_response(err.NOT_AUTHORIZED)
-		return self.response
+        except ObjectDoesNotExist:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+            if table.creator != self.user:
+                self.response.error_response(err.NOT_AUTHORIZED)
+                return self.response
+
+        if self.sender.has_key('oldName') and self.sender.has_key('newName'):
+            old_name = self.sender['oldName']
+            new_name = self.sender['newName']
+
 	    if old_name != table.tablename:
 		self.response.error_response(err.NAME_ERROR)
 		return self.response
@@ -1012,9 +1044,6 @@ class Header(ParseMsgAndDispatch):
             table.tablename = new_name
             table.save()
             self.response.add_data("tableID", table.pk)
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            #shouldn't/couldn't happen
         
 	return self.response
 
