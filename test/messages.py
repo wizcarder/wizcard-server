@@ -53,7 +53,7 @@ register_sync = {
         #random index from there
         "lat" : 37.785834,
         "lng" : -122.406415,
-        "deviceType": "android",
+        "deviceType": "ios",
         "userID" : "2UIPIEPbBk"
 
     },
@@ -72,7 +72,7 @@ register1 = {
         #random index from there
         "lat" : 37.785835,
         "lng" : -122.406416,
-        "deviceType": "android",
+        "deviceType": "ios",
         "userID" : "",
 	"wizUserID" : ""
     },
@@ -90,7 +90,7 @@ register2 = {
         #random index from there
         "lat" : 37.785837,
         "lng" : -122.406418,
-        "deviceType": "android",
+        "deviceType": "ios",
         "userID" : "",
 	"wizUserID" : ""
     },
@@ -108,7 +108,7 @@ register3 = {
         #random index from there
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "android",
+        "deviceType": "ios",
         "userID" : "",
 	"wizUserID" : ""
     },
@@ -180,7 +180,7 @@ edit_card1 = {
         "location" : "San Francisco Bay Area",
         "phone1" : 4084641727,
         "userID" : "USER1",
-        "deviceType": "android",
+        "deviceType": "ios",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
 	"contact_container" : [contact_container, contact_container, contact_container]
@@ -254,7 +254,7 @@ table_create = {
     "sender" : {
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "android",
+        "deviceType": "ios",
         "userID" : "",
         "wizUserID" : "",
         "table_name" : "",
@@ -278,6 +278,27 @@ table_join = {
     },
 }
 
+table_edit = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "table_edit",
+    },
+    "sender" : {
+        "lat" : 37.785838,
+        "lng" : -122.406419,
+        "deviceType": "ios",
+        "userID" : "",
+        "wizUserID" : "",
+        "tableID": "",
+        "table_name" : "",
+        "oldName":"",
+        "newName":"",
+        "timeout":5
+    },
+}
+
 card_flick = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
@@ -290,7 +311,8 @@ card_flick = {
         "wizUserID" : "",
         "lat" : 37.785834,
         "lng" : -122.406415,
-        "deviceType": "android",
+        "deviceType": "ios",
+
     },
 }
 
@@ -308,6 +330,21 @@ card_flick_accept = {
     "receiver" : {
         "flickCardIDs" : "",
     }
+}
+
+card_flick_edit = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "flick_edit",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+        "flickCardID": "",
+        "timeout":""
+    },
 }
 
 my_flicks = {
@@ -335,7 +372,7 @@ get_cards = {
     "sender" : {
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "android",
+        "deviceType": "ios",
         "userID" : "",
         "wizUserID" : ""
     },

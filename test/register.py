@@ -19,6 +19,9 @@ USERNAME1 = PHONE1+'@wizcard.com'
 USERNAME2 = PHONE2+'@wizcard.com'
 USERNAME3 = PHONE3+'@wizcard.com'
 
+TABLE1NAME = "One"
+TABLE2NAME = "True"
+
 DEVICE_ID1 = "aaaaaaaaaaaaaaaaaaaaaaaaaa"
 DEVICE_ID2 = "bbbbbbbbbbbbbbbbbbbbbbbbbb"
 DEVICE_ID3 = "cccccccccccccccccccccccccc"
@@ -280,23 +283,40 @@ card_flick_msg = messages.card_flick
 card_flick_msg['sender']['userID'] = uid1
 card_flick_msg['sender']['wizUserID'] = wuid1
 print "re-flicking card from same location", card_flick_msg['sender']['userID']
-cf1 = json.dumps(card_flick_msg)
-conn.request("POST","", cf1)
-# Parse and dump the JSON response from server
-objs = handle_response(conn)
-cf1_id = objs['data']['flickCardID']
-
-#re flick to check agglomeration
-card_flick_msg = messages.card_flick
-card_flick_msg['sender']['userID'] = uid1
-card_flick_msg['sender']['wizUserID'] = wuid1
-print "re-flicking card from close-by location", card_flick_msg['sender']['userID']
-card_flick_msg['sender']['lng'] += 0.000001
 cf2 = json.dumps(card_flick_msg)
 conn.request("POST","", cf2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 cf2_id = objs['data']['flickCardID']
+if cf1_id != cf2_id:
+    print "ERROR in AGGLORMERATION"
+
+#re flick to check agglomeration with delta lat,lng
+card_flick_msg = messages.card_flick
+card_flick_msg['sender']['userID'] = uid1
+card_flick_msg['sender']['wizUserID'] = wuid1
+print "re-flicking card from close-by location", card_flick_msg['sender']['userID']
+card_flick_msg['sender']['lng'] += 0.000001
+card_flick_msg['sender']['lat'] += 0.000001
+cf3 = json.dumps(card_flick_msg)
+conn.request("POST","", cf3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
+cf3_id = objs['data']['flickCardID']
+if cf3_id != cf2_id:
+    print "ERROR in DELTA AGGLORMERATION"
+
+
+#edit flick
+card_flick_edit_msg = messages.card_flick_edit
+card_flick_edit_msg['sender']['userID'] = uid1
+card_flick_edit_msg['sender']['wizUserID'] = wuid1
+card_flick_edit_msg['sender']['flickCardID'] = cf1_id
+card_flick_edit_msg['sender']['timeout'] = 1
+cfe1 = json.dumps(card_flick_edit_msg)
+conn.request("POST","", cfe1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
 
 card_flick_msg = messages.card_flick
 card_flick_msg['sender']['userID'] = uid3
@@ -341,7 +361,7 @@ print "Creating Table"
 tbl_create_msg = messages.table_create
 tbl_create_msg['sender']['userID'] = uid1
 tbl_create_msg['sender']['wizUserID'] = wuid1
-tbl_create_msg['sender']['table_name'] = "One"
+tbl_create_msg['sender']['table_name'] = TABLE1NAME
 tbl_c_1 = json.dumps(tbl_create_msg)
 conn.request("POST","", tbl_c_1)
 # Parse and dump the JSON response from server
@@ -368,6 +388,19 @@ tbl_join_msg['sender']['password'] = "xxx"
 tbl_j_1 = json.dumps(tbl_join_msg)
 # Parse and dump the JSON response from server
 conn.request("POST","", tbl_j_1)
+objs = handle_response(conn)
+
+print "Edit Table" 
+tbl_edit_msg = messages.table_edit
+tbl_edit_msg['sender']['userID'] = uid1
+tbl_edit_msg['sender']['wizUserID'] = wuid1
+tbl_edit_msg['sender']['tableID'] = tid_1
+tbl_edit_msg['sender']['oldName'] = TABLE1NAME
+tbl_edit_msg['sender']['newName'] = TABLE2NAME
+tbl_edit_msg['sender']['timeout'] = 5
+tbl_e_1 = json.dumps(tbl_edit_msg)
+# Parse and dump the JSON response from server
+conn.request("POST","", tbl_e_1)
 objs = handle_response(conn)
 
 print "get cards for user", uid1

@@ -175,7 +175,7 @@ class Header(ParseMsgAndDispatch):
             'card_flick_accept'           : (message_format.WizcardFlickAcceptSchema, self.WizcardFlickAccept),
             'my_flicks'                   : (message_format.WizcardMyFlickSchema, self.WizcardMyFlicks),
             'flick_withdraw'              : (message_format.WizcardFlickWithdrawSchema, self.WizcardFlickWithdraw),
-            'flick_extend'                : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
+            'flick_edit'                  : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
             'query_flicks'                : (message_format.WizcardFlickQuerySchema, self.WizcardFlickQuery),
             'send_card_to_contacts'       : (message_format.WizcardSendToContactsSchema, self.WizcardSendToContacts),
             'send_card_to_user'           : (message_format.WizcardSendUnTrustedSchema, self.WizcardSendUnTrusted),
@@ -190,7 +190,7 @@ class Header(ParseMsgAndDispatch):
             'join_table'                  : (message_format.TableJoinSchema, self.TableJoin),
             'leave_table'                 : (message_format.TableLeaveSchema, self.TableLeave),
             'destroy_table'               : (message_format.TableDestroySchema, self.TableDestroy),
-            'rename_table'                : (message_format.TableEditSchema, self.TableEdit)
+            'table_edit'                  : (message_format.TableEditSchema, self.TableEdit)
         }
         #update location since it may have changed
 	if self.msg_has_location() and not self.msg_is_initial():
@@ -583,6 +583,7 @@ class Header(ParseMsgAndDispatch):
     def WizConnectionRequestDecline(self):
         try:
             wizcard1 = self.user.wizcard
+            #AA: TODO Change to wizCardID
 	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard2 = self.r_user.wizcard
 	except KeyError: 
@@ -604,31 +605,19 @@ class Header(ParseMsgAndDispatch):
 
         return self.response
 
-
     def WizcardRolodexDelete(self):
 	try:
-	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
-	except: 
-	    try:
-	        self.r_user = UserProfile.objects.get(id=self.receiver['userID']).user
-	    except:
-                self.response.error_response(err.USER_DOESNT_EXIST)
-	        return self.response
-        try:
-            wizcard1 = self.user.wizcard
-            wizcard2 = self.r_user.wizcard
+            wizcards = self.receiver['wizCardIDs']
+            for wizcard2 in wizcards:
+                Wizcard.objects.uncard(wizcard1, wizcard2)
+                #Q a notif to other guy so that the app on the other side can react
+                notify.send(self.user, recipient=self.r_user, verb='revoked wizcard', target=wizcard1)
 	except KeyError: 
             self.securityException()
             self.response.ignore()
             return self.response
         except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response
-
-        Wizcard.objects.uncard(wizcard1, wizcard2)
-        #Q a notif to other guy so that the app on the other side can react
-        notify.send(self.user, recipient=self.r_user,
-                    verb='revoked wizcard', target=wizcard1)
+            pass
         return self.response
 
 
@@ -736,7 +725,7 @@ class Header(ParseMsgAndDispatch):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
 	    return self.response
 
-        flicked_card.location.extend_timer(timeout)
+        flicked_card.location.get().extend_timer(timeout)
         return self.response
 
     def WizcardFlickQuery(self):
@@ -1029,9 +1018,10 @@ class Header(ParseMsgAndDispatch):
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-            if table.creator != self.user:
-                self.response.error_response(err.NOT_AUTHORIZED)
-                return self.response
+
+        if table.creator != self.user:
+            self.response.error_response(err.NOT_AUTHORIZED)
+            return self.response
 
         if self.sender.has_key('oldName') and self.sender.has_key('newName'):
             old_name = self.sender['oldName']
@@ -1042,9 +1032,11 @@ class Header(ParseMsgAndDispatch):
 		return self.response
 	        
             table.tablename = new_name
-            table.save()
-            self.response.add_data("tableID", table.pk)
-        
+        if self.sender.has_key('timeout'):
+            table.location.get().extend_timer(self.sender['timeout'])
+        table.save()
+
+        self.response.add_data("tableID", table.pk)
 	return self.response
 
 VALIDATOR = 0

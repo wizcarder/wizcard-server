@@ -191,7 +191,7 @@ class LocationMgr(models.Model):
                 timeout_value=timeout*60)
         t.start()
 
-    def extend_time(self, timeout):
+    def extend_timer(self, timeout):
 	#timeout is the new timeout
         t = self.timer.get()
 	t.timeout_value = timeout*60
