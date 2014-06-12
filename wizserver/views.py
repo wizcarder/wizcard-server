@@ -869,7 +869,8 @@ class Header(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
 
-        result, count = VirtualTables.objects.query_tables(self.receiver['name'])
+        result, count = VirtualTable.objects.query_tables(self.receiver['name'])
+        print "TABLE QUERY", result, count
 
         if count:
 	    tables_s = VirtualTable.objects.serialize(result)

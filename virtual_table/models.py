@@ -46,7 +46,7 @@ class VirtualTableManager(models.Manager):
 
     #AA: TODO : get some max limit on this
     def query_tables(self, name):
-        tables = self.filter(Q(tablename__icontains=self.receiver['name']))
+        tables = self.filter(Q(tablename__icontains=name))
         return tables, tables.count()
 
     def serialize(self, tables):
