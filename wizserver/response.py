@@ -88,16 +88,16 @@ class NotifResponse(ResponseN):
     def __init__(self, notifications):
         ResponseN.__init__(self)
         notifHandler = {
-            Notification.WIZREQ_U 	     : self.notifWizConnectionU,
-            Notification.WIZREQ_T  	     : self.notifWizConnectionT,
-            Notification.WIZ_ACCEPT          : self.notifAcceptedWizcard,
-            Notification.WIZ_REVOKE	     : self.notifRevokedWizcard,
-            Notification.WIZ_DELETE	     : self.notifRevokedWizcard,
-            Notification.WIZ_TABLE_TIMEOUT   : self.notifDestroyedTable,
-            Notification.WIZ_TABLE_DESTROY   : self.notifDestroyedTable,
-            Notification.WIZ_CARD_UPDATE     : self.notifWizcardUpdate,
-            Notification.WIZ_CARD_FLICK_TIMEOUT     : self.notifWizcardFlickTimeout,
-            Notification.WIZ_CARD_FLICK_PICK : self.notifWizcardFlickPick
+            Notification.WIZREQ_U 	        : self.notifWizConnectionU,
+            Notification.WIZREQ_T  	        : self.notifWizConnectionT,
+            Notification.WIZCARD_ACCEPT         : self.notifAcceptedWizcard,
+            Notification.WIZCARD_REVOKE	        : self.notifRevokedWizcard,
+            Notification.WIZCARD_DELETE	        : self.notifRevokedWizcard,
+            Notification.WIZCARD_TABLE_TIMEOUT  : self.notifDestroyedTable,
+            Notification.WIZCARD_TABLE_DESTROY  : self.notifDestroyedTable,
+            Notification.WIZCARD_UPDATE         : self.notifWizcardUpdate,
+            Notification.WIZCARD_FLICK_TIMEOUT  : self.notifWizcardFlickTimeout,
+            Notification.WIZCARD_FLICK_PICK     : self.notifWizcardFlickPick
         }
 	for notification in notifications:
 	    notifHandler[notification.verb](notification)

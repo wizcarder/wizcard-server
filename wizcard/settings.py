@@ -229,11 +229,12 @@ logging.basicConfig(
     format = '%(funcName)s %(levelname)s %(message)s',
 )
 
+APP_ID = 'com.wizcard'
 PYAPNS_CONFIG = {
-  'HOST': 'http://localhost:8077/',
-  'TIMEOUT': 15,                    # OPTIONAL, host timeout in seconds
+  'HOST': 'http://localhost:7077/',
+  'TIMEOUT': 1,                    # OPTIONAL, host timeout in seconds
   'INITIAL': [                      # OPTIONAL, see below
-    ('com.wizcard', '/Users/aammundi/projects/WizCard/trunk/wizcard-server/wizcard/aps_development.cer', 'sandbox'),
+    ('com.wizcard', open('/Users/aammundi/projects/WizCard/trunk/wizcard-server/wizcard/certs/wizcard_ios_push.pem').read(), 'sandbox'),
   ]
 }
 

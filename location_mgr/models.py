@@ -188,7 +188,7 @@ class LocationMgr(models.Model):
     def start_timer(self, timeout):
 	#AA:TODO revert
         t = Periodic.objects.create(location=self,
-                timeout_value=timeout*60)
+                timeout_value=timeout)
         t.start()
 
     def extend_timer(self, timeout):

@@ -7,8 +7,7 @@ from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
 from pyapns import notify as apns_notify
-from pyapns import configure, provision
-import pdb
+from pyapns import configure, provision, feedback
 
 
 try:
@@ -61,69 +60,82 @@ class Notification(models.Model):
         <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
     """
+    DEFAULT_MSG = 'wizcard message'
     WIZREQ_U = 'wizconnection request untrusted'
     WIZREQ_T = 'wizconnection request trusted'
-    WIZ_ACCEPT = 'accepted wizcard'
-    WIZ_REVOKE = 'revoked wizcard'
-    WIZ_DELETE = 'deleted wizcard'
-    WIZ_TABLE_TIMEOUT = 'table timeout'
-    WIZ_TABLE_DESTROY = 'table destroy'
-    WIZ_CARD_UPDATE = 'wizcard update'
-    WIZ_CARD_FLICK_TIMEOUT = 'flick timeout'
-    WIZ_CARD_FLICK_PICK = 'via flick pick'
+    WIZCARD_ACCEPT = 'accepted your wizcard'
+    WIZCARD_REVOKE = 'revoked wizcard'
+    WIZCARD_DELETE = 'deleted wizcard'
+    WIZCARD_TABLE_TIMEOUT = 'table timeout'
+    WIZCARD_TABLE_DESTROY = 'table destroy'
+    WIZCARD_UPDATE = 'wizcard update'
+    WIZCARD_FLICK_TIMEOUT = 'flick timeout'
+    WIZCARD_FLICK_PICK = 'via flick pick'
 
 
 
     apns_notification_dictionary = {
+        DEFAULT_MSG     : {
+		'sound': 'flynn.caf',
+		'badge': 0,
+                #AA:TODO: separate verb from push message
+		'alert': WIZREQ_U,
+		},
         WIZREQ_U	: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+                #AA:TODO: separate verb from push message
+		'alert': WIZREQ_U,
+		},
+        WIZREQ_U	: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'alert': WIZREQ_U,
 		},
 	WIZREQ_T	: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZREQ_T,
 		},
-	WIZ_ACCEPT: {
+	WIZCARD_ACCEPT: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZCARD_ACCEPT,
 		},
-	WIZ_REVOKE: {
+	WIZCARD_REVOKE: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZCARD_REVOKE,
 		},
-	WIZ_DELETE: {
+	WIZCARD_DELETE: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZCARD_DELETE,
 		},
-	WIZ_TABLE_TIMEOUT: {
+	WIZCARD_TABLE_TIMEOUT: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZCARD_TABLE_TIMEOUT,
 		},
-	WIZ_TABLE_TIMEOUT: {
+	WIZCARD_TABLE_DESTROY: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZCARD_TABLE_DESTROY,
 		},
-	WIZ_CARD_UPDATE: {
+	WIZCARD_UPDATE: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZCARD_UPDATE,
 		},
-	WIZ_CARD_FLICK_TIMEOUT: {
+	WIZCARD_FLICK_TIMEOUT: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZREQ_U,
 		},
-	WIZ_CARD_FLICK_PICK: {
+	WIZCARD_FLICK_PICK: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'message': WIZREQ_U,
+		'alert': WIZREQ_U,
 		},
     }
 
@@ -194,16 +206,21 @@ class Notification(models.Model):
 
     def pushNotificationToApp(self, receiver, sender, verb):
         from userprofile.models import UserProfile
+        if not self.apns_notification_dictionary.has_key(verb):
+            apns_message = dict(aps=self.apns_notification_dictionary[self.DEFAULT_MSG])
+        else:
+            apns_message = dict(aps=self.apns_notification_dictionary[verb])
+
         push_to_app_handler = {
             UserProfile.IOS	: self.pushIOS,
             UserProfile.ANDROID	: self.pushAndroid
         }
-        #push_to_app_handler[receiver.device_type](receiver, sender, verb)
+        push_to_app_handler[receiver.device_type](receiver, sender, apns_message)
 
-    def pushIOS(self, receiver, sender, verb):
-	apns_notify('wizcard-ios', 
+    def pushIOS(self, receiver, sender, apns_message):
+	apns_notify(settings.APP_ID,
 		    receiver.reg_token, 
-		    self.apns_notification_dictionary[verb])
+		    apns_message)
 
         return
 

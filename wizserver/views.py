@@ -207,7 +207,7 @@ class Header(ParseMsgAndDispatch):
 
         #make the user as alive
         if not self.msg_is_initial():
-	    cache.set('seen_%s' % (self.user), now(), 
+	    cache.set('seen_%s' % (self.user.username), now(), 
 		    settings.USER_LASTSEEN_TIMEOUT)
 
     def PhoneCheckRequest(self):
