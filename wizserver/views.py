@@ -734,14 +734,11 @@ class Header(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
 
-        #result, count = WizcardFlick.objects.query_flicks(self.receiver['name'])
-        #AA:TODO. Temp fix
-        result, count = Wizcard.objects.query_users(self.user, self.receiver['name'], None, None)
+        result, count = WizcardFlick.objects.query_flicks(self.user, self.receiver['name'], None, None)
 
         if count:
-            users_s = Wizcard.objects.serialize(result)
-	    #flicks_s = WizcardFlick.objects.serialize(result)
-            self.response.add_data("queryResult", users_s)
+            flicks_s = WizcardFlick.objects.serialize_split(self.user.wizcard, result)
+            self.response.add_data("queryResult", flicks_s)
         self.response.add_data("count", count)
             
         return self.response

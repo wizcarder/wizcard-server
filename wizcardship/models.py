@@ -328,6 +328,23 @@ class WizcardFlickManager(models.Manager):
 
 	return own, connected, others
 
+
+    def query_flicks(self, userID, name, phone, email):
+        #name can be first name, last name or even combined
+        #any of the arguments may be null
+        qlist = []
+
+        if name != None:
+            split = name.split()
+            for n in split:
+                name_result = (Q(wizcard__first_name__icontains=n) | Q(wizcard__last_name__icontains=n))
+                qlist.append(name_result)
+
+        result = self.filter(reduce(operator.or_, qlist)).exclude(wizcard__user_id=userID)
+
+        return result, len(result)
+
+
 class WizcardFlick(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')

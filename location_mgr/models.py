@@ -190,7 +190,7 @@ class LocationMgr(models.Model):
         #t = Periodic.objects.create(location=self,
         #        timeout_value=timeout*60)
         t = Periodic.objects.create(location=self,
-                timeout_value=timeout)
+                timeout_value=timeout*60)
         t.start()
 
     def extend_timer(self, timeout):

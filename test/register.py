@@ -22,6 +22,11 @@ USERNAME3 = PHONE3+'@wizcard.com'
 TABLE1NAME = "One"
 TABLE2NAME = "True"
 
+FIRSTNAME_Q = "a"
+LASTNAME_Q = "a"
+
+TABLENAME_Q = "e"
+
 DEVICE_ID1 = "aaaaaaaaaaaaaaaaaaaaaaaaaa"
 DEVICE_ID2 = "bbbbbbbbbbbbbbbbbbbbbbbbbb"
 DEVICE_ID3 = "cccccccccccccccccccccccccc"
@@ -52,145 +57,146 @@ test_image_path = "/Users/aammundi/Pictures/iChat Icons/Flags/Russia.png"
 conn = httplib.HTTPConnection(server_url, server_port)
 
 
-def handle_response(connection):
+def handle_response(conn, msg_type):
     res = conn.getresponse()
     print res.status, res.reason
     objs = res.read()    
     objs = json.loads( objs )
+    print "received respone for Message: ", msg_type
     print json.dumps(objs, sort_keys = True, indent = 2)
     return objs
 
-pcreqmsg = messages.phone_check_req
-pcreqmsg['header']['deviceID'] = DEVICE_ID1
-pcreqmsg['header']['hash'] = HASH1
-pcreqmsg['sender']['username'] = USERNAME1
-pcreqmsg['sender']['target'] = PHONE1
-pcreqmsg['sender']['responseMode'] = 'sms'
-pcreq1 = json.dumps(pcreqmsg)
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID1
+reqmsg['header']['hash'] = HASH1
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['target'] = PHONE1
+reqmsg['sender']['responseMode'] = 'sms'
+pcreq1 = json.dumps(reqmsg)
 conn.request("POST","", pcreq1)
 print "sending phone_check_req", pcreq1
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-pcrspmsg = messages.phone_check_resp
-pcrspmsg['header']['deviceID'] = DEVICE_ID1
-pcrspmsg['header']['hash'] = HASH1
-pcrspmsg['sender']['username'] = USERNAME1
-pcrspmsg['sender']['responseKey'] = RESPONSE_KEY1
-pcrsp1 = json.dumps(pcrspmsg)
+reqmsg = messages.phone_check_resp
+reqmsg['header']['deviceID'] = DEVICE_ID1
+reqmsg['header']['hash'] = HASH1
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['responseKey'] = RESPONSE_KEY1
+pcrsp1 = json.dumps(reqmsg)
 print "sending phone_check_rsp", pcrsp1
 conn.request("POST","", pcrsp1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 uid1 = objs['data']['userID']
 
-pcreqmsg = messages.phone_check_req
-pcreqmsg['header']['deviceID'] = DEVICE_ID2
-pcreqmsg['header']['hash'] = HASH2
-pcreqmsg['sender']['username'] = USERNAME2
-pcreqmsg['sender']['target'] = PHONE2
-pcreqmsg['sender']['responseMode'] = 'sms'
-pcreq2 = json.dumps(pcreqmsg)
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID2
+reqmsg['header']['hash'] = HASH2
+reqmsg['sender']['username'] = USERNAME2
+reqmsg['sender']['target'] = PHONE2
+reqmsg['sender']['responseMode'] = 'sms'
+pcreq2 = json.dumps(reqmsg)
 conn.request("POST","", pcreq2)
 print "sending phone_check_req", pcreq2
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-pcrspmsg = messages.phone_check_resp
-pcrspmsg['header']['deviceID'] = DEVICE_ID2
-pcrspmsg['header']['hash'] = HASH2
-pcrspmsg['sender']['username'] = USERNAME2
-pcrspmsg['sender']['responseKey'] = RESPONSE_KEY2
-pcrsp2 = json.dumps(pcrspmsg)
+reqmsg = messages.phone_check_resp
+reqmsg['header']['deviceID'] = DEVICE_ID2
+reqmsg['header']['hash'] = HASH2
+reqmsg['sender']['username'] = USERNAME2
+reqmsg['sender']['responseKey'] = RESPONSE_KEY2
+pcrsp2 = json.dumps(reqmsg)
 print "sending phone_check_rsp", pcrsp2
 conn.request("POST","", pcrsp2)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 uid2 = objs['data']['userID']
 
-pcreqmsg = messages.phone_check_req
-pcreqmsg['header']['deviceID'] = DEVICE_ID3
-pcreqmsg['header']['hash'] = HASH3
-pcreqmsg['sender']['username'] = USERNAME3
-pcreqmsg['sender']['target'] = PHONE3
-pcreqmsg['sender']['responseMode'] = 'sms'
-pcreq3 = json.dumps(pcreqmsg)
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID3
+reqmsg['header']['hash'] = HASH3
+reqmsg['sender']['username'] = USERNAME3
+reqmsg['sender']['target'] = PHONE3
+reqmsg['sender']['responseMode'] = 'sms'
+pcreq3 = json.dumps(reqmsg)
 conn.request("POST","", pcreq3)
 print "sending phone_check_req", pcreq3
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #resp = objs['data']['key']
-pcrspmsg = messages.phone_check_resp
-pcrspmsg['header']['deviceID'] = DEVICE_ID3
-pcrspmsg['header']['hash'] = HASH3
-pcrspmsg['sender']['username'] = USERNAME3
-pcrspmsg['sender']['responseKey'] = RESPONSE_KEY3
-pcrsp3 = json.dumps(pcrspmsg)
+reqmsg = messages.phone_check_resp
+reqmsg['header']['deviceID'] = DEVICE_ID3
+reqmsg['header']['hash'] = HASH3
+reqmsg['sender']['username'] = USERNAME3
+reqmsg['sender']['responseKey'] = RESPONSE_KEY3
+pcrsp3 = json.dumps(reqmsg)
 test_image_path = "/Users/aammundi/Pictures/iChat Icons/Flags/Russia.png"
 print "sending phone_check_rsp", pcrsp3
 conn.request("POST","", pcrsp3)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 uid3 = objs['data']['userID']
 
-lmsg = messages.login
-lmsg['sender']['username'] = USERNAME1
-lmsg['sender']['userID'] = uid1
-login = json.dumps(lmsg)
+reqmsg = messages.login
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['userID'] = uid1
+login = json.dumps(reqmsg)
 print "sending login", login
 conn.request("POST","", login)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 wuid1 = objs['data']['wizUserID']
 
-lmsg['sender']['username'] = USERNAME2
-lmsg['sender']['userID'] = uid2
-login = json.dumps(lmsg)
+reqmsg['sender']['username'] = USERNAME2
+reqmsg['sender']['userID'] = uid2
+login = json.dumps(reqmsg)
 print "sending login", login
 conn.request("POST","", login)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 wuid2 = objs['data']['wizUserID']
 
-lmsg['sender']['username'] = USERNAME3
-lmsg['sender']['userID'] = uid3
-login = json.dumps(lmsg)
+reqmsg['sender']['username'] = USERNAME3
+reqmsg['sender']['userID'] = uid3
+login = json.dumps(reqmsg)
 print "sending login", login
 conn.request("POST","", login)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 wuid3 = objs['data']['wizUserID']
 
 #send register
 
 #create 3 users
-rmsg = messages.register1
-rmsg['sender']['userID']=uid1
-rmsg['sender']['wizUserID']=wuid1
-r1 = json.dumps(rmsg)
+reqmsg = messages.register1
+reqmsg['sender']['userID']=uid1
+reqmsg['sender']['wizUserID']=wuid1
+r1 = json.dumps(reqmsg)
 conn.request("POST","", r1)
 print "sending register"
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-rmsg = messages.register2
-rmsg['sender']['userID']=uid2
-rmsg['sender']['wizUserID']=wuid2
-r2 = json.dumps(rmsg)
+reqmsg = messages.register2
+reqmsg['sender']['userID']=uid2
+reqmsg['sender']['wizUserID']=wuid2
+r2 = json.dumps(reqmsg)
 conn.request("POST","", r2)
 # Parse and dump the JSON response from server
 print "sending register"
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-rmsg = messages.register3
-rmsg['sender']['userID']=uid3
-rmsg['sender']['wizUserID']=wuid3
-r3 = json.dumps(rmsg)
+reqmsg = messages.register3
+reqmsg['sender']['userID']=uid3
+reqmsg['sender']['wizUserID']=wuid3
+r3 = json.dumps(reqmsg)
 conn.request("POST","", r3)
 print "sending register"
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #send edit_cards for each
 if TEST_IMAGE:
@@ -199,109 +205,109 @@ if TEST_IMAGE:
 else:
     out = None
 
-edit_card_msg = messages.edit_card1
-edit_card_msg['sender']['userID'] = uid1
-edit_card_msg['sender']['wizUserID'] = wuid1
-contacts = edit_card_msg['sender']['contact_container']
+reqmsg = messages.edit_card1
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+contacts = reqmsg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
     c['b_bizCardImage'] = out
-e1 = json.dumps(edit_card_msg)
-print "sending EDIT CARD for", edit_card_msg['sender']['userID']
+e1 = json.dumps(reqmsg)
+print "sending EDIT CARD for", reqmsg['sender']['userID']
 conn.request("POST","", e1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 e1_id = objs['data']['wizCardID']
 
 
-edit_card_msg = messages.edit_card2
-edit_card_msg['sender']['userID'] = uid2
-edit_card_msg['sender']['wizUserID'] = wuid2
-contacts = edit_card_msg['sender']['contact_container']
+reqmsg = messages.edit_card2
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+contacts = reqmsg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
     c['b_bizCardImage'] = out
-e2 = json.dumps(edit_card_msg)
-print "sending EDIT CARD for", edit_card_msg['sender']['userID']
+e2 = json.dumps(reqmsg)
+print "sending EDIT CARD for", reqmsg['sender']['userID']
 conn.request("POST","", e2)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 e2_id = objs['data']['wizCardID']
 
-edit_card_msg = messages.edit_card3
-edit_card_msg['sender']['userID'] = uid3
-edit_card_msg['sender']['wizUserID'] = wuid3
-contacts = edit_card_msg['sender']['contact_container']
+reqmsg = messages.edit_card3
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+contacts = reqmsg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
     c['b_bizCardImage'] = out
-e3 = json.dumps(edit_card_msg)
-print "sending EDIT CARD for", edit_card_msg['sender']['userID']
+e3 = json.dumps(reqmsg)
+print "sending EDIT CARD for", reqmsg['sender']['userID']
 conn.request("POST","", e3)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 e3_id = objs['data']['wizCardID']
 
 #send location update
-location_msg = messages.location
-location_msg['sender']['lat'] = LAT1
-location_msg['sender']['lng'] = LNG1
-location_msg['sender']['userID'] = uid1
-location_msg['sender']['wizUserID'] = wuid1
-l1 = json.dumps(location_msg)
-print "sending Location Update for", location_msg['sender']['userID']
+reqmsg = messages.location
+reqmsg['sender']['lat'] = LAT1
+reqmsg['sender']['lng'] = LNG1
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+l1 = json.dumps(reqmsg)
+print "sending Location Update for", reqmsg['sender']['userID']
 conn.request("POST","", l1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #contacts verify
-contacts_verify_msg = messages.contacts_verify
-contacts_verify_msg['sender']['userID'] = uid1
-contacts_verify_msg['sender']['wizUserID'] = wuid1
-contacts_verify_msg['receiver']['verify_list'] = ContactList
-cv = json.dumps(contacts_verify_msg)
-print "sending Contact Verify", contacts_verify_msg['sender']['userID']
+reqmsg = messages.contacts_verify
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['verify_list'] = ContactList
+cv = json.dumps(reqmsg)
+print "sending Contact Verify", reqmsg['sender']['userID']
 conn.request("POST","", cv)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-card_flick_msg = messages.card_flick
-card_flick_msg['sender']['userID'] = uid1
-card_flick_msg['sender']['wizUserID'] = wuid1
-print "flicking card", card_flick_msg['sender']['userID']
-cf1 = json.dumps(card_flick_msg)
+reqmsg = messages.card_flick
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+print "flicking card", reqmsg['sender']['userID']
+cf1 = json.dumps(reqmsg)
 conn.request("POST","", cf1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 cf1_id = objs['data']['flickCardID']
 
 #re flick to check agglomeration
-card_flick_msg = messages.card_flick
-card_flick_msg['sender']['userID'] = uid1
-card_flick_msg['sender']['wizUserID'] = wuid1
-print "re-flicking card from same location", card_flick_msg['sender']['userID']
-cf2 = json.dumps(card_flick_msg)
+reqmsg = messages.card_flick
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+print "re-flicking card from same location", reqmsg['sender']['userID']
+cf2 = json.dumps(reqmsg)
 conn.request("POST","", cf2)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 cf2_id = objs['data']['flickCardID']
 if cf1_id != cf2_id:
     print "ERROR in AGGLORMERATION"
 
 #re flick to check agglomeration with delta lat,lng
-card_flick_msg = messages.card_flick
-card_flick_msg['sender']['userID'] = uid1
-card_flick_msg['sender']['wizUserID'] = wuid1
-print "re-flicking card from close-by location", card_flick_msg['sender']['userID']
-card_flick_msg['sender']['lng'] += 0.000001
-card_flick_msg['sender']['lat'] += 0.000001
-cf3 = json.dumps(card_flick_msg)
+reqmsg = messages.card_flick
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+print "re-flicking card from close-by location", reqmsg['sender']['userID']
+reqmsg['sender']['lng'] += 0.000001
+reqmsg['sender']['lat'] += 0.000001
+cf3 = json.dumps(reqmsg)
 conn.request("POST","", cf3)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 cf3_id = objs['data']['flickCardID']
 if cf3_id != cf2_id:
     print "ERROR in DELTA AGGLORMERATION"
@@ -316,102 +322,124 @@ card_flick_edit_msg['sender']['timeout'] = 1
 cfe1 = json.dumps(card_flick_edit_msg)
 conn.request("POST","", cfe1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-card_flick_msg = messages.card_flick
-card_flick_msg['sender']['userID'] = uid3
-card_flick_msg['sender']['wizUserID'] = wuid3
-print "flicking card", card_flick_msg['sender']['userID']
-cf3 = json.dumps(card_flick_msg)
+reqmsg = messages.card_flick
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+print "flicking card", reqmsg['sender']['userID']
+cf3 = json.dumps(reqmsg)
 conn.request("POST","", cf3)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 cf3_id = objs['data']['flickCardID']
 
 print "pick up flicked card"
-card_flick_accept_msg = messages.card_flick_accept
-card_flick_accept_msg['sender']['userID'] = uid1
-card_flick_accept_msg['sender']['wizUserID'] = wuid1
-card_flick_accept_msg['receiver']['flickCardIDs'] = [cf3_id]
-cfa1 = json.dumps(card_flick_accept_msg)
+reqmsg = messages.card_flick_accept
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['flickCardIDs'] = [cf3_id]
+cfa1 = json.dumps(reqmsg)
 conn.request("POST","", cfa1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 print "retrieving myFlicks"
-my_flick_msg = messages.my_flicks
-my_flick_msg['sender']['userID'] = uid1
-my_flick_msg['sender']['wizUserID'] = wuid1
-my_flick_msg['sender']['wizCardID'] = e1_id
-mcf1 = json.dumps(my_flick_msg)
+reqmsg = messages.my_flicks
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['wizCardID'] = e1_id
+mcf1 = json.dumps(reqmsg)
 conn.request("POST","", mcf1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-my_flick_msg = messages.my_flicks
-my_flick_msg['sender']['userID'] = uid3
-my_flick_msg['sender']['wizUserID'] = wuid3
-my_flick_msg['sender']['wizCardID'] = e3_id
-mcf3 = json.dumps(my_flick_msg)
+reqmsg = messages.my_flicks
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['wizCardID'] = e3_id
+mcf3 = json.dumps(reqmsg)
 conn.request("POST","", mcf3)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#flick query
+reqmsg = messages.card_flick_query
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['receiver']['name'] = FIRSTNAME_Q
+fq3 = json.dumps(reqmsg)
+conn.request("POST","", fq3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+pdb.set_trace()
 
 print "Creating Table"
-tbl_create_msg = messages.table_create
-tbl_create_msg['sender']['userID'] = uid1
-tbl_create_msg['sender']['wizUserID'] = wuid1
-tbl_create_msg['sender']['table_name'] = TABLE1NAME
-tbl_c_1 = json.dumps(tbl_create_msg)
+reqmsg = messages.table_create
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['table_name'] = TABLE1NAME
+tbl_c_1 = json.dumps(reqmsg)
 conn.request("POST","", tbl_c_1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 tid_1 = objs['data']['tableID']
 
 #join created table
 print "Joining Table"
-tbl_join_msg = messages.table_join
-tbl_join_msg['sender']['userID'] = uid2
-tbl_join_msg['sender']['wizUserID'] = wuid2
-tbl_join_msg['sender']['tableID'] = tid_1
-tbl_j_1 = json.dumps(tbl_join_msg)
+reqmsg = messages.table_join
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['sender']['tableID'] = tid_1
+tbl_j_1 = json.dumps(reqmsg)
 conn.request("POST","", tbl_j_1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 print "Joining Table with error password"
-tbl_join_msg = messages.table_join
-tbl_join_msg['sender']['userID'] = uid3
-tbl_join_msg['sender']['wizUserID'] = wuid3
-tbl_join_msg['sender']['tableID'] = tid_1
-tbl_join_msg['sender']['password'] = "xxx"
-tbl_j_1 = json.dumps(tbl_join_msg)
+reqmsg = messages.table_join
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['tableID'] = tid_1
+reqmsg['sender']['password'] = "xxx"
+tbl_j_1 = json.dumps(reqmsg)
 # Parse and dump the JSON response from server
 conn.request("POST","", tbl_j_1)
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 print "Edit Table" 
-tbl_edit_msg = messages.table_edit
-tbl_edit_msg['sender']['userID'] = uid1
-tbl_edit_msg['sender']['wizUserID'] = wuid1
-tbl_edit_msg['sender']['tableID'] = tid_1
-tbl_edit_msg['sender']['oldName'] = TABLE1NAME
-tbl_edit_msg['sender']['newName'] = TABLE2NAME
-tbl_edit_msg['sender']['timeout'] = 5
-tbl_e_1 = json.dumps(tbl_edit_msg)
+reqmsg = messages.table_edit
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['tableID'] = tid_1
+reqmsg['sender']['oldName'] = TABLE1NAME
+reqmsg['sender']['newName'] = TABLE2NAME
+reqmsg['sender']['timeout'] = 5
+tbl_e_1 = json.dumps(reqmsg)
 # Parse and dump the JSON response from server
 conn.request("POST","", tbl_e_1)
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#table query
+reqmsg = messages.table_query
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['receiver']['name'] = TABLENAME_Q
+tq3 = json.dumps(reqmsg)
+conn.request("POST","", tq3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+pdb.set_trace()
 
 print "get cards for user", uid1
-get_cards_msg = messages.get_cards
-get_cards_msg['sender']['userID'] = uid1
-get_cards_msg['sender']['wizUserID'] = wuid1
-print "GET cards", get_cards_msg['sender']['userID']
-gcu1 = json.dumps(get_cards_msg)
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+print "GET cards", reqmsg['sender']['userID']
+gcu1 = json.dumps(reqmsg)
 conn.request("POST","", gcu1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 notif = NotifParser(objs['data'], uid1, wuid1)
 nrsp = notif.process_one()
@@ -420,17 +448,17 @@ while nrsp != False:
         nrsp = json.dumps(nrsp)
         conn.request("POST","", n)
         # Parse and dump the JSON response from server
-        objs = handle_response(conn)
+        objs = handle_response(conn, reqmsg['header']['msgType'])
     nrsp = notif.process_one()
 
-get_cards_msg = messages.get_cards
-get_cards_msg['sender']['userID'] = uid2
-get_cards_msg['sender']['wizUserID'] = wuid2
-print "GET cards", get_cards_msg['sender']['userID']
-gcu2 = json.dumps(get_cards_msg)
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+print "GET cards", reqmsg['sender']['userID']
+gcu2 = json.dumps(reqmsg)
 conn.request("POST","", gcu2)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 notif = NotifParser(objs['data'], uid2, wuid2)
 nrsp = notif.process_one()
@@ -439,17 +467,17 @@ while nrsp != False:
         nrsp = json.dumps(nrsp)
         conn.request("POST","", n)
         # Parse and dump the JSON response from server
-        objs = handle_response(conn)
+        objs = handle_response(conn, reqmsg['header']['msgType'])
     nrsp = notif.process_one()
 
-get_cards_msg = messages.get_cards
-get_cards_msg['sender']['userID'] = uid3
-get_cards_msg['sender']['wizUserID'] = wuid3
-print "GET cards", get_cards_msg['sender']['userID']
-gcu3 = json.dumps(get_cards_msg)
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+print "GET cards", reqmsg['sender']['userID']
+gcu3 = json.dumps(reqmsg)
 conn.request("POST","", gcu3)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 notif = NotifParser(objs['data'], uid3, wuid3)
 nrsp = notif.process_one()
@@ -458,35 +486,35 @@ while nrsp != False:
         nrsp = json.dumps(nrsp)
         conn.request("POST","", n)
         # Parse and dump the JSON response from server
-        objs = handle_response(conn)
+        objs = handle_response(conn, reqmsg['header']['msgType'])
     nrsp = notif.process_one()
 
-card_details_msg = messages.card_details
-card_details_msg['sender']['userID'] = uid1
-card_details_msg['sender']['wizUserID'] = wuid1
-card_details_msg['receiver']['wizCardID'] = e1_id
-print "GET card DETAILS", card_details_msg['sender']['userID']
-cd1 = json.dumps(card_details_msg)
+reqmsg = messages.card_details
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['wizCardID'] = e1_id
+print "GET card DETAILS", reqmsg['sender']['userID']
+cd1 = json.dumps(reqmsg)
 conn.request("POST","", cd1)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-card_details_msg = messages.card_details
-card_details_msg['sender']['userID'] = uid2
-card_details_msg['sender']['wizUserID'] = wuid2
-card_details_msg['receiver']['wizCardID'] = e2_id
-print "GET card DETAILS", card_details_msg['sender']['userID']
-cd2 = json.dumps(card_details_msg)
+reqmsg = messages.card_details
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['receiver']['wizCardID'] = e2_id
+print "GET card DETAILS", reqmsg['sender']['userID']
+cd2 = json.dumps(reqmsg)
 conn.request("POST","", cd2)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
-card_details_msg = messages.card_details
-card_details_msg['sender']['userID'] = uid3
-card_details_msg['sender']['wizUserID'] = wuid3
-card_details_msg['receiver']['wizCardID'] = e3_id
-print "GET card DETAILS", card_details_msg['sender']['userID']
-cd3 = json.dumps(card_details_msg)
+reqmsg = messages.card_details
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['receiver']['wizCardID'] = e3_id
+print "GET card DETAILS", reqmsg['sender']['userID']
+cd3 = json.dumps(reqmsg)
 conn.request("POST","", cd3)
 # Parse and dump the JSON response from server
-objs = handle_response(conn)
+objs = handle_response(conn, reqmsg['header']['msgType'])
