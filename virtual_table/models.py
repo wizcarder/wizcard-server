@@ -158,7 +158,7 @@ class VirtualTable(models.Model):
 	#notify members of deletion (including self)
 	members = self.users.all()
 	for member in members:
-	    notify.send(self.creator, recipient=member, verb = kwargs.pop('type', Notification.WIZ_TABLE_DESTROY), target=self)
+	    notify.send(self.creator, recipient=member, verb = kwargs.pop('type', Notification.WIZCARD_TABLE_DESTROY), target=self)
         self.users.clear()
         self.location.get().delete()
         super(VirtualTable, self).delete(*args, **kwargs)

@@ -187,6 +187,8 @@ class LocationMgr(models.Model):
     #Database based timer implementation
     def start_timer(self, timeout):
 	#AA:TODO revert
+        #t = Periodic.objects.create(location=self,
+        #        timeout_value=timeout*60)
         t = Periodic.objects.create(location=self,
                 timeout_value=timeout)
         t.start()
@@ -240,7 +242,7 @@ def location_timeout_cb(l):
     l.delete()
 
 def virtual_table_timeout_cb(l):
-    l.content_object.delete(type=Notification.WIZ_TABLE_TIMEOUT)
+    l.content_object.delete(type=Notification.WIZCARD_TABLE_TIMEOUT)
     
 def generic_timeout_cb(l):
     l.content_object.delete()

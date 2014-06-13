@@ -734,11 +734,14 @@ class Header(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
 
-        result, count = WizcardFlick.objects.query_flicks(self.receiver['name'])
+        #result, count = WizcardFlick.objects.query_flicks(self.receiver['name'])
+        #AA:TODO. Temp fix
+        result, count = Wizcard.objects.query_users(self.user, self.receiver['name'], None, None)
 
         if count:
-	    flicks_s = WizcardFlick.objects.serialize(result)
-            self.response.add_data("queryResult", flicks_s)
+            users_s = Wizcard.objects.serialize(result)
+	    #flicks_s = WizcardFlick.objects.serialize(result)
+            self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
             
         return self.response
@@ -857,8 +860,8 @@ class Header(ParseMsgAndDispatch):
         #send back to app for selection
 
         if (count):
-            users = Wizcard.objects.serialize(result)
-            self.response.add_data("queryResult", users)
+            users_s = Wizcard.objects.serialize(result)
+            self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
  
         return self.response
@@ -1000,7 +1003,7 @@ class Header(ParseMsgAndDispatch):
             return self.response
 
         if table.creator == self.user:
-            table.delete(type=Notification.WIZ_TABLE_DESTROY)
+            table.delete(type=Notification.WIZCARD_TABLE_DESTROY)
         else:
             self.response.error_response(err.NOT_AUTHORIZED)
 
