@@ -308,34 +308,35 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def serialize(self, flicked_wizcards, merge=False, tag=None):
+    def serialize(self, flicked_wizcards, merge=False):
         template = fields.flicked_wizcard_merged_template if merge else fields.flicked_wizcard_template
         return serialize(flicked_wizcards, **template)
 
     def serialize_split(self, my_wizcard, flicked_wizcards, merge=False, flatten=False):
 
+        s = None
 	own, connected, others = self.split_wizcard_flick(my_wizcard, flicked_wizcards)
 
         if flatten:
             s = []
             if own:
                 self.set_tag("own")
-                s += WizcardFlick.objects.serialize(own, merge)
+                s += self.serialize(own, merge)
             if connected:
                 self.set_tag("connected")
-                s += WizcardFlick.objects.serialize(connected, merge)
+                s += self.serialize(connected, merge)
             if others:
                 self.set_tag("others")
-                s += WizcardFlick.objects.serialize(others, merge)
+                s += self.serialize(others, merge)
             self.set_tag(None)
         else:
             s = dict()
             if own:
-                s['own'] = WizcardFlick.objects.serialize(own, merge)
+                s['own'] = self.serialize(own, merge)
             if connected:
-                s['connected'] = WizcardFlick.objects.serialize(own, merge)
+                s['connected'] = self.serialize(own, merge)
             if others:
-                s['others'] = WizcardFlick.objects.serialize(others, merge)
+                s['others'] = self.serialize(others, merge)
 
 	return s
 

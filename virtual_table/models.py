@@ -32,6 +32,11 @@ from virtual_table.signals import virtualtable_vtree_timeout
 from notifications.models import notify, Notification
 
 class VirtualTableManager(models.Manager):
+    tag = None
+
+    def set_tag(self, tag):
+        self.tag = tag
+
     def lookup(self, lat, lng, n, count_only=False):
         tables = None
         result, count = LocationMgr.objects.lookup(
@@ -49,21 +54,37 @@ class VirtualTableManager(models.Manager):
         tables = self.filter(Q(tablename__icontains=name))
         return tables, tables.count()
 
-    def serialize(self, tables):
-        return serialize(tables, **fields.table_template)
+    def serialize(self, tables, merge=False):
+        template = fields.table_merged_template if merge else fields.table_template
+        return serialize(tables, **template)
 
-    def serialize_split(self, tables, user):
-        ret = {}
+    def serialize_split(self, tables, user, merge=False, flatten=False):
 
+        s = None
         created, joined, others = self.split_table(tables, user)
-        if created:
-            ret['created'] = serialize(created, **fields.table_template)
-        if joined:
-            ret['joined'] = serialize(joined, **fields.table_template)
-        if others:
-            ret['others'] = serialize(others, **fields.table_template)
 
-        return ret
+        if flatten:
+            s = []
+            if created:
+                self.set_tag("created")
+                s += self.serialize(created, merge)
+            if joined:
+                self.set_tag("joined")
+                s += self.serialize(joined, merge)
+            if others:
+                self.set_tag("others")
+                s += self.serialize(others, merge)
+            self.set_tag(None)
+        else:
+            s = dict()
+            if created:
+                s['created'] = self.serialize(created, merge)
+            if joined:
+                s['joined'] = self.serialize(joined, merge)
+            if others:
+                s['others'] = self.serialize(others, merge)
+
+        return s
 
     def split_table(self, tables, user):
         created = []
@@ -179,6 +200,9 @@ class VirtualTable(models.Model):
     def dec_numsitting(self):
         self.numSitting -= 1
         self.save()
+
+    def get_tag(self):
+        return VirtualTable.objects.tag
 
 class Membership(models.Model):
     created = models.DateTimeField(auto_now_add=True)

@@ -91,3 +91,8 @@ user_query_extended_template = {
 table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'numSitting', 'creator_id']
 }
+
+table_merged_template = {
+    'fields': ['id', 'tablename', 'secureTable', 'numSitting', 'tag'],
+    'key_map' : {'tag':'get_tag'}
+}

@@ -20,12 +20,14 @@ USERNAME2 = PHONE2+'@wizcard.com'
 USERNAME3 = PHONE3+'@wizcard.com'
 
 TABLE1NAME = "One"
-TABLE2NAME = "True"
+TABLE1NAME_NEW = "One More"
+TABLE2NAME = "One More More"
+TABLE3NAME = "One More More More"
 
 FIRSTNAME_Q = "a"
 LASTNAME_Q = "a"
 
-TABLENAME_Q = "e"
+TABLENAME_Q = "one"
 
 DEVICE_ID1 = "aaaaaaaaaaaaaaaaaaaaaaaaaa"
 DEVICE_ID2 = "bbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -371,7 +373,7 @@ conn.request("POST","", fq3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-print "Creating Table"
+print "Creating Table one"
 reqmsg = messages.table_create
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
@@ -381,6 +383,17 @@ conn.request("POST","", tbl_c_1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 tid_1 = objs['data']['tableID']
+
+print "Creating Table two"
+reqmsg = messages.table_create
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['sender']['table_name'] = TABLE2NAME
+tbl_c_2 = json.dumps(reqmsg)
+conn.request("POST","", tbl_c_2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+tid_2 = objs['data']['tableID']
 
 #join created table
 print "Joining Table"
@@ -410,12 +423,23 @@ reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['tableID'] = tid_1
 reqmsg['sender']['oldName'] = TABLE1NAME
-reqmsg['sender']['newName'] = TABLE2NAME
+reqmsg['sender']['newName'] = TABLE1NAME_NEW
 reqmsg['sender']['timeout'] = 5
 tbl_e_1 = json.dumps(reqmsg)
 # Parse and dump the JSON response from server
 conn.request("POST","", tbl_e_1)
 objs = handle_response(conn, reqmsg['header']['msgType'])
+
+print "Creating Table Three"
+reqmsg = messages.table_create
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['table_name'] = TABLE3NAME
+tbl_c_3 = json.dumps(reqmsg)
+conn.request("POST","", tbl_c_3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+tid_3 = objs['data']['tableID']
 
 #table query
 reqmsg = messages.table_query

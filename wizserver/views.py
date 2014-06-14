@@ -873,7 +873,7 @@ class Header(ParseMsgAndDispatch):
         print "TABLE QUERY", result, count
 
         if count:
-	    tables_s = VirtualTable.objects.serialize(result)
+	    tables_s = VirtualTable.objects.serialize_split(result, self.user, True, True)
             self.response.add_data("queryResult", tables_s)
         self.response.add_data("count", count)
             
