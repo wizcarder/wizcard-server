@@ -6,6 +6,12 @@ wizcard_related_objects_template = {
     'contact_container': contact_container_template
 }
 
+wizcard_template_brief_merged = {
+    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email', 'company', 'title'],
+    'key_map' : {'wizcard_id':'id'},
+    'merge': True
+}
+
 wizcard_template_brief = {
     'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email', 'company', 'title'],
     'key_map' : {'wizcard_id':'id'},
@@ -27,7 +33,10 @@ wizcard_template_extended = {
 
 flicked_wizcard_related_objects_template = {
     'wizcard': wizcard_template_brief,
-    'merge': True
+}
+
+flicked_wizcard_related_objects_merged_template = {
+    'wizcard': wizcard_template_brief_merged
 }
 
 flick_pickers_template = {
@@ -40,6 +49,18 @@ flicked_wizcard_template = {
     'fields': ['created', 'flick_id', 'wizcard'],
     'key_map': {'flick_id':'id'},
     'related': flicked_wizcard_related_objects_template
+}
+
+flicked_wizcard_merged_template = {
+    'fields': ['created', 'flick_id', 'wizcard', 'tag'],
+    'key_map': {'flick_id':'id', 'tag': 'get_tag'},
+    'related': flicked_wizcard_related_objects_merged_template
+}
+
+flicked_wizcard_merged_template_own = {
+    'fields': ['created', 'flick_id', 'wizcard', 'tag'],
+    'key_map': {'flick_id':'id', 'tag': lambda: "own"},
+    'related': flicked_wizcard_related_objects_merged_template
 }
 
 my_flicked_wizcard_template = {

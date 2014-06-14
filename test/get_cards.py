@@ -24,16 +24,24 @@ def handle_response(connection):
     print json.dumps(objs, sort_keys = True, indent = 2)
     return objs
 
-get_cards_u1_msg = messages.get_cards_u
-get_cards_u1_msg['sender']['userID'] = "USER1"
+get_cards_u1_msg = messages.get_cards
+get_cards_u1_msg['sender']['userID'] = "25VMBF"
 get_cards_u1_msg['sender']['wizUserID'] = 1
 gcu1 = json.dumps(get_cards_u1_msg)
 conn.request("POST","", gcu1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)
 
-get_cards_u3_msg = messages.get_cards_u
-get_cards_u3_msg['sender']['userID'] = "USER3"
+get_cards_u3_msg = messages.get_cards
+get_cards_u3_msg['sender']['userID'] = "F5NBTR"
+get_cards_u3_msg['sender']['wizUserID'] = 2
+gcu3 = json.dumps(get_cards_u3_msg)
+conn.request("POST","", gcu3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn)
+
+get_cards_u3_msg = messages.get_cards
+get_cards_u3_msg['sender']['userID'] = "892SUV"
 get_cards_u3_msg['sender']['wizUserID'] = 3
 gcu3 = json.dumps(get_cards_u3_msg)
 conn.request("POST","", gcu3)

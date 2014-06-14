@@ -286,16 +286,14 @@ cf1_id = objs['data']['flickCardID']
 
 #re flick to check agglomeration
 reqmsg = messages.card_flick
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-print "re-flicking card from same location", reqmsg['sender']['userID']
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+print "flicking card", reqmsg['sender']['userID']
 cf2 = json.dumps(reqmsg)
 conn.request("POST","", cf2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 cf2_id = objs['data']['flickCardID']
-if cf1_id != cf2_id:
-    print "ERROR in AGGLORMERATION"
 
 #re flick to check agglomeration with delta lat,lng
 reqmsg = messages.card_flick
@@ -309,7 +307,7 @@ conn.request("POST","", cf3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 cf3_id = objs['data']['flickCardID']
-if cf3_id != cf2_id:
+if cf3_id != cf1_id:
     print "ERROR in DELTA AGGLORMERATION"
 
 
@@ -372,7 +370,6 @@ fq3 = json.dumps(reqmsg)
 conn.request("POST","", fq3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
-pdb.set_trace()
 
 print "Creating Table"
 reqmsg = messages.table_create
@@ -429,7 +426,6 @@ tq3 = json.dumps(reqmsg)
 conn.request("POST","", tq3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
-pdb.set_trace()
 
 print "get cards for user", uid1
 reqmsg = messages.get_cards

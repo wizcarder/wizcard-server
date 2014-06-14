@@ -288,6 +288,14 @@ class WizConnectionRequest(models.Model):
 
 class WizcardFlickManager(models.Manager):
 
+    #AA:TODO: Maybe there is a better way to do this. This is defined
+    # to allow a callable into fields.py serialization, which needs some 
+    # state from the callouts here
+    tag = None
+
+    def set_tag(self, tag):
+        self.tag = tag
+
     def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
         result, count =  LocationMgr.objects.lookup(
@@ -300,18 +308,34 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def serialize(self, flicked_wizcards):
-            return serialize(flicked_wizcards, **fields.flicked_wizcard_template)
+    def serialize(self, flicked_wizcards, merge=False, tag=None):
+        template = fields.flicked_wizcard_merged_template if merge else fields.flicked_wizcard_template
+        return serialize(flicked_wizcards, **template)
 
-    def serialize_split(self, my_wizcard, flicked_wizcards):
-	s = dict()
+    def serialize_split(self, my_wizcard, flicked_wizcards, merge=False, flatten=False):
+
 	own, connected, others = self.split_wizcard_flick(my_wizcard, flicked_wizcards)
-        if own:
-            s['own'] = WizcardFlick.objects.serialize(own)
-        if connected:
-            s['connected'] = WizcardFlick.objects.serialize(connected)
-        if others:
-            s['others'] = WizcardFlick.objects.serialize(others)
+
+        if flatten:
+            s = []
+            if own:
+                self.set_tag("own")
+                s += WizcardFlick.objects.serialize(own, merge)
+            if connected:
+                self.set_tag("connected")
+                s += WizcardFlick.objects.serialize(connected, merge)
+            if others:
+                self.set_tag("others")
+                s += WizcardFlick.objects.serialize(others, merge)
+            self.set_tag(None)
+        else:
+            s = dict()
+            if own:
+                s['own'] = WizcardFlick.objects.serialize(own, merge)
+            if connected:
+                s['connected'] = WizcardFlick.objects.serialize(own, merge)
+            if others:
+                s['others'] = WizcardFlick.objects.serialize(others, merge)
 
 	return s
 
@@ -329,7 +353,7 @@ class WizcardFlickManager(models.Manager):
 	return own, connected, others
 
 
-    def query_flicks(self, userID, name, phone, email):
+    def query_flicks(self, name, phone, email):
         #name can be first name, last name or even combined
         #any of the arguments may be null
         qlist = []
@@ -340,7 +364,7 @@ class WizcardFlickManager(models.Manager):
                 name_result = (Q(wizcard__first_name__icontains=n) | Q(wizcard__last_name__icontains=n))
                 qlist.append(name_result)
 
-        result = self.filter(reduce(operator.or_, qlist)).exclude(wizcard__user_id=userID)
+        result = self.filter(reduce(operator.or_, qlist))
 
         return result, len(result)
 
@@ -378,6 +402,9 @@ class WizcardFlick(models.Model):
         self.location.get().delete()
 	notify.send(self.wizcard.user, recipient=self.wizcard.user, verb ='flick timeout', target=self, action_object=self.wizcard)
         super(WizcardFlick, self).delete(*args, **kwargs)
+
+    def get_tag(self):
+        return WizcardFlick.objects.tag
 
 class UserBlocks(models.Model):
     user = models.ForeignKey(User, related_name='user_blocks')
