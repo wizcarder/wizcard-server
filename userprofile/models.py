@@ -81,19 +81,27 @@ class UserProfile(models.Model):
 
     objects = UserProfileManager()
 
-    def last_seen(self):
-        return cache.get('seen_%s' % self.user.username)
+    def online_key(self):
+        return self.userid
 
     def online(self):
-        if self.last_seen():
-            now = timezone.now()
-            if now > self.last_seen() + timezone.timedelta(
-                seconds=settings.USER_ONLINE_TIMEOUT):
-                return False
-            else: 
-                return True
+        cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(), 
+                settings.USER_LASTSEEN_TIMEOUT)
+
+    def last_seen(self):
+        now = timezone.now()
+        ls = cache.get(settings.USER_ONLINE_PREFIX % self.online_key())
+        if bool(ls):
+            return(True, (now - ls))
         else:
-            return False
+            return(False, None)
+
+    def is_online(self):
+        on, ls = self.last_seen()
+        delta = timezone.timedelta(seconds=settings.USER_ONLINE_TIMEOUT)
+        if on and (ls < delta):
+            return True
+        return False
 
     def is_future(self):
         return self.future_user

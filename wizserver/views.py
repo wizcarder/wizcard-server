@@ -164,11 +164,11 @@ class Header(ParseMsgAndDispatch):
             'phone_check_req'             : (message_format.PhoneCheckRequestSchema, self.PhoneCheckRequest),
             'phone_check_rsp'             : (message_format.PhoneCheckResponseSchema, self.PhoneCheckResponse),
             'register'                    : (message_format.RegisterSchema, self.Register),
-            'current_location'            : (message_format.LocationUpdateSchema, self. LocationUpdate),
-            'contacts_verify'	          : (message_format.ContactsVerifySchema, self. ContactsVerify),
-            'get_cards'                   : (message_format.NotificationsGetSchema, self. NotificationsGet),
-            'edit_card'                   : (message_format.WizcardEditSchema, self. WizcardEdit),
-            'add_notification_card'       : (message_format.WizcardAcceptSchema, self. WizcardAccept),
+            'current_location'            : (message_format.LocationUpdateSchema, self.LocationUpdate),
+            'contacts_verify'	          : (message_format.ContactsVerifySchema, self.ContactsVerify),
+            'get_cards'                   : (message_format.NotificationsGetSchema, self.NotificationsGet),
+            'edit_card'                   : (message_format.WizcardEditSchema, self.WizcardEdit),
+            'add_notification_card'       : (message_format.WizcardAcceptSchema, self.WizcardAccept),
             'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestDecline),
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
             'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
@@ -207,8 +207,7 @@ class Header(ParseMsgAndDispatch):
 
         #make the user as alive
         if not self.msg_is_initial():
-	    cache.set('seen_%s' % (self.user.username), now(), 
-		    settings.USER_LASTSEEN_TIMEOUT)
+            self.userprofile.online()
 
     def PhoneCheckRequest(self):
 	device_id = self.header['deviceID']
@@ -607,17 +606,17 @@ class Header(ParseMsgAndDispatch):
 
     def WizcardRolodexDelete(self):
 	try:
+            wizcard1 = self.user.wizcard
             wizcards = self.receiver['wizCardIDs']
-            for wizcard2 in wizcards:
+            for w in wizcards:
+                wizcard2 = Wizcard.objects.get(id=w)
                 Wizcard.objects.uncard(wizcard1, wizcard2)
                 #Q a notif to other guy so that the app on the other side can react
-                notify.send(self.user, recipient=self.r_user, verb='revoked wizcard', target=wizcard1)
+                notify.send(self.user, recipient=wizcard2.user, verb='revoked wizcard', target=wizcard1)
 	except KeyError: 
             self.securityException()
             self.response.ignore()
-            return self.response
-        except:
-            pass
+
         return self.response
 
 

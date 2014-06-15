@@ -63,14 +63,14 @@ class Notification(models.Model):
     DEFAULT_MSG = 'wizcard message'
     WIZREQ_U = 'wizconnection request untrusted'
     WIZREQ_T = 'wizconnection request trusted'
-    WIZCARD_ACCEPT = 'accepted your wizcard'
+    WIZCARD_ACCEPT = 'accepted wizcard'
     WIZCARD_REVOKE = 'revoked wizcard'
     WIZCARD_DELETE = 'deleted wizcard'
     WIZCARD_TABLE_TIMEOUT = 'table timeout'
     WIZCARD_TABLE_DESTROY = 'table destroy'
     WIZCARD_UPDATE = 'wizcard update'
     WIZCARD_FLICK_TIMEOUT = 'flick timeout'
-    WIZCARD_FLICK_PICK = 'via flick pick'
+    WIZCARD_FLICK_PICK = 'flick pick'
 
 
 
@@ -258,7 +258,8 @@ def notify_handler(verb, **kwargs):
 
     #check if the target user is online and do APNS if not
     profile = recipient.profile
-    if not profile.online():
+    if not profile.is_online():
+        print "User is OFFLINE", profile.userid
         newnotify.pushNotificationToApp(
 			profile,
 			actor,

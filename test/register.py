@@ -9,6 +9,21 @@ import pdb
 import messages
 from notifications import NotifParser
 
+
+#1 Flick
+#2 flick
+#3 flick
+
+#1 - 3 Connected
+
+
+#T1 - [u1, u2] 
+
+#1 - 2 Connected
+
+#T2 - [u2]
+#T3 - [u3]
+
 TEST_IMAGE=False
 
 PHONE1 = "+15084641727"
@@ -450,6 +465,18 @@ tq3 = json.dumps(reqmsg)
 conn.request("POST","", tq3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#delete rolodex card
+print "deleting all cards of ", uid3
+reqmsg = messages.delete_rolodex_card
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['wizCardIDs'] = [e2_id, e3_id]
+dc1 = json.dumps(reqmsg)
+conn.request("POST","", dc1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
 
 print "get cards for user", uid1
 reqmsg = messages.get_cards
