@@ -372,8 +372,9 @@ class WizcardFlickManager(models.Manager):
 
 class WizcardFlick(models.Model):
     created = models.DateTimeField(auto_now_add=True)
+    a_created = models.CharField(max_length=40, blank=True)
     wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')
-    lifetime = models.IntegerField(default=30)
+    timeout = models.IntegerField(default=30)
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     location = generic.GenericRelation(LocationMgr)

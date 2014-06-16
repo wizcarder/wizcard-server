@@ -2,6 +2,9 @@
 #TODO: Probably should keep the message definition separate and read the 
 # data into it from a text/db file
 
+from datetime import datetime
+
+
 phone_check_req = {
     "header" : {
         "msgType" : "phone_check_req",
@@ -259,7 +262,8 @@ table_create = {
         "wizUserID" : "",
         "table_name" : "",
         "secureTable" : "True",
-        "password" : "test"
+        "password" : "test",
+        "created":str(datetime.now())
     },
 }
 
@@ -295,7 +299,8 @@ table_edit = {
         "table_name" : "",
         "oldName":"",
         "newName":"",
-        "timeout":5
+        "timeout":5,
+        "created":str(datetime.now())
     },
 }
 
@@ -328,6 +333,7 @@ card_flick = {
         "lat" : 37.785834,
         "lng" : -122.406415,
         "deviceType": "ios",
+        "created":str(datetime.now())
 
     },
 }
@@ -359,7 +365,8 @@ card_flick_edit = {
         "userID" : "",
         "wizUserID" : "",
         "flickCardID": "",
-        "timeout":""
+        "timeout":"",
+        "created":str(datetime.now())
     },
 }
 

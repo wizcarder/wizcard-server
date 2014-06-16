@@ -46,26 +46,26 @@ flick_pickers_template = {
 }
 
 flicked_wizcard_template = {
-    'fields': ['created', 'flick_id', 'wizcard'],
-    'key_map': {'flick_id':'id'},
+    'fields': ['created', 'timeout', 'flick_id', 'wizcard'],
+    'key_map': {'created':'a_created', 'flick_id':'id'},
     'related': flicked_wizcard_related_objects_template
 }
 
 flicked_wizcard_merged_template = {
-    'fields': ['created', 'flick_id', 'wizcard', 'tag'],
-    'key_map': {'flick_id':'id', 'tag': 'get_tag'},
+    'fields': ['created', 'timeout', 'flick_id', 'wizcard', 'tag'],
+    'key_map': {'created': 'a_created', 'flick_id':'id', 'tag': 'get_tag' },
     'related': flicked_wizcard_related_objects_merged_template
 }
 
 flicked_wizcard_merged_template_own = {
-    'fields': ['created', 'flick_id', 'wizcard', 'tag'],
-    'key_map': {'flick_id':'id', 'tag': lambda: "own"},
+    'fields': ['created', 'timeout', 'flick_id', 'wizcard', 'tag'],
+    'key_map': {'created':'a_created', 'flick_id':'id', 'tag': lambda: "own"},
     'related': flicked_wizcard_related_objects_merged_template
 }
 
 my_flicked_wizcard_template = {
-    'fields': ['created', 'flick_id', 'lat', 'lng', 'lifetime', 'flick_pickers'],
-    'key_map': {'flick_id':'id'},
+    'fields': ['created', 'timeout', 'flick_id', 'lat', 'lng', 'timeout', 'flick_pickers'],
+    'key_map': {'created':'a_created', 'flick_id':'id'},
     'related': {
         'flick_pickers': flick_pickers_template,
         'merge': True
@@ -89,10 +89,11 @@ user_query_extended_template = {
 }
 
 table_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', 'creator_id', 'created', 'lifetime' ]
+    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', 'creator_id', 'created', 'timeout'],
+    'key_map' : {'created':'a_created'}
 }
 
 table_merged_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'numSitting', 'tag'],
-    'key_map' : {'tag':'get_tag'}
+    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', 'creator_id', 'created', 'timeout', 'tag'],
+    'key_map' : {'created':'a_created', 'tag':'get_tag'}
 }

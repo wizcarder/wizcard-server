@@ -9,7 +9,6 @@ import pdb
 import messages
 from notifications import NotifParser
 
-
 #1 Flick
 #2 flick
 #3 flick
@@ -333,7 +332,7 @@ card_flick_edit_msg = messages.card_flick_edit
 card_flick_edit_msg['sender']['userID'] = uid1
 card_flick_edit_msg['sender']['wizUserID'] = wuid1
 card_flick_edit_msg['sender']['flickCardID'] = cf1_id
-card_flick_edit_msg['sender']['flickTimeout'] = 1
+card_flick_edit_msg['sender']['timeout'] = 1
 cfe1 = json.dumps(card_flick_edit_msg)
 conn.request("POST","", cfe1)
 # Parse and dump the JSON response from server

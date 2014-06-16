@@ -627,9 +627,11 @@ class Header(ParseMsgAndDispatch):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
         try:
-            flick_timeout = self.sender['flickTimeout']
+            timeout = self.sender['timeout']
         except:
-            flick_timeout = settings.WIZCARD_FLICK_DEFAULT_TIMEOUT
+            timeout = settings.WIZCARD_FLICK_DEFAULT_TIMEOUT
+
+        a_created = self.sender['created']
 
 	if self.lat == None and self.lng == None:
 	    try:
@@ -651,9 +653,13 @@ class Header(ParseMsgAndDispatch):
             self.response.add_data("duplicate", True)
 	    self.response.add_data("timeout", t.timeout_value)
         else:
-	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, lat=self.lat, lng=self.lng, lifetime=flick_timeout)
+	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, 
+                    lat=self.lat, 
+                    lng=self.lng, 
+                    timeout=timeout,
+                    a_created = a_created)
             location = flick_card.create_location(self.lat, self.lng)
-            location.start_timer(flick_timeout)
+            location.start_timer(timeout)
 
         self.response.add_data("flickCardID", flick_card.pk)
         return self.response
@@ -713,7 +719,8 @@ class Header(ParseMsgAndDispatch):
     def WizcardFlickEdit(self):
         try:
             flick_id = self.sender['flickCardID']
-            timeout = self.sender['flickTimeout']
+            timeout = self.sender['timeout']
+            a_created = self.sender['created']
 	except KeyError: 
             self.securityException()
             self.response.ignore()
@@ -723,6 +730,10 @@ class Header(ParseMsgAndDispatch):
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
 	    return self.response
+
+        flicked_card.a_created = a_created
+        flicked_card.timeout = timeout
+        flicked_card.save()
 
         flicked_card.location.get().extend_timer(timeout)
         return self.response
@@ -930,25 +941,28 @@ class Header(ParseMsgAndDispatch):
 
         tablename = self.sender['table_name']
         secure = self.sender['secureTable']
-        if self.sender.has_key('lifetime'):
-            lifetime = self.sender['lifetime'] if self.sender['lifetime'] else settings.WIZCARD_DEFAULT_TABLE_LIFETIME
+        if self.sender.has_key('timeout'):
+            timeout = self.sender['timeout'] if self.sender['timeout'] else settings.WIZCARD_DEFAULT_TABLE_LIFETIME
         else:
-            lifetime = settings.WIZCARD_DEFAULT_TABLE_LIFETIME
+            timeout = settings.WIZCARD_DEFAULT_TABLE_LIFETIME
 
         if secure:
             password = self.sender['password']
         else:
             password = ""
+
+        a_created = self.sender['created']
+
         table = VirtualTable.objects.create(tablename=tablename, secureTable=secure, 
                                             password=password, creator=self.user, 
-                                            life_time=lifetime)
+                                            a_created = a_created, timeout=timeout)
         
         #TODO: AA handle create failure and/or unique name enforcement
         #update location in ptree
         #AA:TODO move create to overridden create in VirtualTable
         table.create_location(self.lat, self.lng)
         l = table.location.get()
-	l.start_timer(lifetime)
+	l.start_timer(timeout)
         table.join_table_and_exchange(self.user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)
@@ -1033,6 +1047,8 @@ class Header(ParseMsgAndDispatch):
 	        
             table.tablename = new_name
         if self.sender.has_key('timeout'):
+            a_created = self.sender['created']
+            table.a_created = a_created
             table.location.get().extend_timer(self.sender['timeout'])
         table.save()
 

@@ -106,9 +106,9 @@ class VirtualTable(models.Model):
     secureTable = models.BooleanField(default=False)
     password = models.CharField(max_length=40, blank=True)
     created = models.DateTimeField(auto_now_add=True)
+    a_created = models.CharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
-    #AA:TODO really weird...django doesn't like the name to be lifetime
-    life_time = models.IntegerField(default=30)
+    timeout = models.IntegerField(default=30)
     users = models.ManyToManyField(User, through='Membership')
     location = generic.GenericRelation(LocationMgr)
 
@@ -159,7 +159,7 @@ class VirtualTable(models.Model):
 		return self
 	    self.inc_numsitting()
             if do_exchange is True:
-                self.table_exchange(user, target=self)
+                self.table_exchange(user)
         else:
             return None
         return self
@@ -182,12 +182,6 @@ class VirtualTable(models.Model):
         self.users.clear()
         self.location.get().delete()
         super(VirtualTable, self).delete(*args, **kwargs)
-
-    def lifetime(self):
-        return self.life_time
-
-    def set_lifetime(self, time):
-        self.life_time = time
 
     def distance_from(self, lat, lng):
         return 0
