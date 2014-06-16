@@ -159,7 +159,7 @@ class VirtualTable(models.Model):
 		return self
 	    self.inc_numsitting()
             if do_exchange is True:
-                self.table_exchange(user)
+                self.table_exchange(user, target=self)
         else:
             return None
         return self
@@ -171,16 +171,14 @@ class VirtualTable(models.Model):
         except:
             pass
 
-        #we can destroy this table if no one is active
-        if self.numSitting == 0:
-            self.delete()
         return self
 
     def delete(self, *args, **kwargs):
 	#notify members of deletion (including self)
 	members = self.users.all()
+        verb = kwargs.pop('type', Notification.WIZCARD_TABLE_DESTROY)
 	for member in members:
-	    notify.send(self.creator, recipient=member, verb = kwargs.pop('type', Notification.WIZCARD_TABLE_DESTROY), target=self)
+	    notify.send(self.creator, recipient=member, verb = verb, target=self)
         self.users.clear()
         self.location.get().delete()
         super(VirtualTable, self).delete(*args, **kwargs)
