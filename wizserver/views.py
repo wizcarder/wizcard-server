@@ -713,7 +713,7 @@ class Header(ParseMsgAndDispatch):
     def WizcardFlickEdit(self):
         try:
             flick_id = self.sender['flickCardID']
-            timeout = self.sender['timeout']
+            timeout = self.sender['flickTimeout']
 	except KeyError: 
             self.securityException()
             self.response.ignore()

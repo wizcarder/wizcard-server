@@ -148,12 +148,12 @@ class WizcardManager(models.Manager):
         if name != None:
             split = name.split()
             for n in split:
-                name_result = (Q(first_name__icontains=n) | Q(last_name__icontains=n))
+                name_result = (Q(first_name__istartswith=n) | Q(last_name__istartswith=n))
                 qlist.append(name_result)
 
         #phone
         if phone != None:
-            phone_result = (Q(phone=phone) | Q(phone2__contains=phone))
+            phone_result = (Q(phone=phone) | Q(phone2__startswith=phone))
             qlist.append(phone_result)
 
         #email
@@ -249,7 +249,7 @@ class ContactContainer(models.Model):
     r_bizCardImage = models.ImageField(upload_to="image/")
 
     def __unicode__(self):
-        return _(u'%(user)s\'s contact container') % {'user': unicode(self.wizcard.user)}
+        return _(u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)} 
 
     class Meta:
         ordering = ['id']
@@ -362,7 +362,7 @@ class WizcardFlickManager(models.Manager):
         if name != None:
             split = name.split()
             for n in split:
-                name_result = (Q(wizcard__first_name__icontains=n) | Q(wizcard__last_name__icontains=n))
+                name_result = (Q(wizcard__first_name__istartswith=n) | Q(wizcard__last_name__istartswith=n))
                 qlist.append(name_result)
 
         result = self.filter(reduce(operator.or_, qlist))

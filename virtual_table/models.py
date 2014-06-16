@@ -51,7 +51,7 @@ class VirtualTableManager(models.Manager):
 
     #AA: TODO : get some max limit on this
     def query_tables(self, name):
-        tables = self.filter(Q(tablename__icontains=name))
+        tables = self.filter(Q(tablename__istartswith=name))
         return tables, tables.count()
 
     def serialize(self, tables, merge=False):
@@ -105,6 +105,7 @@ class VirtualTable(models.Model):
     numSitting = models.IntegerField(default=0, blank=True)
     secureTable = models.BooleanField(default=False)
     password = models.CharField(max_length=40, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
     creator = models.ForeignKey(User, related_name='tables')
     #AA:TODO really weird...django doesn't like the name to be lifetime
     life_time = models.IntegerField(default=30)

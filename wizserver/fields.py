@@ -89,7 +89,7 @@ user_query_extended_template = {
 }
 
 table_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'numSitting', 'creator_id']
+    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', 'creator_id', 'created', 'lifetime' ]
 }
 
 table_merged_template = {
