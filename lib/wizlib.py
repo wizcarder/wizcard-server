@@ -8,7 +8,7 @@ from django.conf import settings
 
 def create_geohash(lat, lng):
     encode = geohash.encode(lat, lng)
-    print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
+    #print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
     return encode
 
 def lookup(tree, lat, lng, num_results, key=None):
@@ -18,7 +18,7 @@ def lookup(tree, lat, lng, num_results, key=None):
     if not key:
         key = create_geohash(lat, lng)
     result =  lookup_closest_n(tree, key, num_results)
-    print '{count} lookup result [{result}]'.format (count=result[1], result=result[0])
+    #print '{count} lookup result [{result}]'.format (count=result[1], result=result[0])
     return result[0], result[1]
 
 def modified_key(key, val):

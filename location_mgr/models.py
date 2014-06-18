@@ -139,7 +139,7 @@ class LocationMgr(models.Model):
         return updated
 
     def lookup(self, n):
-        print 'lookup up {tree_type}'.format (tree_type=self.tree_type)
+        #print 'lookup up {tree_type}'.format (tree_type=self.tree_type)
 	tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
 
 	#remove self.key from the tree. Otherwise this skews the resuls towards
@@ -158,7 +158,7 @@ class LocationMgr(models.Model):
 	if cached_val:
 	    self.insert_in_tree()
 
-        print 'looking up  gives {count} results [{result}]'.format (count=count, result=result)
+        #print 'looking up  gives {count} results [{result}]'.format (count=count, result=result)
         return result, count
 
     def delete_from_tree(self):
@@ -166,7 +166,7 @@ class LocationMgr(models.Model):
         val = wizlib.ptree_delete(
 			wizlib.modified_key(self.key, self.pk),
 			tree)
-        print 'post deleted tree: [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
+        #print 'post deleted tree: [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
 	return val
 
     def insert_in_tree(self):
@@ -175,13 +175,13 @@ class LocationMgr(models.Model):
                 wizlib.modified_key(self.key, self.pk),
                 tree,
                 self.pk)
-        print 'post inset tree: [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
+        #print 'post inset tree: [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
 
     def delete(self, *args, **kwargs):
-        print 'deleting key {key}.{tree} from tree'.format (key=self.key, tree=self.tree_type)
+        #print 'deleting key {key}.{tree} from tree'.format (key=self.key, tree=self.tree_type)
         print 'tree before delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         self.delete_from_tree()
-        print 'tree after delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
+        #print 'tree after delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         super(LocationMgr, self).delete(*args, **kwargs)
 
     #Database based timer implementation

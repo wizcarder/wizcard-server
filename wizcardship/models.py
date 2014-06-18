@@ -25,8 +25,8 @@ from lib.preserialize.serialize import serialize
 from wizserver import fields
 from lib.pytrie import SortedStringTrie as trie
 from django.contrib.contenttypes import generic
+from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.models import location, LocationMgr
-from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest, Http404
 from notifications.signals import notify
 from django.core.files.storage import default_storage
@@ -73,12 +73,15 @@ class WizcardManager(models.Manager):
         self.wizconnection_req_clear(wizcard2, wizcard1)
 
     def accept_wizconnection(self, from_wizcard, to_wizcard):
-        get_object_or_404(WizConnectionRequest, from_wizcard=from_wizcard,
-                          to_wizcard=to_wizcard).accept()
+        WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
+                to_wizcard=to_wizcard).get().accept()
 
-    def serialize(self, wizcards, extended=False, include_thumbnail=False):
+    def serialize(self, wizcards, extended=False, include_bizcard=False, include_thumbnail=False):
         if extended:
-            return serialize(wizcards, **fields.wizcard_template_extended)
+            if include_bizcard:
+                return serialize(wizcards, **fields.wizcard_template_extended_with_bizcard)
+            else:
+                return serialize(wizcards, **fields.wizcard_template_extended)
         elif include_thumbnail:
             return serialize(wizcards, **fields.wizcard_template_brief_with_thumbnail)
         else:
@@ -103,27 +106,38 @@ class WizcardManager(models.Manager):
     def exchange_explicit(self, wizcard1, wizcard2):
         source_user = wizcard1.user
         target_user = wizcard2.user
+        convert_to_implicit = False
 
-        #send a connection request
+        # If there's a wizconnection request from the other user then treat it like
+        # an implicit connection
         try:
-            # If there's a wizconnection request from the other user accept it.
             self.accept_wizconnection(wizcard2, wizcard1)
-        except Http404:
-            # If we already have an active wizconnection request IntegrityError
-            # will be raised and the transaction will be rolled back.
+            convert_to_implicit = True
+        except ObjectDoesNotExist:
             try: 
                 wizconnection = WizConnectionRequest.objects.create(
                     from_wizcard=wizcard1,
                     to_wizcard=wizcard2,
                     message="wizconnection request") 
                 #Q this to the receiver 
-                notify.send(source_user, recipient=target_user, 
-                            verb='wizconnection request untrusted', 
-                            target=wizcard1, action_object=wizcard2)
             except:
+                #duplicate request
                 #nothing to do, just return silently
-                pass 
+                return
+        #send notifs to recipient (or both if implicit conversion)
+        if convert_to_implicit:
+            notify.send(source_user, recipient=target_user, 
+                    verb='wizconnection request trusted', 
+                    target=wizcard1, action_object=wizcard2)
 
+            notify.send(target_user, recipient=source_user, 
+                    verb='wizconnection request trusted', 
+                    target=wizcard2, action_object=wizcard1)
+
+        else:
+            notify.send(source_user, recipient=target_user, 
+                    verb='wizconnection request untrusted', 
+                    target=wizcard1, action_object=wizcard2)
 
     def exchange(self, wizcard1, wizcard2, implicit, flick_card=None):
         #create bidir cardship

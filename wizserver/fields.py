@@ -1,4 +1,8 @@
 contact_container_template = {
+    'fields': ['company', 'title', 'start', 'end']
+}
+
+contact_container_template_with_bizcard = {
     'fields': ['company', 'title', 'start', 'end', 'f_bizCardImage']
 }
 
@@ -6,10 +10,8 @@ wizcard_related_objects_template = {
     'contact_container': contact_container_template
 }
 
-wizcard_template_brief_merged = {
-    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email', 'company', 'title'],
-    'key_map' : {'wizcard_id':'id'},
-    'merge': True
+wizcard_related_objects_template_with_bizcard = {
+    'contact_container': contact_container_template_with_bizcard
 }
 
 wizcard_template_brief = {
@@ -18,7 +20,6 @@ wizcard_template_brief = {
 }
 
 thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailImage']
-
 wizcard_template_brief_with_thumbnail = {
     'fields': thumbnail_fields,
     'key_map' : wizcard_template_brief['key_map'],
@@ -31,12 +32,20 @@ wizcard_template_extended = {
     'related': wizcard_related_objects_template
 }
 
+wizcard_template_brief_with_thumbnail_merged = wizcard_template_brief_with_thumbnail.copy()
+wizcard_template_brief_with_thumbnail_merged['merge'] = True
+
+wizcard_template_extended_with_bizcard = {
+    'fields': extended_fields,
+    'key_map' : wizcard_template_brief['key_map'],
+    'related': wizcard_related_objects_template_with_bizcard
+}
 flicked_wizcard_related_objects_template = {
-    'wizcard': wizcard_template_brief,
+    'wizcard': wizcard_template_brief_with_thumbnail,
 }
 
 flicked_wizcard_related_objects_merged_template = {
-    'wizcard': wizcard_template_brief_merged
+    'wizcard': wizcard_template_brief_with_thumbnail_merged
 }
 
 flick_pickers_template = {

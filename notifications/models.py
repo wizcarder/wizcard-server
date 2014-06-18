@@ -65,6 +65,7 @@ class Notification(models.Model):
     WIZREQ_T = 'wizconnection request trusted'
     WIZCARD_ACCEPT = 'accepted wizcard'
     WIZCARD_REVOKE = 'revoked wizcard'
+    WIZCARD_WITHDRAW_REQUEST = 'withdraw request'
     WIZCARD_DELETE = 'deleted wizcard'
     WIZCARD_TABLE_TIMEOUT = 'table timeout'
     WIZCARD_TABLE_DESTROY = 'table destroy'
@@ -79,7 +80,7 @@ class Notification(models.Model):
 		'sound': 'flynn.caf',
 		'badge': 0,
                 #AA:TODO: separate verb from push message
-		'alert': WIZREQ_U,
+		'alert': DEFAULT_MSG,
 		},
         WIZREQ_U	: {
 		'sound': 'flynn.caf',
@@ -107,6 +108,11 @@ class Notification(models.Model):
 		'badge': 0,
 		'alert': WIZCARD_REVOKE,
 		},
+	WIZCARD_WITHDRAW_REQUEST: {
+		'sound': 'flynn.caf',
+		'badge': 0,
+		'alert': WIZCARD_WITHDRAW_REQUEST,
+		},
 	WIZCARD_DELETE: {
 		'sound': 'flynn.caf',
 		'badge': 0,
@@ -130,12 +136,12 @@ class Notification(models.Model):
 	WIZCARD_FLICK_TIMEOUT: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'alert': WIZREQ_U,
+		'alert': WIZCARD_FLICK_TIMEOUT,
 		},
 	WIZCARD_FLICK_PICK: {
 		'sound': 'flynn.caf',
 		'badge': 0,
-		'alert': WIZREQ_U,
+		'alert': WIZCARD_FLICK_PICK,
 		},
     }
 

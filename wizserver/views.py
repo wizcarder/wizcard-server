@@ -55,7 +55,7 @@ class WizRequestHandler(View):
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
         response =  pdispatch.dispatch()
-        print 'sending response to app', response
+        print 'sending response to app'
         #send response
         return response.respond()
 
@@ -170,6 +170,8 @@ class Header(ParseMsgAndDispatch):
             'edit_card'                   : (message_format.WizcardEditSchema, self.WizcardEdit),
             'add_notification_card'       : (message_format.WizcardAcceptSchema, self.WizcardAccept),
             'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestDecline),
+            #'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestWithdraw),
+            'withdraw_connection_request' : (message_format.WizConnectionRequestWithdrawSchema, self.WizConnectionRequestWithdraw),
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
             'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
             'card_flick_accept'           : (message_format.WizcardFlickAcceptSchema, self.WizcardFlickAccept),
@@ -596,14 +598,35 @@ class Header(ParseMsgAndDispatch):
         #wizcard2 must have sent a wizconnection_request, lets clear it
         Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
 
-        #Q a notif to other guy so that the app on the other side can react
-	#AA:TODO: Should we send this at all ?? better for the other 
-	#guy to not know
-        notify.send(self.user, recipient=self.r_user,
-                    verb='revoked wizcard', target=wizcard1)
+        #AA:TODO: for now, this message also serves the reverse equation..ie, sender withdraws
+        Wizcard.objects.wizconnection_req_clear(wizcard1, wizcard2)
 
         return self.response
 
+    #AA: app needs to support this instead of above TODO
+    def WizConnectionRequestWithdraw(self):
+        try:
+            wizcard1 = self.user.wizcard
+            #AA: TODO Change to wizCardID
+            try:
+	       wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            except:
+	       self.r_user = User.objects.get(id=self.receiver['wizUserID'])
+               wizcard2 = self.r_user.wizcard
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        #clear my wizconnection_request
+        Wizcard.objects.wizconnection_req_clear(wizcard1, wizcard2)
+
+        #send notif to the other guy to he can remove the corresponding request
+
+        return self.response
     def WizcardRolodexDelete(self):
 	try:
             wizcard1 = self.user.wizcard
@@ -867,7 +890,7 @@ class Header(ParseMsgAndDispatch):
         #send back to app for selection
 
         if (count):
-            users_s = Wizcard.objects.serialize(result)
+            users_s = Wizcard.objects.serialize(result, include_thumbnail=True)
             self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
  

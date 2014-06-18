@@ -20,13 +20,13 @@ import pdb
 USER_ACTIVE_TIMEOUT = 10
 
 class UserProfileManager(models.Manager):
-    def serialize_split(self, me, users):
+    def serialize_split(self, me, users, include_thumbnail=False):
 	s = dict()
 	connected, others = self.split_users(me, users)
         if connected:
-            s['connected'] = UserProfile.objects.serialize(connected)
+            s['connected'] = UserProfile.objects.serialize(connected, include_thumbnail)
         if others:
-            s['others'] = UserProfile.objects.serialize(others)
+            s['others'] = UserProfile.objects.serialize(others, include_thumbnail)
 
         return s
 

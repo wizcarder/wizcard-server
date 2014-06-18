@@ -84,27 +84,29 @@ class NotifResponse(ResponseN):
     NEARBY_TABLES       = 8
     FLICK_TIMEOUT       = 9
     FLICK_PICK	        = 10
+    WITHDRAW_REQUEST    = 11
 
     def __init__(self, notifications):
         ResponseN.__init__(self)
         notifHandler = {
-            Notification.WIZREQ_U 	        : self.notifWizConnectionU,
-            Notification.WIZREQ_T  	        : self.notifWizConnectionT,
-            Notification.WIZCARD_ACCEPT         : self.notifAcceptedWizcard,
-            Notification.WIZCARD_REVOKE	        : self.notifRevokedWizcard,
-            Notification.WIZCARD_DELETE	        : self.notifRevokedWizcard,
-            Notification.WIZCARD_TABLE_TIMEOUT  : self.notifDestroyedTable,
-            Notification.WIZCARD_TABLE_DESTROY  : self.notifDestroyedTable,
-            Notification.WIZCARD_UPDATE         : self.notifWizcardUpdate,
-            Notification.WIZCARD_FLICK_TIMEOUT  : self.notifWizcardFlickTimeout,
-            Notification.WIZCARD_FLICK_PICK     : self.notifWizcardFlickPick
+            Notification.WIZREQ_U 	            : self.notifWizConnectionU,
+            Notification.WIZREQ_T  	            : self.notifWizConnectionT,
+            Notification.WIZCARD_ACCEPT             : self.notifAcceptedWizcard,
+            Notification.WIZCARD_REVOKE	            : self.notifRevokedWizcard,
+            Notification.WIZCARD_WITHDRAW_REQUEST   : self.notifWithdrawRequest,
+            Notification.WIZCARD_DELETE	            : self.notifRevokedWizcard,
+            Notification.WIZCARD_TABLE_TIMEOUT      : self.notifDestroyedTable,
+            Notification.WIZCARD_TABLE_DESTROY      : self.notifDestroyedTable,
+            Notification.WIZCARD_UPDATE             : self.notifWizcardUpdate,
+            Notification.WIZCARD_FLICK_TIMEOUT      : self.notifWizcardFlickTimeout,
+            Notification.WIZCARD_FLICK_PICK         : self.notifWizcardFlickPick
         }
 	for notification in notifications:
 	    notifHandler[notification.verb](notification)
 	    
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
-        out = Wizcard.objects.serialize(wizcard, True)
+        out = Wizcard.objects.serialize(wizcard, extended=True, include_bizcard=True, include_thumbnail=True)
         self.add_data_with_notif(out, notifType)
         #AA:TODO: enhance notification to carry wasEdited information
         if wizcard.video:
@@ -128,6 +130,14 @@ class NotifResponse(ResponseN):
         out = dict(user_id=notif.actor_object_id)
         self.add_data_with_notif(out, self.DELETE_IMPLICIT)
         print "sending revoke notification"
+        print self.response
+        return self.response
+
+    def notifWithdrawRequest(self, notif):
+        #this is a notif to the app B when app A withdraws it's connection request
+        out = dict(user_id=notif.actor_object_id)
+        self.add_data_with_notif(out, self.WITHDRAW_REQUEST)
+        print "sending withdraw notification"
         print self.response
         return self.response
 
@@ -162,7 +172,7 @@ class NotifResponse(ResponseN):
     def notifUserLookup(self, count, me, users):
         out = None
         if users:
-            out = UserProfile.objects.serialize_split(me, users)
+            out = UserProfile.objects.serialize_split(me, users, include_thumbnail=True)
             self.add_data_with_notif(out, self.NEARBY_USERS)
         return self.response
 

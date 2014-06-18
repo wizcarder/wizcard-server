@@ -247,7 +247,6 @@ class Trie(DictMixin, object):
         sprefix = prefix
         result = []
         node.dfs(sprefix, result)
-        print result
 
     def longest_prefix_item(self, key, default=NULL):
         '''Return the item (``(key,value)`` tuple) associated with the longest

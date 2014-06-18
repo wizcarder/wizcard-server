@@ -45,6 +45,8 @@ class WizcardAcceptSchema(colander.MappingSchema):
     pass
 class WizConnectionRequestDeclineSchema(colander.MappingSchema):
     pass
+class WizConnectionRequestWithdrawSchema(colander.MappingSchema):
+    pass
 class WizcardRolodexDeleteSchema(colander.MappingSchema):
     pass
 class WizcardFlickSchema(colander.MappingSchema):
