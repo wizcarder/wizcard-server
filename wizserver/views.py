@@ -427,7 +427,7 @@ class Header(ParseMsgAndDispatch):
         if count:
             notifResponse.notifTableLookup(count, self.user, tables)
 
-        Notification.objects.mark_all_as_read(self.user)
+        Notification.objects.mark_specific_as_read(notifications)
 
         #tickle the timer to keep it going and update the location if required 
         self.userprofile.create_or_update_location(self.lat, self.lng)

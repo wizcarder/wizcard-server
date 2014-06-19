@@ -8,6 +8,7 @@ from .utils import id2slug
 from notifications.signals import notify
 from pyapns import notify as apns_notify
 from pyapns import configure, provision, feedback
+import pdb
 
 
 try:
@@ -17,13 +18,22 @@ except ImportError:
     now = datetime.datetime.now()
 
 class NotificationManager(models.Manager):
-    def unread(self, user):
-        return self.filter(recipient=user, readed=False)
+    def unread(self, user, count=settings.NOTIF_BATCH_SIZE):
+        return list(self.filter(recipient=user, readed=False)[:count])
 
     def unread_count(self, user):
-        return self.unread.count()
+        return self.unread(user).count()
 
-    def mark_all_as_read(self, recipient):
+    def mark_specific_as_read(self, notifications):
+        count = 0
+        for n in notifications:
+            print n
+            count += 1
+            n.readed = True
+            n.save()
+        return count
+
+    def mark_all_as_read(self, recipient, count):
         return self.filter(recipient=recipient, readed=False).update(readed=True)
 
     def migrate_future_user(self, future, current):

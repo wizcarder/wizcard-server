@@ -164,6 +164,9 @@ PHONE_CHECK_MESSAGE = {
         'text':""
     }
 
+
+#number of per user notifs we want to process per get
+NOTIF_BATCH_SIZE = 10
 #seperator for modified key
 MKEY_SEP = '.'
 
