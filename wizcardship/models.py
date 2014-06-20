@@ -76,16 +76,8 @@ class WizcardManager(models.Manager):
         WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
                 to_wizcard=to_wizcard).get().accept()
 
-    def serialize(self, wizcards, extended=False, include_bizcard=False, include_thumbnail=False):
-        if extended:
-            if include_bizcard:
-                return serialize(wizcards, **fields.wizcard_template_extended_with_bizcard)
-            else:
-                return serialize(wizcards, **fields.wizcard_template_extended)
-        elif include_thumbnail:
-            return serialize(wizcards, **fields.wizcard_template_brief_with_thumbnail)
-        else:
-            return serialize(wizcards, **fields.wizcard_template_brief)
+    def serialize(self, wizcards, template):
+        return serialize(wizcards, **template)
 
     def exchange_implicit(self, wizcard1, wizcard2, flick_card):
         source_user = wizcard1.user
@@ -187,9 +179,6 @@ class Wizcard(models.Model):
     wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
     first_name = models.CharField(max_length=40, blank=True)
     last_name = models.CharField(max_length=40, blank=True)
-    # putting the current title/desig here as well...easy for brief serialization
-    company = models.CharField(max_length=40, blank=True)
-    title = models.CharField(max_length=200, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     #media objects
@@ -223,14 +212,11 @@ class Wizcard(models.Model):
     def create_wizcard_image_list(self, l):
         map(lambda x: WizcardImageList(wizcard=self, image=x).save(), l)
 
-    def company_list(self):
-        self.company_list.all()
+    def get_latest_company(self):
+        return self.contact_container.all()[0].company
 
-    def designation_list(self):
-        self.designation_list.all()
-        
-    def wizcard_image_list(self):
-        self.wizcard_image_list.all()
+    def get_latest_title(self):
+        return self.contact_container.all()[0].title
         
     def wizconnection_count(self):
         return self.wizconnections.count()

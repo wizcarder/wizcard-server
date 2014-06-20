@@ -66,6 +66,9 @@ class UserProfile(models.Model):
     future_user = models.BooleanField(default=False, blank=False)
     location = generic.GenericRelation(LocationMgr)
     do_sync = models.BooleanField(default=False)
+    is_profile_private = models.BooleanField(default=False)
+    is_wifi_data = models.BooleanField(default=False)
+    is_visible_nearby = models.BooleanField(default=True)
 
     IOS = 'ios'
     ANDROID='android'
@@ -87,6 +90,9 @@ class UserProfile(models.Model):
     def online(self):
         cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(), 
                 settings.USER_LASTSEEN_TIMEOUT)
+
+    def can_send_data(self, on_wifi):
+        return (True if on_wifi else not(self.is_wifi_data))
 
     def last_seen(self):
         now = timezone.now()

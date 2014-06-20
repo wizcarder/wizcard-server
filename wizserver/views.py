@@ -55,7 +55,7 @@ class WizRequestHandler(View):
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
         response =  pdispatch.dispatch()
-        print 'sending response to app'
+        print 'sending response to app', response
         #send response
         return response.respond()
 
@@ -154,6 +154,11 @@ class Header(ParseMsgAndDispatch):
             return False, self.response
         if 'receiver' in self.msg:
             self.receiver = self.msg['receiver']
+
+        if self.header.has_key('wifi'):
+            self.on_wifi = True
+        else:
+            self.on_wifi = False
 
         return True, self.response
 
@@ -508,16 +513,10 @@ class Header(ParseMsgAndDispatch):
             for count, contactItem in enumerate(contactContainerList):
 	        if 'title' in contactItem:
                     title = contactItem['title']
-                    if count is 0:
-                        wizcard.title = title
-                        modify = True
                 else:
                     title = ""
 		if 'company' in contactItem:
                     company = contactItem['company']
-                    if count is 0:
-                        wizcard.company = company
-                        modify = True
                 else:
                     company = ""
 		if 'start' in contactItem:
@@ -890,7 +889,8 @@ class Header(ParseMsgAndDispatch):
         #send back to app for selection
 
         if (count):
-            users_s = Wizcard.objects.serialize(result, include_thumbnail=True)
+            users_s = Wizcard.objects.serialize(result, 
+                    template=fields.wizcard_template_brief_with_thumbnail)
             self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
  
@@ -946,8 +946,21 @@ class Header(ParseMsgAndDispatch):
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
+        r_userprofile = wizcard.user.profile
+        send_data = self.userprofile.can_send_data(self.on_wifi)
 
-        out = Wizcard.objects.serialize(wizcard, extended=True)
+        if r_userprofile.is_profile_private:
+            if send_data:
+                template = fields.wizcard_template_brief_with_thumbnail
+            else:
+                template = fields.wizcard_template_brief
+        else:
+            if send_data:
+                template = fields.wizcard_template_extended_with_images
+            else:
+                template = fields.wizcard_template_extended
+
+        out = Wizcard.objects.serialize(wizcard, template)
         self.response.add_data("Details", out)
 	return self.response
 

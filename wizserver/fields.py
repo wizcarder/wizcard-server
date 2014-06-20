@@ -16,7 +16,7 @@ wizcard_related_objects_template_with_bizcard = {
 
 wizcard_template_brief = {
     'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email', 'company', 'title'],
-    'key_map' : {'wizcard_id':'id'},
+    'key_map' : {'wizcard_id':'id', 'company':'get_latest_company', 'title':'get_latest_title'},
 }
 
 thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailImage']
@@ -25,11 +25,19 @@ wizcard_template_brief_with_thumbnail = {
     'key_map' : wizcard_template_brief['key_map'],
 }
 
-extended_fields = wizcard_template_brief_with_thumbnail['fields'] + ['contact_container']
+extended_fields = wizcard_template_brief['fields'] + ['contact_container']
+extended_fields_with_images = extended_fields + ['thumbnailImage']
+
 wizcard_template_extended = {
     'fields': extended_fields,
     'key_map' : wizcard_template_brief['key_map'],
     'related': wizcard_related_objects_template
+}
+
+wizcard_template_extended_with_images = {
+    'fields': extended_fields_with_images,
+    'key_map' : wizcard_template_brief['key_map'],
+    'related': wizcard_related_objects_template_with_bizcard
 }
 
 wizcard_template_brief_with_thumbnail_merged = wizcard_template_brief_with_thumbnail.copy()
