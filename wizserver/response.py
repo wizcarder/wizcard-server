@@ -107,7 +107,7 @@ class NotifResponse(ResponseN):
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         out = Wizcard.objects.serialize(wizcard,
-                fields.wizcard_template_extended_with_bizcard)
+                fields.wizcard_template_full)
         self.add_data_with_notif(out, notifType)
         #AA:TODO: enhance notification to carry wasEdited information
         if wizcard.video:

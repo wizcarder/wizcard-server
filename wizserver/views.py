@@ -55,7 +55,7 @@ class WizRequestHandler(View):
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
         response =  pdispatch.dispatch()
-        print 'sending response to app', response
+        print 'sending response to app'
         #send response
         return response.respond()
 
@@ -443,6 +443,7 @@ class Header(ParseMsgAndDispatch):
         try:
             wizcard = self.user.wizcard
         except ObjectDoesNotExist:
+            #AA:TODO: Create this as a user create signal
             #create case
             wizcard = Wizcard(user=self.user)
             wizcard.save()
@@ -609,6 +610,7 @@ class Header(ParseMsgAndDispatch):
             #AA: TODO Change to wizCardID
             try:
 	       wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+               self.r_user = wizcard2.user
             except:
 	       self.r_user = User.objects.get(id=self.receiver['wizUserID'])
                wizcard2 = self.r_user.wizcard
@@ -623,7 +625,11 @@ class Header(ParseMsgAndDispatch):
         #clear my wizconnection_request
         Wizcard.objects.wizconnection_req_clear(wizcard1, wizcard2)
 
-        #send notif to the other guy to he can remove the corresponding request
+        #send notif to the other guy to he can remove the corresponding 
+        #request
+
+        notify.send(self.user, recipient=self.r_user,
+                verb='withdraw request', target=wizcard1)
 
         return self.response
     def WizcardRolodexDelete(self):
@@ -956,7 +962,7 @@ class Header(ParseMsgAndDispatch):
                 template = fields.wizcard_template_brief
         else:
             if send_data:
-                template = fields.wizcard_template_extended_with_images
+                template = fields.wizcard_template_full
             else:
                 template = fields.wizcard_template_extended
 

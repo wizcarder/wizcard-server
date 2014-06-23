@@ -77,6 +77,7 @@ class WizcardManager(models.Manager):
                 to_wizcard=to_wizcard).get().accept()
 
     def serialize(self, wizcards, template):
+        print "Wizcard Serialize template", template
         return serialize(wizcards, **template)
 
     def exchange_implicit(self, wizcard1, wizcard2, flick_card):

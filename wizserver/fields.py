@@ -34,7 +34,7 @@ wizcard_template_extended = {
     'related': wizcard_related_objects_template
 }
 
-wizcard_template_extended_with_images = {
+wizcard_template_full = {
     'fields': extended_fields_with_images,
     'key_map' : wizcard_template_brief['key_map'],
     'related': wizcard_related_objects_template_with_bizcard
@@ -43,11 +43,6 @@ wizcard_template_extended_with_images = {
 wizcard_template_brief_with_thumbnail_merged = wizcard_template_brief_with_thumbnail.copy()
 wizcard_template_brief_with_thumbnail_merged['merge'] = True
 
-wizcard_template_extended_with_bizcard = {
-    'fields': extended_fields,
-    'key_map' : wizcard_template_brief['key_map'],
-    'related': wizcard_related_objects_template_with_bizcard
-}
 flicked_wizcard_related_objects_template = {
     'wizcard': wizcard_template_brief_with_thumbnail,
 }

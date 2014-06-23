@@ -17,6 +17,8 @@ pil
 SQL root password : go_WiZcArD#27
 SQL wizcard_admin password : go_wIzCaRd#27
 
+select host, user, password from mysql.user;
+
 ==
 MySQl password change
 ==============
