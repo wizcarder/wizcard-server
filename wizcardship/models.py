@@ -196,10 +196,10 @@ class Wizcard(models.Model):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
 
     def serialize(self):
-        return serialize(self, **fields.wizcard_template_extended)
+        return serialize(self, **fields.wizcard_template_full)
 
     def serialize_wizconnections(self):
-        return serialize(self.wizconnections.all(), **fields.wizcard_template_extended)
+        return serialize(self.wizconnections.all(), **fields.wizcard_template_full)
 
     def serialize_wizcardflicks(self):
 	return serialize(self.flicked_cards.all(), **fields.my_flicked_wizcard_template)

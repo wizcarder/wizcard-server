@@ -15,11 +15,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wizcard',
         'USER': 'root',
-        #'PASSWORD': 'go_WiZcArD#27',
-        'PASSWORD': '',
+        'PASSWORD': 'go_WiZcArD#27',
+        #'PASSWORD': '',
         #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        #'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -238,7 +238,7 @@ PYAPNS_CONFIG = {
   'HOST': 'http://localhost:7077/',
   'TIMEOUT': 1,                    # OPTIONAL, host timeout in seconds
   'INITIAL': [                      # OPTIONAL, see below
-    ('com.wizcard', open('/Users/aammundi/projects/WizCard/trunk/wizcard-server/wizcard/certs/wizcard_ios_push.pem').read(), 'sandbox'),
+    ('com.wizcard', open('./wizcard/certs/wizcard_ios_push.pem').read(), 'sandbox'),
   ]
 }
 
