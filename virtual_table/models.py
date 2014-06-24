@@ -137,7 +137,8 @@ class VirtualTable(models.Model):
         implicit_exchange = self.is_secure()
 
         for wizcard2 in wizcards:
-            Wizcard.objects.exchange(wizcard1, wizcard2, implicit_exchange)
+            Wizcard.objects.exchange(wizcard1, wizcard2, 
+                    implicit_exchange, table=self)
 
         return self
 

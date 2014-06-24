@@ -80,27 +80,44 @@ class WizcardManager(models.Manager):
         print "Wizcard Serialize template", template
         return serialize(wizcards, **template)
 
-    def exchange_implicit(self, wizcard1, wizcard2, flick_card):
-        source_user = wizcard1.user
-        target_user = wizcard2.user
+    def exchange_implicit(self, wizcard1, wizcard2, flick_card, table):
+        user1 = wizcard1.user
+        user2 = wizcard2.user
 
         self.becard(wizcard1, wizcard2) 
         self.becard(wizcard2, wizcard1) 
-        #Q this to the receiver and vice-versa
-        notify.send(source_user, recipient=target_user,
-                    verb='wizconnection request trusted', 
-		    description='via flick pick',
-                    target=wizcard1, action_object=wizcard2)
-        notify.send(target_user, recipient=source_user,
-                    verb='wizconnection request trusted', 
-		    description='via flick pick',
-                    target=wizcard2, action_object=flick_card)
 
-    def exchange_explicit(self, wizcard1, wizcard2):
-        source_user = wizcard1.user
-        target_user = wizcard2.user
+        #Q this to the receiver and vice-versa
+        if flick_card:
+            description="via flick pick"
+            action_object = flick_card
+        elif table:
+            description = "via table exchange"
+            action_object = table
+        else:
+            description = None
+            action_object = None
+
+        notify.send(user1, recipient=user2,
+                    verb='wizconnection request trusted', 
+		    description=description,
+                    target=wizcard1, action_object=action_object)
+        notify.send(user2, recipient=user1,
+                    verb='wizconnection request trusted', 
+		    description=description,
+                    target=wizcard2, action_object=action_object)
+
+    def exchange_explicit(self, wizcard1, wizcard2, table):
+        user1 = wizcard1.user
+        user2 = wizcard2.user
         convert_to_implicit = False
 
+        if table:
+            description = "via table exchange"
+            action_object = table
+        else:
+            description = None
+            action_object = None
         # If there's a wizconnection request from the other user then treat it like
         # an implicit connection
         try:
@@ -119,27 +136,30 @@ class WizcardManager(models.Manager):
                 return
         #send notifs to recipient (or both if implicit conversion)
         if convert_to_implicit:
-            notify.send(source_user, recipient=target_user, 
+            notify.send(user1, recipient=user2, 
                     verb='wizconnection request trusted', 
-                    target=wizcard1, action_object=wizcard2)
+		    description=description,
+                    target=wizcard1, action_object=action_object)
 
-            notify.send(target_user, recipient=source_user, 
+            notify.send(user2, recipient=user1, 
                     verb='wizconnection request trusted', 
-                    target=wizcard2, action_object=wizcard1)
+		    description=description,
+                    target=wizcard2, action_object=action_object)
 
         else:
-            notify.send(source_user, recipient=target_user, 
+            notify.send(user1, recipient=user2, 
                     verb='wizconnection request untrusted', 
-                    target=wizcard1, action_object=wizcard2)
+		    description=description,
+                    target=wizcard1, action_object=action_object)
 
-    def exchange(self, wizcard1, wizcard2, implicit, flick_card=None):
+    def exchange(self, wizcard1, wizcard2, implicit, flick_card=None, table=None):
         #create bidir cardship
         if self.are_wizconnections(wizcard1, wizcard2):
             return  err.EXISTING_CONNECTION
         elif implicit:
-            self.exchange_implicit(wizcard1, wizcard2, flick_card)
+            self.exchange_implicit(wizcard1, wizcard2, flick_card, table)
         else:
-            self.exchange_explicit(wizcard1, wizcard2)
+            self.exchange_explicit(wizcard1, wizcard2, table)
         return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2):

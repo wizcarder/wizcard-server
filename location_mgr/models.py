@@ -64,6 +64,7 @@ class LocationMgrManager(models.Manager):
                         wizlib.modified_key(key, row.pk),
                         LocationMgr.objects.get_tree_from_type(row.tree_type),
                         row.pk)
+                #AA:TO DO: fix..not correct
                 row.timer.get().start()
         except:
             return
@@ -84,7 +85,7 @@ class LocationMgrManager(models.Manager):
 
         if not count:
             return result, count
-        #print 'looking up  gives result [{result}]'.format (result=result)
+        print 'looking up  gives result [{result}]'.format (result=result)
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
             heapq.heappush(h, (l.distance_from(lat, lng), l.object_id))
@@ -186,7 +187,6 @@ class LocationMgr(models.Model):
 
     #Database based timer implementation
     def start_timer(self, timeout):
-	#AA:TODO revert
         t = Periodic.objects.create(location=self,
                 timeout_value=timeout*60)
         t.start()
@@ -195,7 +195,7 @@ class LocationMgr(models.Model):
 	#timeout is the new timeout
         t = self.timer.get()
 	t.timeout_value = timeout*60
-	t.save()
+	#t.save()
 	t.start()
 
     def reset_timer(self):

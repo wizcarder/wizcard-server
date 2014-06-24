@@ -1,4 +1,5 @@
 # define all outbound responses here
+from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, WizcardFlick
 from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
@@ -108,12 +109,20 @@ class NotifResponse(ResponseN):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         out = Wizcard.objects.serialize(wizcard,
                 fields.wizcard_template_full)
-        self.add_data_with_notif(out, notifType)
         #AA:TODO: enhance notification to carry wasEdited information
         if wizcard.video:
             self.add_data_to_dict(out, "videoUrl", wizcard.video.url)
+
+        #AA:TODO: looks ugly like this...structure it
 	if notif.action_object:
-	    self.add_data_to_dict(out, "flickCardID", notif.action_object_object_id)
+            if ContentType.objects.get_for_model(notif.action_object) == ContentType.objects.get(model="wizcardflick"):
+                    self.add_data_to_dict(out, "flickCardID", 
+                            notif.action_object_object_id)
+            elif ContentType.objects.get_for_model(notif.action_object) == ContentType.objects.get(model="virtualtable"):
+                    self.add_data_to_dict(out, "tableID", 
+                            notif.action_object_object_id)
+
+        self.add_data_with_notif(out, notifType)
         print "sending wizcard notification"
         return self.response
 
@@ -173,7 +182,8 @@ class NotifResponse(ResponseN):
     def notifUserLookup(self, count, me, users):
         out = None
         if users:
-            out = UserProfile.objects.serialize_split(me, users, include_thumbnail=True)
+            out = UserProfile.objects.serialize_split(me, users, 
+                    include_thumbnail=True)
             self.add_data_with_notif(out, self.NEARBY_USERS)
         return self.response
 

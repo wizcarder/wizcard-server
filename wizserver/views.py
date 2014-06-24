@@ -706,7 +706,7 @@ class Header(ParseMsgAndDispatch):
 	        #associate flick with user
 	        flick_card.flick_pickers.add(wizcard1)
 	        #create a wizconnection and then accept it
-	        Wizcard.objects.exchange(wizcard1, wizcard2, flick_card)
+	        Wizcard.objects.exchange(wizcard1, wizcard2, True, flick_card=flick_card)
 	except KeyError: 
             self.securityException()
             self.response.ignore()
@@ -938,7 +938,9 @@ class Header(ParseMsgAndDispatch):
         members = table.users.all()
         count = members.count()
         if count:
-            out = UserProfile.objects.serialize(members, True)
+            out = UserProfile.objects.serialize_split(self.user, 
+                    members, 
+                    include_thumbnail=True)
             self.response.add_data("Members", out)
             self.response.add_data("Count", count)
             self.response.add_data("CreatorID", table.creator.id) 
