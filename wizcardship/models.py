@@ -234,10 +234,16 @@ class Wizcard(models.Model):
         map(lambda x: WizcardImageList(wizcard=self, image=x).save(), l)
 
     def get_latest_company(self):
-        return self.contact_container.all()[0].company
+        qs = self.contact_container.all()
+        if qs.exists():
+            return qs[0].company
+        return None
 
     def get_latest_title(self):
-        return self.contact_container.all()[0].title
+        qs = self.contact_container.all()
+        if qs.exists():
+            return qs[0].title
+        return None
         
     def wizconnection_count(self):
         return self.wizconnections.count()
