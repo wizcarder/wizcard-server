@@ -197,7 +197,8 @@ class Header(ParseMsgAndDispatch):
             'join_table'                  : (message_format.TableJoinSchema, self.TableJoin),
             'leave_table'                 : (message_format.TableLeaveSchema, self.TableLeave),
             'destroy_table'               : (message_format.TableDestroySchema, self.TableDestroy),
-            'table_edit'                  : (message_format.TableEditSchema, self.TableEdit)
+            'table_edit'                  : (message_format.TableEditSchema, self.TableEdit),
+            'settings'                    : (message_format.SettingsSchema, self.Settings)
         }
         #update location since it may have changed
 	if self.msg_has_location() and not self.msg_is_initial():
@@ -654,11 +655,7 @@ class Header(ParseMsgAndDispatch):
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-        try:
-            timeout = self.sender['timeout']
-        except:
-            timeout = settings.WIZCARD_FLICK_DEFAULT_TIMEOUT
-
+        timeout = self.sender['timeout']
         a_created = self.sender['created']
 
 	if self.lat == None and self.lng == None:
@@ -679,7 +676,7 @@ class Header(ParseMsgAndDispatch):
 	if flick_card:
 	    t = flick_card.location.get().reset_timer()
             self.response.add_data("duplicate", True)
-	    self.response.add_data("timeout", t.timeout_value)
+	    self.response.add_data("timeout", t.timeout_value/60)
         else:
 	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, 
                     lat=self.lat, 
@@ -1097,6 +1094,9 @@ class Header(ParseMsgAndDispatch):
         table.save()
 
         self.response.add_data("tableID", table.pk)
+	return self.response
+
+    def Settings(self):
 	return self.response
 
 VALIDATOR = 0

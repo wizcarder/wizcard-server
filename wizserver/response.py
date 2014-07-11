@@ -161,13 +161,15 @@ class NotifResponse(ResponseN):
         return self.notifWizcard(notif, self.UPDATE_WIZCARD)
 
     def notifWizcardFlickTimeout(self, notif):
-	out = dict(flickCardID=notif.action_object_object_id, wizCardID=notif.target_object_id)
+	out = dict(flickCardID=notif.target_object_id)
         self.add_data_with_notif(out, self.FLICK_TIMEOUT)
+        print self.response
         return self.response
 
     def notifWizcardFlickPick(self, notif):
         out = dict(wizUserID=notif.action_object_object_id, flickCardID=notif.target_object_id)
         self.add_data_with_notif(out, self.FLICK_PICK)
+        print self.response
         return self.response
 
     def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):

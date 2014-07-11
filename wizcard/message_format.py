@@ -91,4 +91,6 @@ class TableDestroySchema(colander.MappingSchema):
     pass
 class TableEditSchema(colander.MappingSchema):
     pass
+class SettingsSchema(colander.MappingSchema):
+    pass
 

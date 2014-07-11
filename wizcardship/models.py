@@ -361,7 +361,7 @@ class WizcardFlickManager(models.Manager):
             if own:
                 s['own'] = self.serialize(own, merge)
             if connected:
-                s['connected'] = self.serialize(own, merge)
+                s['connected'] = self.serialize(connected, merge)
             if others:
                 s['others'] = self.serialize(others, merge)
 
