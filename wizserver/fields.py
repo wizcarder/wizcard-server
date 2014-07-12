@@ -40,13 +40,13 @@ wizcard_template_full = {
     'related': wizcard_related_objects_template_with_bizcard
 }
 
-wizcard_template_brief_merged = 
+wizcard_template_brief_merged = {
     'fields': wizcard_template_brief['fields'],
     'key_map' : wizcard_template_brief['key_map'],
     'merge' : True
 }
 
-wizcard_template_brief_with_thumbnail_merged = 
+wizcard_template_brief_with_thumbnail_merged = {
     'fields': thumbnail_fields,
     'key_map' : wizcard_template_brief['key_map'],
     'merge' : True

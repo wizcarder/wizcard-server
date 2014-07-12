@@ -68,7 +68,7 @@ class UserProfile(models.Model):
     do_sync = models.BooleanField(default=False)
     is_profile_private = models.BooleanField(default=False)
     is_wifi_data = models.BooleanField(default=False)
-    is_visible_nearby = models.BooleanField(default=True)
+    block_unsolicited = models.BooleanField(default=False)
 
     IOS = 'ios'
     ANDROID='android'
@@ -142,7 +142,7 @@ class UserProfile(models.Model):
         result, count = l.lookup(n)
         #convert result to query set result
         if count and not count_only:
-            users = [UserProfile.objects.get(id=x).user for x in result if UserProfile.objects.filter(id=x, activated=True).exists()]
+            users = [UserProfile.objects.get(id=x).user for x in result if UserProfile.objects.filter(id=x, activated=True, block_unsolicited=False).exists()]
         return users, count
 
     def serialize_objects(self):
