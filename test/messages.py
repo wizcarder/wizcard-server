@@ -332,6 +332,7 @@ card_flick = {
         "wizUserID" : "",
         "lat" : 37.785834,
         "lng" : -122.406415,
+        "timeout": 1,
         "deviceType": "ios",
         "created":str(datetime.now())
 
