@@ -155,8 +155,8 @@ class Header(ParseMsgAndDispatch):
         if 'receiver' in self.msg:
             self.receiver = self.msg['receiver']
 
-        if self.header.has_key('wifi'):
-            self.on_wifi = True
+        if self.header.has_key('onWifi'):
+            self.on_wifi = self.header['onWifi']
         else:
             self.on_wifi = False
 
@@ -419,13 +419,14 @@ class Header(ParseMsgAndDispatch):
 	    #AA_TODO: ios app crashes if thumbnail is included. This should be
 	    #natively done when app is fixed (also for tables and users)
             notifResponse.notifFlickedWizcardsLookup(count, 
-                    self.user, flicked_wizcards)
+                    self.user, flicked_wizcards, 
+		    self.userprofile.can_send_data(self.on_wifi))
 
         users, count = self.userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
-            notifResponse.notifUserLookup(count, self.user, users)
+            notifResponse.notifUserLookup(count, self.user, users, 
+			    self.userprofile.can_send_data(self.on_wifi))
 
-        #tables is a smaller entity...get the tables as well instead of just count
         tables, count = VirtualTable.objects.lookup(
                 self.lat, 
                 self.lng, 
@@ -936,7 +937,8 @@ class Header(ParseMsgAndDispatch):
         count = members.count()
         if count:
             out = UserProfile.objects.serialize_split(self.user, 
-                    members, 
+                    members,
+		    self.userprofile.can_send_data(self.on_wifi),
                     include_thumbnail=True)
             self.response.add_data("Members", out)
             self.response.add_data("Count", count)

@@ -335,11 +335,11 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def serialize(self, flicked_wizcards, merge=False):
+    def serialize(self, flicked_wizcards, send_data=True, merge=False):
         template = fields.flicked_wizcard_merged_template if merge else fields.flicked_wizcard_template
         return serialize(flicked_wizcards, **template)
 
-    def serialize_split(self, my_wizcard, flicked_wizcards, merge=False, flatten=False):
+    def serialize_split(self, my_wizcard, flicked_wizcards, send_data=True, merge=False, flatten=False):
 
         s = None
 	own, connected, others = self.split_wizcard_flick(my_wizcard, flicked_wizcards)
@@ -348,13 +348,13 @@ class WizcardFlickManager(models.Manager):
             s = []
             if own:
                 self.set_tag("own")
-                s += self.serialize(own, merge)
+                s += self.serialize(own, send_data, merge)
             if connected:
                 self.set_tag("connected")
-                s += self.serialize(connected, merge)
+                s += self.serialize(connected, send_data, merge)
             if others:
                 self.set_tag("others")
-                s += self.serialize(others, merge)
+                s += self.serialize(others, send_data, merge)
             self.set_tag(None)
         else:
             s = dict()

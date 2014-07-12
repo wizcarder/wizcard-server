@@ -172,20 +172,20 @@ class NotifResponse(ResponseN):
         print self.response
         return self.response
 
-    def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):
+    def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards, send_data=True):
         out = None
 	own_wizcard = user.wizcard
         if flicked_wizcards:
 	    #wizcards = map(lambda x: x.wizcard, flicked_wizcards)
-            out = WizcardFlick.objects.serialize_split(user.wizcard, flicked_wizcards)
+            out = WizcardFlick.objects.serialize_split(user.wizcard, flicked_wizcards, send_data=send_data)
             self.add_data_with_notif(out, self.FLICKED_WIZCARD)
         return self.response
 
-    def notifUserLookup(self, count, me, users):
+    def notifUserLookup(self, count, me, users, send_data=True):
         out = None
         if users:
             out = UserProfile.objects.serialize_split(me, users, 
-                    include_thumbnail=True)
+                    send_data=send_data, include_thumbnail=True)
             self.add_data_with_notif(out, self.NEARBY_USERS)
         return self.response
 

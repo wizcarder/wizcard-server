@@ -46,7 +46,11 @@ wizcard_template_brief_with_thumbnail_merged =
     'merge' : True
 }
 
-flicked_wizcard_related_objects_template = {
+flicked_wizcard_related_objects_template= {
+    'wizcard': wizcard_template_brief,
+}
+
+flicked_wizcard_related_objects_template_with_thumbnail= {
     'wizcard': wizcard_template_brief_with_thumbnail,
 }
 
@@ -66,15 +70,15 @@ flicked_wizcard_template = {
     'related': flicked_wizcard_related_objects_template
 }
 
+flicked_wizcard_template_with_thumbnail = {
+    'fields': ['created', 'timeout', 'flick_id', 'wizcard'],
+    'key_map': {'created':'a_created', 'flick_id':'id'},
+    'related': flicked_wizcard_related_objects_template_with_thumbnail
+}
+
 flicked_wizcard_merged_template = {
     'fields': ['created', 'timeout', 'flick_id', 'wizcard', 'tag'],
     'key_map': {'created': 'a_created', 'flick_id':'id', 'tag': 'get_tag' },
-    'related': flicked_wizcard_related_objects_merged_template
-}
-
-flicked_wizcard_merged_template_own = {
-    'fields': ['created', 'timeout', 'flick_id', 'wizcard', 'tag'],
-    'key_map': {'created':'a_created', 'flick_id':'id', 'tag': lambda: "own"},
     'related': flicked_wizcard_related_objects_merged_template
 }
 
