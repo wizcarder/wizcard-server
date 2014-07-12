@@ -40,8 +40,11 @@ wizcard_template_full = {
     'related': wizcard_related_objects_template_with_bizcard
 }
 
-wizcard_template_brief_with_thumbnail_merged = wizcard_template_brief_with_thumbnail.copy()
-wizcard_template_brief_with_thumbnail_merged['merge'] = True
+wizcard_template_brief_with_thumbnail_merged = 
+    'fields': thumbnail_fields,
+    'key_map' : wizcard_template_brief['key_map'],
+    'merge' : True
+}
 
 flicked_wizcard_related_objects_template = {
     'wizcard': wizcard_template_brief_with_thumbnail,

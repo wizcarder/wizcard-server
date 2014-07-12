@@ -1097,6 +1097,23 @@ class Header(ParseMsgAndDispatch):
 	return self.response
 
     def Settings(self):
+	modify = False
+	if self.sender.has_key('privacy'):
+	    if self.sender['privacy'].has_key('blockUnsolicited'):
+		visible_nearby = not self.sender['privacy']['blockUnsolicited']
+		if self.userprofile.is_visible_nearby != visible_nearby:
+		    self.userprofile.visible_nearby = visible_nearby
+		    modify = True
+
+	    if self.sender['privacy'].has_key('publicTimeline'):
+		profile_private = not self.sender['privacy']['publicTimeline']
+		if self.userprofile.is_profile_private != profile_private:
+		    self.userprofile.is_profile_private = profile_private
+		    modify = True
+
+        if modify == True:
+	    self.userprofile.save()
+	  
 	return self.response
 
 VALIDATOR = 0
