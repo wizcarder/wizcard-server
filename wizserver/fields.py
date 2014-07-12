@@ -40,6 +40,12 @@ wizcard_template_full = {
     'related': wizcard_related_objects_template_with_bizcard
 }
 
+wizcard_template_brief_merged = 
+    'fields': wizcard_template_brief['fields'],
+    'key_map' : wizcard_template_brief['key_map'],
+    'merge' : True
+}
+
 wizcard_template_brief_with_thumbnail_merged = 
     'fields': thumbnail_fields,
     'key_map' : wizcard_template_brief['key_map'],
@@ -55,6 +61,10 @@ flicked_wizcard_related_objects_template_with_thumbnail= {
 }
 
 flicked_wizcard_related_objects_merged_template = {
+    'wizcard': wizcard_template_brief_merged
+}
+
+flicked_wizcard_related_objects_merged_template_with_thumbnail = {
     'wizcard': wizcard_template_brief_with_thumbnail_merged
 }
 
@@ -82,6 +92,11 @@ flicked_wizcard_merged_template = {
     'related': flicked_wizcard_related_objects_merged_template
 }
 
+flicked_wizcard_merged_template_with_thumbnail = {
+    'fields': flicked_wizcard_merged_template['fields'],
+    'key_map': {'created': 'a_created', 'flick_id':'id', 'tag': 'get_tag' },
+    'related': flicked_wizcard_related_objects_merged_template_with_thumbnail
+}
 my_flicked_wizcard_template = {
     'fields': ['created', 'timeout', 'flick_id', 'lat', 'lng', 'timeout', 'flick_pickers'],
     'key_map': {'created':'a_created', 'flick_id':'id'},

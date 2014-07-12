@@ -938,8 +938,7 @@ class Header(ParseMsgAndDispatch):
         if count:
             out = UserProfile.objects.serialize_split(self.user, 
                     members,
-		    self.userprofile.can_send_data(self.on_wifi),
-                    include_thumbnail=True)
+		    self.userprofile.can_send_data(self.on_wifi))
             self.response.add_data("Members", out)
             self.response.add_data("Count", count)
             self.response.add_data("CreatorID", table.creator.id) 
@@ -1100,15 +1099,23 @@ class Header(ParseMsgAndDispatch):
 
     def Settings(self):
 	modify = False
+
+        if self.sender.has_key('media'):
+            if self.sender['media'].has_key('wifiOnly'):
+                is_wifi_data = self.sender['media']['wifiOnly']
+                if self.userprofile.is_wifi_data != is_wifi_data:
+                    self.userprofile.is_wifi_data = is_wifi_data
+                    modify = True
+        
 	if self.sender.has_key('privacy'):
 	    if self.sender['privacy'].has_key('blockUnsolicited'):
-		visible_nearby = not self.sender['privacy']['blockUnsolicited']
+		visible_nearby = not(self.sender['privacy']['blockUnsolicited'])
 		if self.userprofile.is_visible_nearby != visible_nearby:
 		    self.userprofile.visible_nearby = visible_nearby
 		    modify = True
 
 	    if self.sender['privacy'].has_key('publicTimeline'):
-		profile_private = not self.sender['privacy']['publicTimeline']
+		profile_private = not(self.sender['privacy']['publicTimeline'])
 		if self.userprofile.is_profile_private != profile_private:
 		    self.userprofile.is_profile_private = profile_private
 		    modify = True

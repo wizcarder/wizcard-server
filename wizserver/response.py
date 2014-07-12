@@ -103,6 +103,7 @@ class NotifResponse(ResponseN):
             Notification.WIZCARD_FLICK_PICK         : self.notifWizcardFlickPick
         }
 	for notification in notifications:
+            print notification
 	    notifHandler[notification.verb](notification)
 	    
     def notifWizcard(self, notif, notifType):
@@ -185,11 +186,11 @@ class NotifResponse(ResponseN):
         out = None
         if users:
             out = UserProfile.objects.serialize_split(me, users, 
-                    send_data=send_data, include_thumbnail=True)
+                    send_data=send_data)
             self.add_data_with_notif(out, self.NEARBY_USERS)
         return self.response
 
-    def notifTableLookup(self, count, user, tables, include_thumbnail=False):
+    def notifTableLookup(self, count, user, tables):
         out = None
         if tables:
             out = VirtualTable.objects.serialize_split(tables, user)
