@@ -188,7 +188,7 @@ class WizcardManager(models.Manager):
             email_result = Q(email=email)
             qlist.append(email_result)
 
-        result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=userID).exclude(user__profile__invisible=True)
+        result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=userID).exclude(user__profile__is_visible=False)
 
         return result, len(result)
 

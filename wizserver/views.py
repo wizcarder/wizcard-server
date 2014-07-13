@@ -1098,6 +1098,7 @@ class Header(ParseMsgAndDispatch):
 	return self.response
 
     def Settings(self):
+        pdb.set_trace()
 	modify = False
 
         if self.sender.has_key('media'):

@@ -93,7 +93,8 @@ class UserProfile(models.Model):
                 settings.USER_LASTSEEN_TIMEOUT)
 
     def can_send_data(self, on_wifi):
-        return (True if on_wifi else not(self.is_wifi_data))
+        return False
+        #return (True if on_wifi else not(self.is_wifi_data))
 
     def last_seen(self):
         now = timezone.now()
@@ -143,7 +144,7 @@ class UserProfile(models.Model):
         result, count = l.lookup(n)
         #convert result to query set result
         if count and not count_only:
-            users = [UserProfile.objects.get(id=x).user for x in result if UserProfile.objects.filter(id=x, activated=True, visible_nearby=True).exists()]
+            users = [UserProfile.objects.get(id=x).user for x in result if UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
         return users, count
 
     def serialize_objects(self):
