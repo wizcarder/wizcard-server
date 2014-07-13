@@ -1102,16 +1102,22 @@ class Header(ParseMsgAndDispatch):
 
         if self.sender.has_key('media'):
             if self.sender['media'].has_key('wifiOnly'):
-                is_wifi_data = self.sender['media']['wifiOnly']
-                if self.userprofile.is_wifi_data != is_wifi_data:
-                    self.userprofile.is_wifi_data = is_wifi_data
+                wifi_data = self.sender['media']['wifiOnly']
+                if self.userprofile.is_wifi_data != wifi_data:
+                    self.userprofile.is_wifi_data = wifi_data
                     modify = True
         
 	if self.sender.has_key('privacy'):
-	    if self.sender['privacy'].has_key('blockUnsolicited'):
-		visible_nearby = not(self.sender['privacy']['blockUnsolicited'])
+	    if self.sender['privacy'].has_key('invisible'):
+		visible_nearby = not(self.sender['privacy']['invisible'])
 		if self.userprofile.is_visible_nearby != visible_nearby:
-		    self.userprofile.visible_nearby = visible_nearby
+		    self.userprofile.is_visible_nearby = visible_nearby
+                    modify = True
+
+	    if self.sender['privacy'].has_key('blockUnsolicited'):
+		block_unsolicited = not(self.sender['privacy']['blockUnsolicited'])
+		if self.userprofile.block_unsolicited != block_unsolicited:
+		    self.userprofile.block_unsolicited = block_unsolicited
 		    modify = True
 
 	    if self.sender['privacy'].has_key('publicTimeline'):
