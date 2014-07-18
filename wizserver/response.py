@@ -122,6 +122,11 @@ class NotifResponse(ResponseN):
             elif ContentType.objects.get_for_model(notif.action_object) == ContentType.objects.get(model="virtualtable"):
                     self.add_data_to_dict(out, "tableID", 
                             notif.action_object_object_id)
+                    try:
+                        num_sitting = VirtualTable.objects.get(id=notif.action_object_object_id).numSitting
+                    except:
+                        num_sitting = 0
+                    self.add_data_to_dict(out, "numSitting", numSitting)
 
         self.add_data_with_notif(out, notifType)
         print "sending wizcard notification"
