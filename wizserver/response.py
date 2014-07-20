@@ -126,7 +126,7 @@ class NotifResponse(ResponseN):
                         num_sitting = VirtualTable.objects.get(id=notif.action_object_object_id).numSitting
                     except:
                         num_sitting = 0
-                    self.add_data_to_dict(out, "numSitting", numSitting)
+                    self.add_data_to_dict(out, "numSitting", num_sitting)
 
         self.add_data_with_notif(out, notifType)
         print "sending wizcard notification"

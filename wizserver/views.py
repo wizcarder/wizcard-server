@@ -381,7 +381,7 @@ class Header(ParseMsgAndDispatch):
 	count = 0
 
         for phone_number in verify_list:
-	    username = (phone_number + settings.WIZCARD_USERNAME_EXTENSION)
+	    username = UserProfile.objects.userid_from_phone_num(phone_number)
 	    if User.objects.filter(username=username).exists():
 		count += 1
 	        l.append(phone_number)
@@ -790,25 +790,21 @@ class Header(ParseMsgAndDispatch):
             return self.response
 
         phones = self.receiver['phones']
+        pdb.set_trace()
         for phone in phones:
             try:
                 #AA:TODO: phone should just be the mobile phone. App needs to change
                 # to adjust this. Also, array is not required
-                cphone = wizlib.convert_phone(phone)
-                target_wizcards, query_count = Wizcard.objects.query_users(
-				sender.pk, 
-				None, 
-				cphone, 
-				None)
-		if query_count:
-		    for wizcard2 in target_wizcards:
-		        #create bidir cardship
-                        if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
-			    Wizcard.objects.exchange(wizcard1, wizcard2, True)
-			    count += 1
-                    else:
-                        #future contacts
-                        return self.processSendCardToFutureContacts(phones, sender)
+                #cphone = wizlib.convert_phone(phone)
+                username = UserProfile.objects.userid_from_phone_num(phone)
+                try:
+                    r_user = UserProfile.objects.get(username=username)
+                    wizcard2 = r_user.wizcard
+                except:
+                    continue
+                if not Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
+	            Wizcard.objects.exchange(wizcard1, wizcard2, True)
+		    count += 1
 
             except:
 	        self.response.error_response(err.INTERNAL_ERROR)
@@ -1098,7 +1094,6 @@ class Header(ParseMsgAndDispatch):
 	return self.response
 
     def Settings(self):
-        pdb.set_trace()
 	modify = False
 
         if self.sender.has_key('media'):

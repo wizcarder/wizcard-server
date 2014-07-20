@@ -22,7 +22,9 @@ USER_ACTIVE_TIMEOUT = 10
 class UserProfileManager(models.Manager):
     def serialize_split(self, me, users, send_data=True):
 	s = dict()
-	connected, others = self.split_users(me, users)
+	own, connected, others = self.split_users(me, users)
+        if own:
+            s['own'] = UserProfile.objects.serialize(own, send_data)
         if connected:
             s['connected'] = UserProfile.objects.serialize(connected, send_data)
         if others:
@@ -32,13 +34,16 @@ class UserProfileManager(models.Manager):
 
     def split_users(self, me, users):
         connected = []
+        own = []
 	others = []
         for user in users:
             if Wizcard.objects.are_wizconnections(user.wizcard, me.wizcard):
                 connected.append(user)
+            elif user == me:
+                own.append(user)
             else:
                 others.append(user)
-        return connected, others
+        return own, connected, others
 
     def serialize(self, users, send_data=True):
         #AA:TODO take care of unready users between login and edit_card
@@ -56,6 +61,10 @@ class UserProfileManager(models.Manager):
         except ObjectDoesNotExist:
             pass
         return userid
+    
+    def userid_from_phone_num(self, phone_num):
+        return phone_num + settings.WIZCARD_USERNAME_EXTENSION
+
 
 class UserProfile(models.Model):
     # This field is required.
@@ -93,8 +102,7 @@ class UserProfile(models.Model):
                 settings.USER_LASTSEEN_TIMEOUT)
 
     def can_send_data(self, on_wifi):
-        return False
-        #return (True if on_wifi else not(self.is_wifi_data))
+        return (True if on_wifi else not(self.is_wifi_data))
 
     def last_seen(self):
         now = timezone.now()
