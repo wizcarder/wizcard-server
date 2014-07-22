@@ -383,8 +383,19 @@ class Header(ParseMsgAndDispatch):
         for phone_number in verify_list:
 	    username = UserProfile.objects.userid_from_phone_num(phone_number)
 	    if User.objects.filter(username=username).exists():
+		d = dict()
+		d['phoneNum'] = phone_number
+		d['wizUserID'] = user.id
+		user = User.objects.get(username=username)
+		if Wizcard.objects.are_wizconnections(
+				self.user.wizcard,
+				user.wizcard):
+		    d['tag'] = "connected"
+		else:
+		    d['tag'] = "other"
+
 		count += 1
-	        l.append(phone_number)
+	        l.append(d)
 
         self.response.add_data("count", count)
         self.response.add_data("phoneNumberVerify", l)
@@ -416,8 +427,6 @@ class Header(ParseMsgAndDispatch):
                 self.lng, 
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
-	    #AA_TODO: ios app crashes if thumbnail is included. This should be
-	    #natively done when app is fixed (also for tables and users)
             notifResponse.notifFlickedWizcardsLookup(count, 
                     self.user, flicked_wizcards, 
 		    self.userprofile.can_send_data(self.on_wifi))
@@ -445,8 +454,6 @@ class Header(ParseMsgAndDispatch):
         try:
             wizcard = self.user.wizcard
         except ObjectDoesNotExist:
-            #AA:TODO: Create this as a user create signal
-            #create case
             wizcard = Wizcard(user=self.user)
             wizcard.save()
 

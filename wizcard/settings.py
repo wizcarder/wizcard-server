@@ -227,11 +227,117 @@ MEDIA_URL = S3_URL + MEDIA_DIRECTORY
 AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
 
-import logging
-logging.basicConfig(
-    level = logging.ERROR,
-    format = '%(funcName)s %(levelname)s %(message)s',
-)
+# Advanced Django 1.3.x+ Logging
+#
+# Author:
+# Jason Giedymin < jasong _[_a-t_]_ apache d-o-t org >
+#
+# Description:
+# A Django 1.3.x+ settings.py snippet with Advanced logging formatters using RFC 2822,
+# TimedRotatingFileHandler, and a WatchedFileHandler.
+#
+# NOTES: Levels are set to DEBUG! Change them or programmatically do switching (if x: LOGGING=LOGGING_DEV).
+# The TimedRotatingFileHandler won't rotate unless your app is restarted.
+# Use WatchedFileHandler instead, and rotate logs with a cron job or with some other program.
+#
+#... somewhere in settings.py or imported ...
+ 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+	'verbose': {
+	    'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
+	    'datefmt': '%a, %d %b %Y %H:%M:%S %z',
+        },
+	'simple': {
+	    'format': '[%(levelname)s] %(asctime)s - %(message)s',
+	    'datefmt': '%a, %d %b %Y %H:%M:%S %z',
+	},
+	'django-default-verbose': {
+	    'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+	},
+	'common-logging-v2': {
+	    'format': '[%(asctime)s] - %(message)s',
+	    'datefmt': '%d/%b/%Y:%H:%M:%S %z',
+	},
+	'parsefriendly': {
+	    'format': '[%(levelname)s] %(asctime)s - M:%(module)s, P:%(process)d, T:%(thread)d, MSG:%(message)s',
+	    'datefmt': '%d/%b/%Y:%H:%M:%S %z',
+	},
+    },
+    'handlers': {
+	'null': {
+	    'level':'DEBUG',
+	    'class':'django.utils.log.NullHandler',
+	},
+	'console-simple':{
+	    'level':'DEBUG',
+	    'class':'logging.StreamHandler',
+	    'formatter': 'simple'
+	},
+	'console':{
+	    'level':'DEBUG',
+	    'class':'logging.StreamHandler',
+	    'formatter': 'verbose'
+	},
+	'log-file': {
+	    'level': 'DEBUG',
+	    'class': 'logging.handlers.WatchedFileHandler',
+	    'formatter': 'verbose',
+	    #consider: 'filename': '/var/log/<myapp>/app.log',
+	    #will need perms at location below:
+            'filename': '/var/log/app.log',
+	    'mode': 'a', #append+create
+	},
+	'timed-log-file': {
+	    'level': 'DEBUG',
+	    'class': 'logging.handlers.TimedRotatingFileHandler', # Python logging lib
+	    'formatter': 'parsefriendly',
+	    #consider: 'filename': '/var/log/<myapp>/app.log',
+	    #will need perms at location below:
+	    'filename': '/var/log/app-timed.log',
+	    'when': 'midnight',
+	    #'backupCount': '30', #approx 1 month worth
+	},
+	'watched-log-file': {
+	    'level': 'DEBUG',
+	    'class': 'logging.handlers.WatchedFileHandler',
+	    'formatter': 'parsefriendly',
+	    #consider: 'filename': '/var/log/<myapp>/app.log',
+	    #will need perms at location below:
+	    'filename': '/var/log/app-watched.log',
+	    'mode': 'a', #append+create
+	},
+        'sentry': {
+            'level': 'ERROR',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+        },
+
+    },
+    'loggers': {
+	'django': {
+	    'level':'DEBUG',
+	    'handlers':['console', 'watched-log-file'],
+	    'propagate': True,
+	},
+	'django.request': {
+	    'level': 'DEBUG',
+	    'handlers': ['console', 'watched-log-file'],
+	    'propagate': False,
+	}, 
+        'raven': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'sentry.errors': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+    }
+}
 
 APP_ID = 'com.wizcard'
 PYAPNS_CONFIG = {
