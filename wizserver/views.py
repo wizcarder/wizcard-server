@@ -46,7 +46,7 @@ from wizcard import message_format as message_format
 
 now = timezone.now
 
-#logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class WizRequestHandler(View):
     def post(self, request, *args, **kwargs):
@@ -55,7 +55,7 @@ class WizRequestHandler(View):
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
         response =  pdispatch.dispatch()
-        print 'sending response to app'
+        logger.debug('sending response to app')
         #send response
         return response.respond()
 
@@ -75,7 +75,7 @@ class ParseMsgAndDispatch(object):
 
     def securityException(self):
 	#AA TODO
-	print 'ALERT ALERT!! FIXME'
+	logger.warning('ALERT ALERT!! FIXME')
 	return None
 	
 class Header(ParseMsgAndDispatch):
@@ -140,8 +140,8 @@ class Header(ParseMsgAndDispatch):
             return False
 
 	self.msg_type = self.header['msgType']
-        print 'received message', self.msg_type
-        print self
+        logger.debug('received message', self.msg_type)
+	logger.debug('%(msg)', extra={'msg':self})
 
 	if not self.validateHeader():
             self.securityException()
