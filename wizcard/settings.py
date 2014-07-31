@@ -208,10 +208,6 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
 )
 
-
-RAVEN_CONFIG = {
-    'dsn': 'https://d19905d820934cd59cde1e0372c21c43:cc970c850f4b4684bdbd9648f148d2ab@app.getsentry.com/27697',
-}
 #django-storage settings
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 #AWS_ACCESS_KEY_ID = 'AKIAJWT7M6E35TTP7HKA'
@@ -345,6 +341,11 @@ PYAPNS_CONFIG = {
   'INITIAL': [                      # OPTIONAL, see below
     ('com.wizcard', open('./wizcard/certs/wizcard_ios_push.pem').read(), 'sandbox'),
   ]
+}
+
+# RAVEN config for Sentry
+RAVEN_CONFIG = {
+    'dsn': 'https://d19905d820934cd59cde1e0372c21c43:cc970c850f4b4684bdbd9648f148d2ab@app.getsentry.com/27697',
 }
 
 GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'

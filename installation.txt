@@ -12,6 +12,7 @@ gunicorn
 libreadline (for gunicorn)
 colander
 pil
+raven
 
 ==
 SQL root password : go_WiZcArD#27
