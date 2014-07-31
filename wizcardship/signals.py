@@ -1,5 +1,6 @@
 from django.dispatch import Signal
 from lib import wizlib
+import logging
 
 wizcardship_accepted = Signal()
 
@@ -9,7 +10,7 @@ wizcardship_declined = Signal()
 
 wizcardship_cancelled = Signal()
 
-
+logger = logging.getLogger(__name__)
 
 def create_wizcardship_instance(sender, instance, created, raw, **kwargs):
     from cards.models import Wizcard
@@ -31,15 +32,13 @@ def create_wizcardship_instance_post_syncdb(sender,
     from django.contrib.auth.models import User
     from cards.models import Wizcard
     created = 0
-    print "Creating wizcards"
+    logger.debug("Creating wizcards")
     if User in created_models:
         for user in User.objects.filter(wizcardship__isnull=True):
             Wizcard.objects.create(user=user)
             created += 1
             if verbosity >= 2:
-                print "Wizcard created for %s" % user
-    if verbosity >= 1:
-        print "%d wizcardships created" % created
+                logger.debug("Wizcard created for %s", user)
 
 
 def create_userblock_instance_post_syncdb(sender,

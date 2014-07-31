@@ -31,12 +31,14 @@ from django.http import HttpResponseBadRequest, Http404
 from notifications.signals import notify
 from django.core.files.storage import default_storage
 from django.conf import settings
+import logging
 import operator
 from django.db.models import Q
 from lib import wizlib
 from wizcard import err
 from django.db.models import ImageField
 
+logger = logging.getLogger(__name__)
 
 class WizcardManager(models.Manager):
     def except_wizcard(self, except_user):
@@ -77,7 +79,7 @@ class WizcardManager(models.Manager):
                 to_wizcard=to_wizcard).get().accept()
 
     def serialize(self, wizcards, template):
-        print "Wizcard Serialize template", template
+        logger.debug("Wizcard Serialize template %s", template)
         return serialize(wizcards, **template)
 
     def exchange_implicit(self, wizcard1, wizcard2, flick_card, table):
@@ -422,13 +424,12 @@ class WizcardFlick(models.Model):
                     lng=lng, 
                     key=key, 
                     tree="WTREE")
-        print 'new flicked card location at [{lat}, {lng}]'.format (lat=lat, lng=lng)
         loc= retval[0][1]
 
         return loc
 
     def delete(self, *args, **kwargs):
-        print 'deleting flicked wizcard', self.id
+        logger.debug('deleting flicked wizcard %s', self.id)
         #AA:TODO - For some reason, django doesn't call delete method of generic FK object.
         # Although it does delete it. Until I figure out why, need to explicitly call 
         #delete method since other deletes need to happen there as well

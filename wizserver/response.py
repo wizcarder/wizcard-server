@@ -5,11 +5,13 @@ from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
 from notifications.models import Notification
 from django.http import HttpResponse
+import logging
 import fields
 import json
 import pdb
 from wizcard import err
 
+logger = logging.getLogger("wizcard")
 class errMsg:
 
     def __init__(self, err):
@@ -103,7 +105,6 @@ class NotifResponse(ResponseN):
             Notification.WIZCARD_FLICK_PICK         : self.notifWizcardFlickPick
         }
 	for notification in notifications:
-            print notification
 	    notifHandler[notification.verb](notification)
 	    
     def notifWizcard(self, notif, notifType):
@@ -129,7 +130,6 @@ class NotifResponse(ResponseN):
                     self.add_data_to_dict(out, "numSitting", num_sitting)
 
         self.add_data_with_notif(out, notifType)
-        print "sending wizcard notification"
         return self.response
 
     def notifWizConnectionT(self, notif):
@@ -145,22 +145,19 @@ class NotifResponse(ResponseN):
         #this is a notif to the app B when app A removed B's card
         out = dict(user_id=notif.actor_object_id)
         self.add_data_with_notif(out, self.DELETE_IMPLICIT)
-        print "sending revoke notification"
-        print self.response
         return self.response
 
     def notifWithdrawRequest(self, notif):
         #this is a notif to the app B when app A withdraws it's connection request
         out = dict(user_id=notif.actor_object_id)
         self.add_data_with_notif(out, self.WITHDRAW_REQUEST)
-        print "sending withdraw notification"
-        print self.response
+        logger.debug('%s', self.response)
         return self.response
 
     def notifDestroyedTable(self, notif):
         out = dict(tableID=notif.target_object_id)
         self.add_data_with_notif(out, self.TABLE_TIMEOUT)
-        print self.response
+        logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardUpdate(self, notif):
@@ -169,13 +166,13 @@ class NotifResponse(ResponseN):
     def notifWizcardFlickTimeout(self, notif):
 	out = dict(flickCardID=notif.target_object_id)
         self.add_data_with_notif(out, self.FLICK_TIMEOUT)
-        print self.response
+        logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardFlickPick(self, notif):
         out = dict(wizUserID=notif.action_object_object_id, flickCardID=notif.target_object_id)
         self.add_data_with_notif(out, self.FLICK_PICK)
-        print self.response
+        logger.debug('%s', self.response)
         return self.response
 
     def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards, send_data=True):

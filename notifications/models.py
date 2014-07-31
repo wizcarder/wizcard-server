@@ -8,6 +8,7 @@ from .utils import id2slug
 from notifications.signals import notify
 from pyapns import notify as apns_notify
 from pyapns import configure, provision, feedback
+import logging
 import pdb
 
 
@@ -27,7 +28,6 @@ class NotificationManager(models.Manager):
     def mark_specific_as_read(self, notifications):
         count = 0
         for n in notifications:
-            print n
             count += 1
             n.readed = True
             n.save()
@@ -275,7 +275,7 @@ def notify_handler(verb, **kwargs):
     #check if the target user is online and do APNS if not
     profile = recipient.profile
     if not profile.is_online():
-        print "User is OFFLINE", profile.userid
+        logging.info("User %(e1) is OFFLINE", extra={'e1':profile.userid})
         newnotify.pushNotificationToApp(
 			profile,
 			actor,

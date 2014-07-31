@@ -61,9 +61,9 @@ LNG1 = -122.506419
 
 ContactList = [PHONE1, PHONE2, PHONE3]
 
-#server_url = "www.totastyle.com"
+server_url = "www.totastyle.com"
 #server_url = "localhost"
-server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
+#server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 
 server_port = 8000
 #server_port = 80

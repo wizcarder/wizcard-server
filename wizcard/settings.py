@@ -205,9 +205,13 @@ INSTALLED_APPS = (
     'location_mgr',
     'periodic',
     'gunicorn',
+    'raven.contrib.django.raven_compat',
 )
 
 
+RAVEN_CONFIG = {
+    'dsn': 'https://d19905d820934cd59cde1e0372c21c43:cc970c850f4b4684bdbd9648f148d2ab@app.getsentry.com/27697',
+}
 #django-storage settings
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 #AWS_ACCESS_KEY_ID = 'AKIAJWT7M6E35TTP7HKA'
@@ -287,7 +291,7 @@ LOGGING = {
 	    'formatter': 'verbose',
 	    #consider: 'filename': '/var/log/<myapp>/app.log',
 	    #will need perms at location below:
-            'filename': '/var/log/app.log',
+            'filename': './log/app.log',
 	    'mode': 'a', #append+create
 	},
 	'timed-log-file': {
@@ -296,7 +300,7 @@ LOGGING = {
 	    'formatter': 'parsefriendly',
 	    #consider: 'filename': '/var/log/<myapp>/app.log',
 	    #will need perms at location below:
-	    'filename': '/var/log/app-timed.log',
+	    'filename': './log/app-timed.log',
 	    'when': 'midnight',
 	    #'backupCount': '30', #approx 1 month worth
 	},
@@ -306,7 +310,7 @@ LOGGING = {
 	    'formatter': 'parsefriendly',
 	    #consider: 'filename': '/var/log/<myapp>/app.log',
 	    #will need perms at location below:
-	    'filename': '/var/log/app-watched.log',
+	    'filename': './log/app-watched.log',
 	    'mode': 'a', #append+create
 	},
         'sentry': {
@@ -318,17 +322,12 @@ LOGGING = {
     'loggers': {
 	'django': {
 	    'level':'DEBUG',
-	    'handlers':['console', 'watched-log-file'],
-	    'propagate': True,
-	},
-	'django.request': {
-	    'level': 'DEBUG',
-	    'handlers': ['console', 'watched-log-file'],
+	    'handlers': ['timed-log-file'],
 	    'propagate': False,
-	}, 
-        'raven': {
+	},
+        'wizserver': {
             'level': 'DEBUG',
-            'handlers': ['console'],
+	    'handlers': ['console', 'watched-log-file'],
             'propagate': False,
         },
         'sentry.errors': {

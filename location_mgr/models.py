@@ -11,24 +11,28 @@ from django.db.models.signals import class_prepared
 from lib import wizlib
 from django_cron import Job
 from django.utils import timezone
+import logging
 import heapq
 import random
 import pdb
 
+logger = logging.getLogger(__name__)
 class Tick(Job):
     run_every = 10
 
     def job(self):
-        print 'TICK RECEIVED', timezone.now()
+        logger.debug('TICK RECEIVED at %s', timezone.now())
+        print('TICK RECEIVED at %s', timezone.now())
         exp = Periodic.objects.get_expired()
         if exp.count():
-            print 'EXPIRED objects found {e}'.format(e=exp)
+            pdb.set_trace()
+            logger.info('EXPIRED objects found %', exp)
             ids = map(lambda x:  x.location.pk, exp)
             try:
                 location_timeout.send(sender=None, ids=ids)
             except Exception, e:
                 #AA:TODO. This needs to be fixed...some issue with datetime and naive datetime
-                print 'Timer Job Exception:', str(e)
+                logger.error('Timer Job Exception: %s', str(e))
                 pass
 
 
@@ -53,7 +57,6 @@ class LocationMgrManager(models.Manager):
 
     def init_from_db(self, sender, **kwargs):
         if self.inited is True:
-            print 'already inited...skipping'
             return
         try:
             qs = LocationMgr.objects.all()
@@ -69,8 +72,6 @@ class LocationMgrManager(models.Manager):
         except:
             return
         self.inited = True
-        print 'Inited Location Trees, Inited={inited}'.format(inited=self.inited)
-        self.print_trees()
 	
     def get_tree_from_type(self, tree_type):
 	return self.location_tree_handles[tree_type]
@@ -85,7 +86,7 @@ class LocationMgrManager(models.Manager):
 
         if not count:
             return result, count
-        print 'looking up  gives result [{result}]'.format (result=result)
+        logger.debug('looking up  gives result [%s]', result)
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
             heapq.heappush(h, (l.distance_from(lat, lng), l.object_id))
@@ -136,11 +137,10 @@ class LocationMgr(models.Model):
             self.save()
             #update tree with new key (and old id)
             self.insert_in_tree(),
-        #print 'current tree [{tree_type}.{tree}]'.format (tree_type=self.tree_type, tree=tree)
         return updated
 
     def lookup(self, n):
-        #print 'lookup up {tree_type}'.format (tree_type=self.tree_type)
+        logger.debug('lookup up {%s}', self.tree_type)
 	tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
 
 	#remove self.key from the tree. Otherwise this skews the resuls towards
@@ -159,7 +159,6 @@ class LocationMgr(models.Model):
 	if cached_val:
 	    self.insert_in_tree()
 
-        #print 'looking up  gives {count} results [{result}]'.format (count=count, result=result)
         return result, count
 
     def delete_from_tree(self):
@@ -167,7 +166,7 @@ class LocationMgr(models.Model):
         val = wizlib.ptree_delete(
 			wizlib.modified_key(self.key, self.pk),
 			tree)
-        #print 'post deleted tree: [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
+        logger.debug('post deleted tree: [{%s}.{%s}]', self.tree_type, tree)
 	return val
 
     def insert_in_tree(self):
@@ -176,13 +175,10 @@ class LocationMgr(models.Model):
                 wizlib.modified_key(self.key, self.pk),
                 tree,
                 self.pk)
-        #print 'post inset tree: [{type}.{tree}]'.format (type=self.tree_type, tree=tree)
+        logger.debug('post inserted tree: [{%s}.{%s}]', self.tree_type, tree)
 
     def delete(self, *args, **kwargs):
-        #print 'deleting key {key}.{tree} from tree'.format (key=self.key, tree=self.tree_type)
-        print 'tree before delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         self.delete_from_tree()
-        #print 'tree after delete {tree}'.format(tree = LocationMgr.objects.get_tree_from_type(self.tree_type))
         super(LocationMgr, self).delete(*args, **kwargs)
 
     #Database based timer implementation
@@ -227,7 +223,7 @@ def location_create_handler(**kwargs):
     newlocation.save()
     #update tree
     newlocation.insert_in_tree()
-    #print 'current tree [{tree}]'.format (tree=tree)
+    logger.debug("inserted key %s in tree %s", key, tree_type)
     return newlocation
 
 def location_timeout_handler(**kwargs):

@@ -140,8 +140,8 @@ class Header(ParseMsgAndDispatch):
             return False
 
 	self.msg_type = self.header['msgType']
-        logger.debug('received message', self.msg_type)
-	logger.debug('%(msg)', extra={'msg':self})
+        logger.debug('received message %s', self.msg_type)
+	logger.debug('%s', self)
 
 	if not self.validateHeader():
             self.securityException()
@@ -334,11 +334,6 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def Register(self):
-        #AA:TODO: User created here should not be visible in proximity or search by name
-        print '{sender} at location [{locX} , {locY}] sent '.format (sender=self.sender['userID'], locX=self.sender['lat'], locY=self.sender['lng'])
-
-        #sync the app from server
-
         #fill in device details
         try:
             self.userprofile.device_type = self.sender['deviceType']
@@ -363,7 +358,7 @@ class Header(ParseMsgAndDispatch):
                 if 'flick_picks' in s:
                     self.response.add_data("flick_picks", s["flick_picks"])
 
-            self.userprofile.sync = False
+            self.userprofile.do_sync = False
             self.userprofile.activated = True
 
 	self.userprofile.save()
@@ -383,10 +378,10 @@ class Header(ParseMsgAndDispatch):
         for phone_number in verify_list:
 	    username = UserProfile.objects.userid_from_phone_num(phone_number)
 	    if User.objects.filter(username=username).exists():
+                user = User.objects.get(username=username)
 		d = dict()
 		d['phoneNum'] = phone_number
 		d['wizUserID'] = user.id
-		user = User.objects.get(username=username)
 		if Wizcard.objects.are_wizconnections(
 				self.user.wizcard,
 				user.wizcard):
@@ -416,7 +411,7 @@ class Header(ParseMsgAndDispatch):
 	    except:
                 #maybe location timedout. Shouldn't happen if messages from app
                 #are coming correctly...
-                print ' No location information available'
+                logger.warning('No location information available')
 		return self.response
 	    
 
@@ -797,7 +792,6 @@ class Header(ParseMsgAndDispatch):
             return self.response
 
         phones = self.receiver['phones']
-        pdb.set_trace()
         for phone in phones:
             try:
                 #AA:TODO: phone should just be the mobile phone. App needs to change
@@ -910,7 +904,6 @@ class Header(ParseMsgAndDispatch):
             return self.response
 
         result, count = VirtualTable.objects.query_tables(self.receiver['name'])
-        print "TABLE QUERY", result, count
 
         if count:
 	    tables_s = VirtualTable.objects.serialize_split(result, self.user, True, True)
@@ -974,16 +967,6 @@ class Header(ParseMsgAndDispatch):
 	return self.response
 
     def TableCreate(self):
-	if self.lat == None and self.lng == None:
-	    try:
-	        self.lat = self.userprofile.location.get().lat
-		self.lng = self.userprofile.location.get().lng
-	    except:
-                #maybe location timedout. Shouldn't happen if messages from app
-                #are coming correctly...
-                print ' No location information available'
-		return self.response
-
         tablename = self.sender['table_name']
         secure = self.sender['secureTable']
         if self.sender.has_key('timeout'):
