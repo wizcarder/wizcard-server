@@ -37,6 +37,7 @@ import pytz
 # default value: 300 seconds == 5 min
 polling_frequency = getattr(settings, "CRON_POLLING_FREQUENCY", 60)
 
+logger = logging.getLogger(__name__)
 class Job(object):
 	# 86400 seconds == 24 hours
 	run_every = 86400
@@ -84,6 +85,8 @@ class CronScheduler(object):
 		#        one is already executing a job (only occurs with
 		#		 multi-threaded servers)
 		if status.executing:
+                        logger.error("Tick masked due to (stuck) timer job")
+                        print("Tick masked due to (stuck) timer job")
 			return
 
 		status.executing = True
