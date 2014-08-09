@@ -30,6 +30,7 @@ from django.conf import settings
 from signals import cron_done
 import models
 import pytz
+import logging
 
 # how often to check if jobs are ready to be run (in seconds)
 # in reality if you have a multithreaded server, it may get checked
