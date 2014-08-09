@@ -24,7 +24,7 @@ class Periodic(models.Model):
         return u'timeout: %s expires at: %s' % (self.timeout_value, self.expires_at)
 
     def start(self):
-        self.expires_at = timezone.now() + timezone.timedelta(
+        self.expires_at = self.expires_at + timezone.timedelta(
                 seconds=self.timeout_value)
         self.save()
 	return self
