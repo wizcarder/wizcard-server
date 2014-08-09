@@ -10,6 +10,7 @@ from periodic.models import Periodic
 from django.db.models.signals import class_prepared
 from lib import wizlib
 from django_cron import Job
+from django_cron.models import Cron
 from django.utils import timezone
 import logging
 import heapq
@@ -22,11 +23,10 @@ class Tick(Job):
 
     def job(self):
         logger.debug('TICK RECEIVED at %s', timezone.now())
-        print('TICK RECEIVED at %s', timezone.now())
+        print 'TICK RECEIVED at {t}'.format(t=timezone.now())
         exp = Periodic.objects.get_expired()
         if exp.count():
-            pdb.set_trace()
-            logger.info('EXPIRED objects found %', exp)
+            logger.info('EXPIRED objects found %s', exp)
             ids = map(lambda x:  x.location.pk, exp)
             try:
                 location_timeout.send(sender=None, ids=ids)
@@ -71,6 +71,11 @@ class LocationMgrManager(models.Manager):
                 row.timer.get().start()
         except:
             return
+        #just to be safe, restore django.cron executing to false
+        c = Cron.objects.get(id=1)
+        c.executing = False
+        c.save()
+
         self.inited = True
 	
     def get_tree_from_type(self, tree_type):

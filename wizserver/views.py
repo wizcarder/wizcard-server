@@ -155,10 +155,8 @@ class Header(ParseMsgAndDispatch):
         if 'receiver' in self.msg:
             self.receiver = self.msg['receiver']
 
-        if self.header.has_key('onWifi'):
-            self.on_wifi = self.header['onWifi']
-        else:
-            self.on_wifi = False
+        #AA:TODO: App to fix - This has to be in header
+        self.on_wifi = self.sender['onWifi']
 
         return True, self.response
 
