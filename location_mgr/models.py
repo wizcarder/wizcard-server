@@ -104,7 +104,7 @@ class LocationMgrManager(models.Manager):
             for ttype in LocationMgr.objects.location_tree_handles:
                 print '{ttype} : {tree}'.format (ttype=ttype, tree=LocationMgr.objects.location_tree_handles[ttype])
 	else:
-	    print '{ttype} : {tree}'.format (ttype=ttype, tree=LocationMgr.objects.location_tree_handles[ttype])
+	    print '{ttype} : {tree}'.format (ttype=tree_type, tree=LocationMgr.objects.location_tree_handles[tree_type])
 	    
 class LocationMgr(models.Model):
     lat = models.FloatField(null=True, default=None)
