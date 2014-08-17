@@ -16,6 +16,7 @@ PHONE_CHECK_RETRY_EXCEEDED = {'errno':14, 'str':"too many attempts...do you want
 PHONE_CHECK_CHALLENGE_RESPONSE_DENIED = {'errno':15, 'str':"keys do not match"}
 PHONE_CHECK_CHALLENGE_RESPONSE_INVALID_DEVICE = {'errno':16, 'str':"unauthorized device"}
 NEXMO_SMS_SEND_FAILED = {'errno':17, 'str':"SMS send failed"}
+VALIDITY_CHECK_FAILED = {'errno':18, 'str':"validity check fails on data"}
 
 
 

@@ -28,10 +28,14 @@ TEST_IMAGE=False
 PHONE1 = "+15084641727"
 PHONE2 = "+15085332708"
 PHONE3 = "+15086892263"
+PHONE4 = "+14086892263"
 
 USERNAME1 = PHONE1+'@wizcard.com'
 USERNAME2 = PHONE2+'@wizcard.com'
 USERNAME3 = PHONE3+'@wizcard.com'
+USERNAME4 = "wizweb_user1"
+USERNAME4_FIRST_NAME = "WizWeb_1"
+USERNAME4_LAST_NAME = "Last_1"
 
 TABLE1NAME = "One"
 TABLE1NAME_NEW = "One More"
@@ -55,6 +59,12 @@ HASH3 = "cccccccccccccccccccccccccc"
 RESPONSE_KEY1 = "1234"
 RESPONSE_KEY2 = "1234"
 RESPONSE_KEY3 = "1234"
+
+DEFAULT_TITLE = "CEO"
+DEFAULT_COMPANY = "WizCard Inc"
+START1 = "Jan 27, 2010"
+DEFAULT_MEDIA_URL = "www.youtube.com"
+DEFAULT_BIZCARD_URL = "www.youtube.com"
 
 LAT1 = 37.885938
 LNG1 = -122.506419
@@ -562,5 +572,103 @@ reqmsg['receiver']['wizCardID'] = e3_id
 print "GET card DETAILS", reqmsg['sender']['userID']
 cd3 = json.dumps(reqmsg)
 conn.request("POST","", cd3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+####wizweb messages########################
+#query user
+print "wizweb query existing user"
+reqmsg = messages.wizweb_query_user
+reqmsg['sender']['username'] = USERNAME1
+print "wizweb message query_user ", reqmsg['sender']['userID']
+wwqu1 = json.dumps(reqmsg)
+conn.request("POST","", wwqu1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+print "wizweb query non-existing user"
+reqmsg = messages.wizweb_query_user
+reqmsg['sender']['username'] = "does not exist"
+print "wizweb message query_user ", reqmsg['sender']['userID']
+wwqu2 = json.dumps(reqmsg)
+conn.request("POST","", wwqu2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+#query wizcard
+print "wizweb query existing wizcard"
+reqmsg = messages.wizweb_query_wizcard
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['userID'] = uid1
+print "wizweb message query_wizcard ", reqmsg['sender']['userID']
+wwqwc1 = json.dumps(reqmsg)
+conn.request("POST","", wwqwc1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+print "wizweb query non-valid wizcard"
+reqmsg = messages.wizweb_query_wizcard
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['userID'] = uid2
+print "wizweb message query_user ", reqmsg['sender']['userID']
+wwqwc2 = json.dumps(reqmsg)
+conn.request("POST","", wwqwc2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#wizweb user create
+print "wizweb user create"
+reqmsg = messages.wizweb_user_create
+reqmsg['sender']['username'] = USERNAME4
+reqmsg['sender']['first_name'] = USERNAME4_FIRST_NAME
+reqmsg['sender']['last_name'] = USERNAME4_LAST_NAME
+print "wizweb message query_user ", reqmsg['sender']['userID']
+wwqwc2 = json.dumps(reqmsg)
+conn.request("POST","", wwqwc2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+uid4 = objs['data']['userID']
+
+#wizweb add card new
+print "wizweb add card force"
+reqmsg = messages.wizweb_add_edit_card
+reqmsg['sender']['username'] = USERNAME4
+reqmsg['sender']['userID'] = uid4
+reqmsg['sender']['mode'] = 1
+reqmsg['sender']['first_name'] = USERNAME4_FIRST_NAME
+reqmsg['sender']['last_name'] = USERNAME4_LAST_NAME
+reqmsg['sender']['phone'] = PHONE4
+reqmsg['sender']['title'] = DEFAULT_TITLE
+reqmsg['sender']['company'] = DEFAULT_COMPANY
+reqmsg['sender']['start'] = START1
+reqmsg['sender']['mediaUrl'] = DEFAULT_MEDIA_URL
+reqmsg['sender']['f_bizCardUrl'] = DEFAULT_BIZCARD_URL
+print "wizweb message query_user ", reqmsg['sender']['userID']
+wwaewc1 = json.dumps(reqmsg)
+conn.request("POST","", wwaewc1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#wizweb edit card
+print "wizweb edit card"
+reqmsg = messages.wizweb_add_edit_card
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['mode'] = 2
+reqmsg['sender']['first_name'] = USERNAME1
+reqmsg['sender']['last_name'] = USERNAME1
+reqmsg['sender']['phone'] = PHONE1
+reqmsg['sender']['title'] = DEFAULT_TITLE
+reqmsg['sender']['company'] = DEFAULT_COMPANY
+reqmsg['sender']['start'] = START1
+reqmsg['sender']['mediaUrl'] = DEFAULT_MEDIA_URL
+reqmsg['sender']['f_bizCardUrl'] = DEFAULT_BIZCARD_URL
+print "wizweb message query_user ", reqmsg['sender']['userID']
+wwaewc2 = json.dumps(reqmsg)
+conn.request("POST","", wwaewc2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])

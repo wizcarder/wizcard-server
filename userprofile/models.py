@@ -94,6 +94,10 @@ class UserProfile(models.Model):
 
     objects = UserProfileManager()
 
+    def serialize(self):
+        return serialize(self, 
+			**fields.wizcard_template_brief_with_thumbnail)
+
     def online_key(self):
         return self.userid
 
@@ -162,7 +166,7 @@ class UserProfile(models.Model):
 	#wizcard
         try:
 	    wizcard = self.user.wizcard
-            w = wizcard.serialize()
+            w = wizcard.serialize(**fields.wizcard_template_full)
             s['wizcard'] = w
         except ObjectDoesNotExist:
             return s

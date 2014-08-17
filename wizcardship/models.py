@@ -207,6 +207,8 @@ class Wizcard(models.Model):
     #media objects
     thumbnailImage = models.ImageField(upload_to="image/")
     video = models.FileField(upload_to="video/")
+    media_url = models.CharField(max_length=30, blank=True)
+
 
     objects = WizcardManager()
 
@@ -217,8 +219,8 @@ class Wizcard(models.Model):
     def __unicode__(self):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
 
-    def serialize(self):
-        return serialize(self, **fields.wizcard_template_full)
+    def serialize(self, template):
+        return serialize(self, template)
 
     def serialize_wizconnections(self):
         return serialize(self.wizconnections.all(), **fields.wizcard_template_full)
@@ -275,7 +277,8 @@ class ContactContainer(models.Model):
     start = models.CharField(max_length=30, blank=True)
     end = models.CharField(max_length=30, blank=True)
     f_bizCardImage = models.ImageField(upload_to="image/")
-    r_bizCardImage = models.ImageField(upload_to="image/")
+    card_url = models.CharField(max_length=30, blank=True)
+    
 
     def __unicode__(self):
         return _(u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)} 

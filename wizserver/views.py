@@ -98,6 +98,9 @@ class Header(ParseMsgAndDispatch):
 
     def msg_is_initial(self):
 	return self.msg_type in ['phone_check_req', 'phone_check_rsp', 'login'] 
+   
+    def msg_is_from_wizweb(self):
+	return self.device_id == settings.WIZWEB_DEVICE_ID
 
     def validateHeader(self):
 	
@@ -131,6 +134,12 @@ class Header(ParseMsgAndDispatch):
 
         return True
 
+    def validateWizWebMsg(self):
+	if self.msg.has_key('sender'):
+	    self.sender = self.msg['sender']
+
+	return True
+
     def validate(self):
         try:
             #self.header = message_format.CommonHeaderSchema().deserialize(self.msg['header'])
@@ -140,6 +149,11 @@ class Header(ParseMsgAndDispatch):
             return False
 
 	self.msg_type = self.header['msgType']
+	self.device_id = self.header['deviceID']
+
+	if self.msg_is_from_wizweb():
+	    return self.validateWizWebMsg()
+
         logger.debug('received message %s', self.msg_type)
 	logger.debug('%s', self)
 
@@ -148,7 +162,7 @@ class Header(ParseMsgAndDispatch):
             self.response.ignore()
             return False, self.response
 
-	if 'sender' in self.msg and not self.validateSender(self.msg['sender']):
+	if self.msg.has_key('sender') and not self.validateSender(self.msg['sender']):
             self.securityException()
             self.response.ignore()
             return False, self.response
@@ -163,6 +177,11 @@ class Header(ParseMsgAndDispatch):
     def headerProcess(self):
 
         msgTypesValidatorsAndHandlers = {
+	    # wizweb messages
+	    'wizweb_query_user'		  : (message_format.WizWebUserQuerySchema, self.WizWebUserQuery),
+	    'wizweb_query_wizcard'	  : (message_format.WizWebWizcardQuerySchema, self.WizWebWizcardQuery),
+	    'wizweb_create_user'	  : (message_format.WizWebUserCreateSchema, self.WizWebUserCreate),
+	    'wizweb_add_edit_card'	  : (message_format.WizWebAddEditCardSchema, self.WizWebAddEditCard),
             'login'                       : (message_format.LoginSchema, self.Login),
             'phone_check_req'             : (message_format.PhoneCheckRequestSchema, self.PhoneCheckRequest),
             'phone_check_rsp'             : (message_format.PhoneCheckResponseSchema, self.PhoneCheckResponse),
@@ -292,7 +311,7 @@ class Header(ParseMsgAndDispatch):
 
 	if created:
 	    #AA TODO: Generate hash from deviceID and user.pk
-	    password = "wizcard"
+	    password = device_id
 	    #password = user.profile.gen_password(user.pk, device_id)
 	    user.set_password(password)
 	    #generate internal userid
@@ -321,7 +340,7 @@ class Header(ParseMsgAndDispatch):
     def Login(self):
 	self.username = self.sender['username']
         self.user = User.objects.get(username=self.username)
-	self.password = "wizcard"
+	self.password = self.device_id
         auth = authenticate(username=self.username, password=self.password)
         if auth is None:
             #invalid password
@@ -459,7 +478,7 @@ class Header(ParseMsgAndDispatch):
             self.userprofile.save()
 
         #AA:TODO: Change app to call this phone as well
-        phone = self.sender['phone1']
+        phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1'] 
 
         #check if futureUser existed for this phoneNum
         try:
@@ -467,7 +486,7 @@ class Header(ParseMsgAndDispatch):
             if future_user.profile.is_future():
                 Wizcard.objects.migrate_future_user(future_user, self.user)
                 Notification.objects.migrate_future_user(future_user, self.user)
-            future_user.delete()
+                future_user.delete()
         except:
             pass
          
@@ -532,7 +551,11 @@ class Header(ParseMsgAndDispatch):
                     end = ""
 
                 #AA:TODO - Can there be 1 save with image
-                c = ContactContainer(wizcard=wizcard, title=title, company=company, start=start, end=end)
+                c = ContactContainer(wizcard=wizcard, 
+				title=title, 
+				company=company, 
+				start=start, 
+				end=end)
 		c.save()
 		if 'f_bizCardImage' in contactItem and contactItem['f_bizCardImage']:
 	            #AA:TODO: Remove try
@@ -1114,6 +1137,136 @@ class Header(ParseMsgAndDispatch):
 	    self.userprofile.save()
 	  
 	return self.response
+
+    #################WizWeb Message handling########################
+    def WizWebUserQuery(self):
+	pdb.set_trace()
+	username = self.sender['username']
+	userID = None
+	try:
+	    user = User.objects.get(username=username)
+	    userID = user.profile.userid
+	except:
+	    pass
+        
+        out = user.profile.serialize()
+        self.response.add_data("result", out)
+
+	return self.response
+
+    def WizWebWizcardQuery(self):
+	pdb.set_trace()
+	username = self.sender['username']
+	userID = self.sender['userID']
+
+        try:
+	    self.user = User.objects.get(username=username)
+	except:
+            return self.response.error_response(err.USER_DOESNT_EXIST)
+
+        if self.user.profile.userid != userID:
+            return self.response.error_response(err.VALIDITY_CHECK_FAILED)
+
+	try:
+            wizcard = self.user.wizcard
+	except:
+            return self.response.error_response(err.VALIDITY_CHECK_FAILED)
+
+        out = wizcard.serialize(**fields.wizcard_template_full)
+        self.response.add_data("result", out)
+
+
+    def WizWebUserCreate(self):
+	pdb.set_trace()
+	username = self.sender['username']
+	first_name = self.sender['first_name']
+	last_name = self.sender['last_name']
+
+	self.user, created = User.objects.get_or_create(username=username,
+			first_name=first_name,
+			last_name=last_name)
+
+	if not created:
+            #wizweb should have sent user query
+            return self.response.error_response(err.VALIDITY_CHECK_FAILED)
+
+        self.userprofile.activated = False
+	self.userprofile.save()
+        self.response.add_data("userID", self.user.profile.userid)
+
+	return self.response
+
+    def WizWebAddEditCard(self):
+	pdb.set_trace()
+	EDIT_LATEST = 1
+	EDIT_FORCE = 2
+	
+	flood = False
+	username = self.sender['username']
+	userID = self.sender['userID']
+	mode = self.sender.get('mode', EDIT_LATEST)
+
+        try:
+	    self.user = User.objects.get(username=username)
+	except:
+            return self.response.error_response(err.USER_DOESNT_EXIST)
+
+        if self.user.profile.userid != userID:
+            return self.response.error_response(err.VALIDITY_CHECK_FAILED)
+
+        try:
+	    first_name = self.sender['first_name']
+	    last_name = self.sender['last_name']
+	    phone = self.sender['phone']
+	    title = self.sender['title']
+	    company = self.sender['company']
+	    start = self.sender.get('start', None)
+	    end = self.sender.get('end', "current")
+	    media_url = self.sender.get('mediaUrl', None)
+	    card_url = self.sender['f_bizCardUrl']
+	except:
+            return self.response.error_response(err.INVALID_MESSAGE)
+
+        if hasattr(self.user, 'wizcard'):
+	    flood = True
+	    wizcard = self.user.wizcard
+	    #edit existing wizcard case. Add to contact container or
+	    #force add depending on mode
+
+	    #AA_TODO: cross check phone
+
+	    if mode == EDIT_FORCE:
+	        #delete existing contact container for this wizcard
+                wizcard.contact_container.all().delete()
+
+	else:
+	    #create new wizcard
+            wizcard = Wizcard(user=self.user,
+			    first_name=first_name,
+			    last_name=last_name,
+			    phone=phone)
+            wizcard.save()
+	    #AA:TO_DO: Future user handling
+
+	c = ContactContainer(wizcard=wizcard,
+			title=title,
+			company=company,
+			start=start,
+			end=end,
+			card_url=card_url)
+	c.save()
+
+	if media_url:
+	    flood = True
+	    wizcard.media_url = media_url
+	    wizcard.save()
+
+	if flood == True:
+	    wizcard.flood()
+
+        self.response.add_data("wizCardID", wizcard.id)
+	return self.response
+	    
 
 VALIDATOR = 0
 HANDLER = 1

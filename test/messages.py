@@ -443,11 +443,67 @@ card_details = {
     },
     "sender" : {
         "userID" : "",
-        "wizUserID" : ""
+        "wizUserID" : "",
     },
     "receiver" : {
-        "wizCardID" : ""
+        "wizCardID" : "",
     }
 }
+
+wizweb_query_user = {
+    "header" : {
+        "deviceID" : "wizweb",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        "msgType" : "wizweb_query_user",
+    },
+    "sender" : {
+        "username" : "",
+    },
+}
     
+
+wizweb_wizcard_query = {
+    "header" : {
+        "deviceID" : "wizweb",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        "msgType" : "wizweb_query_wizcard",
+    },
+    "sender" : {
+        "username" : "",
+	"userID" : "",
+    },
+}
+    
+wizweb_user_create = {
+    "header" : {
+        "deviceID" : "wizweb",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        "msgType" : "wizweb_create_user",
+    },
+    "sender" : {
+        "username" : "",
+	"userID" : ""
+    },
+}
+    
+wizweb_add_edit_card = {
+    "header" : {
+        "deviceID" : "wizweb",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        "msgType" : "wizweb_add_edit_card",
+    },
+    "sender" : {
+        "username" : "",
+	"userID" : "",
+	"first_name" : "",
+	"last_name" : "",
+	"phone" : "",
+	"title" : "",
+	"company" : "", 
+	"start" : "",
+	"end" : "",
+	"media_url" : "",
+	"card_url" : "",
+    },
+}
 
