@@ -94,10 +94,6 @@ class UserProfile(models.Model):
 
     objects = UserProfileManager()
 
-    def serialize(self):
-        return serialize(self, 
-			**fields.wizcard_template_brief_with_thumbnail)
-
     def online_key(self):
         return self.userid
 
@@ -166,7 +162,7 @@ class UserProfile(models.Model):
 	#wizcard
         try:
 	    wizcard = self.user.wizcard
-            w = wizcard.serialize(**fields.wizcard_template_full)
+            w = wizcard.serialize()
             s['wizcard'] = w
         except ObjectDoesNotExist:
             return s
@@ -195,7 +191,9 @@ class UserProfile(models.Model):
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        profile = UserProfile(user=instance)
+	profile.userid = UserProfile.objects.id_generator()
+        profile.save()
 
 post_save.connect(create_user_profile, sender=User)
 

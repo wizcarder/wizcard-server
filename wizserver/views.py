@@ -68,6 +68,7 @@ class ParseMsgAndDispatch(object):
 	status, response =  self.header.validate()
         if not status:
             return response
+
 	return self.header.headerProcess()
 
     def dummy_validator(self, req):
@@ -138,7 +139,7 @@ class Header(ParseMsgAndDispatch):
 	if self.msg.has_key('sender'):
 	    self.sender = self.msg['sender']
 
-	return True
+	return True, self.response
 
     def validate(self):
         try:
@@ -146,7 +147,7 @@ class Header(ParseMsgAndDispatch):
             self.header = self.msg['header']
         except colander.Invalid:
             self.response.ignore()
-            return False
+            return False, self.response
 
 	self.msg_type = self.header['msgType']
 	self.device_id = self.header['deviceID']
@@ -229,9 +230,8 @@ class Header(ParseMsgAndDispatch):
 	return response
 
     def headerPostProcess(self):
-
         #make the user as alive
-        if not self.msg_is_initial():
+        if not (self.msg_is_initial() or self.msg_is_from_wizweb()):
             self.userprofile.online()
 
     def PhoneCheckRequest(self):
@@ -273,7 +273,9 @@ class Header(ParseMsgAndDispatch):
             response = sms.send_request()
             if response['messages'][0]['status'] != '0':
                 #some error...let the app know
-                return self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
+                self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
+                return self.response
+
 
         return self.response
 
@@ -283,7 +285,8 @@ class Header(ParseMsgAndDispatch):
 	challenge_response = self.sender['responseKey']
 
 	if not (username and challenge_response):
-            return self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+            self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+            return self.response
 
 	k_user = (settings.PHONE_CHECK_USER_KEY % username)
 	k_rand = (settings.PHONE_CHECK_USER_RAND_KEY % username)
@@ -296,15 +299,18 @@ class Header(ParseMsgAndDispatch):
 
 	if d[k_retry] > settings.MAX_PHONE_CHECK_RETRIES:
 	    cache.delete(k_user)
-            return self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
+            self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
+            return self.response
 
         cache.incr(k_retry)
 
 	if device_id != d[k_device_id]:
-            return self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_INVALID_DEVICE)
+            self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_INVALID_DEVICE)
+            return self.response
 
 	if settings.PHONE_CHECK and challenge_response != d[k_rand]:
-            return self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+            self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+            return self.response
 
         #response is valid. create user here and send back userID
 	user, created = User.objects.get_or_create(username=username)
@@ -316,7 +322,6 @@ class Header(ParseMsgAndDispatch):
 	    user.set_password(password)
 	    #generate internal userid
 	    user.save()
-	    user.profile.userid = UserProfile.objects.id_generator()
 	else:
 	    # mark for sync.
 	    user.profile.do_sync = True
@@ -1140,22 +1145,18 @@ class Header(ParseMsgAndDispatch):
 
     #################WizWeb Message handling########################
     def WizWebUserQuery(self):
-	pdb.set_trace()
 	username = self.sender['username']
 	userID = None
 	try:
 	    user = User.objects.get(username=username)
-	    userID = user.profile.userid
+            out = dict(userID=user.profile.id)
+            self.response.add_data("userID", user.profile.id)
 	except:
 	    pass
         
-        out = user.profile.serialize()
-        self.response.add_data("result", out)
-
 	return self.response
 
     def WizWebWizcardQuery(self):
-	pdb.set_trace()
 	username = self.sender['username']
 	userID = self.sender['userID']
 
@@ -1172,12 +1173,12 @@ class Header(ParseMsgAndDispatch):
 	except:
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
 
-        out = wizcard.serialize(**fields.wizcard_template_full)
+        out = wizcard.serialize()
         self.response.add_data("result", out)
+        return self.response
 
 
     def WizWebUserCreate(self):
-	pdb.set_trace()
 	username = self.sender['username']
 	first_name = self.sender['first_name']
 	last_name = self.sender['last_name']
@@ -1190,14 +1191,13 @@ class Header(ParseMsgAndDispatch):
             #wizweb should have sent user query
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
 
-        self.userprofile.activated = False
-	self.userprofile.save()
+        self.user.profile.activated = False
+	self.user.profile.save()
         self.response.add_data("userID", self.user.profile.userid)
 
 	return self.response
 
     def WizWebAddEditCard(self):
-	pdb.set_trace()
 	EDIT_LATEST = 1
 	EDIT_FORCE = 2
 	
@@ -1209,10 +1209,12 @@ class Header(ParseMsgAndDispatch):
         try:
 	    self.user = User.objects.get(username=username)
 	except:
-            return self.response.error_response(err.USER_DOESNT_EXIST)
+            self.response.error_response(err.USER_DOESNT_EXIST)
+            return self.response
 
         if self.user.profile.userid != userID:
-            return self.response.error_response(err.VALIDITY_CHECK_FAILED)
+            self.response.error_response(err.VALIDITY_CHECK_FAILED)
+            return self.response
 
         try:
 	    first_name = self.sender['first_name']
@@ -1225,7 +1227,8 @@ class Header(ParseMsgAndDispatch):
 	    media_url = self.sender.get('mediaUrl', None)
 	    card_url = self.sender['f_bizCardUrl']
 	except:
-            return self.response.error_response(err.INVALID_MESSAGE)
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
 
         if hasattr(self.user, 'wizcard'):
 	    flood = True

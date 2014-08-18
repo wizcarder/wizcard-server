@@ -462,7 +462,7 @@ wizweb_query_user = {
 }
     
 
-wizweb_wizcard_query = {
+wizweb_query_wizcard = {
     "header" : {
         "deviceID" : "wizweb",
         "hash" : "da0f7402460b85205c85618edf685916",
@@ -474,7 +474,7 @@ wizweb_wizcard_query = {
     },
 }
     
-wizweb_user_create = {
+wizweb_create_user = {
     "header" : {
         "deviceID" : "wizweb",
         "hash" : "da0f7402460b85205c85618edf685916",
@@ -482,7 +482,8 @@ wizweb_user_create = {
     },
     "sender" : {
         "username" : "",
-	"userID" : ""
+        "first_name" : "",
+        "last_name" : ""
     },
 }
     
@@ -502,8 +503,8 @@ wizweb_add_edit_card = {
 	"company" : "", 
 	"start" : "",
 	"end" : "",
-	"media_url" : "",
-	"card_url" : "",
+	"mediaUrl" : "",
+	"f_bizCardUrl" : "",
     },
 }
 

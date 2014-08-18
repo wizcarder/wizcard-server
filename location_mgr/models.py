@@ -72,9 +72,13 @@ class LocationMgrManager(models.Manager):
         except:
             return
         #just to be safe, restore django.cron executing to false
-        c = Cron.objects.get(id=1)
-        c.executing = False
-        c.save()
+        try:
+            c = Cron.objects.get(id=1)
+            c.executing = False
+            c.save()
+        except:
+            #will happen on db full clean
+            pass
 
         self.inited = True
 	

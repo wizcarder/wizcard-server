@@ -275,11 +275,16 @@ def notify_handler(verb, **kwargs):
     #check if the target user is online and do APNS if not
     profile = recipient.profile
     if not profile.is_online():
-        logging.info("User %(e1) is OFFLINE", extra={'e1':profile.userid})
-        newnotify.pushNotificationToApp(
-			profile,
-			actor,
-			verb)
+        logging.info("User %s is OFFLINE", profile.userid)
+        try:
+            newnotify.pushNotificationToApp(
+                    profile,
+                    actor,
+                    verb)
+        except:
+            logging.error("Failed to send APNS to User %s", profile.userid)
+            pass
+
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

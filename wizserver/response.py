@@ -41,9 +41,11 @@ class Response:
     def error_response(self, err):
         self.add_result("Error", err['errno'])
         self.add_result("Description", err['str'])
+        return self
 
     def ignore(self):
         self.response = None
+        return self
     
     def is_error_response(self):
         if not self.response or self.response['result']['Error']:

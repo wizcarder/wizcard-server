@@ -8,6 +8,8 @@ import json
 import pdb
 import messages
 from notifications import NotifParser
+import random
+import string
 
 #1 Flick
 #2 flick
@@ -33,7 +35,7 @@ PHONE4 = "+14086892263"
 USERNAME1 = PHONE1+'@wizcard.com'
 USERNAME2 = PHONE2+'@wizcard.com'
 USERNAME3 = PHONE3+'@wizcard.com'
-USERNAME4 = "wizweb_user1"
+USERNAME4 = "wizweb_user1" + ''.join(random.choice(string.digits) for x in range(2))
 USERNAME4_FIRST_NAME = "WizWeb_1"
 USERNAME4_LAST_NAME = "Last_1"
 
@@ -169,6 +171,7 @@ uid3 = objs['data']['userID']
 reqmsg = messages.login
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['userID'] = uid1
+reqmsg['header']['deviceID'] = DEVICE_ID1
 login = json.dumps(reqmsg)
 print "sending login", login
 conn.request("POST","", login)
@@ -178,6 +181,7 @@ wuid1 = objs['data']['wizUserID']
 
 reqmsg['sender']['username'] = USERNAME2
 reqmsg['sender']['userID'] = uid2
+reqmsg['header']['deviceID'] = DEVICE_ID2
 login = json.dumps(reqmsg)
 print "sending login", login
 conn.request("POST","", login)
@@ -187,6 +191,7 @@ wuid2 = objs['data']['wizUserID']
 
 reqmsg['sender']['username'] = USERNAME3
 reqmsg['sender']['userID'] = uid3
+reqmsg['header']['deviceID'] = DEVICE_ID3
 login = json.dumps(reqmsg)
 print "sending login", login
 conn.request("POST","", login)
@@ -581,18 +586,18 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 print "wizweb query existing user"
 reqmsg = messages.wizweb_query_user
 reqmsg['sender']['username'] = USERNAME1
-print "wizweb message query_user ", reqmsg['sender']['userID']
 wwqu1 = json.dumps(reqmsg)
+print wwqu1
 conn.request("POST","", wwqu1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
 
 print "wizweb query non-existing user"
-reqmsg = messages.wizweb_query_user
 reqmsg['sender']['username'] = "does not exist"
-print "wizweb message query_user ", reqmsg['sender']['userID']
+print "wizweb message query_user ", reqmsg['sender']['username']
 wwqu2 = json.dumps(reqmsg)
+print wwqu2
 conn.request("POST","", wwqu2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -603,38 +608,40 @@ print "wizweb query existing wizcard"
 reqmsg = messages.wizweb_query_wizcard
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['userID'] = uid1
-print "wizweb message query_wizcard ", reqmsg['sender']['userID']
+print "wizweb message query_wizcard ", reqmsg['sender']['username']
 wwqwc1 = json.dumps(reqmsg)
+print wwqwc1
 conn.request("POST","", wwqwc1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
 
 print "wizweb query non-valid wizcard"
-reqmsg = messages.wizweb_query_wizcard
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['userID'] = uid2
-print "wizweb message query_user ", reqmsg['sender']['userID']
+print "wizweb message query invalid wizcard ", reqmsg['sender']['userID']
 wwqwc2 = json.dumps(reqmsg)
+print wwqwc2
 conn.request("POST","", wwqwc2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #wizweb user create
 print "wizweb user create"
-reqmsg = messages.wizweb_user_create
+reqmsg = messages.wizweb_create_user
 reqmsg['sender']['username'] = USERNAME4
 reqmsg['sender']['first_name'] = USERNAME4_FIRST_NAME
 reqmsg['sender']['last_name'] = USERNAME4_LAST_NAME
-print "wizweb message query_user ", reqmsg['sender']['userID']
-wwqwc2 = json.dumps(reqmsg)
-conn.request("POST","", wwqwc2)
+print "wizweb message user create ", reqmsg['sender']['username']
+wwcu4 = json.dumps(reqmsg)
+print wwcu4
+conn.request("POST","", wwcu4)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 uid4 = objs['data']['userID']
 
 #wizweb add card new
-print "wizweb add card force"
+print "wizweb add card latest"
 reqmsg = messages.wizweb_add_edit_card
 reqmsg['sender']['username'] = USERNAME4
 reqmsg['sender']['userID'] = uid4
@@ -647,14 +654,15 @@ reqmsg['sender']['company'] = DEFAULT_COMPANY
 reqmsg['sender']['start'] = START1
 reqmsg['sender']['mediaUrl'] = DEFAULT_MEDIA_URL
 reqmsg['sender']['f_bizCardUrl'] = DEFAULT_BIZCARD_URL
-print "wizweb message query_user ", reqmsg['sender']['userID']
+print "wizweb message edit card latest ", reqmsg['sender']['userID']
 wwaewc1 = json.dumps(reqmsg)
+print wwaewc1
 conn.request("POST","", wwaewc1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #wizweb edit card
-print "wizweb edit card"
+print "wizweb edit card force"
 reqmsg = messages.wizweb_add_edit_card
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['userID'] = uid1
@@ -667,8 +675,9 @@ reqmsg['sender']['company'] = DEFAULT_COMPANY
 reqmsg['sender']['start'] = START1
 reqmsg['sender']['mediaUrl'] = DEFAULT_MEDIA_URL
 reqmsg['sender']['f_bizCardUrl'] = DEFAULT_BIZCARD_URL
-print "wizweb message query_user ", reqmsg['sender']['userID']
+print "wizweb message edit card force ", reqmsg['sender']['userID']
 wwaewc2 = json.dumps(reqmsg)
+print wwaewc2
 conn.request("POST","", wwaewc2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
