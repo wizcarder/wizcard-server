@@ -65,9 +65,11 @@ class UserProfileManager(models.Manager):
     def gen_password(self, id1, id2, id3=None):
         return id2
     
-    def userid_from_phone_num(self, phone_num):
+    def username_from_phone_num(self, phone_num):
         return phone_num + settings.WIZCARD_USERNAME_EXTENSION
 
+    def futureusername_from_phone_num(self, phone_num):
+        return phone_num + settings.WIZCARD_FUTURE_USERNAME_EXTENSION
 
 class UserProfile(models.Model):
     # This field is required.
@@ -126,6 +128,7 @@ class UserProfile(models.Model):
         return self.future_user
 
     def set_future(self):
+	self.activated = False
         self.future_user = True
         self.save()
 

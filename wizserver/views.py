@@ -333,11 +333,6 @@ class Header(ParseMsgAndDispatch):
 	user.profile.device_id = device_id
 	user.profile.save()
 
-	#AA TODO: Maybe not here, but making a note. profile is created as
-	# soon as user is created...so, searching for users should filter on 
-	#is_active on some such flag
-
-	
 	#all done. #clear cache
 	cache.delete_many([k_user, k_device_id, k_rand, k_retry])
 
@@ -407,7 +402,7 @@ class Header(ParseMsgAndDispatch):
 	count = 0
 
         for phone_number in verify_list:
-	    username = UserProfile.objects.userid_from_phone_num(phone_number)
+	    username = UserProfile.objects.username_from_phone_num(phone_number)
 	    if User.objects.filter(username=username).exists():
                 user = User.objects.get(username=username)
 		d = dict()
@@ -496,11 +491,12 @@ class Header(ParseMsgAndDispatch):
 
         #check if futureUser existed for this phoneNum
         try:
-            future_user = User.objects.get(username=phone)
-            if future_user.profile.is_future():
-                Wizcard.objects.migrate_future_user(future_user, self.user)
-                Notification.objects.migrate_future_user(future_user, self.user)
-                future_user.delete()
+	    f_username = UserProfile.objects.futureusername_from_phone_num(
+			    phone)
+            future_user = User.objects.get(username=f_username)
+	    Wizcard.objects.migrate_future_user(future_user, self.user)
+	    Notification.objects.migrate_future_user(future_user, self.user)
+	    future_user.delete()
         except:
             pass
          
@@ -832,7 +828,7 @@ class Header(ParseMsgAndDispatch):
                 #AA:TODO: phone should just be the mobile phone. App needs to change
                 # to adjust this. Also, array is not required
                 #cphone = wizlib.convert_phone(phone)
-                username = UserProfile.objects.userid_from_phone_num(phone)
+                username = UserProfile.objects.username_from_phone_num(phone)
                 try:
                     r_user = UserProfile.objects.get(username=username)
                     wizcard2 = r_user.wizcard
@@ -874,25 +870,27 @@ class Header(ParseMsgAndDispatch):
 
 
     def WizcardSendToFutureContacts(self):
+        wizcard1 = self.user.wizcard
         for phone in self.receiver['phones']:
-            username = wizlib.convert_phone(phone)
+            username = UserProfile.objects.futureusername_from_phone_num(
+			    wizlib.convert_phone(phone)
+			    )
             #create a dummy user using the phone number as userID
             try:
-                #TODO: handle multiple phones or restrict app to send one
-                receiver, created = User.objects.get_or_create(username=username)
+                r_user, created = User.objects.get_or_create(username=username)
                 if created:
-                    Wizcard(user=receiver).save()
-                    receiver.profile.set_future()
-                else:
-                    assert receiver.profile.is_future(), 'not a future user'
+                    wizcard2 = Wizcard(user=r_user).save()
+                    r_user.profile.set_future()
+		else:
+		    #must have been previously future created
+		    wizcard2 = r_user.wizcard
 
-                err = Wizcard.objects.exchange(wizcard, receiver.wizcard, False)
+                err = Wizcard.objects.exchange(wizcard1, wizcard2, False)
 		if err['errno']:
                     self.response.error_response(err)
             except:
                 pass
         return self.response
-
 
     def UserQueryByLocation(self):
         #update location in ptree
@@ -1242,11 +1240,10 @@ class Header(ParseMsgAndDispatch):
         if hasattr(self.user, 'wizcard'):
 	    flood = True
 	    wizcard = self.user.wizcard
-	    #edit existing wizcard case. Add to contact container or
-	    #force add depending on mode
-
 	    #AA_TODO: cross check phone
 
+	    #edit existing wizcard case. Add to contact container or
+	    #force add depending on mode
 	    if mode == EDIT_FORCE:
 	        #delete existing contact container for this wizcard
                 wizcard.contact_container.all().delete()
@@ -1258,7 +1255,17 @@ class Header(ParseMsgAndDispatch):
 			    last_name=last_name,
 			    phone=phone)
             wizcard.save()
-	    #AA:TO_DO: Future user handling
+
+	    #Future user handling
+	    try:
+		f_username = UserProfile.objects.futureusername_from_phone_num(
+				phone)
+		future_user = User.objects.get(username=f_username)
+		Wizcard.objects.migrate_future_user(future_user, self.user)
+		Notification.objects.migrate_future_user(future_user, self.user)
+		future_user.delete()
+	    except:
+		pass
 
 	c = ContactContainer(wizcard=wizcard,
 			title=title,

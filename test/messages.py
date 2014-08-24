@@ -267,6 +267,43 @@ table_create = {
     },
 }
 
+send_to_user = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "send_card_to_user",
+    },
+    "receiver" : {
+        "phones" : []
+    }
+}
+
+
+send_to_contacts = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "send_card_to_contacts",
+    },
+    "receiver" : {
+        "wizUserIDs" : []
+    }
+}
+
+send_to_future_contacts = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "send_card_to_future_contacts",
+    },
+    "receiver" : {
+        "phones" : []
+    }
+}
+
 table_join = {
     "header" : {
         "deviceID" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
