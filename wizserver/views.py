@@ -347,16 +347,21 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def Login(self):
-	self.username = self.sender['username']
-        self.user = User.objects.get(username=self.username)
-	self.password = self.device_id
-        auth = authenticate(username=self.username, password=self.password)
-        if auth is None:
-            #invalid password
-            self.response.error_response(err.AUTHENTICATION_FAILED)
-            return self.response
+        try:
+	    self.username = self.sender['username']
+            self.user = User.objects.get(username=self.username)
+            self.password = self.device_id
+            auth = authenticate(username=self.username, password=self.password)
+            if auth is None:
+                #invalid password
+                self.response.error_response(err.AUTHENTICATION_FAILED)
+                return self.response
 
-        self.response.add_data("wizUserID", self.user.pk)
+            self.response.add_data("wizUserID", self.user.pk)
+        except:
+            self.securityException()
+            self.response.ignore()
+
         return self.response
 
     def Register(self):
