@@ -316,13 +316,17 @@ class Header(ParseMsgAndDispatch):
 	user, created = User.objects.get_or_create(username=username)
 
 	if created:
-	    #AA TODO: Generate hash from deviceID and user.pk
-	    password = device_id
-	    #password = user.profile.gen_password(user.pk, device_id)
+	    #AA TODO: Generate hash from deviceID and user.pk and maybe phone number
+	    password = UserProfile.objects.gen_password(user.pk, device_id)
 	    user.set_password(password)
 	    #generate internal userid
 	    user.save()
 	else:
+            if device_id != user.profile.device_id:
+                #device_id is part of password, reset password to reflect new deviceID
+	        password = UserProfile.objects.gen_password(user.pk, device_id)
+                user.set_password(password)
+	        user.save()
 	    # mark for sync.
 	    user.profile.do_sync = True
 

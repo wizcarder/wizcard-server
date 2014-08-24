@@ -61,6 +61,9 @@ class UserProfileManager(models.Manager):
         except ObjectDoesNotExist:
             pass
         return userid
+
+    def gen_password(self, id1, id2, id3=None):
+        return id2
     
     def userid_from_phone_num(self, phone_num):
         return phone_num + settings.WIZCARD_USERNAME_EXTENSION
