@@ -70,85 +70,58 @@ class Notification(models.Model):
         <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
     """
-    DEFAULT_MSG = 'wizcard message'
-    WIZREQ_U = 'wizconnection request untrusted'
-    WIZREQ_T = 'wizconnection request trusted'
-    WIZCARD_ACCEPT = 'accepted wizcard'
-    WIZCARD_REVOKE = 'revoked wizcard'
-    WIZCARD_WITHDRAW_REQUEST = 'withdraw request'
-    WIZCARD_DELETE = 'deleted wizcard'
-    WIZCARD_TABLE_TIMEOUT = 'table timeout'
-    WIZCARD_TABLE_DESTROY = 'table destroy'
-    WIZCARD_UPDATE = 'wizcard update'
-    WIZCARD_FLICK_TIMEOUT = 'flick timeout'
-    WIZCARD_FLICK_PICK = 'flick pick'
-
-
+    WIZREQ_U = ('wizconnection request untrusted', 'xxx would like to connect with you')
+    WIZREQ_T = ('wizconnection request trusted', 'you have a new contact')
+    WIZCARD_ACCEPT = ('accepted wizcard', 'xxx accepted your invitation')
+    WIZCARD_TABLE_TIMEOUT = ('table timeout', 'xxx table has now expired')
+    WIZCARD_TABLE_DESTROY = ('table destroy', 'xxx deleted yyy table')
+    WIZCARD_UPDATE = ('wizcard update', 'xxx has an updated wizcard')
+    WIZCARD_FLICK_TIMEOUT = ('flick timeout', 'your flick has expired')
+    WIZCARD_FLICK_PICK = ('flick pick', 'yy picked up your flicked wizcard')
 
     apns_notification_dictionary = {
-        DEFAULT_MSG     : {
-		'sound': 'flynn.caf',
-		'badge': 0,
-                #AA:TODO: separate verb from push message
-		'alert': DEFAULT_MSG,
-		},
-        WIZREQ_U	: {
+        WIZREQ_U[0]	: {
 		'sound': 'flynn.caf',
 		'badge': 0,
                 #AA:TODO: separate verb from push message
 		'alert': WIZREQ_U,
 		},
-        WIZREQ_U	: {
+        WIZREQ_U[0]	: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'alert': WIZREQ_U,
 		},
-	WIZREQ_T	: {
+	WIZREQ_T[0]	: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'alert': WIZREQ_T,
 		},
-	WIZCARD_ACCEPT: {
+	WIZCARD_ACCEPT[0]: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'alert': WIZCARD_ACCEPT,
 		},
-	WIZCARD_REVOKE: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_REVOKE,
-		},
-	WIZCARD_WITHDRAW_REQUEST: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_WITHDRAW_REQUEST,
-		},
-	WIZCARD_DELETE: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_DELETE,
-		},
-	WIZCARD_TABLE_TIMEOUT: {
+	WIZCARD_TABLE_TIMEOUT[0]: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'alert': WIZCARD_TABLE_TIMEOUT,
 		},
-	WIZCARD_TABLE_DESTROY: {
+	WIZCARD_TABLE_DESTROY[0]: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'alert': WIZCARD_TABLE_DESTROY,
 		},
-	WIZCARD_UPDATE: {
+	WIZCARD_UPDATE[0]: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'alert': WIZCARD_UPDATE,
 		},
-	WIZCARD_FLICK_TIMEOUT: {
+	WIZCARD_FLICK_TIMEOUT[0]: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'alert': WIZCARD_FLICK_TIMEOUT,
 		},
-	WIZCARD_FLICK_PICK: {
+	WIZCARD_FLICK_PICK[0]: {
 		'sound': 'flynn.caf',
 		'badge': 0,
 		'alert': WIZCARD_FLICK_PICK,
@@ -223,9 +196,9 @@ class Notification(models.Model):
     def pushNotificationToApp(self, receiver, sender, verb):
         from userprofile.models import UserProfile
         if not self.apns_notification_dictionary.has_key(verb):
-            apns_message = dict(aps=self.apns_notification_dictionary[self.DEFAULT_MSG])
-        else:
-            apns_message = dict(aps=self.apns_notification_dictionary[verb])
+	    return
+
+        apns_message = dict(aps=self.apns_notification_dictionary[verb])
 
         push_to_app_handler = {
             UserProfile.IOS	: self.pushIOS,

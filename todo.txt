@@ -1,2 +1,33 @@
-#Server
-Async upload of image/video(django-queued-storage). Maybe app should upload directly
+notifications/models.py:                #AA:TODO: separate verb from push message
+notifications/models.py:                #AA:TODO: separate verb from push message
+test/messages.py:#TODO: Probably should keep the message definition separate and read the 
+userprofile/models.py:        #AA:TODO take care of unready users between login and edit_card
+virtual_table/models.py:    #AA: TODO : get some max limit on this
+wizcard/db/installdb.sh:# TODO: load static tables
+wizcardship/models.py:    #AA:TODO: Maybe there is a better way to do this. This is defined
+wizcardship/models.py:        #AA:TODO - For some reason, django doesn't call delete method of generic FK object.
+wizserver/response.py:        #AA:TODO: enhance notification to carry wasEdited information
+wizserver/response.py:        #AA:TODO: looks ugly like this...structure it
+wizserver/views.py:	#AA TODO
+wizserver/views.py:        #AA:TODO - Move to header
+wizserver/views.py:        #AA:TODO: App to fix - This has to be in header
+wizserver/views.py:        #AA_TODO: security check for checkMode type
+wizserver/views.py:	    #TODO
+wizserver/views.py:	#AA:TODO: put this in try, except...for invalid usernames
+wizserver/views.py:	    #AA TODO: Generate hash from deviceID and user.pk and maybe phone number
+wizserver/views.py:        #AA:TODO: Use come caching framework to cache these
+wizserver/views.py:        #AA:TODO: Change app to call this phone as well
+wizserver/views.py:	    #AA:TODO: Remove try
+wizserver/views.py:                #AA:TODO - Can there be 1 save with image
+wizserver/views.py:	            #AA:TODO: Remove try
+wizserver/views.py:			#AA:TODO: better file name
+wizserver/views.py:	            #AA:TODO: Remove try
+wizserver/views.py:			#AA:TODO: better file name
+wizserver/views.py:            #AA: TODO Change to wizCardID
+wizserver/views.py:        #AA:TODO: for now, this message also serves the reverse equation..ie, sender withdraws
+wizserver/views.py:    #AA: app needs to support this instead of above TODO
+wizserver/views.py:            #AA: TODO Change to wizCardID
+wizserver/views.py:                #AA:TODO: phone should just be the mobile phone. App needs to change
+wizserver/views.py:        #TODO: AA handle create failure and/or unique name enforcement
+wizserver/views.py:        #AA:TODO move create to overridden create in VirtualTable
+wizserver/views.py:	    #AA_TODO: cross check phone

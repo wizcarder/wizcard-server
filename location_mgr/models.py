@@ -31,7 +31,8 @@ class Tick(Job):
             try:
                 location_timeout.send(sender=None, ids=ids)
             except Exception, e:
-                #AA:TODO. This needs to be fixed...some issue with datetime and naive datetime
+		#most likely something happened when notifs were processed
+		#I have seen it happen when nexmo send fails
                 logger.error('Timer Job Exception: %s', str(e))
                 pass
 
@@ -239,7 +240,7 @@ def location_timeout_handler(**kwargs):
     ids = kwargs.pop('ids')
     expired = map(lambda x: LocationMgr.objects.get(id=x), ids)
     for e in expired:
-        timeout_callback_execute(e)
+	timeout_callback_execute(e)
 
 def location_timeout_cb(l):
     l.delete()

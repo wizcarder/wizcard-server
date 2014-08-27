@@ -15,7 +15,8 @@ def process_timer(count=0):
         logger.info('Expired objects found')
         ids = map(lambda x:  x.location.pk, e)
         location_timeout.send(sender=None, ids=ids)
-    Periodic.objects.clear_expired(e)
+	#clear all except any errors
+        Periodic.objects.clear_expired(e)
       
       
       
