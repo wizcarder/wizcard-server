@@ -1,4 +1,5 @@
 import pdb
+import messages
 
 ACCEPT_IMPLICIT     = 1
 ACCEPT_EXPLICIT     = 2
@@ -50,9 +51,9 @@ class NotifParser:
 
     def accept_explicit(self, data):
         print "received accept explicit from", data['user_id']
-	rsp = message.add_notification_card
-	rsp['receiver']['wizUserID'] = data['wizUserID']
-	return rsp
+	#rsp = messages.add_notification_card
+	#rsp['receiver']['wizUserID'] = data['wizUserID']
+	pass
 
     def delete_implicit(self, data):
         print "received delete implicit from", data['user_id']

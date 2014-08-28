@@ -36,6 +36,7 @@ import operator
 from django.db.models import Q
 from lib import wizlib
 from wizcard import err
+from wizserver import verbs
 from django.db.models import ImageField
 
 logger = logging.getLogger(__name__)
@@ -101,11 +102,11 @@ class WizcardManager(models.Manager):
             action_object = None
 
         notify.send(user1, recipient=user2,
-                    verb='wizconnection request trusted', 
+                    verb=verbs.WIZREQ_U[0], 
 		    description=description,
                     target=wizcard1, action_object=action_object)
         notify.send(user2, recipient=user1,
-                    verb='wizconnection request trusted', 
+                    verb=verbs.WIZREQ_T[0], 
 		    description=description,
                     target=wizcard2, action_object=action_object)
 
@@ -139,18 +140,18 @@ class WizcardManager(models.Manager):
         #send notifs to recipient (or both if implicit conversion)
         if convert_to_implicit:
             notify.send(user1, recipient=user2, 
-                    verb='wizconnection request trusted', 
+                    verb=verbs.WIZREQ_T[0], 
 		    description=description,
                     target=wizcard1, action_object=action_object)
 
             notify.send(user2, recipient=user1, 
-                    verb='wizconnection request trusted', 
+                    verb=verbs.WIZREQ_T[0], 
 		    description=description,
                     target=wizcard2, action_object=action_object)
 
         else:
             notify.send(user1, recipient=user2, 
-                    verb='wizconnection request untrusted', 
+                    verb=verbs.WIZREQ_U[0], 
 		    description=description,
                     target=wizcard1, action_object=action_object)
 
@@ -166,7 +167,7 @@ class WizcardManager(models.Manager):
 
     def update_wizconnection(self, wizcard1, wizcard2):
         notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb='wizcard update',
+                    verb=verbs.WIZCARD_UPDATE[0], 
                     target=wizcard1, action_object=wizcard2)
         
     def query_users(self, userID, name, phone, email):

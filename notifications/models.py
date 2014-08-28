@@ -8,6 +8,7 @@ from .utils import id2slug
 from notifications.signals import notify
 from pyapns import notify as apns_notify
 from pyapns import configure, provision, feedback
+from wizserver import verbs
 import logging
 import pdb
 
@@ -70,64 +71,6 @@ class Notification(models.Model):
         <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
     """
-    WIZREQ_U = ('wizconnection request untrusted', 'xxx would like to connect with you')
-    WIZREQ_T = ('wizconnection request trusted', 'you have a new contact')
-    WIZCARD_ACCEPT = ('accepted wizcard', 'xxx accepted your invitation')
-    WIZCARD_TABLE_TIMEOUT = ('table timeout', 'xxx table has now expired')
-    WIZCARD_TABLE_DESTROY = ('table destroy', 'xxx deleted yyy table')
-    WIZCARD_UPDATE = ('wizcard update', 'xxx has an updated wizcard')
-    WIZCARD_FLICK_TIMEOUT = ('flick timeout', 'your flick has expired')
-    WIZCARD_FLICK_PICK = ('flick pick', 'yy picked up your flicked wizcard')
-
-    apns_notification_dictionary = {
-        WIZREQ_U[0]	: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-                #AA:TODO: separate verb from push message
-		'alert': WIZREQ_U,
-		},
-        WIZREQ_U[0]	: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZREQ_U,
-		},
-	WIZREQ_T[0]	: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZREQ_T,
-		},
-	WIZCARD_ACCEPT[0]: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_ACCEPT,
-		},
-	WIZCARD_TABLE_TIMEOUT[0]: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_TABLE_TIMEOUT,
-		},
-	WIZCARD_TABLE_DESTROY[0]: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_TABLE_DESTROY,
-		},
-	WIZCARD_UPDATE[0]: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_UPDATE,
-		},
-	WIZCARD_FLICK_TIMEOUT[0]: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_FLICK_TIMEOUT,
-		},
-	WIZCARD_FLICK_PICK[0]: {
-		'sound': 'flynn.caf',
-		'badge': 0,
-		'alert': WIZCARD_FLICK_PICK,
-		},
-    }
-
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     readed = models.BooleanField(default=False, blank=False)
 
@@ -195,10 +138,10 @@ class Notification(models.Model):
 
     def pushNotificationToApp(self, receiver, sender, verb):
         from userprofile.models import UserProfile
-        if not self.apns_notification_dictionary.has_key(verb):
+        if not verbs.apns_notification_dictionary.has_key(verb):
 	    return
 
-        apns_message = dict(aps=self.apns_notification_dictionary[verb])
+        apns_message = dict(aps=verbs.apns_notification_dictionary[verb])
 
         push_to_app_handler = {
             UserProfile.IOS	: self.pushIOS,
@@ -216,7 +159,7 @@ class Notification(models.Model):
     def pushAndroid(self, receiver, sender, verb):
 	send_gcm_message(settings.GCM_API_KEY, 
 			receiver.reg_token,
-			self.apns_notification_dictionary[verb])
+			verbs.apns_notification_dictionary[verb])
         return
 
 def notify_handler(verb, **kwargs):

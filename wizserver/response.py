@@ -10,6 +10,7 @@ import fields
 import json
 import pdb
 from wizcard import err
+from wizserver import verbs
 
 logger = logging.getLogger("wizcard")
 class errMsg:
@@ -94,17 +95,17 @@ class NotifResponse(ResponseN):
     def __init__(self, notifications):
         ResponseN.__init__(self)
         notifHandler = {
-            Notification.WIZREQ_U 	            : self.notifWizConnectionU,
-            Notification.WIZREQ_T  	            : self.notifWizConnectionT,
-            Notification.WIZCARD_ACCEPT             : self.notifAcceptedWizcard,
-            Notification.WIZCARD_REVOKE	            : self.notifRevokedWizcard,
-            Notification.WIZCARD_WITHDRAW_REQUEST   : self.notifWithdrawRequest,
-            Notification.WIZCARD_DELETE	            : self.notifRevokedWizcard,
-            Notification.WIZCARD_TABLE_TIMEOUT      : self.notifDestroyedTable,
-            Notification.WIZCARD_TABLE_DESTROY      : self.notifDestroyedTable,
-            Notification.WIZCARD_UPDATE             : self.notifWizcardUpdate,
-            Notification.WIZCARD_FLICK_TIMEOUT      : self.notifWizcardFlickTimeout,
-            Notification.WIZCARD_FLICK_PICK         : self.notifWizcardFlickPick
+            verbs.WIZREQ_U[0] 	                : self.notifWizConnectionU,
+            verbs.WIZREQ_T[0]  	                : self.notifWizConnectionT,
+            verbs.WIZCARD_ACCEPT[0]             : self.notifAcceptedWizcard,
+            verbs.WIZCARD_REVOKE[0]	        : self.notifRevokedWizcard,
+            verbs.WIZCARD_WITHDRAW_REQUEST[0]   : self.notifWithdrawRequest,
+            verbs.WIZCARD_DELETE[0]	        : self.notifRevokedWizcard,
+            verbs.WIZCARD_TABLE_TIMEOUT[0]      : self.notifDestroyedTable,
+            verbs.WIZCARD_TABLE_DESTROY[0]      : self.notifDestroyedTable,
+            verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
+            verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
+            verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick
         }
 	for notification in notifications:
 	    notifHandler[notification.verb](notification)

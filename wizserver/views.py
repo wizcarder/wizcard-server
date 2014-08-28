@@ -43,6 +43,7 @@ from django.conf import settings
 from nexmomessage import NexmoMessage
 import colander
 from wizcard import message_format as message_format
+from wizserver import verbs
 
 now = timezone.now
 
@@ -611,7 +612,8 @@ class Header(ParseMsgAndDispatch):
         Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender 
         notify.send(self.user, recipient=self.r_user,
-                    verb='accepted wizcard', target=wizcard1, 
+                    verb=verbs.WIZCARD_ACCEPT[0], 
+                    target=wizcard1, 
                     action_object = wizcard2)
 
         return self.response
@@ -663,8 +665,10 @@ class Header(ParseMsgAndDispatch):
         #send notif to the other guy to he can remove the corresponding 
         #request
 
-        notify.send(self.user, recipient=self.r_user,
-                verb='withdraw request', target=wizcard1)
+        notify.send(self.user, 
+                recipient=self.r_user,
+                verb=verbs.WIZCARD_WITHDRAW_REQUEST[0],
+                target=wizcard1)
 
         return self.response
     def WizcardRolodexDelete(self):
@@ -675,7 +679,9 @@ class Header(ParseMsgAndDispatch):
                 wizcard2 = Wizcard.objects.get(id=w)
                 Wizcard.objects.uncard(wizcard1, wizcard2)
                 #Q a notif to other guy so that the app on the other side can react
-                notify.send(self.user, recipient=wizcard2.user, verb='revoked wizcard', target=wizcard1)
+                notify.send(self.user, recipient=wizcard2.user, 
+                        verb=verbs.WIZCARD_REVOKE[0],
+                        target=wizcard1)
 	except KeyError: 
             self.securityException()
             self.response.ignore()
