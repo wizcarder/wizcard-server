@@ -12,6 +12,7 @@ from lib import wizlib
 from django_cron import Job
 from django_cron.models import Cron
 from django.utils import timezone
+from wizserver import verbs
 import logging
 import heapq
 import random
@@ -113,8 +114,10 @@ class LocationMgrManager(models.Manager):
 	    print '{ttype} : {tree}'.format (ttype=tree_type, tree=LocationMgr.objects.location_tree_handles[tree_type])
 	    
 class LocationMgr(models.Model):
-    lat = models.FloatField(null=True, default=None)
-    lng = models.FloatField(null=True, default=None)
+    lat = models.DecimalField(null=True, max_digits=20, 
+                              decimal_places=15, default=None)
+    lng = models.DecimalField(null=True, max_digits=20, 
+                              decimal_places=15, default=None)
     key = models.CharField(null=True, max_length=100)
     tree_type = models.CharField(default="PTREE", max_length=10)
 
@@ -247,7 +250,7 @@ def location_timeout_cb(l):
     l.delete()
 
 def virtual_table_timeout_cb(l):
-    l.content_object.delete(type=Notification.WIZCARD_TABLE_TIMEOUT)
+    l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[0])
     
 def generic_timeout_cb(l):
     l.content_object.delete()

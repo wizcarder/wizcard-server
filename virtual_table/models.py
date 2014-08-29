@@ -27,10 +27,11 @@ from location_mgr.models import location, LocationMgr
 from wizcardship.models import Wizcard
 from django.contrib.contenttypes import generic
 from lib.preserialize.serialize import serialize
-from wizserver import fields
+from wizserver import fields, verbs
 from virtual_table.signals import virtualtable_vtree_timeout
 from notifications.models import notify, Notification
 from django.conf import settings
+
 
 class VirtualTableManager(models.Manager):
     tag = None
@@ -180,7 +181,7 @@ class VirtualTable(models.Model):
     def delete(self, *args, **kwargs):
 	#notify members of deletion (including self)
 	members = self.users.all()
-        verb = kwargs.pop('type', Notification.WIZCARD_TABLE_DESTROY)
+        verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
 	for member in members:
 	    notify.send(self.creator, recipient=member, verb = verb, target=self)
         self.users.clear()

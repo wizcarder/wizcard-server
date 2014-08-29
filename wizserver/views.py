@@ -1084,7 +1084,7 @@ class Header(ParseMsgAndDispatch):
             return self.response
 
         if table.creator == self.user:
-            table.delete(type=Notification.WIZCARD_TABLE_DESTROY)
+            table.delete(type=verbs.WIZCARD_TABLE_DESTROY[0])
         else:
             self.response.error_response(err.NOT_AUTHORIZED)
 

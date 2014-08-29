@@ -346,14 +346,13 @@ class WizcardFlickManager(models.Manager):
                     if merge else \
                     fields.flicked_wizcard_template_with_thumbnail
         else:
-            template = fields.flicked_wizcard_merged_template if \
+            template = fields.flicked_wizcard_merged_template \
                     merge else fields.flicked_wizcard_template
             
         return serialize(flicked_wizcards, **template)
 
-    def serialize_split(self, my_wizcard, flicked_wizcards, 
-            send_data=True, merge=False, flatten=False):
-
+    def serialize_split(self, my_wizcard, flicked_wizcards, \
+                        send_data=True, merge=False, flatten=False):
         s = None
 	own, connected, others = self.split_wizcard_flick(my_wizcard, 
                 flicked_wizcards)
@@ -403,7 +402,8 @@ class WizcardFlickManager(models.Manager):
         if name != None:
             split = name.split()
             for n in split:
-                name_result = (Q(wizcard__first_name__istartswith=n) | Q(wizcard__last_name__istartswith=n))
+                name_result = (Q(wizcard__first_name__istartswith=n) | \
+                               Q(wizcard__last_name__istartswith=n))
                 qlist.append(name_result)
 
         result = self.filter(reduce(operator.or_, qlist))
@@ -442,8 +442,11 @@ class WizcardFlick(models.Model):
         # Although it does delete it. Until I figure out why, need to explicitly call 
         #delete method since other deletes need to happen there as well
         self.location.get().delete()
-	notify.send(self.wizcard.user, recipient=self.wizcard.user, \
-                verb ='flick timeout', target=self, action_object=self.wizcard)
+	notify.send(self.wizcard.user, 
+                    recipient=self.wizcard.user, 
+                    verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
+                    target=self, 
+                    action_object=self.wizcard)
         super(WizcardFlick, self).delete(*args, **kwargs)
 
     def get_tag(self):
