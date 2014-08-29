@@ -172,7 +172,8 @@ class Header(ParseMsgAndDispatch):
             self.receiver = self.msg['receiver']
 
         #AA:TODO: App to fix - This has to be in header
-        self.on_wifi = self.sender['onWifi'] if self.sender.has_key('onWifi') else False
+        self.on_wifi = self.sender['onWifi'] if \
+                self.sender.has_key('onWifi') else False
 
         return True, self.response
 
@@ -286,7 +287,8 @@ class Header(ParseMsgAndDispatch):
 	challenge_response = self.sender['responseKey']
 
 	if not (username and challenge_response):
-            self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+            self.response.error_response(\
+                    err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
 	k_user = (settings.PHONE_CHECK_USER_KEY % username)
@@ -317,7 +319,8 @@ class Header(ParseMsgAndDispatch):
 	user, created = User.objects.get_or_create(username=username)
 
 	if created:
-	    #AA TODO: Generate hash from deviceID and user.pk and maybe phone number
+	    #AA TODO: Generate hash from deviceID and user.pk 
+            #and maybe phone number
 	    password = UserProfile.objects.gen_password(user.pk, device_id)
 	    user.set_password(password)
 	    #generate internal userid
@@ -325,7 +328,8 @@ class Header(ParseMsgAndDispatch):
 	else:
             if device_id != user.profile.device_id:
                 #device_id is part of password, reset password to reflect new deviceID
-	        password = UserProfile.objects.gen_password(user.pk, device_id)
+	        password = UserProfile.objects.gen_password(user.pk, 
+                                                            device_id)
                 user.set_password(password)
 	        user.save()
 	    # mark for sync.

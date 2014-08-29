@@ -320,8 +320,7 @@ class WizConnectionRequest(models.Model):
         self.delete()
 
 class WizcardFlickManager(models.Manager):
-
-    #AA:TODO: Maybe there is a better way to do this. This is defined
+    # Maybe there is a better way to do this. This is defined
     # to allow a callable into fields.py serialization, which needs some 
     # state from the callouts here
     tag = None
@@ -343,16 +342,21 @@ class WizcardFlickManager(models.Manager):
 
     def serialize(self, flicked_wizcards, send_data=True, merge=False):
         if send_data:
-            template = fields.flicked_wizcard_merged_template_with_thumbnail if merge else fields.flicked_wizcard_template_with_thumbnail
+            template = fields.flicked_wizcard_merged_template_with_thumbnail \
+                    if merge else \
+                    fields.flicked_wizcard_template_with_thumbnail
         else:
-            template = fields.flicked_wizcard_merged_template if merge else fields.flicked_wizcard_template
+            template = fields.flicked_wizcard_merged_template if \
+                    merge else fields.flicked_wizcard_template
             
         return serialize(flicked_wizcards, **template)
 
-    def serialize_split(self, my_wizcard, flicked_wizcards, send_data=True, merge=False, flatten=False):
+    def serialize_split(self, my_wizcard, flicked_wizcards, 
+            send_data=True, merge=False, flatten=False):
 
         s = None
-	own, connected, others = self.split_wizcard_flick(my_wizcard, flicked_wizcards)
+	own, connected, others = self.split_wizcard_flick(my_wizcard, 
+                flicked_wizcards)
 
         if flatten:
             s = []
@@ -438,7 +442,8 @@ class WizcardFlick(models.Model):
         # Although it does delete it. Until I figure out why, need to explicitly call 
         #delete method since other deletes need to happen there as well
         self.location.get().delete()
-	notify.send(self.wizcard.user, recipient=self.wizcard.user, verb ='flick timeout', target=self, action_object=self.wizcard)
+	notify.send(self.wizcard.user, recipient=self.wizcard.user, \
+                verb ='flick timeout', target=self, action_object=self.wizcard)
         super(WizcardFlick, self).delete(*args, **kwargs)
 
     def get_tag(self):

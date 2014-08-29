@@ -30,6 +30,7 @@ from lib.preserialize.serialize import serialize
 from wizserver import fields
 from virtual_table.signals import virtualtable_vtree_timeout
 from notifications.models import notify, Notification
+from django.conf import settings
 
 class VirtualTableManager(models.Manager):
     tag = None
@@ -51,11 +52,13 @@ class VirtualTableManager(models.Manager):
 
     #AA: TODO : get some max limit on this
     def query_tables(self, name):
-        tables = self.filter(Q(tablename__istartswith=name))
+        tables = self.filter(Q(tablename__istartswith=name)) \
+                [0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
         return tables, tables.count()
 
     def serialize(self, tables, merge=False):
-        template = fields.table_merged_template if merge else fields.table_template
+        template = fields.table_merged_template if merge else \
+                fields.table_template
         return serialize(tables, **template)
 
     def serialize_split(self, tables, user, merge=False, flatten=False):

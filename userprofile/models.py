@@ -46,7 +46,6 @@ class UserProfileManager(models.Manager):
         return own, connected, others
 
     def serialize(self, users, send_data=True):
-        #AA:TODO take care of unready users between login and edit_card
         wizcards = map(lambda u: u.wizcard, users)
         if send_data:
             return serialize(wizcards, **fields.wizcard_template_brief_with_thumbnail)

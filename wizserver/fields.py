@@ -15,8 +15,10 @@ wizcard_related_objects_template_with_bizcard = {
 }
 
 wizcard_template_brief = {
-    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', 'email', 'company', 'title'],
-    'key_map' : {'wizcard_id':'id', 'company':'get_latest_company', 'title':'get_latest_title'},
+    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', \
+            'email', 'company', 'title'],
+    'key_map' : {'wizcard_id':'id', 'company':'get_latest_company', 'title':\
+            'get_latest_title'},
 }
 
 thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailImage']
@@ -98,7 +100,8 @@ flicked_wizcard_merged_template_with_thumbnail = {
     'related': flicked_wizcard_related_objects_merged_template_with_thumbnail
 }
 my_flicked_wizcard_template = {
-    'fields': ['created', 'timeout', 'flick_id', 'lat', 'lng', 'timeout', 'flick_pickers'],
+    'fields': ['created', 'timeout', 'flick_id', 'lat', 'lng', 'timeout', \
+            'flick_pickers'],
     'key_map': {'created':'a_created', 'flick_id':'id'},
     'related': {
         'flick_pickers': flick_pickers_template,
@@ -123,11 +126,13 @@ user_query_extended_template = {
 }
 
 table_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', 'creator_id', 'created', 'timeout'],
+    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', \
+            'creator_id', 'created', 'timeout'],
     'key_map' : {'created':'a_created'}
 }
 
 table_merged_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', 'creator_id', 'created', 'timeout', 'tag'],
+    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', \
+            'creator_id', 'created', 'timeout', 'tag'],
     'key_map' : {'created':'a_created', 'tag':'get_tag'}
 }
