@@ -347,7 +347,8 @@ class WizcardFlickManager(models.Manager):
                     fields.flicked_wizcard_template_with_thumbnail
         else:
             template = fields.flicked_wizcard_merged_template \
-                    merge else fields.flicked_wizcard_template
+                    if merge else \
+                    fields.flicked_wizcard_template
             
         return serialize(flicked_wizcards, **template)
 
