@@ -341,15 +341,11 @@ class WizcardFlickManager(models.Manager):
         return flicked_cards, count
 
     def serialize(self, flicked_wizcards, send_data=True, merge=False):
+        from wizserver import fields
         if send_data:
-            template = fields.flicked_wizcard_merged_template_with_thumbnail \
-                    if merge else \
-                    fields.flicked_wizcard_template_with_thumbnail
+            template = fields.flicked_wizcard_merged_template_with_thumbnail if merge else fields.flicked_wizcard_template_with_thumbnail
         else:
-            template = fields.flicked_wizcard_merged_template \
-                    if merge else \
-                    fields.flicked_wizcard_template
-            
+            template = fields.flicked_wizcard_merged_template if merge else fields.flicked_wizcard_template
         return serialize(flicked_wizcards, **template)
 
     def serialize_split(self, my_wizcard, flicked_wizcards, \
