@@ -13,7 +13,6 @@
 """
 
 
-import datetime
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
@@ -38,6 +37,7 @@ from lib import wizlib
 from wizcard import err
 from wizserver import verbs
 from django.db.models import ImageField
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -448,6 +448,16 @@ class WizcardFlick(models.Model):
 
     def get_tag(self):
         return WizcardFlick.objects.tag
+
+    def time_remaining(self):
+        r = timezone.timedelta(minutes=self.timeout) - \
+                (timezone.now() - self.created)
+        if r.seconds < 0:
+            return 0
+        elif r.seconds < 60:
+            return 1
+        else:
+            return r.seconds/60
 
 class UserBlocks(models.Model):
     user = models.ForeignKey(User, related_name='user_blocks')

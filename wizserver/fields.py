@@ -78,13 +78,13 @@ flick_pickers_template = {
 
 flicked_wizcard_template = {
     'fields': ['created', 'timeout', 'flick_id', 'wizcard'],
-    'key_map': {'created':'a_created', 'flick_id':'id'},
+    'key_map': {'created':'a_created', 'timeout':'time_remaining', 'flick_id':'id'},
     'related': flicked_wizcard_related_objects_template
 }
 
 flicked_wizcard_template_with_thumbnail = {
     'fields': ['created', 'timeout', 'flick_id', 'wizcard'],
-    'key_map': {'created':'a_created', 'flick_id':'id'},
+    'key_map': {'created':'a_created', 'timeout':'time_remaining', 'flick_id':'id'},
     'related': flicked_wizcard_related_objects_template_with_thumbnail
 }
 
