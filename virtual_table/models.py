@@ -31,7 +31,7 @@ from wizserver import fields, verbs
 from virtual_table.signals import virtualtable_vtree_timeout
 from notifications.models import notify, Notification
 from django.conf import settings
-
+from django.utils import timezone
 
 class VirtualTableManager(models.Manager):
     tag = None
@@ -199,8 +199,18 @@ class VirtualTable(models.Model):
         self.numSitting -= 1
         self.save()
 
+    #some callables used by serializer
     def get_tag(self):
         return VirtualTable.objects.tag
+
+    def time_remaining(self):
+        r = timezone.timedelta(minutes=self.timeout) - \
+                (timezone.now - self.created)
+        if r.seconds < 0:
+            return 0
+        elif r.seconds < 60:
+            return 1
+        else return r.seconds/60
 
 class Membership(models.Model):
     created = models.DateTimeField(auto_now_add=True)

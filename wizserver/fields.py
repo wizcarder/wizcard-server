@@ -128,11 +128,11 @@ user_query_extended_template = {
 table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', \
             'creator_id', 'created', 'timeout'],
-    'key_map' : {'created':'a_created'}
+    'key_map' : {'created':'a_created', 'timeout':'time_remaining'}
 }
 
 table_merged_template = {
     'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', \
             'creator_id', 'created', 'timeout', 'tag'],
-    'key_map' : {'created':'a_created', 'tag':'get_tag'}
+    'key_map' : {'created':'a_created', 'timeout':'time_remaining', 'tag':'get_tag'}
 }
