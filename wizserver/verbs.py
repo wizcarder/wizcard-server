@@ -55,5 +55,10 @@ apns_notification_dictionary = {
         'badge': 0,
         'alert': WIZCARD_FLICK_PICK[2],
     },
+    WIZWEB_WIZCARD_UPDATE[0]: {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'alert': WIZWEB_WIZCARD_UPDATE[2],
+    },
 }
 

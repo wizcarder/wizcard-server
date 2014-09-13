@@ -107,7 +107,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_TABLE_DESTROY[0]      : self.notifDestroyedTable,
             verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
             verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
-            verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick
+            verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
             verbs.WIZWEB_WIZCARD_UPDATE[0]      : self.notifWizWebWizcardUpdate
         }
 	for notification in notifications:
