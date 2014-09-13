@@ -193,8 +193,8 @@ class Header(ParseMsgAndDispatch):
             'contacts_verify'	          : (message_format.ContactsVerifySchema, self.ContactsVerify),
             'get_cards'                   : (message_format.NotificationsGetSchema, self.NotificationsGet),
             'edit_card'                   : (message_format.WizcardEditSchema, self.WizcardEdit),
-            'add_notification_card'       : (message_format.WizcardAcceptSchema, self.WizcardAccept),
-            'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestDecline),
+            'accept_connection_request'   : (message_format.WizcardAcceptSchema, self.WizcardAccept),
+            'decline_connection_request'  : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestDecline),
             #'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestWithdraw),
             'withdraw_connection_request' : (message_format.WizConnectionRequestWithdrawSchema, self.WizConnectionRequestWithdraw),
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
@@ -206,9 +206,8 @@ class Header(ParseMsgAndDispatch):
             'query_flicks'                : (message_format.WizcardFlickQuerySchema, self.WizcardFlickQuery),
             'send_card_to_contacts'       : (message_format.WizcardSendToContactsSchema, self.WizcardSendToContacts),
             'send_card_to_user'           : (message_format.WizcardSendUnTrustedSchema, self.WizcardSendUnTrusted),
-            'send_card_to_future_contacts': (message_format.WizcardSendToFutureContactsSchema, self.WizcardSendToFutureContacts),
-            'find_users_by_location'      : (message_format.UserQueryByLocationSchema, self.UserQueryByLocation),
-            'send_query_user'             : (message_format.UserQueryByNameSchema, self.UserQueryByName),
+            'send_card_to_future_user'    : (message_format.WizcardSendToFutureContactsSchema, self.WizcardSendToFutureContacts),
+            'send_query_user'             : (message_format.UserQuerySchema, self.UserQuery),
             'get_card_details'            : (message_format.WizcardGetDetailSchema, self.WizcardGetDetail),
             'query_tables'                : (message_format.TableQuerySchema, self.TableQuery),
             'my_tables'                   : (message_format.TableMyTablesSchema, self.TableMyTables),
@@ -297,6 +296,10 @@ class Header(ParseMsgAndDispatch):
 	k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % device_id)
 
 	d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
+
+        if d is None:
+            self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
+            return self.response
 
 	#AA:TODO: put this in try, except...for invalid usernames
 
@@ -644,7 +647,8 @@ class Header(ParseMsgAndDispatch):
 
         return self.response
 
-    #AA: app needs to support this instead of above TODO
+    #AA: TODO: app needs to support this instead of above TODO
+    #this is to withdraw sent request
     def WizConnectionRequestWithdraw(self):
         try:
             wizcard1 = self.user.wizcard
@@ -663,16 +667,25 @@ class Header(ParseMsgAndDispatch):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
+        #AA:TODO: Withdraw would only happen if the previously Q'd receiver 
+        #notif is still unread. Remove it. if there is no notification, then
+        # sender can't withdraw
+
+        #also, the wizconnection request would have been unaccepted so far.
+        #maybe can be used as a consistency check...
+
         #clear my wizconnection_request
         Wizcard.objects.wizconnection_req_clear(wizcard1, wizcard2)
 
         #send notif to the other guy to he can remove the corresponding 
         #request
 
-        notify.send(self.user, 
-                recipient=self.r_user,
-                verb=verbs.WIZCARD_WITHDRAW_REQUEST[0],
-                target=wizcard1)
+        #on 2nd thoughts, this shouldn't be done since the new way is to
+        #remove unread notification
+        #notify.send(self.user, 
+        #        recipient=self.r_user,
+        #        verb=verbs.WIZCARD_WITHDRAW_REQUEST[0],
+        #        target=wizcard1)
 
         return self.response
     def WizcardRolodexDelete(self):
@@ -902,20 +915,7 @@ class Header(ParseMsgAndDispatch):
                 pass
         return self.response
 
-    def UserQueryByLocation(self):
-        #update location in ptree
-        self.userprofile.create_or_update_location(self.sender['lat'], 
-                                          self.sender['lng'])
-        lookup_result, count = self.userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count:
-            users_s = UserProfile.objects.serialize(lookup_result)
-            self.response.add_data("queryResult", users_s)
-        self.response.add_data("count", count)
-
-        return self.response
-
-
-    def UserQueryByName(self):
+    def UserQuery(self):
         try:
             name = self.receiver['name']
         except:
@@ -1237,32 +1237,37 @@ class Header(ParseMsgAndDispatch):
 	    first_name = self.sender['first_name']
 	    last_name = self.sender['last_name']
 	    phone = self.sender['phone']
+	    media_url = self.sender.get('mediaUrl', None)
+            contact_container = self.sender['contact_container']
 	    title = self.sender['title']
 	    company = self.sender['company']
 	    start = self.sender.get('start', None)
 	    end = self.sender.get('end', "current")
-	    media_url = self.sender.get('mediaUrl', None)
 	    card_url = self.sender['f_bizCardUrl']
 	except:
             self.response.error_response(err.INVALID_MESSAGE)
             return self.response
 
         if hasattr(self.user, 'wizcard'):
+            #already existing user/wizcard
 	    flood = True
 	    wizcard = self.user.wizcard
 	    #AA_TODO: cross check phone
 
-	    #edit existing wizcard case. Add to contact container or
-	    #force add depending on mode
+	    if media_url:
+                wizcard.media_url = media_url
+                wizcard.save()
+
+	    #Add to contact container or force add depending on mode
 	    if mode == EDIT_FORCE:
 	        #delete existing contact container for this wizcard
                 wizcard.contact_container.all().delete()
-
 	else:
 	    #create new wizcard
             wizcard = Wizcard(user=self.user,
 			    first_name=first_name,
 			    last_name=last_name,
+                            media_url=media_url,
 			    phone=phone)
             wizcard.save()
 
@@ -1277,20 +1282,23 @@ class Header(ParseMsgAndDispatch):
 	    except:
 		pass
 
-	c = ContactContainer(wizcard=wizcard,
-			title=title,
-			company=company,
-			start=start,
-			end=end,
-			card_url=card_url)
-	c.save()
+        for c in contact_container:
+	    t_row = ContactContainer(wizcard=wizcard,
+                    title=c['title'],
+                    company=c['company'],
+                    start=c['start'],
+                    end=c['end'],
+                    card_url=c['card_url'])
+            t_row.save()
 
-	if media_url:
-	    flood = True
-	    wizcard.media_url = media_url
-	    wizcard.save()
 
 	if flood == True:
+            #AA:TODO: we also must notify the owner of the update
+            notify.send(self.user, recipient=self.r_user,
+                    verb=verbs.WIZWEB_WIZCARD_UPDATE[0], 
+                    target=wizcard1, 
+                    action_object = wizcard1)
+
 	    wizcard.flood()
 
         self.response.add_data("wizCardID", wizcard.id)

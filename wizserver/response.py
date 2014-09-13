@@ -79,18 +79,20 @@ class ResponseN(Response):
 
 class NotifResponse(ResponseN):
 
+    #AA:TODO This can also now be moved in verbs.py
     NOTIF_NULL          = 0
     ACCEPT_IMPLICIT     = 1
     ACCEPT_EXPLICIT     = 2
     DELETE_IMPLICIT     = 3
     TABLE_TIMEOUT       = 4
     UPDATE_WIZCARD      = 5
-    FLICKED_WIZCARD     = 6
+    NEARBY_FLICKED_WIZCARD     = 6
     NEARBY_USERS        = 7
     NEARBY_TABLES       = 8
     FLICK_TIMEOUT       = 9
     FLICK_PICK	        = 10
     WITHDRAW_REQUEST    = 11
+    WIZWEB_UPDATE_WIZCARD = 12
 
     def __init__(self, notifications):
         ResponseN.__init__(self)
@@ -106,6 +108,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
             verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick
+            verbs.WIZWEB_WIZCARD_UPDATE[0]      : self.notifWizWebWizcardUpdate
         }
 	for notification in notifications:
 	    notifHandler[notification.verb](notification)
@@ -168,6 +171,9 @@ class NotifResponse(ResponseN):
     def notifWizcardUpdate(self, notif):
         return self.notifWizcard(notif, self.UPDATE_WIZCARD)
 
+    def notifWizWebWizcardUpdate(self, notif):
+        return self.notifWizcard(notif, self.WIZWEB_UPDATE_WIZCARD)
+
     def notifWizcardFlickTimeout(self, notif):
 	out = dict(flickCardID=notif.target_object_id)
         self.add_data_with_notif(out, self.FLICK_TIMEOUT)
@@ -186,7 +192,7 @@ class NotifResponse(ResponseN):
         if flicked_wizcards:
 	    #wizcards = map(lambda x: x.wizcard, flicked_wizcards)
             out = WizcardFlick.objects.serialize_split(user.wizcard, flicked_wizcards, send_data=send_data)
-            self.add_data_with_notif(out, self.FLICKED_WIZCARD)
+            self.add_data_with_notif(out, self.NEARBY_FLICKED_WIZCARD)
         return self.response
 
     def notifUserLookup(self, count, me, users, send_data=True):

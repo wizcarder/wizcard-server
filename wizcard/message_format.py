@@ -69,9 +69,7 @@ class WizcardSendUnTrustedSchema(colander.MappingSchema):
     pass
 class WizcardSendToFutureContactsSchema(colander.MappingSchema):
     pass
-class UserQueryByLocationSchema(colander.MappingSchema):
-    pass
-class UserQueryByNameSchema(colander.MappingSchema):
+class UserQuerySchema(colander.MappingSchema):
     pass
 class WizcardGetDetailSchema(colander.MappingSchema):
     pass

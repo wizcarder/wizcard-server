@@ -11,6 +11,7 @@ WIZCARD_TABLE_DESTROY = ('table destroy', 1, 'xxx deleted yyy table')
 WIZCARD_UPDATE = ('wizcard update', 1, 'xxx has an updated wizcard')
 WIZCARD_FLICK_TIMEOUT = ('flick timeout', 1, 'your flick has expired')
 WIZCARD_FLICK_PICK = ('flick pick', 1, 'yy picked up your flicked wizcard')
+WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1, 'your wizcard was updated')
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {

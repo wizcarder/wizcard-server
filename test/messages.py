@@ -261,6 +261,7 @@ table_create = {
         "userID" : "",
         "wizUserID" : "",
         "table_name" : "",
+        "timeout": 1,
         "secureTable" : "True",
         "password" : "test",
         "created":str(datetime.now())
@@ -405,6 +406,22 @@ card_flick_edit = {
         "flickCardID": "",
         "timeout":"",
         "created":str(datetime.now())
+    },
+}
+
+user_query = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "send_query_user",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+    },
+    "receiver" : {
+        "name": "",
     },
 }
 

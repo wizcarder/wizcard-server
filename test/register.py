@@ -392,6 +392,16 @@ conn.request("POST","", mcf3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+#user query
+reqmsg = messages.user_query
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['receiver']['name'] = FIRSTNAME_Q
+uq = json.dumps(reqmsg)
+conn.request("POST","", uq)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
 #flick query
 reqmsg = messages.card_flick_query
 reqmsg['sender']['userID'] = uid3
