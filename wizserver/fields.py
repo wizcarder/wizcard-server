@@ -77,14 +77,14 @@ flick_pickers_template = {
 }
 
 flicked_wizcard_template = {
-    'fields': ['created', 'timeout', 'flick_id', 'wizcard'],
-    'key_map': {'created':'a_created', 'timeout':'time_remaining', 'flick_id':'id'},
+    'fields': ['created', 'timeRemaining', 'flick_id', 'wizcard'],
+    'key_map': {'created':'a_created', 'timeRemaining':'time_remaining', 'flick_id':'id'},
     'related': flicked_wizcard_related_objects_template
 }
 
 flicked_wizcard_template_with_thumbnail = {
-    'fields': ['created', 'timeout', 'flick_id', 'wizcard'],
-    'key_map': {'created':'a_created', 'timeout':'time_remaining', 'flick_id':'id'},
+    'fields': ['created', 'timeRemaining', 'flick_id', 'wizcard'],
+    'key_map': {'created':'a_created', 'timeRemaining':'time_remaining', 'flick_id':'id'},
     'related': flicked_wizcard_related_objects_template_with_thumbnail
 }
 
@@ -127,12 +127,12 @@ user_query_extended_template = {
 
 table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', \
-            'creator_id', 'created', 'timeout'],
-    'key_map' : {'created':'a_created', 'timeout':'time_remaining'}
+            'creator_id', 'created', 'timeRemaining'],
+    'key_map' : {'created':'a_created', 'timeRemaining':'time_remaining'}
 }
 
 table_merged_template = {
     'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', \
-            'creator_id', 'created', 'timeout', 'tag'],
-    'key_map' : {'created':'a_created', 'timeout':'time_remaining', 'tag':'get_tag'}
+            'creator_id', 'created', 'timeRemaining', 'tag'],
+    'key_map' : {'created':'a_created', 'timeRemaining':'time_remaining', 'tag':'get_tag'}
 }
