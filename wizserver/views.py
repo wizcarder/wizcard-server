@@ -204,6 +204,7 @@ class Header(ParseMsgAndDispatch):
             'flick_withdraw'              : (message_format.WizcardFlickWithdrawSchema, self.WizcardFlickWithdraw),
             'flick_edit'                  : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
             'query_flicks'                : (message_format.WizcardFlickQuerySchema, self.WizcardFlickQuery),
+            'flick_pickers'               : (message_format.WizcardFlickPickersSchema, self.WizcardFlickPickers),
             'send_card_to_contacts'       : (message_format.WizcardSendToContactsSchema, self.WizcardSendToContacts),
             'send_card_to_user'           : (message_format.WizcardSendUnTrustedSchema, self.WizcardSendUnTrusted),
             'send_card_to_future_user'    : (message_format.WizcardSendToFutureContactsSchema, self.WizcardSendToFutureContacts),
@@ -833,6 +834,36 @@ class Header(ParseMsgAndDispatch):
             self.response.add_data("queryResult", flicks_s)
         self.response.add_data("count", count)
             
+        return self.response
+
+    def WizcardFlickPickers(self):
+        try:
+            flick_id = self.sender['flickCardID']
+	except KeyError: 
+            self.securityException()
+            self.response.ignore()
+            return self.response
+
+        try:
+            flicked_card = WizcardFlick.objects.get(id=flick_id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+	    return self.response
+
+        if flicked_card.wizcard.user != self.user:
+            self.securityException()
+            self.response.ignore()
+            return self.response
+
+        flick_pickers = flicked_card.flick_pickers.all()
+        count = flick_pickers.count()
+
+        if count:
+            out = Wizcard.objects.serialize(flick_pickers,
+                    template = fields.wizcard_template_brief_with_thumbnail)
+            self.response.add_data("flickPickers", out)
+
+        self.response.add_data("count", count)
         return self.response
 
     def WizcardSendToContacts(self):

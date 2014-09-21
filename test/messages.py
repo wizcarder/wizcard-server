@@ -393,6 +393,20 @@ card_flick_accept = {
     }
 }
 
+flick_pickers = {
+    "header" : {
+        "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f02460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "flick_pickers",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+        "flickCardIDs" : "",
+    },
+}
+
 card_flick_edit = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",

@@ -373,6 +373,17 @@ conn.request("POST","", cfa1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+print "checking flick pickers"
+reqmsg = messages.flick_pickers
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['flickCardID'] = cf3_id
+fp3 = json.dumps(reqmsg)
+conn.request("POST","", fp3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
 print "retrieving myFlicks"
 reqmsg = messages.my_flicks
 reqmsg['sender']['userID'] = uid1
