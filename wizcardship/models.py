@@ -102,7 +102,7 @@ class WizcardManager(models.Manager):
             action_object = None
 
         notify.send(user1, recipient=user2,
-                    verb=verbs.WIZREQ_U[0], 
+                    verb=verbs.WIZREQ_T[0], 
 		    description=description,
                     target=wizcard1, action_object=action_object)
         notify.send(user2, recipient=user1,
