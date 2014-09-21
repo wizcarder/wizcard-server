@@ -61,6 +61,8 @@ class WizcardFlickEditSchema(colander.MappingSchema):
     pass
 class WizcardFlickQuerySchema(colander.MappingSchema):
     pass
+class WizcardFlickPickersSchema(colander.MappingSchema):
+    pass
 class TableMyTablesSchema(colander.MappingSchema):
     pass
 class WizcardSendToContactsSchema(colander.MappingSchema):
