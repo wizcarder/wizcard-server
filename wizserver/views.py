@@ -393,8 +393,9 @@ class Header(ParseMsgAndDispatch):
                 if 'flick_picks' in s:
                     self.response.add_data("flick_picks", s["flick_picks"])
 
+                self.userprofile.activated = True
+
             self.userprofile.do_sync = False
-            self.userprofile.activated = True
 
 	self.userprofile.save()
 
@@ -1197,7 +1198,7 @@ class Header(ParseMsgAndDispatch):
 	userID = None
 	try:
 	    user = User.objects.get(username=username)
-            out = dict(userID=user.profile.id)
+            out = dict(userID=user.profile.userid)
             self.response.add_data("userID", user.profile.id)
 	except:
 	    pass
@@ -1325,10 +1326,10 @@ class Header(ParseMsgAndDispatch):
 
 	if flood == True:
             #AA:TODO: we also must notify the owner of the update
-            notify.send(self.user, recipient=self.r_user,
+            notify.send(self.user, recipient=self.user,
                     verb=verbs.WIZWEB_WIZCARD_UPDATE[0], 
-                    target=wizcard1, 
-                    action_object = wizcard1)
+                    target=wizcard, 
+                    action_object = wizcard)
 
 	    wizcard.flood()
 
