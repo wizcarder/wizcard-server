@@ -1231,13 +1231,13 @@ class Header(ParseMsgAndDispatch):
 	first_name = self.sender['first_name']
 	last_name = self.sender['last_name']
 
-	self.user, created = User.objects.get_or_create(username=username,
-			first_name=first_name,
-			last_name=last_name)
-
-	if not created:
+	if User.objects.filter(username=username).exists():
             #wizweb should have sent user query
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
+
+	self.user = User.objects.create(username=username, 
+                                        first_name=first_name,
+                                        last_name=last_name)
 
         self.user.profile.activated = False
 	self.user.profile.save()
@@ -1324,7 +1324,7 @@ class Header(ParseMsgAndDispatch):
                             (wizcard.pk, t_row.pk, \
                             now().strftime("%Y-%m-%d %H:%M")), rawimage, \
                             "image/jpeg")
-                    c.f_bizCardImage.save(upfile.name, upfile)
+                    t_row.f_bizCardImage.save(upfile.name, upfile)
                 except:
                     pass
 
