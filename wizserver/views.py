@@ -1198,8 +1198,7 @@ class Header(ParseMsgAndDispatch):
 	userID = None
 	try:
 	    user = User.objects.get(username=username)
-            out = dict(userID=user.profile.userid)
-            self.response.add_data("userID", user.profile.id)
+            self.response.add_data("userID", user.profile.userid)
 	except:
 	    pass
         
@@ -1271,11 +1270,6 @@ class Header(ParseMsgAndDispatch):
 	    phone = self.sender['phone']
 	    media_url = self.sender.get('mediaUrl', None)
             contact_container = self.sender['contact_container']
-	    title = self.sender['title']
-	    company = self.sender['company']
-	    start = self.sender.get('start', None)
-	    end = self.sender.get('end', "current")
-	    card_url = self.sender['f_bizCardUrl']
 	except:
             self.response.error_response(err.INVALID_MESSAGE)
             return self.response
@@ -1319,10 +1313,20 @@ class Header(ParseMsgAndDispatch):
                     title=c['title'],
                     company=c['company'],
                     start=c['start'],
-                    end=c['end'],
-                    card_url=c['card_url'])
+                    end=c['end'])
             t_row.save()
 
+            if 'f_bizCardImage' in c and c['f_bizCardImage']:
+                try:
+                    rawimage = bytes(c['f_bizCardImage'])
+                    #AA:TODO: better file name
+                    upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % \
+                            (wizcard.pk, t_row.pk, \
+                            now().strftime("%Y-%m-%d %H:%M")), rawimage, \
+                            "image/jpeg")
+                    c.f_bizCardImage.save(upfile.name, upfile)
+                except:
+                    pass
 
 	if flood == True:
             #AA:TODO: we also must notify the owner of the update
