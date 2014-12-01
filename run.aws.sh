@@ -1,4 +1,4 @@
-ps -ef | grep "gunicorn" | awk '{print $2}' | xargs kill
+ps -ef | grep "gunicorn" | grep 8000 | awk '{print $2}' | xargs kill
 cat twistd.pid | xargs kill
 twistd -r select web --class=pyapns.server.APNSServer --port=7077
 sleep 2
