@@ -157,7 +157,10 @@ contact_container = {
     "company": "Wizcard Inc",
     "title" : "CEO",
     "f_bizCardImage" : "",
-    "r_bizCardImage" : ""
+    "r_bizCardImage" : "",
+    "start" : "xxx",
+    "end" : "current",
+    "card_url": ""
 }
 
 
@@ -569,10 +572,9 @@ wizweb_add_edit_card = {
 	"phone" : "",
 	"title" : "",
 	"company" : "", 
-	"start" : "",
-	"end" : "",
 	"mediaUrl" : "",
 	"f_bizCardUrl" : "",
+	"contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 

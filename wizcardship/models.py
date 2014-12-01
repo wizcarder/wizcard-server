@@ -88,7 +88,6 @@ class WizcardManager(models.Manager):
         user2 = wizcard2.user
 
         self.becard(wizcard1, wizcard2) 
-        self.becard(wizcard2, wizcard1) 
 
         #Q this to the receiver and vice-versa
         if flick_card:

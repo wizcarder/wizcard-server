@@ -116,14 +116,17 @@ def get_field_value(obj, name, allow_missing=False):
     elif not allow_missing:
         raise ValueError('{} has no attribute {}'.format(obj, name))
 
-    # Check for callable
-    if callable(value):
-        value = value()
+    #AA: Fix after upgrading to latest django. ManyRelatedMgr was being 
+    # returned as callable...but it's  not..need to dig deeper. For now, 
+    #moved it up before the callable check/call
 
     # Handle a local many-to-many or a reverse foreign key
-    elif value.__class__.__name__ in ('RelatedManager', 'ManyRelatedManager',
+    if value.__class__.__name__ in ('RelatedManager', 'ManyRelatedManager',
             'GenericRelatedObjectManager'):
         value = value.all()
+    # Check for callable
+    elif callable(value):
+        value = value()
     elif value.__class__.__name__ is'ImageFieldFile':
         value = value.read() if bool(value) else None
 

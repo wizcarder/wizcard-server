@@ -762,7 +762,8 @@ class Header(ParseMsgAndDispatch):
 	        #associate flick with user
 	        flick_card.flick_pickers.add(wizcard1)
 	        #create a wizconnection and then accept it
-	        Wizcard.objects.exchange(wizcard1, wizcard2, True, flick_card=flick_card)
+	        Wizcard.objects.exchange(wizcard1, wizcard2, True, \
+                        flick_card=flick_card)
 	except KeyError: 
             self.securityException()
             self.response.ignore()
@@ -1309,8 +1310,10 @@ class Header(ParseMsgAndDispatch):
 		pass
 
         for c in contact_container:
+            title = "FIXME" if not c['title'] else c['title']
 	    t_row = ContactContainer(wizcard=wizcard,
-                    title=c['title'],
+                    title=title,
+                    #title=c['title'],
                     company=c['company'],
                     start=c['start'],
                     end=c['end'])
