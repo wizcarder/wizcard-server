@@ -127,7 +127,7 @@ def get_field_value(obj, name, allow_missing=False):
     # Check for callable
     elif callable(value):
         value = value()
-    elif value.__class__.__name__ is'ImageFieldFile':
+    elif 'FieldFile' in [i.__name__ for i in value.__class__.__bases__]:
         value = value.read() if bool(value) else None
 
     return value

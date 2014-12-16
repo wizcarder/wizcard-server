@@ -117,8 +117,6 @@ class NotifResponse(ResponseN):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
         out = Wizcard.objects.serialize(wizcard,
                 fields.wizcard_template_full)
-        if wizcard.video:
-            self.add_data_to_dict(out, "videoUrl", wizcard.video.url)
 
 	if notif.action_object:
             if ContentType.objects.get_for_model(notif.action_object) == \

@@ -10,7 +10,9 @@ FLICKED_WIZCARD     = 6
 NEARBY_USERS        = 7
 NEARBY_TABLES       = 8
 FLICK_TIMEOUT       = 9
-FLICK_PICK	    = 10
+FLICK_PICK          = 10
+WITHDRAW_REQUEST    = 11
+WIZWEB_UPDATE_WIZCARD = 12
 
 class NotifParser:
     def __init__(self, data, userID, wizUserID):
@@ -35,7 +37,10 @@ class NotifParser:
             FLICKED_WIZCARD :       self.flicked_wizcard,
             NEARBY_USERS    :       self.nearby_users,
             NEARBY_TABLES   :       self.nearby_tables,
-            FLICK_TIMEOUT   :       self.flick_timeout
+            FLICK_TIMEOUT   :       self.flick_timeout,
+            FLICK_PICK      :       self.flick_pick,
+            WITHDRAW_REQUEST   :    self.withdraw_request,
+            WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard
         }
 
 	if self.count:
@@ -82,3 +87,8 @@ class NotifParser:
     def flick_pick(self, data):
 	pass
 
+    def withdraw_request(self, data):
+	pass
+
+    def wizweb_update_wizcard(self, data):
+	pass

@@ -25,10 +25,14 @@ from wizserver import fields
 from lib.pytrie import SortedStringTrie as trie
 from django.contrib.contenttypes import generic
 from django.core.exceptions import ObjectDoesNotExist
-from location_mgr.models import location, LocationMgr
+from location_mgr.signals import location
+from location_mgr.models import LocationMgr
 from django.http import HttpResponseBadRequest, Http404
 from notifications.signals import notify
 from django.core.files.storage import default_storage
+from django.core.files.storage import FileSystemStorage
+from wizcard.custom_storage import WizcardQueuedS3BotoStorage
+from wizcard.custom_field import WizcardQueuedFileField
 from django.conf import settings
 import logging
 import operator
@@ -204,11 +208,10 @@ class Wizcard(models.Model):
     last_name = models.CharField(max_length=40, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
-    #media objects
-    thumbnailImage = models.ImageField(upload_to="image/")
-    video = models.FileField(upload_to="video/")
-    media_url = models.CharField(max_length=30, blank=True)
 
+    #media objects
+    thumbnailImage = WizcardQueuedFileField(upload_to="test/",
+                         storage=WizcardQueuedS3BotoStorage(delayed=False))
 
     objects = WizcardManager()
 
@@ -276,7 +279,8 @@ class ContactContainer(models.Model):
     title = models.CharField(max_length=200, blank=True)
     start = models.CharField(max_length=30, blank=True)
     end = models.CharField(max_length=30, blank=True)
-    f_bizCardImage = models.ImageField(upload_to="image/")
+    f_bizCardImage = WizcardQueuedFileField(upload_to="test/",
+                         storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.CharField(max_length=30, blank=True)
     
 

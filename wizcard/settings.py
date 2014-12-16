@@ -1,3 +1,54 @@
+#####celery related stuff######
+from __future__ import absolute_import
+# ^^^ The above is required if you want to import from the celery
+# library. If you don't have this then `from celery.schedules import
+# becomes `proj.celery.schedules` in Python 2.x since it allows
+# for relative imports by default.
+# Celery settings
+import djcelery
+djcelery.setup_loader()
+
+from kombu import Queue, Exchange
+
+BROKER_TRANSPORT = 'amqp'
+BROKER_USER = 'wizcard_user'
+BROKER_PASSWORD = 'wizcard_pass'
+BROKER_HOST = 'localhost'
+BROKER_PORT = 5672
+BROKER_VHOST = 'wizcard_vhost'
+
+CELERY_RESULT_BACKEND = 'amqp://'
+
+IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
+OCR_QUEUE_NAME = 'ocr'
+CELERY_DEFAULT_QUEUE = 'default'
+
+CELERY_IMAGE_UPLOAD_Q = Queue(IMAGE_UPLOAD_QUEUE_NAME,
+                              Exchange(IMAGE_UPLOAD_QUEUE_NAME),
+                              routing_key=IMAGE_UPLOAD_QUEUE_NAME)
+
+CELERY_OCR_Q = Queue(OCR_QUEUE_NAME,
+                     Exchange(OCR_QUEUE_NAME),
+                     routing_key=OCR_QUEUE_NAME)
+
+CELERY_DEFAULT_Q = Queue(CELERY_DEFAULT_QUEUE,
+                         Exchange(CELERY_DEFAULT_QUEUE),
+                         routing_key=CELERY_DEFAULT_QUEUE)
+
+CELERY_QUEUES = (
+            CELERY_IMAGE_UPLOAD_Q,
+            CELERY_OCR_Q,
+            CELERY_DEFAULT_Q
+)
+
+CELERY_ROUTES = {
+    'queued_storage.tasks.Transfer': {
+        'queue': IMAGE_UPLOAD_QUEUE_NAME,
+        'routing_key': IMAGE_UPLOAD_QUEUE_NAME
+    }
+}
+
+
 # Django settings for wizcard project.
 
 DEBUG = True
@@ -49,7 +100,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = '/Users/aammundi/stuff/WizCard/trunk/wizcard-server/media/'
+MEDIA_ROOT = '/tmp/media'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -199,6 +250,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'django_extensions',
     'django_cron',
+    'djcelery',
     'storages',
     'userprofile',
     'wizserver',
@@ -207,15 +259,13 @@ INSTALLED_APPS = (
     'virtual_table',
     'location_mgr',
     'periodic',
+    'deadcards',
     'gunicorn',
     'raven.contrib.django.raven_compat',
 )
 
 #django-storage settings
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-#AWS_ACCESS_KEY_ID = 'AKIAJWT7M6E35TTP7HKA'
-#AWS_SECRET_ACCESS_KEY = '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'
-#AWS_STORAGE_BUCKET_NAME = 'amsaha1234'
 AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket'

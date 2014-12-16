@@ -26,6 +26,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
 from django.core import serializers
 from lib.preserialize.serialize import serialize
+from lib.ocr import OCR
 from django.core.files.storage import default_storage
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
@@ -218,7 +219,9 @@ class Header(ParseMsgAndDispatch):
             'leave_table'                 : (message_format.TableLeaveSchema, self.TableLeave),
             'destroy_table'               : (message_format.TableDestroySchema, self.TableDestroy),
             'table_edit'                  : (message_format.TableEditSchema, self.TableEdit),
-            'settings'                    : (message_format.SettingsSchema, self.Settings)
+            'settings'                    : (message_format.SettingsSchema, self.Settings),
+            'ocr_req_self'                : (message_format.OcrRequestSelfSchema, self.OcrReqSelf),
+            'ocr_req_dead_card'           : (message_format.OcrRequestDeadCardSchema, self.OcrReqDeadCard)
         }
         #update location since it may have changed
 	if self.msg_has_location() and not self.msg_is_initial():
@@ -530,21 +533,13 @@ class Header(ParseMsgAndDispatch):
                 wizcard.email = email
                 modify = True
 
-        if 'thumbnailImage' in self.sender:
-        #if 'thumbnailImage' in self.sender and self.sender['imageWasEdited']:
-	    #AA:TODO: Remove try
-            try:
-                rawimage = bytes(self.sender['thumbnailImage'])
-                upfile = SimpleUploadedFile("%s-%s.jpg" % (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
-                wizcard.thumbnailImage.save(upfile.name, upfile) 
-                modify = True
-            except:
-                pass
-
-	if 'videoUrl' in self.sender:
-            rawvideo = self.sender['VideoUrl']
-            upfile = SimpleUploadedFile("%s-%s.mp4" % (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), rawvideo, "video/mp4")
-            wizcard.video.save(upfile.name, upfile) 
+        if self.sender.has_key('thumbnailImage') and \
+            self.sender['thumbnailImage']:
+            rawimage = bytes(self.sender['thumbnailImage'])
+            upfile = SimpleUploadedFile("%s-%s.jpg" % \
+                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), 
+                    rawimage, "image/jpeg")
+            wizcard.thumbnailImage.save(upfile.name, upfile) 
             modify = True
 
 	if 'contact_container' in self.sender:
@@ -582,7 +577,10 @@ class Header(ParseMsgAndDispatch):
                     try:
                         rawimage = bytes(contactItem['f_bizCardImage'])
 			#AA:TODO: better file name
-                        upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % (wizcard.pk, c.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
+                        upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % \
+                                (wizcard.pk, c.pk, now().strftime\
+                                ("%Y-%m-%d %H:%M")), rawimage, \
+                                "image/jpeg")
                         c.f_bizCardImage.save(upfile.name, upfile) 
                     except:
                         pass
@@ -1193,6 +1191,66 @@ class Header(ParseMsgAndDispatch):
 	  
 	return self.response
 
+    #############OCR MessageS##############
+    def OcrReqSelf(self):
+        try:
+            wizcard = self.user.wizcard
+        except ObjectDoesNotExist:
+            #this is the expected case
+            wizcard = Wizcard(user=self.user)
+            wizcard.save()
+
+        c = ContactContainer(wizcard=wizcard)
+        c.save()
+
+        rawimage = bytes(self.sender['f_ocrCardImage'])
+        #AA:TODO maybe time to put this in lib
+        upfile = SimpleUploadedFile("%s-%s.jpg" % \
+                (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
+                rawimage, "image/jpeg")
+
+        c.f_bizCardImage.save(upfile.name, upfile)
+
+        #Do ocr stuff
+        ocr = OCR()
+        result = ocr.process(c.f_bizCardImage.local_path())
+        #AA:TODO Error handling
+
+        wizcard.first_name = result.get('first_name', None)
+        wizcard.last_name = result.get('last_name', None)
+        wizcard.phone = result.get('phone', None)
+        wizcard.email = result.get('email', None)
+        wizcard.save()
+
+        c.title = result.get('title', None),
+        c.company = result.get('company', None)
+        c.end="current"
+        c.save()
+
+        self.response.add_data("ocr_result", result)
+        return self.response
+
+    def OcrReqDeadCard(self):
+        try:
+            wizcard = self.user.wizcard
+        except ObjectDoesNotExist:
+	    self.response.error_response(err.CRITICAL_ERROR)
+            return self.response
+
+        d = DeadCard(user=self.user)
+        d.save()
+
+        rawimage = bytes(self.sender['f_ocrCardImage'])
+        upfile = SimpleUploadedFile("%s-%s.jpg" % \
+                (d.pk, now().strftime("%Y-%m-%d %H:%M")),
+                rawimage, "image/jpeg")
+
+        d.f_bizCardImage.save(upfile.name, upfile)
+
+        d.recognize()
+        self.response.add_data("deadCardID", d.pk)
+        return self.response
+
     #################WizWeb Message handling########################
     def WizWebUserQuery(self):
 	username = self.sender['username']
@@ -1281,10 +1339,6 @@ class Header(ParseMsgAndDispatch):
 	    wizcard = self.user.wizcard
 	    #AA_TODO: cross check phone
 
-	    if media_url:
-                wizcard.media_url = media_url
-                wizcard.save()
-
 	    #Add to contact container or force add depending on mode
 	    if mode == EDIT_FORCE:
 	        #delete existing contact container for this wizcard
@@ -1294,7 +1348,6 @@ class Header(ParseMsgAndDispatch):
             wizcard = Wizcard(user=self.user,
 			    first_name=first_name,
 			    last_name=last_name,
-                            media_url=media_url,
 			    phone=phone)
             wizcard.save()
 

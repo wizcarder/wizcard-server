@@ -93,6 +93,11 @@ class TableEditSchema(colander.MappingSchema):
     pass
 class SettingsSchema(colander.MappingSchema):
     pass
+class OcrRequestSelfSchema(colander.MappingSchema):
+    pass
+class OcrRequestDeadCardSchema(colander.MappingSchema):
+    pass
+
 
 #wizweb
 class WizWebUserQuerySchema(colander.MappingSchema):
