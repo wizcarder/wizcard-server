@@ -285,7 +285,7 @@ class ContactContainer(models.Model):
     
 
     def __unicode__(self):
-        return _(u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)} 
+        return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)} 
 
     class Meta:
         ordering = ['id']

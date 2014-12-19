@@ -10,6 +10,7 @@ import messages
 from notifications import NotifParser
 import random
 import string
+import utils
 
 #1 Flick
 #2 flick
@@ -598,6 +599,26 @@ reqmsg['receiver']['wizCardID'] = e3_id
 print "GET card DETAILS", reqmsg['sender']['userID']
 cd3 = json.dumps(reqmsg)
 conn.request("POST","", cd3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.ocr_req_self
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['wizCardID'] = e1_id
+print "OCR Req Own Card", reqmsg['sender']['userID']
+ors = json.dumps(reqmsg)
+conn.request("POST","", ors)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.ocr_dead_card
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['wizCardID'] = e1_id
+print "Dead Card OCR ", reqmsg['sender']['userID']
+ordc = json.dumps(reqmsg)
+conn.request("POST","", ordc)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 

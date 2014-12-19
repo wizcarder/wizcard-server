@@ -136,3 +136,9 @@ table_merged_template = {
             'creator_id', 'created', 'timeRemaining', 'tag'],
     'key_map' : {'created':'a_created', 'timeRemaining':'time_remaining', 'tag':'get_tag'}
 }
+
+dead_cards_response_template = {
+    'fields': ['id', 'company', 'email', 'first_name', 'last_name', \
+            'title', 'web', 'company'],
+}
+

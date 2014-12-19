@@ -1,4 +1,5 @@
 from Abbyy.AbbyyOnlineSdk import *
+from celery import shared_task
 import pdb
 
 class OCR:
@@ -9,11 +10,12 @@ class OCR:
     def process(self, file):
 	#call OCR lib and get result.
 	runproc = RunOCR()
-        ocr_result_dict = runproc.RunProc(
-                              file,
-                              "English","xml")
+        args = {'file':file, "lang":"English", "format":"xml"}
+        res = run_ocr.delay(runproc, **args)
 
-        self.ocr_result(**ocr_result_dict)
+        ocr_result = res.get(timeout=20)
+
+        self.ocr_result(**ocr_result)
         return self.result
 
     def ocr_result(self, **kwargs):
@@ -31,3 +33,11 @@ class OCR:
             self.result['web'] = kwargs.get('web')
         if kwargs.has_key('title'):
             self.result['title'] = kwargs.get('title')
+
+
+@shared_task
+def run_ocr(inst, **kwargs):
+    file = kwargs.get('file')
+    lang = kwargs.get('lang', "English")
+    format = kwargs.get('format', "xml")
+    return inst.RunProc(file, lang, format)

@@ -3,7 +3,9 @@ from django.contrib.auth.models import User
 from wizcard.custom_storage import WizcardQueuedS3BotoStorage
 from wizcard.custom_field import WizcardQueuedFileField
 from lib.preserialize.serialize import serialize
+from wizserver import fields
 from lib.ocr import OCR
+import pdb
 
 # Create your models here.
 class DeadCardsManager(models.Manager):
@@ -25,9 +27,7 @@ class DeadCards(models.Model):
     objects = DeadCardsManager()
 
     def __unicode__(self):
-        return _(u'%(user)s\'s contact container: %(title)s@ %(company)s \n')\
-                % {'user': unicode(self.wizcard.user), 'title': \
-                unicode(self.title), 'company': unicode(self.company)}
+        return (u'%(user)s\'s dead card: %(title)s@ %(company)s \n') % {'user': unicode(self.user), 'title': unicode(self.title), 'company': unicode(self.company)}
 
     def recognize(self):
         ocr = OCR()
@@ -38,6 +38,9 @@ class DeadCards(models.Model):
         self.phone = result.get('phone', None)
         self.email = result.get('email', None)
         self.company = result.get('company', None)
-        self.title = result.get('title', None)
+        self.title = result.get('job', "dummy")
         self.web = result.get('web', None)
         self.save()
+
+    def serialize(self ):
+        return serialize(self, **fields.dead_cards_response_template)

@@ -36,7 +36,8 @@ from userprofile.models import UserProfile
 from lib import wizlib
 from wizcard import err
 from location_mgr.models import LocationMgr
-import msg_test, fields
+from dead_cards.models import DeadCards
+from wizserver import msg_test, fields
 from django.utils import timezone
 import random
 from django.core.cache import cache
@@ -1203,17 +1204,22 @@ class Header(ParseMsgAndDispatch):
         c = ContactContainer(wizcard=wizcard)
         c.save()
 
-        rawimage = bytes(self.sender['f_ocrCardImage'])
-        #AA:TODO maybe time to put this in lib
-        upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                rawimage, "image/jpeg")
-
-        c.f_bizCardImage.save(upfile.name, upfile)
+        if self.sender.has_key('f_ocrCardImage'): 
+            rawimage = bytes(self.sender['f_ocrCardImage'])
+            #AA:TODO maybe time to put this in lib
+            upfile = SimpleUploadedFile("%s-%s.jpg" % \
+                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
+                    rawimage, "image/jpeg") 
+            
+            c.f_bizCardImage.save(upfile.name, upfile)
+            path = c.f_bizCardImage.local_path()
+        else:
+            #AA. TODO: Remove me eventually...this is just for testing
+            path = "test/photo.JPG"
 
         #Do ocr stuff
         ocr = OCR()
-        result = ocr.process(c.f_bizCardImage.local_path())
+        result = ocr.process(path)
         #AA:TODO Error handling
 
         wizcard.first_name = result.get('first_name', None)
@@ -1237,18 +1243,27 @@ class Header(ParseMsgAndDispatch):
 	    self.response.error_response(err.CRITICAL_ERROR)
             return self.response
 
-        d = DeadCard(user=self.user)
+        d = DeadCards(user=self.user)
         d.save()
 
-        rawimage = bytes(self.sender['f_ocrCardImage'])
-        upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                (d.pk, now().strftime("%Y-%m-%d %H:%M")),
-                rawimage, "image/jpeg")
+        if self.sender.has_key('f_ocrCardImage'): 
+            rawimage = bytes(self.sender['f_ocrCardImage'])
+            #AA:TODO maybe time to put this in lib
+            
+            d.f_bizCardImage.save(upfile.name, upfile)
+            path = d.f_bizCardImage.local_path()
+        else:
+            path = "test/photo.JPG"
+            rawimage = bytes(open(path).read())
+            #AA:TODO Remove me eventually...this is just for testing
 
+        upfile = SimpleUploadedFile("%s-%s.jpg" % \
+                (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
+                rawimage, "image/jpeg")
         d.f_bizCardImage.save(upfile.name, upfile)
 
         d.recognize()
-        self.response.add_data("deadCardID", d.pk)
+        self.response.add_data("response", d.serialize())
         return self.response
 
     #################WizWeb Message handling########################
