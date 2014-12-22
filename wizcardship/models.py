@@ -210,7 +210,7 @@ class Wizcard(models.Model):
     email = models.EmailField(blank=True)
 
     #media objects
-    thumbnailImage = WizcardQueuedFileField(upload_to="test/",
+    thumbnailImage = WizcardQueuedFileField(upload_to="image/thumbnail",
                          storage=WizcardQueuedS3BotoStorage(delayed=False))
 
     objects = WizcardManager()
@@ -279,7 +279,7 @@ class ContactContainer(models.Model):
     title = models.CharField(max_length=200, blank=True)
     start = models.CharField(max_length=30, blank=True)
     end = models.CharField(max_length=30, blank=True)
-    f_bizCardImage = WizcardQueuedFileField(upload_to="test/",
+    f_bizCardImage = WizcardQueuedFileField(upload_to="image/bizcards",
                          storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.CharField(max_length=30, blank=True)
     
