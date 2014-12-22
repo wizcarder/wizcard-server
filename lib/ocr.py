@@ -31,8 +31,8 @@ class OCR:
             self.result['company'] = kwargs.get('company')
         if kwargs.has_key('web'):
             self.result['web'] = kwargs.get('web')
-        if kwargs.has_key('title'):
-            self.result['title'] = kwargs.get('title')
+        if kwargs.has_key('job'):
+            self.result['title'] = kwargs.get('job')
 
 
 @shared_task

@@ -392,8 +392,8 @@ PYAPNS_CONFIG = {
   'HOST': 'http://localhost:7077/',
   'TIMEOUT': 1,                    # OPTIONAL, host timeout in seconds
   'INITIAL': [                      # OPTIONAL, see below
-    #('com.wizcard', open('./wizcard/certs/wizcard_ios_apns_dev.pem').read(), 'sandbox'),
-    ('com.wizcard', open('./wizcard/certs/wizcard_ios_apns_production.pem').read(), 'production'),
+    #('com.beta.wizcard', open('./certs/wizcard_ios_apns_dev.pem').read(), 'sandbox'),
+    ('com.beta.wizcard', open('./certs/wizcard_ios_apns_production.pem').read(), 'production'),
   ]
 }
 

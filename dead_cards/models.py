@@ -33,13 +33,13 @@ class DeadCards(models.Model):
         ocr = OCR()
         result =  ocr.process(self.f_bizCardImage.path)
 
-        self.first_name = result.get('first_name', None)
-        self.last_name = result.get('last_name', None)
-        self.phone = result.get('phone', None)
-        self.email = result.get('email', None)
-        self.company = result.get('company', None)
-        self.title = result.get('job', "dummy")
-        self.web = result.get('web', None)
+        self.first_name = result.get('first_name', "")
+        self.last_name = result.get('last_name', "")
+        self.phone = result.get('phone', "")
+        self.email = result.get('email', "")
+        self.company = result.get('company', "")
+        self.title = result.get('job', "")
+        self.web = result.get('web', "")
         self.save()
 
     def serialize(self ):

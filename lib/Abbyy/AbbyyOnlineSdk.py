@@ -14,6 +14,7 @@ import urllib2
 import urllib
 import xml.dom.minidom
 from lxml import etree,objectify
+from celery.contrib import rdb
 
 class ProcessingSettings:
 	Language = "English"

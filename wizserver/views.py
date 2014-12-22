@@ -1222,14 +1222,14 @@ class Header(ParseMsgAndDispatch):
         result = ocr.process(path)
         #AA:TODO Error handling
 
-        wizcard.first_name = result.get('first_name', None)
-        wizcard.last_name = result.get('last_name', None)
-        wizcard.phone = result.get('phone', None)
-        wizcard.email = result.get('email', None)
+        wizcard.first_name = result.get('first_name', "")
+        wizcard.last_name = result.get('last_name', "")
+        wizcard.phone = result.get('phone', "")
+        wizcard.email = result.get('email', "")
         wizcard.save()
 
-        c.title = result.get('title', None),
-        c.company = result.get('company', None)
+        c.title = result.get('title', ""),
+        c.company = result.get('company', "")
         c.end="current"
         c.save()
 
