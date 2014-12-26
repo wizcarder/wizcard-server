@@ -388,7 +388,7 @@ LOGGING = {
     }
 }
 
-APP_ID = 'com.wizcard'
+APP_ID = 'com.beta.wizcard'
 PYAPNS_CONFIG = {
   'HOST': 'http://localhost:7077/',
   'TIMEOUT': 1,                    # OPTIONAL, host timeout in seconds
