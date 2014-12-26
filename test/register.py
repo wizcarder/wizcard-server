@@ -28,7 +28,8 @@ import utils
 
 TEST_IMAGE=False
 
-PHONE1 = "+15084641727"
+NEXMO_PHONE1 = "14084641727"
+PHONE1 = "+14084641727"
 PHONE2 = "+15085332708"
 PHONE3 = "+15086892263"
 PHONE4 = "+14086892263"
@@ -74,9 +75,9 @@ LNG1 = -122.506419
 
 ContactList = [PHONE1, PHONE2, PHONE3]
 
-#server_url = "www.totastyle.com"
+server_url = "www.totastyle.com"
 #server_url = "localhost"
-server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
+#server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 
 server_port = 8000
 #server_port = 80
@@ -99,19 +100,21 @@ reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID1
 reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['target'] = PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
+reqmsg['sender']['target'] = NEXMO_PHONE1
+reqmsg['sender']['responseMode'] = 'voice'
+reqmsg['sender']['test_mode'] = True
 pcreq1 = json.dumps(reqmsg)
 conn.request("POST","", pcreq1)
 print "sending phone_check_req", pcreq1
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+response_key = objs['data']['challenge_key']
 
 reqmsg = messages.phone_check_resp
 reqmsg['header']['deviceID'] = DEVICE_ID1
 reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['responseKey'] = RESPONSE_KEY1
+reqmsg['sender']['responseKey'] = response_key
 pcrsp1 = json.dumps(reqmsg)
 print "sending phone_check_rsp", pcrsp1
 conn.request("POST","", pcrsp1)
@@ -125,17 +128,19 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = USERNAME2
 reqmsg['sender']['target'] = PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
+reqmsg['sender']['test_mode'] = True
 pcreq2 = json.dumps(reqmsg)
 conn.request("POST","", pcreq2)
 print "sending phone_check_req", pcreq2
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+response_key = objs['data']['challenge_key']
 
 reqmsg = messages.phone_check_resp
 reqmsg['header']['deviceID'] = DEVICE_ID2
 reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = USERNAME2
-reqmsg['sender']['responseKey'] = RESPONSE_KEY2
+reqmsg['sender']['responseKey'] = response_key
 pcrsp2 = json.dumps(reqmsg)
 print "sending phone_check_rsp", pcrsp2
 conn.request("POST","", pcrsp2)
@@ -149,18 +154,20 @@ reqmsg['header']['hash'] = HASH3
 reqmsg['sender']['username'] = USERNAME3
 reqmsg['sender']['target'] = PHONE3
 reqmsg['sender']['responseMode'] = 'sms'
+reqmsg['sender']['test_mode'] = True
 pcreq3 = json.dumps(reqmsg)
 conn.request("POST","", pcreq3)
 print "sending phone_check_req", pcreq3
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+response_key = objs['data']['challenge_key']
 
 #resp = objs['data']['key']
 reqmsg = messages.phone_check_resp
 reqmsg['header']['deviceID'] = DEVICE_ID3
 reqmsg['header']['hash'] = HASH3
 reqmsg['sender']['username'] = USERNAME3
-reqmsg['sender']['responseKey'] = RESPONSE_KEY3
+reqmsg['sender']['responseKey'] = response_key
 pcrsp3 = json.dumps(reqmsg)
 test_image_path = "/Users/aammundi/Pictures/iChat Icons/Flags/Russia.png"
 print "sending phone_check_rsp", pcrsp3

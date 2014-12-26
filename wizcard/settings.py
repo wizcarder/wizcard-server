@@ -66,11 +66,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wizcard',
         'USER': 'root',
-        #'PASSWORD': 'go_WiZcArD#27',
-        'PASSWORD': '',
+        'PASSWORD': 'go_WiZcArD#27',
+        #'PASSWORD': '',
         #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        #'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -186,8 +186,8 @@ PHONE_CHECK = False
 #retry timeout
 PHONE_CHECK_TIMEOUT = 180
 
-PHONE_CHECK_RAND_LOW = 100
-PHONE_CHECK_RAND_HI = 999
+PHONE_CHECK_RAND_LOW = 1000
+PHONE_CHECK_RAND_HI = 9999
 PHONE_CHECK_REQ_PREFIX = 'phone_check_req'
 PHONE_CHECK_USER = '__user_%s'
 PHONE_CHECK_RAND = '__rand_%s'
@@ -198,7 +198,8 @@ PHONE_CHECK_USER_RAND_KEY = PHONE_CHECK_REQ_PREFIX + PHONE_CHECK_RAND
 PHONE_CHECK_USER_RETRY_KEY = PHONE_CHECK_REQ_PREFIX + PHONE_CHECK_RETRY
 PHONE_CHECK_DEVICE_ID_KEY = PHONE_CHECK_REQ_PREFIX + PHONE_CHECK_DEVICE_ID
 
-PHONE_CHECK_RESPONSE_GREETING = "please use the following key to sign up: %s"
+PHONE_CHECK_RESPONSE_SMS_GREETING = "please use the following key to sign up: %s"
+PHONE_CHECK_RESPONSE_VOICE_GREETING = "please use the following key to sign up: %s"
 PHONE_CHECK_RESPONSE_FROM_ID = 12134657949
 
 WIZCARD_USERNAME_EXTENSION = '@wizcard.com'

@@ -42,7 +42,7 @@ from django.utils import timezone
 import random
 from django.core.cache import cache
 from django.conf import settings
-from nexmomessage import NexmoMessage
+from lib.nexmomessage import NexmoMessage
 import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
@@ -245,6 +245,7 @@ class Header(ParseMsgAndDispatch):
 	username = self.sender['username']
 	response_mode = self.sender['responseMode']
 	response_target = self.sender['target']
+        test_mode = True if self.sender.has_key('test_mode') else False
 
         #AA_TODO: security check for checkMode type
 	k_user = (settings.PHONE_CHECK_USER_KEY % username)
@@ -265,23 +266,38 @@ class Header(ParseMsgAndDispatch):
 	d[k_retry] = 1
 	cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
-	if response_mode == "voice":
-	    #TODO
-	    pass
-
         #send a text with the rand
         if settings.PHONE_CHECK:
             msg = settings.PHONE_CHECK_MESSAGE
             msg['to'] = response_target
-            msg['text'] = settings.PHONE_CHECK_RESPONSE_GREETING % d[k_rand]
+
+            if response_mode == "voice":
+                keystr = str(d[k_rand])
+                keystr = str.format(','.join([keystr[i:i+1] for i in range(0, len(keystr))]))
+                msg['servicetype'] = "tts"
+                msg['text'] = \
+                        settings.PHONE_CHECK_RESPONSE_VOICE_GREETING % \
+                        keystr
+            elif response_mode == "sms":
+                msg['servicetype'] = "sms"
+                msg['text'] = settings.PHONE_CHECK_RESPONSE_SMS_GREETING % \
+                        d[k_rand]
+            else:
+                self.response.error_response(err.INVALID_MESSAGE)
+                return self.response
+
             sms = NexmoMessage(msg)
             sms.set_text_info(msg['text'])
-            response = sms.send_request()
-            if response['messages'][0]['status'] != '0':
+            sms.send_request()
+            status, errStr = sms.get_response()
+
+            if not status:
                 #some error...let the app know
                 self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
                 return self.response
 
+        if test_mode:
+            self.response.add_data("challenge_key", d[k_rand])
 
         return self.response
 
