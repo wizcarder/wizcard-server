@@ -122,12 +122,10 @@ class VirtualTable(models.Model):
         return self.tablename
 
     def create_location(self, lat, lng):
-        key = wizlib.create_geohash(lat, lng)
         location.send(
                 sender=self, 
                 lat=lat, 
                 lng=lng, 
-                key=key, 
                 tree="VTREE")
 
     def is_secure(self):

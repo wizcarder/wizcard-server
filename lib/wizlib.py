@@ -4,71 +4,6 @@ import gc
 from django.conf import settings
 
 
-#Geohash related stuff
-
-def create_geohash(lat, lng):
-    encode = geohash.encode(lat, lng)
-    #print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
-    return encode
-
-def lookup(tree, lat, lng, num_results, key=None):
-    #print 'looking up tree [{tree}] using key [{key}]'.format (tree=tree, key=key)
-    if not tree:
-        return None, None
-    if not key:
-        key = create_geohash(lat, lng)
-    result =  lookup_closest_n(tree, key, num_results)
-    #print '{count} lookup result [{result}]'.format (count=result[1], result=result[0])
-    return result[0], result[1]
-
-def modified_key(key, val):
-    mkey = settings.MKEY_SEP.join((key, str(val)))
-    return mkey
-
-def demodify_key(key):
-    return key.split(settings.MKEY_SEP)[0]
-
-def ptree_insert(key, tree, val):
-    tree[key] = val
-
-def ptree_delete(key, tree):
-    val = None
-    try:
-	val = tree[key]
-        del tree[key]
-    except:
-        pass
-    return val
-
-def lookup_closest_n(tree, key, n, value_only = True):
-    #lookup using top half of key
-    result = None
-    count = 0
-    left = 0
-    right = len(key)
-    part = right
-    done = False
-
-    while not done:
-	part = ((right + left - 1)//2) + 1
-        result, count = tree.longest_common_prefix_value(key[:part])
-        if part == right:
-            done = True
-
-        prev_result = result
-        prev_count = count
-
-	if count < n:
-	    right = part
-        elif count > n:
-            left = part
-        else:
-            break
-            
-    #one result is over and one is under. take the larger one
-
-    return (result, count) if count > prev_count else (prev_result, prev_count)
-
 #general purpose utils
 def convert_phone(phone):
     import string
@@ -96,6 +31,20 @@ def queryset_iterator(queryset, chunksize=1000):
             pk = row.pk
             yield row
         gc.collect()
+
+#Geohash related stuff
+
+def create_geohash(lat, lng):
+    encode = geohash.encode(lat, lng)
+    #print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
+    return encode
+
+def modified_key(key, val):
+    mkey = settings.MKEY_SEP.join((key, str(val)))
+    return mkey
+
+def demodify_key(key):
+    return key.split(settings.MKEY_SEP)[0]
 
 from math import radians, cos, sin, asin, sqrt
 def haversine(lon1, lat1, lon2, lat2):

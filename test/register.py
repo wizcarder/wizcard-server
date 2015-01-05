@@ -27,6 +27,7 @@ import utils
 #T3 - [u3]
 
 TEST_IMAGE=False
+OCR_FLAG = False
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "+14084641727"
@@ -615,9 +616,10 @@ reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['wizCardID'] = e1_id
 print "OCR Req Own Card", reqmsg['sender']['userID']
 ors = json.dumps(reqmsg)
-conn.request("POST","", ors)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+if OCR_FLAG:
+    conn.request("POST","", ors)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
 
 reqmsg = messages.ocr_dead_card
 reqmsg['sender']['userID'] = uid1
@@ -625,9 +627,10 @@ reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['wizCardID'] = e1_id
 print "Dead Card OCR ", reqmsg['sender']['userID']
 ordc = json.dumps(reqmsg)
-conn.request("POST","", ordc)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+if OCR_FLAG:
+    conn.request("POST","", ordc)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
 
 
 ####wizweb messages########################

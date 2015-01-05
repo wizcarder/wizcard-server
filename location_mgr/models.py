@@ -13,6 +13,7 @@ from django_cron import Job
 from django_cron.models import Cron
 from django.utils import timezone
 from wizserver import verbs
+from location_service.client import LocationServiceClient
 import logging
 import heapq
 import random
@@ -38,66 +39,20 @@ class Tick(Job):
                 logger.error('Timer Job Exception: %s', str(e))
                 pass
 
-
 class LocationMgrManager(models.Manager):
-    __shared_state = {}
+    def lookup(self, tree_type, lat, lng, n, exclude_key=True):
 
-    ptree = trie()
-    vtree = trie()
-    wtree = trie()
+        key = wizlib.create_geohash(lat, lng)
 
-    inited = False
-
-    location_tree_handles = {
-        "PTREE" : ptree,
-        "WTREE" : wtree,
-        "VTREE" : vtree
-    }
-
-    def __init__(self, *args, **kwargs):
-        self.__dict__ = self.__shared_state
-        super(LocationMgrManager, self).__init__(*args, **kwargs)
-
-    def init_from_db(self, sender, **kwargs):
-        if self.inited is True:
-            return
-        try:
-            qs = LocationMgr.objects.all()
-            rows = wizlib.queryset_iterator(qs) 
-            for row in rows:
-                key = wizlib.create_geohash(row.lat, row.lng)
-                wizlib.ptree_insert(
-                        wizlib.modified_key(key, row.pk),
-                        LocationMgr.objects.get_tree_from_type(row.tree_type),
-                        row.pk)
-                #AA:TO DO: fix..not correct
-                row.timer.get().start()
-        except:
-            return
-        #just to be safe, restore django.cron executing to false
-        try:
-            c = Cron.objects.get(id=1)
-            c.executing = False
-            c.save()
-        except:
-            #will happen on db full clean
-            pass
-
-        self.inited = True
-	
-    def get_tree_from_type(self, tree_type):
-	return self.location_tree_handles[tree_type]
-  
-    def lookup(self, tree_type, lat, lng, n, key=None):
-	tree = LocationMgr.objects.get_tree_from_type(tree_type)
-        result, count = wizlib.lookup(tree,
-                                      lat,
-                                      lng,
-                                      n,
-                                      key)
+        tsc = LocationServiceClient()
+        result, count = tsc.lookup(tree_type=tree_type,
+                                  key=key,
+                                  n=n,
+                                  exclude_key=exclude_key)
 
         if not count:
             return result, count
+
         logger.debug('looking up  gives result [%s]', result)
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
@@ -106,13 +61,6 @@ class LocationMgrManager(models.Manager):
         h_result = heapq.nsmallest(n, h)
         return [r[1] for r in h_result], count
 
-    def print_trees(self, tree_type=None):
-	if tree_type == None:
-            for ttype in LocationMgr.objects.location_tree_handles:
-                print '{ttype} : {tree}'.format (ttype=ttype, tree=LocationMgr.objects.location_tree_handles[ttype])
-	else:
-	    print '{ttype} : {tree}'.format (ttype=tree_type, tree=LocationMgr.objects.location_tree_handles[tree_type])
-	    
 class LocationMgr(models.Model):
     lat = models.DecimalField(null=True, max_digits=20, 
                               decimal_places=15, default=None)
@@ -134,7 +82,6 @@ class LocationMgr(models.Model):
         super(LocationMgr, self).__init__(*args, **kwargs)
 
     def do_update(self, lat, lng):
-	tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
         updated = False
         if self.lat != lat:
             self.lat = lat
@@ -153,47 +100,33 @@ class LocationMgr(models.Model):
             self.insert_in_tree(),
         return updated
 
-    def lookup(self, n):
-        logger.debug('lookup up {%s}', self.tree_type)
-	tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
-
-	#remove self.key from the tree. Otherwise this skews the resuls towards
-	#us. Even if we were to do a partwise lookup, it might still skew things
-	#depending on the sparsity of the tree
-        try:
-	    cached_val = self.delete_from_tree()
-        except:
-            cached_val = None
-        result, count = LocationMgr.objects.lookup(self.tree_type,
-                                                   self.lat,
-                                                   self.lng, 
-                                                   n,
-                                                   self.key)
-	#add me back
-	if cached_val:
-	    self.insert_in_tree()
-
-        return result, count
-
     def delete_from_tree(self):
-        tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
-        val = wizlib.ptree_delete(
-			wizlib.modified_key(self.key, self.pk),
-			tree)
-        logger.debug('post deleted tree: [{%s}.{%s}]', self.tree_type, tree)
+        tsc = LocationServiceClient()
+        val = tsc.tree_delete(
+			key=wizlib.modified_key(self.key, self.pk),
+			tree_type=self.tree_type)
+        logger.debug('deleted from tree: [{%s}.{%s}]', self.tree_type, self.key)
 	return val
 
     def insert_in_tree(self):
-        tree = LocationMgr.objects.get_tree_from_type(self.tree_type)
-        wizlib.ptree_insert(
-                wizlib.modified_key(self.key, self.pk),
-                tree,
-                self.pk)
-        logger.debug('post inserted tree: [{%s}.{%s}]', self.tree_type, tree)
+        tsc = LocationServiceClient()
+        tsc.tree_insert(
+                key=wizlib.modified_key(self.key, self.pk),
+                tree_type=self.tree_type,
+                val=self.pk)
+
+        logger.debug('inserted into tree: [{%s}.{%s}]', self.tree_type, self.key)
 
     def delete(self, *args, **kwargs):
         self.delete_from_tree()
         super(LocationMgr, self).delete(*args, **kwargs)
+
+    def lookup(self, n):
+        return LocationMgr.objects.lookup(self.tree_type,
+                self.lat,
+                self.lng,
+                n,
+                exclude_key=False)
 
     #Database based timer implementation
     def start_timer(self, timeout):
@@ -223,9 +156,9 @@ def location_create_handler(**kwargs):
     sender = kwargs.pop('sender')
     lat = kwargs.pop('lat')
     lng = kwargs.pop('lng')
-    key = kwargs.pop('key', None)
     tree_type = kwargs.pop('tree', None)
 
+    key = wizlib.create_geohash(lat, lng)
     newlocation = LocationMgr(
         lat=lat,
         lng=lng,
@@ -260,9 +193,9 @@ def timeout_callback_execute(e):
         ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb, 
         ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : generic_timeout_cb, 
         ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb, 
-        } 
+        }
     timeout_callback[e.content_type.id](e)
 
 location.connect(location_create_handler, dispatch_uid='location_mgr.models.location_mgr')
 location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
-class_prepared.connect(LocationMgr.objects.init_from_db, dispatch_uid='location_mgr.models.location_mgr')
+#class_prepared.connect(LocationMgr.objects.init_from_db, dispatch_uid='location_mgr.models.location_mgr')

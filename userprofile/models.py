@@ -142,8 +142,7 @@ class UserProfile(models.Model):
 	    return l
         except ObjectDoesNotExist:
             #create
-            key = wizlib.create_geohash(lat, lng)
-            l_tuple = location.send(sender=self, lat=lat, lng=lng, key=key, 
+            l_tuple = location.send(sender=self, lat=lat, lng=lng, 
                                     tree="PTREE")
 	    l_tuple[0][1].start_timer(USER_ACTIVE_TIMEOUT)
 
