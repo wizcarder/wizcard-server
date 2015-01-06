@@ -10,12 +10,12 @@ from lib.borg import Borg
 import pika
 import uuid
 import heapq
+import rconfig
 import json
 import logging
 import pdb
 
 DEFAULT_MAX_LOOKUP_RESULTS = 10
-LOCATION_SERVER_QUEUE_NAME = "rpc_queue"
 
 TREE_INSERT = 1
 TREE_DELETE = 2
@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 class LocationServiceClient(Borg):
 
     connection_created = False
+    reconnected_count = 0
 
     def __init__(self, *args, **kwargs):
         Borg.__init__(self)
@@ -50,13 +51,20 @@ class LocationServiceClient(Borg):
 
         self.response = None
         self.corr_id = str(uuid.uuid4())
-        self.channel.basic_publish(exchange='',
-                                   routing_key=LOCATION_SERVER_QUEUE_NAME,
-                                   properties=pika.BasicProperties(
-                                       reply_to = self.callback_queue,
-                                       correlation_id = self.corr_id,
-                                       ),
-                                   body=json.dumps(params))
+        try:
+            self.channel.basic_publish(exchange=rconfig.EXCHANGE,
+                    routing_key=rconfig.ROUTING_KEY,
+                    properties=pika.BasicProperties(
+                        reply_to = self.callback_queue,
+                        correlation_id = self.corr_id,
+                        ),
+                    body=json.dumps(params))
+        except:
+            logger.error('pika rabbitmq connection dropped')
+            self.connection_created = False
+            self.connection_setup()
+            self.reconnected_count += 1
+
         while self.response is None:
             self.connection.process_data_events()
         return json.loads(self.response)
