@@ -6,7 +6,7 @@ sys.path.append("../wizcard-server/lib")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
-from lib.misc_classes import Borg
+from base.borg import Borg
 import pika
 import uuid
 import heapq

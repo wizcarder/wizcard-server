@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.append("../wizcard-server")
-sys.path.append("../wizcard-server/lib")
-sys.path.append("../location_mgr")
+sys.path.append(".")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
-from lib.misc_classes import WizcardDB
+from base.db import WizcardDB
 from server import LocationServiceServer
 from wizcard import settings
 import pika

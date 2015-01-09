@@ -27,7 +27,7 @@ import utils
 #T3 - [u3]
 
 TEST_IMAGE=False
-OCR_FLAG = False
+OCR_FLAG = True
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "+14084641727"

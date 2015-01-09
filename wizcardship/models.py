@@ -31,8 +31,8 @@ from django.http import HttpResponseBadRequest, Http404
 from notifications.signals import notify
 from django.core.files.storage import default_storage
 from django.core.files.storage import FileSystemStorage
-from wizcard.custom_storage import WizcardQueuedS3BotoStorage
-from wizcard.custom_field import WizcardQueuedFileField
+from base.custom_storage import WizcardQueuedS3BotoStorage
+from base.custom_field import WizcardQueuedFileField
 from django.conf import settings
 import logging
 import operator
