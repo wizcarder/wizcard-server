@@ -10,7 +10,6 @@ import messages
 from notifications import NotifParser
 import random
 import string
-import utils
 
 #1 Flick
 #2 flick
