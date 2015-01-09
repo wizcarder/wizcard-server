@@ -62,7 +62,8 @@ class LocationMgrManager(models.Manager):
         if not count:
             return result, count
 
-        logger.debug('looking up  gives result [%s]', result)
+        logger.debug('looking up  gives [%d] result [%s]', count, result)
+
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
             heapq.heappush(h, (l.distance_from(lat, lng), l.object_id))
