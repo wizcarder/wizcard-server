@@ -1,11 +1,4 @@
 from __future__ import generators
-#Borg Pattern(singleton) super class
-class Borg(object):
-    _shared_state = {}
-    def __init__(self):
-        self.__dict__ = self._shared_state
-
-
 #raw db access for location server
 class WizcardDB(object):
     # Open database connection

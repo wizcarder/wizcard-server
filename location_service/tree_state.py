@@ -3,10 +3,13 @@
 import sys
 sys.path.append("../wizcard-server")
 sys.path.append("../wizcard-server/lib")
+sys.path.append("../location_mgr")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
+from lib.misc_classes import WizcardDB
 from server import LocationServiceServer
+from wizcard import settings
 import pika
 import uuid
 import heapq
@@ -45,9 +48,31 @@ class TreeServer(LocationServiceServer):
             TREE_LOOKUP : self.lookup,
             PRINT_TREES : self.print_trees
         }
-        
-        self.server_running = False
 
+        #init trees reading from db outside of django
+        logger.info('initing trees from db')
+        wdb = WizcardDB(
+                db=settings.DATABASES['default']['NAME'],
+                socket=settings.DATABASES['default']['HOST'],
+                user=settings.DATABASES['default']['USER'],
+                passwd=settings.DATABASES['default']['PASSWORD']
+                )
+
+        wdb.table_select('select * from location_mgr_locationmgr')
+        for row in wdb.ResultIter(wdb.cursor):
+                pk = row[0]
+                key = row[3]
+                tree_type = row[4]
+                val = row[6]
+                #modified key for tree ins
+                logger.info('inserting [%s, %s] into (%s)', key, val, tree_type)
+                self.t_ins(
+                        self.get_tree_from_type(tree_type),
+                        wizlib.modified_key(key, pk),
+                        val)
+
+        wdb.close()
+        
     def on_message(self, ch, basic_deliver, props, body):
         logger.info('Received message # %s from %s: %s',
                      basic_deliver.delivery_tag, props.app_id, body)

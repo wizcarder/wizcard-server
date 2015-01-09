@@ -40,8 +40,17 @@ class Tick(Job):
                 pass
 
 class LocationMgrManager(models.Manager):
-    def lookup(self, tree_type, lat, lng, n, exclude_key=True):
+    def init_from_db(self, sender, **kwargs):
+        #just to be safe, restore django.cron executing to false
+        try:
+            c = Cron.objects.get(id=1)
+            c.executing = False
+            c.save()
+        except:
+            #will happen on db full clean
+            pass
 
+    def lookup(self, tree_type, lat, lng, n, exclude_key=True):
         key = wizlib.create_geohash(lat, lng)
 
         tsc = LocationServiceClient()
@@ -198,4 +207,4 @@ def timeout_callback_execute(e):
 
 location.connect(location_create_handler, dispatch_uid='location_mgr.models.location_mgr')
 location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
-#class_prepared.connect(LocationMgr.objects.init_from_db, dispatch_uid='location_mgr.models.location_mgr')
+class_prepared.connect(LocationMgr.objects.init_from_db, dispatch_uid='location_mgr.models.location_mgr')

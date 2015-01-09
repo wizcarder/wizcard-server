@@ -6,7 +6,7 @@ sys.path.append("../wizcard-server/lib")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
-from lib.borg import Borg
+from lib.misc_classes import Borg
 import pika
 import uuid
 import heapq
@@ -31,12 +31,15 @@ class LocationServiceClient(Borg):
 
     def __init__(self, *args, **kwargs):
         Borg.__init__(self)
+        self.host = kwargs.get('host', rconfig.HOST)
+        self.exchange = kwargs.get('host', rconfig.EXCHANGE)
+        self.routing_key = kwargs.get('host', rconfig.ROUTING_KEY)
 
     def connection_setup(self):
         #init rabbitmq client side connection
         if not self.connection_created:
             self.connection = pika.BlockingConnection(
-                    pika.ConnectionParameters( host='localhost'))
+                    pika.ConnectionParameters(host=self.host))
 
             self.channel = self.connection.channel()
             result = self.channel.queue_declare(exclusive=True)
@@ -52,18 +55,22 @@ class LocationServiceClient(Borg):
         self.response = None
         self.corr_id = str(uuid.uuid4())
         try:
-            self.channel.basic_publish(exchange=rconfig.EXCHANGE,
-                    routing_key=rconfig.ROUTING_KEY,
-                    properties=pika.BasicProperties(
-                        reply_to = self.callback_queue,
-                        correlation_id = self.corr_id,
-                        ),
-                    body=json.dumps(params))
+            logger.debug('sending basic publish')
+            print('sending basic publish')
+            self.channel.basic_publish(exchange=self.exchange,
+                                       routing_key=self.routing_key,
+                                       properties=pika.BasicProperties(
+                                           reply_to = self.callback_queue,
+                                           correlation_id = self.corr_id,
+                                           ),
+                                       body=json.dumps(params))
         except:
-            logger.error('pika rabbitmq connection dropped')
+            logger.error('pika rabbitmq connection dropped...recreating connection')
             self.connection_created = False
-            self.connection_setup()
             self.reconnected_count += 1
+            self.call(params)
+            #AA TODO: maybe check reconnect count to make sure it's not 
+            #forever increasing
 
         while self.response is None:
             self.connection.process_data_events()
