@@ -127,16 +127,16 @@ class TreeServer(LocationServiceServer):
     def lookup(self, **kwargs):
         tree_type = kwargs.pop('tree_type')
         key = kwargs.pop('key')
-        exclude_key = kwargs.pop('exclude_key', True)
+        exclude_self = kwargs.pop('exclude_self', True)
         n = kwargs.pop('n', DEFAULT_MAX_LOOKUP_RESULTS)
 
 	tree = self.get_tree_from_type(tree_type)
-        if exclude_key:
+        if exclude_self:
             cached_val = self.t_del(tree, key)
 
         ret, count = self.lookup_closest_n(tree, key, n)
 
-        if exclude_key:
+        if exclude_self and cached_val:
             self.t_ins(tree, key, cached_val)
 
         logger.debug('looking up gives [%d] result [%s]', count, ret)

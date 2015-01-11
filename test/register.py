@@ -26,7 +26,7 @@ import string
 #T3 - [u3]
 
 TEST_IMAGE=False
-OCR_FLAG = True
+OCR_FLAG = False
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "+14084641727"
@@ -364,6 +364,7 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 reqmsg = messages.card_flick
 reqmsg['sender']['userID'] = uid3
 reqmsg['sender']['wizUserID'] = wuid3
+card_flick_edit_msg['sender']['timeout'] = 3
 print "flicking card", reqmsg['sender']['userID']
 cf3 = json.dumps(reqmsg)
 conn.request("POST","", cf3)
@@ -436,6 +437,7 @@ reqmsg = messages.table_create
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['table_name'] = TABLE1NAME
+reqmsg['sender']['timeout'] = 1
 tbl_c_1 = json.dumps(reqmsg)
 conn.request("POST","", tbl_c_1)
 # Parse and dump the JSON response from server
@@ -447,6 +449,7 @@ reqmsg = messages.table_create
 reqmsg['sender']['userID'] = uid2
 reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['sender']['table_name'] = TABLE2NAME
+reqmsg['sender']['timeout'] = 1
 tbl_c_2 = json.dumps(reqmsg)
 conn.request("POST","", tbl_c_2)
 # Parse and dump the JSON response from server
@@ -493,6 +496,7 @@ reqmsg = messages.table_create
 reqmsg['sender']['userID'] = uid3
 reqmsg['sender']['wizUserID'] = wuid3
 reqmsg['sender']['table_name'] = TABLE3NAME
+reqmsg['sender']['timeout'] = 5
 tbl_c_3 = json.dumps(reqmsg)
 conn.request("POST","", tbl_c_3)
 # Parse and dump the JSON response from server

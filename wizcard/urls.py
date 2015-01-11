@@ -5,7 +5,7 @@ import pdb
 from django.contrib import admin
 import django_cron
 admin.autodiscover()
-django_cron.autodiscover()
+#django_cron.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:

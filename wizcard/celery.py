@@ -17,6 +17,7 @@ wizcard_app = Celery('wizcard')
 wizcard_app.config_from_object('django.conf:settings')
 wizcard_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
+CELERY_IMPORTS=("periodic.tasks",)
 
 @wizcard_app.task(bind=True)
 def debug_task(self):

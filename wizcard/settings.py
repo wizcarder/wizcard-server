@@ -48,6 +48,14 @@ CELERY_ROUTES = {
     }
 }
 
+from datetime import timedelta
+CELERYBEAT_SCHEDULE = {
+    'tick': {
+        'task': 'periodic.tasks.tick',
+        'schedule': timedelta(seconds=60),
+    },
+}
+
 
 # Django settings for wizcard project.
 
