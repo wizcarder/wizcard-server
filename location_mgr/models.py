@@ -50,14 +50,17 @@ class LocationMgrManager(models.Manager):
             #will happen on db full clean
             pass
 
-    def lookup(self, tree_type, lat, lng, n, exclude_self=False):
-        key = wizlib.create_geohash(lat, lng)
-
+    def lookup(self, tree_type, lat, lng, n, exclude_self=False, modifier=None):
         tsc = LocationServiceClient()
+
+        key = wizlib.create_geohash(lat, lng)
+        if exclude_self and modifier:
+            key = wizlib.modified_key(key, modifier)
+
         result, count = tsc.lookup(tree_type=tree_type,
-                                  key=key,
-                                  n=n,
-                                  exclude_self=exclude_self)
+			           key=key,
+                                   n=n,
+                                   exclude_self=exclude_self)
 
         if not count:
             return result, count
@@ -136,7 +139,8 @@ class LocationMgr(models.Model):
                 self.lat,
                 self.lng,
                 n,
-                exclude_self=True)
+                exclude_self=True,
+                modifier=self.pk)
 
     #Database based timer implementation
     def start_timer(self, timeout):
