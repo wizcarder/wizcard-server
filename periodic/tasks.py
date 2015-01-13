@@ -1,4 +1,3 @@
-from lib.timer import Timer
 from celery import task
 from celery.contrib import rdb
 from periodic.models import Periodic, PeriodicManager
