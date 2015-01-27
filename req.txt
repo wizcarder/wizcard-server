@@ -31,7 +31,7 @@ pyapns==0.4.1
 pyasn1==0.1.7
 pyasn1-modules==0.0.5
 pycparser==2.10
-python-daemon==2.0.3
+python-daemon==2.0.4
 python-geohash==0.8.5
 pytz==2014.10
 raven==5.1.1
