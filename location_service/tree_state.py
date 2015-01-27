@@ -15,6 +15,7 @@ import json
 import logging
 import rconfig
 import pdb
+import daemon
 
 DEFAULT_MAX_LOOKUP_RESULTS = 10
 
@@ -190,12 +191,16 @@ class TreeServer(LocationServiceServer):
         return (result, count) if count > prev_count else (prev_result, prev_count)
 
 def main():
-    logging.basicConfig(level=logging.INFO)
-    ts = TreeServer('amqp://guest:guest@localhost:5672/%2F')
-    try:
-        ts.run()
-    except KeyboardInterrupt:
-        ts.stop()
+	logging.basicConfig(level=logging.INFO)
+	ts = TreeServer('amqp://guest:guest@localhost:5672/%2F')
+	if sys.argv[1] == '-daemon' or sys.argv[1] == '--D':
+		with daemon.DaemonContext():
+			ts.run()
+	else:
+    		try:
+        		ts.run()
+		except KeyboardInterrupt:
+		        ts.stop()
 
 if __name__ == '__main__':
     main()
