@@ -1,26 +1,38 @@
 from fabric.api import *
-def hello(who="host"):
-	run("uname -a")
+from fabric.utils import *
+from contextlib import contextmanager
+env.directory = '/home/ubuntu/stage'
+env.activate = 'source /home/ubuntu/stage/bin/activate'
+
+@contextmanager
+def virtualenv():
+	with cd(env.directory):
+		with prefix(env.activate):
+			yield
 
 def aptgets(name="all"):
 	if name == "all":
-		run("sudo apt-get -y update")
-		run("sudo apt-get -y install python-pip")
-		run("sudo apt-get -y install libmysqlclient-dev")
-		run("sudo apt-get -y install python-virtualenv")
-		run("sudo apt-get -y install python-dev")
-		run("sudo apt-get -y install git")
-		run("sudo apt-get -y install rabbitmq-server")
-		run("sudo apt-get -y install libssl-dev")
-		run("sudo apt-get -y install libffi-dev libxml2 libxml2-dev  libxslt1-dev")
-		run("sudo apt-get nginx")
+		run("sudo apt-get -q -y update")
+		run("sudo apt-get -q -y install python-pip")
+		run("sudo apt-get -q -y install libmysqlclient-dev")
+		run("sudo apt-get -q -y install  mysql-client-core-5.6")
+		run("sudo apt-get -q -y install python-virtualenv")
+		run("sudo apt-get -q -y install python-dev")
+		run("sudo apt-get -q -y install git")
+		run("sudo apt-get -q -y install rabbitmq-server")
+		run("sudo apt-get -q -y install libssl-dev")
+		run("sudo apt-get -q -y install libffi-dev libxml2 libxml2-dev  libxslt1-dev")
+		run("sudo apt-get -q -y install nginx")
 	else:
-		run("sudo apt-get -y install %s" % name)
+		run("sudo apt-get -q -y install %s" % name)
 
 def installpackage(name="/home/ubuntu/latest/req.txt"):
 	path = "/home/ubuntu/stage"
-        if run("test -d %s" % path).failed:
-		run("source %s/bin/activate && pip install -r /home/ubuntu/latest/req.txt" % path)
+        if run("test -d %s" % path).succeeded:
+		run("source %s/bin/activate && pip install -q  -r /home/ubuntu/latest/req.txt" % path)
+	else:
+		run("mkdir %s" % path)
+		installpackage()
 #	run("pip install -r %s" % name)
 
 
@@ -51,19 +63,51 @@ def createvirtualenv(path="/home/ubuntu/stage"):
         if run("test -d %s" % path).failed:
 		run("virtualenv %s --prompt=VIRTUAL:" % path)
 
-def postinstall():
+def postinstall(hostenv="stage"):
 	path = "/home/ubuntu/latest/log"
 	with settings(warn_only=True):
 		if run("test -d %s" % path).failed:
 			run("cd /home/ubuntu/latest && mkdir log")
+		run("cd /home/ubuntu/latest && mv wizcard/awstest_settings.py wizcard/settings.py")
 
+def startservices():
+	with virtualenv():
+		with cd("/home/ubuntu/latest"):
+			run("sudo service rabbitmq-server restart")
+			fastprint("\nRunning rabbitmqconfig.sh===================================\n")
+			run("sleep 10;sudo sh ./rabbitmqconfig.sh")
+			fastprint("\nRunning location server===================================\n")
+			run("sleep 10;python  ./location_service/tree_state.py --D")
+			fastprint("\nRunning celery server===================================\n")
+
+			run("sleep 10; sh ./startcelery.sh 1> celery.out 2>celery.err")
+			fastprint("\nRunning gunicorn server===================================\n")
+#			run("sleep 10;gunicorn wizcard.wsgi:application")
+
+def freeze():
+	with virtualenv():
+		run('pip freeze')
+		
 def deploy():
+	fastprint("\nRunning aptgets===================================\n")
 	aptgets()
+	fastprint("\ndone aptgets===================================\n")
+	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
+	fastprint("\nDone gitcloneupdate===================================\n")
+	fastprint("\nRunning createvirtualenv===================================\n")
 	createvirtualenv()
+	fastprint("\nDone createvirtualenv===================================\n")
+	fastprint("\nRunning installpackage===================================\n")
 	installpackage()
+	fastprint("\nDone installpackage===================================\n")
+	fastprint("\nRunning postinstall===================================\n")
 	postinstall()
-#	startservices()
+	fastprint("\nDone postinstall===================================\n")
+	fastprint("\nRunning startservices===================================\n")
+	startservices()
+	fastprint("\nDone aptgets===================================\n")
+	fastprint("\nRunning aptgets===================================\n")
 #	runtests()
 
 
