@@ -82,10 +82,10 @@ def startservices():
 			run("ps auxww | grep tree_state")
 			fastprint("\nRunning celery server===================================\n")
 
-			run("sh ./startcelery.sh 1> celery.out 2>celery.err")
+			run("sh ./startcelery.sh", pty=False)
 			run("ps auxww | grep celery")
 			fastprint("\nRunning gunicorn server===================================\n")
-			run("gunicorn wizcard.wsgi:application&")
+			run("gunicorn  --daemon wizcard.wsgi:application", pty=False)
 			run("ps auxww | grep gunicorn")
 			
 def runservice():
@@ -96,6 +96,11 @@ def runservice():
 def freeze():
 	with virtualenv():
 		run('pip freeze')
+
+def stopservices():
+	run("sudo service rabbitmq-server stop")
+	run("pkill celery")
+	run("pkill gunicorn")
 		
 def deploy():
 	fastprint("\nRunning aptgets===================================\n")
@@ -114,6 +119,7 @@ def deploy():
 	postinstall()
 	fastprint("\nDone postinstall===================================\n")
 	fastprint("\nRunning startservices===================================\n")
+	stopservices()
 	startservices()
 	fastprint("\nDone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
