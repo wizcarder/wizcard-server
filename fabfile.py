@@ -99,7 +99,7 @@ def freeze():
 
 def stopservices():
 	run("sudo service rabbitmq-server stop")
-	run("pkill celery")
+	run("cd /home/ubuntu/latest; kill -TERM $(cat celeryd.pid)")
 	run("pkill gunicorn")
 		
 def deploy():
