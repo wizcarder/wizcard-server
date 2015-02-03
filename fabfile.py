@@ -75,14 +75,23 @@ def startservices():
 		with cd("/home/ubuntu/latest"):
 			run("sudo service rabbitmq-server restart")
 			fastprint("\nRunning rabbitmqconfig.sh===================================\n")
-			run("sleep 10;sudo sh ./rabbitmqconfig.sh")
+			run("sudo sh ./rabbitmqconfig.sh")
+			run("ps auxww | grep rabbit")
 			fastprint("\nRunning location server===================================\n")
-			run("sleep 10;python  ./location_service/tree_state.py --D")
+			run("python  ./location_service/tree_state.py --g&")
+			run("ps auxww | grep tree_state")
 			fastprint("\nRunning celery server===================================\n")
 
-			run("sleep 10; sh ./startcelery.sh 1> celery.out 2>celery.err")
+			run("sh ./startcelery.sh 1> celery.out 2>celery.err")
+			run("ps auxww | grep celery")
 			fastprint("\nRunning gunicorn server===================================\n")
-#			run("sleep 10;gunicorn wizcard.wsgi:application")
+			run("gunicorn wizcard.wsgi:application&")
+			run("ps auxww | grep gunicorn")
+			
+def runservice():
+	with virtualenv():
+		with cd("/home/ubuntu/latest"):
+			run("sh runservice")
 
 def freeze():
 	with virtualenv():
