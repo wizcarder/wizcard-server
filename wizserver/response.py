@@ -79,21 +79,6 @@ class ResponseN(Response):
 
 class NotifResponse(ResponseN):
 
-    #AA:TODO This can also now be moved in verbs.py
-    NOTIF_NULL          = 0
-    ACCEPT_IMPLICIT     = 1
-    ACCEPT_EXPLICIT     = 2
-    DELETE_IMPLICIT     = 3
-    TABLE_TIMEOUT       = 4
-    UPDATE_WIZCARD      = 5
-    NEARBY_FLICKED_WIZCARD     = 6
-    NEARBY_USERS        = 7
-    NEARBY_TABLES       = 8
-    FLICK_TIMEOUT       = 9
-    FLICK_PICK	        = 10
-    WITHDRAW_REQUEST    = 11
-    WIZWEB_UPDATE_WIZCARD = 12
-
     def __init__(self, notifications):
         ResponseN.__init__(self)
         notifHandler = {
@@ -139,10 +124,10 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifWizConnectionT(self, notif):
-        return self.notifWizcard(notif, self.ACCEPT_IMPLICIT)
+        return self.notifWizcard(notif, verbs.ACCEPT_IMPLICIT)
 
     def notifWizConnectionU(self, notif):
-        return self.notifWizcard(notif, self.ACCEPT_EXPLICIT)
+        return self.notifWizcard(notif, verbs.ACCEPT_EXPLICIT)
 
     def notifAcceptedWizcard(self, notif):
         return self.notifWizConnectionT(notif)
@@ -150,37 +135,37 @@ class NotifResponse(ResponseN):
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
         out = dict(user_id=notif.actor_object_id)
-        self.add_data_with_notif(out, self.DELETE_IMPLICIT)
+        self.add_data_with_notif(out, verbs.DELETE_IMPLICIT)
         return self.response
 
     def notifWithdrawRequest(self, notif):
         #this is a notif to the app B when app A withdraws it's connection request
         out = dict(user_id=notif.actor_object_id)
-        self.add_data_with_notif(out, self.WITHDRAW_REQUEST)
+        self.add_data_with_notif(out, verbs.WITHDRAW_REQUEST)
         logger.debug('%s', self.response)
         return self.response
 
     def notifDestroyedTable(self, notif):
         out = dict(tableID=notif.target_object_id)
-        self.add_data_with_notif(out, self.TABLE_TIMEOUT)
+        self.add_data_with_notif(out, verbs.TABLE_TIMEOUT)
         logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardUpdate(self, notif):
-        return self.notifWizcard(notif, self.UPDATE_WIZCARD)
+        return self.notifWizcard(notif, verbs.UPDATE_WIZCARD)
 
     def notifWizWebWizcardUpdate(self, notif):
-        return self.notifWizcard(notif, self.WIZWEB_UPDATE_WIZCARD)
+        return self.notifWizcard(notif, verbs.WIZWEB_UPDATE_WIZCARD)
 
     def notifWizcardFlickTimeout(self, notif):
 	out = dict(flickCardID=notif.target_object_id)
-        self.add_data_with_notif(out, self.FLICK_TIMEOUT)
+        self.add_data_with_notif(out, verbs.FLICK_TIMEOUT)
         logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardFlickPick(self, notif):
         out = dict(wizUserID=notif.action_object_object_id, flickCardID=notif.target_object_id)
-        self.add_data_with_notif(out, self.FLICK_PICK)
+        self.add_data_with_notif(out, verbs.FLICK_PICK)
         logger.debug('%s', self.response)
         return self.response
 
@@ -190,7 +175,7 @@ class NotifResponse(ResponseN):
         if flicked_wizcards:
 	    #wizcards = map(lambda x: x.wizcard, flicked_wizcards)
             out = WizcardFlick.objects.serialize_split(user.wizcard, flicked_wizcards, send_data=send_data)
-            self.add_data_with_notif(out, self.NEARBY_FLICKED_WIZCARD)
+            self.add_data_with_notif(out, verbs.NEARBY_FLICKED_WIZCARD)
         return self.response
 
     def notifUserLookup(self, count, me, users, send_data=True):
@@ -198,14 +183,14 @@ class NotifResponse(ResponseN):
         if users:
             out = UserProfile.objects.serialize_split(me, users, 
                     send_data=send_data)
-            self.add_data_with_notif(out, self.NEARBY_USERS)
+            self.add_data_with_notif(out, verbs.NEARBY_USERS)
         return self.response
 
     def notifTableLookup(self, count, user, tables):
         out = None
         if tables:
             out = VirtualTable.objects.serialize_split(tables, user)
-            self.add_data_with_notif(out, self.NEARBY_TABLES)
+            self.add_data_with_notif(out, verbs.NEARBY_TABLES)
         return self.response
 
 

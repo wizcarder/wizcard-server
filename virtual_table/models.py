@@ -153,9 +153,11 @@ class VirtualTable(models.Model):
     def is_creator(self, user):
         return bool(self.creator == user)
 
-    def join_table_and_exchange(self, user, password, do_exchange):
+    def join_table_and_exchange(self, user, password,
+                                do_exchange, skip_password=False):
         #check password
-        if not self.is_secure() or self.password == password:
+        if (not self.is_secure()) or \
+            (self.password == password) or skip_password:
             m, created = Membership.objects.get_or_create(user=user, table=self)
 	    if not created:
 		#somehow already a member

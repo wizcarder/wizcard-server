@@ -25,14 +25,25 @@ import string
 #T2 - [u2]
 #T3 - [u3]
 
+#delete rolodex - 1
+
 TEST_IMAGE=False
-OCR_FLAG = False
+OCR_FLAG = True
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "+14084641727"
 PHONE2 = "+15085332708"
 PHONE3 = "+15086892263"
 PHONE4 = "+14086892263"
+PHONE5 = "+11086892263"
+PHONE6 = "+12086892263"
+
+FUTURE_PHONE1 = "+11111111111"
+FUTURE_PHONE2 = "+12222222222"
+FUTURE_USERNAME1 = FUTURE_PHONE1+'@wizcard.com'
+FUTURE_USERNAME2 = FUTURE_PHONE2+'@wizcard.com'
+FUTURE_EMAIL1 = "abcd@future.com"
+FUTURE_EMAIL2 = "efgh@future.com"
 
 USERNAME1 = PHONE1+'@wizcard.com'
 USERNAME2 = PHONE2+'@wizcard.com'
@@ -54,6 +65,8 @@ TABLENAME_Q = "one"
 DEVICE_ID1 = "aaaaaaaaaaaaaaaaaaaaaaaaaa"
 DEVICE_ID2 = "bbbbbbbbbbbbbbbbbbbbbbbbbb"
 DEVICE_ID3 = "cccccccccccccccccccccccccc"
+DEVICE_ID4 = "dddddddddddddddddddddddddd"
+DEVICE_ID5 = "Reeeeeeeeeeeeeeeeeeeeeeeee"
 
 
 HASH1 = "aaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -169,7 +182,6 @@ reqmsg['header']['hash'] = HASH3
 reqmsg['sender']['username'] = USERNAME3
 reqmsg['sender']['responseKey'] = response_key
 pcrsp3 = json.dumps(reqmsg)
-test_image_path = "/Users/aammundi/Pictures/iChat Icons/Flags/Russia.png"
 print "sending phone_check_rsp", pcrsp3
 conn.request("POST","", pcrsp3)
 # Parse and dump the JSON response from server
@@ -258,7 +270,6 @@ conn.request("POST","", e1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 e1_id = objs['data']['wizCardID']
-
 
 reqmsg = messages.edit_card2
 reqmsg['sender']['userID'] = uid2
@@ -514,7 +525,7 @@ conn.request("POST","", tq3)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #delete rolodex card
-print "deleting all cards of ", uid3
+print "deleting all cards of ", uid1
 reqmsg = messages.delete_rolodex_card
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
@@ -613,6 +624,217 @@ conn.request("POST","", cd3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+#assetToXYZ tests
+#asset types: wizcard, table
+#receiverType: phone, email, wizUserID
+
+#u1 -> u2, u3 via wiz
+reqmsg = messages.send_asset_to_xyz
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['assetID'] = e1_id
+reqmsg['sender']['assetType'] = "wizcard"
+reqmsg['receiver']['receiverType'] = "wiz_untrusted"
+reqmsg['receiver']['receiverIDs'] = [wuid2, wuid3]
+print "sendingWizcardToUnTrusted"
+sxyz = json.dumps(reqmsg)
+conn.request("POST","", sxyz)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+#u1 -> future_u1, u2 via sms
+reqmsg = messages.send_asset_to_xyz
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['assetID'] = e1_id
+reqmsg['sender']['assetType'] = "wizcard"
+reqmsg['receiver']['receiverType'] = "sms"
+reqmsg['receiver']['receiverIDs'] = [FUTURE_PHONE1, FUTURE_PHONE2]
+print "sendingWizcardToSMS"
+sxyz = json.dumps(reqmsg)
+conn.request("POST","", sxyz)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#u2 -> future u1, u2 via email
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['sender']['assetID'] = e2_id
+reqmsg['receiver']['receiverType'] = "email"
+reqmsg['receiver']['receiverIDs'] = [FUTURE_EMAIL1, FUTURE_EMAIL2]
+print "sendingWizcardToEMAIL"
+sxyz = json.dumps(reqmsg)
+conn.request("POST","", sxyz)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#now create future u1 and u2
+
+print "creating future user 1 and 2"
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID4
+reqmsg['header']['hash'] = HASH2
+reqmsg['sender']['username'] = FUTURE_USERNAME1
+reqmsg['sender']['target'] = FUTURE_PHONE1
+reqmsg['sender']['responseMode'] = 'sms'
+reqmsg['sender']['test_mode'] = True
+pcreq2 = json.dumps(reqmsg)
+conn.request("POST","", pcreq2)
+print "sending phone_check_req", pcreq2
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+response_key = objs['data']['challenge_key']
+
+reqmsg = messages.phone_check_resp
+reqmsg['header']['deviceID'] = DEVICE_ID4
+reqmsg['header']['hash'] = HASH2
+reqmsg['sender']['username'] = FUTURE_USERNAME1
+reqmsg['sender']['responseKey'] = response_key
+pcrsp2 = json.dumps(reqmsg)
+print "sending phone_check_rsp", pcrsp2
+conn.request("POST","", pcrsp2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+fuid1 = objs['data']['userID']
+
+
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID5
+reqmsg['header']['hash'] = HASH2
+reqmsg['sender']['username'] = FUTURE_USERNAME2
+reqmsg['sender']['target'] = FUTURE_PHONE2
+reqmsg['sender']['responseMode'] = 'sms'
+reqmsg['sender']['test_mode'] = True
+pcreq2 = json.dumps(reqmsg)
+conn.request("POST","", pcreq2)
+print "sending phone_check_req", pcreq2
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+response_key = objs['data']['challenge_key']
+
+reqmsg = messages.phone_check_resp
+reqmsg['header']['deviceID'] = DEVICE_ID5
+reqmsg['header']['hash'] = HASH2
+reqmsg['sender']['username'] = FUTURE_USERNAME2
+reqmsg['sender']['responseKey'] = response_key
+pcrsp2 = json.dumps(reqmsg)
+print "sending phone_check_rsp", pcrsp2
+conn.request("POST","", pcrsp2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+fuid2 = objs['data']['userID']
+
+print "logging in future user 1 and 2"
+reqmsg = messages.login
+reqmsg['sender']['username'] = FUTURE_USERNAME1
+reqmsg['sender']['userID'] = fuid1
+reqmsg['header']['deviceID'] = DEVICE_ID4
+login = json.dumps(reqmsg)
+print "sending login", login
+conn.request("POST","", login)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+fwuid1 = objs['data']['wizUserID']
+
+reqmsg['sender']['username'] = FUTURE_USERNAME2
+reqmsg['sender']['userID'] = fuid2
+reqmsg['header']['deviceID'] = DEVICE_ID5
+login = json.dumps(reqmsg)
+print "sending login", login
+conn.request("POST","", login)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+fwuid2 = objs['data']['wizUserID']
+
+print "registering future user 1 and 2"
+reqmsg = messages.register1
+reqmsg['sender']['userID']=fuid1
+reqmsg['sender']['wizUserID']=fwuid1
+r1 = json.dumps(reqmsg)
+conn.request("POST","", r1)
+print "sending register"
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.register2
+reqmsg['sender']['userID']=fuid2
+reqmsg['sender']['wizUserID']=fwuid2
+r2 = json.dumps(reqmsg)
+conn.request("POST","", r2)
+# Parse and dump the JSON response from server
+print "sending register"
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+print "creating wizcard for future user"
+reqmsg = messages.edit_card1
+reqmsg['sender']['userID'] = fuid1
+reqmsg['sender']['wizUserID'] = fwuid1
+reqmsg['sender']['email'] = FUTURE_EMAIL1
+reqmsg['sender']['phone1'] = FUTURE_PHONE1
+fe1 = json.dumps(reqmsg)
+print "sending EDIT CARD for", reqmsg['sender']['userID']
+conn.request("POST","", fe1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+fe1_id = objs['data']['wizCardID']
+
+reqmsg = messages.edit_card1
+reqmsg['sender']['userID'] = fuid2
+reqmsg['sender']['wizUserID'] = fwuid2
+reqmsg['sender']['email'] = FUTURE_EMAIL2
+reqmsg['sender']['phone1'] = FUTURE_PHONE2
+fe2 = json.dumps(reqmsg)
+print "sending EDIT CARD for", reqmsg['sender']['userID']
+conn.request("POST","", fe2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+e2_id = objs['data']['wizCardID']
+
+#at this point there should be notifs for this user
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = fuid1
+reqmsg['sender']['wizUserID'] = fwuid1
+print "GET cards", reqmsg['sender']['userID']
+gcfu3 = json.dumps(reqmsg)
+conn.request("POST","", gcfu3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = fuid2
+reqmsg['sender']['wizUserID'] = fwuid2
+print "GET cards", reqmsg['sender']['userID']
+gcfu3 = json.dumps(reqmsg)
+conn.request("POST","", gcfu3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#delete rolodex card for u1
+print "deleting all cards of ", uid1
+reqmsg = messages.delete_rolodex_card
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['wizCardIDs'] = [e2_id, e3_id]
+dc1 = json.dumps(reqmsg)
+conn.request("POST","", dc1)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#u1 -> u2, u3 via wiz, assetType = Table
+reqmsg = messages.send_asset_to_xyz
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['assetID'] = tid_1
+reqmsg['sender']['assetType'] = "table"
+reqmsg['receiver']['receiverType'] = "wiz_untrusted"
+reqmsg['receiver']['receiverIDs'] = [wuid2, wuid3]
+print "sendingWizcardToUnTrusted via table"
+sxyz = json.dumps(reqmsg)
+conn.request("POST","", sxyz)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
 reqmsg = messages.ocr_req_self
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
@@ -669,7 +891,6 @@ print wwqwc1
 conn.request("POST","", wwqwc1)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
-
 
 print "wizweb query non-valid wizcard"
 reqmsg['sender']['username'] = USERNAME1

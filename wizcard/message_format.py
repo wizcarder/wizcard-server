@@ -65,6 +65,8 @@ class WizcardFlickPickersSchema(colander.MappingSchema):
     pass
 class TableMyTablesSchema(colander.MappingSchema):
     pass
+class WizcardSendAssetToXYZSchema(colander.MappingSchema):
+    pass
 class WizcardSendToContactsSchema(colander.MappingSchema):
     pass
 class WizcardSendUnTrustedSchema(colander.MappingSchema):

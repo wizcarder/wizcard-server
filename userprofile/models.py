@@ -6,9 +6,12 @@ from lib.preserialize.serialize import serialize
 from wizserver import fields
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import Wizcard
 from virtual_table.models import VirtualTable
 from django.core.exceptions import ObjectDoesNotExist
+import operator
+from django.db.models import Q
 from django.core.cache import cache
 from django.conf import settings
 from lib import wizlib
@@ -192,6 +195,24 @@ class UserProfile(models.Model):
 
         return s
 
+class FutureUserManager(models.Manager):
+    def check_future_user(self, email=None, phone=None):
+        qlist = []
+        if email:
+            qlist.append(Q(email=email))
+        if phone:
+            qlist.append(Q(phone=phone))
+        return self.filter(reduce(operator.or_, qlist))
+
+class FutureUser(models.Model):
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    phone = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    asset_type = models.CharField(max_length=20, blank=False)
+
+    objects = FutureUserManager()
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

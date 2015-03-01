@@ -271,6 +271,29 @@ table_create = {
     },
 }
 
+send_asset_to_xyz= {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "send_asset_to_xyz",
+    },
+    #senderID can be wizCardID or tableID
+    "sender" : {
+        #asset type can be wizcard, table, forwarded_wizcard
+        "assetID" : "",
+        "assetType": ""
+    },
+    "receiver" : {
+        #receiver type can be wiz_untrusted, wiz_trusted, wiz_trusted_check 
+        #for in-network. email, sms for non-wiz network (future handliing)
+        "receiverType" : "",
+        #receiver id's can be phone, email, wizUserID
+        "receiverIDs" : []
+    }
+}
+
+
 send_to_user = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
@@ -279,7 +302,7 @@ send_to_user = {
         "msgType" : "send_card_to_user",
     },
     "receiver" : {
-        "phones" : []
+        "wizUserIDs" : []
     }
 }
 

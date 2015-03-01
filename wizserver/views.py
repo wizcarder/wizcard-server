@@ -28,11 +28,13 @@ from django.core import serializers
 from lib.preserialize.serialize import serialize
 from lib.ocr import OCR
 from django.core.files.storage import default_storage
+from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
 from virtual_table.models import VirtualTable
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
+from userprofile.models import FutureUser
 from lib import wizlib
 from wizcard import err
 from location_mgr.models import LocationMgr
@@ -207,6 +209,7 @@ class Header(ParseMsgAndDispatch):
             'flick_edit'                  : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
             'query_flicks'                : (message_format.WizcardFlickQuerySchema, self.WizcardFlickQuery),
             'flick_pickers'               : (message_format.WizcardFlickPickersSchema, self.WizcardFlickPickers),
+            'send_asset_to_xyz'           : (message_format.WizcardSendAssetToXYZSchema, self.WizcardSendAssetToXYZ),
             'send_card_to_contacts'       : (message_format.WizcardSendToContactsSchema, self.WizcardSendToContacts),
             'send_card_to_user'           : (message_format.WizcardSendUnTrustedSchema, self.WizcardSendUnTrusted),
             'send_card_to_future_user'    : (message_format.WizcardSendToFutureContactsSchema, self.WizcardSendToFutureContacts),
@@ -519,17 +522,6 @@ class Header(ParseMsgAndDispatch):
         #AA:TODO: Change app to call this phone as well
         phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1'] 
 
-        #check if futureUser existed for this phoneNum
-        try:
-	    f_username = UserProfile.objects.futureusername_from_phone_num(
-			    phone)
-            future_user = User.objects.get(username=f_username)
-	    Wizcard.objects.migrate_future_user(future_user, self.user)
-	    Notification.objects.migrate_future_user(future_user, self.user)
-	    future_user.delete()
-        except:
-            pass
-         
         if wizcard.phone != phone:
             wizcard.phone = phone
             modify = True
@@ -583,10 +575,10 @@ class Header(ParseMsgAndDispatch):
                     end = ""
 
                 #AA:TODO - Can there be 1 save with image
-                c = ContactContainer(wizcard=wizcard, 
-				title=title, 
-				company=company, 
-				start=start, 
+                c = ContactContainer(wizcard=wizcard,
+				title=title,
+				company=company,
+				start=start,
 				end=end)
 		c.save()
 		if 'f_bizCardImage' in contactItem and contactItem['f_bizCardImage']:
@@ -611,6 +603,22 @@ class Header(ParseMsgAndDispatch):
                     except:
                         pass
 
+        #check if futureUser states exist for this phone or email
+        future_users = FutureUser.objects.check_future_user(wizcard.email, phone)
+        if future_users.count():
+            for f in future_users:
+                if ContentType.objects.get_for_model(f.content_object) == \
+                        ContentType.objects.get(model="wizcard"):
+                    Wizcard.objects.exchange(wizcard, f.content_object, False)
+                elif ContentType.objects.get_for_model(f.content_object) == \
+                        ContentType.objects.get(model="virtualtable"):
+                    f.content_object.join_table_and_exchange(self.user,
+                                                             None,
+                                                             False,
+                                                             True)
+
+	    future_users.delete()
+         
         #flood to contacts
         if modify:
             wizcard.save()
@@ -883,6 +891,106 @@ class Header(ParseMsgAndDispatch):
         self.response.add_data("count", count)
         return self.response
 
+    #new message. Combines all kinds of asset types (cards, tables) and
+    #receiver types. Includes future handling as part of this
+    def WizcardSendAssetToXYZ(self):
+        try:
+            asset_type = self.sender['assetType']
+            sender_id = self.sender['assetID']
+            receiver_type = self.receiver['receiverType']
+            receivers = self.receiver['receiverIDs']
+        except:
+            self.securityException()
+            self.response.ignore()
+            return self.response
+
+        if asset_type == "wizcard":
+            try:
+                wizcard = Wizcard.objects.get(id=sender_id)
+            except ObjectDoesNotExist:
+	        self.response.error_response(err.OBJECT_DOESNT_EXIST)
+                return self.response
+
+            if self.user.wizcard.id != wizcard.id:
+                self.securityException()
+                self.response.ignore()
+                return self.response
+
+            self.response = self.WizcardSendWizcardToXYZ(
+                                wizcard,
+                                receiver_type,
+                                receivers)
+        elif asset_type == "table":
+            try:
+                table = VirtualTable.objects.get(id=sender_id)
+            except ObjectDoesNotExist:
+	        self.response.error_response(err.OBJECT_DOESNT_EXIST)
+                return self.response
+            #creator can fwd private table, anyone (member) can fwd public
+            #table
+            if not((table.is_secure() and table.creator == self.user) or
+                    (table.is_member(self.user))):
+	        self.response.error_response(err.NOT_AUTHORIZED)
+                return self.response
+
+            self.response = self.WizcardSendTableToXYZ(
+                                table,
+                                receiver_type,
+                                receivers)
+        else:
+            self.securityException()
+            self.response.ignore()
+            return self.response
+
+        return self.response
+
+
+    def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
+	count = 0
+        if receiver_type in ['wiz_trusted_check', 'wiz_untrusted']:
+            #receiverIDs has wizUserIDs
+            for id in receivers:
+                try:
+                    r_user = UserProfile.objects.get(id=id)
+                    r_wizcard = r_user.user.wizcard
+                except:
+                    continue
+                if not Wizcard.objects.are_wizconnections(wizcard, r_wizcard):
+                    Wizcard.objects.exchange(wizcard, r_wizcard, True)
+                    count += 1
+                self.response.add_data("count", count)
+        elif receiver_type in ['email', 'sms']:
+            #future user handling
+            self.do_future_user(wizcard, receiver_type, receivers)
+
+        return self.response
+
+    def WizcardSendTableToXYZ(self, table, receiver_type, receivers):
+        if receiver_type in ['wiz_trusted_check', 'wiz_untrusted']:
+            #receiverIDs has wizUserIDs
+            for id in receivers:
+                r_user = UserProfile.objects.get(id=id).user
+                table.join_table_and_exchange(r_user, None, False, True)
+        elif receiver_type in ['email', 'sms']:
+            #create future user
+            self.do_future_user(table, receiver_type, receivers)
+
+        return self.response
+
+    def do_future_user(self, obj, receiver_type, receivers):
+        if receiver_type == 'sms':
+            for phone in receivers:
+                FutureUser(
+                    content_type=ContentType.objects.get_for_model(obj),
+                    object_id=obj.id,
+                    phone=phone).save()
+        else:
+            for email in receivers:
+                FutureUser(
+                    content_type=ContentType.objects.get_for_model(obj),
+                    object_id=obj.id,
+                    email=email).save()
+
     def WizcardSendToContacts(self):
         #implicitly create a bidir cardship (since this is from contacts)
         #and also Q the other guys cards here
@@ -1082,6 +1190,7 @@ class Header(ParseMsgAndDispatch):
         table.create_location(self.lat, self.lng)
         l = table.location.get()
 	l.start_timer(timeout)
+        #AA:TODO why do we need this ?
         table.join_table_and_exchange(self.user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)
@@ -1145,7 +1254,7 @@ class Header(ParseMsgAndDispatch):
 	except KeyError: 
             self.securityException()
             self.response.ignore()
-
+            return self.response
         try:
             table = VirtualTable.objects.get(id=table_id)
         except ObjectDoesNotExist:
@@ -1383,15 +1492,20 @@ class Header(ParseMsgAndDispatch):
             wizcard.save()
 
 	    #Future user handling
-	    try:
-		f_username = UserProfile.objects.futureusername_from_phone_num(
-				phone)
-		future_user = User.objects.get(username=f_username)
-		Wizcard.objects.migrate_future_user(future_user, self.user)
-		Notification.objects.migrate_future_user(future_user, self.user)
-		future_user.delete()
-	    except:
-		pass
+            future_users = FutureUser.objects.check_future_user(wizcard.email, phone)
+            if future_users.count():
+                for f in future_users:
+                    if ContentType.objects.get_for_model(f.content_object) == \
+                            ContentType.objects.get(model="wizcard"):
+                                Wizcard.objects.exchange(wizcard, f.content_object, False)
+                    elif ContentType.objects.get_for_model(f.content_object) == \
+                            ContentType.objects.get(model="virtualtable"):
+                                f.content_object.join_table_and_exchange(self.user,
+                                        None,
+                                        False,
+                                        True)
+
+	    future_users.delete()
 
         for c in contact_container:
             title = "FIXME" if not c['title'] else c['title']

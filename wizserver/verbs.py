@@ -1,4 +1,19 @@
 
+NOTIF_NULL          = 0
+ACCEPT_IMPLICIT     = 1
+ACCEPT_EXPLICIT     = 2
+DELETE_IMPLICIT     = 3
+TABLE_TIMEOUT       = 4
+UPDATE_WIZCARD      = 5
+NEARBY_FLICKED_WIZCARD     = 6
+NEARBY_USERS        = 7
+NEARBY_TABLES       = 8
+FLICK_TIMEOUT       = 9
+FLICK_PICK          = 10
+WITHDRAW_REQUEST    = 11
+WIZWEB_UPDATE_WIZCARD = 12
+
+
     # (Verb, APNS_REQUIRED, APNS_TEXT)
 WIZREQ_U = ('wizconnection request untrusted', 1, 'xxx would like to connect with you')
 WIZREQ_T = ('wizconnection request trusted', 1, 'you have a new contact')
