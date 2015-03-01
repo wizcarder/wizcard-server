@@ -438,6 +438,10 @@ class Header(ParseMsgAndDispatch):
 	    username = UserProfile.objects.username_from_phone_num(phone_number)
 	    if User.objects.filter(username=username).exists():
                 user = User.objects.get(username=username)
+
+                if not user.profile.activated:
+                    continue
+
 		d = dict()
 		d['phoneNum'] = phone_number
 		d['wizUserID'] = user.id
@@ -445,7 +449,9 @@ class Header(ParseMsgAndDispatch):
 				self.user.wizcard,
 				user.wizcard):
 		    d['tag'] = "connected"
-		else:
+		elif self.user == user:
+		    d['tag'] = "own"
+                else:
 		    d['tag'] = "other"
 
 		count += 1
