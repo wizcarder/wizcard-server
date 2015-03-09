@@ -165,7 +165,11 @@ MIDDLEWARE_CLASSES = (
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211'
+	'LOCATION': [
+                'ec2-52-74-64-185.ap-southeast-1.compute.amazonaws.com:11211',
+                'ec2-52-74-54-22.ap-southeast-1.compute.amazonaws.com:11211',
+        ]
+
     }
 }
 
