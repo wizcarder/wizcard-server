@@ -21,7 +21,7 @@ class DeadCards(models.Model):
     company = models.CharField(max_length=40, blank=True)
     title = models.CharField(max_length=200, blank=True)
     web = models.CharField(max_length=200, blank=True)
-    f_bizCardImage = WizcardQueuedFileField(upload_to="image/deadcards",
+    f_bizCardImage = WizcardQueuedFileField(upload_to="deadcards",
                          storage=WizcardQueuedS3BotoStorage(delayed=False))
 
     objects = DeadCardsManager()

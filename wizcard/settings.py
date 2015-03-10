@@ -10,6 +10,8 @@ djcelery.setup_loader()
 
 from kombu import Queue, Exchange
 
+TEST = False
+
 BROKER_TRANSPORT = 'amqp'
 BROKER_USER = 'wizcard_user'
 BROKER_PASSWORD = 'wizcard_pass'
@@ -277,7 +279,8 @@ INSTALLED_APPS = (
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket'
+AWS_TEST_BUCKET = '-test' if TEST else ''
+AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_TEST_BUCKET
 S3_URL = 'http://%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'

@@ -52,7 +52,8 @@ class RunOCR:
 		# at http://ocrsdk.com/documentation/apireference/listFinishedTasks/).
 	        count = 0
 		#while task.IsActive == True :
-		while task.Status == "Queued" :
+		#while task.Status == "Queued" or task.Status == "InProgress":
+                while task.IsActive():
 	                count = count + 1
 			time.sleep( 2 )
 			sys.stdout.write( "." )
@@ -70,7 +71,7 @@ class RunOCR:
 				
 	#			print "Result was written to %s" % cardOutput
 		else:
-			print "Error processing task"
+			print "Error processing task %s" % task.Status
 	
 	
 		
