@@ -15,9 +15,11 @@ cryptography==0.7.1
 django-appconf==0.6
 django-celery==3.1.16
 django-extensions==1.4.9
+django-pdb==0.4.1
 django-picklefield==0.3.1
 django-queued-storage==0.6
 django-storages==1.1.8
+docutils==0.12
 enum34==1.0.4
 gunicorn==19.1.1
 iso8601==0.1.10
@@ -31,8 +33,9 @@ pyapns==0.4.1
 pyasn1==0.1.7
 pyasn1-modules==0.0.5
 pycparser==2.10
-python-daemon==2.0.4
+python-daemon==2.0.5
 python-geohash==0.8.5
+python-memcached==1.53
 pytz==2014.10
 raven==5.1.1
 service-identity==14.0.0
