@@ -27,7 +27,7 @@ import string
 
 #delete rolodex - 1
 
-TEST_IMAGE=False
+TEST_IMAGE=True
 OCR_FLAG = True
 
 NEXMO_PHONE1 = "14084641727"
