@@ -73,12 +73,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wizcard',
-        'USER': 'wizroot',
-        'PASSWORD': 'wizserverdb',
+        'USER': 'wizuser',
+        'PASSWORD': 'wizcarddb',
         #'PASSWORD': '',
         #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': 'mywizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -164,8 +164,12 @@ MIDDLEWARE_CLASSES = (
 # Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'default-cache'
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+	'LOCATION': [
+                'ec2-52-74-64-185.ap-southeast-1.compute.amazonaws.com:11211',
+                'ec2-52-74-54-22.ap-southeast-1.compute.amazonaws.com:11211',
+        ]
+
     }
 }
 
