@@ -1,5 +1,6 @@
 from fabric.api import *
 from fabric.utils import *
+from fabric.contrib.files import exists
 from contextlib import contextmanager
 env.directory = '/home/ubuntu/stage'
 env.activate = 'source /home/ubuntu/stage/bin/activate'
@@ -21,6 +22,7 @@ def aptgets(name="all"):
 		run("sudo apt-get -q -y install git")
 		run("sudo apt-get -q -y install rabbitmq-server")
 		run("sudo apt-get -q -y install libssl-dev")
+		run("sudo apt-get -q -y install memcached")
 		run("sudo apt-get -q -y install libffi-dev libxml2 libxml2-dev  libxslt1-dev")
 		run("sudo apt-get -q -y install nginx")
 	else:
@@ -29,7 +31,7 @@ def aptgets(name="all"):
 def installpackage(name="/home/ubuntu/latest/req.txt"):
 	path = "/home/ubuntu/stage"
         if run("test -d %s" % path).succeeded:
-		run("source %s/bin/activate && pip install -q  -r /home/ubuntu/latest/req.txt" % path)
+		run("source %s/bin/activate && pip install   -r /home/ubuntu/latest/req.txt" % path)
 	else:
 		run("mkdir %s" % path)
 		installpackage()
@@ -77,15 +79,25 @@ def startservices():
 			fastprint("\nRunning rabbitmqconfig.sh===================================\n")
 			run("sudo sh ./rabbitmqconfig.sh")
 			run("ps auxww | grep rabbit")
-			fastprint("\nRunning location server===================================\n")
-			run("python  ./location_service/tree_state.py --g&")
-			run("ps auxww | grep tree_state")
 			fastprint("\nRunning celery server===================================\n")
 
-			run("sh ./startcelery.sh", pty=False)
+		#	run("sh ./startcelery.sh", pty=False)
+			run("celery -A wizcard worker --loglevel=info -D",pty=False)
+			run("celery -A wizcard beat --detach", pty=False)
 			run("ps auxww | grep celery")
-			fastprint("\nRunning gunicorn server===================================\n")
-			run("gunicorn  --daemon wizcard.wsgi:application", pty=False)
+			fastprint("\nRunning location server===================================\n")
+			run("python  ./location_service/rds_tree_state.py --D&",pty=False)
+			run("ps auxww | grep tree_state")
+	
+			startgunicorn()
+
+
+def startgunicorn():
+
+	with virtualenv():
+		with cd("/home/ubuntu/latest"):
+			fastprint("\nRunning gunicorn server on %s===================================\n" % env.host)
+			run("gunicorn  --daemon wizcard.wsgi:application -b %s:8000 %s" % env.host, pty=False)
 			run("ps auxww | grep gunicorn")
 			
 def runservice():
@@ -99,8 +111,12 @@ def freeze():
 
 def stopservices():
 	run("sudo service rabbitmq-server stop")
-	run("cd /home/ubuntu/latest; kill -TERM $(cat celeryd.pid)")
-	run("pkill gunicorn")
+	path = "/home/ubuntu/latest/celeryd.pid"
+        if exists(path):
+		run("cd /home/ubuntu/latest; kill -TERM $(cat celeryd.pid)")
+		run("cd /home/ubuntu/latest; kill -TERM $(cat celerybeat.pid)")
+		run("cd /home/ubuntu/latest; pkill rds_tree_state.py")
+#	run("pkill gunicorn")
 		
 def deploy():
 	fastprint("\nRunning aptgets===================================\n")
