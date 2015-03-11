@@ -97,7 +97,7 @@ def startgunicorn():
 	with virtualenv():
 		with cd("/home/ubuntu/latest"):
 			fastprint("\nRunning gunicorn server on %s===================================\n" % env.host)
-			run("gunicorn  --daemon wizcard.wsgi:application -b %s:8000 %s" % env.host, pty=False)
+			run("gunicorn  --daemon wizcard.wsgi:application -b %s:8000 --access-logfile gunicorn_access.log --error-logfile gunicorn_error.log" % env.host, pty=False)
 			run("ps auxww | grep gunicorn")
 			
 def runservice():
@@ -112,11 +112,12 @@ def freeze():
 def stopservices():
 	run("sudo service rabbitmq-server stop")
 	path = "/home/ubuntu/latest/celeryd.pid"
-        if exists(path):
+	with settings(warn_only=True):
+       	 if exists(path):
 		run("cd /home/ubuntu/latest; kill -TERM $(cat celeryd.pid)")
 		run("cd /home/ubuntu/latest; kill -TERM $(cat celerybeat.pid)")
 		run("cd /home/ubuntu/latest; pkill rds_tree_state.py")
-#	run("pkill gunicorn")
+		run("cd /home/ubuntu/latest; pkill gunicorn")
 		
 def deploy():
 	fastprint("\nRunning aptgets===================================\n")
