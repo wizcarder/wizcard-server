@@ -48,6 +48,7 @@ from lib.nexmomessage import NexmoMessage
 import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
+from test import messages
 
 now = timezone.now
 
@@ -89,12 +90,18 @@ class Header(ParseMsgAndDispatch):
         #raw message self.request = req
         #json deserialized
         self.request = request
-        self.msg = json.loads(request.body)
         self.msg_type = None
 	self.device_id = None
 	self.password_hash = None
 	self.user = None
 	self.response = Response()
+
+        try:
+            self.msg = json.loads(request.body)
+        except:
+            self.msg = messages.ocr_req_self
+            self.msg['header']['msgType'] = 'ocr_req_self'
+            self.msg['sender']['f_ocrCardImage'] = request.body
 
     def __repr__(self):
         return str(self.msg)
@@ -103,7 +110,7 @@ class Header(ParseMsgAndDispatch):
         return ('lat' in self.msg['header'] and 'lng' in self.msg['header']) or ('lat' in self.msg['sender'] and 'lng' in self.msg['sender'])
 
     def msg_is_initial(self):
-	return self.msg_type in ['phone_check_req', 'phone_check_rsp', 'login'] 
+	return self.msg_type in ['phone_check_req', 'phone_check_rsp', 'login', 'ocr_req_self'] 
    
     def msg_is_from_wizweb(self):
 	return self.device_id == settings.WIZWEB_DEVICE_ID
@@ -320,6 +327,7 @@ class Header(ParseMsgAndDispatch):
 	k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % device_id)
 
 	d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
+        print "cached value for phone_check_xx", d
 
         if d is None:
             self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
@@ -1318,9 +1326,11 @@ class Header(ParseMsgAndDispatch):
 	return self.response
 
     #############OCR MessageS##############
-    def OcrReqSelf(self):
+    def OcrReqSelf(self, image=None):
         try:
             wizcard = self.user.wizcard
+        except AttributeError:
+            wizcard = Wizcard.objects.get(id=1)
         except ObjectDoesNotExist:
             #this is the expected case
             wizcard = Wizcard(user=self.user)
@@ -1329,7 +1339,16 @@ class Header(ParseMsgAndDispatch):
         c = ContactContainer(wizcard=wizcard)
         c.save()
 
-        if self.sender.has_key('f_ocrCardImage'): 
+        if image:
+            rawimage = bytes(image)
+            upfile = SimpleUploadedFile("%s-%s.jpg" % \
+                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
+                    rawimage, "image/jpeg") 
+            
+            c.f_bizCardImage.save(upfile.name, upfile)
+            path = c.f_bizCardImage.local_path()
+
+        elif self.sender.has_key('f_ocrCardImage'): 
             rawimage = bytes(self.sender['f_ocrCardImage'])
             #AA:TODO maybe time to put this in lib
             upfile = SimpleUploadedFile("%s-%s.jpg" % \
@@ -1359,6 +1378,7 @@ class Header(ParseMsgAndDispatch):
         c.save()
 
         self.response.add_data("ocr_result", result)
+        print "sending OCR scan results", result
         return self.response
 
     def OcrReqDeadCard(self):

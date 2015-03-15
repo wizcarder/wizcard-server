@@ -28,7 +28,7 @@ import string
 #delete rolodex - 1
 
 TEST_IMAGE=True
-OCR_FLAG = True
+OCR_FLAG = False
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "+14084641727"
@@ -89,7 +89,6 @@ LNG1 = -122.506419
 ContactList = [PHONE1, PHONE2, PHONE3]
 
 server_url = "www.totastyle.com"
-#server_url = "localhost"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 
 server_port = 8000

@@ -10,7 +10,7 @@ djcelery.setup_loader()
 
 from kombu import Queue, Exchange
 
-TEST = False
+TEST = True
 
 BROKER_TRANSPORT = 'amqp'
 BROKER_USER = 'wizcard_user'
