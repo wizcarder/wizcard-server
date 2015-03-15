@@ -3,7 +3,8 @@ contact_container_template = {
 }
 
 contact_container_template_with_bizcard = {
-    'fields': ['company', 'title', 'start', 'end', 'f_bizCardImage']
+    'fields': ['company', 'title', 'start', 'end', 'f_bizCardImage', 'f_bizCardUrl'],
+    'key_map': {'f_bizCardUrl':'get_fbizcard_url'}
 }
 
 wizcard_related_objects_template = {
@@ -14,17 +15,21 @@ wizcard_related_objects_template_with_bizcard = {
     'contact_container': contact_container_template_with_bizcard
 }
 
+wizcard_template_brief_keymap = {'wizcard_id':'id', 'company':'get_latest_company', 'title':'get_latest_title'}
 wizcard_template_brief = {
     'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', \
             'email', 'company', 'title'],
-    'key_map' : {'wizcard_id':'id', 'company':'get_latest_company', 'title':\
-            'get_latest_title'},
+    'key_map' : wizcard_template_brief_keymap
 }
 
 thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailImage']
+thumbnail_keymap = {'f_bizCardUrl':'get_thumbnail_url'}
+wizcard_template_brief_with_thumbnail_keymap = thumbnail_keymap.copy()
+wizcard_template_brief_with_thumbnail_keymap.update(wizcard_template_brief_keymap)
+
 wizcard_template_brief_with_thumbnail = {
     'fields': thumbnail_fields,
-    'key_map' : wizcard_template_brief['key_map'],
+    'key_map' : wizcard_template_brief_with_thumbnail_keymap
 }
 
 extended_fields = wizcard_template_brief['fields'] + ['contact_container']
@@ -38,21 +43,15 @@ wizcard_template_extended = {
 
 wizcard_template_full = {
     'fields': extended_fields_with_images,
-    'key_map' : wizcard_template_brief['key_map'],
+    'key_map' : wizcard_template_brief_with_thumbnail_keymap,
     'related': wizcard_related_objects_template_with_bizcard
 }
 
-wizcard_template_brief_merged = {
-    'fields': wizcard_template_brief['fields'],
-    'key_map' : wizcard_template_brief['key_map'],
-    'merge' : True
-}
+wizcard_template_brief_merged = wizcard_template_brief.copy()
+wizcard_template_brief_merged.update({'merge': True})
 
-wizcard_template_brief_with_thumbnail_merged = {
-    'fields': thumbnail_fields,
-    'key_map' : wizcard_template_brief['key_map'],
-    'merge' : True
-}
+wizcard_template_brief_with_thumbnail_merged = wizcard_template_brief_with_thumbnail.copy()
+wizcard_template_brief_with_thumbnail_merged.update({'merge': True})
 
 flicked_wizcard_related_objects_template= {
     'wizcard': wizcard_template_brief,

@@ -246,6 +246,9 @@ class Wizcard(models.Model):
             return qs[0].company
         return None
 
+    def get_thumbnail_url(self):
+        return self.thumbnailImage.remote_url()
+
     def get_latest_title(self):
         qs = self.contact_container.all()
         if qs.exists():
@@ -289,6 +292,9 @@ class ContactContainer(models.Model):
 
     class Meta:
         ordering = ['id']
+
+    def get_fbizcard_url(self):
+        return self.f_bizCardImage.remote_url()
 
 
 class WizConnectionRequest(models.Model):
