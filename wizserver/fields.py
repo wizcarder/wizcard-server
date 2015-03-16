@@ -3,7 +3,7 @@ contact_container_template = {
 }
 
 contact_container_template_with_bizcard = {
-    'fields': ['company', 'title', 'start', 'end', 'f_bizCardImage', 'f_bizCardUrl'],
+    'fields': ['company', 'title', 'start', 'end', 'f_bizCardUrl'],
     'key_map': {'f_bizCardUrl':'get_fbizcard_url'}
 }
 
@@ -22,8 +22,8 @@ wizcard_template_brief = {
     'key_map' : wizcard_template_brief_keymap
 }
 
-thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailImage']
-thumbnail_keymap = {'f_bizCardUrl':'get_thumbnail_url'}
+thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailUrl']
+thumbnail_keymap = {'thumbnailUrl':'get_thumbnail_url'}
 wizcard_template_brief_with_thumbnail_keymap = thumbnail_keymap.copy()
 wizcard_template_brief_with_thumbnail_keymap.update(wizcard_template_brief_keymap)
 
@@ -33,7 +33,7 @@ wizcard_template_brief_with_thumbnail = {
 }
 
 extended_fields = wizcard_template_brief['fields'] + ['contact_container']
-extended_fields_with_images = extended_fields + ['thumbnailImage']
+extended_fields_with_images = extended_fields + ['thumbnailUrl']
 
 wizcard_template_extended = {
     'fields': extended_fields,

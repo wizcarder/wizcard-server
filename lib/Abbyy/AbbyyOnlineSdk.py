@@ -93,8 +93,8 @@ class AbbyyOnlineSdk:
 	# register at http://cloud.ocrsdk.com/Account/Register
 	# More info on getting your application id and password at
 	# http://ocrsdk.com/documentation/faq/#faq3
-	ApplicationId = "wizcarder"
-	Password = "bTRDstM6Aq1QXbqamhCG77G6"
+	ApplicationId = "wzcardreader"
+	Password = "6i2Mq8AS2Uxt2aznZgQgjg81"
 	Proxy = None
 	enableDebugging = 0
 
