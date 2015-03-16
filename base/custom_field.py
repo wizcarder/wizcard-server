@@ -13,10 +13,14 @@ class WizcardQueuedFieldFile(FieldFile):
         return self.storage.transfer(self.name)
 
     def remote_url(self):
-        return self.storage.remote.url(self.name)
+        if bool(self):
+            return self.storage.remote.url(self.name)
+        return None
 
     def local_path(self):
-        return self.storage.local.path(self.name)
+        if bool(self):
+            return self.storage.local.path(self.name)
+        return None
 
 class WizcardQueuedFileField(FileField):
     attr_class = WizcardQueuedFieldFile
