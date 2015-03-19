@@ -12,6 +12,8 @@ FLICK_TIMEOUT       = 9
 FLICK_PICK          = 10
 WITHDRAW_REQUEST    = 11
 WIZWEB_UPDATE_WIZCARD = 12
+TABLE_INVITE        = 13
+WIZCARD_FORWARD     = 14
 
 
     # (Verb, APNS_REQUIRED, APNS_TEXT)
@@ -26,7 +28,10 @@ WIZCARD_TABLE_DESTROY = ('table destroy', 1, 'xxx deleted yyy table')
 WIZCARD_UPDATE = ('wizcard update', 1, 'xxx has an updated wizcard')
 WIZCARD_FLICK_TIMEOUT = ('flick timeout', 1, 'your flick has expired')
 WIZCARD_FLICK_PICK = ('flick pick', 1, 'yy picked up your flicked wizcard')
+WIZCARD_TABLE_INVITE = ('table invite', 1, 'xxx invited you to join a table')
+WIZCARD_FORWARD = ('wizcard forward', 1, 'xxx forwarded you a wizcard')
 WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1, 'your wizcard was updated')
+
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {

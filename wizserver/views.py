@@ -943,7 +943,7 @@ class Header(ParseMsgAndDispatch):
             #creator can fwd private table, anyone (member) can fwd public
             #table
             if not((table.is_secure() and table.creator == self.user) or
-                    (table.is_member(self.user))):
+                    ((not table.is_secure()) and table.is_member(self.user))):
 	        self.response.error_response(err.NOT_AUTHORIZED)
                 return self.response
 
@@ -961,7 +961,7 @@ class Header(ParseMsgAndDispatch):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
 	count = 0
-        if receiver_type in ['wiz_trusted_check', 'wiz_untrusted']:
+        if receiver_type == 'wiz_trusted':
             #receiverIDs has wizUserIDs
             for id in receivers:
                 try:
@@ -980,11 +980,14 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def WizcardSendTableToXYZ(self, table, receiver_type, receivers):
-        if receiver_type in ['wiz_trusted_check', 'wiz_untrusted']:
+        if receiver_type == 'wiz_trusted':
             #receiverIDs has wizUserIDs
             for id in receivers:
                 r_user = UserProfile.objects.get(id=id).user
-                table.join_table_and_exchange(r_user, None, False, True)
+                notify.send(self.user, recipient=r_user,
+                    verb=verbs.WIZCARD_TABLE_INVITE[0], 
+                    target=table, 
+                    action_object = self.user)
         elif receiver_type in ['email', 'sms']:
             #create future user
             self.do_future_user(table, receiver_type, receivers)

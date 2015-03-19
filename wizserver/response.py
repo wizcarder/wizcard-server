@@ -1,5 +1,6 @@
 # define all outbound responses here
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
 from wizcardship.models import WizConnectionRequest, Wizcard, WizcardFlick
 from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
@@ -93,6 +94,8 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
             verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
+            verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
+            verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
             verbs.WIZWEB_WIZCARD_UPDATE[0]      : self.notifWizWebWizcardUpdate
         }
 	for notification in notifications:
@@ -167,6 +170,25 @@ class NotifResponse(ResponseN):
         out = dict(wizUserID=notif.action_object_object_id, flickCardID=notif.target_object_id)
         self.add_data_with_notif(out, verbs.FLICK_PICK)
         logger.debug('%s', self.response)
+        return self.response
+
+    def notifWizcardTableInvite(self, notif):
+        sender = User.objects.get(id=notif.action_object_object_id)
+        table = VirtualTable.objects.get(id=notif.target_object_id)
+        s_out = dict()
+        a_out = dict()
+        s_out['first_name'] = sender.wizcard.first_name
+        s_out['last_name'] = sender.wizcard.last_name
+        s_out['title'] = sender.wizcard.get_latest_title()
+        s_out['company'] = sender.wizcard.get_latest_company()
+        a_out['tableID'] = table.id
+        a_out['tableName'] = table.tablename
+
+        out = dict(sender=s_out, asset=a_out)
+        self.add_data_with_notif(out, verbs.TABLE_INVITE)
+        return self.response
+
+    def notifWizcardForward(self, notif):
         return self.response
 
     def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards, send_data=True):

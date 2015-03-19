@@ -88,8 +88,8 @@ LNG1 = -122.506419
 
 ContactList = [PHONE1, PHONE2, PHONE3]
 
-#server_url = "www.totastyle.com"
-server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
+server_url = "www.totastyle.com"
+#server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 
 server_port = 8000
 #server_port = 80
@@ -555,44 +555,6 @@ while nrsp != False:
         objs = handle_response(conn, reqmsg['header']['msgType'])
     nrsp = notif.process_one()
 
-reqmsg = messages.get_cards
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-print "GET cards", reqmsg['sender']['userID']
-gcu2 = json.dumps(reqmsg)
-conn.request("POST","", gcu2)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-notif = NotifParser(objs['data'], uid2, wuid2)
-nrsp = notif.process_one()
-while nrsp != False:
-    if nrsp is not None:
-        nrsp = json.dumps(nrsp)
-        conn.request("POST","", n)
-        # Parse and dump the JSON response from server
-        objs = handle_response(conn, reqmsg['header']['msgType'])
-    nrsp = notif.process_one()
-
-reqmsg = messages.get_cards
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-print "GET cards", reqmsg['sender']['userID']
-gcu3 = json.dumps(reqmsg)
-conn.request("POST","", gcu3)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-notif = NotifParser(objs['data'], uid3, wuid3)
-nrsp = notif.process_one()
-while nrsp != False:
-    if nrsp is not None:
-        nrsp = json.dumps(nrsp)
-        conn.request("POST","", n)
-        # Parse and dump the JSON response from server
-        objs = handle_response(conn, reqmsg['header']['msgType'])
-    nrsp = notif.process_one()
-
 reqmsg = messages.card_details
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
@@ -658,6 +620,7 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #u2 -> future u1, u2 via email
 reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['assetType'] = "wizcard"
 reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['sender']['assetID'] = e2_id
 reqmsg['receiver']['receiverType'] = "email"
@@ -826,7 +789,7 @@ reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['assetID'] = tid_1
 reqmsg['sender']['assetType'] = "table"
-reqmsg['receiver']['receiverType'] = "wiz_untrusted"
+reqmsg['receiver']['receiverType'] = "wiz_trusted"
 reqmsg['receiver']['receiverIDs'] = [wuid2, wuid3]
 print "sendingWizcardToUnTrusted via table"
 sxyz = json.dumps(reqmsg)
@@ -956,3 +919,42 @@ print wwaewc2
 conn.request("POST","", wwaewc2)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+print "GET cards", reqmsg['sender']['userID']
+gcu2 = json.dumps(reqmsg)
+conn.request("POST","", gcu2)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+notif = NotifParser(objs['data'], uid2, wuid2)
+nrsp = notif.process_one()
+while nrsp != False:
+    if nrsp is not None:
+        nrsp = json.dumps(nrsp)
+        conn.request("POST","", n)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msgType'])
+    nrsp = notif.process_one()
+
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+print "GET cards", reqmsg['sender']['userID']
+gcu3 = json.dumps(reqmsg)
+conn.request("POST","", gcu3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+notif = NotifParser(objs['data'], uid3, wuid3)
+nrsp = notif.process_one()
+while nrsp != False:
+    if nrsp is not None:
+        nrsp = json.dumps(nrsp)
+        conn.request("POST","", n)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msgType'])
+    nrsp = notif.process_one()
+

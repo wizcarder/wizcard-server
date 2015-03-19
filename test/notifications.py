@@ -13,6 +13,9 @@ FLICK_TIMEOUT       = 9
 FLICK_PICK          = 10
 WITHDRAW_REQUEST    = 11
 WIZWEB_UPDATE_WIZCARD = 12
+TABLE_INVITE        = 13
+WIZCARD_FORWARD     = 14
+
 
 class NotifParser:
     def __init__(self, data, userID, wizUserID):
@@ -40,7 +43,9 @@ class NotifParser:
             FLICK_TIMEOUT   :       self.flick_timeout,
             FLICK_PICK      :       self.flick_pick,
             WITHDRAW_REQUEST   :    self.withdraw_request,
-            WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard
+            WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard,
+            TABLE_INVITE    :       self.table_invite,
+            WIZCARD_FORWARD :       self.wizcard_forward,
         }
 
 	if self.count:
@@ -69,6 +74,7 @@ class NotifParser:
 	pass
 
     def update_wizcard(self, data):
+        print "received update_wizcard", data
 	pass
 
     def flicked_wizcard(self, data):
@@ -76,19 +82,32 @@ class NotifParser:
             print "own flicked wizcard", map(lambda w: w['flick_id'], data['connected'])
 
     def nearby_users(self, data):
+        print "received nearby users", data
 	pass
 
     def nearby_tables(self, data):
+        print "received nearby_tables", data
 	pass
 
     def flick_timeout(self, data):
+        print "received flick timeout ", data
 	pass
 
     def flick_pick(self, data):
+        print "received flick pick ", data
 	pass
 
     def withdraw_request(self, data):
+        print "received withdraw request ", data
 	pass
+
+    def table_invite(self, data):
+        print "received table invite ", data
+        pass
+
+    def wizcard_forward(self, data):
+        print "received wizcard forward ", data
+        pass
 
     def wizweb_update_wizcard(self, data):
 	pass
