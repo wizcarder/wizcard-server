@@ -224,6 +224,7 @@ class Header(ParseMsgAndDispatch):
             'get_card_details'            : (message_format.WizcardGetDetailSchema, self.WizcardGetDetail),
             'query_tables'                : (message_format.TableQuerySchema, self.TableQuery),
             'my_tables'                   : (message_format.TableMyTablesSchema, self.TableMyTables),
+            'table_summary'               : (message_format.TableSummarySchema, self.TableSummary),
             'table_details'               : (message_format.TableDetailsSchema, self.TableDetails),
             'create_table'                : (message_format.TableCreateSchema, self.TableCreate),
             'join_table'                  : (message_format.TableJoinSchema, self.TableJoin),
@@ -1122,7 +1123,9 @@ class Header(ParseMsgAndDispatch):
         result, count = VirtualTable.objects.query_tables(self.receiver['name'])
 
         if count:
-	    tables_s = VirtualTable.objects.serialize_split(result, self.user, True, True)
+	    tables_s = VirtualTable.objects.serialize_split(result,
+                    self.user,
+                    fields.nearby_table_template)
             self.response.add_data("queryResult", tables_s)
         self.response.add_data("count", count)
             
@@ -1137,6 +1140,15 @@ class Header(ParseMsgAndDispatch):
         self.response.add_data("count", count)
 	return self.response
 
+    def TableSummary(self):
+        table = VirtualTable.objects.get(id=self.sender['tableID'])
+        if table.is_secure() and not table.is_member(self.user):
+            self.response.error_response(err.NOT_AUTHORIZED)
+            return self.response
+
+        out = table.serialize(fields.nearby_table_template)
+        self.response.add_data("Summary", out)
+        return self.response
 
     def TableDetails(self):
         #get the members
@@ -1157,7 +1169,6 @@ class Header(ParseMsgAndDispatch):
 
         return self.response
 
-    
     def WizcardGetDetail(self):
         try:
             wizcard = Wizcard.objects.get(id=self.receiver['wizCardID'])

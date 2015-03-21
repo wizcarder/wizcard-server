@@ -103,8 +103,7 @@ class NotifResponse(ResponseN):
 	    
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
-        out = Wizcard.objects.serialize(wizcard,
-                fields.wizcard_template_full)
+        out = Wizcard.objects.serialize(wizcard, template=fields.wizcard_template_full)
 
 	if notif.action_object:
             if ContentType.objects.get_for_model(notif.action_object) == \
@@ -175,14 +174,8 @@ class NotifResponse(ResponseN):
     def notifWizcardTableInvite(self, notif):
         sender = User.objects.get(id=notif.action_object_object_id)
         table = VirtualTable.objects.get(id=notif.target_object_id)
-        s_out = dict()
-        a_out = dict()
-        s_out['first_name'] = sender.wizcard.first_name
-        s_out['last_name'] = sender.wizcard.last_name
-        s_out['title'] = sender.wizcard.get_latest_title()
-        s_out['company'] = sender.wizcard.get_latest_company()
-        a_out['tableID'] = table.id
-        a_out['tableName'] = table.tablename
+        s_out = Wizcard.objects.serialize(sender.wizcard, template=fields.wizcard_template_mini)
+        a_out = VirtualTable.objects.serialize(table, template=fields.table_template_mini)
 
         out = dict(sender=s_out, asset=a_out)
         self.add_data_with_notif(out, verbs.TABLE_INVITE)
@@ -211,7 +204,10 @@ class NotifResponse(ResponseN):
     def notifTableLookup(self, count, user, tables):
         out = None
         if tables:
-            out = VirtualTable.objects.serialize_split(tables, user)
+            out = VirtualTable.objects.serialize_split(
+                    tables,
+                    user,
+                    fields.nearby_table_template)
             self.add_data_with_notif(out, verbs.NEARBY_TABLES)
         return self.response
 

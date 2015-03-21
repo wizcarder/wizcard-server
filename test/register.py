@@ -514,12 +514,35 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 tid_3 = objs['data']['tableID']
 
 #table query
+print "sending table query"
 reqmsg = messages.table_query
 reqmsg['sender']['userID'] = uid3
 reqmsg['sender']['wizUserID'] = wuid3
 reqmsg['receiver']['name'] = TABLENAME_Q
 tq3 = json.dumps(reqmsg)
 conn.request("POST","", tq3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#table summary
+print "sending table summary"
+reqmsg = messages.table_summary
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['tableID'] = tid_2
+ts3 = json.dumps(reqmsg)
+conn.request("POST","", ts3)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#table details
+print "sending table details"
+reqmsg = messages.table_details
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['tableID'] = tid_1
+td3 = json.dumps(reqmsg)
+conn.request("POST","", td3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 

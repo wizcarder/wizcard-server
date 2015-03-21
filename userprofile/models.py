@@ -25,13 +25,18 @@ USER_ACTIVE_TIMEOUT = 10
 class UserProfileManager(models.Manager):
     def serialize_split(self, me, users, send_data=True):
 	s = dict()
+        if send_data:
+            template = fields.wizcard_template_brief_with_thumbnail
+        else:
+            template = fields.wizcard_template_brief
+
 	own, connected, others = self.split_users(me, users)
         if own:
-            s['own'] = UserProfile.objects.serialize(own, send_data)
+            s['own'] = UserProfile.objects.serialize(own, template)
         if connected:
-            s['connected'] = UserProfile.objects.serialize(connected, send_data)
+            s['connected'] = UserProfile.objects.serialize(connected, template)
         if others:
-            s['others'] = UserProfile.objects.serialize(others, send_data)
+            s['others'] = UserProfile.objects.serialize(others, template)
 
         return s
 
@@ -48,12 +53,9 @@ class UserProfileManager(models.Manager):
                 others.append(user)
         return own, connected, others
 
-    def serialize(self, users, send_data=True):
+    def serialize(self, users, template):
         wizcards = map(lambda u: u.wizcard, users)
-        if send_data:
-            return serialize(wizcards, **fields.wizcard_template_brief_with_thumbnail)
-        else:
-            return serialize(wizcards, **fields.wizcard_template_brief)
+        return serialize(wizcards, **template)
 
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         userid =  ''.join(random.choice(chars) for x in range(size))
@@ -190,7 +192,10 @@ class UserProfile(models.Model):
         tables = self.user.tables.all()
 	if tables.count():
 	    # serialize created and joined tables
-            tbls = VirtualTable.objects.serialize_split(tables, self.user)
+            tbls = VirtualTable.objects.serialize_split(
+                    tables, 
+                    self.user,
+                    fields.table_template)
 	    s['tables'] = tbls
 
         return s

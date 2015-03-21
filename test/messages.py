@@ -384,6 +384,34 @@ table_query = {
     },
 }
 
+table_summary = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "table_summary",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+        "tableID": ""
+    }
+}
+
+table_details = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "table_details",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+        "tableID": ""
+    }
+}
+
 card_flick = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",

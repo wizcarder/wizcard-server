@@ -32,6 +32,11 @@ wizcard_template_brief_with_thumbnail = {
     'key_map' : wizcard_template_brief_with_thumbnail_keymap
 }
 
+wizcard_template_mini = {
+    'fields' : ['first_name', 'last_name', 'thumbnailUrl'],
+    'key_map': thumbnail_keymap
+}
+
 extended_fields = wizcard_template_brief['fields'] + ['contact_container']
 extended_fields_with_images = extended_fields + ['thumbnailUrl']
 
@@ -122,6 +127,17 @@ user_query_extended_template = {
         'merge':True
     },
     'key_map' : {'user_id':'id'}
+}
+
+table_template_mini = {
+    'fields' : ['id', 'tablename']
+}
+
+nearby_table_template = {
+    'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
+            'timeRemaining', 'thumbnailUrls'],
+    'key_map' : {'timeRemaining':'time_remaining', \
+                'thumbnailUrls': 'get_member_thumbnail_urls'}
 }
 
 table_template = {

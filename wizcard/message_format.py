@@ -81,6 +81,8 @@ class TableQuerySchema(colander.MappingSchema):
     pass
 class TableMyTablesSchema(colander.MappingSchema):
     pass
+class TableSummarySchema(colander.MappingSchema):
+    pass
 class TableDetailsSchema(colander.MappingSchema):
     pass
 class TableCreateSchema(colander.MappingSchema):

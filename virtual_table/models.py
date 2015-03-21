@@ -57,37 +57,19 @@ class VirtualTableManager(models.Manager):
                 [0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
         return tables, tables.count()
 
-    def serialize(self, tables, merge=False):
-        template = fields.table_merged_template if merge else \
-                fields.table_template
+    def serialize(self, tables, template):
         return serialize(tables, **template)
 
-    def serialize_split(self, tables, user, merge=False, flatten=False):
-
-        s = None
+    def serialize_split(self, tables, user, template):
         created, joined, others = self.split_table(tables, user)
-
-        if flatten:
-            s = []
-            if created:
-                self.set_tag("created")
-                s += self.serialize(created, merge)
-            if joined:
-                self.set_tag("joined")
-                s += self.serialize(joined, merge)
-            if others:
-                self.set_tag("others")
-                s += self.serialize(others, merge)
-            self.set_tag(None)
-        else:
-            s = dict()
-            if created:
-                s['created'] = self.serialize(created, merge)
-            if joined:
-                s['joined'] = self.serialize(joined, merge)
-            if others:
-                s['others'] = self.serialize(others, merge)
-
+        
+        s = dict()
+        if created:
+            s['created'] = self.serialize(created, template)
+        if joined:
+            s['joined'] = self.serialize(joined, template)
+        if others:
+            s['others'] = self.serialize(others, template)
         return s
 
     def split_table(self, tables, user):
@@ -121,6 +103,9 @@ class VirtualTable(models.Model):
     def __unicode__(self):
         return self.tablename
 
+    def serialize(self, template):
+        return serialize(self, **template)
+
     def create_location(self, lat, lng):
         location.send(
                 sender=self, 
@@ -131,11 +116,15 @@ class VirtualTable(models.Model):
     def is_secure(self):
         return self.secureTable
 
+    def get_member_thumbnail_urls(self):
+        return map(lambda u: u.wizcard.get_thumbnail_url(),
+                self.users.all())
+
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
         wizcard1 = User.objects.get(id=joinee.pk).wizcard
 
-        wizcards = map(lambda u: User.objects.get(id=u.pk).wizcard, joined)
+        wizcards = map(lambda u: u.wizcard, joined)
         implicit_exchange = self.is_secure()
 
         for wizcard2 in wizcards:
