@@ -6,7 +6,6 @@ sys.path.append("../wizcard-server/lib")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
-from base.borg import Borg
 import pika
 import uuid
 import heapq
@@ -24,62 +23,67 @@ PRINT_TREES = 4
 
 logger = logging.getLogger(__name__)
 
-class LocationServiceClient(Borg):
+class LocationServiceClient(object):
 
-    connection_created = False
     reconnected_count = 0
 
     def __init__(self, *args, **kwargs):
-        Borg.__init__(self)
+        #Borg.__init__(self)
         self.host = kwargs.get('host', rconfig.HOST)
-        self.exchange = kwargs.get('host', rconfig.EXCHANGE)
-        self.routing_key = kwargs.get('host', rconfig.ROUTING_KEY)
+        self.exchange = kwargs.get('exchange', rconfig.EXCHANGE)
+        self.routing_key = kwargs.get('routing_key', rconfig.ROUTING_KEY)
+        self.connection = None
+        self.response = None
 
     def connection_setup(self):
-        #init rabbitmq client side connection
-        if not self.connection_created:
+        #init rabbitmq client side Connection
+        #AA:TODO: tried to get this to work with connection reuse
+        #just wouldn't work...giving up for now.
+        if not self.connection:
             self.connection = pika.BlockingConnection(
                     pika.ConnectionParameters(host=self.host))
 
-            self.channel = self.connection.channel()
+    def connection_close(self):
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+
+    def call(self, params, rpc=False):
+        self.connection_setup()
+        self.channel = self.connection.channel()
+
+        if rpc:
             result = self.channel.queue_declare(exclusive=True)
+            self.corr_id = str(uuid.uuid4())
             self.callback_queue = result.method.queue
             self.channel.basic_consume(self.on_response, no_ack=True,
-                                       queue=self.callback_queue)
-            self.connection_created = True
+                    queue=self.callback_queue)
 
-    def call(self, params):
-        if not self.connection_created:
-            self.connection_setup()
-
-        self.response = None
-        self.corr_id = str(uuid.uuid4())
-        try:
-            logger.debug('sending basic publish')
-            print('sending basic publish')
+            params['rpc'] = True 
             self.channel.basic_publish(exchange=self.exchange,
-                                       routing_key=self.routing_key,
-                                       properties=pika.BasicProperties(
-                                           reply_to = self.callback_queue,
-                                           correlation_id = self.corr_id,
-                                           ),
-                                       body=json.dumps(params))
-        except:
-            logger.error('pika rabbitmq connection dropped...recreating connection')
-            self.connection_created = False
-            self.reconnected_count += 1
-            self.call(params)
-            #AA TODO: maybe check reconnect count to make sure it's not 
-            #forever increasing
+                    routing_key=self.routing_key,
+                    properties=pika.BasicProperties(
+                        reply_to = self.callback_queue,
+                        correlation_id = self.corr_id,
+                        ),
+                    body=json.dumps(params))
 
-        while self.response is None:
-            self.connection.process_data_events()
-        return json.loads(self.response)
+            self.channel.start_consuming()
+
+        else:
+            self.channel.basic_publish(exchange=self.exchange,
+                    routing_key=self.routing_key,
+                    body=json.dumps(params))
+
+        self.connection.close()
+        if self.response:
+            return json.loads(self.response)
+        return None
 
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:
             self.response = body
-            print " [.] Got %r" % (self.response,)
+            self.channel.stop_consuming()
 
     def tree_insert(self, **kwargs):
         kwargs['fn'] = TREE_INSERT
@@ -93,7 +97,7 @@ class LocationServiceClient(Borg):
 
     def lookup(self, **kwargs):
         kwargs['fn'] = TREE_LOOKUP
-        response = self.call(kwargs)
+        response = self.call(kwargs, rpc=True)
         return response['result'], response['count']
 
     def print_trees(self, **kwargs):

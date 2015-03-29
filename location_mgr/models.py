@@ -94,14 +94,14 @@ class LocationMgr(models.Model):
     def __init__(self, *args, **kwargs):
         super(LocationMgr, self).__init__(*args, **kwargs)
 
+    def is_eq_lat_lng(self, lat, lng):
+        return bool( (float(self.lat) == lat and float(self.lng) == lng))
+
     def do_update(self, lat, lng):
         updated = False
-        if self.lat != lat:
-            self.lat = lat
+        if not self.is_eq_lat_lng(lat, lng):
             updated = True
-        if self.lng != lng:
-            self.lng = lng
-            updated = True
+
         if updated:
             #delete old guy
             self.delete_from_tree()

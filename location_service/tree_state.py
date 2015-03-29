@@ -77,9 +77,13 @@ class TreeServer(LocationServiceServer):
                      basic_deliver.delivery_tag, props.app_id, body)
         args = json.loads(body)
         fn = args.pop('fn')
+        rpc = args.pop('rpc', False)
         response = self.call_handles[fn](**args)
 
-        ch.basic_publish(exchange="",
+
+        if rpc:
+            logger.info('Received RPC:%s type %s, response: %s', rpc, fn, response)
+            ch.basic_publish(exchange="",
                          routing_key=props.reply_to,
                          properties=pika.BasicProperties(correlation_id = \
                                                          props.correlation_id),
