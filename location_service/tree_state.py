@@ -23,6 +23,7 @@ TREE_INSERT = 1
 TREE_DELETE = 2
 TREE_LOOKUP = 3
 PRINT_TREES = 4
+db_mode = 'local'
 
 logger = logging.getLogger(__name__)
 
@@ -50,11 +51,20 @@ class TreeServer(LocationServiceServer):
 
         #init trees reading from db outside of django
         logger.info('initing trees from db')
-        wdb = WizcardDB(
-                db=settings.DATABASES['default']['NAME'],
-                socket=settings.DATABASES['default']['HOST'],
-                user=settings.DATABASES['default']['USER'],
-                passwd=settings.DATABASES['default']['PASSWORD']
+	
+	if db_mode == "rds":
+	        wdb = WizcardDB(
+                host=settings.DATABASES['rds']['HOST'],
+                user=settings.DATABASES['rds']['USER'],
+                passwd=settings.DATABASES['rds']['PASSWORD'],
+                db=settings.DATABASES['rds']['NAME'],
+                )
+	else:
+	        wdb = WizcardDB(
+       	        socket=settings.DATABASES['default']['SOCKET'],
+		user=settings.DATABASES['default']['USER'],
+                passwd=settings.DATABASES['default']['PASSWORD'],
+       	        db=settings.DATABASES['default']['NAME'],
                 )
 
         wdb.table_select('select * from location_mgr_locationmgr')
@@ -196,13 +206,21 @@ class TreeServer(LocationServiceServer):
 
 def main():
 	logging.basicConfig(level=logging.INFO)
+	db_mode = 'local'
+	isdaemon = False
+	for params in sys.argv:
+		if params == '-rds':
+			db_mode = 'rds'
+		if params == '--D' or params == '-daemon':
+			isdaemon = True
+	
 	ts = TreeServer('amqp://guest:guest@localhost:5672/%2F')
-	if sys.argv[1] == '-daemon' or sys.argv[1] == '--D':
+	if isdaemon:
 		with daemon.DaemonContext():
 			ts.run()
 	else:
-    		try:
-        		ts.run()
+		try:
+       	 		ts.run()
 		except KeyboardInterrupt:
 		        ts.stop()
 
