@@ -80,6 +80,16 @@ DATABASES = {
         #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
+	'SOCKET': ''
+    }
+    'rds': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'wizcard',
+        'USER': 'wizuser',
+        'PASSWORD': 'wizcarddb',
+        'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
+	'SOCKET': ''
     }
 }
 
