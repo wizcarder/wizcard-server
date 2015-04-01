@@ -31,6 +31,7 @@ class TreeServer(LocationServiceServer):
 
     def __init__(self, *args, **kwargs):
 
+        db_mode = kwargs.pop('db_mode')
         super(TreeServer, self).__init__(*args, **kwargs)
         self.ptree = trie()
         self.vtree = trie()
@@ -53,19 +54,16 @@ class TreeServer(LocationServiceServer):
         logger.info('initing trees from db')
 	
 	if db_mode == "rds":
-	        wdb = WizcardDB(
-                host=settings.DATABASES['rds']['HOST'],
-                user=settings.DATABASES['rds']['USER'],
-                passwd=settings.DATABASES['rds']['PASSWORD'],
-                db=settings.DATABASES['rds']['NAME'],
-                )
-	else:
-	        wdb = WizcardDB(
-       	        socket=settings.DATABASES['default']['SOCKET'],
-		user=settings.DATABASES['default']['USER'],
-                passwd=settings.DATABASES['default']['PASSWORD'],
-       	        db=settings.DATABASES['default']['NAME'],
-                )
+            sdict = settings.DATABASES['rds']
+        else:
+            sdict = settings.DATABASES['default']
+
+        wdb = WizcardDB(
+                socket=sdict['HOST'],
+                user=sdict['USER'],
+                passwd=sdict['PASSWORD'],
+                db=sdict['NAME']
+        )
 
         wdb.table_select('select * from location_mgr_locationmgr')
         for row in wdb.ResultIter(wdb.cursor):
@@ -209,12 +207,13 @@ def main():
 	db_mode = 'local'
 	isdaemon = False
 	for params in sys.argv:
-		if params == '-rds':
-			db_mode = 'rds'
-		if params == '--D' or params == '-daemon':
-			isdaemon = True
+            if params == '-rds':
+                db_mode = 'rds'
+            if params == '--D' or params == '-daemon':
+                isdaemon = True
 	
-	ts = TreeServer('amqp://guest:guest@localhost:5672/%2F')
+	ts = TreeServer('amqp://guest:guest@localhost:5672/%2F',
+                        db_mode=db_mode)
 	if isdaemon:
 		with daemon.DaemonContext():
 			ts.run()
