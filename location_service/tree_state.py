@@ -70,13 +70,12 @@ class TreeServer(LocationServiceServer):
                 pk = row[0]
                 key = row[3]
                 tree_type = row[4]
-                val = row[6]
                 #modified key for tree ins
-                logger.info('inserting [%s, %s] into (%s)', key, val, tree_type)
+                logger.info('inserting [%s, %s] into (%s)', key, pk, tree_type)
                 self.t_ins(
                         self.get_tree_from_type(tree_type),
                         wizlib.modified_key(key, pk),
-                        val)
+                        pk)
 
         wdb.close()
         
