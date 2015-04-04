@@ -9,6 +9,7 @@ from lib import wizlib
 import pika
 import uuid
 import heapq
+#from base.borg import Borg
 import rconfig
 import json
 import logging
@@ -25,57 +26,56 @@ logger = logging.getLogger(__name__)
 
 class LocationServiceClient(object):
 
-    reconnected_count = 0
+    basic_connection = None
 
     def __init__(self, *args, **kwargs):
         #Borg.__init__(self)
         self.host = kwargs.get('host', rconfig.HOST)
         self.exchange = kwargs.get('exchange', rconfig.EXCHANGE)
         self.routing_key = kwargs.get('routing_key', rconfig.ROUTING_KEY)
-        self.connection = None
+        self.rpc_connection = None
+        self.channel = None
         self.response = None
 
     def connection_setup(self):
-        #init rabbitmq client side Connection
-        #AA:TODO: tried to get this to work with connection reuse
-        #just wouldn't work...giving up for now.
-        if not self.connection:
-            self.connection = pika.BlockingConnection(
-                    pika.ConnectionParameters(host=self.host))
+        return pika.BlockingConnection(
+                pika.ConnectionParameters(host=self.host))
 
-    def connection_close(self):
-        if self.connection:
-            self.connection.close()
-            self.connection = None
 
     def call(self, params, rpc=False):
-        self.connection_setup()
-        self.channel = self.connection.channel()
-
         if rpc:
+            self.rpc_connection = self.connection_setup()
+            self.channel = self.rpc_connection.channel()
             result = self.channel.queue_declare(exclusive=True)
             self.corr_id = str(uuid.uuid4())
-            self.callback_queue = result.method.queue
+            callback_queue = result.method.queue
             self.channel.basic_consume(self.on_response, no_ack=True,
-                    queue=self.callback_queue)
+                    queue=callback_queue)
 
-            params['rpc'] = True 
+            params['rpc'] = True
             self.channel.basic_publish(exchange=self.exchange,
                     routing_key=self.routing_key,
                     properties=pika.BasicProperties(
-                        reply_to = self.callback_queue,
+                        reply_to = callback_queue,
                         correlation_id = self.corr_id,
                         ),
                     body=json.dumps(params))
 
             self.channel.start_consuming()
-
+            self.rpc_connection.close()
         else:
-            self.channel.basic_publish(exchange=self.exchange,
-                    routing_key=self.routing_key,
-                    body=json.dumps(params))
+            if not LocationServiceClient.basic_connection:
+                LocationServiceClient.basic_connection = self.connection_setup()
+            try:
+                self.channel = LocationServiceClient.basic_connection.channel()
+            except:
+                LocationServiceClient.basic_connection = self.connection_setup()
+                self.channel = LocationServiceClient.basic_connection.channel()
 
-        self.connection.close()
+            self.channel.basic_publish(exchange=self.exchange,
+                                       routing_key=self.routing_key,
+                                       body=json.dumps(params))
+
         if self.response:
             return json.loads(self.response)
         return None

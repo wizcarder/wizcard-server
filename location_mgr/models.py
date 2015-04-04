@@ -65,7 +65,8 @@ class LocationMgrManager(models.Manager):
         if not count:
             return result, count
 
-        logger.debug('looking up  gives [%d] result [%s]', count, result)
+        logger.debug('looking up  gives {%d} result {%s}', count, result)
+        print('looking up  gives {} result {}'.format(count, result))
 
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
