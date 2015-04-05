@@ -10,14 +10,19 @@ djcelery.setup_loader()
 
 from kombu import Queue, Exchange
 
+TEST = False
+
 BROKER_TRANSPORT = 'amqp'
 BROKER_USER = 'wizcard_user'
+LOCATION_USER = 'location_user'
+LOCATION_PASS = 'location_pass'
 BROKER_PASSWORD = 'wizcard_pass'
 BROKER_HOST = 'localhost'
 BROKER_PORT = 5672
 BROKER_VHOST = 'wizcard_vhost'
 
-CELERY_RESULT_BACKEND = 'amqp://'
+#CELERY_RESULT_BACKEND = 'amqp://'
+CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
 OCR_QUEUE_NAME = 'ocr'
@@ -59,7 +64,8 @@ CELERYBEAT_SCHEDULE = {
 
 # Django settings for wizcard project.
 
-DEBUG = True
+DEBUG = False
+ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -70,26 +76,25 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wizcard',
-        'USER': 'wizuser',
-        'PASSWORD': 'wizcarddb',
+	'default': {
+       	 'ENGINE': 'django.db.backends.mysql',
+       	 'NAME': 'wizcard',
+       	 'USER': 'wizuser',
+       	 'PASSWORD': 'wizcarddb',
         #'PASSWORD': '',
         #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
         #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-	'SOCKET': ''
-    }
+       	 'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+       	 'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
+       	 'SOCKET': '',
+    	},
+
     'rds': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'wizcard',
         'USER': 'wizuser',
         'PASSWORD': 'wizcarddb',
         'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-	'SOCKET': ''
     }
 }
 
@@ -174,12 +179,8 @@ MIDDLEWARE_CLASSES = (
 # Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-	'LOCATION': [
-                'ec2-52-74-64-185.ap-southeast-1.compute.amazonaws.com:11211',
-                'ec2-52-74-54-22.ap-southeast-1.compute.amazonaws.com:11211',
-        ]
-
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'default-cache'
     }
 }
 
@@ -291,7 +292,8 @@ INSTALLED_APPS = (
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket'
+AWS_TEST_BUCKET = '-test' if TEST else ''
+AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_TEST_BUCKET
 S3_URL = 'http://%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
