@@ -21,31 +21,34 @@ TREE_INSERT = 1
 TREE_DELETE = 2
 TREE_LOOKUP = 3
 PRINT_TREES = 4
+RPC_CONN = 1
+BASIC_CONN = 2
 
 logger = logging.getLogger(__name__)
 
 class LocationServiceClient(object):
-
-    basic_connection = None
-
     def __init__(self, *args, **kwargs):
-        #Borg.__init__(self)
         self.host = kwargs.get('host', rconfig.HOST)
         self.exchange = kwargs.get('exchange', rconfig.EXCHANGE)
         self.routing_key = kwargs.get('routing_key', rconfig.ROUTING_KEY)
-        self.rpc_connection = None
+        self.connection = None
+        self.type = BASIC_CONN
         self.channel = None
         self.response = None
 
     def connection_setup(self):
-        return pika.BlockingConnection(
-                pika.ConnectionParameters(host=self.host))
+        self.connection = pika.BlockingConnection(
+                             pika.ConnectionParameters(host=self.host))
 
+    def connection_close(self):
+        if self.connection:
+            self.connection.close()
+            self.connection = None
 
     def call(self, params, rpc=False):
+        self.connection_setup()
+        self.channel = self.connection.channel()
         if rpc:
-            self.rpc_connection = self.connection_setup()
-            self.channel = self.rpc_connection.channel()
             result = self.channel.queue_declare(exclusive=True)
             self.corr_id = str(uuid.uuid4())
             callback_queue = result.method.queue
@@ -62,22 +65,14 @@ class LocationServiceClient(object):
                     body=json.dumps(params))
 
             self.channel.start_consuming()
-            self.rpc_connection.close()
         else:
-            if not LocationServiceClient.basic_connection:
-                LocationServiceClient.basic_connection = self.connection_setup()
-            try:
-                self.channel = LocationServiceClient.basic_connection.channel()
-            except:
-                LocationServiceClient.basic_connection = self.connection_setup()
-                self.channel = LocationServiceClient.basic_connection.channel()
-
             self.channel.basic_publish(exchange=self.exchange,
                                        routing_key=self.routing_key,
                                        body=json.dumps(params))
 
         if self.response:
             return json.loads(self.response)
+        self.connection_close()
         return None
 
     def on_response(self, ch, method, props, body):

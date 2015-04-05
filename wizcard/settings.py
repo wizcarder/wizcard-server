@@ -10,16 +10,19 @@ djcelery.setup_loader()
 
 from kombu import Queue, Exchange
 
-TEST = True
+TEST = False
 
 BROKER_TRANSPORT = 'amqp'
 BROKER_USER = 'wizcard_user'
+LOCATION_USER = 'location_user'
+LOCATION_PASS = 'location_pass'
 BROKER_PASSWORD = 'wizcard_pass'
 BROKER_HOST = 'localhost'
 BROKER_PORT = 5672
 BROKER_VHOST = 'wizcard_vhost'
 
-CELERY_RESULT_BACKEND = 'amqp://'
+#CELERY_RESULT_BACKEND = 'amqp://'
+CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
 OCR_QUEUE_NAME = 'ocr'
@@ -61,7 +64,8 @@ CELERYBEAT_SCHEDULE = {
 
 # Django settings for wizcard project.
 
-DEBUG = True
+DEBUG = False
+ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
 

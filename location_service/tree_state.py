@@ -106,6 +106,7 @@ class TreeServer(LocationServiceServer):
         key = kwargs.pop('key')
         val = kwargs.pop('val')
 
+        print 'tree insert {0}: {1}:{2}'.format(tree_type, key, val)
         tree = self.get_tree_from_type(tree_type)
         val = self.t_ins(tree, key, val)
 
@@ -123,6 +124,7 @@ class TreeServer(LocationServiceServer):
 
         tree = self.get_tree_from_type(tree_type)
         val = self.t_del(tree, key)
+        print 'tree delete {0}: {1}:{2}'.format(tree_type, key, val)
         result = dict()
         result['result'] =  val
         return result
@@ -152,6 +154,7 @@ class TreeServer(LocationServiceServer):
             self.t_ins(tree, key, cached_val)
 
         logger.debug('looking up gives [%d] result [%s]', count, ret)
+        print 'tree lookup {0}: {1}:{2}'.format(tree_type, key, ret)
 
         result = dict()
         result['result'] = ret
@@ -161,6 +164,7 @@ class TreeServer(LocationServiceServer):
     def print_trees(self, **kwargs):
         tree_type = kwargs.pop('tree_type', None)
         result = dict()
+        print 'Tree State'
 	if tree_type == None:
             for ttype in self.location_tree_handles:
                 tree = self.get_tree_from_type(ttype)
@@ -210,9 +214,12 @@ def main():
                 db_mode = 'rds'
             if params == '--D' or params == '-daemon':
                 isdaemon = True
-	
-	ts = TreeServer('amqp://guest:guest@localhost:5672/%2F',
-                        db_mode=db_mode)
+
+        amqpuser = settings.LOCATION_USER
+        amqppass = settings.LOCATION_PASS
+        url = 'amqp://' + amqpuser + ':' + amqppass + '@localhost:5672'
+
+	ts = TreeServer(url, db_mode=db_mode)
 	if isdaemon:
 		with daemon.DaemonContext():
 			ts.run()
