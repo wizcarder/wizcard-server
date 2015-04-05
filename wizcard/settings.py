@@ -27,6 +27,7 @@ CELERY_RESULT_BACKEND = 'rpc'
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
+CELERY_BEAT_QUEUE_NAME = 'beat'
 
 CELERY_IMAGE_UPLOAD_Q = Queue(IMAGE_UPLOAD_QUEUE_NAME,
                               Exchange(IMAGE_UPLOAD_QUEUE_NAME),
@@ -38,12 +39,19 @@ CELERY_OCR_Q = Queue(OCR_QUEUE_NAME,
 
 CELERY_DEFAULT_Q = Queue(CELERY_DEFAULT_QUEUE,
                          Exchange(CELERY_DEFAULT_QUEUE),
-                         routing_key=CELERY_DEFAULT_QUEUE)
+                         routing_key=CELERY_DEFAULT_QUEUE,
+                         delivery_mode=1)
+
+CELERY_BEAT_Q = Queue(CELERY_BEAT_QUEUE_NAME,
+                         Exchange(CELERY_BEAT_QUEUE_NAME),
+                         routing_key=CELERY_BEAT_QUEUE_NAME,
+                         delivery_mode=1)
 
 CELERY_QUEUES = (
             CELERY_IMAGE_UPLOAD_Q,
             CELERY_OCR_Q,
-            CELERY_DEFAULT_Q
+            CELERY_DEFAULT_Q,
+            CELERY_BEAT_Q
 )
 
 CELERY_ROUTES = {
@@ -58,6 +66,7 @@ CELERYBEAT_SCHEDULE = {
     'tick': {
         'task': 'periodic.tasks.tick',
         'schedule': timedelta(seconds=60),
+        'options': {'queue': CELERY_BEAT_QUEUE_NAME}
     },
 }
 

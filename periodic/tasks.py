@@ -7,7 +7,7 @@ from location_service.client import LocationServiceClient
 import logging
 
 logger = logging.getLogger(__name__)
-@task
+@task(ignore_result=True)
 def tick():
     logger.debug('Timer Tick received')
     tsc = LocationServiceClient()
