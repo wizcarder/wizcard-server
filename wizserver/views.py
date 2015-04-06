@@ -97,7 +97,8 @@ class Header(ParseMsgAndDispatch):
         self.msg = json.loads(request.body)
 
     def __repr__(self):
-        return str(self.msg.['header']) if self.msg.has_key('header')
+        if self.msg.has_key('header'):
+            return str(self.msg['header'])
 
     def msg_has_location(self):
         return ('lat' in self.msg['header'] and 'lng' in self.msg['header']) or ('lat' in self.msg['sender'] and 'lng' in self.msg['sender'])
@@ -302,8 +303,7 @@ class Header(ParseMsgAndDispatch):
             if not status:
                 #some error...let the app know
                 self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
-                logger.error('nexmo send via (%s) failed to (%s) with err (%s),\
-                              response_mode, response_target, errStr)
+                logger.error('nexmo send via (%s) failed to (%s) with err (%s)', response_mode, response_target, errStr)
                 return self.response
 
         if test_mode:
@@ -342,12 +342,12 @@ class Header(ParseMsgAndDispatch):
         cache.incr(k_retry)
 
 	if device_id != d[k_device_id]:
-            logger.info('{%s} invalid device_id, k_user)
+            logger.info('{%s} invalid device_id', k_user)
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_INVALID_DEVICE)
             return self.response
 
 	if settings.PHONE_CHECK and challenge_response != d[k_rand]:
-            logger.info('{%s} invalid challenge response, k_user)
+            logger.info('{%s} invalid challenge response', k_user)
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
@@ -439,7 +439,7 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def ContactsVerify(self):
-	verify_phone_list = self.receiver.get('verify_emails', [])
+	verify_phone_list = self.receiver.get('verify_phones', [])
         verify_email_list = self.receiver.get('verify_emails', [])
         lp = []
         le = []
@@ -468,7 +468,7 @@ class Header(ParseMsgAndDispatch):
 		count += 1
 	        lp.append(d)
         if count:
-            lp.append("count", count)
+            self.response.add_data("count", count)
             self.response.add_data("verified_phones", lp)
 
 	count = 0
@@ -490,7 +490,7 @@ class Header(ParseMsgAndDispatch):
 		count += 1
 	        le.append(d)
         if count:
-            le.append("count", count)
+            self.response.add_data("count", count)
             self.response.add_data("verified_emails", le)
             
         return self.response

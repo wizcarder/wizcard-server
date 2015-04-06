@@ -45,6 +45,13 @@ FUTURE_USERNAME2 = FUTURE_PHONE2+'@wizcard.com'
 FUTURE_EMAIL1 = "abcd@future.com"
 FUTURE_EMAIL2 = "efgh@future.com"
 
+EMAIL1 = "aammundi@gmail.com"
+EMAIL2 = "amsaha@gmail.com"
+EMAIL3 = "wizcard1@gmail.com"
+EMAIL4 = "nothere@gmail.com"
+
+
+
 USERNAME1 = PHONE1+'@wizcard.com'
 USERNAME2 = PHONE2+'@wizcard.com'
 USERNAME3 = PHONE3+'@wizcard.com'
@@ -86,7 +93,8 @@ DEFAULT_BIZCARD_URL = "www.youtube.com"
 LAT1 = 37.885938
 LNG1 = -122.506419
 
-ContactList = [PHONE1, PHONE2, PHONE3]
+verify_phones_list = [PHONE1, PHONE2, PHONE3]
+verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 
 server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
@@ -316,7 +324,8 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 reqmsg = messages.contacts_verify
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['verify_list'] = ContactList
+reqmsg['receiver']['verify_phones'] = verify_phones_list
+reqmsg['receiver']['verify_emails'] = verify_emails_list
 cv = json.dumps(reqmsg)
 print "sending Contact Verify", reqmsg['sender']['userID']
 conn.request("POST","", cv)
