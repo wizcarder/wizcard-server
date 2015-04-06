@@ -82,7 +82,6 @@ class ParseMsgAndDispatch(object):
 
     def securityException(self):
 	#AA TODO
-	logger.warning('ALERT ALERT!! FIXME')
 	return None
 	
 class Header(ParseMsgAndDispatch):
@@ -95,16 +94,10 @@ class Header(ParseMsgAndDispatch):
 	self.password_hash = None
 	self.user = None
 	self.response = Response()
-
-        try:
-            self.msg = json.loads(request.body)
-        except:
-            self.msg = messages.ocr_req_self
-            self.msg['header']['msgType'] = 'ocr_req_self'
-            self.msg['sender']['f_ocrCardImage'] = request.body
+        self.msg = json.loads(request.body)
 
     def __repr__(self):
-        return str(self.msg)
+        return str(self.msg.['header']) if self.msg.has_key('header')
 
     def msg_has_location(self):
         return ('lat' in self.msg['header'] and 'lng' in self.msg['header']) or ('lat' in self.msg['sender'] and 'lng' in self.msg['sender'])
@@ -173,11 +166,15 @@ class Header(ParseMsgAndDispatch):
 	if not self.validateHeader():
             self.securityException()
             self.response.ignore()
+            logger.warning('user failed header security check on msg {%s}', \
+                            self.msgType)
             return False, self.response
 
 	if self.msg.has_key('sender') and not self.validateSender(self.msg['sender']):
             self.securityException()
             self.response.ignore()
+            logger.warning('user failed sender security check on msg {%s}', \
+                            self.msgType)
             return False, self.response
         if 'receiver' in self.msg:
             self.receiver = self.msg['receiver']
@@ -305,6 +302,8 @@ class Header(ParseMsgAndDispatch):
             if not status:
                 #some error...let the app know
                 self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
+                logger.error('nexmo send via (%s) failed to (%s) with err (%s),\
+                              response_mode, response_target, errStr)
                 return self.response
 
         if test_mode:
@@ -327,27 +326,28 @@ class Header(ParseMsgAndDispatch):
 	k_retry = (settings.PHONE_CHECK_USER_RETRY_KEY % username)
 	k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % device_id)
 
-	d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
-        print "cached value for phone_check_xx", d
+	d = cache.get_many([k_user, k_device_id, k_rand, k_retry], None)
+        logger.info( "cached value for phone_check_xx {%s}", d)
 
         if d is None:
             self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
             return self.response
 
-	#AA:TODO: put this in try, except...for invalid usernames
-
 	if d[k_retry] > settings.MAX_PHONE_CHECK_RETRIES:
 	    cache.delete(k_user)
             self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
+            logger.info('{%s} exceeded retry count', k_user)
             return self.response
 
         cache.incr(k_retry)
 
 	if device_id != d[k_device_id]:
+            logger.info('{%s} invalid device_id, k_user)
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_INVALID_DEVICE)
             return self.response
 
 	if settings.PHONE_CHECK and challenge_response != d[k_rand]:
+            logger.info('{%s} invalid challenge response, k_user)
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
@@ -439,11 +439,13 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def ContactsVerify(self):
-	verify_list = self.receiver['verify_list']
-	l = list()
-	count = 0
+	verify_phone_list = self.receiver.get('verify_emails', [])
+        verify_email_list = self.receiver.get('verify_emails', [])
+        lp = []
+        le = []
 
-        for phone_number in verify_list:
+	count = 0
+        for phone_number in verify_phone_list:
 	    username = UserProfile.objects.username_from_phone_num(phone_number)
 	    if User.objects.filter(username=username).exists():
                 user = User.objects.get(username=username)
@@ -464,10 +466,33 @@ class Header(ParseMsgAndDispatch):
 		    d['tag'] = "other"
 
 		count += 1
-	        l.append(d)
+	        lp.append(d)
+        if count:
+            lp.append("count", count)
+            self.response.add_data("verified_phones", lp)
 
-        self.response.add_data("count", count)
-        self.response.add_data("phoneNumberVerify", l)
+	count = 0
+        for email in verify_email_list:
+            if Wizcard.objects.filter(email=email).exists():
+                wizcard = Wizcard.objects.get(email=email)
+                d = dict()
+                d['email'] = email
+                d['wizUserID'] = wizcard.user_id
+                if Wizcard.objects.are_wizconnections(
+	    		        self.user.wizcard,
+                                wizcard):
+		    d['tag'] = "connected"
+	        elif self.user == wizcard.user:
+	            d['tag'] = "own"
+                else:
+		    d['tag'] = "other"
+
+		count += 1
+	        le.append(d)
+        if count:
+            le.append("count", count)
+            self.response.add_data("verified_emails", le)
+            
         return self.response
 
     def NotificationsGet(self):
