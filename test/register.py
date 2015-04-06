@@ -94,7 +94,7 @@ server_url = "www.totastyle.com"
 server_port = 8000
 #server_port = 80
 
-test_image_path = "/Users/aammundi/Pictures/iChat Icons/Flags/Russia.png"
+test_image_path = "test/9-f_bc.81.2015-03-16_2213.jpg"
 # Open the connection to Wiz server
 conn = httplib.HTTPConnection(server_url, server_port)
 
