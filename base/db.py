@@ -4,8 +4,15 @@ class WizcardDB(object):
     # Open database connection
     def __init__(self, socket, user, passwd, db):
         import MySQLdb
-        self.db = MySQLdb.connect(
+	if socket.find('.sock') != -1:
+	        self.db = MySQLdb.connect(
                     unix_socket=socket,
+                    user=user,
+                    passwd=passwd,
+                    db=db)
+	else:
+	        self.db = MySQLdb.connect(
+                    host=socket,
                     user=user,
                     passwd=passwd,
                     db=db)
