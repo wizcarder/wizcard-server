@@ -987,16 +987,18 @@ class Header(ParseMsgAndDispatch):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
 	count = 0
-        if receiver_type == 'wiz_trusted':
+        if receiver_type in ['wiz_untrusted', 'wiz_trusted']:
+            if receiver_type == 'wiz_trusted':
+                implicit = True
+            else:
+                implicit = False
             #receiverIDs has wizUserIDs
             for id in receivers:
-                try:
-                    r_user = UserProfile.objects.get(id=id)
-                    r_wizcard = r_user.user.wizcard
-                except:
-                    continue
+                r_user = User.objects.get(id=id)
+                r_wizcard = r_user.wizcard
+
                 if not Wizcard.objects.are_wizconnections(wizcard, r_wizcard):
-                    Wizcard.objects.exchange(wizcard, r_wizcard, True)
+                    Wizcard.objects.exchange(wizcard, r_wizcard, implicit)
                     count += 1
                 self.response.add_data("count", count)
         elif receiver_type in ['email', 'sms']:
@@ -1006,10 +1008,10 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def WizcardSendTableToXYZ(self, table, receiver_type, receivers):
-        if receiver_type == 'wiz_trusted':
+        if receiver_type in ['wiz_untrusted', 'wiz_trusted']:
             #receiverIDs has wizUserIDs
             for id in receivers:
-                r_user = UserProfile.objects.get(id=id).user
+                r_user = User.objects.get(id=id)
                 notify.send(self.user, recipient=r_user,
                     verb=verbs.WIZCARD_TABLE_INVITE[0], 
                     target=table, 
