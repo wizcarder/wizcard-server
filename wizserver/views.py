@@ -104,7 +104,7 @@ class Header(ParseMsgAndDispatch):
         return ('lat' in self.msg['header'] and 'lng' in self.msg['header']) or ('lat' in self.msg['sender'] and 'lng' in self.msg['sender'])
 
     def msg_is_initial(self):
-	return self.msg_type in ['phone_check_req', 'phone_check_rsp', 'login', 'ocr_req_self'] 
+	return self.msg_type in ['phone_check_req', 'phone_check_rsp', 'login']
    
     def msg_is_from_wizweb(self):
 	return self.device_id == settings.WIZWEB_DEVICE_ID
@@ -545,6 +545,9 @@ class Header(ParseMsgAndDispatch):
 
     def WizcardEdit(self):
         modify = False
+        user_modify = False
+        userprofile_modify = False
+
         try:
             wizcard = self.user.wizcard
         except ObjectDoesNotExist:
@@ -552,12 +555,8 @@ class Header(ParseMsgAndDispatch):
             wizcard.save()
 
             #this is also the time User object can get first/last name
-            self.user.first_name = self.sender['first_name']
-            self.user.last_name = self.sender['last_name']
-            self.user.save()
-
             self.userprofile.activated = True
-            self.userprofile.save()
+            userprofile_modify = True
 
         #AA:TODO: Change app to call this phone as well
         phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1'] 
@@ -570,12 +569,18 @@ class Header(ParseMsgAndDispatch):
             first_name = self.sender['first_name']
             if wizcard.first_name != first_name:
                 wizcard.first_name = first_name
+                self.user.first_name = self.sender['first_name']
                 modify = True
+                user_modify = True
+
 	if 'last_name' in self.sender:
             last_name = self.sender['last_name']
             if wizcard.last_name != last_name:
                 wizcard.last_name = last_name
+                self.user.last_name = self.sender['last_name']
                 modify = True
+                user_modify = True
+
 	if 'email' in self.sender:
             email = self.sender['email']
             if wizcard.email != email:
@@ -660,6 +665,10 @@ class Header(ParseMsgAndDispatch):
 	    future_users.delete()
          
         #flood to contacts
+        if user_modify:
+            self.user.save()
+        if userprofile_modify:
+            self.userprofile.save()
         if modify:
             wizcard.save()
             wizcard.flood()
@@ -673,7 +682,7 @@ class Header(ParseMsgAndDispatch):
             wizcard1 = self.user.wizcard
 	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard2 = self.r_user.wizcard
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
@@ -682,7 +691,7 @@ class Header(ParseMsgAndDispatch):
             return self.response
 
         Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
-        #Q this to the sender 
+        #Q this to the sender
         notify.send(self.user, recipient=self.r_user,
                     verb=verbs.WIZCARD_ACCEPT[0], 
                     target=wizcard1, 
@@ -1373,7 +1382,7 @@ class Header(ParseMsgAndDispatch):
 	return self.response
 
     #############OCR MessageS##############
-    def OcrReqSelf(self, image=None):
+    def OcrReqSelf(self):
         try:
             wizcard = self.user.wizcard
         except ObjectDoesNotExist:
@@ -1384,16 +1393,7 @@ class Header(ParseMsgAndDispatch):
         c = ContactContainer(wizcard=wizcard)
         c.save()
 
-        if image:
-            rawimage = bytes(image)
-            upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                    rawimage, "image/jpeg") 
-            
-            c.f_bizCardImage.save(upfile.name, upfile)
-            path = c.f_bizCardImage.local_path()
-
-        elif self.sender.has_key('f_ocrCardImage'): 
+        if self.sender.has_key('f_ocrCardImage'): 
             rawimage = bytes(self.sender['f_ocrCardImage'])
             #AA:TODO maybe time to put this in lib
             upfile = SimpleUploadedFile("%s-%s.jpg" % \
