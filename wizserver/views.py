@@ -1374,8 +1374,6 @@ class Header(ParseMsgAndDispatch):
     def OcrReqSelf(self, image=None):
         try:
             wizcard = self.user.wizcard
-        except AttributeError:
-            wizcard = Wizcard.objects.get(id=1)
         except ObjectDoesNotExist:
             #this is the expected case
             wizcard = Wizcard(user=self.user)
