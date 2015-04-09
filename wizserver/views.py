@@ -168,14 +168,14 @@ class Header(ParseMsgAndDispatch):
             self.securityException()
             self.response.ignore()
             logger.warning('user failed header security check on msg {%s}', \
-                            self.msgType)
+                            self.msg_type)
             return False, self.response
 
 	if self.msg.has_key('sender') and not self.validateSender(self.msg['sender']):
             self.securityException()
             self.response.ignore()
             logger.warning('user failed sender security check on msg {%s}', \
-                            self.msgType)
+                            self.msg_type)
             return False, self.response
         if 'receiver' in self.msg:
             self.receiver = self.msg['receiver']
@@ -444,7 +444,7 @@ class Header(ParseMsgAndDispatch):
         lp = []
         le = []
 
-	count = 0
+	phone_count = 0
         for phone_number in verify_phone_list:
 	    username = UserProfile.objects.username_from_phone_num(phone_number)
 	    if User.objects.filter(username=username).exists():
@@ -465,13 +465,13 @@ class Header(ParseMsgAndDispatch):
                 else:
 		    d['tag'] = "other"
 
-		count += 1
+		phone_count += 1
 	        lp.append(d)
-        if count:
-            self.response.add_data("count", count)
+        if phone_count:
+            self.response.add_data("phone_count", phone_count)
             self.response.add_data("verified_phones", lp)
 
-	count = 0
+	email_count = 0
         for email in verify_email_list:
             if Wizcard.objects.filter(email=email).exists():
                 wizcard = Wizcard.objects.get(email=email)
@@ -487,11 +487,12 @@ class Header(ParseMsgAndDispatch):
                 else:
 		    d['tag'] = "other"
 
-		count += 1
+		email_count += 1
 	        le.append(d)
-        if count:
-            self.response.add_data("count", count)
+        if email_count:
+            self.response.add_data("email_count", email_count)
             self.response.add_data("verified_emails", le)
+        self.response.add_data("count", phone_count + email_count)
             
         return self.response
 
