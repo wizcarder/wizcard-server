@@ -258,7 +258,7 @@ class Header(ParseMsgAndDispatch):
 
         #AA_TODO: security check for checkMode type
 	k_user = (settings.PHONE_CHECK_USER_KEY % username)
-	k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % device_id)
+	k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % username)
 	k_rand = (settings.PHONE_CHECK_USER_RAND_KEY % username)
 	k_retry = (settings.PHONE_CHECK_USER_RETRY_KEY % username)
 
@@ -324,25 +324,30 @@ class Header(ParseMsgAndDispatch):
 	k_user = (settings.PHONE_CHECK_USER_KEY % username)
 	k_rand = (settings.PHONE_CHECK_USER_RAND_KEY % username)
 	k_retry = (settings.PHONE_CHECK_USER_RETRY_KEY % username)
-	k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % device_id)
+	k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % username)
 
-	d = cache.get_many([k_user, k_device_id, k_rand, k_retry], None)
+	d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
         logger.info( "cached value for phone_check_xx {%s}", d)
 
-        if d is None:
+        if not (d.has_key(k_user) and \
+                d.has_key(k_rand) and \
+                d.has_key(k_retry) and \
+                d.has_key(k_device_id)):
+	    cache.delete_many([k_user, k_rand, k_retry, k_device_id])
             self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
             return self.response
 
-	if d[k_retry] > settings.MAX_PHONE_CHECK_RETRIES:
-	    cache.delete(k_user)
+        if d[k_retry] > settings.MAX_PHONE_CHECK_RETRIES:
+	    cache.delete_many([k_user, k_rand, k_retry, k_device_id])
             self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
             logger.info('{%s} exceeded retry count', k_user)
             return self.response
-
-        cache.incr(k_retry)
+        else:
+            cache.incr(k_retry)
 
 	if device_id != d[k_device_id]:
             logger.info('{%s} invalid device_id', k_user)
+	    cache.delete_many([k_user, k_rand, k_retry, k_device_id])
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_INVALID_DEVICE)
             return self.response
 
