@@ -126,7 +126,7 @@ class Header(ParseMsgAndDispatch):
 	    try:
 	        self.user = User.objects.get(id=sender['wizUserID'])
 		self.userprofile = self.user.profile
-	    except: 
+	    except:
                 return False
 
 	    if self.userprofile.userid != sender['userID']:
@@ -231,7 +231,9 @@ class Header(ParseMsgAndDispatch):
             'table_edit'                  : (message_format.TableEditSchema, self.TableEdit),
             'settings'                    : (message_format.SettingsSchema, self.Settings),
             'ocr_req_self'                : (message_format.OcrRequestSelfSchema, self.OcrReqSelf),
-            'ocr_req_dead_card'           : (message_format.OcrRequestDeadCardSchema, self.OcrReqDeadCard)
+            'ocr_req_dead_card'           : (message_format.OcrRequestDeadCardSchema, self.OcrReqDeadCard),
+            'meishi_start'                : (message_format.MeishiStartSchema, self.MeishiStart),
+            'meishi_find'                 : (message_format.MeishiFindSchema, self.MeishiFind),
         }
         #update location since it may have changed
 	if self.msg_has_location() and not self.msg_is_initial():
@@ -451,19 +453,15 @@ class Header(ParseMsgAndDispatch):
 
 	phone_count = 0
         for phone_number in verify_phone_list:
-	    username = UserProfile.objects.username_from_phone_num(phone_number)
-	    if User.objects.filter(username=username).exists():
-                user = User.objects.get(username=username)
-
-                if not user.profile.activated:
-                    continue
-
+	    wizcard = UserProfile.objects.check_user_exists('phone',
+                                                            phone_number)
+	    if wizcard:
 		d = dict()
 		d['phoneNum'] = phone_number
-		d['wizUserID'] = user.id
+		d['wizUserID'] = wizcard.user_id
 		if Wizcard.objects.are_wizconnections(
 				self.user.wizcard,
-				user.wizcard):
+				wizcard):
 		    d['tag'] = "connected"
 		elif self.user == user:
 		    d['tag'] = "own"
@@ -478,8 +476,9 @@ class Header(ParseMsgAndDispatch):
 
 	email_count = 0
         for email in verify_email_list:
-            if Wizcard.objects.filter(email=email).exists():
-                wizcard = Wizcard.objects.get(email=email)
+	    wizcard = UserProfile.objects.check_user_exists('email',
+                                                            email)
+            if wizcard:
                 d = dict()
                 d['email'] = email
                 d['wizUserID'] = wizcard.user_id
@@ -656,19 +655,11 @@ class Header(ParseMsgAndDispatch):
 
         #check if futureUser states exist for this phone or email
         future_users = FutureUser.objects.check_future_user(wizcard.email, phone)
-        if future_users.count():
-            for f in future_users:
-                if ContentType.objects.get_for_model(f.content_object) == \
-                        ContentType.objects.get(model="wizcard"):
-                    Wizcard.objects.exchange(wizcard, f.content_object, False)
-                elif ContentType.objects.get_for_model(f.content_object) == \
-                        ContentType.objects.get(model="virtualtable"):
-                    f.content_object.join_table_and_exchange(self.user,
-                                                             None,
-                                                             False,
-                                                             True)
+        for f in future_users:
+            f.generate_self_invite(self.user)
 
-	    future_users.delete()
+        if future_users.count():
+            future_users.delete()
          
         #flood to contacts
         if user_modify:
@@ -1040,16 +1031,49 @@ class Header(ParseMsgAndDispatch):
     def do_future_user(self, obj, receiver_type, receivers):
         if receiver_type == 'sms':
             for phone in receivers:
-                FutureUser(
-                    content_type=ContentType.objects.get_for_model(obj),
-                    object_id=obj.id,
-                    phone=phone).save()
+                #for a typed out email/sms, the user may still be in wiz
+                #AA: TODO APP: search can be avoided if app indicates whether
+                #this was from data-source or free-form
+                wizcard = UserProfile.objects.check_user_exists('phone', 
+                                                                phone)
+                if wizcard:
+                    if ContentType.objects.get_for_model(obj) == \
+                            ContentType.objects.get(model="wizcard"):
+                        if not Wizcard.objects.are_wizconnections(self.user.wizcard, wizcard):
+                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)    
+                    elif ContentType.objects.get_for_model(obj) == \
+                            ContentType.objects.get(model="virtualtable"):
+                        notify.send(self.user, recipient=wizcard.user,
+                            verb=verbs.WIZCARD_TABLE_INVITE[0], 
+                            target=obj,
+                            action_object=self.user)
+                else:
+                    FutureUser(
+                        inviter=self.user,
+                        content_type=ContentType.objects.get_for_model(obj),
+                        object_id=obj.id,
+                        phone=phone).save()
         else:
             for email in receivers:
-                FutureUser(
-                    content_type=ContentType.objects.get_for_model(obj),
-                    object_id=obj.id,
-                    email=email).save()
+                wizcard = UserProfile.objects.check_user_exists('email', 
+                                                                email)
+                if wizcard:
+                    if ContentType.objects.get_for_model(obj) == \
+                            ContentType.objects.get(model="wizcard"):
+                        if not Wizcard.objects.are_wizconnections(self.user.wizcard, wizcard):
+                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)    
+                    elif ContentType.objects.get_for_model(obj) == \
+                            ContentType.objects.get(model="virtualtable"):
+                        notify.send(self.user, recipient=wizcard.user,
+                            verb=verbs.WIZCARD_TABLE_INVITE[0], 
+                            target=obj, 
+                            action_object=self.user)
+                else:
+                    FutureUser(
+                        inviter=self.user, 
+                        content_type=ContentType.objects.get_for_model(obj),
+                        object_id=obj.id,
+                        email=email).save()
 
     def WizcardSendToContacts(self):
         #implicitly create a bidir cardship (since this is from contacts)
@@ -1462,6 +1486,44 @@ class Header(ParseMsgAndDispatch):
         self.response.add_data("response", d.serialize())
         return self.response
 
+    def MeishiStart(self):
+        lat = self.sender['lat']
+        lng = self.sender['lng']
+        wizcard = Wizcard.objects.get(self.sender['wizCardID'])
+        m = Meishi(lat=lat, lng=lng, wizcard=wizcard)
+        m.save()
+   
+        self.response.add_data("mID", m.pk)
+        return self.response
+
+    def MeishiFind(self):
+        try:
+            m = Meishi.objects.get(id=self.sender['mID'])
+        except:
+            self.response.ignore()
+            return self.response
+        
+        m_res = m.check_meishi()
+        if m_res:
+            out = Wizcard.objects.serialize(
+                                 m_res.wizcard, 
+                                 template = fields.wizcard_template_full)
+            self.response.add_data("m_result", out)
+
+        return self.response
+
+    def MeishiEnd(self):
+        try:
+            m = Meishi.objects.get(id=self.sender['mID'])
+        except:
+            self.response.ignore()
+            return self.response
+            
+
+        
+
+        
+
     #################WizWeb Message handling########################
     def WizWebUserQuery(self):
 	username = self.sender['username']
@@ -1564,19 +1626,11 @@ class Header(ParseMsgAndDispatch):
 
 	    #Future user handling
             future_users = FutureUser.objects.check_future_user(wizcard.email, phone)
-            if future_users.count():
-                for f in future_users:
-                    if ContentType.objects.get_for_model(f.content_object) == \
-                            ContentType.objects.get(model="wizcard"):
-                                Wizcard.objects.exchange(wizcard, f.content_object, False)
-                    elif ContentType.objects.get_for_model(f.content_object) == \
-                            ContentType.objects.get(model="virtualtable"):
-                                f.content_object.join_table_and_exchange(self.user,
-                                        None,
-                                        False,
-                                        True)
+            for f in future_users:
+                f.generate_self_invite(self.user)
 
-	    future_users.delete()
+            if future_users.count():
+                future_users.delete()
 
         for c in contact_container:
             title = "FIXME" if not c['title'] else c['title']
