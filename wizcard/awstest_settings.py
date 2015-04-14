@@ -177,12 +177,17 @@ MIDDLEWARE_CLASSES = (
 )
 
 # Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
+
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'default-cache'
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': [
+                'ec2-52-74-60-152.ap-southeast-1.compute.amazonaws.com',
+                'ec2-52-74-128-1.ap-southeast-1.compute.amazonaws.com',
+        ]
     }
 }
+
 
 DEFAULT_MAX_LOOKUP_RESULTS = 20
 
