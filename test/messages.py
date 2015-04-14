@@ -148,7 +148,8 @@ contacts_verify = {
 	"wizUserID" : "",
     },
     "receiver" : {
-	"verify_list" : ""
+	"verify_phones" : "",
+	"verify_emails" : "",
     }
     
 }

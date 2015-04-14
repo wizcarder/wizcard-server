@@ -101,6 +101,12 @@ class OcrRequestSelfSchema(colander.MappingSchema):
     pass
 class OcrRequestDeadCardSchema(colander.MappingSchema):
     pass
+class MeishiStartSchema(colander.MappingSchema):
+    pass
+class MeishiFindSchema(colander.MappingSchema):
+    pass
+class MeishiEndSchema(colander.MappingSchema):
+    pass
 
 
 #wizweb

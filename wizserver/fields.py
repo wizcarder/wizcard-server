@@ -135,9 +135,10 @@ table_template_mini = {
 
 nearby_table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
-            'timeRemaining', 'thumbnailUrls'],
+            'timeRemaining', 'thumbnailUrls', 'createdBy'],
     'key_map' : {'timeRemaining':'time_remaining', \
-                'thumbnailUrls': 'get_member_thumbnail_urls'}
+                'thumbnailUrls': 'get_member_thumbnail_urls',\
+                'createdBy': 'created_by'}
 }
 
 table_template = {

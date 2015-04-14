@@ -3,13 +3,14 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from lib.pytrie import SortedStringTrie as trie
 from lib.preserialize.serialize import serialize
-from wizserver import fields
+from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import Wizcard
 from virtual_table.models import VirtualTable
 from django.core.exceptions import ObjectDoesNotExist
+from notifications.models import notify
 import operator
 from django.db.models import Q
 from django.core.cache import cache
@@ -69,6 +70,18 @@ class UserProfileManager(models.Manager):
     def gen_password(self, id1, id2, id3=None):
         return id2
     
+    def check_user_exists(self, query_type, query_key):
+        if query_type == 'phone':
+            username = UserProfile.objects.username_from_phone_num(query_key)
+            if User.objects.filter(username=query_key).exists():
+                user = User.objects.get(username=query_key)
+                if user.profile.activated:
+                    return user.wizcard
+        elif query_type == 'email':
+            if Wizcard.objects.filter(email=query_key).exists():
+                return Wizcard.objects.get(email=query_key)
+        return None
+
     def username_from_phone_num(self, phone_num):
         return phone_num + settings.WIZCARD_USERNAME_EXTENSION
 
@@ -210,6 +223,7 @@ class FutureUserManager(models.Manager):
         return self.filter(reduce(operator.or_, qlist))
 
 class FutureUser(models.Model):
+    inviter = models.ForeignKey(User, related_name='invitees')
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
@@ -218,6 +232,19 @@ class FutureUser(models.Model):
     asset_type = models.CharField(max_length=20, blank=False)
 
     objects = FutureUserManager()
+
+    def generate_self_invite(self, real_user):
+        if ContentType.objects.get_for_model(self.content_object) == \
+                ContentType.objects.get(model="wizcard"):
+                    Wizcard.objects.exchange(self.inviter.wizcard,
+                            self.content_object,
+                            False)
+        elif ContentType.objects.get_for_model(self.content_object) == \
+                ContentType.objects.get(model="virtualtable"):
+                    notify.send(self.inviter, recipient=real_user,
+                            verb=verbs.WIZCARD_TABLE_INVITE[0],
+                            target=self.content_object,
+                            action_object=self.inviter)
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

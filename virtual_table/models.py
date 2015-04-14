@@ -61,13 +61,15 @@ class VirtualTableManager(models.Manager):
         return serialize(tables, **template)
 
     def serialize_split(self, tables, user, template):
-        created, joined, others = self.split_table(tables, user)
+        created, joined, connected, others = self.split_table(tables, user)
         
         s = dict()
         if created:
             s['created'] = self.serialize(created, template)
         if joined:
             s['joined'] = self.serialize(joined, template)
+        if connected:
+            s['connected'] = self.serialize(connected, template)
         if others:
             s['others'] = self.serialize(others, template)
         return s
@@ -75,15 +77,18 @@ class VirtualTableManager(models.Manager):
     def split_table(self, tables, user):
         created = []
         joined = []
+        connected = []
         others = []
         for t in tables:
             if t.is_creator(user):
                 created.append(t)
             elif t.is_member(user):
                 joined.append(t)
+            elif Wizcard.objects.are_wizconnections(user.wizcard, t.creator.wizcard):
+                connected.append(t)
             else:
                 others.append(t) 
-        return created, joined, others
+        return created, joined, connected, others
 
 
 class VirtualTable(models.Model):
@@ -138,6 +143,9 @@ class VirtualTable(models.Model):
 
     def is_member(self, user):
         return bool(self.users.filter(id=user.id).exists())
+
+    def created_by(self):
+        return self.creator.first_name + " " + self.creator.last_name
 
     def is_creator(self, user):
         return bool(self.creator == user)
