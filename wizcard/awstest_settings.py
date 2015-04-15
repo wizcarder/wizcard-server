@@ -176,17 +176,6 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-# Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': [
-                'ec2-52-74-60-152.ap-southeast-1.compute.amazonaws.com',
-                'ec2-52-74-128-1.ap-southeast-1.compute.amazonaws.com',
-        ]
-    }
-}
 
 
 DEFAULT_MAX_LOOKUP_RESULTS = 20
@@ -436,3 +425,5 @@ GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
 
 CELERY_TIMEZONE = 'UTC'
 
+# Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
+# AUTO GENERATED - APPENDED AT THE END BY THE DEPLOY SCRIPT
