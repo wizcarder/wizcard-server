@@ -1490,8 +1490,7 @@ class Header(ParseMsgAndDispatch):
         lat = self.sender['lat']
         lng = self.sender['lng']
         wizcard = Wizcard.objects.get(self.sender['wizCardID'])
-        m = Meishi(lat=lat, lng=lng, wizcard=wizcard)
-        m.save()
+        m = Meishi.objects.create(lat=lat, lng=lng, wizcard=wizcard)
    
         self.response.add_data("mID", m.pk)
         return self.response
@@ -1513,15 +1512,10 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def MeishiEnd(self):
-        try:
-            m = Meishi.objects.get(id=self.sender['mID'])
-        except:
-            self.response.ignore()
-            return self.response
-            
-
-        
-
+        #not sure yet what to do here...lets see
+        #maybe some cleanup...but shouldn't be anything we should rely on
+        #too much
+        pass
         
 
     #################WizWeb Message handling########################
