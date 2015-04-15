@@ -463,10 +463,14 @@ class Header(ParseMsgAndDispatch):
 				self.user.wizcard,
 				wizcard):
 		    d['tag'] = "connected"
-		elif self.user == user:
+		elif self.user == wizcard.user:
 		    d['tag'] = "own"
                 else:
 		    d['tag'] = "other"
+
+                wc = Wizcard.objects.serialize(wizcard, 
+                        template=fields.wizcard_template_brief_with_thumbnail)
+                d['wizcard'] = wc
 
 		phone_count += 1
 	        lp.append(d)
@@ -490,6 +494,10 @@ class Header(ParseMsgAndDispatch):
 	            d['tag'] = "own"
                 else:
 		    d['tag'] = "other"
+
+                wc = Wizcard.objects.serialize(wizcard, 
+                        template=fields.wizcard_template_brief_with_thumbnail)
+                d['wizcard'] = wc
 
 		email_count += 1
 	        le.append(d)

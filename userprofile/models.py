@@ -73,8 +73,8 @@ class UserProfileManager(models.Manager):
     def check_user_exists(self, query_type, query_key):
         if query_type == 'phone':
             username = UserProfile.objects.username_from_phone_num(query_key)
-            if User.objects.filter(username=query_key).exists():
-                user = User.objects.get(username=query_key)
+            if User.objects.filter(username=username).exists():
+                user = User.objects.get(username=username)
                 if user.profile.activated:
                     return user.wizcard
         elif query_type == 'email':
@@ -236,8 +236,8 @@ class FutureUser(models.Model):
     def generate_self_invite(self, real_user):
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
-                    Wizcard.objects.exchange(self.inviter.wizcard,
-                            self.content_object,
+                    Wizcard.objects.exchange(self.content_object,
+                            real_user.wizcard,
                             False)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
