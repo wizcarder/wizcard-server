@@ -1509,8 +1509,14 @@ class Header(ParseMsgAndDispatch):
         except:
             self.response.ignore()
             return self.response
-        
-        m_res = m.check_meishi()
+
+        m_res = None
+        if m.pairs.exists():
+            #we are m2
+            m_res = m.pairs.get()
+        else:
+            m_res = m.check_meishi()
+
         if m_res:
             out = Wizcard.objects.serialize(
                                  m_res.wizcard, 
