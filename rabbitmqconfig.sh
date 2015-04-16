@@ -1,3 +1,4 @@
+#!/bin/bash
 rabbitmqctl add_user wizcard_user wizcard_pass
 rabbitmqctl add_user location_user location_pass
 rabbitmqctl add_vhost wizcard_vhost
