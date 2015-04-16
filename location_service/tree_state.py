@@ -8,6 +8,7 @@ from lib import wizlib
 from base.db import WizcardDB
 from server import LocationServiceServer
 from wizcard import settings
+from wizcard import instances
 import pika
 import uuid
 import heapq
