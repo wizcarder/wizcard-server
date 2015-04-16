@@ -16,6 +16,7 @@ import logging
 import rconfig
 import pdb
 import daemon
+import os
 
 DEFAULT_MAX_LOOKUP_RESULTS = 10
 
