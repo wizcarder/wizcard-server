@@ -217,7 +217,9 @@ def main():
 
         amqpuser = settings.LOCATION_USER
         amqppass = settings.LOCATION_PASS
-        url = 'amqp://' + amqpuser + ':' + amqppass + '@localhost:5672'
+        RUNENV = os.getenv('WIZRUNENV', 'dev')
+        amqphost = instances.ALLHOSTS[RUNENV]['LOCATIONSERVER']
+        url = 'amqp://' + amqpuser + ':' + amqppass + '@'+amqphost+':5672'
 
 	ts = TreeServer(url, db_mode=db_mode)
 	if isdaemon:
