@@ -6,12 +6,14 @@ from __future__ import absolute_import
 # for relative imports by default.
 # Celery settings
 import djcelery
+import os
 djcelery.setup_loader()
 
 from kombu import Queue, Exchange
+from wizcard import instances
 
 TEST = False
-
+RUNENV = os.getenv('WIZRUNENV','dev')
 BROKER_TRANSPORT = 'amqp'
 BROKER_USER = 'wizcard_user'
 LOCATION_USER = 'location_user'
@@ -84,26 +86,30 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wizcard',
-        'USER': 'root',
-        'PASSWORD': 'go_WiZcArD#27',
-        #'PASSWORD': '',
-        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-        'SOCKET': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-    },
-    'rds': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wizcard',
-        'USER': 'wizuser',
-        'PASSWORD': 'wizcarddb',
-        'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+if RUNENV == 'dev':
+    DATABASES = {
+	    'default': {
+	        'ENGINE': 'django.db.backends.mysql',
+	        'NAME': 'wizcard',
+	        'USER': 'root',
+	        'PASSWORD': 'go_WiZcArD#27',
+	        #'PASSWORD': '',
+	        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+	        'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+	        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
+	        'SOCKET': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+	    },
+	}
+elif RUNENV == 'test':
+    DATABASES = {
+	    'default': {
+	        'ENGINE': 'django.db.backends.mysql',
+	        'NAME': 'wizcard',
+	        'USER': 'wizuser',
+	        'PASSWORD': 'wizcarddb',
+	        'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+	    }
     }
-}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -184,12 +190,23 @@ MIDDLEWARE_CLASSES = (
 )
 
 # Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'default-cache'
+if RUNENV == 'dev':
+    CACHES = {
+     'default': {
+         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+         'LOCATION': 'default-cache'
+     }
     }
-}
+elif RUNENV == 'test':
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': instances.ALLHOSTS[RUNENV]['WIZSERVER']
+        }
+    }
+
+
+
 
 DEFAULT_MAX_LOOKUP_RESULTS = 20
 
