@@ -25,7 +25,6 @@ TREE_INSERT = 1
 TREE_DELETE = 2
 TREE_LOOKUP = 3
 PRINT_TREES = 4
-db_mode = 'local'
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,8 @@ class TreeServer(LocationServiceServer):
 
     def __init__(self, *args, **kwargs):
 
-        db_mode = kwargs.pop('db_mode')
+	RUNENV = kwargs.pop('RUNENV')
+
         super(TreeServer, self).__init__(*args, **kwargs)
         self.ptree = trie()
         self.vtree = trie()
@@ -55,10 +55,8 @@ class TreeServer(LocationServiceServer):
         #init trees reading from db outside of django
         logger.info('initing trees from db')
 	
-	if db_mode == "rds":
-            sdict = settings.DATABASES['rds']
-        else:
-            sdict = settings.DATABASES['default']
+        sdict = settings.DATABASES['default']
+        logger.info('initing trees from %s, %s',sdict['HOST'], RUNENV)
 
         wdb = WizcardDB(
                 socket=sdict['HOST'],
@@ -209,21 +207,18 @@ class TreeServer(LocationServiceServer):
 
 def main():
 	logging.basicConfig(level=logging.INFO)
-	db_mode = 'local'
 	isdaemon = False
+        RUNENV = os.getenv('WIZRUNENV', 'dev')
 	for params in sys.argv:
-            if params == '-rds':
-                db_mode = 'rds'
             if params == '--D' or params == '-daemon':
                 isdaemon = True
 
         amqpuser = settings.LOCATION_USER
         amqppass = settings.LOCATION_PASS
-        RUNENV = os.getenv('WIZRUNENV', 'dev')
         amqphost = instances.ALLHOSTS[RUNENV]['LOCATIONSERVER'][0]
         url = 'amqp://' + amqpuser + ':' + amqppass + '@'+amqphost+':5672'
 
-	ts = TreeServer(url, db_mode=db_mode)
+	ts = TreeServer(url,RUNENV=RUNENV)
 	if isdaemon:
 		with daemon.DaemonContext():
 			ts.run()
