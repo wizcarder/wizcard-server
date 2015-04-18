@@ -31,7 +31,7 @@ class DeadCards(models.Model):
 
     def recognize(self):
         ocr = OCR()
-        result =  ocr.process(self.f_bizCardImage.path)
+        result =  ocr.process(self.f_bizCardImage.local_path())
 
         self.first_name = result.get('first_name', "")
         self.last_name = result.get('last_name', "")

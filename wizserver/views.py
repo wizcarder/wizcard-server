@@ -1428,11 +1428,11 @@ class Header(ParseMsgAndDispatch):
             wizcard = Wizcard(user=self.user)
             wizcard.save()
 
-        c = ContactContainer(wizcard=wizcard)
-        c.save()
+        c = ContactContainer.objects.create(wizcard=wizcard)
 
         if self.sender.has_key('f_ocrCardImage'): 
-            rawimage = bytes(self.sender['f_ocrCardImage'])
+            b64image = bytes(self.sender['f_ocrCardImage'])
+            rawimage = b64image.decode('base64')
             #AA:TODO maybe time to put this in lib
             upfile = SimpleUploadedFile("%s-%s.jpg" % \
                     (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
@@ -1471,26 +1471,21 @@ class Header(ParseMsgAndDispatch):
 	    self.response.error_response(err.CRITICAL_ERROR)
             return self.response
 
-        d = DeadCards(user=self.user)
-        d.save()
+        d = DeadCards.objects.create(user=self.user)
 
         if self.sender.has_key('f_ocrCardImage'): 
-            rawimage = bytes(self.sender['f_ocrCardImage'])
-            #AA:TODO maybe time to put this in lib
-            
-            d.f_bizCardImage.save(upfile.name, upfile)
-            path = d.f_bizCardImage.local_path()
+            b64image = bytes(self.sender['f_ocrCardImage'])
+            rawimage = b64image.decode('base64')
         else:
             path = "test/photo.JPG"
             rawimage = bytes(open(path).read())
-            #AA:TODO Remove me eventually...this is just for testing
 
         upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
+                (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), 
                 rawimage, "image/jpeg")
         d.f_bizCardImage.save(upfile.name, upfile)
-
         d.recognize()
+
         self.response.add_data("response", d.serialize())
         return self.response
 
