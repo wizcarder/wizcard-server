@@ -602,7 +602,8 @@ class Header(ParseMsgAndDispatch):
 
         if self.sender.has_key('thumbnailImage') and \
             self.sender['thumbnailImage']:
-            rawimage = bytes(self.sender['thumbnailImage'])
+            b64image = bytes(self.sender['thumbnailImage'])
+            rawimage = b64image.decode('base64')
             upfile = SimpleUploadedFile("%s-%s.jpg" % \
                     (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), 
                     rawimage, "image/jpeg")
@@ -642,7 +643,8 @@ class Header(ParseMsgAndDispatch):
 		if 'f_bizCardImage' in contactItem and contactItem['f_bizCardImage']:
 	            #AA:TODO: Remove try
                     try:
-                        rawimage = bytes(contactItem['f_bizCardImage'])
+                        b64image = bytes(self.sender['f_bizCardImage'])
+                        rawimage = b64image.decode('base64')
 			#AA:TODO: better file name
                         upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % \
                                 (wizcard.pk, c.pk, now().strftime\
@@ -654,7 +656,8 @@ class Header(ParseMsgAndDispatch):
 		if 'b_bizCardImage' in contactItem and contactItem['b_bizCardImage']:
 	            #AA:TODO: Remove try
                     try:
-                        rawimage = bytes(contactItem['b_bizCardImage'])
+                        b64image = bytes(self.sender['b_bizCardImage'])
+                        rawimage = b64image.decode('base64')
 			#AA:TODO: better file name
                         upfile = SimpleUploadedFile("%s-b_bc.%s.%s.jpg" % (wizcard.pk, c.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
                         c.b_bizCardImage.save(upfile.name, upfile) 
