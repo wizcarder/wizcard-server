@@ -310,6 +310,7 @@ INSTALLED_APPS = (
     'periodic',
     'gunicorn',
     'raven.contrib.django.raven_compat',
+    'meishi',
 )
 
 #django-storage settings
