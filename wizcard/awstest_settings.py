@@ -6,12 +6,14 @@ from __future__ import absolute_import
 # for relative imports by default.
 # Celery settings
 import djcelery
+import os
 djcelery.setup_loader()
 
 from kombu import Queue, Exchange
+from wizcard import instances
 
 TEST = False
-
+RUNENV = os.getenv('WIZRUNENV','dev')
 BROKER_TRANSPORT = 'amqp'
 BROKER_USER = 'wizcard_user'
 LOCATION_USER = 'location_user'
@@ -27,6 +29,7 @@ CELERY_RESULT_BACKEND = 'rpc'
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
+CELERY_BEAT_QUEUE_NAME = 'beat'
 
 CELERY_IMAGE_UPLOAD_Q = Queue(IMAGE_UPLOAD_QUEUE_NAME,
                               Exchange(IMAGE_UPLOAD_QUEUE_NAME),
@@ -38,12 +41,19 @@ CELERY_OCR_Q = Queue(OCR_QUEUE_NAME,
 
 CELERY_DEFAULT_Q = Queue(CELERY_DEFAULT_QUEUE,
                          Exchange(CELERY_DEFAULT_QUEUE),
-                         routing_key=CELERY_DEFAULT_QUEUE)
+                         routing_key=CELERY_DEFAULT_QUEUE,
+                         delivery_mode=1)
+
+CELERY_BEAT_Q = Queue(CELERY_BEAT_QUEUE_NAME,
+                         Exchange(CELERY_BEAT_QUEUE_NAME),
+                         routing_key=CELERY_BEAT_QUEUE_NAME,
+                         delivery_mode=1)
 
 CELERY_QUEUES = (
             CELERY_IMAGE_UPLOAD_Q,
             CELERY_OCR_Q,
-            CELERY_DEFAULT_Q
+            CELERY_DEFAULT_Q,
+            CELERY_BEAT_Q
 )
 
 CELERY_ROUTES = {
@@ -58,6 +68,7 @@ CELERYBEAT_SCHEDULE = {
     'tick': {
         'task': 'periodic.tasks.tick',
         'schedule': timedelta(seconds=60),
+        'options': {'queue': CELERY_BEAT_QUEUE_NAME}
     },
 }
 
@@ -75,28 +86,30 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-	'default': {
-       	 'ENGINE': 'django.db.backends.mysql',
-       	 'NAME': 'wizcard',
-       	 'USER': 'wizuser',
-       	 'PASSWORD': 'wizcarddb',
-        #'PASSWORD': '',
-        #'HOST': '/Applications/MAMP/tmp/mysql/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-       	 'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-       	 'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-       	 'SOCKET': '',
-    	},
-
-    'rds': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wizcard',
-        'USER': 'wizuser',
-        'PASSWORD': 'wizcarddb',
-        'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+if RUNENV == 'dev':
+    DATABASES = {
+	    'default': {
+	        'ENGINE': 'django.db.backends.mysql',
+	        'NAME': 'wizcard',
+	        'USER': 'root',
+	        'PASSWORD': 'mydb',
+	        #'PASSWORD': '',
+	        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+	        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+	        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
+	        'SOCKET': '', # Set to empty string for localhost. Not used with sqlite3.
+	    },
+	}
+elif RUNENV == 'test':
+    DATABASES = {
+	    'default': {
+	        'ENGINE': 'django.db.backends.mysql',
+	        'NAME': 'wizcard',
+	        'USER': 'wizuser',
+	        'PASSWORD': 'wizcarddb',
+	        'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+	    }
     }
-}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -175,6 +188,23 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+# Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
+if RUNENV == 'dev':
+    CACHES = {
+     'default': {
+         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+         'LOCATION': 'default-cache'
+     }
+    }
+elif RUNENV == 'test':
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': instances.ALLHOSTS[RUNENV]['MEMCACHE']
+        }
+    }
+
 
 
 
@@ -418,12 +448,19 @@ PYAPNS_CONFIG = {
 
 # RAVEN config for Sentry
 RAVEN_CONFIG = {
+    #for current(original) AWS instance
     'dsn': 'https://d19905d820934cd59cde1e0372c21c43:cc970c850f4b4684bdbd9648f148d2ab@app.getsentry.com/27697',
+    #for stage(original) AWS instance
+    #'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148'
+    #for wizcard totastyle instance
+    #'dsn': 'https://0e8c55f2ba84490c891dd340685a4177:13702356dd5445cabfc7e9b02814975c@app.getsentry.com/41149'
+    #for anandr-laptop instance
+    #'dsn': 'https://b58fae5ffdec4127885c4764524f9feb:57fa34177fcb4db6b8dedfd88c8c1526@app.getsentry.com/41150'
 }
+
+
 
 GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
 
 CELERY_TIMEZONE = 'UTC'
 
-# Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
-# AUTO GENERATED - APPENDED AT THE END BY THE DEPLOY SCRIPT
