@@ -1,7 +1,9 @@
 from django.db import models
 import heapq
 from wizcardship.models import Wizcard
+from notifications.models import Notifications
 from lib import wizlib
+from datetime import timedelta
 import pdb
 
 from django.utils import timezone
@@ -12,10 +14,24 @@ try:
 except ImportError:
     now = datetime.datetime.now()
 
+
 class MeishiMgr(models.Manager):
+
+    # Time interval between 2 gestures in seconds
+
+    MEISHI_TIME_THRESHOLD = 10
+    MEISHI_DIST_THRESHOLD = 100.00 
     def get_candidates(self, m):
         #filter those who are +- 10 seconds ?
-        return self.exclude(wizcard=m.wizcard)
+        qs1 = self.exclude(wizcard=m.wizcard).order_by('-timestamp')
+        delta = timedelta(seconds=MEISHI_TIME_THRESHOLD)
+        end_time = m.timestamp + delta
+        start_time = m.timestamp - delta
+
+        qs2 = qs1.filter(timestamp__range = (start_time, end_time))
+        return qs2
+
+
 
     def pair_up(self, meishi1, meishi2):
         meishi1.pairs.add(meishi2)
@@ -55,7 +71,13 @@ class Meishi(models.Model):
         return wizlib.haversine(self.lng, self.lat, lng, lat)
 
     def satisfies_space_constraint(self, candidate):
-        return True
+
+        meishi_distance = distance_from(self, candidate.lat,candidate.lng)
+        
+
+        if (meishi_distance <= MEISHI_DIST_THRESHOLD):
+            return True
+        return False
 
     def check_meishi(self):
         #first check if already paired
