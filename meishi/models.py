@@ -18,9 +18,9 @@ except ImportError:
 class MeishiMgr(models.Manager):
 
     # Time interval between 2 gestures in seconds
-
     MEISHI_TIME_THRESHOLD = 10
     MEISHI_DIST_THRESHOLD = 100.00 
+
     def get_candidates(self, m):
         #filter those who are +- 10 seconds ?
         qs1 = self.exclude(wizcard=m.wizcard).order_by('-timestamp')
@@ -39,15 +39,13 @@ class MeishiMgr(models.Manager):
     def unpair(self, meishi1, meishi2):
         meishi1.pairs.remove(meishi2)
 
-# Create your models here.A
-
 class Meishi(models.Model):
     wizcard = models.ForeignKey(Wizcard) 
     lat = models.DecimalField(max_digits=20, decimal_places=15)
     lng = models.DecimalField(max_digits=20, decimal_places=15)
     timestamp = models.DateTimeField(default=now)
-    pairs = models.ManyToManyField('self', symmetrical=True, blank=True)
     #self referential 1:1
+    pairs = models.ManyToManyField('self', symmetrical=True, blank=True)
 
     objects = MeishiMgr()
 
@@ -71,16 +69,15 @@ class Meishi(models.Model):
         return wizlib.haversine(self.lng, self.lat, lng, lat)
 
     def satisfies_space_constraint(self, candidate):
-
         meishi_distance = distance_from(self, candidate.lat,candidate.lng)
-        
-
         if (meishi_distance <= MEISHI_DIST_THRESHOLD):
             return True
         return False
 
     def check_meishi(self):
         #first check if already paired
+        if self.pairs.exists():
+            return self.pairs.get()
  
         #get candidates based on time. Then get (conditional) closest
         cl = Meishi.objects.get_candidates(self)

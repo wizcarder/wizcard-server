@@ -1508,17 +1508,10 @@ class Header(ParseMsgAndDispatch):
             self.response.ignore()
             return self.response
 
-        m_res = None
-        if m.pairs.exists():
-            #we are m2
-            m_res = m.pairs.get()
-        else:
-            m_res = m.check_meishi()
-
-    #Once we find a pairing we exchange wizcards
-        if m_res:
-            if not Wizcard.objects.are_wizconnections(m.wizcard, mres.wizcard):
-                Wizcard.objects.exchange(m.wizcard, mres.wizcard, implicit)
+        #Once we find a pairing we exchange wizcards
+        if m.check_meishi():
+            if not Wizcard.objects.are_wizconnections(m.wizcard, m_res.wizcard):
+                Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True)
 
             out = Wizcard.objects.serialize(
                                  m_res.wizcard, 
