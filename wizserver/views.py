@@ -1509,13 +1509,11 @@ class Header(ParseMsgAndDispatch):
             return self.response
 
         #Once we find a pairing we exchange wizcards
-        if m.check_meishi():
-            if not Wizcard.objects.are_wizconnections(m.wizcard, m_res.wizcard):
-                Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True)
-
-            out = Wizcard.objects.serialize(
-                                 m_res.wizcard, 
-                                 template = fields.wizcard_template_full)
+        m_res = m.check_meishi()
+        if m_res:
+            Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True)
+            out = Wizcard.objects.serialize(m_res.wizcard, 
+                                        template = fields.wizcard_template_full)
             self.response.add_data("m_result", out)
 
         return self.response
