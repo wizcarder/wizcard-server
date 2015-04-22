@@ -1,9 +1,10 @@
 from django.db import models
 import heapq
 from wizcardship.models import Wizcard
-from notifications.models import Notifications
+from notifications.models import Notification
 from lib import wizlib
 from datetime import timedelta
+from django.core.cache import cache
 import pdb
 
 from django.utils import timezone
@@ -93,6 +94,7 @@ class Meishi(models.Model):
         if self.satisfies_space_constraint(candidate):
             MeishiPairs.objects.create(m_first=self,
                                        m_second=candidate)
+            cache.set(self.wizcard.id, candidate.wizcard)
             return candidate
 
         return None
