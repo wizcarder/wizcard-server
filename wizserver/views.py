@@ -32,6 +32,7 @@ from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
 from virtual_table.models import VirtualTable
+from meishi.models import Meishi
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
 from userprofile.models import FutureUser
@@ -1495,7 +1496,7 @@ class Header(ParseMsgAndDispatch):
     def MeishiStart(self):
         lat = self.sender['lat']
         lng = self.sender['lng']
-        wizcard = Wizcard.objects.get(self.sender['wizCardID'])
+        wizcard = self.user.wizcard
         m = Meishi.objects.create(lat=lat, lng=lng, wizcard=wizcard)
    
         self.response.add_data("mID", m.pk)
