@@ -15,12 +15,12 @@ try:
 except ImportError:
     now = datetime.datetime.now()
 
+MEISHI_TIME_THRESHOLD = 10
+MEISHI_DIST_THRESHOLD = 100.00 
 
 class MeishiMgr(models.Manager):
 
     # Time interval between 2 gestures in seconds
-    MEISHI_TIME_THRESHOLD = 10
-    MEISHI_DIST_THRESHOLD = 100.00 
 
     def get_candidates(self, m):
         #filter those who are +- 10 seconds ?
@@ -70,7 +70,7 @@ class Meishi(models.Model):
         return wizlib.haversine(self.lng, self.lat, lng, lat)
 
     def satisfies_space_constraint(self, candidate):
-        meishi_distance = distance_from(self, candidate.lat,candidate.lng)
+        meishi_distance = self.distance_from(candidate.lat,candidate.lng)
         if (meishi_distance <= MEISHI_DIST_THRESHOLD):
             return True
         return False
@@ -92,8 +92,7 @@ class Meishi(models.Model):
 
         candidate = heapq.nsmallest(1, h)[0][1]
         if self.satisfies_space_constraint(candidate):
-            MeishiPairs.objects.create(m_first=self,
-                                       m_second=candidate)
+            Meishi.objects.pair_up(self,candidate)
             cache.set(self.wizcard.id, candidate.wizcard)
             return candidate
 
