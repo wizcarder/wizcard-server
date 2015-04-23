@@ -104,8 +104,9 @@ LNG1 = -122.506419
 verify_phones_list = [PHONE1, PHONE2, PHONE3]
 verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 
-server_url = "www.totastyle.com"
+#server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
+server_url = "localhost"
 
 server_port = 8000
 #server_port = 80
@@ -1167,3 +1168,62 @@ while nrsp != False:
         objs = handle_response(conn, reqmsg['header']['msgType'])
     nrsp = notif.process_one()
 
+
+reqmsg = messages.meishi_start
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['wizCardID'] = 1
+reqmsg['sender']['lat'] = LAT1
+reqmsg['sender']['lng'] = LNG1
+print "MEISHI START", reqmsg['sender']['wizCardID'] 
+mei1 = json.dumps(reqmsg)
+print "sending meishi_start" + mei1
+conn.request("POST", "", mei1)
+objs = handle_response(conn,reqmsg['header']['msgType'])
+mei_id1 = objs['data']['mID']
+
+reqmsg = messages.meishi_find
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['mID'] = mei_id1
+print "MEISHI FIND", reqmsg['sender']['wizCardID'] 
+mef1 = json.dumps(reqmsg)
+print "sending meishi_find" + mef1
+conn.request("POST", "", mef1)
+objs = handle_response(conn,reqmsg['header']['msgType'])
+try:
+    mei_pair = objs['data']['m_result']
+    print "Meishi ID = " + str(mei_pair)
+except KeyError, e:
+    print "EXPECTED: Key Error because no meishi to pair"
+
+
+print "Meishi ID = " + str(mei_id1)
+
+reqmsg = messages.meishi_start
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['sender']['wizCardID'] = 2
+reqmsg['sender']['lat'] = LAT1
+reqmsg['sender']['lng'] = LNG1
+print "MEISHI START", reqmsg['sender']['wizCardID'] 
+mei2 = json.dumps(reqmsg)
+print "sending meishi_start" + mei2
+conn.request("POST", "", mei2)
+objs = handle_response(conn,reqmsg['header']['msgType'])
+mei_id2 = objs['data']['mID']
+
+print "Meishi ID = " + str(mei_id2)
+
+reqmsg = messages.meishi_find
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['sender']['mID'] = mei_id2
+print "MEISHI FIND", reqmsg['sender']['wizCardID'] 
+mef2 = json.dumps(reqmsg)
+print "sending meishi_find" + mef2
+conn.request("POST", "", mef2)
+objs = handle_response(conn,reqmsg['header']['msgType'])
+mei_pair = objs['data']['m_result']
+
+print "Meishi ID = " + str(mei_pair)
