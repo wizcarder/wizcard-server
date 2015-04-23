@@ -33,6 +33,10 @@ server {
 	# Make site accessible from http://localhost/
 	server_name localhost;
 
+        location /index.html {
+	    root /usr/share/nginx/html;
+        }
+
 	location / {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
