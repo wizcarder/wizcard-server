@@ -656,3 +656,30 @@ wizweb_add_edit_card = {
     },
 }
 
+meishi_start = {
+    "header" : {
+        "msgType" : "meishi_start",
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizCardID" : "",
+        "lat" : 37.785834,
+        "lng" : -122.406415,
+        "deviceType": "ios",
+    },
+}
+meishi_find = {
+    "header" : {
+        "msgType" : "meishi_find",
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizCardID" : "",
+        "mID" : "",
+        "deviceType": "ios",
+    },
+}
