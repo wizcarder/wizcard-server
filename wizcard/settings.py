@@ -92,12 +92,12 @@ if RUNENV == 'dev':
 	        'ENGINE': 'django.db.backends.mysql',
 	        'NAME': 'wizcard',
 	        'USER': 'root',
-	        'PASSWORD': 'go_WiZcArD#27',
+	        'PASSWORD': 'mydb',
 	        #'PASSWORD': '',
 	        #'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
-	        'HOST': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+	        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-	        'SOCKET': '/opt/bitnami/mysql/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+	        'SOCKET': '', # Set to empty string for localhost. Not used with sqlite3.
 	    },
 	}
 elif RUNENV == 'test':
@@ -201,7 +201,7 @@ elif RUNENV == 'test':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': instances.ALLHOSTS[RUNENV]['WIZSERVER']
+            'LOCATION': instances.ALLHOSTS[RUNENV]['MEMCACHE']
         }
     }
 
@@ -310,6 +310,7 @@ INSTALLED_APPS = (
     'periodic',
     'gunicorn',
     'raven.contrib.django.raven_compat',
+    'meishi',
 )
 
 #django-storage settings
