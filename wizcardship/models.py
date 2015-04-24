@@ -222,17 +222,14 @@ class Wizcard(models.Model):
     def __unicode__(self):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
 
-    def serialize(self, template=None):
-        if template:
-            return serialize(self, **template)
-        else:
-            return serialize(self, **fields.wizcard_template_full)
+    def serialize(self, template=fields.wizcard_template_full):
+        return serialize(self, **template)
 
-    def serialize_wizconnections(self):
-        return serialize(self.wizconnections.all(), **fields.wizcard_template_full)
+    def serialize_wizconnections(self, template=fields.wizcard_template_full):
+        return serialize(self.wizconnections.all(), **template)
 
-    def serialize_wizcardflicks(self):
-	return serialize(self.flicked_cards.all(), **fields.my_flicked_wizcard_template)
+    def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
+	return serialize(self.flicked_cards.all(), **template)
 
     def create_company_list(self, l):
         map(lambda x: CompanyList(wizcard=self, company=x).save(), l)
@@ -247,6 +244,19 @@ class Wizcard(models.Model):
         qs = self.contact_container.all()
         if qs.exists():
             return qs[0].company
+        return None
+
+    def get_latest_contact_container(self):
+        qs = self.contact_container.all()
+        if qs.exists():
+            cc = qs[0]
+            out = dict()
+            out['company'] = cc.company
+            out['title'] = cc.title
+            out['f_bizCardUrl'] = cc.get_fbizcard_url()
+            #app needs single-element array with dict in it
+            return [out]
+
         return None
 
     def get_thumbnail_url(self):
@@ -352,40 +362,22 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def serialize(self, flicked_wizcards, send_data=True, merge=False):
-        from wizserver import fields
-        if send_data:
-            template = fields.flicked_wizcard_merged_template_with_thumbnail if merge else fields.flicked_wizcard_template_with_thumbnail
-        else:
-            template = fields.flicked_wizcard_merged_template if merge else fields.flicked_wizcard_template
+    def serialize(self, flicked_wizcards,
+                  template=fields.flicked_wizcard_template):
         return serialize(flicked_wizcards, **template)
 
-    def serialize_split(self, my_wizcard, flicked_wizcards, \
-                        send_data=True, merge=False, flatten=False):
+    def serialize_split(self, my_wizcard, flicked_wizcards):
         s = None
 	own, connected, others = self.split_wizcard_flick(my_wizcard, 
                 flicked_wizcards)
 
-        if flatten:
-            s = []
-            if own:
-                self.set_tag("own")
-                s += self.serialize(own, send_data, merge)
-            if connected:
-                self.set_tag("connected")
-                s += self.serialize(connected, send_data, merge)
-            if others:
-                self.set_tag("others")
-                s += self.serialize(others, send_data, merge)
-            self.set_tag(None)
-        else:
-            s = dict()
-            if own:
-                s['own'] = self.serialize(own, send_data, merge)
-            if connected:
-                s['connected'] = self.serialize(connected, send_data, merge)
-            if others:
-                s['others'] = self.serialize(others, send_data, merge)
+        s = dict()
+        if own:
+            s['own'] = self.serialize(own)
+        if connected:
+            s['connected'] = self.serialize(connected)
+        if others:
+            s['others'] = self.serialize(others)
 
 	return s
 

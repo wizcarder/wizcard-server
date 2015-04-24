@@ -24,12 +24,9 @@ import pdb
 USER_ACTIVE_TIMEOUT = 10
 
 class UserProfileManager(models.Manager):
-    def serialize_split(self, me, users, send_data=True):
+    def serialize_split(self, me, users):
 	s = dict()
-        if send_data:
-            template = fields.wizcard_template_brief_with_thumbnail
-        else:
-            template = fields.wizcard_template_brief
+        template = fields.wizcard_template_brief
 
 	own, connected, others = self.split_users(me, users)
         if own:
@@ -184,7 +181,7 @@ class UserProfile(models.Model):
 	#wizcard
         try:
 	    wizcard = self.user.wizcard
-            w = wizcard.serialize()
+            w = wizcard.serialize(fields.wizcard_template_full)
             s['wizcard'] = w
         except ObjectDoesNotExist:
             return s

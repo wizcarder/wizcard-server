@@ -469,8 +469,8 @@ class Header(ParseMsgAndDispatch):
                 else:
 		    d['tag'] = "other"
 
-                wc = Wizcard.objects.serialize(wizcard, 
-                        template=fields.wizcard_template_brief_with_thumbnail)
+                wc = Wizcard.objects.serialize(wizcard,
+                        template=fields.wizcard_template_brief)
                 d['wizcard'] = wc
 
 		phone_count += 1
@@ -497,7 +497,7 @@ class Header(ParseMsgAndDispatch):
 		    d['tag'] = "other"
 
                 wc = Wizcard.objects.serialize(wizcard, 
-                        template=fields.wizcard_template_brief_with_thumbnail)
+                        template=fields.wizcard_template_brief)
                 d['wizcard'] = wc
 
 		email_count += 1
@@ -536,13 +536,11 @@ class Header(ParseMsgAndDispatch):
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifFlickedWizcardsLookup(count, 
-                    self.user, flicked_wizcards, 
-		    self.userprofile.can_send_data(self.on_wifi))
+                    self.user, flicked_wizcards)
 
         users, count = self.userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
-            notifResponse.notifUserLookup(count, self.user, users, 
-			    self.userprofile.can_send_data(self.on_wifi))
+            notifResponse.notifUserLookup(count, self.user, users) 
 
         tables, count = VirtualTable.objects.lookup(
                 self.lat, 
@@ -861,7 +859,9 @@ class Header(ParseMsgAndDispatch):
 
 	count = my_flicked_cards.count()
 	if count:
-	    flicks_s = WizcardFlick.objects.serialize(my_flicked_cards)
+	    flicks_s = WizcardFlick.objects.serialize(
+                    my_flicked_cards,
+                    fields.my_flicked_wizcard_template)
             self.response.add_data("queryResult", flicks_s)
         self.response.add_data("count", count)
 
@@ -913,7 +913,9 @@ class Header(ParseMsgAndDispatch):
         result, count = WizcardFlick.objects.query_flicks(self.receiver['name'], None, None)
 
         if count:
-            flicks_s = WizcardFlick.objects.serialize_split(self.user.wizcard, result, True, True)
+            flicks_s = WizcardFlick.objects.serialize_split(
+                            self.user.wizcard, 
+                            result)
             self.response.add_data("queryResult", flicks_s)
         self.response.add_data("count", count)
             
@@ -943,7 +945,7 @@ class Header(ParseMsgAndDispatch):
 
         if count:
             out = Wizcard.objects.serialize(flick_pickers,
-                    template = fields.wizcard_template_brief_with_thumbnail)
+                    template = fields.wizcard_template_brief)
             self.response.add_data("flickPickers", out)
 
         self.response.add_data("count", count)
@@ -1186,7 +1188,7 @@ class Header(ParseMsgAndDispatch):
 
         if (count):
             users_s = Wizcard.objects.serialize(result, 
-                    template=fields.wizcard_template_brief_with_thumbnail)
+                    template=fields.wizcard_template_brief)
             self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
  
@@ -1238,9 +1240,7 @@ class Header(ParseMsgAndDispatch):
         members = table.users.all()
         count = members.count()
         if count:
-            out = UserProfile.objects.serialize_split(self.user, 
-                    members,
-		    self.userprofile.can_send_data(self.on_wifi))
+            out = UserProfile.objects.serialize_split(self.user, members)
             self.response.add_data("Members", out)
             self.response.add_data("Count", count)
             self.response.add_data("CreatorID", table.creator.id) 
@@ -1254,18 +1254,11 @@ class Header(ParseMsgAndDispatch):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
         r_userprofile = wizcard.user.profile
-        send_data = self.userprofile.can_send_data(self.on_wifi)
 
         if r_userprofile.is_profile_private:
-            if send_data:
-                template = fields.wizcard_template_brief_with_thumbnail
-            else:
-                template = fields.wizcard_template_brief
+            template = fields.wizcard_template_brief
         else:
-            if send_data:
-                template = fields.wizcard_template_full
-            else:
-                template = fields.wizcard_template_extended
+            template = fields.wizcard_template_full
 
         out = Wizcard.objects.serialize(wizcard, template)
         self.response.add_data("Details", out)

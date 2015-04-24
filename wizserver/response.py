@@ -174,8 +174,10 @@ class NotifResponse(ResponseN):
     def notifWizcardTableInvite(self, notif):
         sender = User.objects.get(id=notif.action_object_object_id)
         table = VirtualTable.objects.get(id=notif.target_object_id)
-        s_out = Wizcard.objects.serialize(sender.wizcard, template=fields.wizcard_template_mini)
-        a_out = VirtualTable.objects.serialize(table, template=fields.table_template_mini)
+        s_out = Wizcard.objects.serialize(sender.wizcard, 
+                template=fields.wizcard_template_brief)
+        a_out = VirtualTable.objects.serialize(table,
+                template=fields.nearby_table_template)
 
         out = dict(sender=s_out, asset=a_out)
         self.add_data_with_notif(out, verbs.TABLE_INVITE)
@@ -184,20 +186,20 @@ class NotifResponse(ResponseN):
     def notifWizcardForward(self, notif):
         return self.response
 
-    def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards, send_data=True):
+    def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):
         out = None
 	own_wizcard = user.wizcard
         if flicked_wizcards:
 	    #wizcards = map(lambda x: x.wizcard, flicked_wizcards)
-            out = WizcardFlick.objects.serialize_split(user.wizcard, flicked_wizcards, send_data=send_data)
+            out = WizcardFlick.objects.serialize_split(user.wizcard,
+                                                       flicked_wizcards)
             self.add_data_with_notif(out, verbs.NEARBY_FLICKED_WIZCARD)
         return self.response
 
-    def notifUserLookup(self, count, me, users, send_data=True):
+    def notifUserLookup(self, count, me, users):
         out = None
         if users:
-            out = UserProfile.objects.serialize_split(me, users, 
-                    send_data=send_data)
+            out = UserProfile.objects.serialize_split(me, users)
             self.add_data_with_notif(out, verbs.NEARBY_USERS)
         return self.response
 

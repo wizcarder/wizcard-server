@@ -121,9 +121,9 @@ class VirtualTable(models.Model):
     def is_secure(self):
         return self.secureTable
 
-    def get_member_thumbnail_urls(self):
-        return map(lambda u: u.wizcard.get_thumbnail_url(),
-                self.users.all())
+    def get_member_wizcards(self):
+        members = map(lambda u: u.wizcard, self.users.all())
+        return serialize(members, **fields.wizcard_template_mini)
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
@@ -133,7 +133,7 @@ class VirtualTable(models.Model):
         implicit_exchange = self.is_secure()
 
         for wizcard2 in wizcards:
-            Wizcard.objects.exchange(wizcard1, wizcard2, 
+            Wizcard.objects.exchange(wizcard1, wizcard2,
                     implicit_exchange, table=self)
 
         return self

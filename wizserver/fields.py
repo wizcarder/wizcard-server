@@ -1,160 +1,106 @@
-contact_container_template = {
-    'fields': ['company', 'title', 'start', 'end']
-}
+contact_container_fields = ['company', 'title', 'start', 'end', 'f_bizCardUrl']
+contact_container_keymap = {
+        'f_bizCardUrl':'get_fbizcard_url'
+        }
 
-contact_container_template_with_bizcard = {
-    'fields': ['company', 'title', 'start', 'end', 'f_bizCardUrl'],
-    'key_map': {'f_bizCardUrl':'get_fbizcard_url'}
+contact_container_template = {
+    'fields':  contact_container_fields,
+    'key_map': contact_container_keymap
 }
+wizcard_fields_thumbnail_only = ['wizcard_id', 'thumbnailUrl']
+wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
+                  'phone', 'email', 'thumbnailUrl', 'contact_container']
+
+wizcard_fields_keymap = {
+        'wizcard_id': 'id',
+        'thumbnailUrl': 'get_thumbnail_url'
+        }
+wizcard_fields_keymap_brief = {
+        'wizcard_id': 'id',
+        'thumbnailUrl': 'get_thumbnail_url',
+        'contact_container': 'get_latest_contact_container'
+        }
 
 wizcard_related_objects_template = {
     'contact_container': contact_container_template
 }
 
-wizcard_related_objects_template_with_bizcard = {
-    'contact_container': contact_container_template_with_bizcard
-}
-
-wizcard_template_brief_keymap = {'wizcard_id':'id', 'company':'get_latest_company', 'title':'get_latest_title'}
-wizcard_template_brief = {
-    'fields': ['wizcard_id', 'user_id', 'first_name', 'last_name', 'phone', \
-            'email', 'company', 'title'],
-    'key_map' : wizcard_template_brief_keymap
-}
-
-thumbnail_fields = wizcard_template_brief['fields'] + ['thumbnailUrl']
-thumbnail_keymap = {'thumbnailUrl':'get_thumbnail_url'}
-wizcard_template_brief_with_thumbnail_keymap = thumbnail_keymap.copy()
-wizcard_template_brief_with_thumbnail_keymap.update(wizcard_template_brief_keymap)
-
-wizcard_template_brief_with_thumbnail = {
-    'fields': thumbnail_fields,
-    'key_map' : wizcard_template_brief_with_thumbnail_keymap
-}
-
 wizcard_template_mini = {
-    'fields' : ['first_name', 'last_name', 'thumbnailUrl'],
-    'key_map': thumbnail_keymap
+    'fields': wizcard_fields_thumbnail_only,
+    'key_map' : wizcard_fields_keymap
 }
 
-extended_fields = wizcard_template_brief['fields'] + ['contact_container']
-extended_fields_with_images = extended_fields + ['thumbnailUrl']
-
-wizcard_template_extended = {
-    'fields': extended_fields,
-    'key_map' : wizcard_template_brief['key_map'],
-    'related': wizcard_related_objects_template
+wizcard_template_brief = {
+    'fields': wizcard_fields,
+    'key_map' : wizcard_fields_keymap_brief
 }
 
 wizcard_template_full = {
-    'fields': extended_fields_with_images,
-    'key_map' : wizcard_template_brief_with_thumbnail_keymap,
-    'related': wizcard_related_objects_template_with_bizcard
-}
-
-wizcard_template_brief_merged = wizcard_template_brief.copy()
-wizcard_template_brief_merged.update({'merge': True})
-
-wizcard_template_brief_with_thumbnail_merged = wizcard_template_brief_with_thumbnail.copy()
-wizcard_template_brief_with_thumbnail_merged.update({'merge': True})
-
-flicked_wizcard_related_objects_template= {
-    'wizcard': wizcard_template_brief,
-}
-
-flicked_wizcard_related_objects_template_with_thumbnail= {
-    'wizcard': wizcard_template_brief_with_thumbnail,
-}
-
-flicked_wizcard_related_objects_merged_template = {
-    'wizcard': wizcard_template_brief_merged
-}
-
-flicked_wizcard_related_objects_merged_template_with_thumbnail = {
-    'wizcard': wizcard_template_brief_with_thumbnail_merged
+    'fields': wizcard_fields,
+    'key_map' : wizcard_fields_keymap,
+    'related': wizcard_related_objects_template
 }
 
 flick_pickers_template = {
-    'fields': ['id'],
-    'merge': True,
-    'values_list': True
+    'fields': ['id']
+}
+
+related_wizcard_template_brief = {
+    'wizcard': wizcard_template_brief
+}
+
+related_wizcard_template_full = {
+    'wizcard': wizcard_template_full
 }
 
 flicked_wizcard_template = {
     'fields': ['created', 'timeRemaining', 'flick_id', 'wizcard'],
-    'key_map': {'created':'a_created', 'timeRemaining':'time_remaining', 'flick_id':'id'},
-    'related': flicked_wizcard_related_objects_template
+    'key_map': {
+        'created':'a_created', 'timeRemaining':'time_remaining', 'flick_id':'id'
+    },
+    'related': related_wizcard_template_brief
 }
 
-flicked_wizcard_template_with_thumbnail = {
-    'fields': ['created', 'timeRemaining', 'flick_id', 'wizcard'],
-    'key_map': {'created':'a_created', 'timeRemaining':'time_remaining', 'flick_id':'id'},
-    'related': flicked_wizcard_related_objects_template_with_thumbnail
-}
-
-flicked_wizcard_merged_template = {
-    'fields': ['created', 'timeout', 'flick_id', 'wizcard', 'tag'],
-    'key_map': {'created': 'a_created', 'flick_id':'id', 'tag': 'get_tag' },
-    'related': flicked_wizcard_related_objects_merged_template
-}
-
-flicked_wizcard_merged_template_with_thumbnail = {
-    'fields': flicked_wizcard_merged_template['fields'],
-    'key_map': {'created': 'a_created', 'flick_id':'id', 'tag': 'get_tag' },
-    'related': flicked_wizcard_related_objects_merged_template_with_thumbnail
-}
 my_flicked_wizcard_template = {
-    'fields': ['created', 'timeout', 'flick_id', 'lat', 'lng', 'timeout', \
-            'flick_pickers'],
+    'fields': ['created', 'flick_id', 'lat', 'lng', 
+               'timeout', 'flick_pickers'],
     'key_map': {'created':'a_created', 'flick_id':'id'},
     'related': {
         'flick_pickers': flick_pickers_template,
-        'merge': True
     }
 }
 
-user_query_template = { 
-    'fields': ['user_id', 'first_name', 'last_name', 'wizcard'],
-    'merge': True,
-    'related':wizcard_related_objects_template,
-    'key_map' : {'user_id':'id'}
-}
-
-user_query_extended_template = { 
+user_query_brief_template = {
     'fields': ['user_id', 'wizcard'],
-    'related': {
-        'wizcard': wizcard_template_brief,
-        'merge':True
-    },
+    'related': related_wizcard_template_brief,
     'key_map' : {'user_id':'id'}
 }
 
-table_template_mini = {
-    'fields' : ['id', 'tablename']
+user_query_full_template = {
+    'fields': ['user_id', 'wizcard'],
+    'related': related_wizcard_template_full,
+    'key_map' : {'user_id':'id'}
 }
 
 nearby_table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
-            'timeRemaining', 'thumbnailUrls', 'createdBy'],
+               'timeRemaining', 'wizcards', 'createdBy'],
     'key_map' : {'timeRemaining':'time_remaining', \
-                'thumbnailUrls': 'get_member_thumbnail_urls',\
+                'wizcards': 'get_member_wizcards',\
                 'createdBy': 'created_by'}
 }
 
 table_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', \
-            'creator_id', 'created', 'timeRemaining'],
-    'key_map' : {'created':'a_created', 'timeRemaining':'time_remaining'}
-}
-
-table_merged_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'password', 'numSitting', \
-            'creator_id', 'created', 'timeRemaining', 'tag'],
-    'key_map' : {'created':'a_created', 'timeRemaining':'time_remaining', 'tag':'get_tag'}
+    'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
+               'timeRemaining', 'wizcards', 'created', 'creator_id', 
+               'password'],
+    'key_map' : {'created':'a_created',
+                 'timeRemaining':'time_remaining',
+                 'wizcards': 'get_member_wizcards'}
 }
 
 dead_cards_response_template = {
     'fields': ['id', 'company', 'email', 'first_name', 'last_name', \
-            'title', 'web', 'company'],
+               'title', 'web', 'company'],
 }
 
