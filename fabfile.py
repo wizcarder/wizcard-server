@@ -1,13 +1,29 @@
+#!/usr/bin/env fab
 from fabric.api import *
 from fabric.utils import *
 from fabric.contrib.files import exists
 from contextlib import contextmanager
-env.directory = '/home/ubuntu/stage'
+from wizcard import instances
+env.venv = '/home/ubuntu/stage'
 env.activate = 'source /home/ubuntu/stage/bin/activate'
+env.installroot = '/home/ubuntu/stage.env/'
+env.henv = 'test'
+#env.function = 'WIZSERVER'
+
+@task
+def set_hosts():
+    with virtualenv():
+    	env.hosts = instances.ALLHOSTS[env.henv][env.function]
+        print env.hosts
+
+@task
+def do_ls():
+    with virtualenv():
+	run("ls -al > /tmp/lsout")
 
 @contextmanager
 def virtualenv():
-	with cd(env.directory):
+	with cd(env.venv):
 		with prefix(env.activate):
 			yield
 
@@ -28,98 +44,141 @@ def aptgets(name="all"):
 	else:
 		run("sudo apt-get -q -y install %s" % name)
 
-def installpackage(name="/home/ubuntu/latest/req.txt"):
-	path = "/home/ubuntu/stage"
-        if run("test -d %s" % path).succeeded:
-		run("source %s/bin/activate && pip install   -r /home/ubuntu/latest/req.txt" % path)
+def installpackage(name=env.installroot + "/req.txt"):
+        if run("test -d %s" % env.venv).succeeded:
+		with virtualenv():
+			run("pip install   -r %s" % name)
 	else:
-		run("mkdir %s" % path)
+		run("mkdir %s" % env.venv)
 		installpackage()
-#	run("pip install -r %s" % name)
 
 
-def gitcloneupdate(code_dir="/home/ubuntu/latest"):
+def gitcloneupdate():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
 
     with settings(warn_only=True):
-        if run("test -d %s" % code_dir).failed:
-            run("git clone git@github.com:wizcarder/wizcard-server.git  %s" % code_dir)
-    with cd(code_dir):
-        run("cd %s && git pull" % code_dir)
+        if run("test -d %s" % env.installroot).failed:
+            run("git clone git@github.com:wizcarder/wizcard-server.git  %s" % env.installroot)
+    with cd(env.installroot):
+        run("cd %s && git pull" % env.installroot)
 
-def localgitpullfile(code_dir="/home/anand/latest"):
+def localgitpullfile():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
 
     with settings(warn_only=True):
-        if local("test -d %s" % code_dir).failed:
-            local("git clone git@github.com:wizcarder/wizcard-server.git  %s" % code_dir)
-    with cd(code_dir):
-        local("cd %s && git pull" % code_dir)
+        if local("test -d %s" % env.installroot).failed:
+            local("git clone git@github.com:wizcarder/wizcard-server.git  %s" % env.installroot)
+    with cd(env.installroot):
+        local("cd %s && git pull" % env.installroot)
 
 
 
 #fab pullsnapshot(tarpath)
 
-def createvirtualenv(path="/home/ubuntu/stage"):
+def createvirtualenv():
     with settings(warn_only=True):
-        if run("test -d %s" % path).failed:
-		run("virtualenv %s --prompt=VIRTUAL:" % path)
+        if run("test -d %s" % env.venv).failed:
+                prompt_str = env.henv.upper() + "ENV"
+		run("virtualenv %s --prompt=%s:" % (env.venv,prompt_str))
 
-def postinstall(hostenv="stage"):
-	path = "/home/ubuntu/latest/log"
+def postinstall():
+	path = env.installroot + "log"
 	with settings(warn_only=True):
-		if run("test -d %s" % path).failed:
-			run("cd /home/ubuntu/latest && mkdir log")
-		run("cd /home/ubuntu/latest && mv wizcard/awstest_settings.py wizcard/settings.py")
+		with cd(env.installroot):
+			if run("test -d %s" % path).failed:
+				run("mkdir log")
+                        #append_settings()
+                        run("cp wizcard/awstest_settings.py wizcard/settings.py")
+			init_upstart()
 
+def init_upstart():
+	with cd(env.installroot):
+		run("sudo cp upstart/*.conf /etc/init")
+                run("sudo cp upstart/%s/wizserver /etc/nginx/sites-enabled" % env.henv)
+                run("sudo rm /etc/nginx/sites-enabled/default")
+
+@task
+def stopservices():
+	stoplocationservice()
+	stopwizserver()
+
+def startnginx():
+    run("sudo /etc/init.d/nginx restart")
+
+def stopnginx():
+    run("sudo /etc/init.d/nginx stop")
+
+def startcelery():
+    with virtualenv():
+	with cd(env.installroot):
+         	run("sudo service celeryworker start basedir=%s venv=%s WIZRUNENV=%s runuser=ubuntu" % (env.installroot,env.venv,env.henv),pty=False)
+        	run("sudo service celerybeat start basedir=%s venv=%s WIZRUNENV=%s runuser=ubuntu" % (env.installroot,env.venv,env.henv), pty=False)
+        	run("ps auxww | grep celery")
+
+def startrabbit():
+    with virtualenv():
+        with cd(env.installroot):
+        	run("sudo service rabbitmq-server restart")
+		fastprint("\nRunning rabbitmqconfig.sh===================================\n")
+		run("pwd;sudo ./rabbitmqconfig.sh")
+		run("ps auxww | grep rabbit")
+
+def startlocation():
+    with virtualenv():
+        with cd(env.installroot):
+		run("sudo service locationjob start basedir=%s venv=%s WIZRUNENV=%s" % (env.installroot, env.venv,env.henv),pty=False)
+		run("ps auxww | grep tree_state")
+
+@task
 def startservices():
-	with virtualenv():
-		with cd("/home/ubuntu/latest"):
-			run("sudo service rabbitmq-server restart")
-			fastprint("\nRunning rabbitmqconfig.sh===================================\n")
-			run("sudo sh ./rabbitmqconfig.sh")
-			run("ps auxww | grep rabbit")
-			fastprint("\nRunning celery server===================================\n")
+    startrabbit()
+    startcelery()
+    startlocation()
+    startgunicorn()
+    startnginx()
 
-		#	run("sh ./startcelery.sh", pty=False)
-			run("celery -A wizcard worker --loglevel=info -D",pty=False)
-			run("celery -A wizcard beat --detach", pty=False)
-			run("ps auxww | grep celery")
-			fastprint("\nRunning location server===================================\n")
-			run("python  ./location_service/rds_tree_state.py --D&",pty=False)
-			run("ps auxww | grep tree_state")
+
+@task
+def startlocationinstance():
+    with shell_env(WIZRUNENV=env.henv):
+        startrabbit()
+        startlocation()
 	
-			startgunicorn()
 
+@task
+def startwizserverinstance():
+    startrabbit()
+    startcelery()
+    startgunicorn()
+    startnginx()
 
+@task
 def startgunicorn():
 
 	with virtualenv():
-		with cd("/home/ubuntu/latest"):
+		with cd(env.installroot):
 			fastprint("\nRunning gunicorn server on %s===================================\n" % env.host)
-			run("gunicorn  --daemon wizcard.wsgi:application -b %s:8000 --access-logfile gunicorn_access.log --error-logfile gunicorn_error.log" % env.host, pty=False)
+			run("sudo service wizserver start host=%s basedir=%s venv=%s runuser=ubuntu WIZRUNENV=%s" % (env.host,env.installroot,env.venv,env.henv), pty=False)
 			run("ps auxww | grep gunicorn")
 			
-def runservice():
-	with virtualenv():
-		with cd("/home/ubuntu/latest"):
-			run("sh runservice")
-
 def freeze():
 	with virtualenv():
 		run('pip freeze')
+@task
+def stoplocationservice():
+    with settings(warn_only=True):
+	run("sudo service locationjob stop")
+@task
+def stopwizserver():
+    with settings(warn_only=True):
+	run("sudo service wizserver stop")
+	run("sudo service celerybeat stop")
+	run("sudo service celeryworker stop")
+        stopnginx()
 
-def stopservices():
-	run("sudo service rabbitmq-server stop")
-	path = "/home/ubuntu/latest/celeryd.pid"
-	with settings(warn_only=True):
-       	 if exists(path):
-		run("cd /home/ubuntu/latest; kill -TERM $(cat celeryd.pid)")
-		run("cd /home/ubuntu/latest; kill -TERM $(cat celerybeat.pid)")
-		run("cd /home/ubuntu/latest; pkill rds_tree_state.py")
-		run("cd /home/ubuntu/latest; pkill gunicorn")
+	
 		
-def deploy():
+def deployall():
 	fastprint("\nRunning aptgets===================================\n")
 	aptgets()
 	fastprint("\ndone aptgets===================================\n")
@@ -142,6 +201,61 @@ def deploy():
 	fastprint("\nRunning aptgets===================================\n")
 #	runtests()
 
+def deploylocation():
+	fastprint("\nRunning aptgets===================================\n")
+	aptgets()
+	fastprint("\ndone aptgets===================================\n")
+	fastprint("\nRunning aptgets===================================\n")
+	gitcloneupdate()
+	fastprint("\nDone gitcloneupdate===================================\n")
+	fastprint("\nRunning createvirtualenv===================================\n")
+	createvirtualenv()
+	fastprint("\nDone createvirtualenv===================================\n")
+	fastprint("\nRunning installpackage===================================\n")
+	installpackage()
+	fastprint("\nDone installpackage===================================\n")
+	fastprint("\nRunning postinstall===================================\n")
+	postinstall()
+	fastprint("\nDone postinstall===================================\n")
+	fastprint("\nRunning startservices===================================\n")
+	stoplocationservice()
+	startlocationinstance()
+	fastprint("\nDone aptgets===================================\n")
+	fastprint("\nRunning aptgets===================================\n")
+
+
+def deploywizserver():
+	fastprint("\nRunning aptgets===================================\n")
+	aptgets()
+	fastprint("\ndone aptgets===================================\n")
+	fastprint("\nRunning aptgets===================================\n")
+	gitcloneupdate()
+	fastprint("\nDone gitcloneupdate===================================\n")
+	fastprint("\nRunning createvirtualenv===================================\n")
+	createvirtualenv()
+	fastprint("\nDone createvirtualenv===================================\n")
+	fastprint("\nRunning installpackage===================================\n")
+	installpackage()
+	fastprint("\nDone installpackage===================================\n")
+	fastprint("\nRunning postinstall===================================\n")
+	postinstall()
+	fastprint("\nDone postinstall===================================\n")
+	fastprint("\nRunning startservices===================================\n")
+	stopwizserver()
+	startwizserverinstance()
+	fastprint("\nDone aptgets===================================\n")
+	fastprint("\nRunning aptgets===================================\n")
+@task
+def deploy():
+
+    with shell_env(WIZRUNENV=env.henv):
+
+	if (env.function == "WIZSERVER"):
+		deploywizserver()
+	elif (env.function == "LOCATIONSERVER"):
+		deploylocation()
+	else:
+		deployall()
 
 	
 	
@@ -150,3 +264,4 @@ def deploy():
 	
 
 
+# gitclone update using tags
