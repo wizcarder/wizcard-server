@@ -414,10 +414,8 @@ class Header(ParseMsgAndDispatch):
             self.userprofile.device_type = self.sender['deviceType']
         except:
             pass
-        try:
-            self.userprofile.reg_token = self.sender['reg_token']
-        except:
-            pass
+        
+        self.userprofile.reg_token = self.sender['reg_token']
 
 	if self.userprofile.do_sync:
             #sync all syncables
