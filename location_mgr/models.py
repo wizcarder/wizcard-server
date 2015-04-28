@@ -26,7 +26,9 @@ class Tick(Job):
 
     def job(self):
         logger.debug('TICK RECEIVED at %s', timezone.now())
-        print 'TICK RECEIVED at {t}'.format(t=timezone.now())
+
+        if os.getenv('WIZRUNENV','dev') == 'dev':
+            print 'TICK RECEIVED at {t}'.format(t=timezone.now())
         exp = Periodic.objects.get_expired()
         if exp.count():
             logger.info('EXPIRED objects found %s', exp)

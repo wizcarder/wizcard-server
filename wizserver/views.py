@@ -62,7 +62,6 @@ class WizRequestHandler(View):
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
         response =  pdispatch.dispatch()
-        logger.debug('sending response to app')
         #send response
         return response.respond()
 
@@ -640,7 +639,7 @@ class Header(ParseMsgAndDispatch):
 		if 'f_bizCardImage' in contactItem and contactItem['f_bizCardImage']:
 	            #AA:TODO: Remove try
                     try:
-                        b64image = bytes(self.sender['f_bizCardImage'])
+                        b64image = bytes(contactItem['f_bizCardImage'])
                         rawimage = b64image.decode('base64')
 			#AA:TODO: better file name
                         upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % \
@@ -653,7 +652,7 @@ class Header(ParseMsgAndDispatch):
 		if 'b_bizCardImage' in contactItem and contactItem['b_bizCardImage']:
 	            #AA:TODO: Remove try
                     try:
-                        b64image = bytes(self.sender['b_bizCardImage'])
+                        b64image = bytes(contactItem['b_bizCardImage'])
                         rawimage = b64image.decode('base64')
 			#AA:TODO: better file name
                         upfile = SimpleUploadedFile("%s-b_bc.%s.%s.jpg" % (wizcard.pk, c.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")

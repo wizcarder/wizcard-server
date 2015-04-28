@@ -21,10 +21,17 @@ import os
 
 DEFAULT_MAX_LOOKUP_RESULTS = 10
 
+FORMAT= '[%(levelname)s] %(asctime)s - M:%(module)s, P:%(process)d, T:%(thread)d, MSG:%(message)s'
+
 TREE_INSERT = 1
 TREE_DELETE = 2
 TREE_LOOKUP = 3
 PRINT_TREES = 4
+
+if settings.DEBUG:
+    logging.basicConfig(format=FORMAT,level=logging.DEBUG)
+else:
+    logging.basicConfig(fileneme="./log/location_server.log",format=FORMAT,level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +113,7 @@ class TreeServer(LocationServiceServer):
         key = kwargs.pop('key')
         val = kwargs.pop('val')
 
-        print 'tree insert {0}: {1}:{2}'.format(tree_type, key, val)
+        logger.debug('tree insert {0}: {1}:{2}'.format(tree_type, key, val))
         tree = self.get_tree_from_type(tree_type)
         val = self.t_ins(tree, key, val)
 
@@ -124,7 +131,7 @@ class TreeServer(LocationServiceServer):
 
         tree = self.get_tree_from_type(tree_type)
         val = self.t_del(tree, key)
-        print 'tree delete {0}: {1}:{2}'.format(tree_type, key, val)
+        logger.debug('tree delete {0}: {1}:{2}'.format(tree_type, key, val))
         result = dict()
         result['result'] =  val
         return result
@@ -154,7 +161,7 @@ class TreeServer(LocationServiceServer):
             self.t_ins(tree, key, cached_val)
 
         logger.debug('looking up gives [%d] result [%s]', count, ret)
-        print 'tree lookup {0}: {1}:{2}'.format(tree_type, key, ret)
+        logger.debug('tree lookup {0}: {1}:{2}'.format(tree_type, key, ret))
 
         result = dict()
         result['result'] = ret

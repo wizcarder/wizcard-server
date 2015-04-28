@@ -20,3 +20,4 @@ wizserver/views.py:                #AA:TODO: phone should just be the mobile pho
 wizserver/views.py:        #TODO: AA handle create failure and/or unique name enforcement
 wizserver/views.py:        #AA:TODO move create to overridden create in VirtualTable
 wizserver/views.py:	    #AA_TODO: cross check phone
+location_service/rconfig.py #AR_TODO: Assumes only one location server instance, accesses 1st element

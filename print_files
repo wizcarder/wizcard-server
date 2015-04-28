@@ -1,0 +1,9 @@
+./wizcardship/signals.py
+./location_service/client.py
+./location_service/client.pyc
+./location_service/tree_state.py
+./location_service/rds_tree_state.py
+./lib/Abbyy/MultipartPostHandler.py
+./lib/Abbyy/AbbyyOnlineSdk.py
+./lib/bisect_wrapper.py
+./lib/wizlib.py
