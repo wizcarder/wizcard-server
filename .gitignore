@@ -1,2 +1,6 @@
 *.log
 *.pid
+*.pyc
+twistd.*
+celerybeat*
+log/*

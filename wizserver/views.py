@@ -707,8 +707,7 @@ class Header(ParseMsgAndDispatch):
         try:
             wizcard1 = self.user.wizcard
             #AA: TODO Change to wizCardID
-	    self.r_user = User.objects.get(id=self.receiver['wizUserID'])
-            wizcard2 = self.r_user.wizcard
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
 	except KeyError: 
             self.securityException()
             self.response.ignore()
@@ -960,6 +959,8 @@ class Header(ParseMsgAndDispatch):
             self.securityException()
             self.response.ignore()
             return self.response
+        logger.debug('sender %s', self.sender)
+        logger.debug('receiver %s', self.receiver)
 
         if asset_type == "wizcard":
             try:
