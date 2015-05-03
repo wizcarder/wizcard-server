@@ -107,7 +107,7 @@ elif RUNENV == 'test':
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'wizcarddb',
-	        'HOST': 'wizdb.cr0lcscmhhyk.ap-southeast-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'HOST': 'wizcarddb.caqhxrq8dyl5.us-west-1.rds.amazonaws.com:3306', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 
