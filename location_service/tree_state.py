@@ -222,7 +222,8 @@ def main():
 
         amqpuser = settings.LOCATION_USER
         amqppass = settings.LOCATION_PASS
-        amqphost = instances.ALLHOSTS[RUNENV]['LOCATIONSERVER'][0]
+#        amqphost = instances.ALLHOSTS[RUNENV]['LOCATIONSERVER'][0]
+        amqphost = settings.BROKER_HOST
         url = 'amqp://' + amqpuser + ':' + amqppass + '@'+amqphost+':5672'
 
 	ts = TreeServer(url,RUNENV=RUNENV)
