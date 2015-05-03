@@ -18,8 +18,8 @@
 ##
 
 upstream wizserver {
-    server ec2-52-74-114-151.ap-southeast-1.compute.amazonaws.com:8000;
-    server ec2-52-74-148-23.ap-southeast-1.compute.amazonaws.com:8000;
+    server ec2-52-8-25-4.us-west-1.compute.amazonaws.com:8000;
+    server ec2-52-8-23-147.us-west-1.compute.amazonaws.com:8000;
 }
 
 
