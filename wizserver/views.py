@@ -1517,7 +1517,7 @@ class Header(ParseMsgAndDispatch):
             out = Wizcard.objects.serialize(m_res.wizcard, 
                                         template = fields.wizcard_template_full)
             self.response.add_data("m_result", out)
-         else:
+        else:
             #AA:Comments: send nearby in "m_nearby"
             pass 
 
