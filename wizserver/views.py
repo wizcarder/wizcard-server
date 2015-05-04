@@ -136,6 +136,8 @@ class Header(ParseMsgAndDispatch):
 	if self.msg_has_location():
             self.lat = sender['lat']
             self.lng = sender['lng']
+            logger.debug('User %s @lat, lng: {%s, %s}', 
+                          self.user.first_name+" "+self.user.last_name, self.lat, self.lng)
 	        
         self.sender = sender
 
@@ -1436,8 +1438,8 @@ class Header(ParseMsgAndDispatch):
             c.f_bizCardImage.save(upfile.name, upfile)
             path = c.f_bizCardImage.local_path()
         else:
-            #AA. TODO: Remove me eventually...this is just for testing
-            path = "test/photo.JPG"
+            self.response.ignore()
+            return self.response
 
         #Do ocr stuff
         ocr = OCR()
@@ -1455,8 +1457,13 @@ class Header(ParseMsgAndDispatch):
         c.end="current"
         c.save()
 
+        #set this user to be activated. EditCard need not be sent
+        #if there are no edits required after OCR scanning
+        self.userprofile.activated = True
+        self.userprofile.save()
+
         self.response.add_data("ocr_result", result)
-        print "sending OCR scan results", result
+        logger.debug('sending OCR scan results %s', result)
         return self.response
 
     def OcrReqDeadCard(self):
@@ -1472,8 +1479,8 @@ class Header(ParseMsgAndDispatch):
             b64image = bytes(self.sender['f_ocrCardImage'])
             rawimage = b64image.decode('base64')
         else:
-            path = "test/photo.JPG"
-            rawimage = bytes(open(path).read())
+            self.response.ignore()
+            return self.response
 
         upfile = SimpleUploadedFile("%s-%s.jpg" % \
                 (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), 
@@ -1504,9 +1511,15 @@ class Header(ParseMsgAndDispatch):
         m_res = m.check_meishi()
         if m_res:
             Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True)
+            #AA:Comments: can send a smaller serilized output
+            #wizcard_template_full is not required. All the app needs is
+            #wizcard_id, f_bizCardUrl
             out = Wizcard.objects.serialize(m_res.wizcard, 
                                         template = fields.wizcard_template_full)
             self.response.add_data("m_result", out)
+         else:
+            #AA:Comments: send nearby in "m_nearby"
+            pass 
 
         return self.response
 
