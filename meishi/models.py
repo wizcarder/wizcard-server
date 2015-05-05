@@ -16,7 +16,9 @@ except ImportError:
     now = datetime.datetime.now()
 
 MEISHI_TIME_THRESHOLD = 10
-MEISHI_DIST_THRESHOLD = 100.00 
+
+#TODO: Need to see whether lat, lng granularity can be increased
+MEISHI_DIST_THRESHOLD = 200.00 
 
 class MeishiMgr(models.Manager):
 
@@ -39,6 +41,13 @@ class MeishiMgr(models.Manager):
 
     def unpair(self, meishi1, meishi2):
         meishi1.pairs.remove(meishi2)
+
+#AA:Comments: might be good to have an "active" kind of field tracking
+#which meishi's ae active. get_candidates can exclude inactive meishi's.
+#it's active when the record is created...maybe marked inactive/complete 
+#when paired up...will have to figure out additional ways of inactivating
+#maybe this is one use-case for sending meishi_end
+#in general, instead if binary state, it could be multiple states [active, paired, complete, didnt_find_pair]..etc
 
 class Meishi(models.Model):
     wizcard = models.ForeignKey(Wizcard) 
@@ -70,12 +79,16 @@ class Meishi(models.Model):
         return wizlib.haversine(self.lng, self.lat, lng, lat)
 
     def satisfies_space_constraint(self, candidate):
+        return True
         meishi_distance = self.distance_from(candidate.lat,candidate.lng)
         if (meishi_distance <= MEISHI_DIST_THRESHOLD):
             return True
         return False
 
     def check_meishi(self):
+        #AA:Comments: first check if something in the cache is present for me
+
+
         #first check if already paired
         if self.pairs.exists():
             return self.pairs.get()
@@ -93,6 +106,9 @@ class Meishi(models.Model):
         candidate = heapq.nsmallest(1, h)[0][1]
         if self.satisfies_space_constraint(candidate):
             Meishi.objects.pair_up(self,candidate)
+            #AA: Where is this cached wizcard being used ?
+            #you might want to use this for when the candidate comes
+            #in...in which case the key should probably be candidate wizcard_id
             cache.set(self.wizcard.id, candidate.wizcard)
             return candidate
 
