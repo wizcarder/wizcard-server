@@ -283,6 +283,8 @@ class Wizcard(models.Model):
             Wizcard.objects.update_wizconnection(self, wizcard)
 
     def check_flick_duplicates(self, lat, lng):
+        if not settings.DO_FLICK_AGGLOMERATE:
+            return None
 	#check if nearby cards can be combined...do we need to adjust centroid and all that ?
         for w in self.flicked_cards.all():
             if wizlib.haversine(w.lng, w.lat, lng, lat) < settings.WIZCARD_FLICK_AGGLOMERATE_RADIUS:
