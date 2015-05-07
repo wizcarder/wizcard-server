@@ -28,28 +28,36 @@ class UserProfileManager(models.Manager):
 	s = dict()
         template = fields.wizcard_template_brief
 
-	own, connected, others = self.split_users(me, users)
+	own, requested, connected, others = self.split_users(me, users)
         if own:
             s['own'] = UserProfile.objects.serialize(own, template)
         if connected:
             s['connected'] = UserProfile.objects.serialize(connected, template)
+        if requested:
+            s['requested'] = UserProfile.objects.serialize(requested, template)
         if others:
             s['others'] = UserProfile.objects.serialize(others, template)
 
         return s
 
     def split_users(self, me, users):
-        connected = []
         own = []
+        connected = []
+        requested = []
 	others = []
         for user in users:
             if Wizcard.objects.are_wizconnections(user.wizcard, me.wizcard):
                 connected.append(user)
             elif user == me:
                 own.append(user)
+            elif Wizcard.objects.is_wizconnection_pending(
+                    me.wizcard,
+                    user.wizcard):
+                requested.append(user)
             else:
                 others.append(user)
-        return own, connected, others
+        #AA:TODO make it dict
+        return own, requested, connected, others
 
     def serialize(self, users, template):
         wizcards = map(lambda u: u.wizcard, users)
