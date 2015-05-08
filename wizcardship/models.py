@@ -60,6 +60,12 @@ class WizcardManager(models.Manager):
         return bool((wizcard1.wizconnections.filter(
             id=wizcard2.id)).exists())
 
+    def is_wizconnection_pending(self, wizcard1, wizcard2):
+        return bool(WizConnectionRequest.objects.filter(
+            from_wizcard=wizcard1,
+            to_wizcard=wizcard2,
+            accepted=False).exists())
+
     def wizconnection_req_clear(self, from_wizcard, to_wizcard):
         WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
                                             to_wizcard=to_wizcard).delete()
