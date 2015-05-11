@@ -114,6 +114,7 @@ def startcelery():
 	with cd(env.installroot):
          	run("sudo service celeryworker start basedir=%s venv=%s WIZRUNENV=%s runuser=ubuntu" % (env.installroot,env.venv,env.henv),pty=False)
         	run("sudo service celerybeat start basedir=%s venv=%s WIZRUNENV=%s runuser=ubuntu" % (env.installroot,env.venv,env.henv), pty=False)
+        	run("sudo service celeryflower start basedir=%s venv=%s WIZRUNENV=%s runuser=ubuntu" % (env.installroot,env.venv,env.henv), pty=False)
         	run("ps auxww | grep celery")
 
 def startrabbit():
@@ -190,6 +191,7 @@ def stopwizserver():
 	run("sudo service wizserver stop")
 	run("sudo service celerybeat stop")
 	run("sudo service celeryworker stop")
+	run("sudo service celeryflower stop")
         stoptwistd()
         stopnginx()
 
