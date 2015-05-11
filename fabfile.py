@@ -37,6 +37,7 @@ def aptgets(name="all"):
 		run("sudo apt-get -q -y install python-dev")
 		run("sudo apt-get -q -y install git")
 		run("sudo apt-get -q -y install rabbitmq-server")
+                run("sudo rabbitmq-plugins enable rabbitmq_management")
 		run("sudo apt-get -q -y install libssl-dev")
 		run("sudo apt-get -q -y install memcached")
 		run("sudo apt-get -q -y install libffi-dev libxml2 libxml2-dev  libxslt1-dev")
@@ -134,12 +135,26 @@ def startservices():
     startrabbit()
     startcelery()
     startlocation()
+    starttwistd()
     startgunicorn()
     startnginx()
 
 
 @task
-def startlocationinstance():
+def starttwistd():
+    with virtualenv():
+        with cd(env.installroot):
+            run("twistd -r select web --class=pyapns.server.APNSServer --port=7077", pty=False)
+
+
+@task
+def stoptwistd():
+    with virtualenv():
+        with cd(env.installroot):
+            run("cat twistd.pid | xargs kill")
+
+@task
+def startlocationservice():
     with shell_env(WIZRUNENV=env.henv):
         startrabbit()
         startlocation()
@@ -150,6 +165,7 @@ def startwizserverinstance():
     startrabbit()
     startcelery()
     startgunicorn()
+    starttwistd()
     startnginx()
 
 @task
@@ -174,6 +190,7 @@ def stopwizserver():
 	run("sudo service wizserver stop")
 	run("sudo service celerybeat stop")
 	run("sudo service celeryworker stop")
+        stoptwistd()
         stopnginx()
 
 	
@@ -219,7 +236,7 @@ def deploylocation():
 	fastprint("\nDone postinstall===================================\n")
 	fastprint("\nRunning startservices===================================\n")
 	stoplocationservice()
-	startlocationinstance()
+	startlocationservice()
 	fastprint("\nDone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 
@@ -251,17 +268,8 @@ def deploy():
     with shell_env(WIZRUNENV=env.henv):
 
 	if (env.function == "WIZSERVER"):
-		deploywizserver()
-	elif (env.function == "LOCATIONSERVER"):
-		deploylocation()
-	else:
-		deployall()
-
-	
-	
-	
-
-	
-
-
-# gitclone update using tags
+            deploywizserver()
+        elif (env.function == "LOCATIONSERVER"):
+            deploylocation()
+        else:
+            deployall()
