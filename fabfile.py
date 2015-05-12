@@ -196,6 +196,17 @@ def stopwizserver():
         stopnginx()
 
 	
+@task
+def updaterestart():
+    gitcloneupdate()
+    createvirtualenv()
+    if (env.function == "WIZSERVER"):
+	stopwizserver()
+	startwizserverinstance()
+    elif (env.function == "LOCATIONSERVER"):
+	stoplocationservice()
+	startlocationservice()
+
 		
 def deployall():
 	fastprint("\nRunning aptgets===================================\n")
