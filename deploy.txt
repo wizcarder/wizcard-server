@@ -22,6 +22,11 @@ NOTE: git password prompt will require input
 2. If you want to update packages and restart, 
 ./deploy.sh deploy 
 
+3. Starting and stopping services
+  a. On the servers sudo service <wizserver/locationjob/celerybeat/celeryworker> start/stop/restart
+  b. From fabric one needs to run it in multiple steps stoplocationservice/stopwizserver and then do startlocationinstance/startwizserverinstance
+
+
 NOTE: please ensure that the req.txt is in git with the packages that needs update.
 
 DETAILS:
