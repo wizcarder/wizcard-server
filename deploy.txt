@@ -1,0 +1,37 @@
+Assumptions: 
+1. The instances are fixed (if you need to change this check out wizcard/instances.py
+2. the environment is one of "dev" or "test", its easy to add more env to settings.
+3. git account is setup (talk to me for password details) or feel free to add your private key to the aws instance
+4. req.txt is uptodate with packages needed
+5. settings.py has necessary information for DB instance.
+
+Known issues:
+
+1. Nginx and upstart scripts are in git specific to instances, if you need to add more instances or change instances need to edit the getwizcard file with the hostnames
+2. memcached still requires manual work to start on the hostname rather than localhost.
+3. Security groups are preconfigured, if you want your host to talk to aws instances - whitelist in security group.
+
+QUICK READ:
+
+1. If you have existing instances which just needs code update and restart, all you need to do is run 
+
+./deploy.sh updaterestart
+
+NOTE: git password prompt will require input
+
+2. If you want to update packages and restart, 
+./deploy.sh deploy 
+
+NOTE: please ensure that the req.txt is in git with the packages that needs update.
+
+DETAILS:
+
+If you want anything else, you can run the fabric commands with appropriate commands - 
+
+fab -f fabfile.py help 
+
+lists all commands available.
+
+
+
+
