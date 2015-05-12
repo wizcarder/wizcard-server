@@ -300,7 +300,7 @@ class Header(ParseMsgAndDispatch):
             else:
                 self.response.error_response(err.INVALID_MESSAGE)
                 return self.response
-        if not test_mode:
+
             sms = NexmoMessage(msg)
             sms.set_text_info(msg['text'])
             sms.send_request()
@@ -1556,6 +1556,7 @@ class Header(ParseMsgAndDispatch):
     def WizWebWizcardQuery(self):
 
 	userID = self.sender['userID']
+        pdb.set_trace()
         if self.sender['username']:
 	    username = self.sender['username']
 	    try:
