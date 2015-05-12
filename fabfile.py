@@ -89,7 +89,7 @@ def postinstall():
 			if run("test -d %s" % path).failed:
 				run("mkdir log")
                         #append_settings()
-                        run("cp wizcard/awstest_settings.py wizcard/settings.py")
+#                        run("cp wizcard/awstest_settings.py wizcard/settings.py")
 			init_upstart()
 
 def init_upstart():
