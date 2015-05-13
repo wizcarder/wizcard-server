@@ -84,10 +84,11 @@ user_query_full_template = {
 
 nearby_table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
-               'timeRemaining', 'wizcards', 'createdBy'],
+               'timeRemaining', 'wizcards', 'firstname','lastname'],
     'key_map' : {'timeRemaining':'time_remaining', \
                 'wizcards': 'get_member_wizcards',\
-                'createdBy': 'created_by'}
+                'firstname': 'created_by_firstname', \
+                'lastname': 'created_by_lastname'}
 }
 
 table_template = {
