@@ -57,7 +57,9 @@ logger = logging.getLogger(__name__)
 
 class WizRequestHandler(View):
     def post(self, request, *args, **kwargs):
+
         self.request = request
+        #logger.debug(request)
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
@@ -1532,24 +1534,41 @@ class Header(ParseMsgAndDispatch):
 
     #################WizWeb Message handling########################
     def WizWebUserQuery(self):
-	username = self.sender['username']
-	userID = None
-	try:
-	    user = User.objects.get(username=username)
-            self.response.add_data("userID", user.profile.userid)
-	except:
-	    pass
+        if self.sender['username']:
+	    username = self.sender['username']
+            userID = None
+	    try:
+	      user = User.objects.get(username=username)
+              self.response.add_data("userID", user.profile.userid)
+	    except:
+	      pass
+        elif self.sender['email']:
+            email = self.sender['email']
+
+	    try:
+	      user = User.objects.get(email=email)
+              self.response.add_data("userID", user.profile.userid)
+	    except:
+	      pass
         
 	return self.response
 
     def WizWebWizcardQuery(self):
-	username = self.sender['username']
-	userID = self.sender['userID']
 
-        try:
-	    self.user = User.objects.get(username=username)
-	except:
-            return self.response.error_response(err.USER_DOESNT_EXIST)
+	userID = self.sender['userID']
+        pdb.set_trace()
+        if self.sender['username']:
+	    username = self.sender['username']
+	    try:
+	      user = User.objects.get(username=username)
+	    except:
+              return self.response.error_response(err.USER_DOESNT_EXIST)
+        elif self.sender['email']:
+            email = self.sender['email']
+	    try:
+	      user = User.objects.get(email=email)
+	    except:
+              return self.response.error_response(err.USER_DOESNT_EXIST)
 
         if self.user.profile.userid != userID:
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
