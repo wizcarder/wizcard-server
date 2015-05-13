@@ -39,9 +39,10 @@ class VirtualTableManager(models.Manager):
     def set_tag(self, tag):
         self.tag = tag
 
-    def lookup(self, lat, lng, n, count_only=False):
+    def lookup(self, cache_key, lat, lng, n, count_only=False):
         tables = None
         result, count = LocationMgr.objects.lookup(
+                            cache_key,
                             "VTREE",
                             lat,
                             lng,
@@ -122,11 +123,11 @@ class VirtualTable(models.Model):
         return self.secureTable
 
     def get_member_wizcards(self):
-        members = map(lambda u: u.wizcard, self.users.all().exclude(id=self.creator.id)
+        members = map(lambda u: u.wizcard, self.users.all().exclude(id=self.creator.id))
         return serialize(members, **fields.wizcard_template_mini)
 
     def get_creator(self):
-        return serialize(self.creator, **fields.wizcard_template_mini)
+        return serialize(self.creator.wizcard, **fields.wizcard_template_mini)
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)

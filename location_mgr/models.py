@@ -52,7 +52,8 @@ class LocationMgrManager(models.Manager):
             #will happen on db full clean
             pass
 
-    def lookup(self, tree_type, lat, lng, n, exclude_self=False, modifier=None):
+    def lookup(self, cache_key, tree_type, lat, lng, n,
+               exclude_self=False, modifier=None):
         tsc = LocationServiceClient()
 
         key = wizlib.create_geohash(lat, lng)
@@ -137,8 +138,10 @@ class LocationMgr(models.Model):
         self.delete_from_tree()
         super(LocationMgr, self).delete(*args, **kwargs)
 
-    def lookup(self, n):
-        return LocationMgr.objects.lookup(self.tree_type,
+    def lookup(self, cache_key, n):
+        return LocationMgr.objects.lookup(
+                cache_key,
+                self.tree_type,
                 self.lat,
                 self.lng,
                 n,

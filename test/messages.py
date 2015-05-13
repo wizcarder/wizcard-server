@@ -57,6 +57,7 @@ register_sync = {
         "lat" : 37.785834,
         "lng" : -122.406415,
         "deviceType": "ios",
+        "reg_token": "123456",
         "userID" : "2UIPIEPbBk"
 
     },
@@ -73,6 +74,7 @@ register1 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
+        "reg_token": "123456",
         "lat" : 37.785835,
         "lng" : -122.406416,
         "deviceType": "ios",
@@ -91,6 +93,7 @@ register2 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
+        "reg_token": "123456",
         "lat" : 37.785837,
         "lng" : -122.406418,
         "deviceType": "ios",
@@ -109,6 +112,7 @@ register3 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
+        "reg_token": "123456",
         "lat" : 37.785838,
         "lng" : -122.406419,
         "deviceType": "ios",
