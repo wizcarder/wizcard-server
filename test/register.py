@@ -28,7 +28,7 @@ import string
 #delete rolodex - 1
 
 TEST_IMAGE=True
-OCR_FLAG = True
+OCR_FLAG = False
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "14084641727"
@@ -106,6 +106,7 @@ verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 
 #server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
+#server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
 server_url = "localhost"
 
 server_port = 8000
@@ -369,6 +370,7 @@ reqmsg['sender']['wizUserID'] = wuid1
 print "re-flicking card from close-by location", reqmsg['sender']['userID']
 reqmsg['sender']['lng'] += 0.000001
 reqmsg['sender']['lat'] += 0.000001
+reqmsg['sender']['timeout'] = 2
 cf3 = json.dumps(reqmsg)
 conn.request("POST","", cf3)
 # Parse and dump the JSON response from server
@@ -1034,7 +1036,7 @@ if OCR_FLAG:
 #query user
 print "wizweb query existing user"
 reqmsg = messages.wizweb_query_user
-reqmsg['sender']['username'] = USERNAME1
+#reqmsg['sender']['username'] = USERNAME1
 wwqu1 = json.dumps(reqmsg)
 print wwqu1
 conn.request("POST","", wwqu1)
@@ -1055,7 +1057,7 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 #query wizcard
 print "wizweb query existing wizcard"
 reqmsg = messages.wizweb_query_wizcard
-reqmsg['sender']['username'] = USERNAME1
+#reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['userID'] = uid1
 print "wizweb message query_wizcard ", reqmsg['sender']['username']
 wwqwc1 = json.dumps(reqmsg)
