@@ -7,13 +7,16 @@ contact_container_template = {
     'fields':  contact_container_fields,
     'key_map': contact_container_keymap
 }
-wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnailUrl']
+wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnailUrl', \
+                                 'name']
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
                   'phone', 'email', 'thumbnailUrl', 'contact_container']
 
 wizcard_fields_keymap = {
         'wizcard_id': 'id',
-        'thumbnailUrl': 'get_thumbnail_url'
+        'thumbnailUrl': 'get_thumbnail_url',
+        'name': 'get_name'
+
         }
 wizcard_fields_keymap_brief = {
         'wizcard_id': 'id',

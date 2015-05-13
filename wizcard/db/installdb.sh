@@ -2,7 +2,7 @@
 
 # Change the parameters here for another DB
 USER=root
-PWD=''
+PWD='mydb'
 DB=wizcard
 echo clear user $CLEAR_USER
 ACTION=$1

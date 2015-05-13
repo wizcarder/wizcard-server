@@ -453,11 +453,11 @@ RAVEN_CONFIG = {
     #for current(original) AWS instance
     #    'dsn': 'https://d19905d820934cd59cde1e0372c21c43:cc970c850f4b4684bdbd9648f148d2ab@app.getsentry.com/27697',
     #for stage(original) AWS instance
-    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148'
+    #    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148'
     #for wizcard totastyle instance
     #'dsn': 'https://0e8c55f2ba84490c891dd340685a4177:13702356dd5445cabfc7e9b02814975c@app.getsentry.com/41149'
     #for anandr-laptop instance
-    #    'dsn': 'https://b58fae5ffdec4127885c4764524f9feb:57fa34177fcb4db6b8dedfd88c8c1526@app.getsentry.com/41150'
+        'dsn': 'https://b58fae5ffdec4127885c4764524f9feb:57fa34177fcb4db6b8dedfd88c8c1526@app.getsentry.com/41150'
 }
 
 

@@ -268,6 +268,9 @@ class Wizcard(models.Model):
     def get_thumbnail_url(self):
         return self.thumbnailImage.remote_url()
 
+    def get_name(self):
+        return self.first_name + " " + self.last_name
+
     def get_latest_title(self):
         qs = self.contact_container.all()
         if qs.exists():
@@ -358,9 +361,10 @@ class WizcardFlickManager(models.Manager):
     def set_tag(self, tag):
         self.tag = tag
 
-    def lookup(self, lat, lng, n, count_only=False):
+    def lookup(self, cache_key, lat, lng, n, count_only=False):
         flicked_cards = None
         result, count =  LocationMgr.objects.lookup(
+                                cache_key,
                                 "WTREE",
                                 lat, 
                                 lng, 

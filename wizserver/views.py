@@ -532,18 +532,25 @@ class Header(ParseMsgAndDispatch):
         #any wizcards dropped nearby
         #AA:TODO: Use come caching framework to cache these
         flicked_wizcards, count = WizcardFlick.objects.lookup(
+                self.user.pk,
                 self.lat, 
                 self.lng, 
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
-            notifResponse.notifFlickedWizcardsLookup(count, 
+            notifResponse.notifFlickedWizcardsLookup(count,
                     self.user, flicked_wizcards)
 
-        users, count = self.userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        users, count = self.userprofile.lookup(
+                           self.user.pk,
+                           settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
-            notifResponse.notifUserLookup(count, self.user, users) 
+            notifResponse.notifUserLookup(
+                    count, 
+                    self.user, 
+                    users) 
 
         tables, count = VirtualTable.objects.lookup(
+                self.user.pk,
                 self.lat, 
                 self.lng, 
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
@@ -1556,7 +1563,6 @@ class Header(ParseMsgAndDispatch):
     def WizWebWizcardQuery(self):
 
 	userID = self.sender['userID']
-        pdb.set_trace()
         if self.sender['username']:
 	    username = self.sender['username']
 	    try:

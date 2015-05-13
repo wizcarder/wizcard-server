@@ -16,7 +16,6 @@ def set_hosts():
     	env.hosts = instances.ALLHOSTS[env.henv][env.function]
         print env.hosts
 
-@task
 def do_ls():
     with virtualenv():
 	run("ls -al > /tmp/lsout")
