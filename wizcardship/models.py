@@ -262,6 +262,9 @@ class Wizcard(models.Model):
     def get_thumbnail_url(self):
         return self.thumbnailImage.remote_url()
 
+    def get_name(self):
+        return self.first_name + " " + self.last_name
+
     def get_latest_title(self):
         qs = self.contact_container.all()
         if qs.exists():

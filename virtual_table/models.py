@@ -122,8 +122,11 @@ class VirtualTable(models.Model):
         return self.secureTable
 
     def get_member_wizcards(self):
-        members = map(lambda u: u.wizcard, self.users.all())
+        members = map(lambda u: u.wizcard, self.users.all().exclude(id=self.creator.id)
         return serialize(members, **fields.wizcard_template_mini)
+
+    def get_creator(self):
+        return serialize(self.creator, **fields.wizcard_template_mini)
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
@@ -143,9 +146,6 @@ class VirtualTable(models.Model):
 
     def is_member(self, user):
         return bool(self.users.filter(id=user.id).exists())
-
-    def created_by(self):
-        return self.creator.first_name + " " + self.creator.last_name
 
     def is_creator(self, user):
         return bool(self.creator == user)
