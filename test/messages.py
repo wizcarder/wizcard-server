@@ -77,7 +77,8 @@ register1 = {
         "lng" : -122.406416,
         "deviceType": "ios",
         "userID" : "",
-	"wizUserID" : ""
+	"wizUserID" : "",
+        "reg_token" : ""
     },
 }
 
@@ -95,6 +96,7 @@ register2 = {
         "lng" : -122.406418,
         "deviceType": "ios",
         "userID" : "",
+        "reg_token" : "",
 	"wizUserID" : ""
     },
 }
@@ -113,6 +115,7 @@ register3 = {
         "lng" : -122.406419,
         "deviceType": "ios",
         "userID" : "",
+        "reg_token" : "",
 	"wizUserID" : ""
     },
 }
@@ -606,7 +609,8 @@ wizweb_query_user = {
         "msgType" : "wizweb_query_user",
     },
     "sender" : {
-        "username" : "",
+        "email" : "xyz@abc.co.in",
+        "username" : ""
     },
 }
     
@@ -618,8 +622,8 @@ wizweb_query_wizcard = {
         "msgType" : "wizweb_query_wizcard",
     },
     "sender" : {
-        "username" : "",
-	"userID" : "",
+        "email" : "xyz@abc.co.in",
+        "username" : ""
     },
 }
     
