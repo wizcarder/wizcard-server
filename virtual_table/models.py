@@ -148,15 +148,6 @@ class VirtualTable(models.Model):
     def is_member(self, user):
         return bool(self.users.filter(id=user.id).exists())
 
-    def created_by(self):
-        return self.creator.first_name + " " + self.creator.last_name
-
-    def created_by_firstname(self):
-        return self.creator.first_name 
-
-    def created_by_lastname(self):
-        return self.creator.last_name
-
     def is_creator(self, user):
         return bool(self.creator == user)
 
