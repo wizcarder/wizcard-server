@@ -93,11 +93,7 @@ class Meishi(models.Model):
 
         #get candidates based on time. Then get (conditional) closest
         cl, count = Meishi.objects.get_candidates(self)
-<<<<<<< Updated upstream
-        if not count
-=======
         if not count:
->>>>>>> Stashed changes
             return None
 
         h = []
