@@ -209,6 +209,7 @@ elif RUNENV == 'test':
 
 
 DEFAULT_MAX_LOOKUP_RESULTS = 20
+DEFAULT_MAX_MEISHI_LOOKUP_RESULTS = 2
 
 # Number of seconds of inactivity before a user is marked offline
 USER_ONLINE_TIMEOUT = 10

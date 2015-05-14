@@ -85,7 +85,7 @@ class ParseMsgAndDispatch(object):
     def securityException(self):
 	#AA TODO
 	return None
-	
+
 class Header(ParseMsgAndDispatch):
     def __init__(self, request):
         #raw message self.request = req
@@ -107,12 +107,12 @@ class Header(ParseMsgAndDispatch):
 
     def msg_is_initial(self):
 	return self.msg_type in ['phone_check_req', 'phone_check_rsp', 'login']
-   
+
     def msg_is_from_wizweb(self):
 	return self.device_id == settings.WIZWEB_DEVICE_ID
 
     def validateHeader(self):
-	
+
 	#hashed passwd check
 
 
@@ -133,14 +133,14 @@ class Header(ParseMsgAndDispatch):
 
 	    if self.userprofile.userid != sender['userID']:
                 return False
-        
+
         #AA:TODO - Move to header
 	if self.msg_has_location():
             self.lat = sender['lat']
             self.lng = sender['lng']
-            logger.debug('User %s @lat, lng: {%s, %s}', 
+            logger.debug('User %s @lat, lng: {%s, %s}',
                           self.user.first_name+" "+self.user.last_name, self.lat, self.lng)
-	        
+
         self.sender = sender
 
         return True
@@ -366,7 +366,7 @@ class Header(ParseMsgAndDispatch):
 	user, created = User.objects.get_or_create(username=username)
 
 	if created:
-	    #AA TODO: Generate hash from deviceID and user.pk 
+	    #AA TODO: Generate hash from deviceID and user.pk
             #and maybe phone number
 	    password = UserProfile.objects.gen_password(user.pk, device_id)
 	    user.set_password(password)
@@ -375,7 +375,7 @@ class Header(ParseMsgAndDispatch):
 	else:
             if device_id != user.profile.device_id:
                 #device_id is part of password, reset password to reflect new deviceID
-	        password = UserProfile.objects.gen_password(user.pk, 
+	        password = UserProfile.objects.gen_password(user.pk,
                                                             device_id)
                 user.set_password(password)
 	        user.save()
@@ -417,7 +417,7 @@ class Header(ParseMsgAndDispatch):
             self.userprofile.device_type = self.sender['deviceType']
         except:
             pass
-        
+
         self.userprofile.reg_token = self.sender['reg_token']
 
 	if self.userprofile.do_sync:
@@ -497,7 +497,7 @@ class Header(ParseMsgAndDispatch):
                 else:
 		    d['tag'] = "other"
 
-                wc = Wizcard.objects.serialize(wizcard, 
+                wc = Wizcard.objects.serialize(wizcard,
                         template=fields.wizcard_template_brief)
                 d['wizcard'] = wc
 
@@ -507,7 +507,7 @@ class Header(ParseMsgAndDispatch):
             self.response.add_data("email_count", email_count)
             self.response.add_data("verified_emails", le)
         self.response.add_data("count", phone_count + email_count)
-            
+
         return self.response
 
     def NotificationsGet(self):
@@ -527,14 +527,14 @@ class Header(ParseMsgAndDispatch):
                 #are coming correctly...
                 logger.warning('No location information available')
 		return self.response
-	    
+
 
         #any wizcards dropped nearby
         #AA:TODO: Use come caching framework to cache these
         flicked_wizcards, count = WizcardFlick.objects.lookup(
                 self.user.pk,
-                self.lat, 
-                self.lng, 
+                self.lat,
+                self.lng,
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifFlickedWizcardsLookup(count,
@@ -545,21 +545,21 @@ class Header(ParseMsgAndDispatch):
                            settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifUserLookup(
-                    count, 
-                    self.user, 
-                    users) 
+                    count,
+                    self.user,
+                    users)
 
         tables, count = VirtualTable.objects.lookup(
                 self.user.pk,
-                self.lat, 
-                self.lng, 
+                self.lat,
+                self.lng,
                 settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifTableLookup(count, self.user, tables)
 
         Notification.objects.mark_specific_as_read(notifications)
 
-        #tickle the timer to keep it going and update the location if required 
+        #tickle the timer to keep it going and update the location if required
         self.userprofile.create_or_update_location(self.lat, self.lng)
         return notifResponse
 
@@ -579,7 +579,7 @@ class Header(ParseMsgAndDispatch):
             userprofile_modify = True
 
         #AA:TODO: Change app to call this phone as well
-        phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1'] 
+        phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1']
 
         if wizcard.phone != phone:
             wizcard.phone = phone
@@ -612,9 +612,9 @@ class Header(ParseMsgAndDispatch):
             b64image = bytes(self.sender['thumbnailImage'])
             rawimage = b64image.decode('base64')
             upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), 
+                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                     rawimage, "image/jpeg")
-            wizcard.thumbnailImage.save(upfile.name, upfile) 
+            wizcard.thumbnailImage.save(upfile.name, upfile)
             modify = True
 
 	if 'contact_container' in self.sender:
@@ -657,7 +657,7 @@ class Header(ParseMsgAndDispatch):
                                 (wizcard.pk, c.pk, now().strftime\
                                 ("%Y-%m-%d %H:%M")), rawimage, \
                                 "image/jpeg")
-                        c.f_bizCardImage.save(upfile.name, upfile) 
+                        c.f_bizCardImage.save(upfile.name, upfile)
                     except:
                         pass
 		if 'b_bizCardImage' in contactItem and contactItem['b_bizCardImage']:
@@ -667,7 +667,7 @@ class Header(ParseMsgAndDispatch):
                         rawimage = b64image.decode('base64')
 			#AA:TODO: better file name
                         upfile = SimpleUploadedFile("%s-b_bc.%s.%s.jpg" % (wizcard.pk, c.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
-                        c.b_bizCardImage.save(upfile.name, upfile) 
+                        c.b_bizCardImage.save(upfile.name, upfile)
                     except:
                         pass
 
@@ -678,7 +678,7 @@ class Header(ParseMsgAndDispatch):
 
         if future_users.count():
             future_users.delete()
-         
+
         #flood to contacts
         if user_modify:
             self.user.save()
@@ -708,8 +708,8 @@ class Header(ParseMsgAndDispatch):
         Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
         #Q this to the sender
         notify.send(self.user, recipient=self.r_user,
-                    verb=verbs.WIZCARD_ACCEPT[0], 
-                    target=wizcard1, 
+                    verb=verbs.WIZCARD_ACCEPT[0],
+                    target=wizcard1,
                     action_object = wizcard2)
 
         return self.response
@@ -719,7 +719,7 @@ class Header(ParseMsgAndDispatch):
             wizcard1 = self.user.wizcard
             #AA: TODO Change to wizCardID
             wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
@@ -747,7 +747,7 @@ class Header(ParseMsgAndDispatch):
             except:
 	       self.r_user = User.objects.get(id=self.receiver['wizUserID'])
                wizcard2 = self.r_user.wizcard
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
@@ -755,7 +755,7 @@ class Header(ParseMsgAndDispatch):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        #AA:TODO: Withdraw would only happen if the previously Q'd receiver 
+        #AA:TODO: Withdraw would only happen if the previously Q'd receiver
         #notif is still unread. Remove it. if there is no notification, then
         # sender can't withdraw
 
@@ -765,12 +765,12 @@ class Header(ParseMsgAndDispatch):
         #clear my wizconnection_request
         Wizcard.objects.wizconnection_req_clear(wizcard1, wizcard2)
 
-        #send notif to the other guy to he can remove the corresponding 
+        #send notif to the other guy to he can remove the corresponding
         #request
 
         #on 2nd thoughts, this shouldn't be done since the new way is to
         #remove unread notification
-        #notify.send(self.user, 
+        #notify.send(self.user,
         #        recipient=self.r_user,
         #        verb=verbs.WIZCARD_WITHDRAW_REQUEST[0],
         #        target=wizcard1)
@@ -784,10 +784,10 @@ class Header(ParseMsgAndDispatch):
                 wizcard2 = Wizcard.objects.get(id=w)
                 Wizcard.objects.uncard(wizcard1, wizcard2)
                 #Q a notif to other guy so that the app on the other side can react
-                notify.send(self.user, recipient=wizcard2.user, 
+                notify.send(self.user, recipient=wizcard2.user,
                         verb=verbs.WIZCARD_REVOKE[0],
                         target=wizcard1)
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
 
@@ -809,13 +809,13 @@ class Header(ParseMsgAndDispatch):
 		self.lng = self.userprofile.location.get().lng
 	    except:
 	        #should not happen since app is expected to send a register or something
-	        #everytime it wakes up...however, network issues can cause app to go offline 
+	        #everytime it wakes up...however, network issues can cause app to go offline
 	        #while still in foreground. No option but to send back error response to app
-	        #However, if app had included location information, then we will 
+	        #However, if app had included location information, then we will
 		#update_location before getting here and be ok
                 self.response.error_response(err.LOCATION_UNKNOWN)
 	        return self.response
-        
+
 	flick_card = wizcard.check_flick_duplicates(self.lat, self.lng)
 
 	if flick_card:
@@ -823,9 +823,9 @@ class Header(ParseMsgAndDispatch):
             self.response.add_data("duplicate", True)
 	    self.response.add_data("timeout", t.timeout_value/60)
         else:
-	    flick_card = WizcardFlick.objects.create(wizcard=wizcard, 
-                    lat=self.lat, 
-                    lng=self.lng, 
+	    flick_card = WizcardFlick.objects.create(wizcard=wizcard,
+                    lat=self.lat,
+                    lng=self.lng,
                     timeout=timeout,
                     a_created = a_created)
             location = flick_card.create_location(self.lat, self.lng)
@@ -850,7 +850,7 @@ class Header(ParseMsgAndDispatch):
 	        #create a wizconnection and then accept it
 	        Wizcard.objects.exchange(wizcard1, wizcard2, True, \
                         flick_card=flick_card)
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
@@ -878,11 +878,11 @@ class Header(ParseMsgAndDispatch):
     def WizcardFlickWithdraw(self):
 	try:
 	    self.flicked_card = WizcardFlick.objects.get(id=self.sender['flickCardID'])
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
-	except: 
+	except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
 	    return self.response
 
@@ -894,7 +894,7 @@ class Header(ParseMsgAndDispatch):
             flick_id = self.sender['flickCardID']
             timeout = self.sender['timeout']
             a_created = self.sender['created']
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
@@ -921,17 +921,17 @@ class Header(ParseMsgAndDispatch):
 
         if count:
             flicks_s = WizcardFlick.objects.serialize_split(
-                            self.user.wizcard, 
+                            self.user.wizcard,
                             result)
             self.response.add_data("queryResult", flicks_s)
         self.response.add_data("count", count)
-            
+
         return self.response
 
     def WizcardFlickPickers(self):
         try:
             flick_id = self.sender['flickCardID']
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
@@ -1042,8 +1042,8 @@ class Header(ParseMsgAndDispatch):
             for id in receivers:
                 r_user = User.objects.get(id=id)
                 notify.send(self.user, recipient=r_user,
-                    verb=verbs.WIZCARD_TABLE_INVITE[0], 
-                    target=table, 
+                    verb=verbs.WIZCARD_TABLE_INVITE[0],
+                    target=table,
                     action_object = self.user)
         elif receiver_type in ['email', 'sms']:
             #create future user
@@ -1057,17 +1057,17 @@ class Header(ParseMsgAndDispatch):
                 #for a typed out email/sms, the user may still be in wiz
                 #AA: TODO APP: search can be avoided if app indicates whether
                 #this was from data-source or free-form
-                wizcard = UserProfile.objects.check_user_exists('phone', 
+                wizcard = UserProfile.objects.check_user_exists('phone',
                                                                 phone)
                 if wizcard:
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
                         if not Wizcard.objects.are_wizconnections(self.user.wizcard, wizcard):
-                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)    
+                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         notify.send(self.user, recipient=wizcard.user,
-                            verb=verbs.WIZCARD_TABLE_INVITE[0], 
+                            verb=verbs.WIZCARD_TABLE_INVITE[0],
                             target=obj,
                             action_object=self.user)
                 else:
@@ -1078,22 +1078,22 @@ class Header(ParseMsgAndDispatch):
                         phone=phone).save()
         else:
             for email in receivers:
-                wizcard = UserProfile.objects.check_user_exists('email', 
+                wizcard = UserProfile.objects.check_user_exists('email',
                                                                 email)
                 if wizcard:
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
                         if not Wizcard.objects.are_wizconnections(self.user.wizcard, wizcard):
-                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)    
+                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         notify.send(self.user, recipient=wizcard.user,
-                            verb=verbs.WIZCARD_TABLE_INVITE[0], 
-                            target=obj, 
+                            verb=verbs.WIZCARD_TABLE_INVITE[0],
+                            target=obj,
                             action_object=self.user)
                 else:
                     FutureUser(
-                        inviter=self.user, 
+                        inviter=self.user,
                         content_type=ContentType.objects.get_for_model(obj),
                         object_id=obj.id,
                         email=email).save()
@@ -1135,7 +1135,7 @@ class Header(ParseMsgAndDispatch):
         try:
             wizcard1 = self.user.wizcard
             self.receivers = self.receiver['wizUserIDs']
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
@@ -1196,11 +1196,11 @@ class Header(ParseMsgAndDispatch):
         #send back to app for selection
 
         if (count):
-            users_s = Wizcard.objects.serialize(result, 
+            users_s = Wizcard.objects.serialize(result,
                     template=fields.wizcard_template_brief)
             self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
- 
+
         return self.response
 
     def TableQuery(self):
@@ -1217,7 +1217,7 @@ class Header(ParseMsgAndDispatch):
                     fields.nearby_table_template)
             self.response.add_data("queryResult", tables_s)
         self.response.add_data("count", count)
-            
+
         return self.response
 
     def TableMyTables(self):
@@ -1252,7 +1252,7 @@ class Header(ParseMsgAndDispatch):
             out = UserProfile.objects.serialize_split(self.user, members)
             self.response.add_data("Members", out)
             self.response.add_data("Count", count)
-            self.response.add_data("CreatorID", table.creator.id) 
+            self.response.add_data("CreatorID", table.creator.id)
 
         return self.response
 
@@ -1288,10 +1288,10 @@ class Header(ParseMsgAndDispatch):
 
         a_created = self.sender['created']
 
-        table = VirtualTable.objects.create(tablename=tablename, secureTable=secure, 
-                                            password=password, creator=self.user, 
+        table = VirtualTable.objects.create(tablename=tablename, secureTable=secure,
+                                            password=password, creator=self.user,
                                             a_created = a_created, timeout=timeout)
-        
+
         #TODO: AA handle create failure and/or unique name enforcement
         #update location in ptree
         #AA:TODO move create to overridden create in VirtualTable
@@ -1320,7 +1320,7 @@ class Header(ParseMsgAndDispatch):
             password = self.sender['password']
         else:
             password = None
-        
+
         joined = table.join_table_and_exchange(self.user, password, True)
 
         if joined is None:
@@ -1359,7 +1359,7 @@ class Header(ParseMsgAndDispatch):
     def TableEdit(self):
         try:
             table_id = self.sender['tableID']
-	except KeyError: 
+	except KeyError:
             self.securityException()
             self.response.ignore()
             return self.response
@@ -1380,7 +1380,7 @@ class Header(ParseMsgAndDispatch):
 	    if old_name != table.tablename:
 		self.response.error_response(err.NAME_ERROR)
 		return self.response
-	        
+
             table.tablename = new_name
         if self.sender.has_key('timeout'):
             a_created = self.sender['created']
@@ -1400,7 +1400,7 @@ class Header(ParseMsgAndDispatch):
                 if self.userprofile.is_wifi_data != wifi_data:
                     self.userprofile.is_wifi_data = wifi_data
                     modify = True
-        
+
 	if self.sender.has_key('privacy'):
 	    if self.sender['privacy'].has_key('invisible'):
 		visible_nearby = not(self.sender['privacy']['invisible'])
@@ -1422,7 +1422,7 @@ class Header(ParseMsgAndDispatch):
 
         if modify == True:
 	    self.userprofile.save()
-	  
+
 	return self.response
 
     #############OCR MessageS##############
@@ -1436,14 +1436,14 @@ class Header(ParseMsgAndDispatch):
 
         c = ContactContainer.objects.create(wizcard=wizcard)
 
-        if self.sender.has_key('f_ocrCardImage'): 
+        if self.sender.has_key('f_ocrCardImage'):
             b64image = bytes(self.sender['f_ocrCardImage'])
             rawimage = b64image.decode('base64')
             #AA:TODO maybe time to put this in lib
             upfile = SimpleUploadedFile("%s-%s.jpg" % \
                     (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                    rawimage, "image/jpeg") 
-            
+                    rawimage, "image/jpeg")
+
             c.f_bizCardImage.save(upfile.name, upfile)
             path = c.f_bizCardImage.local_path()
         else:
@@ -1484,7 +1484,7 @@ class Header(ParseMsgAndDispatch):
 
         d = DeadCards.objects.create(user=self.user)
 
-        if self.sender.has_key('f_ocrCardImage'): 
+        if self.sender.has_key('f_ocrCardImage'):
             b64image = bytes(self.sender['f_ocrCardImage'])
             rawimage = b64image.decode('base64')
         else:
@@ -1492,7 +1492,7 @@ class Header(ParseMsgAndDispatch):
             return self.response
 
         upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")), 
+                (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                 rawimage, "image/jpeg")
         d.f_bizCardImage.save(upfile.name, upfile)
         d.recognize()
@@ -1505,8 +1505,18 @@ class Header(ParseMsgAndDispatch):
         lng = self.sender['lng']
         wizcard = self.user.wizcard
         m = Meishi.objects.create(lat=lat, lng=lng, wizcard=wizcard)
-   
+
         self.response.add_data("mID", m.pk)
+
+        users, count = self.userprofile.lookup(
+                self.user.pk,
+                settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
+        if count:
+            out = UserProfile.objects.serialize(
+                    users,
+                    fields.wizcard_template_thumbnail_only)
+            self.response.add_data("m_nearby", out)
+
         return self.response
 
     def MeishiFind(self):
@@ -1523,12 +1533,19 @@ class Header(ParseMsgAndDispatch):
             #AA:Comments: can send a smaller serilized output
             #wizcard_template_full is not required. All the app needs is
             #wizcard_id, f_bizCardUrl
-            out = Wizcard.objects.serialize(m_res.wizcard, 
-                                        template = fields.wizcard_template_full)
+            out = Wizcard.objects.serialize(
+                    m_res.wizcard,
+                    template = fields.wizcard_template_brief)
             self.response.add_data("m_result", out)
         else:
-            #AA:Comments: send nearby in "m_nearby"
-            pass 
+            users, count = self.userprofile.lookup(
+                                self.user.pk,
+                                settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
+            if count:
+                out = UserProfile.objects.serialize(
+                        users,
+                        fields.wizcard_template_thumbnail_only)
+                self.response.add_data("m_nearby", out)
 
         return self.response
 
@@ -1537,7 +1554,7 @@ class Header(ParseMsgAndDispatch):
         #maybe some cleanup...but shouldn't be anything we should rely on
         #too much
         pass
-        
+
 
     #################WizWeb Message handling########################
     def WizWebUserQuery(self):
@@ -1557,22 +1574,21 @@ class Header(ParseMsgAndDispatch):
               self.response.add_data("userID", user.profile.userid)
 	    except:
 	      pass
-        
+
 	return self.response
 
     def WizWebWizcardQuery(self):
-
 	userID = self.sender['userID']
         if self.sender['username']:
 	    username = self.sender['username']
 	    try:
-	      user = User.objects.get(username=username)
+	      self.user = User.objects.get(username=username)
 	    except:
               return self.response.error_response(err.USER_DOESNT_EXIST)
         elif self.sender['email']:
             email = self.sender['email']
 	    try:
-	      user = User.objects.get(email=email)
+	      self.user = User.objects.get(email=email)
 	    except:
               return self.response.error_response(err.USER_DOESNT_EXIST)
 
@@ -1598,7 +1614,7 @@ class Header(ParseMsgAndDispatch):
             #wizweb should have sent user query
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
 
-	self.user = User.objects.create(username=username, 
+	self.user = User.objects.create(username=username,
                                         first_name=first_name,
                                         last_name=last_name)
 
@@ -1611,7 +1627,7 @@ class Header(ParseMsgAndDispatch):
     def WizWebAddEditCard(self):
 	EDIT_LATEST = 1
 	EDIT_FORCE = 2
-	
+
 	flood = False
 	username = self.sender['username']
 	userID = self.sender['userID']
@@ -1688,15 +1704,15 @@ class Header(ParseMsgAndDispatch):
 	if flood == True:
             #AA:TODO: we also must notify the owner of the update
             notify.send(self.user, recipient=self.user,
-                    verb=verbs.WIZWEB_WIZCARD_UPDATE[0], 
-                    target=wizcard, 
+                    verb=verbs.WIZWEB_WIZCARD_UPDATE[0],
+                    target=wizcard,
                     action_object = wizcard)
 
 	    wizcard.flood()
 
         self.response.add_data("wizCardID", wizcard.id)
 	return self.response
-	    
+
 
 VALIDATOR = 0
 HANDLER = 1
