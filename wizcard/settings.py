@@ -107,7 +107,7 @@ elif RUNENV == 'test':
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'wizcarddb',
-                'HOST': 'wizcarddb.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+            'HOST': 'wizcarddb.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 
@@ -223,7 +223,7 @@ WIZCARD_FLICK_DEFAULT_TIMEOUT = 1
 #default table lifetime
 WIZCARD_DEFAULT_TABLE_LIFETIME = 5
 
-# Number of seconds that we will keep track of inactive users for before 
+# Number of seconds that we will keep track of inactive users for before
 # their last seen is removed from the cache
 USER_LASTSEEN_TIMEOUT = 60
 
@@ -231,7 +231,7 @@ USER_LASTSEEN_TIMEOUT = 60
 MAX_PHONE_CHECK_RETRIES = 3
 
 #for UT..avoid nexmo
-PHONE_CHECK = False	
+PHONE_CHECK = False
 #retry timeout
 PHONE_CHECK_TIMEOUT = 180
 
@@ -346,7 +346,7 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 # Use WatchedFileHandler instead, and rotate logs with a cron job or with some other program.
 #
 #... somewhere in settings.py or imported ...
- 
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
