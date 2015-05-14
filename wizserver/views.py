@@ -422,7 +422,7 @@ class Header(ParseMsgAndDispatch):
 
 	if self.userprofile.do_sync:
             #sync all syncables
-            s = self.userprofile.serialize_objects()
+            s = self.userprofile.do_resync()
 	    if 'wizcard' in s:
                 self.response.add_data("wizcard", s['wizcard'])
 		if 'wizconnections' in s:

@@ -182,7 +182,7 @@ class UserProfile(models.Model):
             users = [UserProfile.objects.get(id=x).user for x in result if UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
         return users, count
 
-    def serialize_objects(self):
+    def do_resync(self):
         s = {}
         #add callouts to all serializable objects here
 

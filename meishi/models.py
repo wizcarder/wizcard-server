@@ -48,7 +48,7 @@ class MeishiMgr(models.Manager):
 #in general, instead if binary state, it could be multiple states [active, paired, complete, didnt_find_pair]..etc
 
 class Meishi(models.Model):
-    wizcard = models.ForeignKey(Wizcard)
+    wizcard = models.ForeignKey(Wizcard, related_name="meishis")
     lat = models.DecimalField(max_digits=20, decimal_places=15)
     lng = models.DecimalField(max_digits=20, decimal_places=15)
     timestamp = models.DateTimeField(default=now)
@@ -93,7 +93,11 @@ class Meishi(models.Model):
 
         #get candidates based on time. Then get (conditional) closest
         cl, count = Meishi.objects.get_candidates(self)
+<<<<<<< Updated upstream
         if not count
+=======
+        if not count:
+>>>>>>> Stashed changes
             return None
 
         h = []
