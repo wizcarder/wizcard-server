@@ -52,6 +52,9 @@ class VirtualTableManager(models.Manager):
             tables = map(lambda m: self.get(id=m), result)
         return tables, count
 
+    def user_tables(self, user):
+        return user.virtualtable_set.all()
+
     #AA: TODO : get some max limit on this
     def query_tables(self, name):
         tables = self.filter(Q(tablename__istartswith=name)) \

@@ -207,7 +207,7 @@ class UserProfile(models.Model):
 
 
         #tables
-        tables = self.user.tables.all()
+        tables = VirtualTable.objects.user_tables(self.user)
 	if tables.count():
 	    # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(
