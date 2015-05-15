@@ -107,7 +107,6 @@ verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 #server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
-server_url = "localhost"
 #server_url = "localhost"
 
 server_port = 8000
@@ -1184,6 +1183,7 @@ print "sending meishi_start" + mei1
 conn.request("POST", "", mei1)
 objs = handle_response(conn,reqmsg['header']['msgType'])
 mei_id1 = objs['data']['mID']
+m_nearby = objs['data']['m_nearby']
 
 reqmsg = messages.meishi_find
 reqmsg['sender']['userID'] = uid1
@@ -1194,14 +1194,11 @@ mef1 = json.dumps(reqmsg)
 print "sending meishi_find" + mef1
 conn.request("POST", "", mef1)
 objs = handle_response(conn,reqmsg['header']['msgType'])
-try:
+if objs['data'].has_key('m_result'):
     mei_pair = objs['data']['m_result']
-    print "Meishi ID = " + str(mei_pair)
-except KeyError, e:
-    print "EXPECTED: Key Error because no meishi to pair"
-
-
-print "Meishi ID = " + str(mei_id1)
+else:
+    #expect nearby response
+    m_nearby = objs['data']['m_nearby']
 
 reqmsg = messages.meishi_start
 reqmsg['sender']['userID'] = uid2
