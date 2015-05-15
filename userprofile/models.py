@@ -182,7 +182,7 @@ class UserProfile(models.Model):
             users = [UserProfile.objects.get(id=x).user for x in result if UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
         return users, count
 
-    def serialize_objects(self):
+    def do_resync(self):
         s = {}
         #add callouts to all serializable objects here
 
@@ -207,7 +207,7 @@ class UserProfile(models.Model):
 
 
         #tables
-        tables = self.user.tables.all()
+        tables = VirtualTable.objects.user_tables(self.user)
 	if tables.count():
 	    # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(

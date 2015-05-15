@@ -7,16 +7,16 @@ contact_container_template = {
     'fields':  contact_container_fields,
     'key_map': contact_container_keymap
 }
-wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnailUrl', \
-                                 'name']
+wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnailUrl']
+
+wizcard_fields_mini = ['wizcard_id', 'user_id', 'thumbnailUrl', \
+                       'first_name', 'last_name']
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
                   'phone', 'email', 'thumbnailUrl', 'contact_container']
 
 wizcard_fields_keymap = {
         'wizcard_id': 'id',
-        'thumbnailUrl': 'get_thumbnail_url',
-        'name': 'get_name'
-
+        'thumbnailUrl': 'get_thumbnail_url'
         }
 wizcard_fields_keymap_brief = {
         'wizcard_id': 'id',
@@ -28,8 +28,13 @@ wizcard_related_objects_template = {
     'contact_container': contact_container_template
 }
 
-wizcard_template_mini = {
+wizcard_template_thumbnail_only = {
     'fields': wizcard_fields_thumbnail_only,
+    'key_map' : wizcard_fields_keymap
+}
+
+wizcard_template_mini = {
+    'fields': wizcard_fields_mini,
     'key_map' : wizcard_fields_keymap
 }
 
@@ -65,7 +70,7 @@ flicked_wizcard_template = {
 }
 
 my_flicked_wizcard_template = {
-    'fields': ['created', 'flick_id', 'lat', 'lng', 
+    'fields': ['created', 'flick_id', 'lat', 'lng',
                'timeout', 'flick_pickers'],
     'key_map': {'created':'a_created', 'flick_id':'id'},
     'related': {
@@ -87,16 +92,15 @@ user_query_full_template = {
 
 nearby_table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
-               'timeRemaining', 'wizcards', 'firstname','lastname'],
+               'timeRemaining', 'wizcards', 'creator'],
     'key_map' : {'timeRemaining':'time_remaining', \
                 'wizcards': 'get_member_wizcards',\
-                'firstname': 'created_by_firstname', \
-                'lastname': 'created_by_lastname'}
+                'creator': 'get_creator'}
 }
 
 table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
-               'timeRemaining', 'wizcards', 'created', 'creator_id', 
+               'timeRemaining', 'wizcards', 'created', 'creator_id',
                'password'],
     'key_map' : {'created':'a_created',
                  'timeRemaining':'time_remaining',
