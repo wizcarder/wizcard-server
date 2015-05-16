@@ -136,7 +136,8 @@ class Notification(models.Model):
             self.readed = True
             self.save()
 
-    def pushNotificationToApp(self, receiver, sender, verb):
+    def pushNotificationToApp(self, receiver, sender, 
+            action_object, target_object, verb):
         from userprofile.models import UserProfile
         if not verbs.apns_notification_dictionary.has_key(verb):
 	    return
@@ -196,6 +197,8 @@ def notify_handler(verb, **kwargs):
             newnotify.pushNotificationToApp(
                     profile,
                     actor,
+                    action_object,
+                    target_object,
                     verb)
         except:
             logging.error("Failed to send APNS to User %s", profile.userid)

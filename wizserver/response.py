@@ -104,33 +104,41 @@ class NotifResponse(ResponseN):
 
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
-        out = Wizcard.objects.serialize(wizcard, template=fields.wizcard_template_full)
+        out = Wizcard.objects.serialize(wizcard,
+                template=fields.wizcard_template_full)
 
-	if notif.action_object:
-            if ContentType.objects.get_for_model(notif.action_object) == \
-                    ContentType.objects.get(model="wizcardflick"):
-                    self.add_data_to_dict(out, "flickCardID",
-                            notif.action_object_object_id)
-            elif ContentType.objects.get_for_model(notif.action_object) == \
-                    ContentType.objects.get(model="virtualtable"):
-                    self.add_data_to_dict(out, "tableID",
-                            notif.action_object_object_id)
-                    try:
-                        num_sitting = \
-                                VirtualTable.objects.get\
-                                (id=notif.action_object_object_id).numSitting
-                    except:
-                        num_sitting = 0
-                    self.add_data_to_dict(out, "numSitting", num_sitting)
+        if notif.action_object:
+            asset_id = notif.action_object_object_id
+            asset_type = ContentType.objects.get_for_model(notif.action_object)
+        else:
+            asset_id = None
+            asset_type = None
 
-            nctx = NotifContext(
-                    notif.action_object_object_id,
-                    ContentType.objects.get_for_model(
-                        notif.action_object).name,
-                    notif.description)
-            self.add_data_to_dict(out, "context", nctx.context)
+        nctx = NotifContext(notif.description, asset_id, asset_type.name)
 
+	if asset_type == ContentType.objects.get(model="virtualtable"):
+            #AA:TODO remove after table is permanenet
+            try:
+                num_sitting = VirtualTable.objects.get(
+                        id=notif.action_object_object_id).numSitting
+            except:
+                num_sitting = 0
+
+            nctx.key_val('numSitting', num_sitting)
+            #AA:TODO remove after app starts using context
+            self.add_data_to_dict(
+                    out, 
+                    "tableID", 
+                    notif.action_object_object_id)
+        elif asset_type == ContentType.objects.get(model="wizcardflick"):
+            self.add_data_to_dict(
+                    out, 
+                    "flickCardID", 
+                    notif.action_object_object_id)
+
+        self.add_data_to_dict(out, "context", nctx.context)
         self.add_data_with_notif(out, notifType)
+
         return self.response
 
     def notifWizConnectionT(self, notif):
