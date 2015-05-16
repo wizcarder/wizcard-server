@@ -49,6 +49,7 @@ from lib.nexmomessage import NexmoMessage
 import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
+from base.cctx import ConnectionContext
 from test import messages
 
 now = timezone.now
@@ -847,9 +848,10 @@ class Header(ParseMsgAndDispatch):
                 wizcard2 = flick_card.wizcard
 	        #associate flick with user
 	        flick_card.flick_pickers.add(wizcard1)
+
+                cctx = ConnectionContext(asset_obj=flick_card)
 	        #create a wizconnection and then accept it
-	        Wizcard.objects.exchange(wizcard1, wizcard2, True, \
-                        flick_card=flick_card)
+	        Wizcard.objects.exchange( wizcard1, wizcard2, True, cctxt)
 	except KeyError:
             self.securityException()
             self.response.ignore()
@@ -1027,7 +1029,12 @@ class Header(ParseMsgAndDispatch):
                 r_wizcard = r_user.wizcard
 
                 if not Wizcard.objects.are_wizconnections(wizcard, r_wizcard):
-                    Wizcard.objects.exchange(wizcard, r_wizcard, implicit)
+                    cctx = ConnectionContext(
+                            asset_obj=wizcard,
+                            connection_mode=receiver_type,
+                            )
+                    Wizcard.objects.exchange(wizcard, r_wizcard,
+                            implicit, cctx)
                     count += 1
                 self.response.add_data("count", count)
         elif receiver_type in ['email', 'sms']:
@@ -1062,8 +1069,14 @@ class Header(ParseMsgAndDispatch):
                 if wizcard:
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not Wizcard.objects.are_wizconnections(self.user.wizcard, wizcard):
-                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)
+                        if not Wizcard.objects.are_wizconnections(
+                                obj, wizcard):
+                            cctx = ConnectionContext(
+                                    asset_obj=obj,
+                                    connection_mode=receiver_type,
+                                    )
+                            Wizcard.objects.exchange(obj, wizcard,
+                                    False, cctx)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         notify.send(self.user, recipient=wizcard.user,
@@ -1083,8 +1096,15 @@ class Header(ParseMsgAndDispatch):
                 if wizcard:
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not Wizcard.objects.are_wizconnections(self.user.wizcard, wizcard):
-                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)
+                        if not Wizcard.objects.are_wizconnections(
+                                obj, wizcard):
+                            #AA:TODO map receiver type to local defs
+                            cctx = ConnectionContext(
+                                    asset_obj=obj,
+                                    connection_mode=receiver_type,
+                                    )
+                            Wizcard.objects.exchange(obj, wizcard,
+                                    False, cctx)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         notify.send(self.user, recipient=wizcard.user,
@@ -1529,7 +1549,8 @@ class Header(ParseMsgAndDispatch):
         #Once we find a pairing we exchange wizcards
         m_res = m.check_meishi()
         if m_res:
-            Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True)
+            cctx = ConnectionContext(asset_obj=m)
+            Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True, cctx)
             #AA:Comments: can send a smaller serilized output
             #wizcard_template_full is not required. All the app needs is
             #wizcard_id, f_bizCardUrl

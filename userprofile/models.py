@@ -11,6 +11,7 @@ from wizcardship.models import Wizcard
 from virtual_table.models import VirtualTable
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
+from base.cctx import ConnectionContext
 import operator
 from django.db.models import Q
 from django.core.cache import cache
@@ -241,9 +242,10 @@ class FutureUser(models.Model):
     def generate_self_invite(self, real_user):
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
+                    cctx = ConnectionContext(asset_obj=real_user.wizcard)
                     Wizcard.objects.exchange(self.content_object,
                             real_user.wizcard,
-                            False)
+                            False, cctx)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
                     notify.send(self.inviter, recipient=real_user,
