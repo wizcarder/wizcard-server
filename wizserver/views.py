@@ -1722,7 +1722,7 @@ class Header(ParseMsgAndDispatch):
                 except:
                     pass
             elif 'f_bizCardUrl' in c:
-                t_row.f_bziCardUrl = c['f_bizCardUrl']
+                t_row.card_url = c['f_bizCardUrl']
                 t_row.save()
 
 
