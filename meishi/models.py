@@ -84,9 +84,6 @@ class Meishi(models.Model):
         return False
 
     def check_meishi(self):
-        #AA:Comments: first check if something in the cache is present for me
-
-
         #first check if already paired
         if self.pairs.exists():
             return self.pairs.get()

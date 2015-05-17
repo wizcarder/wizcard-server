@@ -49,6 +49,7 @@ from lib.nexmomessage import NexmoMessage
 import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
+from base.cctx import ConnectionContext
 from test import messages
 
 now = timezone.now
@@ -236,8 +237,10 @@ class Header(ParseMsgAndDispatch):
             'settings'                    : (message_format.SettingsSchema, self.Settings),
             'ocr_req_self'                : (message_format.OcrRequestSelfSchema, self.OcrReqSelf),
             'ocr_req_dead_card'           : (message_format.OcrRequestDeadCardSchema, self.OcrReqDeadCard),
+            'ocr_dead_card_edit'          : (message_format.OcrDeadCardEditSchema, self.OcrDeadCardEdit),
             'meishi_start'                : (message_format.MeishiStartSchema, self.MeishiStart),
             'meishi_find'                 : (message_format.MeishiFindSchema, self.MeishiFind),
+            'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
         }
         #update location since it may have changed
 	if self.msg_has_location() and not self.msg_is_initial():
@@ -847,9 +850,10 @@ class Header(ParseMsgAndDispatch):
                 wizcard2 = flick_card.wizcard
 	        #associate flick with user
 	        flick_card.flick_pickers.add(wizcard1)
+
+                cctx = ConnectionContext(asset_obj=flick_card)
 	        #create a wizconnection and then accept it
-	        Wizcard.objects.exchange(wizcard1, wizcard2, True, \
-                        flick_card=flick_card)
+	        Wizcard.objects.exchange( wizcard1, wizcard2, True, cctxt)
 	except KeyError:
             self.securityException()
             self.response.ignore()
@@ -1027,7 +1031,12 @@ class Header(ParseMsgAndDispatch):
                 r_wizcard = r_user.wizcard
 
                 if not Wizcard.objects.are_wizconnections(wizcard, r_wizcard):
-                    Wizcard.objects.exchange(wizcard, r_wizcard, implicit)
+                    cctx = ConnectionContext(
+                            asset_obj=wizcard,
+                            connection_mode=receiver_type,
+                            )
+                    Wizcard.objects.exchange(wizcard, r_wizcard,
+                            implicit, cctx)
                     count += 1
                 self.response.add_data("count", count)
         elif receiver_type in ['email', 'sms']:
@@ -1062,8 +1071,14 @@ class Header(ParseMsgAndDispatch):
                 if wizcard:
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not Wizcard.objects.are_wizconnections(self.user.wizcard, wizcard):
-                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)
+                        if not Wizcard.objects.are_wizconnections(
+                                obj, wizcard):
+                            cctx = ConnectionContext(
+                                    asset_obj=obj,
+                                    connection_mode=receiver_type,
+                                    )
+                            Wizcard.objects.exchange(obj, wizcard,
+                                    False, cctx)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         notify.send(self.user, recipient=wizcard.user,
@@ -1083,8 +1098,15 @@ class Header(ParseMsgAndDispatch):
                 if wizcard:
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not Wizcard.objects.are_wizconnections(self.user.wizcard, wizcard):
-                            Wizcard.objects.exchange(self.user.wizcard, wizcard, False)
+                        if not Wizcard.objects.are_wizconnections(
+                                obj, wizcard):
+                            #AA:TODO map receiver type to local defs
+                            cctx = ConnectionContext(
+                                    asset_obj=obj,
+                                    connection_mode=receiver_type,
+                                    )
+                            Wizcard.objects.exchange(obj, wizcard,
+                                    False, cctx)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         notify.send(self.user, recipient=wizcard.user,
@@ -1500,6 +1522,9 @@ class Header(ParseMsgAndDispatch):
         self.response.add_data("response", d.serialize())
         return self.response
 
+    def OcrDeadCardEdit(self):
+        return self.response
+
     def MeishiStart(self):
         lat = self.sender['lat']
         lng = self.sender['lng']
@@ -1514,7 +1539,7 @@ class Header(ParseMsgAndDispatch):
         if count:
             out = UserProfile.objects.serialize(
                     users,
-                    fields.wizcard_template_thumbnail_only)
+                    fields.wizcard_template_brief)
             self.response.add_data("m_nearby", out)
 
         return self.response
@@ -1529,7 +1554,8 @@ class Header(ParseMsgAndDispatch):
         #Once we find a pairing we exchange wizcards
         m_res = m.check_meishi()
         if m_res:
-            Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True)
+            cctx = ConnectionContext(asset_obj=m)
+            Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True, cctx)
             #AA:Comments: can send a smaller serilized output
             #wizcard_template_full is not required. All the app needs is
             #wizcard_id, f_bizCardUrl
@@ -1544,7 +1570,7 @@ class Header(ParseMsgAndDispatch):
             if count:
                 out = UserProfile.objects.serialize(
                         users,
-                        fields.wizcard_template_thumbnail_only)
+                        fields.wizcard_template_brief)
                 self.response.add_data("m_nearby", out)
 
         return self.response
@@ -1553,7 +1579,7 @@ class Header(ParseMsgAndDispatch):
         #not sure yet what to do here...lets see
         #maybe some cleanup...but shouldn't be anything we should rely on
         #too much
-        pass
+        return self.response
 
 
     #################WizWeb Message handling########################
@@ -1700,6 +1726,10 @@ class Header(ParseMsgAndDispatch):
                     t_row.f_bizCardImage.save(upfile.name, upfile)
                 except:
                     pass
+            elif 'f_bizCardUrl' in c:
+                t_row.card_url = c['f_bizCardUrl']
+                t_row.save()
+
 
 	if flood == True:
             #AA:TODO: we also must notify the owner of the update

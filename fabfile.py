@@ -87,6 +87,7 @@ def postinstall():
 		with cd(env.installroot):
 			if run("test -d %s" % path).failed:
 				run("mkdir log")
+                        run("python manage.py migrate")
                         #append_settings()
 #                        run("cp wizcard/awstest_settings.py wizcard/settings.py")
 			init_upstart()
@@ -274,6 +275,18 @@ def deploywizserver():
 	startwizserverinstance()
 	fastprint("\nDone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
+
+@task
+def checkjobstatus():
+    if env.function == "LOCATIONSERVER":
+        run("sudo service locationjob status")
+
+    if env.function == "WIZSERVER":
+        run("sudo service celeryworker status")
+        run("sudo service wizserver status")
+        run("sudo service celerybeat status")
+        run("sudo service rabbitmq-server status")
+
 @task
 def deploy():
 

@@ -110,6 +110,16 @@ elif RUNENV == 'test':
             'HOST': 'wizcarddb.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
+elif RUNENV == 'prod':
+    DATABASES = {
+	    'default': {
+	        'ENGINE': 'django.db.backends.mysql',
+	        'NAME': 'wizcard',
+	        'USER': 'wizuser',
+	        'PASSWORD': 'wizcarddb',
+            'HOST': 'wizcardprod.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+	    }
+    }
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

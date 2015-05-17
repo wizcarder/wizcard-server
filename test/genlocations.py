@@ -4,7 +4,7 @@ import sys
 import math
 
 
-def generate_locations(radius=10000, datacount=100,slat=40.84, slng=-73.87):
+def generate_locations(radius=100000, datacount=5000,slat=40.84, slng=-73.87):
 
 
     radiusInDegrees = radius/111300
@@ -12,7 +12,7 @@ def generate_locations(radius=10000, datacount=100,slat=40.84, slng=-73.87):
     r = radiusInDegrees
 	
 
-    for i in range(1,datacount):
+    for i in range(1,datacount+1):
 		
         u = float(random.uniform(0.0,1.0))
         v = float(random.uniform(0.0,1.0))
@@ -27,3 +27,6 @@ def generate_locations(radius=10000, datacount=100,slat=40.84, slng=-73.87):
         yLng = y + slng
 		
         print str(xLat) +  "," + str(yLng)
+
+
+generate_locations()

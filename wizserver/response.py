@@ -5,6 +5,7 @@ from wizcardship.models import WizConnectionRequest, Wizcard, WizcardFlick
 from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
 from notifications.models import Notification
+from base.cctx import NotifContext
 from django.http import HttpResponse
 import logging
 import fields
@@ -19,7 +20,7 @@ class errMsg:
     def __init__(self, err):
 	self.errno = err[errno]
 	self.description = err[str]
-	
+
 
 #This is the basic Response class used to send simple result and data
 class Response:
@@ -48,12 +49,12 @@ class Response:
     def ignore(self):
         self.response = None
         return self
-    
+
     def is_error_response(self):
         if not self.response or self.response['result']['Error']:
             return True
         return False
-        
+
 #subclass of above. This handles arrays of Data and used by Notifications
 class ResponseN(Response):
     def __init__(self):
@@ -73,7 +74,7 @@ class ResponseN(Response):
     def add_data_with_notif(self, d, n):
         a = self.add_data_array(d)
         self.add_notif_type(a, n)
-    
+
     def add_data_to_dict(self, dict, k, v):
         dict[k] = v
 
@@ -100,29 +101,44 @@ class NotifResponse(ResponseN):
         }
 	for notification in notifications:
 	    notifHandler[notification.verb](notification)
-	    
+
     def notifWizcard(self, notif, notifType):
         wizcard = Wizcard.objects.get(id=notif.target_object_id)
-        out = Wizcard.objects.serialize(wizcard, template=fields.wizcard_template_full)
+        out = Wizcard.objects.serialize(wizcard,
+                template=fields.wizcard_template_full)
 
-	if notif.action_object:
-            if ContentType.objects.get_for_model(notif.action_object) == \
-                    ContentType.objects.get(model="wizcardflick"):
-                    self.add_data_to_dict(out, "flickCardID", 
-                            notif.action_object_object_id)
-            elif ContentType.objects.get_for_model(notif.action_object) == \
-                    ContentType.objects.get(model="virtualtable"):
-                    self.add_data_to_dict(out, "tableID", 
-                            notif.action_object_object_id)
-                    try:
-                        num_sitting = \
-                                VirtualTable.objects.get\
-                                (id=notif.action_object_object_id).numSitting
-                    except:
-                        num_sitting = 0
-                    self.add_data_to_dict(out, "numSitting", num_sitting)
+        if notif.action_object:
+            asset_id = notif.action_object_object_id
+            asset_type = ContentType.objects.get_for_model(notif.action_object)
+        else:
+            asset_id = None
+            asset_type = None
 
+        nctx = NotifContext(notif.description, asset_id, asset_type.name)
+
+	if asset_type == ContentType.objects.get(model="virtualtable"):
+            #AA:TODO remove after table is permanenet
+            try:
+                num_sitting = VirtualTable.objects.get(
+                        id=notif.action_object_object_id).numSitting
+            except:
+                num_sitting = 0
+
+            nctx.key_val('numSitting', num_sitting)
+            #AA:TODO remove after app starts using context
+            self.add_data_to_dict(
+                    out, 
+                    "tableID", 
+                    notif.action_object_object_id)
+        elif asset_type == ContentType.objects.get(model="wizcardflick"):
+            self.add_data_to_dict(
+                    out, 
+                    "flickCardID", 
+                    notif.action_object_object_id)
+
+        self.add_data_to_dict(out, "context", nctx.context)
         self.add_data_with_notif(out, notifType)
+
         return self.response
 
     def notifWizConnectionT(self, notif):
@@ -174,7 +190,7 @@ class NotifResponse(ResponseN):
     def notifWizcardTableInvite(self, notif):
         sender = User.objects.get(id=notif.action_object_object_id)
         table = VirtualTable.objects.get(id=notif.target_object_id)
-        s_out = Wizcard.objects.serialize(sender.wizcard, 
+        s_out = Wizcard.objects.serialize(sender.wizcard,
                 template=fields.wizcard_template_brief)
         a_out = VirtualTable.objects.serialize(table,
                 template=fields.nearby_table_template)

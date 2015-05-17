@@ -48,8 +48,8 @@ logger = logging.getLogger(__name__)
 class WizcardManager(models.Manager):
     def except_wizcard(self, except_user):
         qs = Wizcard.objects.filter(~Q(user=except_user))
-        return qs 
-		
+        return qs
+
     def wizconnections_of(self, user, shuffle=False):
         qs = User.objects.filter(wizcard__wizconnections__user=user)
         if shuffle:
@@ -70,7 +70,7 @@ class WizcardManager(models.Manager):
         WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
                                             to_wizcard=to_wizcard).delete()
 
-		
+
     def becard(self, wizcard1, wizcard2):
         wizcard1.wizconnections.add(wizcard2)
         # Now that user1 accepted user2's card request we should delete any
@@ -90,95 +90,79 @@ class WizcardManager(models.Manager):
                 to_wizcard=to_wizcard).get().accept()
 
     def serialize(self, wizcards, template):
-        logger.debug("Wizcard Serialize template %s", template)
         return serialize(wizcards, **template)
 
-    def exchange_implicit(self, wizcard1, wizcard2, flick_card, table):
+    def exchange_implicit(self, wizcard1, wizcard2, cctx):
         user1 = wizcard1.user
         user2 = wizcard2.user
 
-        self.becard(wizcard1, wizcard2) 
+        self.becard(wizcard1, wizcard2)
 
         #Q this to the receiver and vice-versa
-        if flick_card:
-            description="via flick pick"
-            action_object = flick_card
-        elif table:
-            description = "via table exchange"
-            action_object = table
-        else:
-            description = None
-            action_object = None
 
         notify.send(user1, recipient=user2,
-                    verb=verbs.WIZREQ_T[0], 
-		    description=description,
-                    target=wizcard1, action_object=action_object)
+                    verb=verbs.WIZREQ_T[0],
+		    description=cctx.describe(),
+                    target=wizcard1, action_object=cctx.object)
         notify.send(user2, recipient=user1,
-                    verb=verbs.WIZREQ_T[0], 
-		    description=description,
-                    target=wizcard2, action_object=action_object)
+                    verb=verbs.WIZREQ_T[0],
+		    description=cctx.describe(),
+                    target=wizcard2, action_object=cctx.object)
 
-    def exchange_explicit(self, wizcard1, wizcard2, table):
+    def exchange_explicit(self, wizcard1, wizcard2, cctx):
         user1 = wizcard1.user
         user2 = wizcard2.user
         convert_to_implicit = False
 
-        if table:
-            description = "via table exchange"
-            action_object = table
-        else:
-            description = None
-            action_object = None
         # If there's a wizconnection request from the other user then treat it like
         # an implicit connection
         try:
             self.accept_wizconnection(wizcard2, wizcard1)
             convert_to_implicit = True
         except ObjectDoesNotExist:
-            try: 
+            try:
                 wizconnection = WizConnectionRequest.objects.create(
                     from_wizcard=wizcard1,
                     to_wizcard=wizcard2,
-                    message="wizconnection request") 
-                #Q this to the receiver 
+                    message="wizconnection request")
+                #Q this to the receiver
             except:
                 #duplicate request
                 #nothing to do, just return silently
                 return
         #send notifs to recipient (or both if implicit conversion)
         if convert_to_implicit:
-            notify.send(user1, recipient=user2, 
-                    verb=verbs.WIZREQ_T[0], 
-		    description=description,
-                    target=wizcard1, action_object=action_object)
+            notify.send(user1, recipient=user2,
+                    verb=verbs.WIZREQ_T[0],
+		    description=cctx.describe(),
+                    target=wizcard1, action_object=cctx.object)
 
-            notify.send(user2, recipient=user1, 
-                    verb=verbs.WIZREQ_T[0], 
-		    description=description,
-                    target=wizcard2, action_object=action_object)
+            notify.send(user2, recipient=user1,
+                    verb=verbs.WIZREQ_T[0],
+		    description=cctx.describe(),
+                    target=wizcard2, action_object=cctx.object)
 
         else:
-            notify.send(user1, recipient=user2, 
-                    verb=verbs.WIZREQ_U[0], 
-		    description=description,
-                    target=wizcard1, action_object=action_object)
+            notify.send(user1, recipient=user2,
+                    verb=verbs.WIZREQ_U[0],
+		    description=cctx.describe(),
+                    target=wizcard1, action_object=cctx.object)
 
-    def exchange(self, wizcard1, wizcard2, implicit, flick_card=None, table=None):
+    def exchange(self, wizcard1, wizcard2, implicit, cctx):
         #create bidir cardship
         if self.are_wizconnections(wizcard1, wizcard2):
             return  err.EXISTING_CONNECTION
         elif implicit:
-            self.exchange_implicit(wizcard1, wizcard2, flick_card, table)
+            self.exchange_implicit(wizcard1, wizcard2, cctx)
         else:
-            self.exchange_explicit(wizcard1, wizcard2, table)
+            self.exchange_explicit(wizcard1, wizcard2, cctx)
         return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2):
         notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb=verbs.WIZCARD_UPDATE[0], 
+                    verb=verbs.WIZCARD_UPDATE[0],
                     target=wizcard1, action_object=wizcard2)
-        
+
     def query_users(self, userID, name, phone, email):
         #name can be first name, last name or even combined
         #any of the arguments may be null
@@ -276,7 +260,7 @@ class Wizcard(models.Model):
         if qs.exists():
             return qs[0].title
         return None
-        
+
     def wizconnection_count(self):
         return self.wizconnections.count()
     wizconnection_count.short_description = _(u'Cards count')
@@ -309,16 +293,19 @@ class ContactContainer(models.Model):
     f_bizCardImage = WizcardQueuedFileField(upload_to="bizcards",
                          storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.CharField(max_length=30, blank=True)
-    
+
 
     def __unicode__(self):
-        return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)} 
+        return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)}
 
     class Meta:
         ordering = ['id']
 
     def get_fbizcard_url(self):
-        return self.f_bizCardImage.remote_url()
+        if self.card_url != "":
+            return self.card_url
+        else:
+            return self.f_bizCardImage.remote_url()
 
 
 class WizConnectionRequest(models.Model):
@@ -354,7 +341,7 @@ class WizConnectionRequest(models.Model):
 
 class WizcardFlickManager(models.Manager):
     # Maybe there is a better way to do this. This is defined
-    # to allow a callable into fields.py serialization, which needs some 
+    # to allow a callable into fields.py serialization, which needs some
     # state from the callouts here
     tag = None
 
@@ -366,8 +353,8 @@ class WizcardFlickManager(models.Manager):
         result, count =  LocationMgr.objects.lookup(
                                 cache_key,
                                 "WTREE",
-                                lat, 
-                                lng, 
+                                lat,
+                                lng,
                                 n)
         #convert result to query set result
         if count and not count_only:
@@ -380,7 +367,7 @@ class WizcardFlickManager(models.Manager):
 
     def serialize_split(self, my_wizcard, flicked_wizcards):
         s = None
-	own, connected, others = self.split_wizcard_flick(my_wizcard, 
+	own, connected, others = self.split_wizcard_flick(my_wizcard,
                 flicked_wizcards)
 
         s = dict()
@@ -440,10 +427,10 @@ class WizcardFlick(models.Model):
     def create_location(self, lat, lng):
         #create
         key = wizlib.create_geohash(lat, lng)
-        retval = location.send(sender=self, 
-                    lat=lat, 
-                    lng=lng, 
-                    key=key, 
+        retval = location.send(sender=self,
+                    lat=lat,
+                    lng=lng,
+                    key=key,
                     tree="WTREE")
         loc= retval[0][1]
 
@@ -452,13 +439,13 @@ class WizcardFlick(models.Model):
     def delete(self, *args, **kwargs):
         logger.debug('deleting flicked wizcard %s', self.id)
         #AA:TODO - For some reason, django doesn't call delete method of generic FK object.
-        # Although it does delete it. Until I figure out why, need to explicitly call 
+        # Although it does delete it. Until I figure out why, need to explicitly call
         #delete method since other deletes need to happen there as well
         self.location.get().delete()
-	notify.send(self.wizcard.user, 
-                    recipient=self.wizcard.user, 
+	notify.send(self.wizcard.user,
+                    recipient=self.wizcard.user,
                     verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
-                    target=self, 
+                    target=self,
                     action_object=self.wizcard)
         super(WizcardFlick, self).delete(*args, **kwargs)
 
@@ -471,7 +458,7 @@ class WizcardFlick(models.Model):
 
         if (r.days < 0):
             return 0
-        else: 
+        else:
             return r.seconds
 
 class UserBlocks(models.Model):

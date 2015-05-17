@@ -30,6 +30,7 @@ from lib.preserialize.serialize import serialize
 from wizserver import fields, verbs
 from virtual_table.signals import virtualtable_vtree_timeout
 from notifications.models import notify, Notification
+from base.cctx import ConnectionContext
 from django.conf import settings
 from django.utils import timezone
 
@@ -66,7 +67,7 @@ class VirtualTableManager(models.Manager):
 
     def serialize_split(self, tables, user, template):
         created, joined, connected, others = self.split_table(tables, user)
-        
+
         s = dict()
         if created:
             s['created'] = self.serialize(created, template)
@@ -91,7 +92,7 @@ class VirtualTableManager(models.Manager):
             elif Wizcard.objects.are_wizconnections(user.wizcard, t.creator.wizcard):
                 connected.append(t)
             else:
-                others.append(t) 
+                others.append(t)
         return created, joined, connected, others
 
 
@@ -117,9 +118,9 @@ class VirtualTable(models.Model):
 
     def create_location(self, lat, lng):
         location.send(
-                sender=self, 
-                lat=lat, 
-                lng=lng, 
+                sender=self,
+                lat=lat,
+                lng=lng,
                 tree="VTREE")
 
     def is_secure(self):
@@ -140,8 +141,9 @@ class VirtualTable(models.Model):
         implicit_exchange = self.is_secure()
 
         for wizcard2 in wizcards:
+            cctx = ConnectionContext(asset_obj=self)
             Wizcard.objects.exchange(wizcard1, wizcard2,
-                    implicit_exchange, table=self)
+                    implicit_exchange, cctx)
 
         return self
 
@@ -210,7 +212,7 @@ class VirtualTable(models.Model):
 
         if (r.days < 0):
             return 0
-        else: 
+        else:
             return r.seconds
 
 class Membership(models.Model):
@@ -230,6 +232,6 @@ def vtree_entry_timeout_handler(**kwargs):
         wizlib.ptree_delete(key, vtree)
 
 # Signal connections
-virtualtable_vtree_timeout.connect(vtree_entry_timeout_handler, 
+virtualtable_vtree_timeout.connect(vtree_entry_timeout_handler,
                                    dispatch_uid='wizcardship.models.wizcardship')
 
