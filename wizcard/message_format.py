@@ -101,6 +101,8 @@ class OcrRequestSelfSchema(colander.MappingSchema):
     pass
 class OcrRequestDeadCardSchema(colander.MappingSchema):
     pass
+class OcrDeadCardEditSchema(colander.MappingSchema):
+    pass
 class MeishiStartSchema(colander.MappingSchema):
     pass
 class MeishiFindSchema(colander.MappingSchema):

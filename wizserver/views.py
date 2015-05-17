@@ -237,6 +237,7 @@ class Header(ParseMsgAndDispatch):
             'settings'                    : (message_format.SettingsSchema, self.Settings),
             'ocr_req_self'                : (message_format.OcrRequestSelfSchema, self.OcrReqSelf),
             'ocr_req_dead_card'           : (message_format.OcrRequestDeadCardSchema, self.OcrReqDeadCard),
+            'ocr_dead_card_edit'          : (message_format.OcrDeadCardEditSchema, self.OcrDeadCardEdit),
             'meishi_start'                : (message_format.MeishiStartSchema, self.MeishiStart),
             'meishi_find'                 : (message_format.MeishiFindSchema, self.MeishiFind),
         }
@@ -1518,6 +1519,9 @@ class Header(ParseMsgAndDispatch):
         d.recognize()
 
         self.response.add_data("response", d.serialize())
+        return self.response
+
+    def OcrDeadCardEdit(self):
         return self.response
 
     def MeishiStart(self):
