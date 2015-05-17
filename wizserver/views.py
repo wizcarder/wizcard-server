@@ -240,6 +240,7 @@ class Header(ParseMsgAndDispatch):
             'ocr_dead_card_edit'          : (message_format.OcrDeadCardEditSchema, self.OcrDeadCardEdit),
             'meishi_start'                : (message_format.MeishiStartSchema, self.MeishiStart),
             'meishi_find'                 : (message_format.MeishiFindSchema, self.MeishiFind),
+            'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
         }
         #update location since it may have changed
 	if self.msg_has_location() and not self.msg_is_initial():
@@ -1538,7 +1539,7 @@ class Header(ParseMsgAndDispatch):
         if count:
             out = UserProfile.objects.serialize(
                     users,
-                    fields.wizcard_template_thumbnail_only)
+                    fields.wizcard_template_brief)
             self.response.add_data("m_nearby", out)
 
         return self.response
@@ -1569,7 +1570,7 @@ class Header(ParseMsgAndDispatch):
             if count:
                 out = UserProfile.objects.serialize(
                         users,
-                        fields.wizcard_template_thumbnail_only)
+                        fields.wizcard_template_brief)
                 self.response.add_data("m_nearby", out)
 
         return self.response
@@ -1578,7 +1579,7 @@ class Header(ParseMsgAndDispatch):
         #not sure yet what to do here...lets see
         #maybe some cleanup...but shouldn't be anything we should rely on
         #too much
-        pass
+        return self.response
 
 
     #################WizWeb Message handling########################
