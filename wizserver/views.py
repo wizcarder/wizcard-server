@@ -1721,6 +1721,10 @@ class Header(ParseMsgAndDispatch):
                     t_row.f_bizCardImage.save(upfile.name, upfile)
                 except:
                     pass
+            elif 'f_bizCardUrl' in c:
+                t_row.f_bziCardUrl = c['f_bizCardUrl']
+                t_row.save()
+
 
 	if flood == True:
             #AA:TODO: we also must notify the owner of the update

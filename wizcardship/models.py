@@ -302,7 +302,10 @@ class ContactContainer(models.Model):
         ordering = ['id']
 
     def get_fbizcard_url(self):
-        return self.f_bizCardImage.remote_url()
+        if self.card_url != "":
+            return self.card_url
+        else:
+            return self.f_bizCardImage.remote_url()
 
 
 class WizConnectionRequest(models.Model):
