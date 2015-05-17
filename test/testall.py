@@ -15,6 +15,19 @@ import sys
 
 numargs = len(sys.argv)
 
+FUTURE_PHONE1 = "+11111111111"
+FUTURE_PHONE2 = "+12222222222"
+FUTURE_PHONE3 = "+13333333333"
+FUTURE_PHONE4 = "+14444444444"
+FUTURE_USERNAME1 = FUTURE_PHONE1+'@wizcard.com'
+FUTURE_USERNAME2 = FUTURE_PHONE2+'@wizcard.com'
+FUTURE_USERNAME3 = FUTURE_PHONE3+'@wizcard.com'
+FUTURE_USERNAME4 = FUTURE_PHONE4+'@wizcard.com'
+FUTURE_EMAIL1 = "abcd@future.com"
+FUTURE_EMAIL2 = "efgh@future.com"
+FUTURE_EMAIL3 = "ijkl@future.com"
+FUTURE_EMAIL4 = "mnop@future.com"
+DEVICE_ID4 = "dddddddddddddddddddddddddd"
 FIRSTNAME_Q = "a"
 uid_dict = {}
 wuidlist = []
@@ -33,8 +46,10 @@ validreqs = {'phone_check_req' : 1}
 
 data = open(DATA_FILE, "r")
 NEXMO_PHONE="14084641727"
-server_url = "localhost"
-server_port = 8989
+#server_url = "localhost"
+server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
+#server_port = 8000
+server_port = 80
 
 conn = httplib.HTTPConnection(server_url, server_port)
 
@@ -177,6 +192,8 @@ for reqs in validreqs.keys():
                                           uid_dict[uid1]['flick'] = cf1_id
                                                   
                                       print "Card Flicked: " + str(cf1_id)
+                                  else:
+                                      print "ERROR:Failed to flick"
 
                                   reqmsg = messages.card_flick
                                   reqmsg['sender']['userID'] = uid1
@@ -252,33 +269,6 @@ for reqs in validreqs.keys():
 			# Parse a dump the JSON response from server
 			          objs = handle_response(conn, reqmsg['header']['msgType'])
 			
-                                  if len(alluids) > 1:
-                                    #delete rolodex card
-	                                  print "deleting all cards of ", uid1
-	                                  reqmsg = messages.delete_rolodex_card
-	                                  reqmsg['sender']['userID'] = uid1
-	                                  reqmsg['sender']['wizUserID'] = wuid1
-	                                  alluids = uid_dict.keys()
-	                                  (uid_index1,uid_index2) = (randint(0, len(alluids)-1), randint(0,len(alluids)-1))
-	                                  (wcid1, wcid2) = (uid_dict[alluids[uid_index1]]['wizCardID'], uid_dict[alluids[uid_index2]]['wizCardID'])
-	
-	
-	                                  reqmsg['receiver']['wizCardIDs'] = [wcid1,wcid2]
-	                                  dc1 = json.dumps(reqmsg)
-	                                  conn.request("POST","", dc1)
-	                                    # Parse and dump the JSON response from server
-	                                  objs = handle_response(conn, reqmsg['header']['msgType'])
-
-
-                                  print "get cards for user", uid1
-                                  reqmsg = messages.get_cards
-                                  reqmsg['sender']['userID'] = uid1
-                                  reqmsg['sender']['wizUserID'] = wuid1
-                                  print "GET cards", reqmsg['sender']['userID']
-                                  gcu1 = json.dumps(reqmsg)
-                                  conn.request("POST","", gcu1)
-                                  # Parse and dump the JSON response from server
-                                  objs = handle_response(conn, reqmsg['header']['msgType'])
                                   TABLE1NAME = "One"
                                   TABLE1NAME_NEW = "One More"
 
@@ -395,10 +385,126 @@ for reqs in validreqs.keys():
 	                                    conn.request("POST","", td3)
 	                                    # Parse and dump the JSON response from server
 	                                    objs = handle_response(conn, reqmsg['header']['msgType'])
+                                  alluids = uid_dict.keys()
+                                  if len(alluids) > 1:
+                                    #delete rolodex card
+	                                  print "deleting all cards of ", uid1
+	                                  reqmsg = messages.delete_rolodex_card
+	                                  reqmsg['sender']['userID'] = uid1
+	                                  reqmsg['sender']['wizUserID'] = wuid1
+	                                  alluids = uid_dict.keys()
+	                                  (uid_index1,uid_index2) = (randint(0, len(alluids)-1), randint(0,len(alluids)-1))
+	                                  (wcid1, wcid2) = (uid_dict[alluids[uid_index1]]['wizCardID'], uid_dict[alluids[uid_index2]]['wizCardID'])
 	
 	
-                                  else:
-                                      print "ERROR:Failed to flick"
+	                                  reqmsg['receiver']['wizCardIDs'] = [wcid1,wcid2]
+	                                  dc1 = json.dumps(reqmsg)
+	                                  conn.request("POST","", dc1)
+	                                    # Parse and dump the JSON response from server
+	                                  objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+                                  print "get cards for user", uid1
+                                  reqmsg = messages.get_cards
+                                  reqmsg['sender']['userID'] = uid1
+                                  reqmsg['sender']['wizUserID'] = wuid1
+                                  print "GET cards", reqmsg['sender']['userID']
+                                  gcu1 = json.dumps(reqmsg)
+                                  conn.request("POST","", gcu1)
+                                  # Parse and dump the JSON response from server
+                                  objs = handle_response(conn, reqmsg['header']['msgType'])
+                                  notif = NotifParser(objs['data'], uid1, wuid1)
+                                  nrsp = notif.process_one()
+                                  while nrsp != False:
+                                    if nrsp is not None:
+                                       nrsp = json.dumps(nrsp)
+                                       conn.request("POST","", n)
+        # Parse and dump the JSON response from server
+                                       objs = handle_response(conn, reqmsg['header']['msgType'])
+                                    nrsp = notif.process_one()
+
+                                  reqmsg = messages.card_details
+                                  reqmsg['sender']['userID'] = uid1
+                                  reqmsg['sender']['wizUserID'] = wuid1
+                                  reqmsg['receiver']['wizCardID'] = e1_id
+                                  print "GET card DETAILS", reqmsg['sender']['userID']
+                                  cd1 = json.dumps(reqmsg)
+                                  conn.request("POST","", cd1)
+# Parse and dump the JSON response from server
+                                  objs = handle_response(conn, reqmsg['header']['msgType'])
+       				  #assetToXYZ tests
+    				  #asset types: wizcard, table
+                                  #receiverType: phone, email, wizUserID
+                                  alluids = uid_dict.keys()
+                                  if len(alluids) > 1:
+                                    uid_rand = uid1
+	                            while uid_rand == uid1:
+	                             uid_index1 = randint(0, len(alluids)-1)
+	                             uid_rand = uid_dict[alluids[uid_index1]]['uid']
+	                             wuid_rand = uid_dict[alluids[uid_index1]]['wuid']
+    				
+    				  #u1 -> u2, u3 via wiz
+      				     reqmsg = messages.send_asset_to_xyz
+      				     reqmsg['sender']['userID'] = uid1
+      				     reqmsg['sender']['wizUserID'] = wuid1
+      				     reqmsg['sender']['assetID'] = e1_id
+      				     reqmsg['sender']['assetType'] = "wizcard"
+      				     reqmsg['receiver']['receiverType'] = "wiz_untrusted"
+      				     reqmsg['receiver']['receiverIDs'] = [wuid_rand]
+      				     print "sendingWizcardToUnTrusted"
+      				     sxyz = json.dumps(reqmsg)
+      				     conn.request("POST","", sxyz)
+      				  # Parse and dump the JSON response from server
+      				     objs = handle_response(conn, reqmsg['header']['msgType'])
+      				
+      				
+      				  #u1 -> future_u1, u2 via sms
+      				  reqmsg = messages.send_asset_to_xyz
+      				  reqmsg['sender']['userID'] = uid1
+      				  reqmsg['sender']['wizUserID'] = wuid1
+      				  reqmsg['sender']['assetID'] = e1_id
+      				  reqmsg['sender']['assetType'] = "wizcard"
+      				  reqmsg['receiver']['receiverType'] = "sms"
+      				  reqmsg['receiver']['receiverIDs'] = [FUTURE_PHONE1, FUTURE_PHONE2]
+      				  print "sendingWizcardToSMS"
+      				  sxyz = json.dumps(reqmsg)
+      				  conn.request("POST","", sxyz)
+      				  # Parse and dump the JSON response from server
+      				  objs = handle_response(conn, reqmsg['header']['msgType'])
+      		      		
+      		  		  #u2 -> future u1, u2 via email
+      				  reqmsg['sender']['userID'] = uid1
+      				  reqmsg['sender']['assetType'] = "wizcard"
+      				  reqmsg['sender']['wizUserID'] = wuid1
+      				  reqmsg['sender']['assetID'] = e1_id
+      				  reqmsg['receiver']['receiverType'] = "email"
+      				  reqmsg['receiver']['receiverIDs'] = [FUTURE_EMAIL1, FUTURE_EMAIL2]
+      				  print "sendingWizcardToEMAIL"
+      				  sxyz = json.dumps(reqmsg)
+      				  conn.request("POST","", sxyz)
+      				  # Parse and dump the JSON response from server
+      				  objs = handle_response(conn, reqmsg['header']['msgType'])
+      				
+      				  #now create future u1 and u2
+      				
+      				  print "creating future user 1 and 2"
+      				  reqmsg = messages.phone_check_req
+      				  reqmsg['header']['deviceID'] = DEVICE_ID4
+      				  reqmsg['header']['hash'] = deviceid
+      				  reqmsg['sender']['username'] = FUTURE_USERNAME1
+      				  reqmsg['sender']['target'] = FUTURE_PHONE1
+      				  reqmsg['sender']['responseMode'] = 'sms'
+      				  reqmsg['sender']['test_mode'] = True
+      				  pcreq2 = json.dumps(reqmsg)
+      				  conn.request("POST","", pcreq2)
+      				  print "sending phone_check_req", pcreq2
+      				  # Parse and dump the JSON response from server
+      				  objs = handle_response(conn, reqmsg['header']['msgType'])
+      				  response_key = objs['data']['challenge_key']
+    		
+  
+  
+	
                             else:
                                 print "ERROR:Cannot create wizcard for " + wuid1
 				
