@@ -329,9 +329,9 @@ INSTALLED_APPS = (
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
-if WIZRUNENV == 'test' || WIZRUNENV == 'dev':
+if RUNENV == 'test' or RUNENV == 'dev':
     AWS_TEST_BUCKET = '-test' 
-elif WIZRUNENV == 'prod':
+elif RUNENV == 'prod':
     AWS_TEST_BUCKET = '-prod' 
 
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_TEST_BUCKET
