@@ -292,7 +292,7 @@ class ContactContainer(models.Model):
     end = models.CharField(max_length=30, blank=True)
     f_bizCardImage = WizcardQueuedFileField(upload_to="bizcards",
                          storage=WizcardQueuedS3BotoStorage(delayed=False))
-    card_url = models.CharField(max_length=30, blank=True)
+    card_url = models.URLField(blank=True)
 
 
     def __unicode__(self):
