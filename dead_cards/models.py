@@ -9,8 +9,8 @@ import pdb
 
 # Create your models here.
 class DeadCardsManager(models.Manager):
-    def serialize(self, deadcards, template):
-        return serialize(deadcards, **template)
+    def serialize(self, deadcards):
+        return serialize(deadcards, **fields.dead_cards_response_template)
 
 class DeadCards(models.Model):
     user = models.ForeignKey(User, related_name="dead_cards")
@@ -42,5 +42,8 @@ class DeadCards(models.Model):
         self.web = result.get('web', "")
         self.save()
 
-    def serialize(self ):
-        return serialize(self, **fields.dead_cards_response_template)
+    def deadcard_url(self):
+        return self.f_bizCardImage.remote_url()
+
+    def serialize(self, template):
+        return serialize(self, **template)

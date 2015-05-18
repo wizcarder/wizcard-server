@@ -9,6 +9,7 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import Wizcard
 from virtual_table.models import VirtualTable
+from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
 from base.cctx import ConnectionContext
@@ -216,6 +217,12 @@ class UserProfile(models.Model):
                     self.user,
                     fields.table_template)
 	    s['tables'] = tbls
+
+        #dead card
+        deadcards = self.user.dead_cards.all()
+        if deadcards.count():
+            dc = DeadCards.objects.serialize(deadcards)
+            s['deadcards'] = dc
 
         return s
 
