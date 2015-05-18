@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 STG_AWSHOSTS=['ec2-52-8-25-4.us-west-1.compute.amazonaws.com','ec2-52-8-23-147.us-west-1.compute.amazonaws.com']
 PROD_AWSHOSTS=['ec2-52-8-96-234.us-west-1.compute.amazonaws.com','ec2-52-8-29-117.us-west-1.compute.amazonaws.com']
-DEV_AWSHOSTS=['wizdev.aws.com']
+DEV_AWSHOSTS=['localhost']
 
 stg_memcache_hosts=[]
 prod_memcache_hosts=[]
