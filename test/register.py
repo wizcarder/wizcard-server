@@ -112,7 +112,8 @@ server_url = "www.totastyle.com"
 server_port = 8000
 #server_port = 80
 
-test_image_path = "test/9-f_bc.81.2015-03-16_2213.jpg"
+#test_image_path = "test/photo.JPG-f_bc.81.2015-03-16_2213.jpg"
+test_image_path = "test/photo.JPG"
 # Open the connection to Wiz server
 conn = httplib.HTTPConnection(server_url, server_port)
 
@@ -269,7 +270,7 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 #send edit_cards for each
 if TEST_IMAGE:
     f = open(test_image_path, 'rb')
-    out = f.read().encode('hex')
+    out = f.read().encode('base64')
 else:
     out = None
 
@@ -280,7 +281,7 @@ contacts = reqmsg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
-    c['b_bizCardImage'] = out
+    #c['b_bizCardImage'] = out
 e1 = json.dumps(reqmsg)
 print "sending EDIT CARD for", reqmsg['sender']['userID']
 conn.request("POST","", e1)
@@ -295,7 +296,7 @@ contacts = reqmsg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
-    c['b_bizCardImage'] = out
+    #c['b_bizCardImage'] = out
 e2 = json.dumps(reqmsg)
 print "sending EDIT CARD for", reqmsg['sender']['userID']
 conn.request("POST","", e2)
@@ -310,7 +311,7 @@ contacts = reqmsg['sender']['contact_container']
 #populate file
 for c in contacts:
     c['f_bizCardImage'] = out
-    c['b_bizCardImage'] = out
+    #c['b_bizCardImage'] = out
 e3 = json.dumps(reqmsg)
 print "sending EDIT CARD for", reqmsg['sender']['userID']
 conn.request("POST","", e3)
@@ -1009,25 +1010,37 @@ conn.request("POST","", sxyz)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-reqmsg = messages.ocr_req_self
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['wizCardID'] = e1_id
-print "OCR Req Own Card", reqmsg['sender']['userID']
-ors = json.dumps(reqmsg)
 if OCR_FLAG:
+    reqmsg = messages.ocr_req_self
+    reqmsg['sender']['userID'] = uid1
+    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['sender']['wizCardID'] = e1_id
+    print "OCR Req Own Card", reqmsg['sender']['userID']
+    reqmsg['sender']['f_ocrCardImage'] = out
+    ors = json.dumps(reqmsg)
     conn.request("POST","", ors)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
 
-reqmsg = messages.ocr_dead_card
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['wizCardID'] = e1_id
-print "Dead Card OCR ", reqmsg['sender']['userID']
-ordc = json.dumps(reqmsg)
-if OCR_FLAG:
+    reqmsg = messages.ocr_dead_card
+    reqmsg['sender']['userID'] = uid1
+    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['sender']['wizCardID'] = e1_id
+    print "Dead Card OCR ", reqmsg['sender']['userID']
+    reqmsg['sender']['f_ocrCardImage'] = out
+    ordc = json.dumps(reqmsg)
     conn.request("POST","", ordc)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
+    dc1_id = objs['data']['response']['id']
+
+    reqmsg = messages.ocr_dead_card_edit
+    reqmsg['sender']['userID'] = uid1
+    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['sender']['deadCardID'] = dc1_id
+    print "Dead Card Edit ", reqmsg['sender']['userID']
+    dc1 = json.dumps(reqmsg)
+    conn.request("POST","", dc1)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
 

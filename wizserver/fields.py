@@ -109,6 +109,9 @@ table_template = {
 
 dead_cards_response_template = {
     'fields': ['id', 'company', 'email', 'first_name', 'last_name', \
-               'title', 'web'],
+               'title', 'web', 'url'],
+    'key_map' : {
+        'url': 'deadcard_url'
+        }
 }
 

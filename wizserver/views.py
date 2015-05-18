@@ -1519,10 +1519,39 @@ class Header(ParseMsgAndDispatch):
         d.f_bizCardImage.save(upfile.name, upfile)
         d.recognize()
 
-        self.response.add_data("response", d.serialize())
+        self.response.add_data("response",
+                d.serialize(fields.dead_cards_response_template))
         return self.response
 
     def OcrDeadCardEdit(self):
+        if not self.sender.has_key('deadCardID'):
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
+        try:
+            deadcard = DeadCards.objects.get(id=self.sender['deadCardID'])
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        if self.sender.has_key('first_name'):
+                deadcard.first_name = self.sender['first_name']
+        if self.sender.has_key('last_name'):
+                deadcard.last_name = self.sender['last_name']
+        if self.sender.has_key('phone'):
+                deadcard.phone = self.sender['phone']
+        if self.sender.has_key('email'):
+                deadcard.email = self.sender['email']
+        if self.sender.has_key('company'):
+                deadcard.company = self.sender['company']
+        if self.sender.has_key('title'):
+                deadcard.title = self.sender['title']
+        if self.sender.has_key('web'):
+                deadcard.web = self.sender['web']
+
+        #no f_bizCardEdit..for now atleast. This will always come via scan
+        #or rescan
+        deadcard.save()
+
         return self.response
 
     def MeishiStart(self):
