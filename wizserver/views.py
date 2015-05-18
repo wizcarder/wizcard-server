@@ -1479,9 +1479,12 @@ class Header(ParseMsgAndDispatch):
 
         wizcard.first_name = result.get('first_name', "")
         wizcard.last_name = result.get('last_name', "")
+        self.user.first_name = self.sender['first_name']
+        self.user.last_name = self.sender['last_name']
         wizcard.phone = result.get('phone', "")
         wizcard.email = result.get('email', "")
         wizcard.save()
+        self.user.save()
 
         c.title = result.get('title', ""),
         c.company = result.get('company', "")
