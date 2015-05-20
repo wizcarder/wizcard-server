@@ -853,7 +853,7 @@ class Header(ParseMsgAndDispatch):
 
                 cctx = ConnectionContext(asset_obj=flick_card)
 	        #create a wizconnection and then accept it
-	        Wizcard.objects.exchange( wizcard1, wizcard2, True, cctxt)
+	        Wizcard.objects.exchange( wizcard1, wizcard2, True, cctx)
 	except KeyError:
             self.securityException()
             self.response.ignore()
