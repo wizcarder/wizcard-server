@@ -4,10 +4,11 @@ from fabric.utils import *
 from fabric.contrib.files import exists
 from contextlib import contextmanager
 from wizcard import instances
+import re
 env.venv = '/home/ubuntu/stage'
 env.activate = 'source /home/ubuntu/stage/bin/activate'
 env.installroot = '/home/ubuntu/stage.env/'
-env.henv = 'test'
+#env.henv = 'dev'
 #env.function = 'WIZSERVER'
 
 @task
@@ -55,6 +56,9 @@ def installpackage(name=env.installroot + "/req.txt"):
 
 def gitcloneupdate():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
+    if env.henv != 'dev':
+        with settings(warn_only=True):
+         local("scp -i ~/aws/stagewizcard.pem /home/anand/.ssh/id_rsa ubuntu@%s:/home/ubuntu/.ssh/id_rsa" % env.host) 
 
     with settings(warn_only=True):
         if run("test -d %s" % env.installroot).failed:
@@ -87,16 +91,40 @@ def postinstall():
 		with cd(env.installroot):
 			if run("test -d %s" % path).failed:
 				run("mkdir log")
+                with virtualenv():
+		    with cd(env.installroot):
+                        run("python manage.py syncdb")
+                        run("python manage.py syncdb")
+                        run("python manage.py makemigrations")
                         run("python manage.py migrate")
+                        edit_file("-l 127.0.0.1", "-l " + env.host, "/etc/memcached.conf")
+#                        run("sudo sed -i.bak 's/-l 127.0.0.1/-l %s/' /etc/memcached.conf" % env.host)
+                        run("sudo /etc/init.d/memcached restart")
                         #append_settings()
 #                        run("cp wizcard/awstest_settings.py wizcard/settings.py")
 			init_upstart()
-
+@task
 def init_upstart():
 	with cd(env.installroot):
 		run("sudo cp upstart/*.conf /etc/init")
+                for files in ("/etc/init/wizserver.conf", "/etc/init/celerybeat.conf", "/etc/init/celeryworker.conf", "/etc/init/locationjob.conf", "/etc/init/celeryflower.conf"):
+                    edit_file("env host=xxx","env host="+env.host,files)
+                    edit_file("env basedir=xxx","env basedir="+env.installroot,files)
+                    edit_file("env runuser=xxx","env runuser="+env.runuser,files)
+                    edit_file("env venv=xxx","env venv="+env.venv,files)
                 run("sudo cp upstart/%s/wizserver /etc/nginx/sites-enabled" % env.henv)
                 run("sudo rm /etc/nginx/sites-enabled/default")
+
+def edit_file(find,replace,efile):
+
+    tmp_find = re.escape(find)
+    tmp_replace = re.escape(replace)
+
+    run("sudo sed -i.bak 's/%s/%s/' %s" % (tmp_find,tmp_replace,efile))
+    run("sudo sed -i.bak 's/%s/%s/' %s" % (tmp_find,tmp_replace,efile))
+    run("sudo sed -i.bak 's/%s/%s/' %s" % (tmp_find,tmp_replace,efile))
+    run("sudo sed -i.bak 's/%s/%s/' %s" % (tmp_find,tmp_replace,efile))
+
 
 @task
 def stopservices():
@@ -112,9 +140,9 @@ def stopnginx():
 def startcelery():
     with virtualenv():
 	with cd(env.installroot):
-         	run("sudo service celeryworker start basedir=%s venv=%s WIZRUNENV=%s runuser=ubuntu" % (env.installroot,env.venv,env.henv),pty=False)
-        	run("sudo service celerybeat start basedir=%s venv=%s WIZRUNENV=%s runuser=ubuntu" % (env.installroot,env.venv,env.henv), pty=False)
-        	run("sudo service celeryflower start basedir=%s address=%s port=%s venv=%s WIZRUNENV=%s runuser=ubuntu" % (env.installroot,env.host,'5555',env.venv,env.henv), pty=False)
+         	run("sudo service celeryworker start basedir=%s venv=%s WIZRUNENV=%s runuser=%s" % (env.installroot,env.venv,env.henv,env.runuser),pty=False)
+        	run("sudo service celerybeat start basedir=%s venv=%s WIZRUNENV=%s runuser=%s" % (env.installroot,env.venv,env.henv,env.runuser), pty=False)
+        	run("sudo service celeryflower start basedir=%s address=%s port=%s venv=%s WIZRUNENV=%s runuser=%s" % (env.installroot,env.host,'5555',env.venv,env.henv,env.runuser), pty=False)
         	run("ps auxww | grep celery")
 
 def startrabbit():
@@ -175,7 +203,7 @@ def startgunicorn():
 	with virtualenv():
 		with cd(env.installroot):
 			fastprint("\nRunning gunicorn server on %s===================================\n" % env.host)
-			run("sudo service wizserver start host=%s basedir=%s venv=%s runuser=ubuntu WIZRUNENV=%s" % (env.host,env.installroot,env.venv,env.henv), pty=False)
+			run("sudo service wizserver start host=%s basedir=%s venv=%s runuser=%s WIZRUNENV=%s" % (env.host,env.installroot,env.venv,env.runuser,env.henv), pty=False)
 			run("ps auxww | grep gunicorn")
 			
 def freeze():
@@ -210,7 +238,7 @@ def updaterestart():
 		
 def deployall():
 	fastprint("\nRunning aptgets===================================\n")
-	aptgets()
+        aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
@@ -233,7 +261,7 @@ def deployall():
 
 def deploylocation():
 	fastprint("\nRunning aptgets===================================\n")
-	aptgets()
+        aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
@@ -256,7 +284,7 @@ def deploylocation():
 
 def deploywizserver():
 	fastprint("\nRunning aptgets===================================\n")
-	aptgets()
+        aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
