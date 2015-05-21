@@ -5,9 +5,9 @@ from fabric.contrib.files import exists
 from contextlib import contextmanager
 from wizcard import instances
 import re
-env.venv = '/home/ubuntu/stage'
-env.activate = 'source /home/ubuntu/stage/bin/activate'
-env.installroot = '/home/ubuntu/stage.env/'
+env.venv = '/home/'+env.runuser+'/'+env.henv
+env.activate = 'source /home/' +env.runuser+'/'+ env.henv+'/bin/activate'
+env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
 #env.henv = 'dev'
 #env.function = 'WIZSERVER'
 
