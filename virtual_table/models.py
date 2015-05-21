@@ -54,7 +54,7 @@ class VirtualTableManager(models.Manager):
         return tables, count
 
     def user_tables(self, user):
-        return user.virtualtable_set.all()
+        return user.virtualtable_set.exclude(expired=True)
 
     #AA: TODO : get some max limit on this
     def query_tables(self, name):
@@ -105,6 +105,7 @@ class VirtualTable(models.Model):
     a_created = models.CharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
     timeout = models.IntegerField(default=30)
+    expired = models.BooleanField(default=False)
     users = models.ManyToManyField(User, through='Membership')
     location = generic.GenericRelation(LocationMgr)
 
@@ -183,13 +184,23 @@ class VirtualTable(models.Model):
 
     def delete(self, *args, **kwargs):
 	#notify members of deletion (including self)
-	members = self.users.all()
         verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
+	members = self.users.all()
 	for member in members:
-	    notify.send(self.creator, recipient=member, verb = verb, target=self)
-        self.users.clear()
+	    notify.send(
+                    self.creator, 
+                    recipient=member, 
+                    verb=verb, 
+                    target=self)
+
         self.location.get().delete()
-        super(VirtualTable, self).delete(*args, **kwargs)
+
+        if verb == verbs.WIZCARD_TABLE_TIMEOUT[0]:
+            self.expired = True
+            self.save()
+        else:
+            self.users.clear()
+            super(VirtualTable, self).delete(*args, **kwargs)
 
     def distance_from(self, lat, lng):
         return 0
