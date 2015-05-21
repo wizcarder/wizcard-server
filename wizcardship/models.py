@@ -219,7 +219,9 @@ class Wizcard(models.Model):
         return serialize(self.wizconnections.all(), **template)
 
     def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
-	return serialize(self.flicked_cards.all(), **template)
+	return serialize(
+                self.flicked_cards.exclude(expired=True),
+                **template)
 
     def create_company_list(self, l):
         map(lambda x: CompanyList(wizcard=self, company=x).save(), l)
@@ -419,6 +421,7 @@ class WizcardFlick(models.Model):
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     location = generic.GenericRelation(LocationMgr)
+    expired = models.BooleanField(default=False)
     #who picked my flicked card?
     flick_pickers = models.ManyToManyField(Wizcard)
 
@@ -436,18 +439,25 @@ class WizcardFlick(models.Model):
 
         return loc
 
+    def expire(self):
+        self.expired = True
+        self.save()
+
     def delete(self, *args, **kwargs):
         logger.debug('deleting flicked wizcard %s', self.id)
-        #AA:TODO - For some reason, django doesn't call delete method of generic FK object.
-        # Although it does delete it. Until I figure out why, need to explicitly call
-        #delete method since other deletes need to happen there as well
+        verb = kwargs.pop('type', None)
         self.location.get().delete()
-	notify.send(self.wizcard.user,
+
+        if verb == None:
+            #withdraw flick case
+            super(WizcardFlick, self).delete(*args, **kwargs)
+        else:
+            #timeout
+            notify.send(self.wizcard.user,
                     recipient=self.wizcard.user,
                     verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
                     target=self,
                     action_object=self.wizcard)
-        super(WizcardFlick, self).delete(*args, **kwargs)
 
     def get_tag(self):
         return WizcardFlick.objects.tag

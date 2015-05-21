@@ -206,7 +206,7 @@ def virtual_table_timeout_cb(l):
     l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[0])
     
 def generic_timeout_cb(l):
-    l.content_object.delete()
+    l.content_object.expire()
 
 def timeout_callback_execute(e):
     timeout_callback = {
