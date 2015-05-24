@@ -567,6 +567,7 @@ class Header(ParseMsgAndDispatch):
         return notifResponse
 
     def WizcardEdit(self):
+        pdb.set_trace()
         modify = False
         user_modify = False
         userprofile_modify = False
@@ -634,6 +635,10 @@ class Header(ParseMsgAndDispatch):
                     company = contactItem['company']
                 else:
                     company = ""
+		if 'phone' in contactItem:
+                    phone = contactItem['phone']
+                else:
+                    phone = ""
 		if 'start' in contactItem:
                     start = contactItem['start']
                 else:
@@ -647,6 +652,7 @@ class Header(ParseMsgAndDispatch):
                 c = ContactContainer(wizcard=wizcard,
 				title=title,
 				company=company,
+                                phone=phone,
 				start=start,
 				end=end)
 		c.save()
@@ -1481,13 +1487,13 @@ class Header(ParseMsgAndDispatch):
         wizcard.last_name = result.get('last_name', "")
         self.user.first_name = result.get('first_name')
         self.user.last_name = result.get('last_name')
-        wizcard.phone = result.get('phone', "")
         wizcard.email = result.get('email', "")
         wizcard.save()
         self.user.save()
 
         c.title = result.get('title', ""),
         c.company = result.get('company', "")
+        c.phone = result.get('phone', "")
         c.end="current"
         c.save()
 
