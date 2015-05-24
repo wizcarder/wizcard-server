@@ -104,8 +104,8 @@ LNG1 = -122.506419
 verify_phones_list = [PHONE1, PHONE2, PHONE3]
 verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 
-server_url = "www.totastyle.com"
-#server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
+#server_url = "www.totastyle.com"
+server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 #server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
 #server_url = "localhost"
 

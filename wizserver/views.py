@@ -130,9 +130,11 @@ class Header(ParseMsgAndDispatch):
 	        self.user = User.objects.get(id=sender['wizUserID'])
 		self.userprofile = self.user.profile
 	    except:
+                logger.debug('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
 
 	    if self.userprofile.userid != sender['userID']:
+                logger.debug('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
 
         #AA:TODO - Move to header
