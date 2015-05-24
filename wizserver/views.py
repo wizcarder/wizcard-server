@@ -682,7 +682,9 @@ class Header(ParseMsgAndDispatch):
                         pass
 
         #check if futureUser states exist for this phone or email
-        future_users = FutureUser.objects.check_future_user(wizcard.email, phone)
+        future_users = FutureUser.objects.check_future_user(
+                wizcard.email,
+                wizcard.phone)
         for f in future_users:
             f.generate_self_invite(self.user)
 

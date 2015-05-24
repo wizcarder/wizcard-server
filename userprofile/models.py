@@ -242,7 +242,6 @@ class FutureUser(models.Model):
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
-    asset_type = models.CharField(max_length=20, blank=False)
 
     objects = FutureUserManager()
 
