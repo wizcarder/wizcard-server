@@ -10,8 +10,10 @@ import pdb
 # Create your models here.
 class DeadCardsManager(models.Manager):
     def serialize(self, deadcards):
-        return serialize(deadcards, **fields.dead_cards_response_template)
+        #AA: todo
+        return serialize(deadcards, **fields.dead_cards_wizcard_template)
 
+#AA:TODO refactor. This should reuse CC model
 class DeadCards(models.Model):
     user = models.ForeignKey(User, related_name="dead_cards")
     first_name = models.CharField(max_length=40, blank=True)
@@ -42,8 +44,20 @@ class DeadCards(models.Model):
         self.web = result.get('web', "")
         self.save()
 
+    def get_deadcard_cc(self):
+        cc = dict()
+        cc['phone'] = self.phone
+        cc['email'] = self.email
+        cc['company'] = self.company
+        cc['title'] = self.title
+        cc['web'] = self.web
+        cc['url'] = self.deadcard_url()
+        return cc
+
     def deadcard_url(self):
         return self.f_bizCardImage.remote_url()
 
-    def serialize(self, template):
-        return serialize(self, **template)
+   #AA:TODO refactor. This should reuse CC model
+    def serialize(self):
+        wc = serialize(self, **fields.dead_cards_wizcard_template)
+        return wc

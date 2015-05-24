@@ -28,7 +28,7 @@ import string
 #delete rolodex - 1
 
 TEST_IMAGE=True
-OCR_FLAG = False
+OCR_FLAG = True
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "14084641727"
@@ -1010,6 +1010,7 @@ conn.request("POST","", sxyz)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+pdb.set_trace()
 if OCR_FLAG:
     reqmsg = messages.ocr_req_self
     reqmsg['sender']['userID'] = uid1

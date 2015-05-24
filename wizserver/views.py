@@ -436,6 +436,8 @@ class Header(ParseMsgAndDispatch):
                     self.response.add_data("tables", s['tables'])
                 if 'flick_picks' in s:
                     self.response.add_data("flick_picks", s["flick_picks"])
+                if 'deadcards' in s:
+                    self.response.add_data("deadcards", s["deadcards"])
 
                 self.userprofile.activated = True
 
@@ -1501,8 +1503,10 @@ class Header(ParseMsgAndDispatch):
         self.userprofile.activated = True
         self.userprofile.save()
 
-        self.response.add_data("ocr_result", result)
-        logger.debug('sending OCR scan results %s', result)
+        wc = wizcard.serialize()
+
+        self.response.add_data("ocr_result", wc)
+        logger.debug('sending OCR scan results %s', self.response)
         return self.response
 
     def OcrReqDeadCard(self):
@@ -1527,8 +1531,7 @@ class Header(ParseMsgAndDispatch):
         d.f_bizCardImage.save(upfile.name, upfile)
         d.recognize()
 
-        self.response.add_data("response",
-                d.serialize(fields.dead_cards_response_template))
+        self.response.add_data("response", d.serialize())
         return self.response
 
     def OcrDeadCardEdit(self):

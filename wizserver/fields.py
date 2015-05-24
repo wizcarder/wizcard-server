@@ -107,11 +107,8 @@ table_template = {
                  'wizcards': 'get_member_wizcards'}
 }
 
-dead_cards_response_template = {
-    'fields': ['id', 'first_name', 'last_name', 'phone', 'email', \
-            'company', 'title', 'web', 'url'],
-    'key_map' : {
-        'url': 'deadcard_url'
-        }
+dead_cards_wizcard_template = {
+    'fields': ['id', 'first_name', 'last_name', \
+               'phone', 'email', 'contact_container'],
+    'key_map': {'contact_container': 'get_deadcard_cc'}
 }
-
