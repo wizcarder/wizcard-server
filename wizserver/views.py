@@ -567,7 +567,6 @@ class Header(ParseMsgAndDispatch):
         return notifResponse
 
     def WizcardEdit(self):
-        pdb.set_trace()
         modify = False
         user_modify = False
         userprofile_modify = False
