@@ -210,14 +210,14 @@ elif RUNENV == 'stage':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': instances.STG_AWSHOSTS[RUNENV]['MEMCACHE']
+            'LOCATION': instances.ALLHOSTS[RUNENV]['MEMCACHE']
         }
     }
 elif RUNENV == 'prod':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': instances.PROD_AWSHOSTS[RUNENV]['MEMCACHE']
+            'LOCATION': instances.ALLHOSTS[RUNENV]['MEMCACHE']
         }
     }
 
