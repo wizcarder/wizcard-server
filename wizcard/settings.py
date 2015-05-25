@@ -92,15 +92,14 @@ if RUNENV == 'dev':
 	        'ENGINE': 'django.db.backends.mysql',
 	        'NAME': 'wizcard',
 	        'USER': 'root',
-	        #'PASSWORD': 'mydb',
-	        'PASSWORD': '',
-	        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+	        'PASSWORD': 'mydb',
+	        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        #'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-	        'SOCKET': '', # Set to empty string for localhost. Not used with sqlite3.
+	        'SOCKET': '/var/run/mysql/mysqld.sock', # Set to empty string for localhost. Not used with sqlite3.
 	    },
 	}
-elif RUNENV == 'test':
+elif RUNENV == 'stage':
     DATABASES = {
 	    'default': {
 	        'ENGINE': 'django.db.backends.mysql',
@@ -207,11 +206,18 @@ if RUNENV == 'dev':
          'LOCATION': 'default-cache'
      }
     }
-elif RUNENV == 'test':
+elif RUNENV == 'stage':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': instances.ALLHOSTS[RUNENV]['MEMCACHE']
+            'LOCATION': instances.STG_AWSHOSTS[RUNENV]['MEMCACHE']
+        }
+    }
+elif RUNENV == 'prod':
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': instances.PROD_AWSHOSTS[RUNENV]['MEMCACHE']
         }
     }
 
@@ -472,7 +478,7 @@ RAVEN_CONFIG = {
     #for wizcard totastyle instance
     #'dsn': 'https://0e8c55f2ba84490c891dd340685a4177:13702356dd5445cabfc7e9b02814975c@app.getsentry.com/41149'
     #for anandr-laptop instance
-        'dsn': 'https://b58fae5ffdec4127885c4764524f9feb:57fa34177fcb4db6b8dedfd88c8c1526@app.getsentry.com/41150'
+    # 'dsn': 'https://b58fae5ffdec4127885c4764524f9feb:57fa34177fcb4db6b8dedfd88c8c1526@app.getsentry.com/41150'
 }
 
 
