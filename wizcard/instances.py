@@ -13,7 +13,7 @@ for hosts in DEV_AWSHOSTS:
     prod_memcache_hosts.append(hosts+":11211")
 ALLHOSTS = {
 	'stage':{
-		'LOCATIONSERVER': ['ec2-52-8-25-4.us-west-1.compute.amazonaws.com'],
+		'LOCATIONSERVER': [STG_AWSHOSTS[0]],
 		'WIZSERVER':STG_AWSHOSTS,
                 'NGINX':STG_AWSHOSTS,
                 'MEMCACHE':stg_memcache_hosts,
