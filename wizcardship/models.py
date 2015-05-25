@@ -440,25 +440,24 @@ class WizcardFlick(models.Model):
 
         return loc
 
-    def expire(self):
-        self.expired = True
-        self.save()
-
     def delete(self, *args, **kwargs):
-        logger.debug('deleting flicked wizcard %s', self.id)
         verb = kwargs.pop('type', None)
         self.location.get().delete()
 
-        if verb == None:
-            #withdraw flick case
-            super(WizcardFlick, self).delete(*args, **kwargs)
-        else:
-            #timeout
+        if verb == verbs.WIZCARD_FLICK_TIMEOUT[0]:
+            #timeout 
+            logger.debug('timeout flicked wizcard %s', self.id)
+            self.expired = True
+            self.save()
             notify.send(self.wizcard.user,
                     recipient=self.wizcard.user,
                     verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
                     target=self,
                     action_object=self.wizcard)
+        else:
+            #withdraw/delete flick case
+            logger.debug('withdraw flicked wizcard %s', self.id)
+            super(WizcardFlick, self).delete(*args, **kwargs)
 
     def get_tag(self):
         return WizcardFlick.objects.tag
