@@ -130,9 +130,11 @@ class Header(ParseMsgAndDispatch):
 	        self.user = User.objects.get(id=sender['wizUserID'])
 		self.userprofile = self.user.profile
 	    except:
+                logger.debug('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
 
 	    if self.userprofile.userid != sender['userID']:
+                logger.debug('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
 
         #AA:TODO - Move to header
@@ -436,6 +438,8 @@ class Header(ParseMsgAndDispatch):
                     self.response.add_data("tables", s['tables'])
                 if 'flick_picks' in s:
                     self.response.add_data("flick_picks", s["flick_picks"])
+                if 'deadcards' in s:
+                    self.response.add_data("deadcards", s["deadcards"])
 
                 self.userprofile.activated = True
 
@@ -634,6 +638,10 @@ class Header(ParseMsgAndDispatch):
                     company = contactItem['company']
                 else:
                     company = ""
+		if 'phone' in contactItem:
+                    phone = contactItem['phone']
+                else:
+                    phone = ""
 		if 'start' in contactItem:
                     start = contactItem['start']
                 else:
@@ -647,6 +655,7 @@ class Header(ParseMsgAndDispatch):
                 c = ContactContainer(wizcard=wizcard,
 				title=title,
 				company=company,
+                                phone=phone,
 				start=start,
 				end=end)
 		c.save()
@@ -675,7 +684,9 @@ class Header(ParseMsgAndDispatch):
                         pass
 
         #check if futureUser states exist for this phone or email
-        future_users = FutureUser.objects.check_future_user(wizcard.email, phone)
+        future_users = FutureUser.objects.check_future_user(
+                wizcard.email,
+                wizcard.phone)
         for f in future_users:
             f.generate_self_invite(self.user)
 
@@ -1481,13 +1492,13 @@ class Header(ParseMsgAndDispatch):
         wizcard.last_name = result.get('last_name', "")
         self.user.first_name = result.get('first_name')
         self.user.last_name = result.get('last_name')
-        wizcard.phone = result.get('phone', "")
         wizcard.email = result.get('email', "")
         wizcard.save()
         self.user.save()
 
         c.title = result.get('title', ""),
         c.company = result.get('company', "")
+        c.phone = result.get('phone', "")
         c.end="current"
         c.save()
 
@@ -1496,8 +1507,10 @@ class Header(ParseMsgAndDispatch):
         self.userprofile.activated = True
         self.userprofile.save()
 
-        self.response.add_data("ocr_result", result)
-        logger.debug('sending OCR scan results %s', result)
+        wc = wizcard.serialize()
+
+        self.response.add_data("ocr_result", wc)
+        logger.debug('sending OCR scan results %s', self.response)
         return self.response
 
     def OcrReqDeadCard(self):
@@ -1522,8 +1535,7 @@ class Header(ParseMsgAndDispatch):
         d.f_bizCardImage.save(upfile.name, upfile)
         d.recognize()
 
-        self.response.add_data("response",
-                d.serialize(fields.dead_cards_response_template))
+        self.response.add_data("response", d.serialize())
         return self.response
 
     def OcrDeadCardEdit(self):

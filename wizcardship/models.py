@@ -75,8 +75,8 @@ class WizcardManager(models.Manager):
         wizcard1.wizconnections.add(wizcard2)
         # Now that user1 accepted user2's card request we should delete any
         # request by user1 to user2 so that we don't have ambiguous data
-        WizConnectionRequest.objects.filter(from_wizcard=wizcard1,
-                                            to_wizcard=wizcard2).delete()
+        self.wizconnection_req_clear(from_wizcard=wizcard1,
+                to_wizcard=wizcard2)
 
     def uncard(self, wizcard1, wizcard2):
         # Break cardship link between users
@@ -292,6 +292,7 @@ class ContactContainer(models.Model):
     title = models.CharField(max_length=200, blank=True)
     start = models.CharField(max_length=30, blank=True)
     end = models.CharField(max_length=30, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
     f_bizCardImage = WizcardQueuedFileField(upload_to="bizcards",
                          storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.URLField(blank=True)

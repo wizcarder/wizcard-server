@@ -18,7 +18,7 @@ import string
 #1 - 3 Connected
 
 
-#T1 - [u1, u2] 
+#T1 - [u1, u2]
 
 #1 - 2 Connected
 
@@ -28,7 +28,7 @@ import string
 #delete rolodex - 1
 
 TEST_IMAGE=True
-OCR_FLAG = False
+OCR_FLAG = True
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "14084641727"
@@ -104,8 +104,8 @@ LNG1 = -122.506419
 verify_phones_list = [PHONE1, PHONE2, PHONE3]
 verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 
-server_url = "www.totastyle.com"
-#server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
+#server_url = "www.totastyle.com"
+server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 #server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
 #server_url = "localhost"
 
@@ -121,7 +121,7 @@ conn = httplib.HTTPConnection(server_url, server_port)
 def handle_response(conn, msg_type):
     res = conn.getresponse()
     print res.status, res.reason
-    objs = res.read()    
+    objs = res.read()
     objs = json.loads( objs )
     print "received respone for Message: ", msg_type
     print json.dumps(objs, sort_keys = True, indent = 2)
@@ -509,7 +509,7 @@ tbl_j_1 = json.dumps(reqmsg)
 conn.request("POST","", tbl_j_1)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-print "Edit Table" 
+print "Edit Table"
 reqmsg = messages.table_edit
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
@@ -1190,7 +1190,7 @@ reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['wizCardID'] = 1
 reqmsg['sender']['lat'] = LAT1
 reqmsg['sender']['lng'] = LNG1
-print "MEISHI START", reqmsg['sender']['wizCardID'] 
+print "MEISHI START", reqmsg['sender']['wizCardID']
 mei1 = json.dumps(reqmsg)
 print "sending meishi_start" + mei1
 conn.request("POST", "", mei1)
@@ -1202,7 +1202,7 @@ reqmsg = messages.meishi_find
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['mID'] = mei_id1
-print "MEISHI FIND", reqmsg['sender']['wizCardID'] 
+print "MEISHI FIND", reqmsg['sender']['wizCardID']
 mef1 = json.dumps(reqmsg)
 print "sending meishi_find" + mef1
 conn.request("POST", "", mef1)
@@ -1219,7 +1219,7 @@ reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['sender']['wizCardID'] = 2
 reqmsg['sender']['lat'] = LAT1
 reqmsg['sender']['lng'] = LNG1
-print "MEISHI START", reqmsg['sender']['wizCardID'] 
+print "MEISHI START", reqmsg['sender']['wizCardID']
 mei2 = json.dumps(reqmsg)
 print "sending meishi_start" + mei2
 conn.request("POST", "", mei2)
@@ -1232,7 +1232,7 @@ reqmsg = messages.meishi_find
 reqmsg['sender']['userID'] = uid2
 reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['sender']['mID'] = mei_id2
-print "MEISHI FIND", reqmsg['sender']['wizCardID'] 
+print "MEISHI FIND", reqmsg['sender']['wizCardID']
 mef2 = json.dumps(reqmsg)
 print "sending meishi_find" + mef2
 conn.request("POST", "", mef2)

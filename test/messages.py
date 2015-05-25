@@ -1,5 +1,5 @@
 
-#TODO: Probably should keep the message definition separate and read the 
+#TODO: Probably should keep the message definition separate and read the
 # data into it from a text/db file
 
 from datetime import datetime
@@ -43,7 +43,7 @@ login = {
         "password": "wizcard"
     },
 }
-            
+
 register_sync = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
@@ -158,7 +158,7 @@ contacts_verify = {
 	"verify_phones" : "",
 	"verify_emails" : "",
     }
-    
+
 }
 
 contact_container = {
@@ -168,6 +168,7 @@ contact_container = {
     "r_bizCardImage" : "",
     "start" : "xxx",
     "end" : "current",
+    "phone": "12345678",
     "card_url": ""
 }
 
@@ -293,7 +294,7 @@ send_asset_to_xyz= {
         "assetType": ""
     },
     "receiver" : {
-        #receiver type can be wiz_untrusted, wiz_trusted, wiz_trusted_check 
+        #receiver type can be wiz_untrusted, wiz_trusted, wiz_trusted_check
         #for in-network. email, sms for non-wiz network (future handliing)
         "receiverType" : "",
         #receiver id's can be phone, email, wizUserID
@@ -637,7 +638,7 @@ wizweb_query_user = {
         "username" : ""
     },
 }
-    
+
 
 wizweb_query_wizcard = {
     "header" : {
@@ -650,7 +651,7 @@ wizweb_query_wizcard = {
         "username" : ""
     },
 }
-    
+
 wizweb_create_user = {
     "header" : {
         "deviceID" : "wizweb",
@@ -663,7 +664,7 @@ wizweb_create_user = {
         "last_name" : ""
     },
 }
-    
+
 wizweb_add_edit_card = {
     "header" : {
         "deviceID" : "wizweb",
@@ -677,7 +678,7 @@ wizweb_add_edit_card = {
 	"last_name" : "",
 	"phone" : "",
 	"title" : "",
-	"company" : "", 
+	"company" : "",
 	"mediaUrl" : "",
 	"f_bizCardUrl" : "",
 	"contact_container" : [contact_container, contact_container, contact_container]
