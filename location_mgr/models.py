@@ -205,14 +205,14 @@ def location_timeout_cb(l):
 def virtual_table_timeout_cb(l):
     l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[0])
     
-def generic_timeout_cb(l):
-    l.content_object.expire()
+def flicked_card_timeout(l):
+    l.content_object.delete(type=verbs.WIZCARD_FLICK_TIMEOUT[0])
 
 def timeout_callback_execute(e):
     timeout_callback = {
-        ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb, 
-        ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : generic_timeout_cb, 
-        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb, 
+        ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb,
+        ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : flicked_card_timeout,
+        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb,
         }
     timeout_callback[e.content_type.id](e)
 

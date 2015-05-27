@@ -136,28 +136,26 @@ class Notification(models.Model):
             self.readed = True
             self.save()
 
-    def pushNotificationToApp(self, receiver, sender, 
-            action_object, target_object, verb):
+    def pushNotificationToApp(self, sender):
         from userprofile.models import UserProfile
-        if not verbs.apns_notification_dictionary.has_key(verb):
+        receiver = self.recipient.profile
+        if not verbs.apns_notification_dictionary.has_key(self.verb):
 	    return
-        pdb.set_trace
 
         sender_name = sender.first_name + " " + sender.last_name
 
 
-        if action_object:
-            asset_type = ContentType.objects.get_for_model(action_object)
+        if self.action_object:
+            asset_type = ContentType.objects.get_for_model(self.action_object)
 
 	if asset_type == ContentType.objects.get(model="virtualtable"):
-            table_name ="%s" % action_object
+            table_name ="%s" % self.action_object
         elif asset_type == ContentType.objects.get(model="wizcard"):
-            wizcard_user = action_object.get_name
+            wizcard_user = self.action_object.get_name()
 
 
-        apns_message = dict(aps=verbs.apns_notification_dictionary[verb])
+        apns_message = dict(aps=verbs.apns_notification_dictionary[self.verb])
         apns_message['aps']['alert'] = apns_message['aps']['alert'].format(sender_name=sender_name,table_name=table_name,wizcard_user=wizcard_user)
-
 
         push_to_app_handler = {
             UserProfile.IOS	: self.pushIOS,
@@ -206,13 +204,13 @@ def notify_handler(verb, **kwargs):
     newnotify.save()
 
     #check if the target user is online and do APNS if not
-    profile = recipient.profile
-    if not profile.is_online():
-        logging.info("User %s is OFFLINE", profile.userid)
+    if not recipient.profile.is_online():
+        logging.info("User %s is OFFLINE", recipient.profile.userid)
         try:
-            newnotify.pushNotificationToApp( profile, actor, newnotify.action_object, newnotify.target, verb)
+            newnotify.pushNotificationToApp(actor)
         except:
-            logging.error("Failed to send APNS to User %s", profile.userid)
+            logging.error("Failed to send APNS to User %s", 
+                    recipient.profile.userid)
             pass
 
 
