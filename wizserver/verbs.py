@@ -38,47 +38,47 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         #AA:TODO: separate verb from push message
-        'alert': WIZREQ_U[2],
+        'alert': '{wizcard_user} would like to connect with you',
     },
     WIZREQ_T[0]	: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': WIZREQ_T[2],
+        'alert': 'you have a new contact',
     },
     WIZCARD_ACCEPT[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': WIZCARD_ACCEPT[2],
+        'alert': '{wizcard_user} accepted your invitation',
     },
     WIZCARD_TABLE_TIMEOUT[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': WIZCARD_TABLE_TIMEOUT[2],
+        'alert': '{table_name} table has now expired',
     },
     WIZCARD_TABLE_DESTROY[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': WIZCARD_TABLE_DESTROY[2],
+        'alert': '{sender_name}  deleted {table_name} table',
     },
     WIZCARD_UPDATE[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': WIZCARD_UPDATE[2],
+        'alert': '{wizcard_user} has an updated wizcard',
     },
     WIZCARD_FLICK_TIMEOUT[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': WIZCARD_FLICK_TIMEOUT[2],
+        'alert': 'your flick has expired',
     },
     WIZCARD_FLICK_PICK[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': WIZCARD_FLICK_PICK[2],
+        'alert': '{sender_name} picked up your flicked wizcard',
     },
     WIZWEB_WIZCARD_UPDATE[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': WIZWEB_WIZCARD_UPDATE[2],
+        'alert': 'your wizcard was updated',
     },
 }
 

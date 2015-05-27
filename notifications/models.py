@@ -142,7 +142,20 @@ class Notification(models.Model):
         if not verbs.apns_notification_dictionary.has_key(self.verb):
 	    return
 
+        sender_name = sender.first_name + " " + sender.last_name
+
+
+        if self.action_object:
+            asset_type = ContentType.objects.get_for_model(self.action_object)
+
+	if asset_type == ContentType.objects.get(model="virtualtable"):
+            table_name ="%s" % self.action_object
+        elif asset_type == ContentType.objects.get(model="wizcard"):
+            wizcard_user = self.action_object.get_name()
+
+
         apns_message = dict(aps=verbs.apns_notification_dictionary[self.verb])
+        apns_message['aps']['alert'] = apns_message['aps']['alert'].format(sender_name=sender_name,table_name=table_name,wizcard_user=wizcard_user)
 
         push_to_app_handler = {
             UserProfile.IOS	: self.pushIOS,
@@ -186,6 +199,7 @@ def notify_handler(verb, **kwargs):
             setattr(newnotify, '%s_object_id' % opt, obj.pk)
             setattr(newnotify, '%s_content_type' % opt,
                     ContentType.objects.get_for_model(obj))
+            setattr(newnotify, '%s' % opt, obj)
 
     newnotify.save()
 

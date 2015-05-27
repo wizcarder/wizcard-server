@@ -63,8 +63,9 @@ def gitcloneupdate():
     with settings(warn_only=True):
         if run("test -d %s" % env.installroot).failed:
             run("git clone git@github.com:wizcarder/wizcard-server.git  %s" % env.installroot)
-    with cd(env.installroot):
-        run("cd %s && git pull" % env.installroot)
+        else:
+            with cd(env.installroot):
+             run("cd %s && git pull" % env.installroot)
 
 def localgitpullfile():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
@@ -120,9 +121,6 @@ def edit_file(find,replace,efile):
     tmp_find = re.escape(find)
     tmp_replace = re.escape(replace)
 
-    run("sudo sed -i.bak 's/%s/%s/' %s" % (tmp_find,tmp_replace,efile))
-    run("sudo sed -i.bak 's/%s/%s/' %s" % (tmp_find,tmp_replace,efile))
-    run("sudo sed -i.bak 's/%s/%s/' %s" % (tmp_find,tmp_replace,efile))
     run("sudo sed -i.bak 's/%s/%s/' %s" % (tmp_find,tmp_replace,efile))
 
 
