@@ -8,7 +8,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wizcardship', '__first__'),
+        ('wizcardship', '0001_initial'),
     ]
 
     operations = [
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('lng', models.DecimalField(max_digits=20, decimal_places=15)),
                 ('timestamp', models.DateTimeField(default=django.utils.timezone.now)),
                 ('pairs', models.ManyToManyField(related_name='pairs_rel_+', to='meishi.Meishi', blank=True)),
-                ('wizcard', models.ForeignKey(to='wizcardship.Wizcard')),
+                ('wizcard', models.ForeignKey(related_name='meishis', to='wizcardship.Wizcard')),
             ],
             options={
             },
