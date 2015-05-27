@@ -141,8 +141,23 @@ class Notification(models.Model):
         from userprofile.models import UserProfile
         if not verbs.apns_notification_dictionary.has_key(verb):
 	    return
+        pdb.set_trace
+
+        sender_name = sender.first_name + " " + sender.last_name
+
+
+        if action_object:
+            asset_type = ContentType.objects.get_for_model(action_object)
+
+	if asset_type == ContentType.objects.get(model="virtualtable"):
+            table_name ="%s" % action_object
+        elif asset_type == ContentType.objects.get(model="wizcard"):
+            wizcard_user = action_object.get_name
+
 
         apns_message = dict(aps=verbs.apns_notification_dictionary[verb])
+        apns_message['aps']['alert'] = apns_message['aps']['alert'].format(sender_name=sender_name,table_name=table_name,wizcard_user=wizcard_user)
+
 
         push_to_app_handler = {
             UserProfile.IOS	: self.pushIOS,
@@ -186,6 +201,7 @@ def notify_handler(verb, **kwargs):
             setattr(newnotify, '%s_object_id' % opt, obj.pk)
             setattr(newnotify, '%s_content_type' % opt,
                     ContentType.objects.get_for_model(obj))
+            setattr(newnotify, '%s' % opt, obj)
 
     newnotify.save()
 
@@ -194,12 +210,7 @@ def notify_handler(verb, **kwargs):
     if not profile.is_online():
         logging.info("User %s is OFFLINE", profile.userid)
         try:
-            newnotify.pushNotificationToApp(
-                    profile,
-                    actor,
-                    action_object,
-                    target_object,
-                    verb)
+            newnotify.pushNotificationToApp( profile, actor, newnotify.action_object, newnotify.target, verb)
         except:
             logging.error("Failed to send APNS to User %s", profile.userid)
             pass
