@@ -281,7 +281,7 @@ class Wizcard(models.Model):
         if not settings.DO_FLICK_AGGLOMERATE:
             return None
 	#check if nearby cards can be combined...do we need to adjust centroid and all that ?
-        for w in self.flicked_cards.all():
+        for w in self.flicked_cards.exclude(expired=True):
             if wizlib.haversine(w.lng, w.lat, lng, lat) < settings.WIZCARD_FLICK_AGGLOMERATE_RADIUS:
                 return w
         return None
