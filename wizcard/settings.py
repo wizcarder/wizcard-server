@@ -92,11 +92,12 @@ if RUNENV == 'dev':
 	        'ENGINE': 'django.db.backends.mysql',
 	        'NAME': 'wizcard',
 	        'USER': 'root',
-	        'PASSWORD': 'mydb',
-	        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+	        #'PASSWORD': 'mydb',
+	        'PASSWORD': '',
+	        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
 	        #'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-	        'SOCKET': '/var/run/mysql/mysqld.sock', # Set to empty string for localhost. Not used with sqlite3.
+	        'SOCKET': '', # Set to empty string for localhost. Not used with sqlite3.
 	    },
 	}
 elif RUNENV == 'stage':
