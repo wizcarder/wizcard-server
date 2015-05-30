@@ -92,12 +92,12 @@ if RUNENV == 'dev':
 	        'ENGINE': 'django.db.backends.mysql',
 	        'NAME': 'wizcard',
 	        'USER': 'root',
-	        #'PASSWORD': 'mydb',
-	        'PASSWORD': '',
-	        'HOST': '/tmp/mysql.sock', # Set to empty string for localhost. Not used with sqlite3.
+	        'PASSWORD': 'mydb',
+                #'PASSWORD': '',
+	        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        #'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-	        'SOCKET': '', # Set to empty string for localhost. Not used with sqlite3.
+	        'SOCKET': '/var/run/mysqld/mysqld.sock', # Set to empty string for localhost. Not used with sqlite3.
 	    },
 	}
 elif RUNENV == 'stage':
@@ -367,6 +367,9 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 # Use WatchedFileHandler instead, and rotate logs with a cron job or with some other program.
 #
 #... somewhere in settings.py or imported ...
+ADMINS = (
+    ('Anand Ramani', 'r_anand98@outlook.com'),
+)
 
 LOGGING = {
     'version': 1,
@@ -397,6 +400,12 @@ LOGGING = {
 	    'level':'DEBUG',
 	    'class':'django.utils.log.NullHandler',
 	},
+        'mail_admins': {
+            'class': 'django.utils.log.AdminEmailHandler',
+            'level': 'ERROR',
+             # But the emails are plain text by default - HTML is nicer
+            'include_html': True,
+        },
 	'console-simple':{
 	    'level':'DEBUG',
 	    'class':'logging.StreamHandler',
@@ -447,6 +456,11 @@ LOGGING = {
 	    'handlers': ['timed-log-file'],
 	    'propagate': False,
 	},
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         'wizserver': {
             'level': 'DEBUG',
 	    'handlers': ['console', 'watched-log-file'],
@@ -474,8 +488,10 @@ PYAPNS_CONFIG = {
 RAVEN_CONFIG = {
     #for current(original) AWS instance
     #    'dsn': 'https://d19905d820934cd59cde1e0372c21c43:cc970c850f4b4684bdbd9648f148d2ab@app.getsentry.com/27697',
+    #    'dsn': 'https://05685f40799d40099bad8415ca339f0d:6270f026f97f48f58323ea5cdd533805@app.getsentry.com/44973'
     #for stage(original) AWS instance
     #    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148'
+    'dsn': 'https://d51c6e8003a94989b3a1bc6682a8587a:bea494260f264f2092fff01235940e83@app.getsentry.com/44974'
     #for wizcard totastyle instance
     #'dsn': 'https://0e8c55f2ba84490c891dd340685a4177:13702356dd5445cabfc7e9b02814975c@app.getsentry.com/41149'
     #for anandr-laptop instance
