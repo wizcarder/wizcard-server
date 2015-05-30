@@ -1,3 +1,13 @@
+FAQ:
+
+1. What are the servers?
+ The servers are grouped under WIZRUNENV (stage, test or dev), in wizcard/instances.py
+2. What are the dbs?
+  Look for Databases under different RUNENV's in wizcard/settings.py
+3. How to clean up and Run (have not provided access to flushdb yet) but syncdb is run for every deployment Run Refer Usage:3
+4. How to Run: Refer Usage:3 
+5. How to look for errors or debug? - Exceptions are logged in sentry. getsentry.com (r_anand98@outlook.com, gowizcard)
+
 Usage:
 1. Change the hosts/machines in wizcard/instances.py and specify roles (Multiple services can run on the same machine)
 2. Database instance in settings.py - confirm if its the right DB for the given environment (dev, test, prod) - Add as many as needed
