@@ -143,6 +143,8 @@ class Notification(models.Model):
 	    return
 
         sender_name = sender.first_name + " " + sender.last_name
+        table_name = ""
+        wizcard_user = ""
 
 
         if self.action_object:
@@ -183,6 +185,8 @@ def notify_handler(verb, **kwargs):
     kwargs.pop('signal', None)
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
+
+    pdb.set_trace
     newnotify = Notification(
         recipient = recipient,
         actor_content_type=ContentType.objects.get_for_model(actor),
