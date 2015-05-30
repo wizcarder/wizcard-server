@@ -93,10 +93,10 @@ class AbbyyOnlineSdk:
 	# register at http://cloud.ocrsdk.com/Account/Register
 	# More info on getting your application id and password at
 	# http://ocrsdk.com/documentation/faq/#faq3
-	ApplicationId = "wzcardreader"
-	Password = "6i2Mq8AS2Uxt2aznZgQgjg81"
+	ApplicationId = "bizcard123"
+	Password = "+9gkE5fKXUQ6wKzgOPYgoXIc"
 	Proxy = None
-	enableDebugging = 0
+	enableDebugging = 1
 
 	def ProcessImage( self, filePath, settings ):
 		urlParams = urllib.urlencode({
