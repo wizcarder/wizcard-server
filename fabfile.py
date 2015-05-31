@@ -95,12 +95,11 @@ def postinstall():
                 with virtualenv():
 		    with cd(env.installroot):
                         run("python manage.py syncdb")
-                        run("python manage.py syncdb")
-                        run("python manage.py makemigrations")
+#                        run("python manage.py makemigrations")
                         run("python manage.py migrate")
                         edit_file("-l 127.0.0.1", "-l " + env.host, "/etc/memcached.conf")
 #                        run("sudo sed -i.bak 's/-l 127.0.0.1/-l %s/' /etc/memcached.conf" % env.host)
-                        run("sudo /etc/init.d/memcached restart")
+#                        run("sudo /etc/init.d/memcached restart")
                         #append_settings()
 #                        run("cp wizcard/awstest_settings.py wizcard/settings.py")
 			init_upstart()
@@ -108,7 +107,7 @@ def postinstall():
 def init_upstart():
 	with cd(env.installroot):
 		run("sudo cp upstart/*.conf /etc/init")
-                for files in ("/etc/init/wizserver.conf", "/etc/init/celerybeat.conf", "/etc/init/celeryworker.conf", "/etc/init/locationjob.conf", "/etc/init/celeryflower.conf"):
+                for files in ("/etc/init/wizserver.conf", "/etc/init/celerybeat.conf", "/etc/init/celeryworker.conf", "/etc/init/locationjob.conf", "/etc/init/celeryflower.conf","/etc/init/twistd.conf"):
                     edit_file("env host=xxx","env host="+env.host,files)
                     edit_file("env basedir=xxx","env basedir="+env.installroot,files)
                     edit_file("env runuser=xxx","env runuser="+env.runuser,files)
@@ -171,14 +170,15 @@ def startservices():
 def starttwistd():
     with virtualenv():
         with cd(env.installroot):
-            run("twistd -r select web --class=pyapns.server.APNSServer --port=7077", pty=False)
+            #            run("twistd -r select web --class=pyapns.server.APNSServer --port=7077", pty=False)
+            run("sudo service twistd start basedir=%s venv=%s WIZRUNENV=%s runuser=%s" % (env.installroot,env.venv,env.henv,env.runuser), pty=False)
 
 
 @task
 def stoptwistd():
     with virtualenv():
         with cd(env.installroot):
-            run("cat twistd.pid | xargs kill")
+            run("sudo service twistd stop")
 
 @task
 def startlocationservice():
