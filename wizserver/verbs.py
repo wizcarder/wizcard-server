@@ -33,7 +33,6 @@ WIZCARD_FORWARD = ('wizcard forward', 1, 'xxx forwarded you a wizcard')
 WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1, 'your wizcard was updated')
 
 
-from lib.wizlib import full_name
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {
         'sound': 'flynn.caf',
