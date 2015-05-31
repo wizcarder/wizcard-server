@@ -97,6 +97,6 @@ class LocationServiceClient(object):
 
     def print_trees(self, **kwargs):
         kwargs['fn'] = PRINT_TREES
-        response = self.call(kwargs)
-        print response
+        response = self.call(kwargs, rpc=True)
+        #print response
         return response
