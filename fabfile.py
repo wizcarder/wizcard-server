@@ -137,10 +137,10 @@ def stopnginx():
 def startcelery():
     with virtualenv():
 	with cd(env.installroot):
-         	run("sudo service celeryworker start basedir=%s venv=%s WIZRUNENV=%s runuser=%s" % (env.installroot,env.venv,env.henv,env.runuser),pty=False)
-        	run("sudo service celerybeat start basedir=%s venv=%s WIZRUNENV=%s runuser=%s" % (env.installroot,env.venv,env.henv,env.runuser), pty=False)
-        	run("sudo service celeryflower start basedir=%s address=%s port=%s venv=%s WIZRUNENV=%s runuser=%s" % (env.installroot,env.host,'5555',env.venv,env.henv,env.runuser), pty=False)
-        	run("ps auxww | grep celery")
+            run("sudo service celeryworker start basedir=%s venv=%s WIZRUNENV=%s runuser=%s PYTHONPATH=$PYTHONPATH:%s" % (env.installroot,env.venv,env.henv,env.runuser,env.installroot),pty=False)
+            run("sudo service celerybeat start basedir=%s venv=%s WIZRUNENV=%s runuser=%s PYTHONPATH=$PYTHONPATH:%s" % (env.installroot,env.venv,env.henv,env.runuser,env.installroot),pty=False)
+            run("sudo service celeryflower start basedir=%s venv=%s WIZRUNENV=%s runuser=%s PYTHONPATH=$PYTHONPATH:%s" % (env.installroot,env.venv,env.henv,env.runuser,env.installroot),pty=False)
+            run("ps auxww | grep celery")
 
 def startrabbit():
     with virtualenv():
@@ -153,8 +153,8 @@ def startrabbit():
 def startlocation():
     with virtualenv():
         with cd(env.installroot):
-		run("sudo service locationjob start basedir=%s venv=%s WIZRUNENV=%s" % (env.installroot, env.venv,env.henv),pty=False)
-		run("ps auxww | grep tree_state")
+            run("sudo service locationjob start basedir=%s venv=%s WIZRUNENV=%s runuser=%s PYTHONPATH=$PYTHONPATH:%s" % (env.installroot,env.venv,env.henv,env.runuser,env.installroot),pty=False)
+	    run("ps auxww | grep tree_state")
 
 @task
 def startservices():
@@ -201,7 +201,7 @@ def startgunicorn():
 	with virtualenv():
 		with cd(env.installroot):
 			fastprint("\nRunning gunicorn server on %s===================================\n" % env.host)
-			run("sudo service wizserver start host=%s basedir=%s venv=%s runuser=%s WIZRUNENV=%s" % (env.host,env.installroot,env.venv,env.runuser,env.henv), pty=False)
+                        run("sudo service wizserver start host=%s basedir=%s venv=%s runuser=%s WIZRUNENV=%s PYTHONPATH=$PYTHONPATH:%s" % (env.host,env.installroot,env.venv,env.runuser,env.henv,env.installroot), pty=False)
 			run("ps auxww | grep gunicorn")
 			
 def freeze():
@@ -236,7 +236,7 @@ def updaterestart():
 		
 def deployall():
 	fastprint("\nRunning aptgets===================================\n")
-        aptgets()
+#        aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
@@ -259,7 +259,7 @@ def deployall():
 
 def deploylocation():
 	fastprint("\nRunning aptgets===================================\n")
-        aptgets()
+        #aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
@@ -282,7 +282,7 @@ def deploylocation():
 
 def deploywizserver():
 	fastprint("\nRunning aptgets===================================\n")
-        aptgets()
+#        aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
