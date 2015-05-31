@@ -33,37 +33,38 @@ WIZCARD_FORWARD = ('wizcard forward', 1, 'xxx forwarded you a wizcard')
 WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1, 'your wizcard was updated')
 
 
+from lib.wizlib import full_name
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {
         'sound': 'flynn.caf',
         'badge': 0,
         #AA:TODO: separate verb from push message
-        'alert': '{wizcard_user} would like to connect with you',
+        'alert': '{0.first_name} {0.last_name} would like to connect with you',
     },
     WIZREQ_T[0]	: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': 'you have a new contact',
+        'alert': 'you have a new contact {0.first_name} {0.last_name}',
     },
     WIZCARD_ACCEPT[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': '{wizcard_user} accepted your invitation',
+        'alert': '{0.first_name} {0.last_name} accepted your invitation',
     },
     WIZCARD_TABLE_TIMEOUT[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': '{table_name} table has now expired',
+        'alert': '{1.tablename} table has now expired',
     },
     WIZCARD_TABLE_DESTROY[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': '{sender_name}  deleted {table_name} table',
+        'alert': '{0.first_name} {0.last_name}  deleted {1.tablename} table',
     },
     WIZCARD_UPDATE[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': '{wizcard_user} has an updated wizcard',
+        'alert': '{0.first_name} {0.last_name} has an updated wizcard',
     },
     WIZCARD_FLICK_TIMEOUT[0]: {
         'sound': 'flynn.caf',
@@ -73,7 +74,7 @@ apns_notification_dictionary = {
     WIZCARD_FLICK_PICK[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': '{sender_name} picked up your flicked wizcard',
+        'alert': '{0.first_name} {0.last_name} picked up your flicked wizcard',
     },
     WIZWEB_WIZCARD_UPDATE[0]: {
         'sound': 'flynn.caf',

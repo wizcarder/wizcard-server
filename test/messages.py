@@ -57,7 +57,7 @@ register_sync = {
         "lat" : 37.785834,
         "lng" : -122.406415,
         "deviceType": "ios",
-        "reg_token": "123456",
+        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "userID" : "2UIPIEPbBk"
 
     },
@@ -74,13 +74,12 @@ register1 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "reg_token": "123456",
+        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785835,
         "lng" : -122.406416,
         "deviceType": "ios",
         "userID" : "",
 	"wizUserID" : "",
-        "reg_token" : ""
     },
 }
 
@@ -94,12 +93,11 @@ register2 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "reg_token": "123456",
+        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785837,
         "lng" : -122.406418,
         "deviceType": "ios",
         "userID" : "",
-        "reg_token" : "",
 	"wizUserID" : ""
     },
 }
@@ -114,12 +112,11 @@ register3 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "reg_token": "123456",
+        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785838,
         "lng" : -122.406419,
         "deviceType": "ios",
         "userID" : "",
-        "reg_token" : "",
 	"wizUserID" : ""
     },
 }

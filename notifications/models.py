@@ -6,9 +6,9 @@ from django.utils import timezone
 from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
-from pyapns import notify as apns_notify
-from pyapns import configure, provision, feedback
 from wizserver import verbs
+from celery import task
+from notifications.tasks import pushNotificationToApp
 import logging
 import pdb
 
@@ -136,47 +136,6 @@ class Notification(models.Model):
             self.readed = True
             self.save()
 
-    def pushNotificationToApp(self, sender):
-        from userprofile.models import UserProfile
-        receiver = self.recipient.profile
-        if not verbs.apns_notification_dictionary.has_key(self.verb):
-	    return
-
-        sender_name = sender.first_name + " " + sender.last_name
-        table_name = ""
-        wizcard_user = ""
-
-
-        if self.action_object:
-            asset_type = ContentType.objects.get_for_model(self.action_object)
-
-	if asset_type == ContentType.objects.get(model="virtualtable"):
-            table_name ="%s" % self.action_object
-        elif asset_type == ContentType.objects.get(model="wizcard"):
-            wizcard_user = self.action_object.get_name()
-
-
-        apns_message = dict(aps=verbs.apns_notification_dictionary[self.verb])
-        apns_message['aps']['alert'] = apns_message['aps']['alert'].format(sender_name=sender_name,table_name=table_name,wizcard_user=wizcard_user)
-
-        push_to_app_handler = {
-            UserProfile.IOS	: self.pushIOS,
-            UserProfile.ANDROID	: self.pushAndroid
-        }
-        push_to_app_handler[receiver.device_type](receiver, sender, apns_message)
-
-    def pushIOS(self, receiver, sender, apns_message):
-	apns_notify(settings.APP_ID,
-		    receiver.reg_token, 
-		    apns_message)
-
-        return
-
-    def pushAndroid(self, receiver, sender, verb):
-	send_gcm_message(settings.GCM_API_KEY, 
-			receiver.reg_token,
-			verbs.apns_notification_dictionary[verb])
-        return
 
 def notify_handler(verb, **kwargs):
     """
@@ -186,7 +145,6 @@ def notify_handler(verb, **kwargs):
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
 
-    pdb.set_trace
     newnotify = Notification(
         recipient = recipient,
         actor_content_type=ContentType.objects.get_for_model(actor),
@@ -206,17 +164,14 @@ def notify_handler(verb, **kwargs):
             setattr(newnotify, '%s' % opt, obj)
 
     newnotify.save()
+    
+    if not recipient.profile.is_online:
+        return
 
-    #check if the target user is online and do APNS if not
-    if not recipient.profile.is_online():
-        logging.info("User %s is OFFLINE", recipient.profile.userid)
-        try:
-            newnotify.pushNotificationToApp(actor)
-        except:
-            logging.error("Failed to send APNS to User %s", 
-                    recipient.profile.userid)
-            pass
-
+    pushNotificationToApp(newnotify)
+    #    except:
+    #        logging.error("Failed to send APNS to User %s", 
+    #                recipient.profile.userid)
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')
