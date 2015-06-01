@@ -8,6 +8,8 @@ import re
 env.venv = '/home/'+env.runuser+'/'+env.henv
 env.activate = 'source /home/' +env.runuser+'/'+ env.henv+'/bin/activate'
 env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
+env.awskey = '/home/anand/aws/stagewizcard.pem'
+env.gitkey = '/home/anand/.ssh/id_rsa'
 #env.henv = 'dev'
 #env.function = 'WIZSERVER'
 
@@ -20,6 +22,16 @@ def set_hosts():
 def do_ls():
     with virtualenv():
 	run("ls -al > /tmp/lsout")
+
+@task
+def getawsip():
+    awshost = run("hostname")
+    awsip = re.sub('ip-','',awshost)
+    awsip = re.sub('-','.',awsip)
+
+    return awsip
+
+
 
 @contextmanager
 def virtualenv():
@@ -58,7 +70,7 @@ def gitcloneupdate():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
     if env.henv != 'dev':
         with settings(warn_only=True):
-         local("scp -i ~/aws/stagewizcard.pem /home/anand/.ssh/id_rsa ubuntu@%s:/home/ubuntu/.ssh/id_rsa" % env.host) 
+         local("scp -i %s %s ubuntu@%s:/home/ubuntu/.ssh/id_rsa" % (env.awskey,env.gitkey,env.host)) 
 
     with settings(warn_only=True):
         if run("test -d %s" % env.installroot).failed:
@@ -88,6 +100,7 @@ def createvirtualenv():
 
 def postinstall():
 	path = env.installroot + "log"
+        memcacheip = getawsip()
 	with settings(warn_only=True):
 		with cd(env.installroot):
 			if run("test -d %s" % path).failed:
@@ -97,9 +110,7 @@ def postinstall():
                         run("python manage.py syncdb")
 #                        run("python manage.py makemigrations")
                         run("python manage.py migrate")
-                        edit_file("-l 127.0.0.1", "-l " + env.host, "/etc/memcached.conf")
-#                        run("sudo sed -i.bak 's/-l 127.0.0.1/-l %s/' /etc/memcached.conf" % env.host)
-#                        run("sudo /etc/init.d/memcached restart")
+
                         #append_settings()
 #                        run("cp wizcard/awstest_settings.py wizcard/settings.py")
 			init_upstart()
@@ -112,6 +123,8 @@ def init_upstart():
                     edit_file("env basedir=xxx","env basedir="+env.installroot,files)
                     edit_file("env runuser=xxx","env runuser="+env.runuser,files)
                     edit_file("env venv=xxx","env venv="+env.venv,files)
+                memcacheip = getawsip()
+                edit_file("env host=xxx", "env host="+memcacheip,"/etc/init/memcached.conf")
                 run("sudo cp upstart/%s/wizserver /etc/nginx/sites-enabled" % env.henv)
                 run("sudo rm /etc/nginx/sites-enabled/default")
 
@@ -158,6 +171,7 @@ def startlocation():
 
 @task
 def startservices():
+    startmemcached()
     startrabbit()
     startcelery()
     startlocation()
@@ -165,6 +179,17 @@ def startservices():
     startgunicorn()
     startnginx()
 
+
+
+@task
+def startmemcached():
+    run("sudo service memcached start")
+
+@task
+def stopmemcached():
+    with settings(warn_only=True):
+        run("sudo /etc/init.d/memcached stop")
+        run("sudo service memcached stop")
 
 @task
 def starttwistd():
@@ -183,12 +208,14 @@ def stoptwistd():
 @task
 def startlocationservice():
     with shell_env(WIZRUNENV=env.henv):
+        startmemcached()
         startrabbit()
         startlocation()
 	
 
 @task
 def startwizserverinstance():
+    startmemcached()
     startrabbit()
     startcelery()
     startgunicorn()
@@ -211,6 +238,7 @@ def freeze():
 def stoplocationservice():
     with settings(warn_only=True):
 	run("sudo service locationjob stop")
+        stopmemcached()
 @task
 def stopwizserver():
     with settings(warn_only=True):
@@ -218,6 +246,7 @@ def stopwizserver():
 	run("sudo service celerybeat stop")
 	run("sudo service celeryworker stop")
 	run("sudo service celeryflower stop")
+        stopmemcached()
         stoptwistd()
         stopnginx()
 
