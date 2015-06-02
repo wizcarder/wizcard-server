@@ -123,6 +123,7 @@ def init_upstart():
                     edit_file("env basedir=xxx","env basedir="+env.installroot,files)
                     edit_file("env runuser=xxx","env runuser="+env.runuser,files)
                     edit_file("env venv=xxx","env venv="+env.venv,files)
+                    edit_file("env WIZRUNENV=xxx","env WIZRUNENV="+env.henv,files)
                 memcacheip = getawsip()
                 edit_file("env host=xxx", "env host="+memcacheip,"/etc/init/memcached.conf")
                 run("sudo cp upstart/%s/wizserver /etc/nginx/sites-enabled" % env.henv)
