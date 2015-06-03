@@ -52,7 +52,7 @@ class ApnsMsg(object):
         self.reg_token = reg_token
         self.action_object = action_object
         self.target_object = target_object
-        self.aps = dict(aps=apns_args)
+        self.aps = dict(aps=apns_args.copy())
         self.is_ios = is_ios
 
     def format_alert_msg(self):
