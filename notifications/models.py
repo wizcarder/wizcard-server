@@ -168,7 +168,15 @@ def notify_handler(verb, **kwargs):
     if not recipient.profile.is_online:
         return
 
-    pushNotificationToApp(newnotify)
+    pushNotificationToApp.delay(
+            newnotify.actor_object_id,
+            newnotify.recipient_id,
+            newnotify.action_object_object_id,
+            newnotify.action_object_content_type,
+            newnotify.target_object_id,
+            newnotify.target_content_type,
+            newnotify.verb
+            )
     #    except:
     #        logging.error("Failed to send APNS to User %s", 
     #                recipient.profile.userid)
