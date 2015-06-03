@@ -96,7 +96,7 @@ class AbbyyOnlineSdk:
 	ApplicationId = "bizcard123"
 	Password = "+9gkE5fKXUQ6wKzgOPYgoXIc"
 	Proxy = None
-	enableDebugging = 1
+	enableDebugging = 0
 
 	def ProcessImage( self, filePath, settings ):
 		urlParams = urllib.urlencode({
