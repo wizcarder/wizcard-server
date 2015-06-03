@@ -370,7 +370,7 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
 	'verbose': {
 	    'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
@@ -476,13 +476,13 @@ RAVEN_CONFIG = {
     #    'dsn': 'https://d19905d820934cd59cde1e0372c21c43:cc970c850f4b4684bdbd9648f148d2ab@app.getsentry.com/27697',
     #for stage(original) AWS instance
     #    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148'
-        'dsn': 'https://05685f40799d40099bad8415ca339f0d:6270f026f97f48f58323ea5cdd533805@app.getsentry.com/44973'
-        #'dsn': 'https://d51c6e8003a94989b3a1bc6682a8587a:bea494260f264f2092fff01235940e83@app.getsentry.com/44974'
+          'dsn': 'https://05685f40799d40099bad8415ca339f0d:6270f026f97f48f58323ea5cdd533805@app.getsentry.com/44973'
+    #    'dsn': 'https://d51c6e8003a94989b3a1bc6682a8587a:bea494260f264f2092fff01235940e83@app.getsentry.com/44974'
     #for wizcard totastyle instance
-    #'dsn': 'https://0e8c55f2ba84490c891dd340685a4177:13702356dd5445cabfc7e9b02814975c@app.getsentry.com/41149'
+    #    'dsn': 'https://0e8c55f2ba84490c891dd340685a4177:13702356dd5445cabfc7e9b02814975c@app.getsentry.com/41149'
     #for anandr-laptop instance
-        #'dsn': 'https://d51c6e8003a94989b3a1bc6682a8587a:bea494260f264f2092fff01235940e83@app.getsentry.com/44974'
-    # 'dsn': 'https://b58fae5ffdec4127885c4764524f9feb:57fa34177fcb4db6b8dedfd88c8c1526@app.getsentry.com/41150'
+    #    'dsn': 'https://d51c6e8003a94989b3a1bc6682a8587a:bea494260f264f2092fff01235940e83@app.getsentry.com/44974'
+    #    'dsn': 'https://b58fae5ffdec4127885c4764524f9feb:57fa34177fcb4db6b8dedfd88c8c1526@app.getsentry.com/41150'
 }
 
 
