@@ -104,17 +104,17 @@ class LocationMgr(models.Model):
     def do_update(self, lat, lng):
         updated = False
         if not self.is_eq_lat_lng(lat, lng):
-            updated = True
-
-        if updated:
             #delete old guy
             self.delete_from_tree()
-            #add new guy
-            newkey = wizlib.create_geohash(self.lat, self.lng)
-            self.key = newkey
+            #update self
+            self.lat = lat
+            self.lng = lng
+            self.key = wizlib.create_geohash(self.lat, self.lng)
             self.save()
-            #update tree with new key (and old id)
-            self.insert_in_tree(),
+            #add new guy
+            self.insert_in_tree()
+            updated = True
+
         return updated
 
     def delete_from_tree(self):
