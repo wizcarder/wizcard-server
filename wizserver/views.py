@@ -1628,7 +1628,7 @@ class Header(ParseMsgAndDispatch):
 
     #################WizWeb Message handling########################
     def WizWebUserQuery(self):
-        if self.sender['username']:
+        if self.sender.has_key('username'):
 	    username = self.sender['username']
             userID = None
 	    try:
@@ -1636,31 +1636,36 @@ class Header(ParseMsgAndDispatch):
               self.response.add_data("userID", user.profile.userid)
 	    except:
 	      pass
-        elif self.sender['email']:
+        elif self.sender.has_key('email'):
             email = self.sender['email']
-
 	    try:
 	      user = User.objects.get(email=email)
               self.response.add_data("userID", user.profile.userid)
 	    except:
 	      pass
+        else:
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
 
 	return self.response
 
     def WizWebWizcardQuery(self):
 	userID = self.sender['userID']
-        if self.sender['username']:
+        if self.sender.has_key('username'):
 	    username = self.sender['username']
 	    try:
 	      self.user = User.objects.get(username=username)
 	    except:
               return self.response.error_response(err.USER_DOESNT_EXIST)
-        elif self.sender['email']:
+        elif self.sender.has_key('email'):
             email = self.sender['email']
 	    try:
 	      self.user = User.objects.get(email=email)
 	    except:
               return self.response.error_response(err.USER_DOESNT_EXIST)
+        else:
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
 
         if self.user.profile.userid != userID:
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
