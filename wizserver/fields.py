@@ -92,7 +92,7 @@ user_query_full_template = {
 
 nearby_table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
-               'timeRemaining', 'wizcards', 'creator'],
+               'timeout', 'timeRemaining', 'wizcards', 'creator'],
     'key_map' : {'timeRemaining':'time_remaining', \
                 'wizcards': 'get_member_wizcards',\
                 'creator': 'get_creator'}
