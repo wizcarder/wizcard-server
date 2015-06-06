@@ -1629,18 +1629,17 @@ class Header(ParseMsgAndDispatch):
     #################WizWeb Message handling########################
     def WizWebUserQuery(self):
         if self.sender.has_key('username'):
-	    username = self.sender['username']
-            userID = None
 	    try:
-	      user = User.objects.get(username=username)
-              self.response.add_data("userID", user.profile.userid)
+	      self.user = User.objects.get(username=self.sender['username'])
+              self.wizcard = self.user.wizcard
+              self.response.add_data("userID", self.user.profile.userid)
 	    except:
 	      pass
         elif self.sender.has_key('email'):
-            email = self.sender['email']
 	    try:
-	      user = User.objects.get(email=email)
-              self.response.add_data("userID", user.profile.userid)
+	      self.wizcard = Wizcard.objects.get(email=self.sender['email'])
+              self.user = self.wizcard.user
+              self.response.add_data("userID", self.user.profile.userid)
 	    except:
 	      pass
         else:
@@ -1652,15 +1651,15 @@ class Header(ParseMsgAndDispatch):
     def WizWebWizcardQuery(self):
 	userID = self.sender['userID']
         if self.sender.has_key('username'):
-	    username = self.sender['username']
 	    try:
-	      self.user = User.objects.get(username=username)
+	      self.user = User.objects.get(username=self.sender['username'])
+              self.wizcard = self.user.wizcard
 	    except:
-              return self.response.error_response(err.USER_DOESNT_EXIST)
+              return self.response.error_response(err.OBJECT_DOESNT_EXIST)
         elif self.sender.has_key('email'):
-            email = self.sender['email']
 	    try:
-	      self.user = User.objects.get(email=email)
+	      self.wizcard = Wizcard.objects.get(email=self.sender['email'])
+              self.user = self.wizcard.user
 	    except:
               return self.response.error_response(err.USER_DOESNT_EXIST)
         else:
@@ -1670,12 +1669,7 @@ class Header(ParseMsgAndDispatch):
         if self.user.profile.userid != userID:
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
 
-	try:
-            wizcard = self.user.wizcard
-	except:
-            return self.response.error_response(err.VALIDITY_CHECK_FAILED)
-
-        out = wizcard.serialize()
+        out = self.wizcard.serialize()
         self.response.add_data("result", out)
         return self.response
 
@@ -1748,7 +1742,7 @@ class Header(ParseMsgAndDispatch):
 
 	    #Future user handling
             future_users = FutureUser.objects.check_future_user(
-                    wizcard.email, 
+                    wizcard.email,
                     wizcard.phone)
             for f in future_users:
                 f.generate_self_invite(self.user)
