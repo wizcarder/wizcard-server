@@ -1,5 +1,6 @@
 from Abbyy.AbbyyOnlineSdk import *
 from celery import shared_task
+from wizcard import err
 import pdb
 
 class OCR:
@@ -12,10 +13,22 @@ class OCR:
 	runproc = RunOCR()
         args = {'file':file, "lang":"English", "format":"xml"}
         res = run_ocr.delay(runproc, **args)
+        try:
+            ocr_result = res.get(timeout=20)
+        except:
+            self.result.update(err.LIB_OCR_ERROR)
+            return self.result
 
-        ocr_result = res.get(timeout=20)
 
-        self.ocr_result(**ocr_result)
+        status = ocr_result[0]
+        result = ocr_result[1]
+
+        if not result:
+            self.result.update(err.LIB_OCR_ERROR)
+            self.result['str'] = status
+            return self.result
+
+        self.ocr_result(**result)
         return self.result
 
     def ocr_result(self, **kwargs):

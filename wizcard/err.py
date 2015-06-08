@@ -19,6 +19,7 @@ PHONE_CHECK_TIMEOUT_EXCEEDED = {'errno':17, 'str':"you have exceeded the timeout
 NEXMO_SMS_SEND_FAILED = {'errno':18, 'str':"SMS send failed"}
 VALIDITY_CHECK_FAILED = {'errno':19, 'str':"validity check fails on data"}
 CRITICAL_ERROR = {'errno':20, 'str':"something went wrong...please delete and reinstall the app"}
+LIB_OCR_ERROR = {'errno': 21, 'str':"OCR lib error"}
 
 
 

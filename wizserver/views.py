@@ -1061,6 +1061,19 @@ class Header(ParseMsgAndDispatch):
             #receiverIDs has wizUserIDs
             for id in receivers:
                 r_user = User.objects.get(id=id)
+                #create an conn req from A->B. No notifs for this. This
+                #conn_req ensures that when B joins table, A doesn't get
+                #a new explicit_exchange req
+                try:
+                    wizconnection = WizConnectionRequest.objects.create(
+                            from_wizcard=self.user.wizcard,
+                            to_wizcard=r_user.wizcard,
+                            message="wizconnection request")
+                    #Q this to the receiver
+                except:
+                    pass
+                    #duplicate request nothing to do, just return silently
+
                 notify.send(self.user, recipient=r_user,
                     verb=verbs.WIZCARD_TABLE_INVITE[0],
                     target=table,
@@ -1486,7 +1499,9 @@ class Header(ParseMsgAndDispatch):
         #Do ocr stuff
         ocr = OCR()
         result = ocr.process(path)
-        #AA:TODO Error handling
+        if result.has_key('errno'):
+            self.response.error_response(result)
+            return self.response
 
         wizcard.first_name = result.get('first_name', "")
         wizcard.last_name = result.get('last_name', "")

@@ -87,15 +87,14 @@ class VirtualTableManager(models.Manager):
         for t in tables:
             if t.is_creator(user):
                 created.append(t)
+            elif t.is_member(user):
+                joined.append(t)
+            elif Wizcard.objects.are_wizconnections(
+                    user.wizcard,
+                    t.creator.wizcard):
+                connected.append(t)
             else:
-                if t.is_member(user):
-                    joined.append(t)
-                if Wizcard.objects.are_wizconnections(
-                        user.wizcard,
-                        t.creator.wizcard):
-                    connected.append(t)
-                else:
-                    others.append(t)
+                others.append(t)
         return created, joined, connected, others
 
 

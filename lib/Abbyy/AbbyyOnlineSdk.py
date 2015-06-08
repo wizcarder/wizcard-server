@@ -37,7 +37,7 @@ class RunOCR:
 		task = processor.ProcessBusinessCard( filePath, settings )
 		if task == None:
 			print "Error"
-			return
+			return ("Error", None)
 		print "Id = %s" % task.Id
 		print "Status = %s" % task.Status
 	
@@ -67,11 +67,12 @@ class RunOCR:
 				cardOutput = processor.DownloadResultString( task)
 				cardFields = processor.ExtractFields(cardOutput)
 				print cardFields.items()
-                                return cardFields
+                                return (task.Status, cardFields)
 				
 	#			print "Result was written to %s" % cardOutput
 		else:
-			print "Error processing task %s" % task.Status
+                    print "Error processing task %s" % task.Status
+                    return (task.Status, None)
 	
 	
 		
@@ -93,8 +94,8 @@ class AbbyyOnlineSdk:
 	# register at http://cloud.ocrsdk.com/Account/Register
 	# More info on getting your application id and password at
 	# http://ocrsdk.com/documentation/faq/#faq3
-	ApplicationId = "bizcard123"
-	Password = "+9gkE5fKXUQ6wKzgOPYgoXIc"
+	ApplicationId = "wizcard_ocr1"
+	Password = "W1mD5rp0q1TpjayBqrMXvAZZ"
 	Proxy = None
 	enableDebugging = 0
 
