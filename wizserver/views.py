@@ -1065,7 +1065,7 @@ class Header(ParseMsgAndDispatch):
                 #conn_req ensures that when B joins table, A doesn't get
                 #a new explicit_exchange req
                 try:
-                    wizconnection = WizConnectionRequest.objects.create(
+                    WizConnectionRequest.objects.create(
                             from_wizcard=self.user.wizcard,
                             to_wizcard=r_user.wizcard,
                             message="wizconnection request")
@@ -1105,6 +1105,18 @@ class Header(ParseMsgAndDispatch):
                                     False, cctx)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
+                        #create an conn req from A->B. No notifs for this. 
+                        #This conn_req ensures that when B joins table, 
+                        #A doesn't get a new explicit_exchange req
+                        try:
+                            WizConnectionRequest.objects.create(
+                                    from_wizcard=self.user.wizcard,
+                                    to_wizcard=wizcard,
+                                    message="wizconnection request")
+                            #Q this to the receiver
+                        except:
+                            pass
+                            #duplicate request nothing to do, just return silently
                         notify.send(self.user, recipient=wizcard.user,
                             verb=verbs.WIZCARD_TABLE_INVITE[0],
                             target=obj,

@@ -7,7 +7,7 @@ from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
-from wizcardship.models import Wizcard
+from wizcardship.models import WizConnectionRequest, Wizcard
 from virtual_table.models import VirtualTable
 from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
@@ -254,6 +254,19 @@ class FutureUser(models.Model):
                             False, cctx)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
+                    #Q a conn request from the sender so that when
+                    #this user joins table, the connection between
+                    #the 2 is implicit and doesn't result in yet another
+                    #notif to the sender
+                    try:
+                        WizConnectionRequest.objects.create(
+                                from_wizcard=self.inviter.wizcard,
+                                to_wizcard=real_user.wizcard,
+                                message="wizconnection request")
+                        #Q this to the receiver
+                    except:
+                        pass
+                        #duplicate request nothing to do, just return silently
                     notify.send(self.inviter, recipient=real_user,
                             verb=verbs.WIZCARD_TABLE_INVITE[0],
                             target=self.content_object,
