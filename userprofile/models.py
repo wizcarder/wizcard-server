@@ -23,8 +23,6 @@ import string
 import random
 import pdb
 
-USER_ACTIVE_TIMEOUT = 10
-
 class UserProfileManager(models.Manager):
     def serialize_split(self, me, users):
 	s = dict()
@@ -169,7 +167,7 @@ class UserProfile(models.Model):
             #create
             l_tuple = location.send(sender=self, lat=lat, lng=lng, 
                                     tree="PTREE")
-	    l_tuple[0][1].start_timer(USER_ACTIVE_TIMEOUT)
+	    l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
 
     def lookup(self, cache_key, n, count_only=False):
         users = None

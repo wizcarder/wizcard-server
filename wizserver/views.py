@@ -464,7 +464,11 @@ class Header(ParseMsgAndDispatch):
         for phone_number in verify_phone_list:
 	    wizcard = UserProfile.objects.check_user_exists('phone',
                                                             phone_number)
+
 	    if wizcard:
+                if self.user == wizcard.user:
+                    continue
+
 		d = dict()
 		d['phoneNum'] = phone_number
 		d['wizUserID'] = wizcard.user_id
@@ -472,8 +476,6 @@ class Header(ParseMsgAndDispatch):
 				self.user.wizcard,
 				wizcard):
 		    d['tag'] = "connected"
-		elif self.user == wizcard.user:
-		    d['tag'] = "own"
                 else:
 		    d['tag'] = "other"
 
@@ -483,6 +485,7 @@ class Header(ParseMsgAndDispatch):
 
 		phone_count += 1
 	        lp.append(d)
+
         if phone_count:
             self.response.add_data("phone_count", phone_count)
             self.response.add_data("verified_phones", lp)
