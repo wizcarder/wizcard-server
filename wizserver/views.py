@@ -817,6 +817,8 @@ class Header(ParseMsgAndDispatch):
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
+
+        #app sends in minutes
         timeout = self.sender['timeout']
         a_created = self.sender['created']
 
@@ -836,7 +838,10 @@ class Header(ParseMsgAndDispatch):
 	flick_card = wizcard.check_flick_duplicates(self.lat, self.lng)
 
 	if flick_card:
-	    t = flick_card.location.get().reset_timer()
+            #we are going to add the new timeout to timeRemaining from
+            #previous flick
+
+	    t = flick_card.location.get().extend_timer(timeout)
             self.response.add_data("duplicate", True)
 	    self.response.add_data("timeout", t.timeout_value/60)
         else:
@@ -880,7 +885,7 @@ class Header(ParseMsgAndDispatch):
 
     def WizcardMyFlicks(self):
 	self.wizcard = Wizcard.objects.get(id=self.sender['wizCardID'])
-        my_flicked_cards = self.wizcard.flicked_cards.all()
+        my_flicked_cards = self.wizcard.flicked_cards.exclude(expired=True)
 
 	count = my_flicked_cards.count()
 	if count:
@@ -910,7 +915,7 @@ class Header(ParseMsgAndDispatch):
     def WizcardFlickEdit(self):
         try:
             flick_id = self.sender['flickCardID']
-            timeout = self.sender['timeout']
+            timeout = self.sender['timeout'] * 60
             a_created = self.sender['created']
 	except KeyError:
             self.securityException()
@@ -926,7 +931,7 @@ class Header(ParseMsgAndDispatch):
         flicked_card.timeout = timeout
         flicked_card.save()
 
-        flicked_card.location.get().extend_timer(timeout)
+        flicked_card.location.get().reset_timer(timeout)
         return self.response
 
     def WizcardFlickQuery(self):
@@ -1282,7 +1287,7 @@ class Header(ParseMsgAndDispatch):
         return self.response
 
     def TableMyTables(self):
-	tables = self.user.tables.all()
+	tables = self.user.tables.exclude(expired=True)
 	count = tables.count()
 	if count:
 	    tables_s = VirtualTable.objects.serialize(tables)
@@ -1444,9 +1449,10 @@ class Header(ParseMsgAndDispatch):
 
             table.tablename = new_name
         if self.sender.has_key('timeout'):
+            timeout = self.sender['timeout']*60
             a_created = self.sender['created']
             table.a_created = a_created
-            table.location.get().extend_timer(self.sender['timeout'])
+            table.location.get().reset_timer(timeout)
         table.save()
 
         self.response.add_data("tableID", table.pk)

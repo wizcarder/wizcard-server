@@ -405,8 +405,9 @@ class WizcardFlickManager(models.Manager):
         if name != None:
             split = name.split()
             for n in split:
-                name_result = (Q(wizcard__first_name__istartswith=n) | \
-                               Q(wizcard__last_name__istartswith=n))
+                name_result = ((Q(wizcard__first_name__istartswith=n) | \
+                               Q(wizcard__last_name__istartswith=n)) &
+                               Q(expired=False))
                 qlist.append(name_result)
 
         result = self.filter(reduce(operator.or_, qlist))
@@ -463,13 +464,7 @@ class WizcardFlick(models.Model):
         return WizcardFlick.objects.tag
 
     def time_remaining(self):
-        r = timezone.timedelta(minutes=self.timeout) - \
-                (timezone.now() - self.created)
-
-        if (r.days < 0):
-            return 0
-        else:
-            return r.seconds
+        return self.location.get().timer.get().time_remaining()/60
 
 class UserBlocks(models.Model):
     user = models.ForeignKey(User, related_name='user_blocks')
