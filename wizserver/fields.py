@@ -73,7 +73,10 @@ my_flicked_wizcard_template = {
     'fields': ['created', 'flick_id', 'lat', 'lng',
                'timeout', 'flick_pickers'],
     'key_map': {
-        'created':'a_created', 'flick_id':'id', 'timeout': 'time_remaining'},
+        'created':'a_created', 
+        'flick_id':'id', 
+        'timeout': 'time_remaining',
+        'city': 'reverse_geo_name'},
     'related': {
         'flick_pickers': flick_pickers_template,
     }

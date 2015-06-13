@@ -61,3 +61,28 @@ def haversine(lon1, lat1, lon2, lat2):
     c = 2 * asin(sqrt(a)) 
     m = 6367 * c * 10000
     return m
+
+#reverse geocoding
+from pygeocoder import Geocoder
+def reverse_geo_from_latlng(lat, lng):
+    result = Geocoder.reverse_geocode(lat, lng)
+
+    #route, city
+    #city, country
+    #bailA
+
+    #should expand this to include known locations, buildings etc
+    route = result.route
+    city = result.city
+    country = result.country
+   
+    out = ""
+    if route:
+        out = route + ", " + city
+    elif city:
+        out = city + ", " + country
+    else:
+        out = country
+
+    return out
+

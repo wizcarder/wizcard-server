@@ -424,6 +424,7 @@ class WizcardFlick(models.Model):
     lng = models.FloatField(null=True, default=None)
     location = generic.GenericRelation(LocationMgr)
     expired = models.BooleanField(default=False)
+    reverse_geo_name = models.CharField(max_length=100, default=None)
     #who picked my flicked card?
     flick_pickers = models.ManyToManyField(Wizcard)
 
