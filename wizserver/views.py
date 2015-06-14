@@ -1108,8 +1108,8 @@ class Header(ParseMsgAndDispatch):
                                     False, cctx)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
-                        #create an conn req from A->B. No notifs for this. 
-                        #This conn_req ensures that when B joins table, 
+                        #create an conn req from A->B. No notifs for this.
+                        #This conn_req ensures that when B joins table,
                         #A doesn't get a new explicit_exchange req
                         try:
                             WizConnectionRequest.objects.create(
@@ -1781,13 +1781,12 @@ class Header(ParseMsgAndDispatch):
                 future_users.delete()
 
         for c in contact_container:
-            title = "FIXME" if not c['title'] else c['title']
 	    t_row = ContactContainer(wizcard=wizcard,
-                    title=title,
-                    #title=c['title'],
-                    company=c['company'],
-                    start=c['start'],
-                    end=c['end'])
+                    title=c.get('title', ""),
+                    company=c.get('company', ""),
+                    phone = c.get('phone', ""),
+                    start=cget('start', ""),
+                    end=c.get('end', "Current")
             t_row.save()
 
             if 'f_bizCardImage' in c and c['f_bizCardImage']:
