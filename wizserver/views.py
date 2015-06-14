@@ -1796,7 +1796,7 @@ class Header(ParseMsgAndDispatch):
                     company=c.get('company', ""),
                     phone = c.get('phone', ""),
                     start=cget('start', ""),
-                    end=c.get('end', "Current")
+                    end=c.get('end', "Current"))
             t_row.save()
 
             if 'f_bizCardImage' in c and c['f_bizCardImage']:
