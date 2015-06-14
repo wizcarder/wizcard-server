@@ -1689,7 +1689,12 @@ class Header(ParseMsgAndDispatch):
 	return self.response
 
     def WizWebWizcardQuery(self):
-	userID = self.sender['userID']
+	userID = self.sender.get['userID', None]
+
+        if not userID:
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
+
         if self.sender.has_key('username'):
 	    try:
 	      self.user = User.objects.get(username=self.sender['username'])
@@ -1701,13 +1706,15 @@ class Header(ParseMsgAndDispatch):
 	      self.wizcard = Wizcard.objects.get(email=self.sender['email'])
               self.user = self.wizcard.user
 	    except:
-              return self.response.error_response(err.USER_DOESNT_EXIST)
+              response.error_response(err.USER_DOESNT_EXIST)
+              self.response
         else:
             self.response.error_response(err.INVALID_MESSAGE)
             return self.response
 
         if self.user.profile.userid != userID:
-            return self.response.error_response(err.VALIDITY_CHECK_FAILED)
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
 
         out = self.wizcard.serialize()
         self.response.add_data("result", out)
