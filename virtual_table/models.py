@@ -58,7 +58,8 @@ class VirtualTableManager(models.Manager):
 
     #AA: TODO : get some max limit on this
     def query_tables(self, name):
-        tables = self.filter(Q(tablename__istartswith=name)) \
+        tables = self.filter(Q(tablename__istartswith=name) &
+                Q(expired=False)) \
                 [0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
         return tables, tables.count()
 
@@ -220,13 +221,7 @@ class VirtualTable(models.Model):
         return VirtualTable.objects.tag
 
     def time_remaining(self):
-        r = timezone.timedelta(minutes=self.timeout) - \
-                (timezone.now() - self.created)
-
-        if (r.days < 0):
-            return 0
-        else:
-            return r.seconds
+        return self.location.get().timer.get().time_remaining()
 
 class Membership(models.Model):
     created = models.DateTimeField(auto_now_add=True)

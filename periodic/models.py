@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+import pdb
 
 TIMER_ONE_SHOT = 1
 TIME_RECURRING = 2
@@ -22,10 +23,37 @@ class Periodic(models.Model):
     objects = PeriodicManager()
 
     def __unicode__(self):
-        return u'timeout: %s expires at: %s' % (self.timeout_value, self.expires_at)
+        return u'timeout: %s expires in: %ss (%sm)' % (self.timeout_value, \
+                self.time_remaining(), self.time_remaining()/60)
 
+    #returns in seconds
+    def time_remaining(self):
+        r = self.expires_at - timezone.now()
+        if (r.days < 0):
+            return 0
+        else:
+            return r.seconds
+
+    #starts timer based on created_at as epoch
     def start(self):
         self.expires_at = self.created_at + timezone.timedelta(
                 seconds=self.timeout_value)
         self.save()
 	return self
+
+    #starts timer based on now as epoch
+    def restart(self, t=None):
+        if t:
+            self.timeout_value = t
+        self.expires_at = timezone.now() + timezone.timedelta(
+                seconds=self.timeout_value)
+        self.save()
+	return self
+    
+    #sets new timeout and restarts timer
+    def extend_timer(self, e_timeout):
+        self.timeout_value = e_timeout + self.time_remaining()
+        self.restart()
+        self.save()
+        return self
+

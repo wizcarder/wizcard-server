@@ -152,19 +152,15 @@ class LocationMgr(models.Model):
     def start_timer(self, timeout):
         t = Periodic.objects.create(location=self,
                 timeout_value=timeout*60)
-        t.start()
+        return t.start()
 
     def extend_timer(self, timeout):
-	#timeout is the new timeout
-        t = self.timer.get()
-	t.timeout_value = timeout*60
-	#t.save()
-	t.start()
+	#timeout is the timeout delta to extend by in mins
+        return self.timer.get().extend_timer(timeout*60)
 
-    def reset_timer(self):
+    def reset_timer(self, timeout=None):
         if self.timer.count():
-            t = self.timer.get().start()
-	    return t
+            return self.timer.get().restart(timeout)
         return None
 
     def distance_from(self, lat, lng):

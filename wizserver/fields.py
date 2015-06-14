@@ -72,7 +72,11 @@ flicked_wizcard_template = {
 my_flicked_wizcard_template = {
     'fields': ['created', 'flick_id', 'lat', 'lng',
                'timeout', 'flick_pickers'],
-    'key_map': {'created':'a_created', 'flick_id':'id'},
+    'key_map': {
+        'created':'a_created', 
+        'flick_id':'id', 
+        'timeout': 'time_remaining',
+        'city': 'reverse_geo_name'},
     'related': {
         'flick_pickers': flick_pickers_template,
     }
@@ -91,16 +95,17 @@ user_query_full_template = {
 }
 
 nearby_table_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
+    'fields': ['id', 'tablename', 'secureTable', 'numSitting', 'created',\
                'timeout', 'timeRemaining', 'wizcards', 'creator'],
     'key_map' : {'timeRemaining':'time_remaining', \
+                 'created': 'a_created',\
                 'wizcards': 'get_member_wizcards',\
                 'creator': 'get_creator'}
 }
 
 table_template = {
     'fields': ['id', 'tablename', 'secureTable', 'numSitting', \
-               'timeRemaining', 'wizcards', 'created', 'creator_id',
+               'timeout', 'timeRemaining', 'wizcards', 'created', 'creator_id',
                'password'],
     'key_map' : {'created':'a_created',
                  'timeRemaining':'time_remaining',
