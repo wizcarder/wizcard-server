@@ -2,8 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 class ConnectionContext(object):
     def __init__(self, asset_obj=None, connection_mode=None, description=None):
 
-        if asset_obj:
-            asset_type = ContentType.objects.get_for_model(asset_obj)
+        asset_type = ContentType.objects.get_for_model(asset_obj) if asset_obj else None
         self._cctx = dict(
                 asset_obj=asset_obj,
                 asset_type=asset_type,
