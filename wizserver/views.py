@@ -845,7 +845,12 @@ class Header(ParseMsgAndDispatch):
             self.response.add_data("duplicate", True)
 	    self.response.add_data("timeout", t.timeout_value/60)
         else:
-            city = wizlib.reverse_geo_from_latlng(self.lat, self.lng)
+            try:
+                city = wizlib.reverse_geo_from_latlng(self.lat, self.lng)
+                self.response.add_data("city", city)
+            except:
+                city = ""
+
 	    flick_card = WizcardFlick.objects.create(wizcard=wizcard,
                     lat=self.lat,
                     lng=self.lng,
@@ -854,7 +859,6 @@ class Header(ParseMsgAndDispatch):
                     a_created = a_created)
             location = flick_card.create_location(self.lat, self.lng)
             location.start_timer(timeout)
-            self.response.add_data("city", city)
 
         #AA:TODO put all this in fields.py with template
         self.response.add_data("flickCardID", flick_card.pk)
