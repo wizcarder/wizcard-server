@@ -854,10 +854,10 @@ class Header(ParseMsgAndDispatch):
                     a_created = a_created)
             location = flick_card.create_location(self.lat, self.lng)
             location.start_timer(timeout)
+            self.response.add_data("city", city)
 
         #AA:TODO put all this in fields.py with template
         self.response.add_data("flickCardID", flick_card.pk)
-        self.response.add_data("city", city)
         return self.response
 
 
@@ -1689,7 +1689,7 @@ class Header(ParseMsgAndDispatch):
 	return self.response
 
     def WizWebWizcardQuery(self):
-	userID = self.sender.get['userID', None]
+	userID = self.sender.get('userID', None)
 
         if not userID:
             self.response.error_response(err.INVALID_MESSAGE)
@@ -1802,7 +1802,7 @@ class Header(ParseMsgAndDispatch):
                     title=c.get('title', ""),
                     company=c.get('company', ""),
                     phone = c.get('phone', ""),
-                    start=cget('start', ""),
+                    start=c.get('start', ""),
                     end=c.get('end', "Current"))
             t_row.save()
 
