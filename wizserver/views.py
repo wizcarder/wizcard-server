@@ -847,9 +847,10 @@ class Header(ParseMsgAndDispatch):
         else:
             try:
                 city = wizlib.reverse_geo_from_latlng(self.lat, self.lng)
-                self.response.add_data("city", city)
             except:
                 city = ""
+
+            self.response.add_data("city", wizlib.format_city_name(city))
 
 	    flick_card = WizcardFlick.objects.create(wizcard=wizcard,
                     lat=self.lat,
@@ -1540,7 +1541,7 @@ class Header(ParseMsgAndDispatch):
         wizcard.save()
         self.user.save()
 
-        c.title = result.get('title', ""),
+        c.title = result.get('title', "")
         c.company = result.get('company', "")
         c.phone = result.get('phone', "")
         c.end="current"

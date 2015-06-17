@@ -19,7 +19,6 @@ class OCR:
             self.result.update(err.LIB_OCR_ERROR)
             return self.result
 
-
         status = ocr_result[0]
         result = ocr_result[1]
 
