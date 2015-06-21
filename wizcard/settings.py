@@ -106,8 +106,8 @@ elif RUNENV == 'stage':
 	        'ENGINE': 'django.db.backends.mysql',
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
-	        'PASSWORD': 'wizcarddb',
-            'HOST': 'wizcarddb.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+	        'PASSWORD': 'gowizcard',
+            'HOST': 'wizcardstage.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 elif RUNENV == 'prod':
