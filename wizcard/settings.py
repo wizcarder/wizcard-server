@@ -93,7 +93,7 @@ if RUNENV == 'dev':
 	        'NAME': 'wizcard',
 	        'USER': 'root',
 	        'PASSWORD': 'mydb',
-                #'PASSWORD': '',
+            #'PASSWORD': '',
 	        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        #'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
@@ -472,20 +472,11 @@ PYAPNS_CONFIG = {
 
 # RAVEN config for Sentry
 RAVEN_CONFIG = {
-    #for current(original) AWS instance
-    #    'dsn': 'https://d19905d820934cd59cde1e0372c21c43:cc970c850f4b4684bdbd9648f148d2ab@app.getsentry.com/27697',
-    #for stage(original) AWS instance
-    #    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148'
-          'dsn': 'https://05685f40799d40099bad8415ca339f0d:6270f026f97f48f58323ea5cdd533805@app.getsentry.com/44973'
-    #    'dsn': 'https://d51c6e8003a94989b3a1bc6682a8587a:bea494260f264f2092fff01235940e83@app.getsentry.com/44974'
-    #for wizcard totastyle instance
-    #    'dsn': 'https://0e8c55f2ba84490c891dd340685a4177:13702356dd5445cabfc7e9b02814975c@app.getsentry.com/41149'
-    #for anandr-laptop instance
-    #    'dsn': 'https://d51c6e8003a94989b3a1bc6682a8587a:bea494260f264f2092fff01235940e83@app.getsentry.com/44974'
-    #    'dsn': 'https://b58fae5ffdec4127885c4764524f9feb:57fa34177fcb4db6b8dedfd88c8c1526@app.getsentry.com/41150'
+    #for new AWS prod/stage
+    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148'
+    #for bitnami AWS instance
+    #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
 }
-
-
 
 GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
 
