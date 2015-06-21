@@ -27,8 +27,10 @@ import string
 
 #delete rolodex - 1
 
+
+
 TEST_IMAGE=True
-OCR_FLAG = True
+OCR_FLAG = False
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "14084641727"
@@ -109,7 +111,7 @@ server_url = "www.totastyle.com"
 #server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
 #server_url = "localhost"
 
-server_port = 8000
+server_port = 8002
 #server_port = 80
 
 #test_image_path = "test/photo.JPG-f_bc.81.2015-03-16_2213.jpg"
@@ -1185,38 +1187,9 @@ while nrsp != False:
 
 
 reqmsg = messages.meishi_start
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['wizCardID'] = 1
-reqmsg['sender']['lat'] = LAT1
-reqmsg['sender']['lng'] = LNG1
-print "MEISHI START", reqmsg['sender']['wizCardID']
-mei1 = json.dumps(reqmsg)
-print "sending meishi_start" + mei1
-conn.request("POST", "", mei1)
-objs = handle_response(conn,reqmsg['header']['msgType'])
-mei_id1 = objs['data']['mID']
-m_nearby = objs['data']['m_nearby']
-
-reqmsg = messages.meishi_find
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['mID'] = mei_id1
-print "MEISHI FIND", reqmsg['sender']['wizCardID']
-mef1 = json.dumps(reqmsg)
-print "sending meishi_find" + mef1
-conn.request("POST", "", mef1)
-objs = handle_response(conn,reqmsg['header']['msgType'])
-if objs['data'].has_key('m_result'):
-    mei_pair = objs['data']['m_result']
-else:
-    #expect nearby response
-    m_nearby = objs['data']['m_nearby']
-
-reqmsg = messages.meishi_start
 reqmsg['sender']['userID'] = uid2
 reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['sender']['wizCardID'] = 2
+reqmsg['sender']['wizCardID'] = e1_id
 reqmsg['sender']['lat'] = LAT1
 reqmsg['sender']['lng'] = LNG1
 print "MEISHI START", reqmsg['sender']['wizCardID']
@@ -1225,8 +1198,7 @@ print "sending meishi_start" + mei2
 conn.request("POST", "", mei2)
 objs = handle_response(conn,reqmsg['header']['msgType'])
 mei_id2 = objs['data']['mID']
-
-print "Meishi ID = " + str(mei_id2)
+m_nearby = objs['data']['m_nearby']
 
 reqmsg = messages.meishi_find
 reqmsg['sender']['userID'] = uid2
@@ -1236,6 +1208,36 @@ print "MEISHI FIND", reqmsg['sender']['wizCardID']
 mef2 = json.dumps(reqmsg)
 print "sending meishi_find" + mef2
 conn.request("POST", "", mef2)
+objs = handle_response(conn,reqmsg['header']['msgType'])
+if objs['data'].has_key('m_result'):
+    mei_pair = objs['data']['m_result']
+else:
+    #expect nearby response
+    m_nearby = objs['data']['m_nearby']
+
+reqmsg = messages.meishi_start
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['wizCardID'] = e3_id
+reqmsg['sender']['lat'] = LAT1
+reqmsg['sender']['lng'] = LNG1
+print "MEISHI START", reqmsg['sender']['wizCardID']
+mei3 = json.dumps(reqmsg)
+print "sending meishi_start" + mei3
+conn.request("POST", "", mei3)
+objs = handle_response(conn,reqmsg['header']['msgType'])
+mei_id3 = objs['data']['mID']
+
+print "Meishi ID = " + str(mei_id3)
+
+reqmsg = messages.meishi_find
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['mID'] = mei_id3
+print "MEISHI FIND", reqmsg['sender']['wizCardID']
+mef3 = json.dumps(reqmsg)
+print "sending meishi_find" + mef3
+conn.request("POST", "", mef3)
 objs = handle_response(conn,reqmsg['header']['msgType'])
 mei_pair = objs['data']['m_result']
 

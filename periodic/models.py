@@ -39,7 +39,7 @@ class Periodic(models.Model):
         self.expires_at = self.created_at + timezone.timedelta(
                 seconds=self.timeout_value)
         self.save()
-	return self
+        return self
 
     #starts timer based on now as epoch
     def restart(self, t=None):
@@ -48,7 +48,7 @@ class Periodic(models.Model):
         self.expires_at = timezone.now() + timezone.timedelta(
                 seconds=self.timeout_value)
         self.save()
-	return self
+        return self
     
     #sets new timeout and restarts timer
     def extend_timer(self, e_timeout):

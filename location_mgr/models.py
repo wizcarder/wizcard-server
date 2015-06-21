@@ -9,8 +9,6 @@ from django.db.models.signals import pre_delete
 from periodic.models import Periodic
 from django.db.models.signals import class_prepared
 from lib import wizlib
-from django_cron import Job
-from django_cron.models import Cron
 from django.utils import timezone
 from wizserver import verbs
 from location_service.client import LocationServiceClient
@@ -21,37 +19,9 @@ import time
 import pdb
 
 logger = logging.getLogger(__name__)
-class Tick(Job):
-    run_every = 10
 
-    def job(self):
-        logger.debug('TICK RECEIVED at %s', timezone.now())
-
-        if os.getenv('WIZRUNENV','dev') == 'dev':
-            print 'TICK RECEIVED at {t}'.format(t=timezone.now())
-        exp = Periodic.objects.get_expired()
-        if exp.count():
-            logger.info('EXPIRED objects found %s', exp)
-            ids = map(lambda x:  x.location.pk, exp)
-            try:
-                location_timeout.send(sender=None, ids=ids)
-            except Exception, e:
-		#most likely something happened when notifs were processed
-		#I have seen it happen when nexmo send fails
-                logger.error('Timer Job Exception: %s', str(e))
-                pass
 
 class LocationMgrManager(models.Manager):
-    def init_from_db(self, sender, **kwargs):
-        #just to be safe, restore django.cron executing to false
-        try:
-            c = Cron.objects.get(id=1)
-            c.executing = False
-            c.save()
-        except:
-            #will happen on db full clean
-            pass
-
     def lookup(self, cache_key, tree_type, lat, lng, n,
                exclude_self=False, modifier=None):
         tsc = LocationServiceClient()
@@ -123,7 +93,7 @@ class LocationMgr(models.Model):
 			key=wizlib.modified_key(self.key, self.pk),
 			tree_type=self.tree_type)
         logger.debug('deleted from tree: [{%s}.{%s}]', self.tree_type, self.key)
-	return val
+        return val
 
     def insert_in_tree(self):
         tsc = LocationServiceClient()
@@ -155,7 +125,7 @@ class LocationMgr(models.Model):
         return t.start()
 
     def extend_timer(self, timeout):
-	#timeout is the timeout delta to extend by in mins
+        #timeout is the timeout delta to extend by in mins
         return self.timer.get().extend_timer(timeout*60)
 
     def reset_timer(self, timeout=None):
@@ -193,7 +163,7 @@ def location_timeout_handler(**kwargs):
     ids = kwargs.pop('ids')
     expired = map(lambda x: LocationMgr.objects.get(id=x), ids)
     for e in expired:
-	timeout_callback_execute(e)
+        timeout_callback_execute(e)
 
 def location_timeout_cb(l):
     l.delete()
@@ -214,4 +184,3 @@ def timeout_callback_execute(e):
 
 location.connect(location_create_handler, dispatch_uid='location_mgr.models.location_mgr')
 location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
-class_prepared.connect(LocationMgr.objects.init_from_db, dispatch_uid='location_mgr.models.location_mgr')

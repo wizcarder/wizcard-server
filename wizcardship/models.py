@@ -45,6 +45,7 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
+
 class WizcardManager(models.Manager):
     def except_wizcard(self, except_user):
         qs = Wizcard.objects.filter(~Q(user=except_user))
@@ -70,13 +71,12 @@ class WizcardManager(models.Manager):
         WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
                                             to_wizcard=to_wizcard).delete()
 
-
     def becard(self, wizcard1, wizcard2):
         wizcard1.wizconnections.add(wizcard2)
         # Now that user1 accepted user2's card request we should delete any
         # request by user1 to user2 so that we don't have ambiguous data
-        self.wizconnection_req_clear(from_wizcard=wizcard1,
-                to_wizcard=wizcard2)
+        #self.wizconnection_req_clear(from_wizcard=wizcard1,
+        #        to_wizcard=wizcard2)
 
     def uncard(self, wizcard1, wizcard2):
         # Break cardship link between users
@@ -86,76 +86,64 @@ class WizcardManager(models.Manager):
         self.wizconnection_req_clear(wizcard2, wizcard1)
 
     def accept_wizconnection(self, from_wizcard, to_wizcard):
+        self.becard(from_wizcard, to_wizcard)
         WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
-                to_wizcard=to_wizcard).get().accept()
+                                            to_wizcard=to_wizcard).get().accept()
+        WizConnectionRequest.objects.filter(from_wizcard=to_wizcard,
+                                            to_wizcard=from_wizcard).get().accept()
 
     def serialize(self, wizcards, template):
         return serialize(wizcards, **template)
 
-    def exchange_implicit(self, wizcard1, wizcard2, cctx):
-        user1 = wizcard1.user
-        user2 = wizcard2.user
-
-        self.becard(wizcard1, wizcard2)
-
-        #Q this to the receiver and vice-versa
-
-        notify.send(user1, recipient=user2,
-                    verb=verbs.WIZREQ_T[0],
-		    description=cctx.describe(),
-                    target=wizcard1, action_object=cctx.object)
-        notify.send(user2, recipient=user1,
-                    verb=verbs.WIZREQ_T[0],
-		    description=cctx.describe(),
-                    target=wizcard2, action_object=cctx.object)
-
-    def exchange_explicit(self, wizcard1, wizcard2, cctx):
-        user1 = wizcard1.user
-        user2 = wizcard2.user
-        convert_to_implicit = False
-
-        # If there's a wizconnection request from the other user then treat it like
-        # an implicit connection
-        try:
-            self.accept_wizconnection(wizcard2, wizcard1)
-            convert_to_implicit = True
-        except ObjectDoesNotExist:
-            try:
-                wizconnection = WizConnectionRequest.objects.create(
-                    from_wizcard=wizcard1,
-                    to_wizcard=wizcard2,
-                    message="wizconnection request")
-                #Q this to the receiver
-            except:
-                #duplicate request
-                #nothing to do, just return silently
-                return
-        #send notifs to recipient (or both if implicit conversion)
-        if convert_to_implicit:
-            notify.send(user1, recipient=user2,
-                    verb=verbs.WIZREQ_T[0],
-		    description=cctx.describe(),
-                    target=wizcard1, action_object=cctx.object)
-
-            notify.send(user2, recipient=user1,
-                    verb=verbs.WIZREQ_T[0],
-		    description=cctx.describe(),
-                    target=wizcard2, action_object=cctx.object)
-
-        else:
-            notify.send(user1, recipient=user2,
-                    verb=verbs.WIZREQ_U[0],
-		    description=cctx.describe(),
-                    target=wizcard1, action_object=cctx.object)
-
     def exchange(self, wizcard1, wizcard2, implicit, cctx):
-        #create bidir cardship
         if self.are_wizconnections(wizcard1, wizcard2):
             return  err.EXISTING_CONNECTION
-        elif implicit:
-            self.exchange_implicit(wizcard1, wizcard2, cctx)
+
+        try:
+            wizconnection_from = WizConnectionRequest.objects.get(
+                from_wizcard=wizcard1,
+                to_wizcard=wizcard2
+            )
+        except ObjectDoesNotExist:
+            wizconnection_from = WizConnectionRequest.objects.create(
+                from_wizcard=wizcard1,
+                to_wizcard=wizcard2,
+                message=cctx.describe())
+
+        try:
+            wizconnection_to = WizConnectionRequest.objects.get(
+                from_wizcard=wizcard2,
+                to_wizcard=wizcard1
+            )
+            implicit = True
+        except ObjectDoesNotExist:
+            wizconnection_to = WizConnectionRequest.objects.create(
+                from_wizcard=wizcard2,
+                to_wizcard=wizcard1,
+                message=cctx.describe())
+
+        if implicit:
+            #create bidir cardship
+            self.becard(wizcard1, wizcard2)
+            #accepted in wizconnections db
+            wizconnection_from.accept()
+            wizconnection_to.accept()
+
+            notify.send(wizcard1.user, recipient=wizcard2.user,
+                        verb=verbs.WIZREQ_T[0],
+                        description=cctx.describe(),
+                        target=wizcard1, action_object=cctx.object)
+
+            notify.send(wizcard2.user, recipient=wizcard1.user,
+                        verb=verbs.WIZREQ_T[0],
+                        description=cctx.describe(),
+                        target=wizcard2, action_object=cctx.object)
         else:
-            self.exchange_explicit(wizcard1, wizcard2, cctx)
+            notify.send(wizcard1.user, recipient=wizcard2.user,
+                        verb=verbs.WIZREQ_U[0],
+                        description=cctx.describe(),
+                        target=wizcard1, action_object=cctx.object)
+
         return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2):
@@ -168,19 +156,19 @@ class WizcardManager(models.Manager):
         #any of the arguments may be null
         qlist = []
 
-        if name != None:
+        if name:
             split = name.split()
             for n in split:
                 name_result = (Q(first_name__istartswith=n) | Q(last_name__istartswith=n))
                 qlist.append(name_result)
 
         #phone
-        if phone != None:
+        if phone:
             phone_result = (Q(phone=phone) | Q(phone2__startswith=phone))
             qlist.append(phone_result)
 
         #email
-        if email != None:
+        if email:
             email_result = Q(email=email)
             qlist.append(email_result)
 
@@ -188,8 +176,6 @@ class WizcardManager(models.Manager):
 
         return result, len(result)
 
-    def migrate_future_user(self, future, current):
-        WizConnectionRequest.objects.filter(to_wizcard=future.wizcard).update(to_wizcard=current.wizcard.pk)
 
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
@@ -201,7 +187,7 @@ class Wizcard(models.Model):
 
     #media objects
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
-                         storage=WizcardQueuedS3BotoStorage(delayed=False))
+                                            storage=WizcardQueuedS3BotoStorage(delayed=False))
 
     objects = WizcardManager()
 
@@ -219,18 +205,9 @@ class Wizcard(models.Model):
         return serialize(self.wizconnections.all(), **template)
 
     def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
-	return serialize(
-                self.flicked_cards.exclude(expired=True),
-                **template)
-
-    def create_company_list(self, l):
-        map(lambda x: CompanyList(wizcard=self, company=x).save(), l)
-
-    def create_designation_list(self, l):
-        map(lambda x: DesignationList(wizcard=self, designation=x).save(), l)
-
-    def create_wizcard_image_list(self, l):
-        map(lambda x: WizcardImageList(wizcard=self, image=x).save(), l)
+        return serialize(
+            self.flicked_cards.exclude(expired=True),
+            **template)
 
     def get_latest_company(self):
         qs = self.contact_container.all()
@@ -280,7 +257,7 @@ class Wizcard(models.Model):
     def check_flick_duplicates(self, lat, lng):
         if not settings.DO_FLICK_AGGLOMERATE:
             return None
-	#check if nearby cards can be combined...do we need to adjust centroid and all that ?
+        #check if nearby cards can be combined...do we need to adjust centroid and all that ?
         for w in self.flicked_cards.exclude(expired=True):
             if wizlib.haversine(w.lng, w.lat, lng, lat) < settings.WIZCARD_FLICK_AGGLOMERATE_RADIUS:
                 return w
@@ -294,7 +271,7 @@ class ContactContainer(models.Model):
     end = models.CharField(max_length=30, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     f_bizCardImage = WizcardQueuedFileField(upload_to="bizcards",
-                         storage=WizcardQueuedS3BotoStorage(delayed=False))
+                                            storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.URLField(blank=True)
 
 
@@ -325,11 +302,11 @@ class WizConnectionRequest(models.Model):
 
     def __unicode__(self):
         return _(u'%(from_wizcard)s wants to be wizconnections with %(to_wizcard)s') % \
-                    {'from_wizcard': unicode(self.from_wizcard),
-                     'to_wizcard': unicode(self.to_wizcard)}
+               {'from_wizcard': unicode(self.from_wizcard),
+                'to_wizcard': unicode(self.to_wizcard)}
 
     def accept(self):
-        Wizcard.objects.becard(self.from_wizcard, self.to_wizcard)
+        #Wizcard.objects.becard(self.from_wizcard, self.to_wizcard)
         self.accepted = True
         self.save()
         signals.wizcardship_accepted.send(sender=self)
@@ -341,6 +318,7 @@ class WizConnectionRequest(models.Model):
     def cancel(self):
         signals.wizcardship_cancelled.send(sender=self)
         self.delete()
+
 
 class WizcardFlickManager(models.Manager):
     # Maybe there is a better way to do this. This is defined
@@ -354,11 +332,11 @@ class WizcardFlickManager(models.Manager):
     def lookup(self, cache_key, lat, lng, n, count_only=False):
         flicked_cards = None
         result, count =  LocationMgr.objects.lookup(
-                                cache_key,
-                                "WTREE",
-                                lat,
-                                lng,
-                                n)
+            cache_key,
+            "WTREE",
+            lat,
+            lng,
+            n)
         #convert result to query set result
         if count and not count_only:
             flicked_cards = map(lambda m: self.get(id=m), result)
@@ -370,8 +348,8 @@ class WizcardFlickManager(models.Manager):
 
     def serialize_split(self, my_wizcard, flicked_wizcards):
         s = None
-	own, connected, others = self.split_wizcard_flick(my_wizcard,
-                flicked_wizcards)
+        own, connected, others = self.split_wizcard_flick(my_wizcard,
+                                                          flicked_wizcards)
 
         s = dict()
         if own:
@@ -381,32 +359,31 @@ class WizcardFlickManager(models.Manager):
         if others:
             s['others'] = self.serialize(others)
 
-	return s
+        return s
 
     def split_wizcard_flick(self, mine, flicked_wizcards):
         own = []
         connected = []
-	others = []
-	for w in flicked_wizcards:
+        others = []
+        for w in flicked_wizcards:
             if w.wizcard == mine:
-	        own.append(w)
-	    elif Wizcard.objects.are_wizconnections(w.wizcard, mine):
-	        connected.append(w)
+                own.append(w)
+            elif Wizcard.objects.are_wizconnections(w.wizcard, mine):
+                connected.append(w)
             else: others.append(w)
 
-	return own, connected, others
-
+        return own, connected, others
 
     def query_flicks(self, name, phone, email):
         #name can be first name, last name or even combined
         #any of the arguments may be null
         qlist = []
 
-        if name != None:
+        if name:
             split = name.split()
             for n in split:
                 name_result = ((Q(wizcard__first_name__istartswith=n) | \
-                               Q(wizcard__last_name__istartswith=n)) &
+                                Q(wizcard__last_name__istartswith=n)) &
                                Q(expired=False))
                 qlist.append(name_result)
 
@@ -434,10 +411,10 @@ class WizcardFlick(models.Model):
         #create
         key = wizlib.create_geohash(lat, lng)
         retval = location.send(sender=self,
-                    lat=lat,
-                    lng=lng,
-                    key=key,
-                    tree="WTREE")
+                               lat=lat,
+                               lng=lng,
+                               key=key,
+                               tree="WTREE")
         loc= retval[0][1]
 
         return loc
@@ -452,10 +429,10 @@ class WizcardFlick(models.Model):
             self.expired = True
             self.save()
             notify.send(self.wizcard.user,
-                    recipient=self.wizcard.user,
-                    verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
-                    target=self,
-                    action_object=self.wizcard)
+                        recipient=self.wizcard.user,
+                        verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
+                        target=self,
+                        action_object=self.wizcard)
         else:
             #withdraw/delete flick case
             logger.debug('withdraw flicked wizcard %s', self.id)
@@ -465,7 +442,11 @@ class WizcardFlick(models.Model):
         return WizcardFlick.objects.tag
 
     def time_remaining(self):
-        return self.location.get().timer.get().time_remaining()/60
+        if not self.expired:
+            return self.location.get().timer.get().time_remaining()
+        else:
+            return 0
+
 
 class UserBlocks(models.Model):
     user = models.ForeignKey(User, related_name='user_blocks')

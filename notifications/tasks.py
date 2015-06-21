@@ -69,16 +69,20 @@ class ApnsMsg(object):
             self.pushAndroid()
 
     def pushIOS(self):
-	apns_notify(settings.APP_ID,
+        apns_notify(
+            settings.APP_ID,
 		    self.reg_token,
-		    self.aps)
+		    self.aps
+        )
 
         return
 
     def pushAndroid(self):
-	send_gcm_message(settings.GCM_API_KEY, 
+        send_gcm_message(
+            settings.GCM_API_KEY,
 			self.reg_token,
-			self.aps)
+			self.aps
+        )
         return
 
 

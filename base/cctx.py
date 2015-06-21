@@ -1,19 +1,20 @@
 from django.contrib.contenttypes.models import ContentType
 class ConnectionContext(object):
     def __init__(self, asset_obj=None, connection_mode=None, description=None):
-
-        if asset_obj:
-            asset_type = ContentType.objects.get_for_model(asset_obj)
+        asset_type = ContentType.objects.get_for_model(asset_obj) if asset_obj else None
         self._cctx = dict(
                 asset_obj=asset_obj,
                 asset_type=asset_type,
                 connection_mode=connection_mode,
                 description=""
                 )
-
     @property
     def context(self):
         return self._cctx
+
+    @property
+    def asset_type(self):
+        return self.context['asset_type']
 
     @property
     def object(self):
@@ -28,7 +29,14 @@ class ConnectionContext(object):
         self._cctx['description'] = text
 
     def describe(self):
-        self.description = "This is a test description"
+        if self.asset_type == ContentType.objects.get(model="wizcard"):
+            self.description = "via wizcard exchange"
+        elif self.asset_type == ContentType.objects.get(model="virtualtable"):
+            self.description = "via round table {}".format(self.object)
+        elif self.asset_type == ContentType.objects.get(model="wizcardflick"):
+            self.description = "via flick pick @{}".format(self.object.city)
+        elif self.asset_type == ContentType.objects.get(model="meishi"):
+            self.description = "via meishi"
         return self.description
 
 class NotifContext(object):

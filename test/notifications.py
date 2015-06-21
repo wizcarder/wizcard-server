@@ -15,6 +15,8 @@ WITHDRAW_REQUEST    = 11
 WIZWEB_UPDATE_WIZCARD = 12
 TABLE_INVITE        = 13
 WIZCARD_FORWARD     = 14
+TABLE_JOIN          = 15
+TABLE_LEAVE         = 16
 
 
 class NotifParser:
@@ -46,6 +48,8 @@ class NotifParser:
             WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard,
             TABLE_INVITE    :       self.table_invite,
             WIZCARD_FORWARD :       self.wizcard_forward,
+            TABLE_JOIN :       self.table_join,
+            TABLE_LEAVE :       self.table_leave,
         }
 
 	if self.count:
@@ -53,7 +57,7 @@ class NotifParser:
             return notifTableHandler[self.notifType.pop()](self.notifData.pop())
         else:
             return False
-        
+
 
     def accept_implicit(self, data):
         print "received accept implicit from", data['user_id']
@@ -71,6 +75,14 @@ class NotifParser:
 
     def table_timeout(self, data):
         print "received table timeout from", data
+	pass
+
+    def table_join(self, data):
+        print "received table join from", data
+	pass
+
+    def table_leave(self, data):
+        print "received table leave from", data
 	pass
 
     def update_wizcard(self, data):

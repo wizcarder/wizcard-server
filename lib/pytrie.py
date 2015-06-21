@@ -192,7 +192,7 @@ class Trie(DictMixin, object):
           - if ``default`` is given, return it
           - otherwise raise ``KeyError``
         '''
-        prefix = [];
+        prefix = []
         append = prefix.append
         node = self._root
         for part in key:
@@ -213,7 +213,7 @@ class Trie(DictMixin, object):
           - if ``default`` is given, return it
           - otherwise raise ``KeyError``
         '''
-        prefix = [];
+        prefix = []
         append = prefix.append
         node = self._root
         for part in key:
@@ -234,7 +234,7 @@ class Trie(DictMixin, object):
           - if ``default`` is given, return it
           - otherwise raise ``KeyError``
         '''
-        prefix = [];
+        prefix = []
         append = prefix.append
         node = self._root
         for part in key:
@@ -256,7 +256,7 @@ class Trie(DictMixin, object):
           - if ``default`` is given, return it
           - otherwise raise ``KeyError``
         '''
-        prefix = [];
+        prefix = []
         append = prefix.append
         node = self._root
         plen = 0

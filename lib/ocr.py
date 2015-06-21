@@ -8,17 +8,15 @@ class OCR:
     def __init__(self):
         self.result = dict()
 
-    def process(self, file):
-	#call OCR lib and get result.
-	runproc = RunOCR()
-        args = {'file':file, "lang":"English", "format":"xml"}
+    def process(self, _file):
+        runproc = RunOCR()
+        args = {'file':_file, "lang":"English", "format":"xml"}
         res = run_ocr.delay(runproc, **args)
         try:
             ocr_result = res.get(timeout=20)
         except:
             self.result.update(err.LIB_OCR_ERROR)
             return self.result
-
 
         status = ocr_result[0]
         result = ocr_result[1]
@@ -50,7 +48,7 @@ class OCR:
 
 @shared_task
 def run_ocr(inst, **kwargs):
-    file = kwargs.get('file')
-    lang = kwargs.get('lang', "English")
-    format = kwargs.get('format', "xml")
-    return inst.RunProc(file, lang, format)
+    _file = kwargs.get('file')
+    _lang = kwargs.get('lang', "English")
+    _format = kwargs.get('format', "xml")
+    return inst.RunProc(_file, _lang, _format)
