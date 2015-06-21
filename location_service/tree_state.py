@@ -39,7 +39,7 @@ class TreeServer(LocationServiceServer):
 
     def __init__(self, *args, **kwargs):
 
-	RUNENV = kwargs.pop('RUNENV')
+        RUNENV = kwargs.pop('RUNENV')
 
         super(TreeServer, self).__init__(*args, **kwargs)
         self.ptree = trie()
@@ -106,7 +106,7 @@ class TreeServer(LocationServiceServer):
         self.acknowledge_message(basic_deliver.delivery_tag)
 
     def get_tree_from_type(self, tree_type):
-	return self.location_tree_handles[tree_type]
+        return self.location_tree_handles[tree_type]
 
     def tree_insert(self, **kwargs):
         tree_type = kwargs.pop('tree_type')
@@ -151,7 +151,7 @@ class TreeServer(LocationServiceServer):
         exclude_self = kwargs.pop('exclude_self', True)
         n = kwargs.pop('n', DEFAULT_MAX_LOOKUP_RESULTS)
 
-	tree = self.get_tree_from_type(tree_type)
+        tree = self.get_tree_from_type(tree_type)
         if exclude_self:
             cached_val = self.t_del(tree, key)
 
@@ -172,12 +172,12 @@ class TreeServer(LocationServiceServer):
         tree_type = kwargs.pop('tree_type', None)
         result = dict()
         print 'Tree State'
-	if tree_type == None:
+        if tree_type == None:
             for ttype in self.location_tree_handles:
                 tree = self.get_tree_from_type(ttype)
                 print '{ttype} : {tree}'.format (ttype=ttype, tree=tree)
                 result[ttype] = dict(tree)
-	else:
+        else:
             tree = self.get_tree_from_type(tree_type)
             print '{ttype} : {tree}'.format (ttype=tree_type, tree=tree)
             result[tree_type] = dict(tree)
@@ -213,28 +213,28 @@ class TreeServer(LocationServiceServer):
         return (result, count) if count > prev_count else (prev_result, prev_count)
 
 def main():
-	logging.basicConfig(level=logging.INFO)
-	isdaemon = False
-        RUNENV = os.getenv('WIZRUNENV', 'dev')
-	for params in sys.argv:
-            if params == '--D' or params == '-daemon':
-                isdaemon = True
+    logging.basicConfig(level=logging.INFO)
+    isdaemon = False
+    RUNENV = os.getenv('WIZRUNENV', 'dev')
+    for params in sys.argv:
+        if params == '--D' or params == '-daemon':
+            isdaemon = True
 
-        amqpuser = settings.LOCATION_USER
-        amqppass = settings.LOCATION_PASS
-#        amqphost = instances.ALLHOSTS[RUNENV]['LOCATIONSERVER'][0]
-        amqphost = settings.BROKER_HOST
-        url = 'amqp://' + amqpuser + ':' + amqppass + '@'+amqphost+':5672'
+    amqpuser = settings.LOCATION_USER
+    amqppass = settings.LOCATION_PASS
+#   amqphost = instances.ALLHOSTS[RUNENV]['LOCATIONSERVER'][0]
+    amqphost = settings.BROKER_HOST
+    url = 'amqp://' + amqpuser + ':' + amqppass + '@'+amqphost+':5672'
 
-	ts = TreeServer(url,RUNENV=RUNENV)
-	if isdaemon:
-		with daemon.DaemonContext():
-			ts.run()
-	else:
-		try:
-       	 		ts.run()
-		except KeyboardInterrupt:
-		        ts.stop()
+    ts = TreeServer(url,RUNENV=RUNENV)
+    if isdaemon:
+        with daemon.DaemonContext():
+            ts.run()
+    else:
+        try:
+            ts.run()
+        except KeyboardInterrupt:
+            ts.stop()
 
 if __name__ == '__main__':
     main()

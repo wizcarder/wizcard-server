@@ -24,16 +24,19 @@ class DeadCards(models.Model):
     title = models.CharField(max_length=200, blank=True)
     web = models.CharField(max_length=200, blank=True)
     f_bizCardImage = WizcardQueuedFileField(upload_to="deadcards",
-                         storage=WizcardQueuedS3BotoStorage(delayed=False))
+                                            storage=WizcardQueuedS3BotoStorage(delayed=False))
 
     objects = DeadCardsManager()
 
     def __unicode__(self):
-        return (u'%(user)s\'s dead card: %(title)s@ %(company)s \n') % {'user': unicode(self.user), 'title': unicode(self.title), 'company': unicode(self.company)}
+        return (u'%(user)s\'s dead card: %(title)s@ %(company)s \n') % \
+               {'user': unicode(self.user),
+                'title': unicode(self.title),
+                'company': unicode(self.company)}
 
     def recognize(self):
         ocr = OCR()
-        result =  ocr.process(self.f_bizCardImage.local_path())
+        result = ocr.process(self.f_bizCardImage.local_path())
 
         self.first_name = result.get('first_name', "")
         self.last_name = result.get('last_name', "")
@@ -57,7 +60,7 @@ class DeadCards(models.Model):
     def deadcard_url(self):
         return self.f_bizCardImage.remote_url()
 
-   #AA:TODO refactor. This should reuse CC model
+    #AA:TODO refactor. This should reuse CC model
     def serialize(self):
         wc = serialize(self, **fields.dead_cards_wizcard_template)
         return wc

@@ -298,7 +298,6 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'django_extensions',
-    'django_cron',
     'djcelery',
     'storages',
     'userprofile',

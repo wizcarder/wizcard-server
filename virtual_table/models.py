@@ -28,8 +28,7 @@ from wizcardship.models import Wizcard
 from django.contrib.contenttypes import generic
 from lib.preserialize.serialize import serialize
 from wizserver import fields, verbs
-from virtual_table.signals import virtualtable_vtree_timeout
-from notifications.models import notify, Notification
+from notifications.models import notify
 from base.cctx import ConnectionContext
 from django.conf import settings
 from django.utils import timezone
@@ -132,10 +131,10 @@ class VirtualTable(models.Model):
 
     def get_member_wizcards(self):
         members = map(lambda u: u.wizcard, self.users.all().exclude(id=self.creator.id))
-        return serialize(members, **fields.wizcard_template_mini)
+        return serialize(members, **fields.wizcard_template_brief)
 
     def get_creator(self):
-        return serialize(self.creator.wizcard, **fields.wizcard_template_mini)
+        return serialize(self.creator.wizcard, **fields.wizcard_template_brief)
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
@@ -166,11 +165,23 @@ class VirtualTable(models.Model):
         if (not self.is_secure()) or \
             (self.password == password) or skip_password:
             m, created = Membership.objects.get_or_create(user=user, table=self)
-	    if not created:
-		#somehow already a member
-		return self
-	    self.inc_numsitting()
+            if not created:
+                #somehow already a member
+		        return self
+            self.inc_numsitting()
             if do_exchange is True:
+                #we're now sending notif to all existing joinees, to update table counts
+                #in a more fool-proof way. Earlier is was implicit in the ensuing exchange
+                #notifs, but that had issues since those already connected were not getting
+                #the notifs
+                for u in self.users.exclude(id=user.id):
+                    notify.send(
+                        user,
+                        recipient=u,
+                        verb=verbs.WIZCARD_TABLE_JOIN[0],
+                        target=self
+                    )
+
                 self.table_exchange(user)
         else:
             return None
@@ -182,19 +193,27 @@ class VirtualTable(models.Model):
             self.dec_numsitting()
         except:
             pass
+        #send notif to all members, just like join
+        for u in self.users.exclude(id=user.id):
+            notify.send(
+                user,
+                recipient=u,
+                verb=verbs.WIZCARD_TABLE_LEAVE[0],
+                target=self
+            )
 
         return self
 
     def delete(self, *args, **kwargs):
-	#notify members of deletion (including self)
+        #notify members of deletion (including self)
         verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
-	members = self.users.all()
-	for member in members:
-	    notify.send(
-                    self.creator,
-                    recipient=member,
-                    verb=verb,
-                    target=self)
+        members = self.users.all()
+        for member in members:
+            notify.send(
+                self.creator,
+                recipient=member,
+                verb=verb,
+                target=self)
 
         self.location.get().delete()
 
@@ -221,7 +240,9 @@ class VirtualTable(models.Model):
         return VirtualTable.objects.tag
 
     def time_remaining(self):
-        return self.location.get().timer.get().time_remaining()
+        if not self.expired:
+            return self.location.get().timer.get().time_remaining()
+        return 0
 
 class Membership(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -232,14 +253,3 @@ class Membership(models.Model):
 
     def save(self, *args, **kwargs):
         super(Membership, self).save(*args, **kwargs)
-
-def vtree_entry_timeout_handler(**kwargs):
-    key_list = kwargs.pop('key_list')
-
-    for key in key_list:
-        wizlib.ptree_delete(key, vtree)
-
-# Signal connections
-virtualtable_vtree_timeout.connect(vtree_entry_timeout_handler,
-                                   dispatch_uid='wizcardship.models.wizcardship')
-

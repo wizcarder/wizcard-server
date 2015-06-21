@@ -65,13 +65,13 @@ class Meishi(models.Model):
             }
         return '{%(lat)s, %(lng)s} %(timesince)s ago' % ctx
 
-    def timesince(self, now=None):
+    def timesince(self, _now=None):
         """
         Shortcut for the ``django.utils.timesince.timesince`` function of the
         current timestamp.
         """
         from django.utils.timesince import timesince as timesince_
-        return timesince_(self.timestamp, now)
+        return timesince_(self.timestamp, _now)
 
     def distance_from(self, lat, lng):
         return wizlib.haversine(self.lng, self.lat, lng, lat)
@@ -79,7 +79,7 @@ class Meishi(models.Model):
     def satisfies_space_constraint(self, candidate):
         return True
         meishi_distance = self.distance_from(candidate.lat,candidate.lng)
-        if (meishi_distance <= MEISHI_DIST_THRESHOLD):
+        if meishi_distance <= MEISHI_DIST_THRESHOLD:
             return True
         return False
 

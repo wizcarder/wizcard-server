@@ -25,10 +25,10 @@ import pdb
 
 class UserProfileManager(models.Manager):
     def serialize_split(self, me, users):
-	s = dict()
+        s = dict()
         template = fields.wizcard_template_brief
 
-	own, requested, connected, others = self.split_users(me, users)
+        own, requested, connected, others = self.split_users(me, users)
         if own:
             s['own'] = UserProfile.objects.serialize(own, template)
         if connected:
@@ -44,7 +44,8 @@ class UserProfileManager(models.Manager):
         own = []
         connected = []
         requested = []
-	others = []
+        others = []
+
         for user in users:
             if Wizcard.objects.are_wizconnections(user.wizcard, me.wizcard):
                 connected.append(user)
@@ -129,7 +130,7 @@ class UserProfile(models.Model):
                 settings.USER_LASTSEEN_TIMEOUT)
 
     def can_send_data(self, on_wifi):
-        return (True if on_wifi else not(self.is_wifi_data))
+        return True if on_wifi else not self.is_wifi_data
 
     def last_seen(self):
         now = timezone.now()
@@ -150,7 +151,7 @@ class UserProfile(models.Model):
         return self.future_user
 
     def set_future(self):
-	self.activated = False
+        self.activated = False
         self.future_user = True
         self.save()
 
@@ -162,12 +163,12 @@ class UserProfile(models.Model):
             l = self.location.get()
             updated = l.do_update(lat, lng)
             l.reset_timer()
-	    return l
+            return l
         except ObjectDoesNotExist:
             #create
             l_tuple = location.send(sender=self, lat=lat, lng=lng, 
                                     tree="PTREE")
-	    l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
+            l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
 
     def lookup(self, cache_key, n, count_only=False):
         users = None
@@ -186,35 +187,33 @@ class UserProfile(models.Model):
         s = {}
         #add callouts to all serializable objects here
 
-	#wizcard
+	    #wizcard
         try:
-	    wizcard = self.user.wizcard
-            w = wizcard.serialize(fields.wizcard_template_full)
-            s['wizcard'] = w
+            wizcard = self.user.wizcard
         except ObjectDoesNotExist:
             return s
 
-        #flicks (put flicked before wizconnections since wizconnection 
-	#could refer to flicks)
-	if wizcard.flicked_cards.count():
-	    wf = wizcard.serialize_wizcardflicks()
-	    s['wizcard_flicks'] = wf
+        s['wizcard'] = wizcard.serialize(fields.wizcard_template_full)
+        #flicks (put  before wizconnections since wizconnection could refer to flicks)
+
+        if wizcard.flicked_cards.count():
+            wf = wizcard.serialize_wizcardflicks()
+            s['wizcard_flicks'] = wf
 
         #wizconnections
         if wizcard.wizconnections.count():
             wc = wizcard.serialize_wizconnections()
-	    s['wizconnections'] = wc
-
+            s['wizconnections'] = wc
 
         #tables
         tables = VirtualTable.objects.user_tables(self.user)
-	if tables.count():
-	    # serialize created and joined tables
+        if tables.count():
+        # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(
                     tables, 
                     self.user,
                     fields.table_template)
-	    s['tables'] = tbls
+            s['tables'] = tbls
 
         #dead card
         deadcards = self.user.dead_cards.all()
@@ -244,36 +243,37 @@ class FutureUser(models.Model):
     objects = FutureUserManager()
 
     def generate_self_invite(self, real_user):
+        cctx = ConnectionContext(asset_obj=self.content_object)
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
-                    cctx = ConnectionContext(asset_obj=real_user.wizcard)
-                    Wizcard.objects.exchange(self.content_object,
-                            real_user.wizcard,
-                            False, cctx)
+            #spoof an exchange, as if it came from the inviter
+            Wizcard.objects.exchange(self.content_object,
+                                     real_user.wizcard,
+                                     False, cctx)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
-                    #Q a conn request from the sender so that when
-                    #this user joins table, the connection between
-                    #the 2 is implicit and doesn't result in yet another
-                    #notif to the sender
-                    try:
-                        WizConnectionRequest.objects.create(
-                                from_wizcard=self.inviter.wizcard,
-                                to_wizcard=real_user.wizcard,
-                                message="wizconnection request")
-                        #Q this to the receiver
-                    except:
-                        pass
-                        #duplicate request nothing to do, just return silently
-                    notify.send(self.inviter, recipient=real_user,
-                            verb=verbs.WIZCARD_TABLE_INVITE[0],
-                            target=self.content_object,
-                            action_object=self.inviter)
+            #Q a conn request from the sender so that when
+            #this user joins table, the connection between
+            #the 2 is implicit and doesn't result in yet another
+            #notif to the sender
+            try:
+                WizConnectionRequest.objects.create(
+                    from_wizcard=self.inviter.wizcard,
+                    to_wizcard=real_user.wizcard,
+                    message=cctx.describe())
+            except:
+                #duplicate request nothing to do, just return silently
+                pass
+            #Q this to the receiver
+            notify.send(self.inviter, recipient=real_user,
+                        verb=verbs.WIZCARD_TABLE_INVITE[0],
+                        target=self.content_object,
+                        action_object=self.inviter)
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile = UserProfile(user=instance)
-	profile.userid = UserProfile.objects.id_generator()
+        profile.userid = UserProfile.objects.id_generator()
         profile.save()
 
 post_save.connect(create_user_profile, sender=User)
