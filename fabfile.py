@@ -24,6 +24,10 @@ def do_ls():
 	run("ls -al > /tmp/lsout")
 
 @task
+def check_services():
+    run("%s/upstart/check_process.sh" % env.installroot)
+
+@task
 def getawsip():
     awshost = run("hostname")
     awsip = re.sub('ip-','',awshost)
@@ -48,12 +52,14 @@ def aptgets(name="all"):
 		run("sudo apt-get -q -y install python-virtualenv")
 		run("sudo apt-get -q -y install python-dev")
 		run("sudo apt-get -q -y install git")
+                run("sudo apt-get -q -y ntp")
 		run("sudo apt-get -q -y install rabbitmq-server")
                 run("sudo rabbitmq-plugins enable rabbitmq_management")
 		run("sudo apt-get -q -y install libssl-dev")
 		run("sudo apt-get -q -y install memcached")
 		run("sudo apt-get -q -y install libffi-dev libxml2 libxml2-dev  libxslt1-dev")
 		run("sudo apt-get -q -y install nginx")
+                run("sudo ntpdate -s ntp.ubuntu.com")
 	else:
 		run("sudo apt-get -q -y install %s" % name)
 
@@ -107,8 +113,8 @@ def postinstall():
 				run("mkdir log")
                 with virtualenv():
 		    with cd(env.installroot):
-                        run("python manage.py syncdb")
-#                        run("python manage.py makemigrations")
+                        #                        run("python manage.py syncdb")
+#                        run("python manage.py makemigrations wizcard")
                         run("python manage.py migrate")
 
                         #append_settings()
