@@ -234,7 +234,7 @@ USER_ACTIVE_TIMEOUT = 1     #minutes
 USER_ONLINE_PREFIX = 'seen_%s'
 
 #radius for agglomerating flicked cards (in meters)
-DO_FLICK_AGGLOMERATE = True
+DO_FLICK_AGGLOMERATE = False
 WIZCARD_FLICK_AGGLOMERATE_RADIUS = 1000
 WIZCARD_FLICK_DEFAULT_TIMEOUT = 1
 
@@ -473,7 +473,7 @@ PYAPNS_CONFIG = {
 # RAVEN config for Sentry
 RAVEN_CONFIG = {
     #for new AWS prod/stage
-    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148'
+    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
     #for bitnami AWS instance
     #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
 }
