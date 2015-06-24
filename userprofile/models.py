@@ -256,19 +256,17 @@ class FutureUser(models.Model):
             #this user joins table, the connection between
             #the 2 is implicit and doesn't result in yet another
             #notif to the sender
-            try:
-                WizConnectionRequest.objects.create(
-                    from_wizcard=self.inviter.wizcard,
-                    to_wizcard=real_user.wizcard,
-                    message=cctx.describe())
-            except:
-                #duplicate request nothing to do, just return silently
-                pass
+            creq, created = WizConnectionRequest.objects.get_or_create(
+                from_wizcard=self.inviter.wizcard,
+                to_wizcard=real_user.wizcard)
+            creq.message = cctx.describe()
+            creq.save()
+
             #Q this to the receiver
             notify.send(self.inviter, recipient=real_user,
                         verb=verbs.WIZCARD_TABLE_INVITE[0],
                         target=self.content_object,
-                        action_object=self.inviter)
+                        action_object=creq)
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

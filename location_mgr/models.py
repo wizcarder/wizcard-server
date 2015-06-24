@@ -30,10 +30,12 @@ class LocationMgrManager(models.Manager):
         if exclude_self and modifier:
             key = wizlib.modified_key(key, modifier)
 
-        result, count = tsc.lookup(tree_type=tree_type,
-			           key=key,
-                                   n=n,
-                                   exclude_self=exclude_self)
+        result, count = tsc.lookup(
+            tree_type=tree_type,
+            key=key,
+            n=n,
+            exclude_self=exclude_self
+        )
 
         if not count:
             return result, count

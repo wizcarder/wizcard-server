@@ -21,16 +21,16 @@ TABLE_LEAVE         = 16
 
 class NotifParser:
     def __init__(self, data, userID, wizUserID):
-	self.data = data
-	self.userID = userID
-	self.wizUserID = wizUserID
-	self.notifType = []
-	self.notifData = []
-	self.count = 0
-	for element in self.data['elementList']:
-	    self.notifType.append(element['notifType'])
-	    self.notifData.append(element['data'])
-	    self.count += 1
+        self.data = data
+        self.userID = userID
+        self.wizUserID = wizUserID
+        self.notifType = []
+        self.notifData = []
+        self.count = 0
+        for element in self.data['elementList']:
+            self.notifType.append(element['notifType'])
+            self.notifData.append(element['data'])
+            self.count += 1
 
     def process_one(self):
         notifTableHandler = {
@@ -52,42 +52,41 @@ class NotifParser:
             TABLE_LEAVE :       self.table_leave,
         }
 
-	if self.count:
-	    self.count -= 1
+        if self.count:
+            self.count -= 1
             return notifTableHandler[self.notifType.pop()](self.notifData.pop())
         else:
             return False
 
-
     def accept_implicit(self, data):
         print "received accept implicit from", data['user_id']
-	pass
+        pass
 
     def accept_explicit(self, data):
         print "received accept explicit from", data['user_id']
-	#rsp = messages.add_notification_card
-	#rsp['receiver']['wizUserID'] = data['wizUserID']
-	pass
+        #rsp = messages.add_notification_card
+        #rsp['receiver']['wizUserID'] = data['wizUserID']
+        pass
 
     def delete_implicit(self, data):
         print "received delete implicit from", data['user_id']
-	pass
+        pass
 
     def table_timeout(self, data):
         print "received table timeout from", data
-	pass
+        pass
 
     def table_join(self, data):
         print "received table join from", data
-	pass
+        pass
 
     def table_leave(self, data):
         print "received table leave from", data
-	pass
+        pass
 
     def update_wizcard(self, data):
         print "received update_wizcard", data
-	pass
+        pass
 
     def flicked_wizcard(self, data):
         if data.has_key('connected'):
@@ -95,23 +94,23 @@ class NotifParser:
 
     def nearby_users(self, data):
         print "received nearby users", data
-	pass
+        pass
 
     def nearby_tables(self, data):
         print "received nearby_tables", data
-	pass
+        pass
 
     def flick_timeout(self, data):
         print "received flick timeout ", data
-	pass
+        pass
 
     def flick_pick(self, data):
         print "received flick pick ", data
-	pass
+        pass
 
     def withdraw_request(self, data):
         print "received withdraw request ", data
-	pass
+        pass
 
     def table_invite(self, data):
         print "received table invite ", data
@@ -122,4 +121,4 @@ class NotifParser:
         pass
 
     def wizweb_update_wizcard(self, data):
-	pass
+        pass

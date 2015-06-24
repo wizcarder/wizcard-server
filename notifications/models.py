@@ -6,8 +6,6 @@ from django.utils import timezone
 from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
-from wizserver import verbs
-from celery import task
 from notifications.tasks import pushNotificationToApp
 import logging
 import pdb
@@ -39,7 +37,6 @@ class NotificationManager(models.Manager):
 
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
-
 
 
 class Notification(models.Model):
@@ -164,7 +161,7 @@ def notify_handler(verb, **kwargs):
             setattr(newnotify, '%s' % opt, obj)
 
     newnotify.save()
-    
+
     if not recipient.profile.is_online:
         return
 
@@ -178,7 +175,7 @@ def notify_handler(verb, **kwargs):
             newnotify.verb
             )
     #    except:
-    #        logging.error("Failed to send APNS to User %s", 
+    #        logging.error("Failed to send APNS to User %s",
     #                recipient.profile.userid)
 
 # connect the signal

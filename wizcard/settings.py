@@ -95,7 +95,6 @@ if RUNENV == 'dev':
 	        'PASSWORD': 'mydb',
             #'PASSWORD': '',
 	        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
-	        #'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
 	        'SOCKET': '/var/run/mysqld/mysqld.sock', # Set to empty string for localhost. Not used with sqlite3.
 	    },

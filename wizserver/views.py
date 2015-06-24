@@ -706,12 +706,15 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        Wizcard.objects.accept_wizconnection(wizcard2, wizcard1)
-        #Q this to the sender
+        from_creq, to_creq = Wizcard.objects.accept_wizconnection(
+            wizcard2,
+            wizcard1
+        )
+        #Q this to the sender (from guy)
         notify.send(self.user, recipient=self.r_user,
                     verb=verbs.WIZCARD_ACCEPT[0],
                     target=wizcard1,
-                    action_object = wizcard2)
+                    action_object=to_creq)
 
         return self.response
 
@@ -1056,24 +1059,23 @@ class ParseMsgAndDispatch(object):
                 #create an conn req from A->B. No notifs for this. This
                 #conn_req ensures that when B joins table, A doesn't get
                 #a new explicit_exchange req
-                try:
+                creq, created = WizConnectionRequest.objects.get_or_create(
+                    from_wizcard=self.user.wizcard,
+                    to_wizcard=r_user.wizcard
+                )
+                if created:
                     cctx = ConnectionContext(
                         asset_obj=table,
                         connection_mode=receiver_type,
                     )
-                    WizConnectionRequest.objects.create(
-                        from_wizcard=self.user.wizcard,
-                        to_wizcard=r_user.wizcard,
-                        message=cctx.describe())
-                    #Q this to the receiver
-                except:
-                    pass
-                    #duplicate request nothing to do, just return silently
+                    creq.message = cctx.describe()
+                    creq.save()
 
+                #Q this to the receiver
                 notify.send(self.user, recipient=r_user,
                             verb=verbs.WIZCARD_TABLE_INVITE[0],
                             target=table,
-                            action_object = self.user)
+                            action_object=creq)
         elif receiver_type in ['email', 'sms']:
             #create future user
             self.do_future_user(table, receiver_type, receivers)
@@ -1103,19 +1105,19 @@ class ParseMsgAndDispatch(object):
                         #create an conn req from A->B. No notifs for this.
                         #This conn_req ensures that when B joins table,
                         #A doesn't get a new explicit_exchange req
-                        try:
-                            WizConnectionRequest.objects.create(
-                                from_wizcard=self.user.wizcard,
-                                to_wizcard=wizcard,
-                                message=cctx.describe())
-                        except:
-                            #duplicate request nothing to do, just return silently
-                            pass
+                        creq, created = WizConnectionRequest.objects.get_or_create(
+                            from_wizcard=self.user.wizcard,
+                            to_wizcard=wizcard
+                        )
+                        if created:
+                            creq.message = cctx.describe()
+                            creq.save()
+
                         #Q this to the receiver
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZCARD_TABLE_INVITE[0],
                                     target=obj,
-                                    action_object=self.user)
+                                    action_object=creq)
                 else:
                     FutureUser(
                         inviter=self.user,
@@ -1143,19 +1145,19 @@ class ParseMsgAndDispatch(object):
                         #create an conn req from A->B. No notifs for this.
                         #This conn_req ensures that when B joins table,
                         #A doesn't get a new explicit_exchange req
-                        try:
-                            WizConnectionRequest.objects.create(
-                                from_wizcard=self.user.wizcard,
-                                to_wizcard=wizcard,
-                                message=cctx.describe())
-                        except:
-                            #duplicate request nothing to do, just return silently
-                            pass
+                        creq, created = WizConnectionRequest.objects.get_or_create(
+                            from_wizcard=self.user.wizcard,
+                            to_wizcard=wizcard
+                        )
+                        if created:
+                            creq.message = cctx.describe()
+                            creq.save()
+
                         #Q this to the receiver
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZCARD_TABLE_INVITE[0],
                                     target=obj,
-                                    action_object=self.user)
+                                    action_object=creq)
                 else:
                     FutureUser(
                         inviter=self.user,
@@ -1741,8 +1743,7 @@ class ParseMsgAndDispatch(object):
             #AA:TODO: we also must notify the owner of the update
             notify.send(self.user, recipient=self.user,
                         verb=verbs.WIZWEB_WIZCARD_UPDATE[0],
-                        target=wizcard,
-                        action_object = wizcard)
+                        target=wizcard)
 
             wizcard.flood()
 

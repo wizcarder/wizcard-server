@@ -108,34 +108,31 @@ class NotifResponse(ResponseN):
         out = Wizcard.objects.serialize(wizcard,
                 template=fields.wizcard_template_full)
 
-        if notif.action_object:
-            asset_id = notif.action_object_object_id
-            asset_type = ContentType.objects.get_for_model(notif.action_object)
+        if notif.target:
+            asset_id = notif.target_object_id
+            asset_type = notif.target_content_type.name
         else:
             asset_id = None
             asset_type = None
+        if notif.action_object:
+            description = notif.action_object.message
+        else:
+            description = ""
 
-        nctx = NotifContext(notif.description, asset_id, asset_type.name)
+        nctx = NotifContext(description, asset_id, asset_type)
 
         if asset_type == ContentType.objects.get(model="virtualtable"):
-            #AA:TODO remove after table is permanenet
-            try:
-                num_sitting = VirtualTable.objects.get(
-                        id=notif.action_object_object_id).numSitting
-            except:
-                num_sitting = 0
-
-            nctx.key_val('numSitting', num_sitting)
+            nctx.key_val('numSitting', notif.target.numSitting)
             #AA:TODO remove after app starts using context
             self.add_data_to_dict(
                     out, 
                     "tableID", 
-                    notif.action_object_object_id)
+                    notif.target_object_id)
         elif asset_type == ContentType.objects.get(model="wizcardflick"):
             self.add_data_to_dict(
                     out, 
                     "flickCardID", 
-                    notif.action_object_object_id)
+                    notif.target_object_id)
 
         self.add_data_to_dict(out, "context", nctx.context)
         self.add_data_with_notif(out, notifType)
@@ -176,7 +173,7 @@ class NotifResponse(ResponseN):
 
         out = dict(
             tableID=notif.target_object_id,
-            numSitting=notif.target_content_type.get_object_for_this_type(id=notif.target_object_id).numSitting,
+            numSitting=notif.target.numSitting,
             wizcard=ws
         )
         self.add_data_with_notif(out, verbs.TABLE_JOIN)
@@ -184,12 +181,12 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifLeaveTable(self, notif):
-        wizcard=notif.actor_content_type.get_object_for_this_type(id=notif.actor_object_id).wizcard
+        wizcard=notif.actor.wizcard
         ws = wizcard.serialize(fields.wizcard_template_thumbnail_only)
 
         out = dict(
             tableID=notif.target_object_id,
-            numSitting=notif.target_content_type.get_object_for_this_type(id=notif.target_object_id).numSitting,
+            numSitting=notif.target.numSitting,
             wizcard=ws
         )
         self.add_data_with_notif(out, verbs.TABLE_LEAVE)
@@ -209,17 +206,15 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifWizcardFlickPick(self, notif):
-        out = dict(wizUserID=notif.action_object_object_id, flickCardID=notif.target_object_id)
+        out = dict(wizUserID=notif.actor_object_id, flickCardID=notif.target_object_id)
         self.add_data_with_notif(out, verbs.FLICK_PICK)
         logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardTableInvite(self, notif):
-        sender = User.objects.get(id=notif.action_object_object_id)
-        table = VirtualTable.objects.get(id=notif.target_object_id)
-        s_out = Wizcard.objects.serialize(sender.wizcard,
+        s_out = Wizcard.objects.serialize(notif.actor.wizcard,
                                           template=fields.wizcard_template_brief)
-        a_out = VirtualTable.objects.serialize(table,
+        a_out = VirtualTable.objects.serialize(notif.target,
                                                template=fields.nearby_table_template)
 
         out = dict(sender=s_out, asset=a_out)

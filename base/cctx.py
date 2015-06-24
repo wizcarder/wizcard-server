@@ -34,7 +34,7 @@ class ConnectionContext(object):
         elif self.asset_type == ContentType.objects.get(model="virtualtable"):
             self.description = "via round table {}".format(self.object)
         elif self.asset_type == ContentType.objects.get(model="wizcardflick"):
-            self.description = "via flick pick @{}".format(self.object.city)
+            self.description = "via flick pick @{}".format(self.object.reverse_geo_name)
         elif self.asset_type == ContentType.objects.get(model="meishi"):
             self.description = "via meishi"
         return self.description

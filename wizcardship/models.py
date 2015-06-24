@@ -40,6 +40,7 @@ from django.db.models import Q
 from lib import wizlib
 from wizcard import err
 from wizserver import verbs
+from base.cctx import ConnectionContext
 from django.db.models import ImageField
 from django.utils import timezone
 
@@ -73,10 +74,6 @@ class WizcardManager(models.Manager):
 
     def becard(self, wizcard1, wizcard2):
         wizcard1.wizconnections.add(wizcard2)
-        # Now that user1 accepted user2's card request we should delete any
-        # request by user1 to user2 so that we don't have ambiguous data
-        #self.wizconnection_req_clear(from_wizcard=wizcard1,
-        #        to_wizcard=wizcard2)
 
     def uncard(self, wizcard1, wizcard2):
         # Break cardship link between users
@@ -87,10 +84,23 @@ class WizcardManager(models.Manager):
 
     def accept_wizconnection(self, from_wizcard, to_wizcard):
         self.becard(from_wizcard, to_wizcard)
-        WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
-                                            to_wizcard=to_wizcard).get().accept()
-        WizConnectionRequest.objects.filter(from_wizcard=to_wizcard,
-                                            to_wizcard=from_wizcard).get().accept()
+        from_crequest = WizConnectionRequest.objects.filter(
+            from_wizcard=from_wizcard,
+            to_wizcard=to_wizcard).get()
+        from_crequest.accept()
+
+        #AA:TODO This is a little hacky. We're using the from_crequest
+        #cctx message here. This is because there is no way (right now)
+        #to distinguish between a 1:1 accept and an accept for an
+        #open table received notification.
+        to_crequest = WizConnectionRequest.objects.create(
+            from_wizcard=to_wizcard,
+            to_wizcard=from_wizcard,
+            message=from_crequest.message
+        )
+        to_crequest.accept()
+
+        return from_crequest, to_crequest
 
     def serialize(self, wizcards, template):
         return serialize(wizcards, **template)
@@ -98,58 +108,52 @@ class WizcardManager(models.Manager):
     def exchange(self, wizcard1, wizcard2, implicit, cctx):
         if self.are_wizconnections(wizcard1, wizcard2):
             return  err.EXISTING_CONNECTION
+        if self.is_wizconnection_pending(wizcard1, wizcard2):
+            return err.PENDING_CONNECTION
 
-        try:
-            wizconnection_from = WizConnectionRequest.objects.get(
-                from_wizcard=wizcard1,
-                to_wizcard=wizcard2
-            )
-        except ObjectDoesNotExist:
-            wizconnection_from = WizConnectionRequest.objects.create(
-                from_wizcard=wizcard1,
-                to_wizcard=wizcard2,
-                message=cctx.describe())
+        creq1 = WizConnectionRequest.objects.create(
+            from_wizcard=wizcard1,
+            to_wizcard=wizcard2,
+            message = cctx.describe()
+        )
 
-        try:
-            wizconnection_to = WizConnectionRequest.objects.get(
+        if implicit or self.is_wizconnection_pending(wizcard2, wizcard1):
+            creq2, created = WizConnectionRequest.objects.get_or_create(
                 from_wizcard=wizcard2,
                 to_wizcard=wizcard1
             )
-            implicit = True
-        except ObjectDoesNotExist:
-            wizconnection_to = WizConnectionRequest.objects.create(
-                from_wizcard=wizcard2,
-                to_wizcard=wizcard1,
-                message=cctx.describe())
-
-        if implicit:
+            creq2.message = cctx.describe()
+            creq2.save()
             #create bidir cardship
             self.becard(wizcard1, wizcard2)
             #accepted in wizconnections db
-            wizconnection_from.accept()
-            wizconnection_to.accept()
+            creq1.accept()
+            creq2.accept()
 
             notify.send(wizcard1.user, recipient=wizcard2.user,
                         verb=verbs.WIZREQ_T[0],
                         description=cctx.describe(),
-                        target=wizcard1, action_object=cctx.object)
+                        target=wizcard1,
+                        action_object=creq1)
 
             notify.send(wizcard2.user, recipient=wizcard1.user,
                         verb=verbs.WIZREQ_T[0],
                         description=cctx.describe(),
-                        target=wizcard2, action_object=cctx.object)
+                        target=wizcard2,
+                        action_object=creq2)
         else:
             notify.send(wizcard1.user, recipient=wizcard2.user,
                         verb=verbs.WIZREQ_U[0],
                         description=cctx.describe(),
-                        target=wizcard1, action_object=cctx.object)
+                        target=wizcard1,
+                        action_object=creq1)
 
         return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2):
         notify.send(wizcard1.user, recipient=wizcard2.user,
                     verb=verbs.WIZCARD_UPDATE[0],
-                    target=wizcard1, action_object=wizcard2)
+                    target=wizcard1)
 
     def query_users(self, userID, name, phone, email):
         #name can be first name, last name or even combined
@@ -424,15 +428,14 @@ class WizcardFlick(models.Model):
         self.location.get().delete()
 
         if verb == verbs.WIZCARD_FLICK_TIMEOUT[0]:
-            #timeout 
+            #timeout
             logger.debug('timeout flicked wizcard %s', self.id)
             self.expired = True
             self.save()
             notify.send(self.wizcard.user,
                         recipient=self.wizcard.user,
                         verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
-                        target=self,
-                        action_object=self.wizcard)
+                        target=self)
         else:
             #withdraw/delete flick case
             logger.debug('withdraw flicked wizcard %s', self.id)
