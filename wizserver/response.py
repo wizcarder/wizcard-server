@@ -168,16 +168,18 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifJoinTable(self, notif):
-        wizcard=notif.actor_content_type.get_object_for_this_type(id=notif.actor_object_id).wizcard
+        wizcard=notif.actor.wizcard
         ws = wizcard.serialize(fields.wizcard_template_thumbnail_only)
 
-        out = dict(
-            tableID=notif.target_object_id,
-            numSitting=notif.target.numSitting,
-            wizcard=ws
-        )
-        self.add_data_with_notif(out, verbs.TABLE_JOIN)
-        logger.debug('%s', self.response)
+        if notif.target: #since there is a possibility that the table got destroyed in-between
+            out = dict(
+                tableID=notif.target_object_id,
+                numSitting=notif.target.numSitting,
+                wizcard=ws
+            )
+            self.add_data_with_notif(out, verbs.TABLE_JOIN)
+            logger.debug('%s', self.response)
+
         return self.response
 
     def notifLeaveTable(self, notif):
