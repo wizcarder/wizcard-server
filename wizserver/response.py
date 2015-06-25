@@ -186,13 +186,14 @@ class NotifResponse(ResponseN):
         wizcard=notif.actor.wizcard
         ws = wizcard.serialize(fields.wizcard_template_thumbnail_only)
 
-        out = dict(
-            tableID=notif.target_object_id,
-            numSitting=notif.target.numSitting,
-            wizcard=ws
-        )
-        self.add_data_with_notif(out, verbs.TABLE_LEAVE)
-        logger.debug('%s', self.response)
+        if notif.target:
+            out = dict(
+                tableID=notif.target_object_id,
+                numSitting=notif.target.numSitting,
+                wizcard=ws
+            )
+            self.add_data_with_notif(out, verbs.TABLE_LEAVE)
+            logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardUpdate(self, notif):
