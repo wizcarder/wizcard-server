@@ -106,14 +106,14 @@ LNG1 = -122.506419
 verify_phones_list = [PHONE1, PHONE2, PHONE3]
 verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 
-#server_url = "www.totastyle.com"
+server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
-server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
+#server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
 #server_url = "localhost"
 
 #server_port = 8000
-#server_port = 8002
-server_port = 80
+server_port = 8002
+#server_port = 80
 
 test_image_path = "test/photo.JPG"
 ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"

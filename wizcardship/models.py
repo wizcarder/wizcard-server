@@ -96,7 +96,7 @@ class WizcardManager(models.Manager):
         to_crequest = WizConnectionRequest.objects.create(
             from_wizcard=to_wizcard,
             to_wizcard=from_wizcard,
-            message=from_crequest.message
+            cctx=from_crequest.cctx
         )
         to_crequest.accept()
 
@@ -114,7 +114,7 @@ class WizcardManager(models.Manager):
         creq1 = WizConnectionRequest.objects.create(
             from_wizcard=wizcard1,
             to_wizcard=wizcard2,
-            message = cctx.describe()
+            cctx=cctx
         )
 
         if implicit or self.is_wizconnection_pending(wizcard2, wizcard1):
@@ -122,7 +122,7 @@ class WizcardManager(models.Manager):
                 from_wizcard=wizcard2,
                 to_wizcard=wizcard1
             )
-            creq2.message = cctx.describe()
+            creq2.cctx = cctx
             creq2.save()
             #create bidir cardship
             self.becard(wizcard1, wizcard2)
@@ -132,19 +132,19 @@ class WizcardManager(models.Manager):
 
             notify.send(wizcard1.user, recipient=wizcard2.user,
                         verb=verbs.WIZREQ_T[0],
-                        description=cctx.describe(),
+                        description=cctx.description,
                         target=wizcard1,
                         action_object=creq1)
 
             notify.send(wizcard2.user, recipient=wizcard1.user,
                         verb=verbs.WIZREQ_T[0],
-                        description=cctx.describe(),
+                        description=cctx.description,
                         target=wizcard2,
                         action_object=creq2)
         else:
             notify.send(wizcard1.user, recipient=wizcard2.user,
                         verb=verbs.WIZREQ_U[0],
-                        description=cctx.describe(),
+                        description=cctx.description,
                         target=wizcard1,
                         action_object=creq1)
 
@@ -291,11 +291,11 @@ class ContactContainer(models.Model):
         else:
             return self.f_bizCardImage.remote_url()
 
-
+from picklefield.fields import PickledObjectField
 class WizConnectionRequest(models.Model):
     from_wizcard = models.ForeignKey(Wizcard, related_name="invitations_from")
     to_wizcard = models.ForeignKey(Wizcard, related_name="invitations_to")
-    message = models.CharField(max_length=200, blank=True)
+    cctx = PickledObjectField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     accepted = models.BooleanField(default=False)
 

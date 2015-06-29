@@ -1068,7 +1068,7 @@ class ParseMsgAndDispatch(object):
                         asset_obj=table,
                         connection_mode=receiver_type,
                     )
-                    creq.message = cctx.describe()
+                    creq.cctx = cctx
                     creq.save()
 
                 #Q this to the receiver
@@ -1110,7 +1110,7 @@ class ParseMsgAndDispatch(object):
                             to_wizcard=wizcard
                         )
                         if created:
-                            creq.message = cctx.describe()
+                            creq.cctx = cctx
                             creq.save()
 
                         #Q this to the receiver
@@ -1150,7 +1150,7 @@ class ParseMsgAndDispatch(object):
                             to_wizcard=wizcard
                         )
                         if created:
-                            creq.message = cctx.describe()
+                            creq.cctx = cctx
                             creq.save()
 
                         #Q this to the receiver
@@ -1381,6 +1381,7 @@ class ParseMsgAndDispatch(object):
 
     def Settings(self):
         modify = False
+        pdb.set_trace()
 
         if self.sender.has_key('media'):
             if self.sender['media'].has_key('wifiOnly'):

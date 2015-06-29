@@ -104,37 +104,28 @@ class NotifResponse(ResponseN):
             notifHandler[notification.verb](notification)
 
     def notifWizcard(self, notif, notifType):
-        wizcard = Wizcard.objects.get(id=notif.target_object_id)
+        wizcard = notif.target
         out = Wizcard.objects.serialize(wizcard,
                 template=fields.wizcard_template_full)
 
-        if notif.target:
-            asset_id = notif.target_object_id
-            asset_type = notif.target_content_type.name
-        else:
-            asset_id = None
-            asset_type = None
         if notif.action_object:
-            description = notif.action_object.message
-        else:
-            description = ""
+            cctx = notif.action_object.cctx
+            nctx = NotifContext(cctx.description, cctx.asset_id, cctx.asset_type)
 
-        nctx = NotifContext(description, asset_id, asset_type)
+            if cctx.asset_type == ContentType.objects.get(model="virtualtable").name:
+                nctx.key_val('numSitting', notif.target.numSitting)
+                #AA:TODO remove after app starts using context
+                self.add_data_to_dict(
+                        out,
+                        "tableID",
+                        nctx.id)
+            elif cctx.asset_type == ContentType.objects.get(model="wizcardflick").name:
+                self.add_data_to_dict(
+                        out,
+                        "flickCardID",
+                        nctx.id)
 
-        if asset_type == ContentType.objects.get(model="virtualtable"):
-            nctx.key_val('numSitting', notif.target.numSitting)
-            #AA:TODO remove after app starts using context
-            self.add_data_to_dict(
-                    out, 
-                    "tableID", 
-                    notif.target_object_id)
-        elif asset_type == ContentType.objects.get(model="wizcardflick"):
-            self.add_data_to_dict(
-                    out, 
-                    "flickCardID", 
-                    notif.target_object_id)
-
-        self.add_data_to_dict(out, "context", nctx.context)
+            self.add_data_to_dict(out, "context", nctx.context)
         self.add_data_with_notif(out, notifType)
 
         return self.response
@@ -150,6 +141,7 @@ class NotifResponse(ResponseN):
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
+        #AA:TODO we're using user id, but could actually used wizcardID
         out = dict(user_id=notif.actor_object_id)
         self.add_data_with_notif(out, verbs.DELETE_IMPLICIT)
         return self.response

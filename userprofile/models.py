@@ -258,11 +258,14 @@ class FutureUser(models.Model):
             #notif to the sender
             creq, created = WizConnectionRequest.objects.get_or_create(
                 from_wizcard=self.inviter.wizcard,
-                to_wizcard=real_user.wizcard)
-            creq.message = cctx.describe()
+                to_wizcard=real_user.wizcard,
+
+            )
+            creq.cctx = cctx
             creq.save()
 
             #Q this to the receiver
+            #AA:TODO encapsulate this within table models.py
             notify.send(self.inviter, recipient=real_user,
                         verb=verbs.WIZCARD_TABLE_INVITE[0],
                         target=self.content_object,
