@@ -1381,7 +1381,6 @@ class ParseMsgAndDispatch(object):
 
     def Settings(self):
         modify = False
-        pdb.set_trace()
 
         if self.sender.has_key('media'):
             if self.sender['media'].has_key('wifiOnly'):
