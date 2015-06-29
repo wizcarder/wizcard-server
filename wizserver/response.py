@@ -108,7 +108,7 @@ class NotifResponse(ResponseN):
         out = Wizcard.objects.serialize(wizcard,
                 template=fields.wizcard_template_full)
 
-        if notif.action_object:
+        if notif.action_object and notif.action_object.cctx != '':
             cctx = notif.action_object.cctx
             nctx = NotifContext(cctx.description, cctx.asset_id, cctx.asset_type)
 
