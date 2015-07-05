@@ -113,7 +113,9 @@ class NotifResponse(ResponseN):
             nctx = NotifContext(cctx.description, cctx.asset_id, cctx.asset_type)
 
             if cctx.asset_type == ContentType.objects.get(model="virtualtable").name:
-                nctx.key_val('numSitting', notif.target.numSitting)
+                #AA:TODO this lookup can be avoided by using the notify.send better
+                #ie, no need to send target as wizcard since it can be derived from sender,recipient
+                nctx.key_val('numSitting', VirtualTable.objects.get(id=cctx.asset_id).numSitting)
                 #AA:TODO remove after app starts using context
                 self.add_data_to_dict(
                         out,
