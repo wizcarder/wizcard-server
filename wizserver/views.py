@@ -217,6 +217,7 @@ class ParseMsgAndDispatch(object):
             'table_details'               : (message_format.TableDetailsSchema, self.TableDetails),
             'create_table'                : (message_format.TableCreateSchema, self.TableCreate),
             'join_table'                  : (message_format.TableJoinSchema, self.TableJoin),
+            'join_table_by_invite'        : (message_format.TableJoinByInviteSchema, self.TableJoinByInvite),
             'leave_table'                 : (message_format.TableLeaveSchema, self.TableLeave),
             'destroy_table'               : (message_format.TableDestroySchema, self.TableDestroy),
             'table_edit'                  : (message_format.TableEditSchema, self.TableEdit),
@@ -1291,8 +1292,10 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("tableID", table.pk)
         return self.response
 
+    def TableJoinByInvite(self):
+        return self.TableJoin(skip_password=True)
 
-    def TableJoin(self):
+    def TableJoin(self, skip_password=False):
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
         except ObjectDoesNotExist:
@@ -1303,12 +1306,12 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.EXISTING_MEMBER)
             return self.response
 
-        if table.is_secure():
+        if table.is_secure() and not skip_password:
             password = self.sender['password']
         else:
             password = None
 
-        joined = table.join_table_and_exchange(self.user, password, True)
+        joined = table.join_table_and_exchange(self.user, password, skip_password)
 
         if joined is None:
             self.response.error_response(err.AUTHENTICATION_FAILED)

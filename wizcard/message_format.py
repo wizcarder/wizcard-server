@@ -89,6 +89,8 @@ class TableCreateSchema(colander.MappingSchema):
     pass
 class TableJoinSchema(colander.MappingSchema):
     pass
+class TableJoinByInviteSchema(colander.MappingSchema):
+    pass
 class TableLeaveSchema(colander.MappingSchema):
     pass
 class TableDestroySchema(colander.MappingSchema):
