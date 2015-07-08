@@ -1311,7 +1311,7 @@ class ParseMsgAndDispatch(object):
         else:
             password = None
 
-        joined = table.join_table_and_exchange(self.user, password, skip_password)
+        joined = table.join_table_and_exchange(self.user, password, True, skip_password)
 
         if joined is None:
             self.response.error_response(err.AUTHENTICATION_FAILED)
