@@ -47,8 +47,9 @@ def aptgets(name="all"):
 	if name == "all":
 		run("sudo apt-get -q -y update")
 		run("sudo apt-get -q -y install python-pip")
-		run("sudo apt-get -q -y install libmysqlclient-dev")
-		run("sudo apt-get -q -y install  mysql-client-core-5.6")
+#		run("sudo apt-get -q -y install libmysqlclient-dev")
+#		run("sudo apt-get -q -y install  mysql-client-core-5.6")
+                run("sudo apt-get -q -y install postgresql-client")
 		run("sudo apt-get -q -y install python-virtualenv")
 		run("sudo apt-get -q -y install python-dev")
 		run("sudo apt-get -q -y install git")
@@ -261,6 +262,10 @@ def stopwizserver():
 @task
 def updaterestart():
     gitcloneupdate()
+    restart()
+
+@task
+def restart():
     createvirtualenv()
     if (env.function == "WIZSERVER"):
 	stopwizserver()
@@ -268,7 +273,6 @@ def updaterestart():
     elif (env.function == "LOCATIONSERVER"):
 	stoplocationservice()
 	startlocationservice()
-
 		
 def deployall():
 	fastprint("\nRunning aptgets===================================\n")
