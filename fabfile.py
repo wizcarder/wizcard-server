@@ -47,6 +47,7 @@ def aptgets(name="all"):
 	if name == "all":
 		run("sudo apt-get -q -y update")
 		run("sudo apt-get -q -y install python-pip")
+                run ("sudo apt-get install libpq-dev python-dev")
 #		run("sudo apt-get -q -y install libmysqlclient-dev")
 #		run("sudo apt-get -q -y install  mysql-client-core-5.6")
                 run("sudo apt-get -q -y install postgresql-client")
@@ -115,7 +116,7 @@ def postinstall():
                 with virtualenv():
 		    with cd(env.installroot):
                         #                        run("python manage.py syncdb")
-#                        run("python manage.py makemigrations wizcard")
+                        run("python manage.py makemigrations wizcard")
                         run("python manage.py migrate")
 
                         #append_settings()
