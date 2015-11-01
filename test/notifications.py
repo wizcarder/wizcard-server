@@ -54,9 +54,16 @@ class NotifParser:
 
         if self.count:
             self.count -= 1
-            return notifTableHandler[self.notifType.pop()](self.notifData.pop())
+            notifTableHandler[self.notifType.pop()](self.notifData.pop())
+            return True
         else:
             return False
+
+    def process(self):
+        while True:
+            nrsp = self.process_one()
+            if nrsp == False:
+                break
 
     def accept_implicit(self, data):
         print "received accept implicit from", data['user_id']

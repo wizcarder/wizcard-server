@@ -32,7 +32,7 @@ class RunOCR:
 		print "Uploading.."
 		processor = AbbyyOnlineSdk()
 		settings = ProcessingSettings()
-	
+
 		#task = processor.ProcessImage( filePath, settings )
 		task = processor.ProcessBusinessCard( filePath, settings )
 		if task == None:
@@ -40,7 +40,7 @@ class RunOCR:
 			return ("Error", None)
 		print "Id = %s" % task.Id
 		print "Status = %s" % task.Status
-	
+
 		# Wait for the task to be completed
 		sys.stdout.write( "Waiting.." )
 		# Note: it's recommended that your application waits at least 2 seconds
@@ -58,24 +58,24 @@ class RunOCR:
 			time.sleep( 2 )
 			sys.stdout.write( "." )
 			task = processor.GetTaskStatus( task )
-	
+
 		print "Task Status = %s" % task.Status
 		"""print "isActive = %s" % task.IsActive"""
-		
+
 		if task.Status == "Completed":
 			if task.DownloadUrl != None:
 				cardOutput = processor.DownloadResultString( task)
 				cardFields = processor.ExtractFields(cardOutput)
 				print cardFields.items()
                                 return (task.Status, cardFields)
-				
+
 	#			print "Result was written to %s" % cardOutput
 		else:
                     print "Error processing task %s" % task.Status
                     return (task.Status, None)
-	
-	
-		
+
+
+
 
 
 class Task:
@@ -95,7 +95,7 @@ class AbbyyOnlineSdk:
 	# More info on getting your application id and password at
 	# http://ocrsdk.com/documentation/faq/#faq3
 	ApplicationId = "wizcard_ocr1"
-	Password = "W1mD5rp0q1TpjayBqrMXvAZZ"
+	Password = "ufQ1u0ko5OIKZ+sWKc0Z8Wpv"
 	Proxy = None
 	enableDebugging = 0
 
@@ -103,7 +103,7 @@ class AbbyyOnlineSdk:
 		urlParams = urllib.urlencode({
 			"language" : settings.Language,
 			"exportFormat" : settings.OutputFormat
-			
+
 			})
 		requestUrl = self.ServerUrl + "processImage?" + urlParams
 
@@ -165,7 +165,7 @@ class AbbyyOnlineSdk:
 
 	def ExtractFields(self, fileResponse):
 		fileResponse = re.sub(r'<document(.*?)>',r'<document>',fileResponse)
-		
+
 		root = etree.fromstring(fileResponse)
 		cardField = dict()
 
@@ -196,8 +196,8 @@ class AbbyyOnlineSdk:
 			self.opener = urllib2.build_opener( MultipartPostHandler.MultipartPostHandler,
 			urllib2.HTTPHandler(debuglevel=self.enableDebugging))
 		else:
-			self.opener = urllib2.build_opener( 
-				self.Proxy, 
+			self.opener = urllib2.build_opener(
+				self.Proxy,
 				MultipartPostHandler.MultipartPostHandler,
 				urllib2.HTTPHandler(debuglevel=self.enableDebugging))
 		return self.opener
