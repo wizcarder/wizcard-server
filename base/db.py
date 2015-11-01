@@ -3,19 +3,19 @@ from __future__ import generators
 class WizcardDB(object):
     # Open database connection
     def __init__(self, socket, user, passwd, db):
-        import MySQLdb
+        import psycopg2
 	if socket.find('.sock') != -1:
-	        self.db = MySQLdb.connect(
+	        self.db = psycopg2.connect(
                     unix_socket=socket,
                     user=user,
-                    passwd=passwd,
-                    db=db)
+                    password=passwd,
+                    dbname=db)
 	else:
-	        self.db = MySQLdb.connect(
+	        self.db = psycopg2.connect(
                     host=socket,
                     user=user,
-                    passwd=passwd,
-                    db=db)
+                    password=passwd,
+                    dbname=db)
 
         self.cursor = self.db.cursor()
 
