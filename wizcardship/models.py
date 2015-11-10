@@ -48,105 +48,72 @@ logger = logging.getLogger(__name__)
 
 
 class WizcardManager(models.Manager):
+    def serialize(self, wizcards, template):
+        return serialize(wizcards, **template)
+
     def except_wizcard(self, except_user):
         qs = Wizcard.objects.filter(~Q(user=except_user))
         return qs
 
-    def wizconnections_of(self, user, shuffle=False):
-        qs = User.objects.filter(wizcard__wizconnections__user=user)
-        if shuffle:
-            qs = qs.order_by('?')
-        return qs
+    #is 2 following 1..ie, does 2 have 1's card
+    def is_wizcard_following(self, wizcard1, wizcard2):
+        return bool(wizcard1.wizconnections_to.filter(requests_to__status=verbs.ACCEPTED, id=wizcard2.id).exists())
 
-    def are_wizconnections(self, wizcard1, wizcard2):
-        return bool((wizcard1.wizconnections.filter(
-            id=wizcard2.id)).exists())
-
+    #is req from 1 to 2, pending
     def is_wizconnection_pending(self, wizcard1, wizcard2):
-        return bool(WizConnectionRequest.objects.filter(
-            from_wizcard=wizcard1,
-            to_wizcard=wizcard2,
-            accepted=False).exists())
+        return bool(wizcard1.wizconnections_to.filter(requests_to__status=verbs.PENDING, id=wizcard2.id).exists())
 
-    def wizconnection_req_clear(self, from_wizcard, to_wizcard):
-        WizConnectionRequest.objects.filter(from_wizcard=from_wizcard,
-                                            to_wizcard=to_wizcard).delete()
+    #has wizcard1 sent a req to wizcard2
+    def is_wizconnection(self, wizcard1, wizcard2):
+        return bool(wizcard1.wizconnections_to.filter(id=wizcard2.id).exists())
 
-    def becard(self, wizcard1, wizcard2):
-        wizcard1.wizconnections.add(wizcard2)
+    #2-way check
+    def are_wizconnections(self, wizcard1, wizcard2):
+        return self.is_wizcard_following(wizcard1, wizcard2) and \
+               self.is_wizcard_following(wizcard2, wizcard1)
 
+    #wizcard1 sends req to wizcard2
+    def cardit(self, wizcard1, wizcard2, status=verbs.PENDING, cctx=""):
+        return wizcard1.add_relationship(wizcard2, status=status, ctx=cctx)
+
+    #wizcard2 follows wizcard1 (accepts wizcard1's req)
+    def becard(self, wizcard1, wizcard2, cctx=""):
+        rel = wizcard1.get_relationship(wizcard2)
+        rel.cctx = cctx
+        rel.accept()
+        return rel
+
+    #decline request wizcard1->wizcard2
     def uncard(self, wizcard1, wizcard2):
-        # Break cardship link between users
-        wizcard1.wizconnections.remove(wizcard2)
-        # Delete Wizcconnection request as well
-        self.wizconnection_req_clear(wizcard1, wizcard2)
-        self.wizconnection_req_clear(wizcard2, wizcard1)
+        rel = wizcard1.get_relationship(wizcard2)
+        rel.decline()
+        return rel
 
-    def accept_wizconnection(self, from_wizcard, to_wizcard):
-        self.becard(from_wizcard, to_wizcard)
-        from_crequest = WizConnectionRequest.objects.filter(
-            from_wizcard=from_wizcard,
-            to_wizcard=to_wizcard).get()
-        from_crequest.accept()
+    #clear the relationship wizcard1->wizcard2
+    def clear(self, wizcard1, wizcard2):
+        wizcard1.remove_relationship(wizcard2)
 
-        #AA:TODO This is a little hacky. We're using the from_crequest
-        #cctx message here. This is because there is no way (right now)
-        #to distinguish between a 1:1 accept and an accept for an
-        #open table received notification.
-        to_crequest = WizConnectionRequest.objects.create(
-            from_wizcard=to_wizcard,
-            to_wizcard=from_wizcard,
-            cctx=from_crequest.cctx
-        )
-        to_crequest.accept()
-
-        return from_crequest, to_crequest
-
-    def serialize(self, wizcards, template):
-        return serialize(wizcards, **template)
-
-    def exchange(self, wizcard1, wizcard2, implicit, cctx):
+    #wrapper for 2-way exchanges
+    def exchange(self, wizcard1, wizcard2, cctx):
         if self.are_wizconnections(wizcard1, wizcard2):
             return  err.EXISTING_CONNECTION
-        if self.is_wizconnection_pending(wizcard1, wizcard2):
-            return err.PENDING_CONNECTION
 
-        creq1 = WizConnectionRequest.objects.create(
-            from_wizcard=wizcard1,
-            to_wizcard=wizcard2,
-            cctx=cctx
-        )
+        #setup bidir relationships
+        rel1 = Wizcard.objects.cardit(wizcard1, wizcard2, status=verbs.ACCEPTED, cctx=cctx)
+        rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
 
-        if implicit or self.is_wizconnection_pending(wizcard2, wizcard1):
-            creq2, created = WizConnectionRequest.objects.get_or_create(
-                from_wizcard=wizcard2,
-                to_wizcard=wizcard1
-            )
-            creq2.cctx = cctx
-            creq2.save()
-            #create bidir cardship
-            self.becard(wizcard1, wizcard2)
-            #accepted in wizconnections db
-            creq1.accept()
-            creq2.accept()
+        #send Type 1 notification to both
+        notify.send(wizcard1.user, recipient=wizcard2.user,
+                    verb=verbs.WIZREQ_T[0],
+                    description=cctx.description,
+                    target=wizcard1,
+                    action_object=rel1)
 
-            notify.send(wizcard1.user, recipient=wizcard2.user,
-                        verb=verbs.WIZREQ_T[0],
-                        description=cctx.description,
-                        target=wizcard1,
-                        action_object=creq1)
-
-            notify.send(wizcard2.user, recipient=wizcard1.user,
+        notify.send(wizcard2.user, recipient=wizcard1.user,
                         verb=verbs.WIZREQ_T[0],
                         description=cctx.description,
                         target=wizcard2,
-                        action_object=creq2)
-        else:
-            notify.send(wizcard1.user, recipient=wizcard2.user,
-                        verb=verbs.WIZREQ_U[0],
-                        description=cctx.description,
-                        target=wizcard1,
-                        action_object=creq1)
+                        action_object=rel2)
 
         return err.OK
 
@@ -183,7 +150,10 @@ class WizcardManager(models.Manager):
 
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
-    wizconnections = models.ManyToManyField('self', symmetrical=True, blank=True)
+    wizconnections_to = models.ManyToManyField('self',
+                                            through='WizConnectionRequest',
+                                            symmetrical=False,
+                                            related_name='wizconnections_from')
     first_name = models.CharField(max_length=40, blank=True)
     last_name = models.CharField(max_length=40, blank=True)
     phone = models.CharField(max_length=20, blank=True)
@@ -191,7 +161,7 @@ class Wizcard(models.Model):
 
     #media objects
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
-                                            storage=WizcardQueuedS3BotoStorage(delayed=False))
+            storage=WizcardQueuedS3BotoStorage(delayed=False))
 
     objects = WizcardManager()
 
@@ -206,7 +176,7 @@ class Wizcard(models.Model):
         return serialize(self, **template)
 
     def serialize_wizconnections(self, template=fields.wizcard_template_full):
-        return serialize(self.wizconnections.all(), **template)
+        return serialize(self.get_following().all(), **template)
 
     def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
         return serialize(
@@ -255,7 +225,7 @@ class Wizcard(models.Model):
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
 
     def flood(self):
-        for wizcard in self.wizconnections.all():
+        for wizcard in self.get_followers().all():
             Wizcard.objects.update_wizconnection(self, wizcard)
 
     def check_flick_duplicates(self, lat, lng):
@@ -266,6 +236,65 @@ class Wizcard(models.Model):
             if wizlib.haversine(w.lng, w.lat, lng, lat) < settings.WIZCARD_FLICK_AGGLOMERATE_RADIUS:
                 return w
         return None
+
+    def get_relationship(self, wizcard):
+        try:
+            return WizConnectionRequest.objects.get(
+                        from_wizcard=self,
+                        to_wizcard=wizcard)
+        except:
+            return None
+
+    def add_relationship(self, wizcard, status=verbs.PENDING, ctx=""):
+        rel = self.get_relationship(wizcard)
+        if not rel:
+            rel = WizConnectionRequest.objects.create(
+                from_wizcard=self,
+                to_wizcard=wizcard,
+                cctx=ctx,
+                status=status)
+        else:
+            rel.cctx=ctx
+            rel.status=status
+            rel.save()
+        return rel
+
+    def remove_relationship(self, wizcard):
+        WizConnectionRequest.objects.filter(
+            from_wizcard=self,
+            to_wizcard=wizcard).delete()
+
+    #those following me (=my flood list)
+    def get_connected_to(self, status):
+        return self.wizconnections_to.filter(
+            requests_to__status=status)
+
+    #those following me (=my rolodex)
+    def get_connected_from(self, status):
+        return self.wizconnections_from.filter(
+            requests_from__status=status)
+
+    #2 way connected...
+    def get_connections(self):
+        return self.wizconnections_to.filter(
+            requests_to__status=verbs.ACCEPTED,
+            requests_from__status=verbs.ACCEPTED,
+            requests_from__to_wizcard=self
+        )
+
+    def get_pending_to(self):
+        return self.get_connected_to(verbs.PENDING)
+
+    def get_pending_from(self):
+        return self.get_connected_from(verbs.PENDING)
+
+    #those having my card (wrapper around get_connected_to)
+    def get_followers(self):
+        return self.get_connected_to(verbs.ACCEPTED)
+
+    #my rolodex
+    def get_following(self):
+        return self.get_connected_from(verbs.ACCEPTED)
 
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
@@ -292,12 +321,13 @@ class ContactContainer(models.Model):
             return self.f_bizCardImage.remote_url()
 
 from picklefield.fields import PickledObjectField
+
 class WizConnectionRequest(models.Model):
-    from_wizcard = models.ForeignKey(Wizcard, related_name="invitations_from")
-    to_wizcard = models.ForeignKey(Wizcard, related_name="invitations_to")
+    from_wizcard = models.ForeignKey(Wizcard, related_name="requests_from")
+    to_wizcard = models.ForeignKey(Wizcard, related_name="requests_to")
     cctx = PickledObjectField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    accepted = models.BooleanField(default=False)
+    status = models.IntegerField(choices=verbs.RELATIONSHIP_STATUSES, default=verbs.PENDING)
 
     class Meta:
         verbose_name = _(u'wizconnection request')
@@ -310,18 +340,20 @@ class WizConnectionRequest(models.Model):
                 'to_wizcard': unicode(self.to_wizcard)}
 
     def accept(self):
-        #Wizcard.objects.becard(self.from_wizcard, self.to_wizcard)
-        self.accepted = True
+        self.status = verbs.ACCEPTED
         self.save()
         signals.wizcardship_accepted.send(sender=self)
+        return self
 
     def decline(self):
+        self.status = verbs.DECLINED
+        self.save()
         signals.wizcardship_declined.send(sender=self)
-        self.delete()
+        return self
 
     def cancel(self):
         signals.wizcardship_cancelled.send(sender=self)
-        self.delete()
+        #self.delete()
 
 
 class WizcardFlickManager(models.Manager):

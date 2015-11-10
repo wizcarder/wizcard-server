@@ -2,10 +2,10 @@ from __future__ import generators
 #raw db access for location server
 class WizcardDB(object):
     # Open database connection
-    def __init__(self, host, user, passwd, db):
+    def __init__(self, socket, user, passwd, db):
         import MySQLdb
         self.db = MySQLdb.connect(
-                    host=host,
+                    host=socket,
                     user=user,
                     passwd=passwd,
                     db=db)

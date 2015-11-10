@@ -202,7 +202,8 @@ class ParseMsgAndDispatch(object):
             'withdraw_connection_request' : (message_format.WizConnectionRequestWithdrawSchema, self.WizConnectionRequestWithdraw),
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
             'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
-            'card_flick_accept'           : (message_format.WizcardFlickAcceptSchema, self.WizcardFlickAccept),
+            'card_flick_accept'           : (message_format.WizcardFlickPickSchema, self.WizcardFlickPick),
+            'card_flick_connect'          : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
             'my_flicks'                   : (message_format.WizcardMyFlickSchema, self.WizcardMyFlicks),
             'flick_withdraw'              : (message_format.WizcardFlickWithdrawSchema, self.WizcardFlickWithdraw),
             'flick_edit'                  : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
@@ -697,9 +698,11 @@ class ParseMsgAndDispatch(object):
     def WizcardAccept(self):
         try:
             wizcard1 = self.user.wizcard
+            #AA TODO: Change to wizcardID
             self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard2 = self.r_user.wizcard
         except KeyError:
+            self.securityException()
             self.securityException()
             self.response.ignore()
             return self.response
@@ -707,22 +710,21 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        from_creq, to_creq = Wizcard.objects.accept_wizconnection(
-            wizcard2,
-            wizcard1
-        )
+        #accept wizcard2->wizcard1
+        #there should already be a sent request from wizcard2 in PENDING state
+        #AA:TODO: Wrap this in try, except for case when inbound req was somehow
+        #not there
+        Wizcard.objects.becard(wizcard2, wizcard1)
         #Q this to the sender (from guy)
         notify.send(self.user, recipient=self.r_user,
                     verb=verbs.WIZCARD_ACCEPT[0],
-                    target=wizcard1,
-                    action_object=to_creq)
+                    target=wizcard2)
 
         return self.response
 
     def WizConnectionRequestDecline(self):
         try:
             wizcard1 = self.user.wizcard
-            #AA: TODO Change to wizCardID
             wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
         except KeyError:
             self.securityException()
@@ -733,14 +735,12 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         #wizcard2 must have sent a wizconnection_request, lets clear it
-        Wizcard.objects.wizconnection_req_clear(wizcard2, wizcard1)
+        Wizcard.objects.uncard(wizcard2, wizcard1)
 
-        #AA:TODO: for now, this message also serves the reverse equation..ie, sender withdraws
-        Wizcard.objects.wizconnection_req_clear(wizcard1, wizcard2)
+        #AA TODO: Might have to send notif to wizcard2
 
         return self.response
 
-    #AA: TODO: app needs to support this instead of above TODO
     #this is to withdraw sent request
     def WizConnectionRequestWithdraw(self):
         try:
@@ -768,7 +768,7 @@ class ParseMsgAndDispatch(object):
         #maybe can be used as a consistency check...
 
         #clear my wizconnection_request
-        Wizcard.objects.wizconnection_req_clear(wizcard1, wizcard2)
+        Wizcard.objects.clear(wizcard1, wizcard2)
         return self.response
 
     def WizcardRolodexDelete(self):
@@ -778,17 +778,19 @@ class ParseMsgAndDispatch(object):
 
             for w in wizcards:
                 wizcard2 = Wizcard.objects.get(id=w)
-                Wizcard.objects.uncard(wizcard1, wizcard2)
-                #Q a notif to other guy so that the app on the other side can react
-                notify.send(self.user, recipient=wizcard2.user,
-                            verb=verbs.WIZCARD_REVOKE[0],
-                            target=wizcard1)
+                try:
+                    Wizcard.objects.uncard(wizcard2, wizcard1)
+                    #Q a notif to other guy so that the app on the other side can react
+                    notify.send(self.user, recipient=wizcard2.user,
+                                verb=verbs.WIZCARD_REVOKE[0],
+                                target=wizcard1)
+                except:
+                    pass
         except KeyError:
             self.securityException()
             self.response.ignore()
 
         return self.response
-
 
     def WizcardFlick(self):
         try:
@@ -845,7 +847,8 @@ class ParseMsgAndDispatch(object):
         return self.response
 
 
-    def WizcardFlickAccept(self):
+    def WizcardFlickPick(self):
+        #wizcard1 is following wizcard2
         try:
             wizcard1 = self.user.wizcard
         except:
@@ -855,12 +858,19 @@ class ParseMsgAndDispatch(object):
             for flick_id in self.receiver['flickCardIDs']:
                 flick_card = WizcardFlick.objects.get(id=flick_id)
                 wizcard2 = flick_card.wizcard
-                #associate flick with user
-                flick_card.flick_pickers.add(wizcard1)
 
                 cctx = ConnectionContext(asset_obj=flick_card)
-                #create a wizconnection and then accept it
-                Wizcard.objects.exchange( wizcard1, wizcard2, True, cctx)
+                #associate flick with user
+                flick_card.flick_pickers.add(wizcard1)
+                #create wizcard2->wizcard1 relationship and accept
+                rel = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
+                #Q pick_notif to flicker
+                notify.send(self.user, recipient=wizcard2.user,
+                            verb=verbs.WIZCARD_FLICK_PICK[0],
+                            target=flick_card,
+                            action_object=rel)
+
+            return self.response
         except KeyError:
             self.securityException()
             self.response.ignore()
@@ -871,6 +881,37 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    def WizcardFlickConnect(self):
+        #wizcard1 sends implicit connect to wizcard2
+        try:
+            wizcard1 = self.user.wizcard
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+        try:
+            for flick_id in self.receiver['flickCardIDs']:
+                flick_card = WizcardFlick.objects.get(id=flick_id)
+                wizcard2 = flick_card.wizcard
+                #AA:TODO should existing connectivity be checked ?
+                cctx = ConnectionContext(asset_obj=flick_card)
+                rel1 = Wizcard.objects.cardit(wizcard1, wizcard2, status=verbs.ACCEPTED, cctx=cctx)
+                rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
+
+                #Q implicit exchange to flicker
+                notify.send(self.user, recipient=wizcard2.user,
+                            verb=verbs.WIZREQ_T[0],
+                            target=wizcard1,
+                            action_object=rel2)
+            return self.response
+        except KeyError:
+            self.securityException()
+            self.response.ignore()
+            return self.response
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        return self.response
     def WizcardMyFlicks(self):
         self.wizcard = Wizcard.objects.get(id=self.sender['wizCardID'])
         my_flicked_cards = self.wizcard.flicked_cards.exclude(expired=True)
@@ -1037,13 +1078,22 @@ class ParseMsgAndDispatch(object):
                 r_user = User.objects.get(id=_id)
                 r_wizcard = r_user.wizcard
 
-                if not Wizcard.objects.are_wizconnections(wizcard, r_wizcard):
+                if not wizcard.get_relationship(r_wizcard):
                     cctx = ConnectionContext(
                         asset_obj=wizcard,
                         connection_mode=receiver_type,
                     )
-                    Wizcard.objects.exchange(wizcard, r_wizcard,
-                                             implicit, cctx)
+                    rel = Wizcard.objects.cardit(wizcard,
+                                                 r_wizcard,
+                                                 status=verbs.PENDING,
+                                                 cctx=cctx)
+                    #Q notif for to_wizcard
+                    notify.send(self.user, recipient=r_user,
+                        verb=verbs.WIZREQ_U[0],
+                        description=cctx.description,
+                        target=wizcard,
+                        action_object=rel)
+
                     count += 1
                 self.response.add_data("count", count)
         elif receiver_type in ['email', 'sms']:
@@ -1057,26 +1107,15 @@ class ParseMsgAndDispatch(object):
             #receiverIDs has wizUserIDs
             for _id in receivers:
                 r_user = User.objects.get(id=_id)
-                #create an conn req from A->B. No notifs for this. This
-                #conn_req ensures that when B joins table, A doesn't get
-                #a new explicit_exchange req
-                creq, created = WizConnectionRequest.objects.get_or_create(
-                    from_wizcard=self.user.wizcard,
-                    to_wizcard=r_user.wizcard
+                cctx = ConnectionContext(
+                    asset_obj=table,
+                    connection_mode=receiver_type,
                 )
-                if created:
-                    cctx = ConnectionContext(
-                        asset_obj=table,
-                        connection_mode=receiver_type,
-                    )
-                    creq.cctx = cctx
-                    creq.save()
 
                 #Q this to the receiver
                 notify.send(self.user, recipient=r_user,
                             verb=verbs.WIZCARD_TABLE_INVITE[0],
-                            target=table,
-                            action_object=creq)
+                            target=table)
         elif receiver_type in ['email', 'sms']:
             #create future user
             self.do_future_user(table, receiver_type, receivers)
@@ -1098,27 +1137,23 @@ class ParseMsgAndDispatch(object):
                     )
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not Wizcard.objects.are_wizconnections(obj, wizcard):
-                            Wizcard.objects.exchange(obj, wizcard,
-                                                     False, cctx)
+                        if not obj.get_relationship(wizcard):
+                            rel = Wizcard.objects.cardit(obj,
+                                                         wizcard,
+                                                         status=verbs.PENDING,
+                                                         cctx=cctx)
+                            #Q notif for to_wizcard
+                            notify.send(self.user, recipient=wizcard.user,
+                                        verb=verbs.WIZREQ_U[0],
+                                        description=cctx.description,
+                                        target=obj,
+                                        action_object=rel)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
-                        #create an conn req from A->B. No notifs for this.
-                        #This conn_req ensures that when B joins table,
-                        #A doesn't get a new explicit_exchange req
-                        creq, created = WizConnectionRequest.objects.get_or_create(
-                            from_wizcard=self.user.wizcard,
-                            to_wizcard=wizcard
-                        )
-                        if created:
-                            creq.cctx = cctx
-                            creq.save()
-
                         #Q this to the receiver
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZCARD_TABLE_INVITE[0],
-                                    target=obj,
-                                    action_object=creq)
+                                    target=obj)
                 else:
                     FutureUser(
                         inviter=self.user,
@@ -1136,29 +1171,23 @@ class ParseMsgAndDispatch(object):
                     )
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not Wizcard.objects.are_wizconnections(
-                                obj, wizcard):
-                            #AA:TODO map receiver type to local defs
-                            Wizcard.objects.exchange(obj, wizcard,
-                                                     False, cctx)
+                        if not obj.get_relationship(wizcard):
+                            rel = Wizcard.objects.cardit(obj,
+                                                         wizcard,
+                                                         status=verbs.PENDING,
+                                                         cctx=cctx)
+                            #Q notif for to_wizcard
+                            notify.send(self.user, recipient=wizcard.user,
+                                        verb=verbs.WIZREQ_U[0],
+                                        description=cctx.description,
+                                        target=obj,
+                                        action_object=rel)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
-                        #create an conn req from A->B. No notifs for this.
-                        #This conn_req ensures that when B joins table,
-                        #A doesn't get a new explicit_exchange req
-                        creq, created = WizConnectionRequest.objects.get_or_create(
-                            from_wizcard=self.user.wizcard,
-                            to_wizcard=wizcard
-                        )
-                        if created:
-                            creq.cctx = cctx
-                            creq.save()
-
                         #Q this to the receiver
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZCARD_TABLE_INVITE[0],
-                                    target=obj,
-                                    action_object=creq)
+                                    target=obj)
                 else:
                     FutureUser(
                         inviter=self.user,
@@ -1559,7 +1588,7 @@ class ParseMsgAndDispatch(object):
         m_res = m.check_meishi()
         if m_res:
             cctx = ConnectionContext(asset_obj=m)
-            Wizcard.objects.exchange(m.wizcard, m_res.wizcard, True, cctx)
+            Wizcard.objects.exchange(m.wizcard, m_res.wizcard, cctx)
             #AA:Comments: can send a smaller serilized output
             #wizcard_template_full is not required. All the app needs is
             #wizcard_id, f_bizCardUrl

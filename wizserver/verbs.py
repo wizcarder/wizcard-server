@@ -18,6 +18,16 @@ TABLE_JOIN          = 15
 TABLE_LEAVE         = 16
 
 
+PENDING = 1
+ACCEPTED = 2
+DECLINED = 3
+BLOCKED = 4
+RELATIONSHIP_STATUSES = (
+    (PENDING, 'Pending'),
+    (ACCEPTED, 'Accepted'),
+    (DECLINED, 'Declined'),
+    (BLOCKED, 'Blocked'),
+)
 
     # (Verb, APNS_REQUIRED, APNS_TEXT)
 WIZREQ_U = ('wizconnection request untrusted', 1)

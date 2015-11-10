@@ -116,16 +116,6 @@ class NotifResponse(ResponseN):
                 #AA:TODO this lookup can be avoided by using the notify.send better
                 #ie, no need to send target as wizcard since it can be derived from sender,recipient
                 nctx.key_val('numSitting', VirtualTable.objects.get(id=cctx.asset_id).numSitting)
-                #AA:TODO remove after app starts using context
-                self.add_data_to_dict(
-                        out,
-                        "tableID",
-                        nctx.id)
-            elif cctx.asset_type == ContentType.objects.get(model="wizcardflick").name:
-                self.add_data_to_dict(
-                        out,
-                        "flickCardID",
-                        nctx.id)
 
             self.add_data_to_dict(out, "context", nctx.context)
         self.add_data_with_notif(out, notifType)
@@ -139,7 +129,9 @@ class NotifResponse(ResponseN):
         return self.notifWizcard(notif, verbs.ACCEPT_EXPLICIT)
 
     def notifAcceptedWizcard(self, notif):
-        return self.notifWizConnectionT(notif)
+        out = dict(wicardID=notif.target_object_id)
+        self.add_data_with_notif(out, verbs.WIZCARD_ACCEPT)
+        return self.response
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
@@ -203,7 +195,7 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifWizcardFlickPick(self, notif):
-        out = dict(wizUserID=notif.actor_object_id, flickCardID=notif.target_object_id)
+        out = dict(wizCardID=notif.actor.wizcard.id, flickCardID=notif.target_object_id)
         self.add_data_with_notif(out, verbs.FLICK_PICK)
         logger.debug('%s', self.response)
         return self.response

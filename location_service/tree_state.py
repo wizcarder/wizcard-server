@@ -5,7 +5,8 @@ sys.path.append(".")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
-from base.db import WizcardDB
+#from base.db import WizcardDB
+from base.rds_db import WizcardDB
 from server import LocationServiceServer
 from wizcard import settings
 from wizcard import instances
@@ -45,7 +46,7 @@ class TreeServer(LocationServiceServer):
         self.ptree = trie()
         self.vtree = trie()
         self.wtree = trie()
-        
+
         self.location_tree_handles = {
             "PTREE" : self.ptree,
             "WTREE" : self.wtree,
@@ -61,7 +62,7 @@ class TreeServer(LocationServiceServer):
 
         #init trees reading from db outside of django
         logger.info('initing trees from db')
-	
+
         sdict = settings.DATABASES['default']
         logger.info('initing trees from %s, %s',sdict['HOST'], RUNENV)
 
@@ -85,7 +86,7 @@ class TreeServer(LocationServiceServer):
                         pk)
 
         wdb.close()
-        
+
     def on_message(self, ch, basic_deliver, props, body):
         logger.info('Received message # %s from %s: %s',
                      basic_deliver.delivery_tag, props.app_id, body)
@@ -208,7 +209,7 @@ class TreeServer(LocationServiceServer):
                 left = part
             else:
                 break
-                
+
         #one result is over and one is under. take the larger one
         return (result, count) if count > prev_count else (prev_result, prev_count)
 

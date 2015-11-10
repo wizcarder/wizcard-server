@@ -51,7 +51,9 @@ class WizcardRolodexDeleteSchema(colander.MappingSchema):
     pass
 class WizcardFlickSchema(colander.MappingSchema):
     pass
-class WizcardFlickAcceptSchema(colander.MappingSchema):
+class WizcardFlickPickSchema(colander.MappingSchema):
+    pass
+class WizcardFlickConnectSchema(colander.MappingSchema):
     pass
 class WizcardMyFlickSchema(colander.MappingSchema):
     pass

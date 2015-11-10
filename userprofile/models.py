@@ -201,7 +201,7 @@ class UserProfile(models.Model):
             s['wizcard_flicks'] = wf
 
         #wizconnections
-        if wizcard.wizconnections.count():
+        if wizcard.wizconnections_to.count():
             wc = wizcard.serialize_wizconnections()
             s['wizconnections'] = wc
 
@@ -247,29 +247,23 @@ class FutureUser(models.Model):
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
             #spoof an exchange, as if it came from the inviter
-            Wizcard.objects.exchange(self.content_object,
-                                     real_user.wizcard,
-                                     False, cctx)
+
+            rel = Wizcard.objects.cardit(self.content_object,
+                                         real_user.wizcard,
+                                         cctx)
+            #Q notif for to_wizcard
+            notify.send(self.inviter,
+                        recipient=real_user,
+                        verb=verbs.WIZREQ_U[0],
+                        description=cctx.description,
+                        target=self.content_object,
+                        action_object=rel)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
-            #Q a conn request from the sender so that when
-            #this user joins table, the connection between
-            #the 2 is implicit and doesn't result in yet another
-            #notif to the sender
-            creq, created = WizConnectionRequest.objects.get_or_create(
-                from_wizcard=self.inviter.wizcard,
-                to_wizcard=real_user.wizcard,
-
-            )
-            creq.cctx = cctx
-            creq.save()
-
             #Q this to the receiver
-            #AA:TODO encapsulate this within table models.py
             notify.send(self.inviter, recipient=real_user,
                         verb=verbs.WIZCARD_TABLE_INVITE[0],
-                        target=self.content_object,
-                        action_object=creq)
+                        target=self.content_object)
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

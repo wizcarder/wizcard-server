@@ -89,13 +89,18 @@ MANAGERS = ADMINS
 if RUNENV == 'dev':
     DATABASES = {
 	    'default': {
-	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+	        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'ENGINE': 'django.db.backends.mysql',
 	        'NAME': 'wizcard',
-	        'USER': 'postgres',
-	        'PASSWORD': '',
-            #'PASSWORD': '',
-	        'HOST': 'localhost', # Set to empty string for localhost. Not used with sqlite3.
-	        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+	        #'USER': 'postgres',
+            'USER': 'root',
+	        #'PASSWORD': '',
+            'PASSWORD': '',
+	        #'HOST': 'localhost', # Set to empty string for localhost. Not used with sqlite3.
+            'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+	        'PORT': '3306', # Set to empty string for default. Not used with sqlite3.
+            #'PORT': '', # Set to empty string for default. Not used with sqlite3.
+
 	    },
 	}
 elif RUNENV == 'stage':

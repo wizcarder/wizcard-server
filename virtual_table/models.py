@@ -145,8 +145,7 @@ class VirtualTable(models.Model):
 
         for wizcard2 in wizcards:
             cctx = ConnectionContext(asset_obj=self)
-            Wizcard.objects.exchange(wizcard1, wizcard2,
-                    implicit_exchange, cctx)
+            Wizcard.objects.exchange(wizcard1, wizcard2, cctx)
 
         return self
 
