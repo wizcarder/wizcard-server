@@ -14,13 +14,7 @@ import pdb
 from wizcard import err
 from wizserver import verbs
 
-logger = logging.getLogger("wizcard")
-class errMsg:
-
-    def __init__(self, _err):
-        self.errno = _err[errno]
-        self.description = _err[str]
-
+logger = logging.getLogger(__name__)
 
 #This is the basic Response class used to send simple result and data
 class Response:
@@ -28,10 +22,11 @@ class Response:
         self.response = dict(result=dict(Error=0, Description=""), data=dict())
 
     def __repr__(self):
-        return json.dumps(self.response)
+        return "Sending Response" + json.dumps(self.response)
 
     def respond(self):
         ret = json.dumps(self.response) if self.response else None
+        logger.debug('%s', self)
         return HttpResponse(ret)
 
     def add_result(self, k, v):
