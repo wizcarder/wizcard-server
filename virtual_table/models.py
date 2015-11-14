@@ -158,8 +158,7 @@ class VirtualTable(models.Model):
     def is_creator(self, user):
         return bool(self.creator == user)
 
-    def join_table_and_exchange(self, user, password,
-                                do_exchange, skip_password=False):
+    def join_table_and_exchange(self, user, password, skip_password=False):
         #check password
         if (not self.is_secure()) or \
             (self.password == password) or skip_password:
@@ -168,20 +167,17 @@ class VirtualTable(models.Model):
                 #somehow already a member
 		        return self
             self.inc_numsitting()
-            if do_exchange is True:
-                #we're now sending notif to all existing joinees, to update table counts
-                #in a more fool-proof way. Earlier is was implicit in the ensuing exchange
-                #notifs, but that had issues since those already connected were not getting
-                #the notifs
-                for u in self.users.exclude(id=user.id):
-                    notify.send(
-                        user,
-                        recipient=u,
-                        verb=verbs.WIZCARD_TABLE_JOIN[0],
-                        target=self
-                    )
 
-                self.table_exchange(user)
+            #send notif to all existing joinees, to update table counts
+            for u in self.users.exclude(id=user.id):
+                notify.send(
+                    user,
+                    recipient=u,
+                    verb=verbs.WIZCARD_TABLE_JOIN[0],
+                    target=self
+                )
+
+            self.table_exchange(user)
         else:
             return None
         return self

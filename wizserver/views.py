@@ -31,7 +31,7 @@ from django.core.files.storage import default_storage
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
-from virtual_table.models import VirtualTable
+from virtual_table.models import VirtualTable, Membership
 from meishi.models import Meishi
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
@@ -1308,15 +1308,16 @@ class ParseMsgAndDispatch(object):
         table = VirtualTable.objects.create(tablename=tablename, secureTable=secure,
                                             password=password, creator=self.user,
                                             a_created = a_created, timeout=timeout)
+        table.inc_numsitting()
 
         #TODO: AA handle create failure and/or unique name enforcement
-        #update location in ptree
+        Membership.objects.get_or_create(user=self.user, table=table)
         #AA:TODO move create to overridden create in VirtualTable
+
+        #update location in ptree
         table.create_location(self.lat, self.lng)
         l = table.location.get()
         l.start_timer(timeout)
-        #AA:TODO why do we need this ?
-        table.join_table_and_exchange(self.user, password, False)
         table.save()
         self.response.add_data("tableID", table.pk)
         return self.response
@@ -1340,7 +1341,7 @@ class ParseMsgAndDispatch(object):
         else:
             password = None
 
-        joined = table.join_table_and_exchange(self.user, password, True, skip_password)
+        joined = table.join_table_and_exchange(self.user, password, skip_password)
 
         if joined is None:
             self.response.error_response(err.AUTHENTICATION_FAILED)
