@@ -83,8 +83,14 @@ class ParseMsgAndDispatch(object):
 
 
     def __repr__(self):
+        out = ""
         if self.msg.has_key('header'):
-            return str(self.msg['header'])
+            out += str(self.msg['header'])
+        if self.msg.has_key('sender'):
+            out += str(self.msg['sender'])
+        if self.msg.has_key('receiver'):
+            out += str(self.msg['receiver'])
+        return out
 
     def dispatch(self):
         status, response =  self.validate()
