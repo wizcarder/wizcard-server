@@ -1485,18 +1485,17 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(result)
             #return self.response
 
-
-        wizcard.first_name = result.get('first_name', "John")
-        wizcard.last_name = result.get('last_name', "Doe")
+        wizcard.first_name = result.get('first_name', "OCR ERROR")
+        wizcard.last_name = result.get('last_name', "IMAGE SMALL")
         self.user.first_name = result.get('first_name')
         self.user.last_name = result.get('last_name')
-        wizcard.email = result.get('email', "johndoe@wizcard.com")
+        wizcard.email = result.get('email', "increase@resolution.com")
         wizcard.save()
         self.user.save()
 
-        c.title = result.get('title', "DUMMY")
-        c.company = result.get('company', "DUMMY")
-        c.phone = result.get('phone', "1111111")
+        c.title = result.get('title', "Size Greater than 300K")
+        c.company = result.get('company', "Dummy")
+        c.phone = result.get('phone', "11111")
         c.end="current"
         c.save()
 
