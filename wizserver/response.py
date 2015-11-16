@@ -65,13 +65,18 @@ class ResponseN(Response):
     def add_notif_type(self, d, _type):
         d['notifType'] = _type
 
-    def add_data_with_notif(self, d, n):
+    def add_seq(self, d, _s):
+        d['seqNum'] = _s
+
+    def add_data_and_seq_with_notif(self, d, n, seq=0):
         a = self.add_data_array(d)
         self.add_notif_type(a, n)
+        if seq:
+            self.add_seq(a, seq)
+        return a
 
     def add_data_to_dict(self, _dict, k, v):
         _dict[k] = v
-
 
 class NotifResponse(ResponseN):
 
@@ -113,7 +118,7 @@ class NotifResponse(ResponseN):
                 nctx.key_val('numSitting', VirtualTable.objects.get(id=cctx.asset_id).numSitting)
 
             self.add_data_to_dict(out, "context", nctx.context)
-        self.add_data_with_notif(out, notifType)
+        self.add_data_and_seq_with_notif(out, notifType, notif.id)
 
         return self.response
 
@@ -124,27 +129,27 @@ class NotifResponse(ResponseN):
         return self.notifWizcard(notif, verbs.ACCEPT_EXPLICIT)
 
     def notifAcceptedWizcard(self, notif):
-        out = dict(wicardID=notif.target_object_id)
-        self.add_data_with_notif(out, verbs.WIZCARD_ACCEPT)
+        out = dict(wizCardID=notif.target_object_id)
+        self.add_data_and_seq_with_notif(out, verbs.WIZCARD_ACCEPT, notif.id)
         return self.response
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
         #AA:TODO we're using user id, but could actually used wizcardID
         out = dict(user_id=notif.actor_object_id)
-        self.add_data_with_notif(out, verbs.DELETE_IMPLICIT)
+        self.add_data_and_seq_with_notif(out, verbs.DELETE_IMPLICIT, notif.id)
         return self.response
 
     def notifWithdrawRequest(self, notif):
         #this is a notif to the app B when app A withdraws it's connection request
         out = dict(user_id=notif.actor_object_id)
-        self.add_data_with_notif(out, verbs.WITHDRAW_REQUEST)
+        self.add_data_and_seq_with_notif(out, verbs.WITHDRAW_REQUEST, notif.id)
         logger.debug('%s', self.response)
         return self.response
 
     def notifDestroyedTable(self, notif):
         out = dict(tableID=notif.target_object_id)
-        self.add_data_with_notif(out, verbs.TABLE_TIMEOUT)
+        self.add_data_and_seq_with_notif(out, verbs.TABLE_TIMEOUT, notif.id)
         logger.debug('%s', self.response)
         return self.response
 
@@ -158,7 +163,7 @@ class NotifResponse(ResponseN):
                 numSitting=notif.target.numSitting,
                 wizcard=ws
             )
-            self.add_data_with_notif(out, verbs.TABLE_JOIN)
+            self.add_data_and_seq_with_notif(out, verbs.TABLE_JOIN, notif.id)
             logger.debug('%s', self.response)
 
         return self.response
@@ -173,7 +178,7 @@ class NotifResponse(ResponseN):
                 numSitting=notif.target.numSitting,
                 wizcard=ws
             )
-            self.add_data_with_notif(out, verbs.TABLE_LEAVE)
+            self.add_data_and_seq_with_notif(out, verbs.TABLE_LEAVE, notif.id)
             logger.debug('%s', self.response)
         return self.response
 
@@ -185,13 +190,13 @@ class NotifResponse(ResponseN):
 
     def notifWizcardFlickTimeout(self, notif):
         out = dict(flickCardID=notif.target_object_id)
-        self.add_data_with_notif(out, verbs.FLICK_TIMEOUT)
+        self.add_data_and_seq_with_notif(out, verbs.FLICK_TIMEOUT, notif.id)
         logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardFlickPick(self, notif):
         out = dict(wizCardID=notif.actor.wizcard.id, flickCardID=notif.target_object_id)
-        self.add_data_with_notif(out, verbs.FLICK_PICK)
+        self.add_data_and_seq_with_notif(out, verbs.FLICK_PICK, notif.id)
         logger.debug('%s', self.response)
         return self.response
 
@@ -202,7 +207,7 @@ class NotifResponse(ResponseN):
                                                template=fields.nearby_table_template)
 
         out = dict(sender=s_out, asset=a_out)
-        self.add_data_with_notif(out, verbs.TABLE_INVITE)
+        self.add_data_and_seq_with_notif(out, verbs.TABLE_INVITE, notif.id)
         return self.response
 
     def notifWizcardForward(self, notif):
@@ -214,14 +219,14 @@ class NotifResponse(ResponseN):
         if flicked_wizcards:
             out = WizcardFlick.objects.serialize_split(user.wizcard,
                                                        flicked_wizcards)
-            self.add_data_with_notif(out, verbs.NEARBY_FLICKED_WIZCARD)
+            self.add_data_and_seq_with_notif(out, verbs.NEARBY_FLICKED_WIZCARD)
         return self.response
 
     def notifUserLookup(self, count, me, users):
         out = None
         if users:
             out = UserProfile.objects.serialize_split(me, users)
-            self.add_data_with_notif(out, verbs.NEARBY_USERS)
+            self.add_data_and_seq_with_notif(out, verbs.NEARBY_USERS)
         return self.response
 
     def notifTableLookup(self, count, user, tables):
@@ -232,5 +237,5 @@ class NotifResponse(ResponseN):
                 user,
                 fields.nearby_table_template
             )
-            self.add_data_with_notif(out, verbs.NEARBY_TABLES)
+            self.add_data_and_seq_with_notif(out, verbs.NEARBY_TABLES)
         return self.response

@@ -250,7 +250,7 @@ class FutureUser(models.Model):
 
             rel = Wizcard.objects.cardit(self.content_object,
                                          real_user.wizcard,
-                                         cctx)
+                                         cctx=cctx)
             #Q notif for to_wizcard
             notify.send(self.inviter,
                         recipient=real_user,

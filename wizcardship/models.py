@@ -264,12 +264,12 @@ class Wizcard(models.Model):
             from_wizcard=self,
             to_wizcard=wizcard).delete()
 
-    #those following me (=my flood list)
+    #those following me
     def get_connected_to(self, status):
         return self.wizconnections_to.filter(
             requests_to__status=status)
 
-    #those following me (=my rolodex)
+    #those i'm following
     def get_connected_from(self, status):
         return self.wizconnections_from.filter(
             requests_from__status=status)
@@ -288,7 +288,8 @@ class Wizcard(models.Model):
     def get_pending_from(self):
         return self.get_connected_from(verbs.PENDING)
 
-    #those having my card (wrapper around get_connected_to)
+    #those having my card (=my flood list)
+    #wrapper around get_connected_to
     def get_followers(self):
         return self.get_connected_to(verbs.ACCEPTED)
 

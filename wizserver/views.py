@@ -724,7 +724,7 @@ class ParseMsgAndDispatch(object):
         #Q this to the sender (from guy)
         notify.send(self.user, recipient=self.r_user,
                     verb=verbs.WIZCARD_ACCEPT[0],
-                    target=wizcard2)
+                    target=wizcard1)
 
         return self.response
 
@@ -918,6 +918,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         return self.response
+
     def WizcardMyFlicks(self):
         self.wizcard = Wizcard.objects.get(id=self.sender['wizCardID'])
         my_flicked_cards = self.wizcard.flicked_cards.exclude(expired=True)
@@ -1482,19 +1483,20 @@ class ParseMsgAndDispatch(object):
         result = ocr.process(path)
         if result.has_key('errno'):
             self.response.error_response(result)
-            return self.response
+            #return self.response
 
-        wizcard.first_name = result.get('first_name', "")
-        wizcard.last_name = result.get('last_name', "")
+
+        wizcard.first_name = result.get('first_name', "John")
+        wizcard.last_name = result.get('last_name', "Doe")
         self.user.first_name = result.get('first_name')
         self.user.last_name = result.get('last_name')
-        wizcard.email = result.get('email', "")
+        wizcard.email = result.get('email', "johndoe@wizcard.com")
         wizcard.save()
         self.user.save()
 
-        c.title = result.get('title', "")
-        c.company = result.get('company', "")
-        c.phone = result.get('phone', "")
+        c.title = result.get('title', "DUMMY")
+        c.company = result.get('company', "DUMMY")
+        c.phone = result.get('phone', "1111111")
         c.end="current"
         c.save()
 
