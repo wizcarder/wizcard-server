@@ -84,8 +84,10 @@ class UserProfileManager(models.Manager):
                 if user.profile.activated:
                     return user.wizcard
         elif query_type == 'email':
-            if Wizcard.objects.filter(email=query_key).exists():
-                return Wizcard.objects.get(email=query_key)
+            email_wizcards =  Wizcard.objects.filter(email=query_key)
+            #AR: Need to change the model to make it uniq
+            if email_wizcards:
+                return email_wizcards[0]
         return None
 
     def username_from_phone_num(self, phone_num):
@@ -250,7 +252,7 @@ class FutureUser(models.Model):
 
             rel = Wizcard.objects.cardit(self.content_object,
                                          real_user.wizcard,
-                                         cctx)
+                                         cctx=cctx)
             #Q notif for to_wizcard
             notify.send(self.inviter,
                         recipient=real_user,
@@ -272,4 +274,3 @@ def create_user_profile(sender, instance, created, **kwargs):
         profile.save()
 
 post_save.connect(create_user_profile, sender=User)
-
