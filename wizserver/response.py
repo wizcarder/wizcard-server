@@ -85,6 +85,7 @@ class NotifResponse(ResponseN):
         notifHandler = {
             verbs.WIZREQ_U[0] 	                : self.notifWizConnectionU,
             verbs.WIZREQ_T[0]  	                : self.notifWizConnectionT,
+            verbs.WIZREQ_F[0]                   : self.notifWizConnectionF,
             verbs.WIZCARD_ACCEPT[0]             : self.notifAcceptedWizcard,
             verbs.WIZCARD_REVOKE[0]	            : self.notifRevokedWizcard,
             verbs.WIZCARD_WITHDRAW_REQUEST[0]   : self.notifWithdrawRequest,
@@ -127,6 +128,9 @@ class NotifResponse(ResponseN):
 
     def notifWizConnectionU(self, notif):
         return self.notifWizcard(notif, verbs.ACCEPT_EXPLICIT)
+
+    def notifWizConnectionF(self, notif):
+        return self.notifWizcard(notif, verbs.FOLLOW_EXPLICIT)
 
     def notifAcceptedWizcard(self, notif):
         out = dict(wicardID=notif.target_object_id)
