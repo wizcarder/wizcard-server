@@ -16,6 +16,7 @@ TABLE_INVITE        = 13
 WIZCARD_FORWARD     = 14
 TABLE_JOIN          = 15
 TABLE_LEAVE         = 16
+FOLLOW_EXPLICIT    = 17
 
 
 PENDING = 1
@@ -32,6 +33,7 @@ RELATIONSHIP_STATUSES = (
     # (Verb, APNS_REQUIRED, APNS_TEXT)
 WIZREQ_U = ('wizconnection request untrusted', 1)
 WIZREQ_T = ('wizconnection request trusted', 1)
+WIZREQ_F = ('wizconnection request follow', 1)
 WIZCARD_ACCEPT = ('accepted wizcard', 1)
 WIZCARD_REVOKE = ('revoked wizcard', 0)
 WIZCARD_WITHDRAW_REQUEST = ('withdraw request', 0)
@@ -53,6 +55,12 @@ apns_notification_dictionary = {
         'badge': 0,
         #AA:TODO: separate verb from push message
         'alert': '{0.first_name} {0.last_name} would like to connect with you',
+    },
+    WIZREQ_F[0]	: {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        #AA:TODO: separate verb from push message
+        'alert': '{0.first_name} {0.last_name} would like to follow you',
     },
     WIZREQ_T[0]	: {
         'sound': 'flynn.caf',
