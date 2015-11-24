@@ -1068,7 +1068,7 @@ class ParseMsgAndDispatch(object):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
-        if receiver_type in ['wiz_untrusted', 'wiz_trusted']:
+        if receiver_type in ['wiz_untrusted', 'wiz_trusted', 'wiz_follow']:
             if receiver_type == 'wiz_trusted':
                 implicit = True
             else:
@@ -1083,13 +1083,25 @@ class ParseMsgAndDispatch(object):
                         asset_obj=wizcard,
                         connection_mode=receiver_type,
                     )
+
+                    currstatus = verbs.PENDING
+                    notifverb = verbs.WIZREQ_U[0]
+
+                    if receiver_type == 'wiz_follow':
+                        notifverb = verbs.WIZREQ_F[0]
+
+                    if implicit:
+                        currstatus = verbs.ACCEPTED
+                        notifverb = verbs.WIZREQ_T[0]
+                        
                     rel = Wizcard.objects.cardit(wizcard,
                                                  r_wizcard,
-                                                 status=verbs.PENDING,
+                                                 status=currstatus,
                                                  cctx=cctx)
                     #Q notif for to_wizcard
+
                     notify.send(self.user, recipient=r_user,
-                        verb=verbs.WIZREQ_U[0],
+                        verb=notifverb,
                         description=cctx.description,
                         target=wizcard,
                         action_object=rel)
