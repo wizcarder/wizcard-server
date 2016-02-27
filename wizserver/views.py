@@ -209,7 +209,7 @@ class ParseMsgAndDispatch(object):
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
             'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
             'card_flick_accept'           : (message_format.WizcardFlickPickSchema, self.WizcardFlickPick),
-            'card_flick_connect'          : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
+            'card_flick_accept_connect'   : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
             'my_flicks'                   : (message_format.WizcardMyFlickSchema, self.WizcardMyFlicks),
             'flick_withdraw'              : (message_format.WizcardFlickWithdrawSchema, self.WizcardFlickWithdraw),
             'flick_edit'                  : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
@@ -901,13 +901,13 @@ class ParseMsgAndDispatch(object):
                 #AA:TODO should existing connectivity be checked ?
                 cctx = ConnectionContext(asset_obj=flick_card)
                 rel1 = Wizcard.objects.cardit(wizcard1, wizcard2, status=verbs.ACCEPTED, cctx=cctx)
-                rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
+                #rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
 
                 #Q implicit exchange to flicker
                 notify.send(self.user, recipient=wizcard2.user,
                             verb=verbs.WIZREQ_T[0],
                             target=wizcard1,
-                            action_object=rel2)
+                            action_object=rel1)
             return self.response
         except KeyError:
             self.securityException()
@@ -1111,7 +1111,7 @@ class ParseMsgAndDispatch(object):
                     #Q notif for to_wizcard
 
                     notify.send(self.user, recipient=r_user,
-                        verb=notifverb,
+                        verb=verb,
                         description=cctx.description,
                         target=wizcard,
                         action_object=rel)
