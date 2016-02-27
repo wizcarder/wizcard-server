@@ -30,8 +30,8 @@ import pprint
 
 
 
-TEST_IMAGE=False
-OCR_FLAG = False
+TEST_IMAGE=True
+OCR_FLAG = True
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "+14084641727"
