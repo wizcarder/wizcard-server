@@ -209,7 +209,7 @@ class ParseMsgAndDispatch(object):
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
             'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
             'card_flick_accept'           : (message_format.WizcardFlickPickSchema, self.WizcardFlickPick),
-            'card_flick_connect'          : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
+            'card_flick_accept_connect'   : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
             'my_flicks'                   : (message_format.WizcardMyFlickSchema, self.WizcardMyFlicks),
             'flick_withdraw'              : (message_format.WizcardFlickWithdrawSchema, self.WizcardFlickWithdraw),
             'flick_edit'                  : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
@@ -901,7 +901,7 @@ class ParseMsgAndDispatch(object):
                 #AA:TODO should existing connectivity be checked ?
                 cctx = ConnectionContext(asset_obj=flick_card)
                 rel1 = Wizcard.objects.cardit(wizcard1, wizcard2, status=verbs.ACCEPTED, cctx=cctx)
-                rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
+                #rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
 
                 #Q implicit exchange to flicker
                 notify.send(self.user, recipient=wizcard2.user,
@@ -1075,7 +1075,7 @@ class ParseMsgAndDispatch(object):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
-        if receiver_type in ['wiz_untrusted', 'wiz_trusted']:
+        if receiver_type in ['wiz_untrusted', 'wiz_trusted', 'wiz_follow']:
             if receiver_type == 'wiz_trusted':
                 implicit = True
             else:
@@ -1090,13 +1090,25 @@ class ParseMsgAndDispatch(object):
                         asset_obj=wizcard,
                         connection_mode=receiver_type,
                     )
+
+                    currstatus = verbs.PENDING
+                    notifverb = verbs.WIZREQ_U[0]
+
+                    if receiver_type == 'wiz_follow':
+                        notifverb = verbs.WIZREQ_F[0]
+
+                    if implicit:
+                        currstatus = verbs.ACCEPTED
+                        notifverb = verbs.WIZREQ_T[0]
+                        
                     rel = Wizcard.objects.cardit(wizcard,
                                                  r_wizcard,
-                                                 status=verbs.PENDING,
+                                                 status=currstatus,
                                                  cctx=cctx)
                     #Q notif for to_wizcard
+
                     notify.send(self.user, recipient=r_user,
-                        verb=verbs.WIZREQ_U[0],
+                        verb=notifverb,
                         description=cctx.description,
                         target=wizcard,
                         action_object=rel)

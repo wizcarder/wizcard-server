@@ -109,8 +109,7 @@ verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 
 #server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
-#server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
-server_url = "192.168.0.3"
+server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
 
 server_port = 8000
 #server_port = 8002
@@ -193,6 +192,8 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 uid2 = objs['data']['userID']
+
+#AnandR: Should check when the response_key doesnt match the sent response_key
 
 reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID3
@@ -575,7 +576,7 @@ reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['assetID'] = e1_id
 reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "wiz_untrusted"
+reqmsg['receiver']['receiverType'] = "wiz_follow"
 reqmsg['receiver']['receiverIDs'] = [wuid2, wuid3]
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
@@ -1064,3 +1065,176 @@ objs = handle_response(conn,reqmsg['header']['msgType'])
 mei_pair = objs['data']['m_result']
 
 print "Meishi ID = " + str(mei_pair)
+
+# Create User 1
+
+# Create User 2
+# User 1 Flicks to User 2
+# User 2 ignores and flicks it
+
+NEXMO_PHONE1 = "+918971546485"
+PHONE1 = "+917259615832"
+PHONE2 = "+919845123397"
+
+EMAIL1 = "anandramani98@gmail.com"
+EMAIL2 = "r_anand98@outlook.com"
+
+USERNAME1 = PHONE1+'@wizcard.com'
+USERNAME2 = PHONE2+'@wizcard.com'
+
+verify_phones_list = [PHONE1, PHONE2]
+verify_emails_list = [EMAIL1, EMAIL2]
+
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID1
+reqmsg['header']['hash'] = HASH1
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['target'] = NEXMO_PHONE1
+reqmsg['sender']['responseMode'] = 'voice'
+reqmsg['sender']['test_mode'] = True
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+response_key = objs['data']['challenge_key']
+
+reqmsg = messages.phone_check_resp
+reqmsg['header']['deviceID'] = DEVICE_ID1
+reqmsg['header']['hash'] = HASH1
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['responseKey'] = response_key
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+uid1 = objs['data']['userID']
+
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID2
+reqmsg['header']['hash'] = HASH2
+reqmsg['sender']['username'] = USERNAME2
+reqmsg['sender']['target'] = PHONE2
+reqmsg['sender']['responseMode'] = 'sms'
+reqmsg['sender']['test_mode'] = True
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+response_key = objs['data']['challenge_key']
+
+reqmsg = messages.phone_check_resp
+reqmsg['header']['deviceID'] = DEVICE_ID2
+reqmsg['header']['hash'] = HASH2
+reqmsg['sender']['username'] = USERNAME2
+reqmsg['sender']['responseKey'] = response_key
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+uid2 = objs['data']['userID']
+
+#AnandR: Should check when the response_key doesnt match the sent response_key
+
+reqmsg = messages.login
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['userID'] = uid1
+reqmsg['header']['deviceID'] = DEVICE_ID1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+wuid1 = objs['data']['wizUserID']
+
+reqmsg['sender']['username'] = USERNAME2
+reqmsg['sender']['userID'] = uid2
+reqmsg['header']['deviceID'] = DEVICE_ID2
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+wuid2 = objs['data']['wizUserID']
+
+
+#create 2 users
+reqmsg = messages.register1
+reqmsg['sender']['userID']=uid1
+reqmsg['sender']['wizUserID']=wuid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.register2
+reqmsg['sender']['userID']=uid2
+reqmsg['sender']['wizUserID']=wuid2
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.edit_card1
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+contacts = reqmsg['sender']['contact_container']
+#populate file
+#for c in contacts:
+#    c['f_bizCardImage'] = cc_out
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+e1_id = objs['data']['wizCardID']
+
+reqmsg = messages.edit_card2
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+contacts = reqmsg['sender']['contact_container']
+#populate file
+#for c in contacts:
+#    c['f_bizCardImage'] = cc_out
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+e2_id = objs['data']['wizCardID']
+
+#send location update
+reqmsg = messages.location
+reqmsg['sender']['lat'] = LAT1
+reqmsg['sender']['lng'] = LNG1
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#u1 -> u2 via wiz
+reqmsg = messages.send_asset_to_xyz
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['assetID'] = e1_id
+reqmsg['sender']['assetType'] = "wizcard"
+reqmsg['receiver']['receiverType'] = "wiz_untrusted"
+reqmsg['receiver']['receiverIDs'] = [wuid2]
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.send_asset_to_xyz
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['sender']['assetID'] = e2_id
+reqmsg['sender']['assetType'] = "wizcard"
+reqmsg['receiver']['receiverType'] = "wiz_follow"
+reqmsg['receiver']['receiverIDs'] = [wuid1]
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.accept_connection_request
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['wizUserID'] = wuid2
+send_request(conn, reqmsg)
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+notif = NotifParser(objs['data'], uid1, wuid1)
+nrsp = notif.process()
+
