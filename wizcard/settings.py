@@ -238,7 +238,7 @@ USER_ACTIVE_TIMEOUT = 1     #minutes
 USER_ONLINE_PREFIX = 'seen_%s'
 
 #radius for agglomerating flicked cards (in meters)
-DO_FLICK_AGGLOMERATE = False
+DO_FLICK_AGGLOMERATE = True
 WIZCARD_FLICK_AGGLOMERATE_RADIUS = 1000
 WIZCARD_FLICK_DEFAULT_TIMEOUT = 1
 
@@ -280,12 +280,13 @@ WIZWEB_DEVICE_ID = 'wizweb'
 
 NEXMO_API_KEY = '4788a696'
 NEXMO_API_SECRET = '185e2f6f'
+NEXMO_OWN_NUMBER = '12243109118'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',
         'api_key': NEXMO_API_KEY,
         'api_secret': NEXMO_API_SECRET,
-        'from':12134657949,
+        'from':NEXMO_OWN_NUMBER,
         'to':None,
         'text':""
     }

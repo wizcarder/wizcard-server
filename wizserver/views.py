@@ -301,13 +301,16 @@ class ParseMsgAndDispatch(object):
             sms = NexmoMessage(msg)
             sms.set_text_info(msg['text'])
             sms.send_request()
-            status, errStr = sms.get_response()
+            try: #TODO: for now workaround kale issue
+                status, errStr = sms.get_response()
+                if not status:
+                    #some error...let the app know
+                    self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
+                    logger.error('nexmo send via (%s) failed to (%s) with err (%s)', response_mode, response_target, errStr)
+                    return self.response
+            except:
+                pass 
 
-            if not status:
-                #some error...let the app know
-                self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
-                logger.error('nexmo send via (%s) failed to (%s) with err (%s)', response_mode, response_target, errStr)
-                return self.response
 
         if test_mode:
             self.response.add_data("challenge_key", d[k_rand])
@@ -354,8 +357,8 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_INVALID_DEVICE)
             return self.response
 
-        if settings.PHONE_CHECK and challenge_response != d[k_rand]:
-            logger.info('{%s} invalid challenge response', k_user)
+        if settings.PHONE_CHECK and int(challenge_response) != d[k_rand]:
+            logger.info('{%s, [%s]!=[%s]} invalid challenge response', k_user, challenge_response, d[k_rand])
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
