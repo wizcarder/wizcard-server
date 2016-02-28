@@ -95,7 +95,7 @@ if RUNENV == 'dev':
 	        #'USER': 'postgres',
             'USER': 'root',
 	        #'PASSWORD': '',
-            'PASSWORD': '',
+            'PASSWORD': 'mydb',
 	        #'HOST': 'localhost', # Set to empty string for localhost. Not used with sqlite3.
             'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 	        'PORT': '3306', # Set to empty string for default. Not used with sqlite3.
@@ -253,7 +253,7 @@ USER_LASTSEEN_TIMEOUT = 60
 MAX_PHONE_CHECK_RETRIES = 3
 
 #for UT..avoid nexmo
-PHONE_CHECK = True
+PHONE_CHECK = False
 #retry timeout
 PHONE_CHECK_TIMEOUT = 180
 
