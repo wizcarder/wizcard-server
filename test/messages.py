@@ -14,7 +14,8 @@ phone_check_req = {
     "sender" : {
         "username" : "",
         "responseMode" : "",
-        "target" : ""
+        "target" : "",
+        "test_mode": True
     },
 }
 

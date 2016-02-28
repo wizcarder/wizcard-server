@@ -279,7 +279,7 @@ class ParseMsgAndDispatch(object):
         cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
         #send a text with the rand
-        if settings.PHONE_CHECK:
+        if settings.PHONE_CHECK and not test_mode:
             msg = settings.PHONE_CHECK_MESSAGE
             msg['to'] = response_target
 
