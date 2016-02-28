@@ -32,6 +32,7 @@ import pprint
 
 TEST_IMAGE=True
 OCR_FLAG = True
+TEST_NEXMO = False
 
 NEXMO_PHONE1 = "14084641727"
 PHONE1 = "+14084641727"
@@ -155,7 +156,8 @@ reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['target'] = NEXMO_PHONE1
 reqmsg['sender']['responseMode'] = 'voice'
-reqmsg['sender']['test_mode'] = True
+if TEST_NEXMO:
+    reqmsg['sender']['test_mode'] = False
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -177,7 +179,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = USERNAME2
 reqmsg['sender']['target'] = PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = True
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -201,7 +202,6 @@ reqmsg['header']['hash'] = HASH3
 reqmsg['sender']['username'] = USERNAME3
 reqmsg['sender']['target'] = PHONE3
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = True
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -615,7 +615,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = FUTURE_USERNAME1
 reqmsg['sender']['target'] = FUTURE_PHONE1
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = True
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -638,7 +637,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = FUTURE_USERNAME2
 reqmsg['sender']['target'] = FUTURE_PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = True
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -765,7 +763,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = FUTURE_USERNAME3
 reqmsg['sender']['target'] = FUTURE_PHONE3
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = True
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -788,7 +785,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = FUTURE_USERNAME4
 reqmsg['sender']['target'] = FUTURE_PHONE4
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = True
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -1091,7 +1087,6 @@ reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['target'] = NEXMO_PHONE1
 reqmsg['sender']['responseMode'] = 'voice'
-reqmsg['sender']['test_mode'] = True
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -1113,7 +1108,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = USERNAME2
 reqmsg['sender']['target'] = PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = True
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
