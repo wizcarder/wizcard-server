@@ -78,11 +78,11 @@ class ApnsMsg(object):
         return
 
     def pushAndroid(self):
-        send_gcm_message(
-            settings.GCM_API_KEY,
-			self.reg_token,
-			self.aps
-        )
+        #send_gcm_message(
+        #    settings.GCM_API_KEY,
+		#	self.reg_token,
+		#	self.aps
+        #)
         return
 
 
