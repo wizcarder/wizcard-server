@@ -1508,21 +1508,31 @@ class ParseMsgAndDispatch(object):
         #Do ocr stuff
         ocr = OCR()
         result = ocr.process(path)
+        pdb.set_trace()
         if result.has_key('errno'):
             self.response.error_response(result)
-            #return self.response
+            #AA:TODO: handle properly. We need to raise an exception to ourselves
+            raise Exception(result['str'])
+            return self.response
 
-        wizcard.first_name = result.get('first_name', "OCR ERROR")
-        wizcard.last_name = result.get('last_name', "IMAGE SMALL")
-        self.user.first_name = result.get('first_name')
-        self.user.last_name = result.get('last_name')
-        wizcard.email = result.get('email', "increase@resolution.com")
+        if result.has_key('first_name') and result.get('first_name'):
+            wizcard.first_name = result.get('first_name')
+            self.user.first_name = wizcard.first_name
+        if result.has_key('last_name') and result.get('last_name'):
+            wizcard.last_name = result.get('last_name')
+            self.user.last_name = wizcard.last_name
+        if result.has_key('email') and result.get('email'):
+            wizcard.email = result.get('email')
+
         wizcard.save()
         self.user.save()
 
-        c.title = result.get('title', "Size Greater than 300K")
-        c.company = result.get('company', "Dummy")
-        c.phone = result.get('phone', "11111")
+        if result.has_key('title') and result.get('title'):
+            c.title = result.get('title')
+        if result.has_key('company') and result.get('company'):
+            c.company = result.get('company')
+        if result.has_key('phone') and result.get('phone'):
+            c.phone = result.get('phone')
         c.end="current"
         c.save()
 

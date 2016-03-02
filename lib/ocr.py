@@ -30,6 +30,11 @@ class OCR:
         return self.result
 
     def ocr_result(self, **kwargs):
+        self.result['first_name'] = ""
+        self.result['last_name'] = ""
+        self.result['title'] = ""
+        self.result['company'] = ""
+        self.result['phone'] = ""
         if kwargs.has_key('name'):
             part = kwargs.get('name').partition(" ")
             self.result['first_name'] = part[0]
