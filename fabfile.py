@@ -54,14 +54,14 @@ def aptgets(name="all"):
 		run("sudo apt-get -q -y install python-virtualenv")
 		run("sudo apt-get -q -y install python-dev")
 		run("sudo apt-get -q -y install git")
-                run("sudo apt-get -q -y ntp")
+                run("sudo apt-get -q -y install ntp")
 		run("sudo apt-get -q -y install rabbitmq-server")
                 run("sudo rabbitmq-plugins enable rabbitmq_management")
 		run("sudo apt-get -q -y install libssl-dev")
 		run("sudo apt-get -q -y install memcached")
 		run("sudo apt-get -q -y install libffi-dev libxml2 libxml2-dev  libxslt1-dev")
 		run("sudo apt-get -q -y install nginx")
-                run("sudo ntpdate -s ntp.ubuntu.com")
+#                run("sudo ntpdate -s ntp.ubuntu.com")
 	else:
 		run("sudo apt-get -q -y install %s" % name)
 
@@ -116,7 +116,7 @@ def postinstall():
                 with virtualenv():
 		    with cd(env.installroot):
                         #                        run("python manage.py syncdb")
-                        run("python manage.py makemigrations wizcard")
+                        run("python manage.py makemigrations")
                         run("python manage.py migrate")
 
                         #append_settings()
@@ -135,6 +135,7 @@ def init_upstart():
                 memcacheip = getawsip()
                 edit_file("env host=xxx", "env host="+memcacheip,"/etc/init/memcached.conf")
                 run("sudo cp upstart/%s/wizserver /etc/nginx/sites-enabled" % env.henv)
+                edit_file("SERVERIP", memcacheip, "/etc/nginx/sites-enabled")
                 run("sudo rm /etc/nginx/sites-enabled/default")
 
 def edit_file(find,replace,efile):
@@ -277,7 +278,7 @@ def restart():
 		
 def deployall():
 	fastprint("\nRunning aptgets===================================\n")
-#        aptgets()
+        aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
@@ -300,7 +301,7 @@ def deployall():
 
 def deploylocation():
 	fastprint("\nRunning aptgets===================================\n")
-        #aptgets()
+        aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
@@ -323,7 +324,7 @@ def deploylocation():
 
 def deploywizserver():
 	fastprint("\nRunning aptgets===================================\n")
-#        aptgets()
+        aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
 	gitcloneupdate()
