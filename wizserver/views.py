@@ -725,7 +725,7 @@ class ParseMsgAndDispatch(object):
         #AA:TODO: Wrap this in try, except for case when inbound req was somehow
         #not there
         notify.send(self.user, recipient=r_user,
-            verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
+            verbs.WIZREQ_U[0],
             description=cctx.description,
             target=wizcard,
             action_object=rel12)
