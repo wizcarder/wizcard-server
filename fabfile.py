@@ -108,7 +108,7 @@ def createvirtualenv():
 
 def postinstall():
 	path = env.installroot + "log"
-        memcacheip = getawsip()
+        intip = getawsip()
 	with settings(warn_only=True):
 		with cd(env.installroot):
 			if run("test -d %s" % path).failed:
@@ -125,18 +125,18 @@ def postinstall():
 @task
 def init_upstart():
 	with cd(env.installroot):
+                intip = getawsip()
 		run("sudo cp upstart/*.conf /etc/init")
                 for files in ("/etc/init/wizserver.conf", "/etc/init/celerybeat.conf", "/etc/init/celeryworker.conf", "/etc/init/locationjob.conf", "/etc/init/celeryflower.conf","/etc/init/twistd.conf"):
-                    edit_file("env host=xxx","env host="+env.host,files)
+                    edit_file("env host=xxx","env host="+intip,files)
                     edit_file("env basedir=xxx","env basedir="+env.installroot,files)
                     edit_file("env runuser=xxx","env runuser="+env.runuser,files)
                     edit_file("env venv=xxx","env venv="+env.venv,files)
                     edit_file("env WIZRUNENV=xxx","env WIZRUNENV="+env.henv,files)
-                memcacheip = getawsip()
-                edit_file("env host=xxx", "env host="+memcacheip,"/etc/init/memcached.conf")
+                edit_file("env host=xxx", "env host="+intip,"/etc/init/memcached.conf")
                 run("sudo cp upstart/%s/wizserver /etc/nginx/sites-enabled" % env.henv)
-                edit_file("SERVERIP", memcacheip, "/etc/nginx/sites-enabled")
-                run("sudo rm /etc/nginx/sites-enabled/default")
+                edit_file("SERVERIP", intip, "/etc/nginx/sites-enabled/wizserver")
+                run("sudo rm /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/wizserver.bak")
 
 def edit_file(find,replace,efile):
 
@@ -238,7 +238,7 @@ def startgunicorn():
 	with virtualenv():
 		with cd(env.installroot):
 			fastprint("\nRunning gunicorn server on %s===================================\n" % env.host)
-                        run("sudo service wizserver start host=%s basedir=%s venv=%s runuser=%s WIZRUNENV=%s PYTHONPATH=$PYTHONPATH:%s" % (env.host,env.installroot,env.venv,env.runuser,env.henv,env.installroot), pty=False)
+                        run("sudo service wizserver start host=%s basedir=%s venv=%s runuser=%s WIZRUNENV=%s PYTHONPATH=$PYTHONPATH:%s" % (getawsip(),env.installroot,env.venv,env.runuser,env.henv,env.installroot), pty=False)
 			run("ps auxww | grep gunicorn")
 			
 def freeze():
