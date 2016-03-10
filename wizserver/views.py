@@ -1508,7 +1508,6 @@ class ParseMsgAndDispatch(object):
         #Do ocr stuff
         ocr = OCR()
         result = ocr.process(path)
-        pdb.set_trace()
         if result.has_key('errno'):
             self.response.error_response(result)
             #AA:TODO: handle properly. We need to raise an exception to ourselves
