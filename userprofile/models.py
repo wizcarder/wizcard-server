@@ -120,7 +120,7 @@ class UserProfile(models.Model):
 		    		   choices=DEVICE_CHOICES, 
 				   default=IOS)
     device_id = models.CharField(max_length=100)
-    reg_token = models.CharField(db_index=True,max_length=100)
+    reg_token = models.CharField(db_index=True,max_length=200)
 
     objects = UserProfileManager()
 
