@@ -724,6 +724,11 @@ class ParseMsgAndDispatch(object):
         #there should already be a sent request from wizcard2 in PENDING state
         #AA:TODO: Wrap this in try, except for case when inbound req was somehow
         #not there
+        notify.send(self.user, recipient=r_user,
+            verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
+            description=cctx.description,
+            target=wizcard,
+            action_object=rel12)
         Wizcard.objects.becard(wizcard2, wizcard1)
 
         return self.response
@@ -1122,11 +1127,6 @@ class ParseMsgAndDispatch(object):
                         action_object=rel12)
 
                     #Q notif for to_wizcard
-                    notify.send(self.user, recipient=r_user,
-                        verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
-                        description=cctx.description,
-                        target=wizcard,
-                        action_object=rel12)
 
                     count += 1
                 self.response.add_data("count", count)
