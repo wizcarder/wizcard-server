@@ -309,7 +309,7 @@ class ParseMsgAndDispatch(object):
                     logger.error('nexmo send via (%s) failed to (%s) with err (%s)', response_mode, response_target, errStr)
                     return self.response
             except:
-                pass 
+                pass
 
 
         if test_mode:
@@ -726,6 +726,14 @@ class ParseMsgAndDispatch(object):
         #not there
         Wizcard.objects.becard(wizcard2, wizcard1)
 
+        rel12 = wizcard2.get_relationship(wizcard1)
+        #Q notif for implicit accept to from_wizcard
+        notify.send(self.user,
+                    recipient=self.r_user,
+                    verb=verbs.WIZREQ_T[0],
+                    target=wizcard1,
+                    action_object=rel12)
+
         return self.response
 
     def WizConnectionRequestDecline(self):
@@ -1114,12 +1122,6 @@ class ParseMsgAndDispatch(object):
                                                    verbs.ACCEPTED,
                                                    cctx=cctx
                                                    )
-                    #Q notif for implicit accept to from_wizcard
-                    notify.send(self.user, recipient=self.user,
-                        verb=verbs.WIZREQ_T[0],
-                        description=cctx.description,
-                        target=r_wizcard,
-                        action_object=rel12)
 
                     #Q notif for to_wizcard
                     notify.send(self.user, recipient=r_user,
