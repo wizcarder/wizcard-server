@@ -249,6 +249,8 @@ MAX_PHONE_CHECK_RETRIES = 3
 
 #for UT..avoid nexmo
 PHONE_CHECK = False
+if RUNENV == "stage" or RUNENV == "prod":
+    PHONE_CHECK = True
 #retry timeout
 PHONE_CHECK_TIMEOUT = 180
 
