@@ -257,7 +257,7 @@ class ParseMsgAndDispatch(object):
         username = self.sender['username']
         response_mode = self.sender['responseMode']
         response_target = self.sender['target']
-        test_mode = True if self.sender.has_key('test_mode') else False
+        test_mode = self.sender['test_mode'] if self.sender.has_key('test_mode') else False
 
         #AA_TODO: security check for checkMode type
         k_user = (settings.PHONE_CHECK_USER_KEY % username)
@@ -279,8 +279,8 @@ class ParseMsgAndDispatch(object):
         cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
         #send a text with the rand
-        if settings.PHONE_CHECK and not test_mode:
-            msg = settings.PHONE_CHECK_MESSAGE
+        if settings.PHONE_CHECK:
+            msg = settings.PHONE_CHECK_MESSAGE.copy()
             msg['to'] = response_target
 
             if response_mode == "voice":
@@ -300,17 +300,12 @@ class ParseMsgAndDispatch(object):
 
             sms = NexmoMessage(msg)
             sms.set_text_info(msg['text'])
-            sms.send_request()
-            try: #TODO: for now workaround kale issue
-                status, errStr = sms.get_response()
-                if not status:
-                    #some error...let the app know
-                    self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
-                    logger.error('nexmo send via (%s) failed to (%s) with err (%s)', response_mode, response_target, errStr)
-                    return self.response
-            except:
-                pass
-
+            response = sms.send_request()
+            if not response:
+                #some error...let the app know
+                self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
+                logger.error('nexmo send via (%s) failed to (%s) with err (%s)', response_mode, response_target, errStr)
+                return self.response
 
         if test_mode:
             self.response.add_data("challenge_key", d[k_rand])

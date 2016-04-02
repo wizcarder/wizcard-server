@@ -248,7 +248,7 @@ USER_LASTSEEN_TIMEOUT = 60
 MAX_PHONE_CHECK_RETRIES = 3
 
 #for UT..avoid nexmo
-PHONE_CHECK = False
+PHONE_CHECK =  True
 if RUNENV == "stage" or RUNENV == "prod":
     PHONE_CHECK = False
 #retry timeout
@@ -278,6 +278,11 @@ WIZWEB_DEVICE_ID = 'wizweb'
 NEXMO_API_KEY = '4788a696'
 NEXMO_API_SECRET = '185e2f6f'
 NEXMO_OWN_NUMBER = '12243109118'
+
+#This one is from wizcarder account
+#NEXMO_API_KEY = '46ba6fbd'
+#NEXMO_API_SECRET = '3c1d7f33'
+#NEXMO_OWN_NUMBER = '12184294228'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',

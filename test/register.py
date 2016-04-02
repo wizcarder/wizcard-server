@@ -32,7 +32,7 @@ import pprint
 
 TEST_IMAGE=True
 OCR_FLAG = True
-TEST_NEXMO = False
+TEST_NEXMO = True
 
 NEXMO_PHONE1 = "14084641727"
 NEXMO_PHONE2 = "+918971546485"
@@ -158,7 +158,7 @@ reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['target'] = NEXMO_PHONE1
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = False if TEST_NEXMO else "True"
+reqmsg['sender']['test_mode'] = TEST_NEXMO
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -1087,7 +1087,7 @@ reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['target'] = NEXMO_PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = False if TEST_NEXMO else "True"
+reqmsg['sender']['test_mode'] = TEST_NEXMO
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
