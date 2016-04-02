@@ -337,6 +337,7 @@ INSTALLED_APPS = (
     'gunicorn',
     'raven.contrib.django.raven_compat',
     'meishi',
+    'healthstatus',
 )
 
 #django-storage settings
