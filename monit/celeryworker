@@ -1,4 +1,4 @@
- check process celery with pidfile XXX/celeryd.pid
+ check process celeryworker with pidfile XXX/celeryd.pid
    start program = "/usr/sbin/service celeryworker start"
    stop program  = "/usr/sbin/service celeryworker stop"
  #  if failed host 127.0.0.1 port 8000  then restart

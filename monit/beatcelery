@@ -1,4 +1,4 @@
- check process celery with pidfile XXX/celerybeat.pid
+ check process celerybeat with pidfile XXX/celerybeat.pid
    start program = "/usr/sbin/service celerybeat start"
    stop program  = "/usr/sbin/service celerybeat stop"
  #  if failed host 127.0.0.1 port 8000  then restart
