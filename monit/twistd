@@ -1,7 +1,7 @@
  check process twistd with pidfile XXX/twistd.pid
    start program = "/usr/sbin/service twistd start"
    stop program  = "/usr/sbin/service twistd stop"
-   if failed then restart
+ #  if failed then restart
    if cpu > 60% for 2 cycles then alert
    if cpu > 98% for 5 cycles then restart
    if 5 restarts within 20 cycles then timeout
