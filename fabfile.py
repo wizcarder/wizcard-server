@@ -19,10 +19,6 @@ def set_hosts():
     	env.hosts = instances.ALLHOSTS[env.henv][env.function]
         print env.hosts
 
-def do_ls():
-    with virtualenv():
-	run("ls -al > /tmp/lsout")
-
 @task
 def check_services():
     run("%s/upstart/check_process.sh" % env.installroot)
@@ -61,6 +57,7 @@ def aptgets(name="all"):
 		run("sudo apt-get -q -y install memcached")
 		run("sudo apt-get -q -y install libffi-dev libxml2 libxml2-dev  libxslt1-dev")
 		run("sudo apt-get -q -y install nginx")
+		run("sudo apt-get -q -y install monit")
 #                run("sudo ntpdate -s ntp.ubuntu.com")
 	else:
 		run("sudo apt-get -q -y install %s" % name)
@@ -74,6 +71,7 @@ def installpackage(name=env.installroot + "/req.txt"):
 		installpackage()
 
 
+@task
 def gitcloneupdate():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
     if env.henv != 'dev':
@@ -122,6 +120,19 @@ def postinstall():
                         #append_settings()
 #                        run("cp wizcard/awstest_settings.py wizcard/settings.py")
 			init_upstart()
+                        init_monit()
+
+@task
+def init_monit():
+	with cd(env.installroot):
+                intip = getawsip()
+		run("sudo cp monit/* /etc/monit/conf.d/")
+                for files in ("/etc/monit/conf.d/wizserver", "/etc/monit/conf.d/beatcelery", "/etc/monit/conf.d/celeryworker", "/etc/monit/conf.d/celeryflower","/etc/monit/conf.d/twistd", "/etc/monit/conf.d/memcached"):
+                    edit_file("XXX",env.installroot,files)
+                    edit_file("HOSTIP",intip,files)
+		run("sudo rm /etc/monit/conf.d/*.bak")
+		run("sudo monit reload")
+
 @task
 def init_upstart():
 	with cd(env.installroot):
