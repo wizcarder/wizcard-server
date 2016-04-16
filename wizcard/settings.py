@@ -249,8 +249,6 @@ MAX_PHONE_CHECK_RETRIES = 3
 
 #for UT..avoid nexmo
 PHONE_CHECK =  True
-if RUNENV == "stage" or RUNENV == "prod":
-    PHONE_CHECK = False
 #retry timeout
 PHONE_CHECK_TIMEOUT = 180
 
@@ -337,6 +335,7 @@ INSTALLED_APPS = (
     'gunicorn',
     'raven.contrib.django.raven_compat',
     'meishi',
+    'healthstatus',
 )
 
 #django-storage settings
