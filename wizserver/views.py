@@ -304,7 +304,7 @@ class ParseMsgAndDispatch(object):
             if not response:
                 #some error...let the app know
                 self.response.error_response(err.NEXMO_SMS_SEND_FAILED)
-                logger.error('nexmo send via (%s) failed to (%s) with err (%s)', response_mode, response_target, errStr)
+                logger.error('nexmo send via (%s) failed to (%s)', response_mode, response_target)
                 return self.response
 
         if test_mode:
