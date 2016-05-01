@@ -37,6 +37,7 @@ from response import Response, NotifResponse
 from userprofile.models import UserProfile
 from userprofile.models import FutureUser
 from lib import wizlib
+from lib.emailInvite import create_template as create_template
 from wizcard import err
 from location_mgr.models import LocationMgr
 from dead_cards.models import DeadCards
@@ -235,6 +236,7 @@ class ParseMsgAndDispatch(object):
             'meishi_start'                : (message_format.MeishiStartSchema, self.MeishiStart),
             'meishi_find'                 : (message_format.MeishiFindSchema, self.MeishiFind),
             'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
+            'get_email_template'          : (message_format.GetEmailTemplateSchema, self.GetEmailTemplate),
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -695,7 +697,13 @@ class ParseMsgAndDispatch(object):
             wizcard.save()
             wizcard.flood()
 
+
+        create_template.delay(wizcard)
+
+
         self.response.add_data("wizCardID", wizcard.pk)
+
+
 
         return self.response
 
@@ -1592,10 +1600,20 @@ class ParseMsgAndDispatch(object):
             deadcard.title = self.sender['title']
         if self.sender.has_key('web'):
             deadcard.web = self.sender['web']
+        if self.sender.has_key('inviteother'):
+            inviteother = self.sender['inviteother']
 
         #no f_bizCardEdit..for now atleast. This will always come via scan
         #or rescan
         deadcard.save()
+
+        if inviteother == 1:
+            receiver_type = "email"
+            receivers = [deadcard.email]
+            if receivers:
+                self.do_future_user(self.user.wizcard, receiver_type, receivers)
+            else:
+                self.response.error_response(err.NO_RECEIVER)
 
         return self.response
 
@@ -1654,6 +1672,18 @@ class ParseMsgAndDispatch(object):
         #maybe some cleanup...but shouldn't be anything we should rely on
         #too much
         return self.response
+
+    def GetEmailTemplate(self):
+        wizcard = self.user.wizcard
+
+        if not wizcard.emailTemplate:
+            create_template.delay(wizcard)
+
+        email = wizcard.emailTemplate.remote_url()
+        self.response.add_data("emailTemplate", email)
+
+        return self.response
+
 
 
     #################WizWeb Message handling########################
