@@ -191,7 +191,7 @@ edit_card1 = {
         "last_name" : "Ammundi",
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
-        "phone1" : 4084641727,
+        "phone1" : 8971546485,
         "userID" : "USER1",
         "deviceType": "ios",
         #wizUserID should be the userID got from response of above register message
@@ -632,13 +632,7 @@ ocr_dead_card_edit = {
         "userID" : "",
         "wizUserID" : "",
         "deadCardID": "",
-        "first_name": "",
-        "last_name": "",
-        "phone": "",
-        "email": "",
-        "company": "",
-        "title": "",
-        "web": "",
+        "inviteother" : 0,
     },
 }
 wizweb_query_user = {
@@ -716,6 +710,19 @@ meishi_start = {
 meishi_find = {
     "header" : {
         "msgType" : "meishi_find",
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizCardID" : "",
+        "mID" : "",
+        "deviceType": "ios",
+    },
+}
+get_email_template = {
+    "header" : {
+        "msgType" : "get_email_template",
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
     },
