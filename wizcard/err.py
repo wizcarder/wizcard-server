@@ -21,6 +21,7 @@ NEXMO_SMS_SEND_FAILED = {'errno':19, 'str':"SMS send failed"}
 VALIDITY_CHECK_FAILED = {'errno':20, 'str':"validity check fails on data"}
 CRITICAL_ERROR = {'errno':21, 'str':"something went wrong...please delete and reinstall the app"}
 LIB_OCR_ERROR = {'errno': 22, 'str':"OCR lib error"}
+NO_RECEIVER = {'errno' : 23, 'str': "No receiver in the request"}
 
 
 
