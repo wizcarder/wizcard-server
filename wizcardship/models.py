@@ -162,6 +162,8 @@ class Wizcard(models.Model):
     #media objects
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
+    emailTemplate = WizcardQueuedFileField(upload_to="invites",
+            storage=WizcardQueuedS3BotoStorage(delayed=False))
 
     objects = WizcardManager()
 
