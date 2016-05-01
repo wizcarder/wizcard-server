@@ -112,7 +112,7 @@ verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
 
 #server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
-server_url = "wizserver-lb-797719134.us-west-1.elb.amazonaws.com"
+server_url = "localhost"
 
 server_port = 8000
 #server_port = 8002
@@ -291,6 +291,13 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 e2_id = objs['data']['wizCardID']
+reqmsg = messages.get_email_template
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+send_request(conn, reqmsg)
+objs = handle_response(conn, reqmsg['header']['msgType'])
+email = objs['data']['emailTemplate']
+print "Email check..."
 
 reqmsg = messages.edit_card3
 reqmsg['sender']['userID'] = uid3
@@ -907,9 +914,12 @@ if OCR_FLAG:
     reqmsg['sender']['userID'] = uid1
     reqmsg['sender']['wizUserID'] = wuid1
     reqmsg['sender']['deadCardID'] = dc1_id
+    reqmsg['sender']['inviteother'] = 1
+    reqmsg['sender']['email'] = 'anandramani98@gmail.com'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
+    print "Check for future user"
 
 
 ####wizweb messages########################
