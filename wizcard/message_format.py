@@ -1,5 +1,5 @@
-""" 
-this is the place to define all message formats. 
+"""
+this is the place to define all message formats.
 Colander is the schema validator/generator used. Hopefully it'll work
 """
 
@@ -11,7 +11,7 @@ class CommonHeaderSchema(colander.MappingSchema):
     msgType = colander.SchemaNode(colander.String(),
             validator=colander.OneOf(msg_types))
     deviceID = colander.SchemaNode(colander.String())
-    
+
 class CommonSenderSchema(colander.MappingSchema):
     userID = colander.SchemaNode(colander.String())
 
@@ -22,7 +22,7 @@ class SenderSchema(CommonSenderSchema):
 class RegisterSchema(colander.MappingSchema):
     header = CommonHeaderSchema()
     sender = SenderSchema()
-    
+
 class SignupSchema(colander.MappingSchema):
     pass
 class LoginSchema(colander.MappingSchema):
@@ -112,6 +112,8 @@ class MeishiStartSchema(colander.MappingSchema):
 class MeishiFindSchema(colander.MappingSchema):
     pass
 class MeishiEndSchema(colander.MappingSchema):
+    pass
+class GetEmailTemplateSchema(colander.MappingSchema):
     pass
 
 
