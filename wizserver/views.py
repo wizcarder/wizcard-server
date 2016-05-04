@@ -1590,18 +1590,21 @@ class ParseMsgAndDispatch(object):
             deadcard.first_name = self.sender['first_name']
         if self.sender.has_key('last_name'):
             deadcard.last_name = self.sender['last_name']
-        if self.sender.has_key('phone'):
-            deadcard.phone = self.sender['phone']
-        if self.sender.has_key('email'):
-            deadcard.email = self.sender['email']
-        if self.sender.has_key('company'):
-            deadcard.company = self.sender['company']
-        if self.sender.has_key('title'):
-            deadcard.title = self.sender['title']
-        if self.sender.has_key('web'):
-            deadcard.web = self.sender['web']
-        if self.sender.has_key('inviteother'):
-            inviteother = self.sender['inviteother']
+        inviteother = self.sender.get('inviteother', False)
+
+        cc = self.sender.get('contact_container', None)
+        if cc:
+            if cc.has_key('phone'):
+                deadcard.phone = cc['phone']
+            if cc.has_key('email'):
+                deadcard.email = cc['email']
+            if cc.has_key('company'):
+                deadcard.company = cc['company']
+            if cc.has_key('title'):
+                deadcard.title = self.sender['title']
+            if cc.has_key('web'):
+                deadcard.web = self.sender['web']
+
 
         #no f_bizCardEdit..for now atleast. This will always come via scan
         #or rescan

@@ -633,6 +633,7 @@ ocr_dead_card_edit = {
         "wizUserID" : "",
         "deadCardID": "",
         "inviteother" : 0,
+        "contact_container": [contact_container]
     },
 }
 wizweb_query_user = {

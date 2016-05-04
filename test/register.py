@@ -915,7 +915,7 @@ if OCR_FLAG:
     reqmsg['sender']['wizUserID'] = wuid1
     reqmsg['sender']['deadCardID'] = dc1_id
     reqmsg['sender']['inviteother'] = 1
-    reqmsg['sender']['email'] = 'anandramani98@gmail.com'
+    reqmsg['sender']['contact_container'][0]['email'] = 'anandramani98@gmail.com'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
