@@ -27,6 +27,7 @@ BROKER_VHOST = 'wizcard_vhost'
 CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
+EMAIL_TEMPLATE = 'email_template.jpg'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
 CELERY_BEAT_QUEUE_NAME = 'beat'
@@ -86,18 +87,26 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-if RUNENV == 'dev':
+if RUNENV == 'dev' or RUNENV=='test':
     DATABASES = {
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-            'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '5432',
+                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'PORT': '5432',
 	    }
+#    DATABASES = {
+#	    'default': {
+#	        'ENGINE': 'django.db.backends.mysql',
+#	        'NAME': 'wizcard',
+#	        'USER': 'root',
+#	        'PASSWORD': 'mydb',
+#                'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+#	    }
 
-    }
+#    }
 elif RUNENV == 'stage':
     DATABASES = {
 	    'default': {
@@ -105,8 +114,7 @@ elif RUNENV == 'stage':
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-            'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '5432',
+                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 elif RUNENV == 'prod':
@@ -344,7 +352,7 @@ AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_BUCKET_ENV = "-" + RUNENV
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV
-S3_URL = 'http://%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
 STATIC_URL = S3_URL + STATIC_DIRECTORY
@@ -475,7 +483,7 @@ PYAPNS_CONFIG = {
 # RAVEN config for Sentry
 RAVEN_CONFIG = {
     #for new AWS prod/stage
-    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+    #'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
     #for bitnami AWS instance
     #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
 }
