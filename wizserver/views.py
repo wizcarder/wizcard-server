@@ -1594,15 +1594,15 @@ class ParseMsgAndDispatch(object):
 
         cc = self.sender.get('contact_container', None)
         if cc:
-            if cc.has_key('phone'):
+            if cc[0].has_key('phone'):
                 deadcard.phone = cc['phone']
-            if cc.has_key('email'):
+            if cc[0].has_key('email'):
                 deadcard.email = cc['email']
-            if cc.has_key('company'):
+            if cc[0].has_key('company'):
                 deadcard.company = cc['company']
-            if cc.has_key('title'):
+            if cc[0].has_key('title'):
                 deadcard.title = self.sender['title']
-            if cc.has_key('web'):
+            if cc[0].has_key('web'):
                 deadcard.web = self.sender['web']
 
 
