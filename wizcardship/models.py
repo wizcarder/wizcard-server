@@ -147,6 +147,8 @@ class WizcardManager(models.Manager):
 
         return result, len(result)
 
+    def save_email_template(self, id, obj):
+        self.objects.get(id=id).emailTemplate.save(obj.name, obj)
 
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
@@ -162,6 +164,8 @@ class Wizcard(models.Model):
     #media objects
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
+
+    #email template
     emailTemplate = WizcardQueuedFileField(upload_to="invites",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
 
@@ -206,6 +210,9 @@ class Wizcard(models.Model):
 
     def get_thumbnail_url(self):
         return self.thumbnailImage.remote_url()
+
+    def get_email_template_url(self):
+        return self.emailTemplate.remote_url()
 
     def get_name(self):
         return self.first_name + " " + self.last_name

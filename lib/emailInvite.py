@@ -2,14 +2,19 @@ import sys
 import StringIO, hashlib
 from PIL import Image, ImageFont, ImageDraw
 from celery import shared_task
+from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.storage import default_storage as storage
-
+from wizcardship.models import WizcardManager, Wizcard
+import pdb
+now = timezone.now
 
 @shared_task
-def create_template(wizcard):
+def create_template(wizcard_id):
 
     resource = storage.open("/invites/email_template.png")
+
+    wizcard = Wizcard.objects.get(id=wizcard_id)
 
     data = {"name" : wizcard.first_name + " " + wizcard.last_name, "company": wizcard.get_latest_company(), "title" : wizcard.get_latest_title(), "email" : wizcard.email, "phone" : wizcard.phone}
 
@@ -18,7 +23,6 @@ def create_template(wizcard):
     im_sz = im.size
     im_bg = Image.new(mode='RGBA', size=im_sz, color=(255, 255, 255, 230))
     im_bg.paste(im, (0, 0), 0)
-
     defaultfont = ImageFont.truetype('arial.ttf', 15)
 
     try:
@@ -48,7 +52,8 @@ def create_template(wizcard):
     sharefile = SimpleUploadedFile("%s-%s.jpg" % \
                                         (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                                         im_io.getvalue(), "image/jpeg")
-    wizcard.emailTemplate.save(sharefile.name, sharefile)
+
+    Wizcard.objects.save_email_template(sharefile.name, sharefile)
 '''
 
 data = {'email': 'anandramani98@gmail.com', 'company':'Yahoo', 'phone':'8971546485', 'title': 'Director Engg', 'name': 'Anand Ramani'}
