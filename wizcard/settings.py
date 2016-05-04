@@ -106,7 +106,7 @@ if RUNENV == 'dev' or RUNENV=='test':
 #                'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
 #	    }
 
-#    }
+    }
 elif RUNENV == 'stage':
     DATABASES = {
 	    'default': {
