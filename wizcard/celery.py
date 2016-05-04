@@ -16,6 +16,7 @@ wizcard_app = Celery('wizcard')
 # pickle the object when using Windows.
 wizcard_app.config_from_object('django.conf:settings')
 wizcard_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+wizcard_app.autodiscover_tasks(settings.INSTALLED_APPS + ("lib.emailInvite", "lib.ocr"))
 
 CELERY_IMPORTS=("periodic.tasks",)
 
