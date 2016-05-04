@@ -1,11 +1,12 @@
+#!/usr/bin/env python
 import sys
 import StringIO, hashlib
-from PIL import Image, ImageFont, ImageDraw
 from celery import shared_task
 from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.storage import default_storage as storage
 from wizcardship.models import WizcardManager, Wizcard
+from PIL import Image,ImageFont, ImageDraw
 import pdb
 now = timezone.now
 
@@ -53,7 +54,7 @@ def create_template(wizcard_id):
                                         (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                                         im_io.getvalue(), "image/jpeg")
 
-    Wizcard.objects.save_email_template(sharefile.name, sharefile)
+    wizcard.save_email_template(sharefile)
 '''
 
 data = {'email': 'anandramani98@gmail.com', 'company':'Yahoo', 'phone':'8971546485', 'title': 'Director Engg', 'name': 'Anand Ramani'}
