@@ -1594,16 +1594,18 @@ class ParseMsgAndDispatch(object):
 
         cc = self.sender.get('contact_container', None)
         if cc:
-            if cc[0].has_key('phone'):
-                deadcard.phone = cc['phone']
-            if cc[0].has_key('email'):
-                deadcard.email = cc['email']
-            if cc[0].has_key('company'):
-                deadcard.company = cc['company']
-            if cc[0].has_key('title'):
-                deadcard.title = self.sender['title']
-            if cc[0].has_key('web'):
-                deadcard.web = self.sender['web']
+            cc_e = cc[0]
+
+            if cc_e.has_key('phone'):
+                deadcard.phone = cc_e['phone']
+            if cc_e.has_key('email'):
+                deadcard.email = cc_e['email']
+            if cc_e.has_key('company'):
+                deadcard.company = cc_e['company']
+            if cc_e.has_key('title'):
+                deadcard.title = cc_e['title']
+            if cc_e.has_key('web'):
+                deadcard.web = cc_e['web']
 
 
         #no f_bizCardEdit..for now atleast. This will always come via scan
