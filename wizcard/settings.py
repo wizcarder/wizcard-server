@@ -480,16 +480,16 @@ PYAPNS_CONFIG = {
   ]
 }
 
+if RUNENV == "stage":
 # RAVEN config for Sentry
-RAVEN_CONFIG = {
+    RAVEN_CONFIG = {
     #for new AWS prod/stage
-    if RUNENV == "stage":
         'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
-    elif RUNENV == "test":
-    #for bitnami AWS instance
+    }
+elif RUNENV == "test" or RUNENV == "dev":
+    RAVEN_CONFIG = {
         'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
-}
-
+    }
 GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
 
 CELERY_TIMEZONE = 'UTC'
