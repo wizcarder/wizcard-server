@@ -27,7 +27,7 @@ BROKER_VHOST = 'wizcard_vhost'
 CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
-EMAIL_TEMPLATE = 'email_template.jpg'
+EMAIL_TEMPLATE = '/invites/email_templatev2.png'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
 CELERY_BEAT_QUEUE_NAME = 'beat'
@@ -483,9 +483,11 @@ PYAPNS_CONFIG = {
 # RAVEN config for Sentry
 RAVEN_CONFIG = {
     #for new AWS prod/stage
-    #'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+    if RUNENV == "stage":
+        'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+    elif RUNENV == "test":
     #for bitnami AWS instance
-    #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
+        'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
 }
 
 GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
