@@ -147,9 +147,6 @@ class WizcardManager(models.Manager):
 
         return result, len(result)
 
-    def save_email_template(self, id, obj):
-        self.objects.get(id=id).emailTemplate.save(obj.name, obj)
-
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
     wizconnections_to = models.ManyToManyField('self',
@@ -213,6 +210,9 @@ class Wizcard(models.Model):
 
     def get_email_template_url(self):
         return self.emailTemplate.remote_url()
+
+    def save_email_template(self, obj):
+        self.emailTemplate.save(obj.name, obj)
 
     def get_name(self):
         return self.first_name + " " + self.last_name

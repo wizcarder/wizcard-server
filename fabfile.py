@@ -41,13 +41,19 @@ def virtualenv():
 
 def aptgets(name="all"):
 	if name == "all":
+                run("echo deb \"http://us.archive.ubuntu.com/ubuntu/ trusty multiverse\" | sudo tee -a /etc/apt/sources.list")
+                run("echo deb-src \"http://us.archive.ubuntu.com/ubuntu/ trusty multiverse\" | sudo tee -a /etc/apt/sources.list")
+                run("echo deb \"http://us.archive.ubuntu.com/ubuntu/ trusty-updates  multiverse\" | sudo tee -a /etc/apt/sources.list")
+                run("echo deb-src \"http://us.archive.ubuntu.com/ubuntu/ trusty-updates multiverse\" | sudo tee -a /etc/apt/sources.list")
 		run("sudo apt-get -q -y update")
+                run("sudo apt-get install ttf-mscorefonts-installer")
 		run("sudo apt-get -q -y install python-pip")
                 run ("sudo apt-get install libpq-dev python-dev")
 #		run("sudo apt-get -q -y install libmysqlclient-dev")
 #		run("sudo apt-get -q -y install  mysql-client-core-5.6")
                 run("sudo apt-get -q -y install postgresql-client")
 		run("sudo apt-get -q -y install python-virtualenv")
+		run("sudo apt-get -q -y install libjpeg")
 		run("sudo apt-get -q -y install python-dev")
 		run("sudo apt-get -q -y install git")
                 run("sudo apt-get -q -y install ntp")
@@ -55,6 +61,7 @@ def aptgets(name="all"):
                 run("sudo rabbitmq-plugins enable rabbitmq_management")
 		run("sudo apt-get -q -y install libssl-dev")
 		run("sudo apt-get -q -y install memcached")
+	        run("sudo apt-get -q -y install libfreetype6-dev ")
 		run("sudo apt-get -q -y install libffi-dev libxml2 libxml2-dev  libxslt1-dev")
 		run("sudo apt-get -q -y install nginx")
 		run("sudo apt-get -q -y install monit")
@@ -125,6 +132,7 @@ def postinstall():
 @task
 def init_monit():
 	with cd(env.installroot):
+            with settings(warn_only=True):
                 intip = getawsip()
 		run("sudo cp monit/* /etc/monit/conf.d/")
                 for files in ("/etc/monit/conf.d/wizserver", "/etc/monit/conf.d/beatcelery", "/etc/monit/conf.d/celeryworker", "/etc/monit/conf.d/celeryflower","/etc/monit/conf.d/twistd", "/etc/monit/conf.d/memcached"):
@@ -136,6 +144,7 @@ def init_monit():
 @task
 def init_upstart():
 	with cd(env.installroot):
+            with settings(warn_only=True):
                 intip = getawsip()
 		run("sudo cp upstart/*.conf /etc/init")
                 for files in ("/etc/init/wizserver.conf", "/etc/init/celerybeat.conf", "/etc/init/celeryworker.conf", "/etc/init/locationjob.conf", "/etc/init/celeryflower.conf","/etc/init/twistd.conf"):
@@ -147,6 +156,7 @@ def init_upstart():
                 edit_file("env host=xxx", "env host="+intip,"/etc/init/memcached.conf")
                 run("sudo cp upstart/%s/wizserver /etc/nginx/sites-enabled" % env.henv)
                 edit_file("SERVERIP", intip, "/etc/nginx/sites-enabled/wizserver")
+                edit_file("127.0.0.1", intip, "/etc/memcached.conf")
                 run("sudo rm /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/wizserver.bak")
 
 def edit_file(find,replace,efile):
@@ -204,13 +214,12 @@ def startservices():
 
 @task
 def startmemcached():
-    run("sudo service memcached start")
+    run("sudo /etc/init.d/memcached start")
 
 @task
 def stopmemcached():
     with settings(warn_only=True):
         run("sudo /etc/init.d/memcached stop")
-        run("sudo service memcached stop")
 
 @task
 def starttwistd():
