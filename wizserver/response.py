@@ -7,6 +7,7 @@ from userprofile.models import UserProfile
 from notifications.models import Notification
 from base.cctx import NotifContext
 from django.http import HttpResponse
+from wizcard.celery import client
 import logging
 import fields
 import json
@@ -38,6 +39,11 @@ class Response:
     def error_response(self, err):
         self.add_result("Error", err['errno'])
         self.add_result("Description", err['str'])
+        logger.error('%s: %s' % (err['errno'], err['str']))
+        try:
+            raise RuntimeError('%s: %s' % (err['errno'], err['str']))
+        except:
+            client.captureException()
         return self
 
     def ignore(self):

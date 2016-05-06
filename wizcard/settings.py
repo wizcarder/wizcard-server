@@ -8,6 +8,7 @@ from __future__ import absolute_import
 import djcelery
 import os
 djcelery.setup_loader()
+import logging
 
 from kombu import Queue, Exchange
 from wizcard import instances
@@ -354,6 +355,15 @@ MEDIA_URL = S3_URL + MEDIA_DIRECTORY
 
 AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
+# RAVEN config for Sentry
+RAVEN_CONFIG = {
+    #for new AWS prod/stage
+    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+    'CELERY_LOGLEVEL': logging.ERROR
+
+    #for bitnami AWS instance
+    #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
+}
 
 # Advanced Django 1.3.x+ Logging
 #
@@ -374,91 +384,97 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-	'verbose': {
-	    'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
-	    'datefmt': '%a, %d %b %Y %H:%M:%S %z',
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
+            'datefmt': '%a, %d %b %Y %H:%M:%S %z',
+            },
+        'simple': {
+            'format': '[%(levelname)s] %(asctime)s - %(message)s',
+            'datefmt': '%a, %d %b %Y %H:%M:%S %z',
         },
-	'simple': {
-	    'format': '[%(levelname)s] %(asctime)s - %(message)s',
-	    'datefmt': '%a, %d %b %Y %H:%M:%S %z',
-	},
-	'django-default-verbose': {
-	    'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-	},
-	'common-logging-v2': {
-	    'format': '[%(asctime)s] - %(message)s',
-	    'datefmt': '%d/%b/%Y:%H:%M:%S %z',
-	},
-	'parsefriendly': {
-	    'format': '[%(levelname)s] %(asctime)s - M:%(module)s, P:%(process)d, T:%(thread)d, MSG:%(message)s',
-	    'datefmt': '%d/%b/%Y:%H:%M:%S %z',
-	},
+        'django-default-verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'common-logging-v2': {
+            'format': '[%(asctime)s] - %(message)s',
+            'datefmt': '%d/%b/%Y:%H:%M:%S %z',
+        },
+        'parsefriendly': {
+            'format': '[%(levelname)s] %(asctime)s - M:%(module)s, P:%(process)d, T:%(thread)d, MSG:%(message)s',
+            'datefmt': '%d/%b/%Y:%H:%M:%S %z',
+        },
     },
     'handlers': {
-	'null': {
-	    'level':'DEBUG',
-	    'class':'django.utils.log.NullHandler',
-	},
-	'console-simple':{
-	    'level':'DEBUG',
-	    'class':'logging.StreamHandler',
-	    'formatter': 'simple'
-	},
-	'console':{
-	    'level':'DEBUG',
-	    'class':'logging.StreamHandler',
-	    'formatter': 'verbose'
-	},
-	'log-file': {
-	    'level': 'DEBUG',
-	    'class': 'logging.handlers.WatchedFileHandler',
-	    'formatter': 'verbose',
-	    #consider: 'filename': '/var/log/<myapp>/app.log',
-	    #will need perms at location below:
-            'filename': './log/app.log',
-	    'mode': 'a', #append+create
-	},
-	'timed-log-file': {
-	    'level': 'DEBUG',
-	    'class': 'logging.handlers.TimedRotatingFileHandler', # Python logging lib
-	    'formatter': 'parsefriendly',
-	    #consider: 'filename': '/var/log/<myapp>/app.log',
-	    #will need perms at location below:
-	    'filename': './log/app-timed.log',
-	    'when': 'midnight',
-	    #'backupCount': '30', #approx 1 month worth
-	},
-	'watched-log-file': {
-	    'level': 'DEBUG',
-	    'class': 'logging.handlers.WatchedFileHandler',
-	    'formatter': 'parsefriendly',
-	    #consider: 'filename': '/var/log/<myapp>/app.log',
-	    #will need perms at location below:
-	    'filename': './log/app-watched.log',
-	    'mode': 'a', #append+create
-	},
+        'null': {
+            'level':'DEBUG',
+            'class':'django.utils.log.NullHandler',
+        },
+        'console-simple':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'log-file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.WatchedFileHandler',
+            'formatter': 'verbose',
+            #consider: 'filename': '/var/log/<myapp>/app.log',
+            #will need perms at location below:
+                'filename': './log/app.log',
+            'mode': 'a', #append+create
+        },
+        'timed-log-file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler', # Python logging lib
+            'formatter': 'parsefriendly',
+            #consider: 'filename': '/var/log/<myapp>/app.log',
+            #will need perms at location below:
+            'filename': './log/app-timed.log',
+            'when': 'midnight',
+            #'backupCount': '30', #approx 1 month worth
+        },
+        'watched-log-file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.WatchedFileHandler',
+            'formatter': 'parsefriendly',
+            #consider: 'filename': '/var/log/<myapp>/app.log',
+            #will need perms at location below:
+            'filename': './log/app-watched.log',
+            'mode': 'a', #append+create
+        },
         'sentry': {
             'level': 'ERROR',
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
         },
-
     },
     'loggers': {
-	'django': {
-	    'level':'DEBUG',
-	    'handlers': ['timed-log-file'],
-	    'propagate': False,
-	},
-        'wizserver': {
-            'level': 'DEBUG',
-	    'handlers': ['console', 'watched-log-file'],
-            'propagate': False,
-        },
-        'sentry.errors': {
-            'level': 'DEBUG',
+	    'django': {
+	        'level':'DEBUG',
+	        'handlers': ['timed-log-file'],
+	        'propagate': False,
+	    },
+        #AA TODO: Need to figure this out. Sentry logging still not working
+        'raven': {
+            'level': 'ERROR',
             'handlers': ['console'],
             'propagate': False,
         },
+        'sentry.errors': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'wizserver': {
+            'level': 'DEBUG',
+	        'handlers': ['console', 'watched-log-file'],
+            'propagate': False,
+        },
+
     }
 }
 
@@ -470,14 +486,6 @@ PYAPNS_CONFIG = {
     #('com.beta.wizcard', open('./certs/wizcard_ios_apns_dev.pem').read(), 'sandbox'),
     ('com.beta.wizcard', open('./certs/wizcard_ios_apns_production.pem').read(), 'production'),
   ]
-}
-
-# RAVEN config for Sentry
-RAVEN_CONFIG = {
-    #for new AWS prod/stage
-    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
-    #for bitnami AWS instance
-    #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
 }
 
 GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'

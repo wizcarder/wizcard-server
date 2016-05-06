@@ -25,6 +25,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
 from django.core import serializers
+from raven.contrib.django.raven_compat.models import client
 from lib.preserialize.serialize import serialize
 from lib.ocr import OCR
 from django.core.files.storage import default_storage
@@ -126,11 +127,11 @@ class ParseMsgAndDispatch(object):
                 self.user = User.objects.get(id=sender['wizUserID'])
                 self.userprofile = self.user.profile
             except:
-                logger.debug('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
+                logger.error('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
 
             if self.userprofile.userid != self.sender['userID']:
-                logger.debug('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
+                logger.error('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
 
         #AA:TODO - Move to header
@@ -1515,8 +1516,7 @@ class ParseMsgAndDispatch(object):
         result = ocr.process(path)
         if result.has_key('errno'):
             self.response.error_response(result)
-            #AA:TODO: handle properly. We need to raise an exception to ourselves
-            raise Exception(result['str'])
+            logging.error(result['str'])
             return self.response
 
         if result.has_key('first_name') and result.get('first_name'):
