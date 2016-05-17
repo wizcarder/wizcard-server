@@ -699,7 +699,7 @@ class ParseMsgAndDispatch(object):
             wizcard.flood()
 
 
-        create_template.delay(wizcard)
+        create_template.delay(wizcard.pk)
 
 
         self.response.add_data("wizCardID", wizcard.pk)
@@ -1682,7 +1682,7 @@ class ParseMsgAndDispatch(object):
         wizcard = self.user.wizcard
 
         if not wizcard.emailTemplate:
-            create_template.delay(wizcard)
+            create_template.delay(wizcard.pk)
 
         email = wizcard.emailTemplate.remote_url()
         self.response.add_data("emailTemplate", email)
