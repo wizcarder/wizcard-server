@@ -5,10 +5,16 @@ from fabric.contrib.files import exists
 from contextlib import contextmanager
 from wizcard import instances
 import re
+import logging
+
+logging.basicConfig(level=logging.INFO)
 env.venv = '/home/'+env.runuser+'/'+env.henv
 env.activate = 'source /home/' +env.runuser+'/'+ env.henv+'/bin/activate'
 env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
-env.awskey = '/home/anand/aws/stagewizcard.pem'
+if env.henv != 'dev':
+    env.key_filename = ['/home/anand/aws/stagewizcard.pem']
+else:
+    env.key_filename = ['/home/anand/testenv/wizcard-server/certs/wizcard-default.pem']
 env.gitkey = '/home/anand/.ssh/id_rsa'
 #env.henv = 'dev'
 #env.function = 'WIZSERVER'
@@ -46,14 +52,15 @@ def aptgets(name="all"):
                 run("echo deb \"http://us.archive.ubuntu.com/ubuntu/ trusty-updates  multiverse\" | sudo tee -a /etc/apt/sources.list")
                 run("echo deb-src \"http://us.archive.ubuntu.com/ubuntu/ trusty-updates multiverse\" | sudo tee -a /etc/apt/sources.list")
 		run("sudo apt-get -q -y update")
-                run("sudo apt-get install ttf-mscorefonts-installer")
+                run("sudo apt-get install libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev  python-tk")
+                run("sudo apt-get install fonts-roboto")
 		run("sudo apt-get -q -y install python-pip")
                 run ("sudo apt-get install libpq-dev python-dev")
 #		run("sudo apt-get -q -y install libmysqlclient-dev")
 #		run("sudo apt-get -q -y install  mysql-client-core-5.6")
                 run("sudo apt-get -q -y install postgresql-client")
 		run("sudo apt-get -q -y install python-virtualenv")
-		run("sudo apt-get -q -y install libjpeg")
+                run("sudo apt-get -q -y install libjpeg-dev libpng-dev zlib1g-dev libopenjpeg-dev openjpeg-tools")
 		run("sudo apt-get -q -y install python-dev")
 		run("sudo apt-get -q -y install git")
                 run("sudo apt-get -q -y install ntp")
@@ -83,7 +90,7 @@ def gitcloneupdate():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
     if env.henv != 'dev':
         with settings(warn_only=True):
-         local("scp -i %s %s ubuntu@%s:/home/ubuntu/.ssh/id_rsa" % (env.awskey,env.gitkey,env.host)) 
+         local("scp -i %s %s %s@%s:/home/%s/.ssh/id_rsa" % (env.key_filename[0],env.gitkey,env.runuser,env.host,env.runuser)) 
 
     with settings(warn_only=True):
         if run("test -d %s" % env.installroot).failed:
@@ -276,6 +283,7 @@ def stopwizserver():
 	run("sudo service celerybeat stop")
 	run("sudo service celeryworker stop")
 	run("sudo service celeryflower stop")
+	run("sudo service rabbitmq-server stop")
         stopmemcached()
         stoptwistd()
         stopnginx()
