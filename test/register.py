@@ -158,11 +158,11 @@ reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['target'] = NEXMO_PHONE1
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = TEST_NEXMO
+reqmsg['sender']['test_mode'] = not TEST_NEXMO
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data']['challenge_key']
+response_key = objs['data'].get('challenge_key', 1234)
 
 reqmsg = messages.phone_check_resp
 reqmsg['header']['deviceID'] = DEVICE_ID1

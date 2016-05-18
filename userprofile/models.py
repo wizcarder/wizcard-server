@@ -28,32 +28,43 @@ class UserProfileManager(models.Manager):
         s = dict()
         template = fields.wizcard_template_brief
 
-        own, follower, followed, connected, others = self.split_users(me, users)
-        if own:
-            s['own'] = UserProfile.objects.serialize(own, template)
-        if follower:
-            s['follower'] = UserProfile.objects.serialize(follower, template)
-        if followed:
-            s['followed'] = UserProfile.objects.serialize(followed, template)
-        if connected:
-            s['connected'] = UserProfile.objects.serialize(connected, template)
-        if others:
-            s['others'] = UserProfile.objects.serialize(others, template)
+        ret = self.split_users(me, users)
+        if ret.has_key('own'):
+            s['own'] = UserProfile.objects.serialize(ret['own'], template)
+        if ret.has_key('requested'):
+            s['requested'] = UserProfile.objects.serialize(ret['requested'], template)
+        if ret.has_key('connected'):
+            s['connected'] = UserProfile.objects.serialize(ret['connected'], template)
+        if ret.has_key('follower'):
+            s['follower'] = UserProfile.objects.serialize(ret['follower'], template)
+        if ret.has_key('followed'):
+            s['followed'] = UserProfile.objects.serialize(ret['followed'], template)
+        if ret.has_key('others'):
+            s['others'] = UserProfile.objects.serialize(ret['others'], template)
 
         return s
 
     def split_users(self, me, users):
         own = []
+        requested = []
         connected = []
         follower = []
         followed = []
         others = []
 
+        ret = dict()
+
         for user in users:
-            if Wizcard.objects.are_wizconnections(user.wizcard, me.wizcard):
-                connected.append(user)
-            elif user == me:
+            if user == me:
                 own.append(user)
+            elif Wizcard.objects.is_wizconnection_pending(
+                    me.wizcard,
+                    user.wizcard):
+                requested.append(user)
+            elif Wizcard.objects.are_wizconnections(
+                    user.wizcard,
+                    me.wizcard):
+                connected.append(user)
             elif Wizcard.objects.is_wizcard_following(
                     me.wizcard,
                     user.wizcard):
@@ -64,8 +75,21 @@ class UserProfileManager(models.Manager):
                 followed.append(user)
             else:
                 others.append(user)
-        #AA:TODO make it dict
-        return own, follower, followed, connected, others
+
+        if len(own):
+            ret['own'] = own
+        if len(requested):
+            ret['requested'] = requested
+        if len(connected):
+            ret['connected'] = connected
+        if len(follower):
+            ret['follower'] = follower
+        if len(followed):
+            ret['followed'] = followed
+        if len(others):
+            ret['others'] = others
+
+        return ret
 
     def serialize(self, users, template):
         wizcards = map(lambda u: u.wizcard, users)
