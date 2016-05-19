@@ -8,10 +8,11 @@ import json
 import pdb
 import messages
 
-server_url = "www.totastyle.com"
-#server_url = "localhost"
+server_url = "ec2-52-8-161-151.us-west-1.compute.amazonaws.com"
 
-server_port = 8000
+server_port = 80
+USERID = "SP9HAR"
+WIZUSERID = 2
 
 # Open the connection to Wiz server
 conn = httplib.HTTPConnection(server_url, server_port)
@@ -19,31 +20,15 @@ conn = httplib.HTTPConnection(server_url, server_port)
 def handle_response(connection):
     res = conn.getresponse()
     print res.status, res.reason
-    objs = res.read()    
+    objs = res.read()
     objs = json.loads( objs )
     print json.dumps(objs, sort_keys = True, indent = 2)
     return objs
 
 get_cards_u1_msg = messages.get_cards
-get_cards_u1_msg['sender']['userID'] = "25VMBF"
-get_cards_u1_msg['sender']['wizUserID'] = 1
+get_cards_u1_msg['sender']['userID'] = USERID
+get_cards_u1_msg['sender']['wizUserID'] = WIZUSERID
 gcu1 = json.dumps(get_cards_u1_msg)
 conn.request("POST","", gcu1)
-# Parse and dump the JSON response from server
-objs = handle_response(conn)
-
-get_cards_u3_msg = messages.get_cards
-get_cards_u3_msg['sender']['userID'] = "F5NBTR"
-get_cards_u3_msg['sender']['wizUserID'] = 2
-gcu3 = json.dumps(get_cards_u3_msg)
-conn.request("POST","", gcu3)
-# Parse and dump the JSON response from server
-objs = handle_response(conn)
-
-get_cards_u3_msg = messages.get_cards
-get_cards_u3_msg['sender']['userID'] = "892SUV"
-get_cards_u3_msg['sender']['wizUserID'] = 3
-gcu3 = json.dumps(get_cards_u3_msg)
-conn.request("POST","", gcu3)
 # Parse and dump the JSON response from server
 objs = handle_response(conn)

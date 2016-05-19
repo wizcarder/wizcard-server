@@ -282,7 +282,7 @@ class ParseMsgAndDispatch(object):
         cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
         #send a text with the rand
-        if settings.PHONE_CHECK:
+        if settings.PHONE_CHECK and not test_mode:
             msg = settings.PHONE_CHECK_MESSAGE.copy()
             msg['to'] = response_target
 
@@ -708,7 +708,10 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-    #This is doing 2-way presently
+    # Set both sides to accept. There should already be wizcard1(me)->wizcard2(him) in ACCEPT
+    # and wizcard2->wizcard1 in PENDING.
+    # NOTE: A->B doesn't denote direction of request. It denotes that B is FOLLOWING A. ie
+    # B has A's wizcard in roldex
     def WizcardAccept(self):
         try:
             wizcard1 = self.user.wizcard
@@ -724,14 +727,15 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        #accept wizcard2->wizcard1
-        #there should already be a sent request from wizcard2 in PENDING state
-        #AA:TODO: Wrap this in try, except for case when inbound req was somehow
-        #not there
+        # accept wizcard2->wizcard1
+        # there should already be a sent request from wizcard2 in PENDING state
+
+        # AA:TODO: Wrap this in try, except for case when inbound req was somehow
+        # not there
         Wizcard.objects.becard(wizcard2, wizcard1)
 
         rel12 = wizcard2.get_relationship(wizcard1)
-        #Q notif for implicit accept to from_wizcard
+        # Q notif for implicit accept to wizcard2
         notify.send(self.user,
                     recipient=self.r_user,
                     verb=verbs.WIZREQ_T[0],
@@ -752,14 +756,14 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        #wizcard2 must have sent a wizconnection_request, lets clear it
+        #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
         Wizcard.objects.uncard(wizcard2, wizcard1)
 
         #AA TODO: Might have to send notif to wizcard2
 
         return self.response
 
-    #this is to withdraw sent request
+    #this is to withdraw sent request. May not be used now
     def WizConnectionRequestWithdraw(self):
         try:
             wizcard1 = self.user.wizcard
@@ -785,8 +789,8 @@ class ParseMsgAndDispatch(object):
         #also, the wizconnection request would have been unaccepted so far.
         #maybe can be used as a consistency check...
 
-        #clear my wizconnection_request
-        Wizcard.objects.clear(wizcard1, wizcard2)
+        #remove my wizconnection_request
+        Wizcard.objects.uncardit(wizcard1, wizcard2)
         return self.response
 
     def WizcardRolodexDelete(self):
@@ -797,11 +801,15 @@ class ParseMsgAndDispatch(object):
             for w in wizcards:
                 wizcard2 = Wizcard.objects.get(id=w)
                 try:
-                    Wizcard.objects.clear(wizcard2, wizcard1)
+                    #treat this as if the wizcard2 has sent me a request by setting
+                    # state to PENDING. Just that the request won't be seen in notifications.
+                    # The state is set to how it would have been if wizcard1 had got a
+                    # request from wizcard2
+                    Wizcard.objects.reset(wizcard2, wizcard1)
                     #Q a notif to other guy so that the app on the other side can react
-                    #notify.send(self.user, recipient=wizcard2.user,
-                    #            verb=verbs.WIZCARD_REVOKE[0],
-                    #            target=wizcard1)
+                    notify.send(self.user, recipient=wizcard2.user,
+                                verb=verbs.WIZCARD_REVOKE[0],
+                                target=wizcard1)
                 except:
                     pass
         except KeyError:
@@ -1102,40 +1110,44 @@ class ParseMsgAndDispatch(object):
                     connection_mode=receiver_type,
                 )
 
+                #This is not used now
                 if receiver_type in ['wiz_follow', 'wiz_follow_connect']:
-                    #we will always add to our rolodex for new path cases
+                    #we will always add to our rolodex
                     if not Wizcard.objects.is_wizcard_following(r_wizcard, wizcard):
                         #add to my rolodex = create relationship from r_wizcard->wizcard
                         Wizcard.objects.cardit(r_wizcard,
                                                wizcard,
                                                status=verbs.ACCEPTED,
                                                cctx=cctx)
-                if receiver_type in ['wiz_trusted', 'wiz_untrusted'] and \
-                        not wizcard.get_relationship(r_wizcard):
-                    relstatus = \
-                        verbs.ACCEPTED if receiver_type == 'wiz_trusted' else verbs.PENDING
+                if receiver_type in ['wiz_trusted', 'wiz_untrusted']:
+                    if wizcard.get_relationship(r_wizcard):
+                        #shouldn't be...wizcard->r_wizcard exists previously
+                        self.response.error_response(err.EXISTING_CONNECTION)
+                    else:
+                        relstatus = \
+                            verbs.ACCEPTED if receiver_type == 'wiz_trusted' else verbs.PENDING
 
-                    #create wizcard1->wizcard2
-                    rel12 = Wizcard.objects.cardit(wizcard,
-                                                   r_wizcard,
-                                                   status=relstatus,
-                                                   cctx=cctx)
-                    #create and accept implicitly wizcard2->wizcard1
-                    rel21 = Wizcard.objects.cardit(r_wizcard,
-                                                   wizcard,
-                                                   verbs.ACCEPTED,
-                                                   cctx=cctx
-                                                   )
+                        #create wizcard1->wizcard2
+                        rel12 = Wizcard.objects.cardit(wizcard,
+                                                       r_wizcard,
+                                                       status=relstatus,
+                                                       cctx=cctx)
+                        #create and accept implicitly wizcard2->wizcard1
+                        rel21 = Wizcard.objects.cardit(r_wizcard,
+                                                       wizcard,
+                                                       verbs.ACCEPTED,
+                                                       cctx=cctx
+                                                       )
 
-                    #Q notif for to_wizcard
-                    notify.send(self.user, recipient=r_user,
-                        verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
-                        description=cctx.description,
-                        target=wizcard,
-                        action_object=rel12)
+                        #Q notif for to_wizcard
+                        notify.send(self.user, recipient=r_user,
+                            verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
+                            description=cctx.description,
+                            target=wizcard,
+                            action_object=rel12)
 
-                    count += 1
-                self.response.add_data("count", count)
+                        count += 1
+                        self.response.add_data("count", count)
         elif receiver_type in ['email', 'sms']:
             #future user handling
             self.do_future_user(wizcard, receiver_type, receivers)

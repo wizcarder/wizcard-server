@@ -76,6 +76,10 @@ class WizcardManager(models.Manager):
     def cardit(self, wizcard1, wizcard2, status=verbs.PENDING, cctx=""):
         return wizcard1.add_relationship(wizcard2, status=status, ctx=cctx)
 
+    #wizcard1 withdraws previously sent relationship
+    def uncardit(self, wizcard1, wizcard2):
+        wizcard1.remove_relationship(wizcard2)
+
     #wizcard2 follows wizcard1 (accepts wizcard1's req)
     def becard(self, wizcard1, wizcard2, cctx=""):
         rel = wizcard1.get_relationship(wizcard2)
@@ -89,9 +93,10 @@ class WizcardManager(models.Manager):
         rel.decline()
         return rel
 
-    #clear the relationship wizcard1->wizcard2
-    def clear(self, wizcard1, wizcard2):
-        wizcard1.remove_relationship(wizcard2)
+    #reset the relationship wizcard1->wizcard2 back to pending
+    def reset(self, wizcard1, wizcard2):
+        rel = wizcard1.get_relationship(wizcard2)
+        rel.reset()
 
     #wrapper for 2-way exchanges
     def exchange(self, wizcard1, wizcard2, cctx):
@@ -359,6 +364,11 @@ class WizConnectionRequest(models.Model):
         self.status = verbs.DECLINED
         self.save()
         signals.wizcardship_declined.send(sender=self)
+        return self
+
+    def reset(self):
+        self.status = verbs.PENDING
+        self.save()
         return self
 
     def cancel(self):
