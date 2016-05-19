@@ -28,7 +28,7 @@ BROKER_VHOST = 'wizcard_vhost'
 CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
-EMAIL_TEMPLATE = '/invites/email_templatev2.png'
+EMAIL_TEMPLATE = '/invites/email_templatev3.png'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
 CELERY_BEAT_QUEUE_NAME = 'beat'
@@ -496,8 +496,6 @@ PYAPNS_CONFIG = {
   ]
 }
 
-<<<<<<< HEAD
-=======
 if RUNENV == "stage":
 # RAVEN config for Sentry
     RAVEN_CONFIG = {
@@ -508,8 +506,7 @@ elif RUNENV == "test" or RUNENV == "dev":
     RAVEN_CONFIG = {
         'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
     }
->>>>>>> 1102dd7baee014a28b8142dfbb47dd88067e4376
-GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
+GCM_API_KEY = 'AIzaSyDimK6uqvYF_GckgNpP5xf2Fofqw7pM0eE'
 
 CELERY_TIMEZONE = 'UTC'
 
