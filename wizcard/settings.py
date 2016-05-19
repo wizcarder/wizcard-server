@@ -287,15 +287,16 @@ NEXMO_API_SECRET = '185e2f6f'
 NEXMO_OWN_NUMBER = '12243109118'
 
 #This one is from wizcarder account
-#NEXMO_API_KEY = '46ba6fbd'
-#NEXMO_API_SECRET = '3c1d7f33'
-#NEXMO_OWN_NUMBER = '12184294228'
+NEXMO_API_KEY = '46ba6fbd'
+NEXMO_API_SECRET = '3c1d7f33'
+NEXMO_OWN_NUMBER = '12184294228'
+NEXMO_SENDERID = 'WZCARD'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',
         'api_key': NEXMO_API_KEY,
         'api_secret': NEXMO_API_SECRET,
-        'from':NEXMO_OWN_NUMBER,
+        'from': NEXMO_SENDERID,
         'to':None,
         'text':""
     }
