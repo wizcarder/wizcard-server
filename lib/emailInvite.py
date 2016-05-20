@@ -21,8 +21,10 @@ def create_template(wizcard_id):
     wizcard = Wizcard.objects.get(id=wizcard_id)
 
     data = {"name" : wizcard.first_name + " " + wizcard.last_name, "company": wizcard.get_latest_company(), "title" : wizcard.get_latest_title(), "email" : wizcard.email, "phone" : wizcard.phone}
+    data["invite_name"] = data["name"]
 
-    position = {'email': '490,462', 'title': '380,388', 'phone': '198,464', 'name':'378,315', 'company' : '381, 371'}
+#    position = {'email': '490,462', 'title': '380,388', 'phone': '198,464', 'name':'378,315', 'company' : '381, 371'}
+    position = {'email': '490,462', 'title': '380,388', 'phone': '198,464', 'name':'378,315', 'company' : '381, 371', 'invite_name':'300,600'}
     im = Image.open(resource)
     im_sz = im.size
     im_bg = Image.new(mode='RGBA', size=im_sz, color=(255, 255, 255, 230))
@@ -31,8 +33,10 @@ def create_template(wizcard_id):
 
     try:
         namefont = ImageFont.truetype('Roboto-Bold.ttf', 20)
+        invitenamefont = ImageFont.truetype('Robot-Bold.ttf', 45)
     except:
         namefont = ImageFont.truetype('Arial_Bold.ttf', 20)
+        invitenamefont = ImageFont.truetype('Arial_Bold.ttf', 45)
 
 
     draw = ImageDraw.Draw(im_bg)
@@ -40,6 +44,8 @@ def create_template(wizcard_id):
     for field in position.keys():
         if field == "name":
             font = namefont
+        elif field == "invite_name":
+            font = invitenamefont
         else:
             font = defaultfont
 

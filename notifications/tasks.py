@@ -3,6 +3,7 @@ from celery.contrib import rdb
 from wizserver import verbs
 from pyapns import notify as apns_notify
 from pyapns import configure, provision, feedback
+from androidgcm import send_gcm_message
 from django.conf import settings
 from django.contrib.auth.models import User
 import logging
@@ -78,11 +79,11 @@ class ApnsMsg(object):
         return
 
     def pushAndroid(self):
-        #send_gcm_message(
-        #    settings.GCM_API_KEY,
-		#	self.reg_token,
-		#	self.aps
-        #)
+        send_gcm_message(
+            settings.GCM_API_KEY,
+			[self.reg_token],
+			self.aps
+        )
         return
 
 

@@ -28,7 +28,7 @@ BROKER_VHOST = 'wizcard_vhost'
 CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
-EMAIL_TEMPLATE = '/invites/email_templatev2.png'
+EMAIL_TEMPLATE = '/invites/email_templatev3.png'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
 CELERY_BEAT_QUEUE_NAME = 'beat'
@@ -282,20 +282,21 @@ WIZCARD_FUTURE_USERNAME_EXTENSION = '@future.com'
 
 WIZWEB_DEVICE_ID = 'wizweb'
 
-NEXMO_API_KEY = '4788a696'
-NEXMO_API_SECRET = '185e2f6f'
-NEXMO_OWN_NUMBER = '12243109118'
+#NEXMO_API_KEY = '4788a696'
+#NEXMO_API_SECRET = '185e2f6f'
+#NEXMO_OWN_NUMBER = '12243109118'
 
 #This one is from wizcarder account
-#NEXMO_API_KEY = '46ba6fbd'
-#NEXMO_API_SECRET = '3c1d7f33'
-#NEXMO_OWN_NUMBER = '12184294228'
+NEXMO_API_KEY = '46ba6fbd'
+NEXMO_API_SECRET = '3c1d7f33'
+NEXMO_OWN_NUMBER = '12184294228'
+NEXMO_SENDERID = 'WZCARD'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',
         'api_key': NEXMO_API_KEY,
         'api_secret': NEXMO_API_SECRET,
-        'from':NEXMO_OWN_NUMBER,
+        'from': NEXMO_SENDERID,
         'to':None,
         'text':""
     }
@@ -506,8 +507,7 @@ elif RUNENV == "test" or RUNENV == "dev":
     RAVEN_CONFIG = {
         'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
     }
-
-GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
+GCM_API_KEY = 'AIzaSyDimK6uqvYF_GckgNpP5xf2Fofqw7pM0eE'
 
 CELERY_TIMEZONE = 'UTC'
 
