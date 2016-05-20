@@ -260,7 +260,7 @@ class ParseMsgAndDispatch(object):
         username = self.sender['username']
         response_mode = self.sender['responseMode']
         response_target = self.sender['target']
-	if settings.RUNENV == 'dev' or settings.RUNENV == 'test':
+	if settings.RUNENV == 'dev':
 	        test_mode = self.sender['test_mode'] if self.sender.has_key('test_mode') else False
 
         #AA_TODO: security check for checkMode type
