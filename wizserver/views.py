@@ -282,7 +282,7 @@ class ParseMsgAndDispatch(object):
         cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
         #send a text with the rand
-        if settings.PHONE_CHECK and not test_mode:
+        if settings.PHONE_CHECK:
             msg = settings.PHONE_CHECK_MESSAGE.copy()
             msg['to'] = response_target
 
@@ -726,6 +726,21 @@ class ParseMsgAndDispatch(object):
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
+
+        # notif_id needs to be sent by app in order for server to be able to
+        # support resync of unacted notifs
+
+        try:
+            n_id = self.sender['notif_id']
+            n = Notification.objects.get(n_id)
+
+            # now we know that the App has acted upon this notification
+            #  we will use this flag during resync notifs and send unacted-upon
+            #  notifs to user
+            n.acted()
+            n.save()
+        except:
+            pass
 
         # accept wizcard2->wizcard1
         # there should already be a sent request from wizcard2 in PENDING state

@@ -21,6 +21,9 @@ class NotificationManager(models.Manager):
     def unread(self, user, count=settings.NOTIF_BATCH_SIZE):
         return list(self.filter(recipient=user, readed=False)[:count])
 
+    def unacted(self, user):
+        return self.filter(recipient=user, acted_upon=False)
+
     def unread_count(self, user):
         return self.unread(user).count()
 
@@ -70,6 +73,9 @@ class Notification(models.Model):
     """
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     readed = models.BooleanField(default=False, blank=False)
+
+    #new one to support resync of "un-acted-upon" notifs
+    acted_upon = models.BooleanField(default=False, blank=False)
 
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
     actor_object_id = models.CharField(max_length=255)
@@ -133,6 +139,8 @@ class Notification(models.Model):
             self.readed = True
             self.save()
 
+    def acted(self):
+        self.acted_upon = True
 
 def notify_handler(verb, **kwargs):
     """

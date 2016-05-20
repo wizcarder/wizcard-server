@@ -1,5 +1,8 @@
 from django.contrib.contenttypes.models import ContentType
 class ConnectionContext(object):
+    def __repr__(self):
+        return self.description
+
     def __init__(self, asset_obj=None, connection_mode=None, description=None):
         asset_type = ContentType.objects.get_for_model(asset_obj).name if asset_obj else None
         self._cctx = dict(
@@ -50,6 +53,9 @@ class NotifContext(object):
                 asset_type=asset_type,
                 description=description
                 )
+
+    def __repr__(self):
+        return self._out['description']
 
     @property
     def context(self):

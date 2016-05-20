@@ -12,6 +12,7 @@ from virtual_table.models import VirtualTable
 from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
+from notifications.models import Notification
 from base.cctx import ConnectionContext
 import operator
 from django.db.models import Q
@@ -254,6 +255,10 @@ class UserProfile(models.Model):
             dc = DeadCards.objects.serialize(deadcards)
             s['deadcards'] = dc
 
+        # notifications. This is done by simply setting readed=False for
+        # those user.notifs which have acted=False
+        # This way, these notifs will be sent natively via get_cards
+        notifications = Notification.objects.unacted(self.user).update(readed=True)
         return s
 
 class FutureUserManager(models.Manager):
