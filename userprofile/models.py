@@ -32,8 +32,6 @@ class UserProfileManager(models.Manager):
         ret = self.split_users(me, users)
         if ret.has_key('own'):
             s['own'] = UserProfile.objects.serialize(ret['own'], template)
-        if ret.has_key('requested'):
-            s['requested'] = UserProfile.objects.serialize(ret['requested'], template)
         if ret.has_key('connected'):
             s['connected'] = UserProfile.objects.serialize(ret['connected'], template)
         if ret.has_key('follower'):
@@ -47,7 +45,6 @@ class UserProfileManager(models.Manager):
 
     def split_users(self, me, users):
         own = []
-        requested = []
         connected = []
         follower = []
         followed = []
@@ -58,10 +55,6 @@ class UserProfileManager(models.Manager):
         for user in users:
             if user == me:
                 own.append(user)
-            elif Wizcard.objects.is_wizconnection_pending(
-                    me.wizcard,
-                    user.wizcard):
-                requested.append(user)
             elif Wizcard.objects.are_wizconnections(
                     user.wizcard,
                     me.wizcard):
@@ -79,8 +72,6 @@ class UserProfileManager(models.Manager):
 
         if len(own):
             ret['own'] = own
-        if len(requested):
-            ret['requested'] = requested
         if len(connected):
             ret['connected'] = connected
         if len(follower):
@@ -107,7 +98,7 @@ class UserProfileManager(models.Manager):
 
     def gen_password(self, id1, id2, id3=None):
         return id2
-    
+
     def check_user_exists(self, query_type, query_key):
         if query_type == 'phone':
             username = UserProfile.objects.username_from_phone_num(query_key)
@@ -148,8 +139,8 @@ class UserProfile(models.Model):
 	(IOS, 'iPhone'),
 	(ANDROID, 'Android'),
     )
-    device_type = models.CharField(max_length=10, 
-		    		   choices=DEVICE_CHOICES, 
+    device_type = models.CharField(max_length=10,
+		    		   choices=DEVICE_CHOICES,
 				   default=IOS)
     device_id = models.CharField(max_length=100)
     reg_token = models.CharField(db_index=True,max_length=200)
@@ -160,7 +151,7 @@ class UserProfile(models.Model):
         return self.userid
 
     def online(self):
-        cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(), 
+        cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(),
                 settings.USER_LASTSEEN_TIMEOUT)
 
     def can_send_data(self, on_wifi):
@@ -200,7 +191,7 @@ class UserProfile(models.Model):
             return l
         except ObjectDoesNotExist:
             #create
-            l_tuple = location.send(sender=self, lat=lat, lng=lng, 
+            l_tuple = location.send(sender=self, lat=lat, lng=lng,
                                     tree="PTREE")
             l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
 
@@ -244,7 +235,7 @@ class UserProfile(models.Model):
         if tables.count():
         # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(
-                    tables, 
+                    tables,
                     self.user,
                     fields.table_template)
             s['tables'] = tbls
