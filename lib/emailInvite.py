@@ -6,9 +6,11 @@ from celery import shared_task
 from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.storage import default_storage as storage
+from django.template import Template,Context
 from wizcardship.models import WizcardManager, Wizcard
 from wizcard import settings
 from PIL import Image,ImageFont, ImageDraw
+from ses import Email
 import pdb
 now = timezone.now
 
@@ -54,22 +56,20 @@ def create_template(wizcard_id):
             draw.text(map(int, str(position[field]).split(',')), str(data[field]), font=font, fill=(0, 0, 0))
 
     im_io = StringIO.StringIO()
-    im_bg.save(im_io, im.format)
+    im_bg.save(im_io, format='png')
     im_bg.close()
     im.close()
     im_io.seek(0)
 
-    sharefile = SimpleUploadedFile("%s-%s.jpg" % \
+    sharefile = SimpleUploadedFile("%s-%s.png" % \
                                         (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                                        im_io.getvalue(), "image/jpeg")
+                                        im_io.getvalue(), "image/png")
 
     wizcard.save_email_template(sharefile)
-'''
 
-data = {'email': 'anandramani98@gmail.com', 'company':'Yahoo', 'phone':'8971546485', 'title': 'Director Engg', 'name': 'Anand Ramani'}
-position = {'email': '100,150', 'title': '100,200', 'phone': '100,250', 'name':'100,100'}
-imgstream = create_template(sys.argv[1], data, position)
-f = open("bcard.png","w")
-f.write(imgstream.getvalue())
-f.close
-'''
+def sendmail(to,subject,imagestr):
+    email = Email(to=to, subject=subject)
+    ctx = Context({'email_wizcard': imagestr, 'sender_name' : subject})
+    email.html('email.html',ctx)
+    #email.html(emailt, ctx)  # Optional
+    email.send()
