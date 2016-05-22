@@ -537,7 +537,7 @@ print "deleting all cards of ", uid1
 reqmsg = messages.delete_rolodex_card
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = [e2_id, e3_id]
+reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id, e3_id])
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -742,7 +742,7 @@ print "deleting all cards of ", uid1
 reqmsg = messages.delete_rolodex_card
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = [e2_id, e3_id]
+reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id, e3_id])
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -931,7 +931,14 @@ if OCR_FLAG:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
-    print "Check for future user"
+
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['sender']['userID'] = uid1
+    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":True}, [dc1_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
 
 
 ####wizweb messages########################

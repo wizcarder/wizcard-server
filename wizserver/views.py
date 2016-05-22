@@ -699,14 +699,9 @@ class ParseMsgAndDispatch(object):
             wizcard.save()
             wizcard.flood()
 
-
         create_template.delay(wizcard.pk)
 
-
         self.response.add_data("wizCardID", wizcard.pk)
-
-
-
         return self.response
 
     # Set both sides to accept. There should already be wizcard1(me)->wizcard2(him) in ACCEPT
@@ -815,19 +810,35 @@ class ParseMsgAndDispatch(object):
             wizcards = self.receiver['wizCardIDs']
 
             for w in wizcards:
-                wizcard2 = Wizcard.objects.get(id=w)
                 try:
-                    #treat this as if the wizcard2 has sent me a request by setting
-                    # state to PENDING. Just that the request won't be seen in notifications.
-                    # The state is set to how it would have been if wizcard1 had got a
-                    # request from wizcard2
-                    Wizcard.objects.reset(wizcard2, wizcard1)
-                    #Q a notif to other guy so that the app on the other side can react
-                    notify.send(self.user, recipient=wizcard2.user,
-                                verb=verbs.WIZCARD_REVOKE[0],
-                                target=wizcard1)
+                    w_id = w.get("wizCardID")
+                    dead_card = w.get("dead_card")
                 except:
-                    pass
+                    self.response.error_response(err.INVALID_MESSAGE)
+                    return self.response
+
+                if dead_card:
+                    try:
+                        wizcard2 = DeadCards.objects.get(id=w_id)
+                    except:
+                        self.response.error_response(err.OBJECT_DOESNT_EXIST)
+                        return self.response
+
+                    wizcard2.delete()
+                else:
+                    wizcard2 = Wizcard.objects.get(id=w_id)
+                    try:
+                        #treat this as if the wizcard2 has sent me a request by setting
+                        # state to PENDING. Just that the request won't be seen in notifications.
+                        # The state is set to how it would have been if wizcard1 had got a
+                        # request from wizcard2
+                        Wizcard.objects.reset(wizcard2, wizcard1)
+                        #Q a notif to other guy so that the app on the other side can react
+                        notify.send(self.user, recipient=wizcard2.user,
+                                    verb=verbs.WIZCARD_REVOKE[0],
+                                    target=wizcard1)
+                    except:
+                        pass
         except KeyError:
             self.securityException()
             self.response.ignore()

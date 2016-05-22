@@ -34,6 +34,12 @@ class DeadCards(models.Model):
                 'title': unicode(self.title),
                 'company': unicode(self.company)}
 
+    def delete(self, *args, **kwargs):
+        # incomplete...need to take care of storage cleanup and/or, not deleting
+        # but setting a flag instead
+        pdb.set_trace()
+        super(DeadCards, self).delete(*args, **kwargs)
+
     def recognize(self):
         ocr = OCR()
         result = ocr.process(self.f_bizCardImage.local_path())
