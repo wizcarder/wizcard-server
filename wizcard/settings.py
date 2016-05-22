@@ -29,6 +29,7 @@ CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
 EMAIL_TEMPLATE = '/invites/email_templatev3.png'
+EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
 CELERY_BEAT_QUEUE_NAME = 'beat'
@@ -346,9 +347,11 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
     'meishi',
     'healthstatus',
+    'django_ses',
 )
 
 #django-storage settings
+
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
@@ -359,6 +362,14 @@ STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
 STATIC_URL = S3_URL + STATIC_DIRECTORY
 MEDIA_URL = S3_URL + MEDIA_DIRECTORY
+
+#django-ses Settings
+SES_SMTP_USER = 'AKIAJIXICBLUCPSKQPKA'
+SES_SMTP_PASS = 'AgHl9hZWrbH51ur6WorLxNJ7ETxb8fmqHg2OUbkVDKrv'
+AWS_SES_REGION_NAME = 'us-east-1'
+AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
+EMAIL_BACKEND='django_ses.SESBackend'
+AWS_RETURN_PATH='wizcarder@gmail.com'
 
 
 
@@ -510,4 +521,9 @@ elif RUNENV == "test" or RUNENV == "dev":
 GCM_API_KEY = 'AIzaSyDimK6uqvYF_GckgNpP5xf2Fofqw7pM0eE'
 
 CELERY_TIMEZONE = 'UTC'
+SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
+# Find templates in the same folder as settings.py.
+TEMPLATE_DIRS = (
+            os.path.join(SETTINGS_PATH, 'templates'),
+            )
 
