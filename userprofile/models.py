@@ -65,7 +65,7 @@ class UserProfileManager(models.Manager):
                 follower.append(user)
             elif Wizcard.objects.is_wizcard_following(
                     user.wizcard,
-                    me):
+                    me.wizcard):
                 followed.append(user)
             else:
                 others.append(user)
