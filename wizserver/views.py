@@ -38,7 +38,7 @@ from response import Response, NotifResponse
 from userprofile.models import UserProfile
 from userprofile.models import FutureUser
 from lib import wizlib
-from lib.emailInvite import create_template as create_template
+from lib.emailInvite import create_template,sendmail 
 from wizcard import err
 from location_mgr.models import LocationMgr
 from dead_cards.models import DeadCards
@@ -1273,6 +1273,16 @@ class ParseMsgAndDispatch(object):
                         content_type=ContentType.objects.get_for_model(obj),
                         object_id=obj.id,
                         email=email).save()
+                    subject = self.user.wizcard.first_name + " " + self.user.wizcard.last_name + " has sent a WizCard"
+                    emailfile = self.user.wizcard.emailTemplate.name
+                    if not emailfile:
+                        create_template.delay(self.user.wizcard.id)
+                        emailfile = self.user.wizcard.emailTemplate.name
+
+                    emailImage = storage.open(emailfile,"rb")
+                    image_str = base64.b64encode(emailImage.read())
+                    sendmail(email,subject,image_str)
+
 
     def UserQuery(self):
         try:
