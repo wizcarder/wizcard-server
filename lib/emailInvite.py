@@ -26,13 +26,14 @@ def create_template(wizcard_id):
     data["invite_name"] = data["name"]
 
 #    position = {'email': '490,462', 'title': '380,388', 'phone': '198,464', 'name':'378,315', 'company' : '381, 371'}
-    position = {'email': '490,462', 'title': '380,395', 'phone': '198,464', 'name':'378,315', 'company' : '381, 371', 'invite_name':'300,600'}
-    fonts = {'email': ImageFont.truetype('Roboto-Regular.ttf',18), 
-             'title': ImageFont.truetype('Roboto-Regular.ttf', 20),
-             'phone': ImageFont.truetype('Roboto-Regular.ttf', 18), 
-             'name': ImageFont.truetype('Roboto-Regular.ttf',25),
-             'invite_name':ImageFont.truetype('Roboto-Regular.ttf', 40),
-             'company': ImageFont.truetype('Roboto-Regular.ttf',22)
+#    position = {'email': '490,462', 'title': '380,395', 'phone': '198,464', 'name':'378,315', 'company' : '381, 371', 'invite_name':'300,600'}
+    position = {'email': '296,275', 'title': '254,245', 'phone': '143,275', 'name':'250,182', 'company' : '252, 216', 'invite_name':'207,370'}
+    fonts = {'email': ImageFont.truetype('Roboto-Regular.ttf',12), 
+             'title': ImageFont.truetype('Roboto-Regular.ttf', 16),
+             'phone': ImageFont.truetype('Roboto-Regular.ttf', 12), 
+             'name': ImageFont.truetype('Roboto-Regular.ttf',22),
+             'invite_name':ImageFont.truetype('Roboto-Regular.ttf', 23),
+             'company': ImageFont.truetype('Roboto-Regular.ttf',18)
              }
     im = Image.open(resource)
     im_sz = im.size
@@ -43,8 +44,10 @@ def create_template(wizcard_id):
 
     for field in position.keys():
         font = fonts[field]
-        if data[field]:
-            draw.text(map(int, str(position[field]).split(',')), str(data[field]), font=font, fill=(0, 0, 0))
+        if data[field] and (field=='name' or field == 'invited_name'):
+            draw.text(map(int, str(position[field]).split(',')), str(data[field]), font=font, fill=(150, 183, 1))
+        elif data[field]:
+            draw.text(map(int, str(position[field]).split(',')), str(data[field]), font=font, fill=(49, 63, 81))
 
     im_io = StringIO.StringIO()
     im_bg.save(im_io, format='png')

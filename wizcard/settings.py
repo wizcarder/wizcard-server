@@ -28,7 +28,7 @@ BROKER_VHOST = 'wizcard_vhost'
 CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
-EMAIL_TEMPLATE = '/invites/email_templatev3.png'
+EMAIL_TEMPLATE = '/invites/email_templatev4.png'
 EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
