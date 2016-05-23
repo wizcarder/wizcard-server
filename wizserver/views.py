@@ -311,7 +311,7 @@ class ParseMsgAndDispatch(object):
                 logger.error('nexmo send via (%s) failed to (%s)', response_mode, response_target)
                 return self.response
 
-        if test_mode:
+        if self.sender['test_mode']:
             self.response.add_data("challenge_key", d[k_rand])
 
         return self.response

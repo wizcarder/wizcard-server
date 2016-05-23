@@ -10,7 +10,7 @@ from django.template import Template,Context
 from wizcardship.models import WizcardManager, Wizcard
 from wizcard import settings
 from PIL import Image,ImageFont, ImageDraw
-from ses import Email
+from lib.ses import Email
 import pdb
 now = timezone.now
 
