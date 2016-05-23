@@ -37,7 +37,6 @@ class DeadCards(models.Model):
     def delete(self, *args, **kwargs):
         # incomplete...need to take care of storage cleanup and/or, not deleting
         # but setting a flag instead
-        pdb.set_trace()
         super(DeadCards, self).delete(*args, **kwargs)
 
     def recognize(self):
