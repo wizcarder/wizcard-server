@@ -23,7 +23,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage
+from django.core.files.storage import default_storage as storage
 from django.core import serializers
 from raven.contrib.django.raven_compat.models import client
 from lib.preserialize.serialize import serialize
@@ -1273,15 +1273,7 @@ class ParseMsgAndDispatch(object):
                         content_type=ContentType.objects.get_for_model(obj),
                         object_id=obj.id,
                         email=email).save()
-                    subject = self.user.wizcard.first_name + " " + self.user.wizcard.last_name + " has sent a WizCard"
-                    emailfile = self.user.wizcard.emailTemplate.name
-                    if not emailfile:
-                        create_template.delay(self.user.wizcard.id)
-                        emailfile = self.user.wizcard.emailTemplate.name
-
-                    emailImage = storage.open(emailfile,"rb")
-                    image_str = base64.b64encode(emailImage.read())
-                    sendmail(email,subject,image_str)
+                    sendmail.delay(self.user.wizcard,email)
 
 
     def UserQuery(self):
