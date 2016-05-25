@@ -828,12 +828,12 @@ class ParseMsgAndDispatch(object):
                 else:
                     wizcard2 = Wizcard.objects.get(id=w_id)
                     try:
-                        #treat this as if the wizcard2 has sent me a request by setting
-                        # state to PENDING. Just that the request won't be seen in notifications.
-                        # The state is set to how it would have been if wizcard1 had got a
-                        # request from wizcard2
-                        Wizcard.objects.reset(wizcard2, wizcard1)
-                        #Q a notif to other guy so that the app on the other side can react
+                        # earlier thought was to change it to wizcard2->wizcard1 (P). O second thoughts
+                        # this doesn't work well because now they can never connect
+                        # Best is probably to delete the -> altogether
+                        Wizcard.objects.uncardit(wizcard2, wizcard1)
+
+                        # Q a notif to other guy so that the app on the other side can react
                         notify.send(self.user, recipient=wizcard2.user,
                                     verb=verbs.WIZCARD_REVOKE[0],
                                     target=wizcard1)
