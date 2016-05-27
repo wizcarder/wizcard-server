@@ -83,7 +83,8 @@ class WizcardManager(models.Manager):
     #wizcard2 follows wizcard1 (accepts wizcard1's req)
     def becard(self, wizcard1, wizcard2, cctx=""):
         rel = wizcard1.get_relationship(wizcard2)
-        rel.cctx = cctx
+        if cctx:
+            rel.cctx = cctx
         rel.accept()
         return rel
 
