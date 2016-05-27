@@ -89,11 +89,11 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-if RUNENV == 'dev' or RUNENV=='test':
+if RUNENV == 'dev':
     DATABASES = {
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard',
+	        'NAME': 'wizcard-dev',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
                 'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
@@ -109,11 +109,11 @@ if RUNENV == 'dev' or RUNENV=='test':
 #	    }
 
     }
-elif RUNENV == 'stage':
+elif RUNENV == 'test':
     DATABASES = {
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard-prod',
+	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
                 'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
@@ -378,8 +378,8 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 # RAVEN config for Sentry
 RAVEN_CONFIG = {
     #for new AWS prod/stage
-    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
-    'CELERY_LOGLEVEL': logging.ERROR
+    ##'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+    #'CELERY_LOGLEVEL': logging.ERROR
 
     #for bitnami AWS instance
     #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
@@ -514,10 +514,16 @@ if RUNENV == "stage":
     #for new AWS prod/stage
         'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
     }
-elif RUNENV == "test" or RUNENV == "dev":
+elif RUNENV == "test" :
     RAVEN_CONFIG = {
-        'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
+        'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
     }
+else:
+	RAVEN_CONFIG = {
+		'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
+	}
+
+
 GCM_API_KEY = 'AIzaSyDimK6uqvYF_GckgNpP5xf2Fofqw7pM0eE'
 
 CELERY_TIMEZONE = 'UTC'
