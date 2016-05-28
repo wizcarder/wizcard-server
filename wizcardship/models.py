@@ -279,12 +279,12 @@ class Wizcard(models.Model):
             from_wizcard=self,
             to_wizcard=wizcard).delete()
 
-    #those following me
+    #relationships into me
     def get_connected_to(self, status):
         return self.wizconnections_to.filter(
             requests_to__status=status)
 
-    #those i'm following
+    #relationships out from me
     def get_connected_from(self, status):
         return self.wizconnections_from.filter(
             requests_from__status=status)
