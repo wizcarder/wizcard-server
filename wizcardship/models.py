@@ -83,7 +83,8 @@ class WizcardManager(models.Manager):
     #wizcard2 follows wizcard1 (accepts wizcard1's req)
     def becard(self, wizcard1, wizcard2, cctx=""):
         rel = wizcard1.get_relationship(wizcard2)
-        rel.cctx = cctx
+        if cctx:
+            rel.cctx = cctx
         rel.accept()
         return rel
 
@@ -278,12 +279,12 @@ class Wizcard(models.Model):
             from_wizcard=self,
             to_wizcard=wizcard).delete()
 
-    #those following me
+    #relationships into me
     def get_connected_to(self, status):
         return self.wizconnections_to.filter(
             requests_to__status=status)
 
-    #those i'm following
+    #relationships out from me
     def get_connected_from(self, status):
         return self.wizconnections_from.filter(
             requests_from__status=status)
