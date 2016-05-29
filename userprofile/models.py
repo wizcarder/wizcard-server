@@ -287,6 +287,7 @@ class FutureUser(models.Model):
             #sender always accepts the receivers wizcard
             rel21 = Wizcard.objects.cardit(real_user.wizcard,
                                            self.content_object,
+                                           status=verbs.ACCEPTED,
                                            cctx=cctx)
             #Q notif for to_wizcard
             notify.send(self.inviter,
