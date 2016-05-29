@@ -20,7 +20,6 @@ class Email(object):
 
     def html(self, emailtemplate, context):
         self._html = self._render(emailtemplate, context)
-        print self._html
 
     def text(self, emailtemplate, context):
         self._text = self._render(emailtemplate, context)
