@@ -1234,7 +1234,9 @@ class ParseMsgAndDispatch(object):
                                                            status=verbs.PENDING,
                                                            cctx=cctx)
                         else:
-                            rel12.update(status=verbs.PENDING, cctx=cctx)
+                            rel12.status=verbs.PENDING
+                            rel12.cctx=cctx
+                            rel12.save()
 
                         #create and accept implicitly wizcard2->wizcard1
                         rel21 = wizcard.get_relationship(obj)
@@ -1244,7 +1246,9 @@ class ParseMsgAndDispatch(object):
                                                            status=verbs.ACCEPTED,
                                                            cctx=cctx)
                         else:
-                            rel21.update(status=verbs.ACCEPTED, cctx=cctx)
+                            rel21.status=verbs.ACCEPTED
+                            rel21.cctx=cctx
+                            rel21.save()
 
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
@@ -1291,7 +1295,9 @@ class ParseMsgAndDispatch(object):
                                                          status=verbs.PENDING,
                                                          cctx=cctx)
                         else:
-                            rel12.update(status=verbs.PENDING, cctx=cctx)
+                            rel12.status=verbs.PENDING
+                            rel12.cctx=cctx
+                            rel12.save()
 
                         #create and accept implicitly wizcard2->wizcard1
                         rel21 = wizcard.get_relationship(obj)
@@ -1301,7 +1307,9 @@ class ParseMsgAndDispatch(object):
                                                          status=verbs.ACCEPTED,
                                                          cctx=cctx)
                         else:
-                            rel21.update(status=verbs.ACCEPTED, cctx=cctx)
+                            rel21.status=verbs.ACCEPTED
+                            rel21.cctx=cctx
+                            rel21.save()
 
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
