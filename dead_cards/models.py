@@ -59,7 +59,7 @@ class DeadCards(models.Model):
         cc['company'] = self.company
         cc['title'] = self.title
         cc['web'] = self.web
-        cc['url'] = self.deadcard_url()
+        cc['f_bizCardUrl'] = self.deadcard_url()
         return cc
 
     def deadcard_url(self):

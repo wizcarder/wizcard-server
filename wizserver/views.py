@@ -734,7 +734,6 @@ class ParseMsgAndDispatch(object):
             #  we will use this flag during resync notifs and send unacted-upon
             #  notifs to user
             n.acted()
-            n.save()
         except:
             pass
 
@@ -769,6 +768,17 @@ class ParseMsgAndDispatch(object):
 
         #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
         Wizcard.objects.uncard(wizcard2, wizcard1)
+
+        try:
+            n_id = self.sender['notif_id']
+            n = Notification.objects.get(n_id)
+
+            # now we know that the App has acted upon this notification
+            #  we will use this flag during resync notifs and send unacted-upon
+            #  notifs to user
+            n.acted()
+        except:
+            pass
 
         #AA TODO: Might have to send notif to wizcard2
 
@@ -1076,8 +1086,6 @@ class ParseMsgAndDispatch(object):
             self.securityException()
             self.response.ignore()
             return self.response
-        logger.debug('sender %s', self.sender)
-        logger.debug('receiver %s', self.receiver)
 
         if asset_type == "wizcard":
             try:
@@ -1216,17 +1224,45 @@ class ParseMsgAndDispatch(object):
                     )
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not obj.get_relationship(wizcard):
-                            rel = Wizcard.objects.cardit(obj,
-                                                         wizcard,
-                                                         status=verbs.PENDING,
-                                                         cctx=cctx)
-                            #Q notif for to_wizcard
-                            notify.send(self.user, recipient=wizcard.user,
-                                        verb=verbs.WIZREQ_U[0],
-                                        description=cctx.description,
-                                        target=obj,
-                                        action_object=rel)
+
+                        rel12 = obj.get_relationship(wizcard)
+                        if not rel12:
+                            rel12 = Wizcard.objects.cardit(obj,
+                                                           wizcard,
+                                                           status=verbs.PENDING,
+                                                           cctx=cctx)
+                        else:
+                            rel12.status=verbs.PENDING
+                            rel12.cctx=cctx
+                            rel12.save()
+
+                        #create and accept implicitly wizcard2->wizcard1
+                        rel21 = wizcard.get_relationship(obj)
+                        if not rel21:
+                            rel21 = Wizcard.objects.cardit(wizcard,
+                                                           obj,
+                                                           status=verbs.ACCEPTED,
+                                                           cctx=cctx)
+                        else:
+                            rel21.status=verbs.ACCEPTED
+                            rel21.cctx=cctx
+                            rel21.save()
+
+                        #Q notif for to_wizcard
+                        notify.send(self.user, recipient=wizcard.user,
+                                    verb=verbs.WIZREQ_U[0],
+                                    description=cctx.description,
+                                    target=obj,
+                                    action_object=rel12)
+
+                        #Q notif for from_wizcard as well since unlike the
+                        # regular case, app is not going to be adding 1/2 card
+                        # to rolodex here
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T[0],
+                                    description=cctx.description,
+                                    target=wizcard,
+                                    action_object=rel21)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         #Q this to the receiver
@@ -1250,17 +1286,42 @@ class ParseMsgAndDispatch(object):
                     )
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not obj.get_relationship(wizcard):
-                            rel = Wizcard.objects.cardit(obj,
+
+                        rel12 = obj.get_relationship(wizcard)
+                        if not rel12:
+                            rel12 = Wizcard.objects.cardit(obj,
                                                          wizcard,
                                                          status=verbs.PENDING,
                                                          cctx=cctx)
-                            #Q notif for to_wizcard
-                            notify.send(self.user, recipient=wizcard.user,
-                                        verb=verbs.WIZREQ_U[0],
-                                        description=cctx.description,
-                                        target=obj,
-                                        action_object=rel)
+                        else:
+                            rel12.status=verbs.PENDING
+                            rel12.cctx=cctx
+                            rel12.save()
+
+                        #create and accept implicitly wizcard2->wizcard1
+                        rel21 = wizcard.get_relationship(obj)
+                        if not rel21:
+                            rel21 = Wizcard.objects.cardit(wizcard,
+                                                         obj,
+                                                         status=verbs.ACCEPTED,
+                                                         cctx=cctx)
+                        else:
+                            rel21.status=verbs.ACCEPTED
+                            rel21.cctx=cctx
+                            rel21.save()
+
+                        #Q notif for to_wizcard
+                        notify.send(self.user, recipient=wizcard.user,
+                                    verb=verbs.WIZREQ_U[0],
+                                    description=cctx.description,
+                                    target=obj,
+                                    action_object=rel12)
+                        #Q notif for from_wizcard
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T[0],
+                                    description=cctx.description,
+                                    target=wizcard,
+                                    action_object=rel21)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         #Q this to the receiver
@@ -1580,11 +1641,6 @@ class ParseMsgAndDispatch(object):
             c.phone = result.get('phone')
         c.end="current"
         c.save()
-
-        #set this user to be activated. EditCard need not be sent
-        #if there are no edits required after OCR scanning
-        self.userprofile.activated = True
-        self.userprofile.save()
 
         wc = wizcard.serialize()
 

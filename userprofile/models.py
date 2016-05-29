@@ -249,7 +249,7 @@ class UserProfile(models.Model):
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
-        notifications = Notification.objects.unacted(self.user).update(readed=True)
+        Notification.objects.unacted(self.user).update(readed=False)
         return s
 
 class FutureUserManager(models.Manager):
@@ -259,7 +259,10 @@ class FutureUserManager(models.Manager):
             qlist.append(Q(email=email))
         if phone:
             qlist.append(Q(phone=phone))
-        return self.filter(reduce(operator.or_, qlist))
+
+        if qlist:
+            return self.filter(reduce(operator.or_, qlist))
+        return None
 
 class FutureUser(models.Model):
     inviter = models.ForeignKey(User, related_name='invitees')
@@ -275,18 +278,32 @@ class FutureUser(models.Model):
         cctx = ConnectionContext(asset_obj=self.content_object)
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
-            #spoof an exchange, as if it came from the inviter
 
-            rel = Wizcard.objects.cardit(self.content_object,
-                                         real_user.wizcard,
-                                         cctx=cctx)
+            #spoof an exchange, as if it came from the inviter
+            rel12 = Wizcard.objects.cardit(self.content_object,
+                                           real_user.wizcard,
+                                           cctx=cctx)
+
+            #sender always accepts the receivers wizcard
+            rel21 = Wizcard.objects.cardit(real_user.wizcard,
+                                           self.content_object,
+                                           status=verbs.ACCEPTED,
+                                           cctx=cctx)
             #Q notif for to_wizcard
             notify.send(self.inviter,
                         recipient=real_user,
                         verb=verbs.WIZREQ_U[0],
                         description=cctx.description,
                         target=self.content_object,
-                        action_object=rel)
+                        action_object=rel12)
+
+            #Q implicit notif for from_wizcard
+            notify.send(real_user,
+                        recipient=self.inviter,
+                        verb=verbs.WIZREQ_T[0],
+                        description=cctx.description,
+                        target=real_user.wizcard,
+                        action_object=rel21)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
             #Q this to the receiver

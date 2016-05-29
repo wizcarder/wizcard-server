@@ -141,6 +141,7 @@ class Notification(models.Model):
 
     def acted(self):
         self.acted_upon = True
+        self.save()
 
 def notify_handler(verb, **kwargs):
     """
