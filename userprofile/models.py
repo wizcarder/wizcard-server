@@ -301,7 +301,7 @@ class FutureUser(models.Model):
                         recipient=self.inviter,
                         verb=verbs.WIZREQ_T[0],
                         description=cctx.description,
-                        target=self.content_object,
+                        target=real_user.wizcard,
                         action_object=rel21)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):

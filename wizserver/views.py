@@ -1086,8 +1086,6 @@ class ParseMsgAndDispatch(object):
             self.securityException()
             self.response.ignore()
             return self.response
-        logger.debug('sender %s', self.sender)
-        logger.debug('receiver %s', self.receiver)
 
         if asset_type == "wizcard":
             try:
@@ -1256,13 +1254,14 @@ class ParseMsgAndDispatch(object):
                                     description=cctx.description,
                                     target=obj,
                                     action_object=rel12)
+
                         #Q notif for from_wizcard as well since unlike the
                         # regular case, app is not going to be adding 1/2 card
                         # to rolodex here
                         notify.send(wizcard.user, recipient=self.user,
                                     verb=verbs.WIZREQ_T[0],
                                     description=cctx.description,
-                                    target=obj,
+                                    target=wizcard,
                                     action_object=rel21)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
@@ -1321,7 +1320,7 @@ class ParseMsgAndDispatch(object):
                         notify.send(wizcard.user, recipient=self.user,
                                     verb=verbs.WIZREQ_T[0],
                                     description=cctx.description,
-                                    target=obj,
+                                    target=wizcard,
                                     action_object=rel21)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
