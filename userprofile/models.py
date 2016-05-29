@@ -278,18 +278,31 @@ class FutureUser(models.Model):
         cctx = ConnectionContext(asset_obj=self.content_object)
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
-            #spoof an exchange, as if it came from the inviter
 
-            rel = Wizcard.objects.cardit(self.content_object,
-                                         real_user.wizcard,
-                                         cctx=cctx)
+            #spoof an exchange, as if it came from the inviter
+            rel12 = Wizcard.objects.cardit(self.content_object,
+                                           real_user.wizcard,
+                                           cctx=cctx)
+
+            #sender always accepts the receivers wizcard
+            rel21 = Wizcard.objects.cardit(real_user.wizcard,
+                                           self.content_object,
+                                           cctx=cctx)
             #Q notif for to_wizcard
             notify.send(self.inviter,
                         recipient=real_user,
                         verb=verbs.WIZREQ_U[0],
                         description=cctx.description,
                         target=self.content_object,
-                        action_object=rel)
+                        action_object=rel12)
+
+            #Q implicit notif for from_wizcard
+            notify.send(real_user,
+                        recipient=self.inviter,
+                        verb=verbs.WIZREQ_T[0],
+                        description=cctx.description,
+                        target=self.content_object,
+                        action_object=rel21)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
             #Q this to the receiver
