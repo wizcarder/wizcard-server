@@ -1226,17 +1226,32 @@ class ParseMsgAndDispatch(object):
                     )
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not obj.get_relationship(wizcard):
+
+                        rel12 = obj.get_relationship(wizcard)
+                        if not rel12:
                             rel = Wizcard.objects.cardit(obj,
                                                          wizcard,
                                                          status=verbs.PENDING,
                                                          cctx=cctx)
-                            #Q notif for to_wizcard
-                            notify.send(self.user, recipient=wizcard.user,
-                                        verb=verbs.WIZREQ_U[0],
-                                        description=cctx.description,
-                                        target=obj,
-                                        action_object=rel)
+                        else:
+                            rel.update(status=verbs.PENDING, cctx=cctx)
+
+                        #create and accept implicitly wizcard2->wizcard1
+                        rel21 = wizcard.get_relationship(obj)
+                        if not rel21:
+                            rel = Wizcard.objects.cardit(wizcard,
+                                                         obj,
+                                                         status=verbs.ACCEPTED,
+                                                         cctx=cctx)
+                        else:
+                            rel.update(status=verbs.ACCEPTED, cctx=cctx)
+
+                        #Q notif for to_wizcard
+                        notify.send(self.user, recipient=wizcard.user,
+                                    verb=verbs.WIZREQ_U[0],
+                                    description=cctx.description,
+                                    target=obj,
+                                    action_object=rel)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         #Q this to the receiver
@@ -1260,17 +1275,32 @@ class ParseMsgAndDispatch(object):
                     )
                     if ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="wizcard"):
-                        if not obj.get_relationship(wizcard):
+
+                        rel12 = obj.get_relationship(wizcard)
+                        if not rel12:
                             rel = Wizcard.objects.cardit(obj,
                                                          wizcard,
                                                          status=verbs.PENDING,
                                                          cctx=cctx)
-                            #Q notif for to_wizcard
-                            notify.send(self.user, recipient=wizcard.user,
-                                        verb=verbs.WIZREQ_U[0],
-                                        description=cctx.description,
-                                        target=obj,
-                                        action_object=rel)
+                        else:
+                            rel.update(status=verbs.PENDING, cctx=cctx)
+
+                        #create and accept implicitly wizcard2->wizcard1
+                        rel21 = wizcard.get_relationship(obj)
+                        if not rel21:
+                            rel = Wizcard.objects.cardit(wizcard,
+                                                         obj,
+                                                         status=verbs.ACCEPTED,
+                                                         cctx=cctx)
+                        else:
+                            rel.update(status=verbs.ACCEPTED, cctx=cctx)
+
+                        #Q notif for to_wizcard
+                        notify.send(self.user, recipient=wizcard.user,
+                                    verb=verbs.WIZREQ_U[0],
+                                    description=cctx.description,
+                                    target=obj,
+                                    action_object=rel)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         #Q this to the receiver
