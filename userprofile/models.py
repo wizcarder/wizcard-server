@@ -249,7 +249,7 @@ class UserProfile(models.Model):
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
-        notifications = Notification.objects.unacted(self.user).update(readed=True)
+        Notification.objects.unacted(self.user).update(readed=False)
         return s
 
 class FutureUserManager(models.Manager):
@@ -259,7 +259,10 @@ class FutureUserManager(models.Manager):
             qlist.append(Q(email=email))
         if phone:
             qlist.append(Q(phone=phone))
-        return self.filter(reduce(operator.or_, qlist))
+
+        if qlist:
+            return self.filter(reduce(operator.or_, qlist))
+        return None
 
 class FutureUser(models.Model):
     inviter = models.ForeignKey(User, related_name='invitees')

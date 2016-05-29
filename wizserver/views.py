@@ -734,7 +734,6 @@ class ParseMsgAndDispatch(object):
             #  we will use this flag during resync notifs and send unacted-upon
             #  notifs to user
             n.acted()
-            n.save()
         except:
             pass
 
@@ -769,6 +768,17 @@ class ParseMsgAndDispatch(object):
 
         #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
         Wizcard.objects.uncard(wizcard2, wizcard1)
+
+        try:
+            n_id = self.sender['notif_id']
+            n = Notification.objects.get(n_id)
+
+            # now we know that the App has acted upon this notification
+            #  we will use this flag during resync notifs and send unacted-upon
+            #  notifs to user
+            n.acted()
+        except:
+            pass
 
         #AA TODO: Might have to send notif to wizcard2
 
