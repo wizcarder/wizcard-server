@@ -1591,11 +1591,6 @@ class ParseMsgAndDispatch(object):
         c.end="current"
         c.save()
 
-        #set this user to be activated. EditCard need not be sent
-        #if there are no edits required after OCR scanning
-        self.userprofile.activated = True
-        self.userprofile.save()
-
         wc = wizcard.serialize()
 
         self.response.add_data("ocr_result", wc)
