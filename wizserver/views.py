@@ -1229,29 +1229,37 @@ class ParseMsgAndDispatch(object):
 
                         rel12 = obj.get_relationship(wizcard)
                         if not rel12:
-                            rel = Wizcard.objects.cardit(obj,
-                                                         wizcard,
-                                                         status=verbs.PENDING,
-                                                         cctx=cctx)
+                            rel12 = Wizcard.objects.cardit(obj,
+                                                           wizcard,
+                                                           status=verbs.PENDING,
+                                                           cctx=cctx)
                         else:
-                            rel.update(status=verbs.PENDING, cctx=cctx)
+                            rel12.update(status=verbs.PENDING, cctx=cctx)
 
                         #create and accept implicitly wizcard2->wizcard1
                         rel21 = wizcard.get_relationship(obj)
                         if not rel21:
-                            rel = Wizcard.objects.cardit(wizcard,
-                                                         obj,
-                                                         status=verbs.ACCEPTED,
-                                                         cctx=cctx)
+                            rel21 = Wizcard.objects.cardit(wizcard,
+                                                           obj,
+                                                           status=verbs.ACCEPTED,
+                                                           cctx=cctx)
                         else:
-                            rel.update(status=verbs.ACCEPTED, cctx=cctx)
+                            rel21.update(status=verbs.ACCEPTED, cctx=cctx)
 
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZREQ_U[0],
                                     description=cctx.description,
                                     target=obj,
-                                    action_object=rel)
+                                    action_object=rel12)
+                        #Q notif for from_wizcard as well since unlike the
+                        # regular case, app is not going to be adding 1/2 card
+                        # to rolodex here
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T[0],
+                                    description=cctx.description,
+                                    target=obj,
+                                    action_object=rel21)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         #Q this to the receiver
@@ -1278,29 +1286,35 @@ class ParseMsgAndDispatch(object):
 
                         rel12 = obj.get_relationship(wizcard)
                         if not rel12:
-                            rel = Wizcard.objects.cardit(obj,
+                            rel12 = Wizcard.objects.cardit(obj,
                                                          wizcard,
                                                          status=verbs.PENDING,
                                                          cctx=cctx)
                         else:
-                            rel.update(status=verbs.PENDING, cctx=cctx)
+                            rel12.update(status=verbs.PENDING, cctx=cctx)
 
                         #create and accept implicitly wizcard2->wizcard1
                         rel21 = wizcard.get_relationship(obj)
                         if not rel21:
-                            rel = Wizcard.objects.cardit(wizcard,
+                            rel21 = Wizcard.objects.cardit(wizcard,
                                                          obj,
                                                          status=verbs.ACCEPTED,
                                                          cctx=cctx)
                         else:
-                            rel.update(status=verbs.ACCEPTED, cctx=cctx)
+                            rel21.update(status=verbs.ACCEPTED, cctx=cctx)
 
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZREQ_U[0],
                                     description=cctx.description,
                                     target=obj,
-                                    action_object=rel)
+                                    action_object=rel12)
+                        #Q notif for from_wizcard
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T[0],
+                                    description=cctx.description,
+                                    target=obj,
+                                    action_object=rel21)
                     elif ContentType.objects.get_for_model(obj) == \
                             ContentType.objects.get(model="virtualtable"):
                         #Q this to the receiver
