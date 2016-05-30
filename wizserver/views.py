@@ -711,10 +711,15 @@ class ParseMsgAndDispatch(object):
     def WizcardAccept(self):
         try:
             wizcard1 = self.user.wizcard
-            reaccept = self.sender['reaccept']
+            reaccept = self.sender.get('reaccept', False)
             #AA TODO: Change to wizcardID
-            self.r_user = User.objects.get(id=self.receiver['wizUserID'])
-            wizcard2 = self.r_user.wizcard
+
+            try:
+                wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            except:
+                self.r_user = User.objects.get(id=self.receiver['wizUserID'])
+                wizcard2 = self.r_user.wizcard
+
         except KeyError:
             self.securityException()
             self.securityException()
