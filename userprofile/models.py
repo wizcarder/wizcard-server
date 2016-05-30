@@ -36,6 +36,8 @@ class UserProfileManager(models.Manager):
             s['connected'] = UserProfile.objects.serialize(ret['connected'], template)
         if ret.has_key('follower'):
             s['follower'] = UserProfile.objects.serialize(ret['follower'], template)
+        if ret.has_key('follower-d'):
+            s['follower-d'] = UserProfile.objects.serialize(ret['follower-d'], template)
         if ret.has_key('followed'):
             s['followed'] = UserProfile.objects.serialize(ret['followed'], template)
         if ret.has_key('others'):
@@ -47,6 +49,7 @@ class UserProfileManager(models.Manager):
         own = []
         connected = []
         follower = []
+        follower_d = []
         followed = []
         others = []
 
@@ -62,7 +65,12 @@ class UserProfileManager(models.Manager):
             elif Wizcard.objects.is_wizcard_following(
                     me.wizcard,
                     user.wizcard):
-                follower.append(user)
+                # split into 2 cases here. if the reverse relationship is in pending, then
+                # follower, else follower-d (reverse connection was either deleted or declined)
+                if Wizcard.objects.is_wizconnection_pending(user.wizcard, me):
+                    follower.append(user)
+                else:
+                    follower_d.append(user)
             elif Wizcard.objects.is_wizcard_following(
                     user.wizcard,
                     me.wizcard):
@@ -76,6 +84,8 @@ class UserProfileManager(models.Manager):
             ret['connected'] = connected
         if len(follower):
             ret['follower'] = follower
+        if len(follower_d):
+            ret['follower-d'] = follower_d
         if len(followed):
             ret['followed'] = followed
         if len(others):

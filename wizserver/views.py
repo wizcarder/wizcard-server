@@ -1130,12 +1130,7 @@ class ParseMsgAndDispatch(object):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
-        if receiver_type in ['wiz_untrusted', 'wiz_trusted', 'wiz_follow', 'wiz_follow_connect']:
-            if receiver_type == 'wiz_trusted':
-                implicit = True
-            else:
-                implicit = False
-            #receiverIDs has wizUserIDs
+        if receiver_type is 'wiz_untrusted':
             for _id in receivers:
                 r_user = User.objects.get(id=_id)
                 r_wizcard = r_user.wizcard
@@ -1144,45 +1139,31 @@ class ParseMsgAndDispatch(object):
                     asset_obj=wizcard,
                     connection_mode=receiver_type,
                 )
+                if wizcard.get_relationship(r_wizcard):
+                    # wizcard->r_wizcard exists previously.
+                    self.response.error_response(err.EXISTING_CONNECTION)
+                else:
+                    #create wizcard1->wizcard2
+                    rel12 = Wizcard.objects.cardit(wizcard,
+                                                   r_wizcard,
+                                                   status=verbs.PENDING,
+                                                   cctx=cctx)
+                    #create and accept implicitly wizcard2->wizcard1
+                    rel21 = Wizcard.objects.cardit(r_wizcard,
+                                                   wizcard,
+                                                   verbs.ACCEPTED,
+                                                   cctx=cctx
+                                                   )
 
-                #This is not used now
-                if receiver_type in ['wiz_follow', 'wiz_follow_connect']:
-                    #we will always add to our rolodex
-                    if not Wizcard.objects.is_wizcard_following(r_wizcard, wizcard):
-                        #add to my rolodex = create relationship from r_wizcard->wizcard
-                        Wizcard.objects.cardit(r_wizcard,
-                                               wizcard,
-                                               status=verbs.ACCEPTED,
-                                               cctx=cctx)
-                if receiver_type in ['wiz_trusted', 'wiz_untrusted']:
-                    if wizcard.get_relationship(r_wizcard):
-                        #shouldn't be...wizcard->r_wizcard exists previously
-                        self.response.error_response(err.EXISTING_CONNECTION)
-                    else:
-                        relstatus = \
-                            verbs.ACCEPTED if receiver_type == 'wiz_trusted' else verbs.PENDING
+                    #Q notif for to_wizcard
+                    notify.send(self.user, recipient=r_user,
+                                verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
+                                description=cctx.description,
+                                target=wizcard,
+                                action_object=rel12)
 
-                        #create wizcard1->wizcard2
-                        rel12 = Wizcard.objects.cardit(wizcard,
-                                                       r_wizcard,
-                                                       status=relstatus,
-                                                       cctx=cctx)
-                        #create and accept implicitly wizcard2->wizcard1
-                        rel21 = Wizcard.objects.cardit(r_wizcard,
-                                                       wizcard,
-                                                       verbs.ACCEPTED,
-                                                       cctx=cctx
-                                                       )
-
-                        #Q notif for to_wizcard
-                        notify.send(self.user, recipient=r_user,
-                            verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
-                            description=cctx.description,
-                            target=wizcard,
-                            action_object=rel12)
-
-                        count += 1
-                        self.response.add_data("count", count)
+                    count += 1
+                    self.response.add_data("count", count)
         elif receiver_type in ['email', 'sms']:
             #future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
@@ -1204,50 +1185,28 @@ class ParseMsgAndDispatch(object):
                             verb=verbs.WIZCARD_TABLE_INVITE[0],
                             target=table)
         elif receiver_type in ['email', 'sms']:
-            #create future user
+            # create future user
             self.do_future_user(table, receiver_type, receivers)
 
         return self.response
 
     def do_future_user(self, obj, receiver_type, receivers):
-        if receiver_type == 'sms':
-            for phone in receivers:
-                #for a typed out email/sms, the user may still be in wiz
-                #AA: TODO APP: search can be avoided if app indicates whether
-                #this was from data-source or free-form
-                wizcard = UserProfile.objects.check_user_exists('phone',
-                                                                phone)
-                if wizcard:
-                    cctx = ConnectionContext(
-                        asset_obj=obj,
-                        connection_mode=receiver_type,
-                    )
-                    if ContentType.objects.get_for_model(obj) == \
-                            ContentType.objects.get(model="wizcard"):
-
-                        rel12 = obj.get_relationship(wizcard)
-                        if not rel12:
-                            rel12 = Wizcard.objects.cardit(obj,
-                                                           wizcard,
-                                                           status=verbs.PENDING,
-                                                           cctx=cctx)
-                        else:
-                            rel12.status=verbs.PENDING
-                            rel12.cctx=cctx
-                            rel12.save()
-
-                        #create and accept implicitly wizcard2->wizcard1
-                        rel21 = wizcard.get_relationship(obj)
-                        if not rel21:
-                            rel21 = Wizcard.objects.cardit(wizcard,
-                                                           obj,
-                                                           status=verbs.ACCEPTED,
-                                                           cctx=cctx)
-                        else:
-                            rel21.status=verbs.ACCEPTED
-                            rel21.cctx=cctx
-                            rel21.save()
-
+        for r in receivers:
+            # for a typed out email/sms, the user may still be in wiz
+            wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
+            if wizcard:
+                cctx = ConnectionContext(
+                    asset_obj=obj,
+                    connection_mode=receiver_type,
+                )
+                if ContentType.objects.get_for_model(obj) == \
+                        ContentType.objects.get(model="wizcard"):
+                    rel12 = obj.get_relationship(wizcard)
+                    if not rel12:
+                        rel12 = Wizcard.objects.cardit(obj,
+                                                       wizcard,
+                                                       status=verbs.PENDING,
+                                                       cctx=cctx)
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZREQ_U[0],
@@ -1255,87 +1214,45 @@ class ParseMsgAndDispatch(object):
                                     target=obj,
                                     action_object=rel12)
 
-                        #Q notif for from_wizcard as well since unlike the
-                        # regular case, app is not going to be adding 1/2 card
-                        # to rolodex here
-                        notify.send(wizcard.user, recipient=self.user,
-                                    verb=verbs.WIZREQ_T[0],
-                                    description=cctx.description,
-                                    target=wizcard,
-                                    action_object=rel21)
-                    elif ContentType.objects.get_for_model(obj) == \
-                            ContentType.objects.get(model="virtualtable"):
-                        #Q this to the receiver
-                        notify.send(self.user, recipient=wizcard.user,
-                                    verb=verbs.WIZCARD_TABLE_INVITE[0],
-                                    target=obj)
-                else:
-                    FutureUser(
-                        inviter=self.user,
-                        content_type=ContentType.objects.get_for_model(obj),
-                        object_id=obj.id,
-                        phone=phone).save()
-        else:
-            for email in receivers:
-                wizcard = UserProfile.objects.check_user_exists('email',
-                                                                email)
-                if wizcard:
-                    cctx = ConnectionContext(
-                        asset_obj=obj,
-                        connection_mode=receiver_type,
-                    )
-                    if ContentType.objects.get_for_model(obj) == \
-                            ContentType.objects.get(model="wizcard"):
+                    #create and accept implicitly wizcard2->wizcard1
+                    rel21 = wizcard.get_relationship(obj)
+                    if not rel21:
+                        rel21 = Wizcard.objects.cardit(wizcard,
+                                                       obj,
+                                                       status=verbs.ACCEPTED,
+                                                       cctx=cctx)
 
-                        rel12 = obj.get_relationship(wizcard)
-                        if not rel12:
-                            rel12 = Wizcard.objects.cardit(obj,
-                                                         wizcard,
-                                                         status=verbs.PENDING,
-                                                         cctx=cctx)
-                        else:
-                            rel12.status=verbs.PENDING
-                            rel12.cctx=cctx
-                            rel12.save()
+                    else:
+                        rel21.status=verbs.ACCEPTED
+                        rel21.cctx=cctx
+                        rel21.save()
+                    #Q notif for from_wizcard as well since unlike the
+                    # regular case, app is not going to be adding 1/2 card
+                    # to rolodex here
+                    notify.send(wizcard.user, recipient=self.user,
+                                verb=verbs.WIZREQ_T[0],
+                                description=cctx.description,
+                                target=wizcard,
+                                action_object=rel21)
+                elif ContentType.objects.get_for_model(obj) == \
+                        ContentType.objects.get(model="virtualtable"):
+                    #Q this to the receiver
+                    notify.send(self.user, recipient=wizcard.user,
+                                verb=verbs.WIZCARD_TABLE_INVITE[0],
+                                target=obj)
+            else:
+                FutureUser(
+                    inviter=self.user,
+                    content_type=ContentType.objects.get_for_model(obj),
+                    object_id=obj.id,
+                    phone=r if receiver_type is 'phone' else "",
+                    email=r if receiver_type is 'email' else ""
+                ).save()
 
-                        #create and accept implicitly wizcard2->wizcard1
-                        rel21 = wizcard.get_relationship(obj)
-                        if not rel21:
-                            rel21 = Wizcard.objects.cardit(wizcard,
-                                                         obj,
-                                                         status=verbs.ACCEPTED,
-                                                         cctx=cctx)
-                        else:
-                            rel21.status=verbs.ACCEPTED
-                            rel21.cctx=cctx
-                            rel21.save()
+                if receiver_type is 'email':
+                    sendmail.delay(self.user.wizcard, r)
 
-                        #Q notif for to_wizcard
-                        notify.send(self.user, recipient=wizcard.user,
-                                    verb=verbs.WIZREQ_U[0],
-                                    description=cctx.description,
-                                    target=obj,
-                                    action_object=rel12)
-                        #Q notif for from_wizcard
-                        notify.send(wizcard.user, recipient=self.user,
-                                    verb=verbs.WIZREQ_T[0],
-                                    description=cctx.description,
-                                    target=wizcard,
-                                    action_object=rel21)
-                    elif ContentType.objects.get_for_model(obj) == \
-                            ContentType.objects.get(model="virtualtable"):
-                        #Q this to the receiver
-                        notify.send(self.user, recipient=wizcard.user,
-                                    verb=verbs.WIZCARD_TABLE_INVITE[0],
-                                    target=obj)
-                else:
-                    FutureUser(
-                        inviter=self.user,
-                        content_type=ContentType.objects.get_for_model(obj),
-                        object_id=obj.id,
-                        email=email).save()
-                    sendmail.delay(self.user.wizcard,email)
-
+        return
 
     def UserQuery(self):
         try:
