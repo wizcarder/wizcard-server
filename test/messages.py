@@ -463,6 +463,7 @@ accept_connection_request = {
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
+        "reaccept" : False,
     },
     "receiver" : {
         "wizUserID" : "",
@@ -470,6 +471,21 @@ accept_connection_request = {
 }
 
 
+addback_to_rolodex = {
+    "header" : {
+        "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f02460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "addback_to_rolodex",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+    },
+    "receiver" : {
+        "wizUserID" : "",
+    }
+}
 flick_pickers = {
     "header" : {
         "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
@@ -549,17 +565,13 @@ my_flicks = {
 
 get_cards = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "deviceID" : "17b90b2e03dc7b38",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
         "msgType" : "get_cards",
     },
     "sender" : {
-        "lat" : 37.785838,
-        "lng" : -122.406419,
-        "deviceType": "ios",
-        "userID" : "",
-        "wizUserID" : ""
+        "deviceType": "android",
     },
 }
 

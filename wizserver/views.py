@@ -711,6 +711,7 @@ class ParseMsgAndDispatch(object):
     def WizcardAccept(self):
         try:
             wizcard1 = self.user.wizcard
+            reaccept = self.sender['reaccept']
             #AA TODO: Change to wizcardID
             self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             wizcard2 = self.r_user.wizcard
@@ -742,6 +743,12 @@ class ParseMsgAndDispatch(object):
 
         # AA:TODO: Wrap this in try, except for case when inbound req was somehow
         # not there
+        if reaccept:
+            rel12 = wizcard1.get_relationship(wizcard2)
+            if not rel12:
+                Wizcard.objects.cardit(wizcard1,wizcard2)
+
+
         Wizcard.objects.becard(wizcard2, wizcard1)
 
         rel12 = wizcard2.get_relationship(wizcard1)
@@ -753,6 +760,8 @@ class ParseMsgAndDispatch(object):
                     action_object=rel12)
 
         return self.response
+    
+
 
     def WizConnectionRequestDecline(self):
         try:
