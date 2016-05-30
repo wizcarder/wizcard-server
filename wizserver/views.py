@@ -1139,7 +1139,7 @@ class ParseMsgAndDispatch(object):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
-        if receiver_type is 'wiz_untrusted':
+        if receiver_type == 'wiz_untrusted':
             for _id in receivers:
                 r_user = User.objects.get(id=_id)
                 r_wizcard = r_user.wizcard
@@ -1254,11 +1254,11 @@ class ParseMsgAndDispatch(object):
                     inviter=self.user,
                     content_type=ContentType.objects.get_for_model(obj),
                     object_id=obj.id,
-                    phone=r if receiver_type is 'phone' else "",
-                    email=r if receiver_type is 'email' else ""
+                    phone=r if receiver_type == 'phone' else "",
+                    email=r if receiver_type == 'email' else ""
                 ).save()
 
-                if receiver_type is 'email':
+                if receiver_type == 'email':
                     sendmail.delay(self.user.wizcard, r)
 
         return

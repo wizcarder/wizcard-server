@@ -4,6 +4,8 @@
 
 from datetime import datetime
 
+LAT1 = 37.885938
+LNG1 = -122.506419
 
 phone_check_req = {
     "header" : {
@@ -470,22 +472,22 @@ accept_connection_request = {
     }
 }
 
-
-addback_to_rolodex = {
+decline_connection_request = {
     "header" : {
         "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f02460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "addback_to_rolodex",
+        "msgType" : "decline_connection_request",
     },
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
     },
     "receiver" : {
-        "wizUserID" : "",
+        "wizCardID" : "",
     }
 }
+
 flick_pickers = {
     "header" : {
         "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
@@ -572,6 +574,8 @@ get_cards = {
     },
     "sender" : {
         "deviceType": "android",
+        "lat": LAT1,
+        "lng": LNG1
     },
 }
 
