@@ -741,27 +741,22 @@ class ParseMsgAndDispatch(object):
         # accept wizcard2->wizcard1
         # there should already be a sent request from wizcard2 in PENDING state
 
-        # AA:TODO: Wrap this in try, except for case when inbound req was somehow
-        # not there
         if reaccept:
-            rel12 = wizcard1.get_relationship(wizcard2)
-            if not rel12:
-                Wizcard.objects.cardit(wizcard1,wizcard2)
-
+            rel21 = wizcard2.get_relationship(wizcard1)
+            if not rel21:
+                Wizcard.objects.cardit(wizcard2, wizcard1)
 
         Wizcard.objects.becard(wizcard2, wizcard1)
 
-        rel12 = wizcard2.get_relationship(wizcard1)
+        rel21 = wizcard2.get_relationship(wizcard1)
         # Q notif for implicit accept to wizcard2
         notify.send(self.user,
                     recipient=self.r_user,
                     verb=verbs.WIZREQ_T[0],
                     target=wizcard1,
-                    action_object=rel12)
+                    action_object=rel21)
 
         return self.response
-    
-
 
     def WizConnectionRequestDecline(self):
         try:
@@ -1254,7 +1249,7 @@ class ParseMsgAndDispatch(object):
                     inviter=self.user,
                     content_type=ContentType.objects.get_for_model(obj),
                     object_id=obj.id,
-                    phone=r if receiver_type == 'phone' else "",
+                    phone=r if receiver_type == 'sms' else "",
                     email=r if receiver_type == 'email' else ""
                 ).save()
 

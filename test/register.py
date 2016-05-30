@@ -749,8 +749,8 @@ reqmsg = messages.meishi_start
 reqmsg['sender']['userID'] = uid2
 reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['sender']['wizCardID'] = e1_id
-reqmsg['sender']['lat'] = get
-reqmsg['sender']['lng'] = LNG1
+reqmsg['sender']['lat'] = messages.LAT1
+reqmsg['sender']['lng'] = messages.LNG1
 send_request(conn, reqmsg)
 objs = handle_response(conn,reqmsg['header']['msgType'])
 mei_id2 = objs['data']['mID']
