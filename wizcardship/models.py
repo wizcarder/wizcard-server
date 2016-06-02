@@ -33,6 +33,7 @@ from django.core.files.storage import default_storage
 from django.core.files.storage import FileSystemStorage
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
+from base.char_trunc import TruncatingCharField
 from django.conf import settings
 import logging
 import operator
@@ -159,9 +160,9 @@ class Wizcard(models.Model):
                                             through='WizConnectionRequest',
                                             symmetrical=False,
                                             related_name='wizconnections_from')
-    first_name = models.CharField(max_length=40, blank=True)
-    last_name = models.CharField(max_length=40, blank=True)
-    phone = models.CharField(max_length=20, blank=True)
+    first_name = TruncatingCharField(max_length=40, blank=True)
+    last_name = TruncatingCharField(max_length=40, blank=True)
+    phone = TruncatingCharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
 
     #media objects
@@ -314,11 +315,11 @@ class Wizcard(models.Model):
 
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
-    company = models.CharField(max_length=40, blank=True)
-    title = models.CharField(max_length=200, blank=True)
-    start = models.CharField(max_length=30, blank=True)
-    end = models.CharField(max_length=30, blank=True)
-    phone = models.CharField(max_length=20, blank=True)
+    company = TruncatingCharField(max_length=40, blank=True)
+    title = TruncatingCharField(max_length=200, blank=True)
+    start = TruncatingCharField(max_length=30, blank=True)
+    end = TruncatingCharField(max_length=30, blank=True)
+    phone = TruncatingCharField(max_length=20, blank=True)
     f_bizCardImage = WizcardQueuedFileField(upload_to="bizcards",
                                             storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.URLField(blank=True)
@@ -451,14 +452,14 @@ class WizcardFlickManager(models.Manager):
 
 class WizcardFlick(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    a_created = models.CharField(max_length=40, blank=True)
+    a_created = TruncatingCharField(max_length=40, blank=True)
     wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')
     timeout = models.IntegerField(default=30)
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     location = generic.GenericRelation(LocationMgr)
     expired = models.BooleanField(default=False)
-    reverse_geo_name = models.CharField(max_length=100, default=None)
+    reverse_geo_name = TruncatingCharField(max_length=100, default=None)
     #who picked my flicked card?
     flick_pickers = models.ManyToManyField(Wizcard)
 

@@ -30,6 +30,7 @@ from lib.preserialize.serialize import serialize
 from wizserver import fields, verbs
 from notifications.models import notify
 from base.cctx import ConnectionContext
+from base.char_trunc import TruncatingCharField
 from django.conf import settings
 from django.utils import timezone
 
@@ -99,12 +100,12 @@ class VirtualTableManager(models.Manager):
 
 
 class VirtualTable(models.Model):
-    tablename = models.CharField(max_length=40)
+    tablename = TruncatingCharField(max_length=40)
     numSitting = models.IntegerField(default=0, blank=True)
     secureTable = models.BooleanField(default=False)
-    password = models.CharField(max_length=40, blank=True)
+    password = TruncatingCharField(max_length=40, blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    a_created = models.CharField(max_length=40, blank=True)
+    a_created = TruncatingCharField(max_length=40, blank=True)
     creator = models.ForeignKey(User, related_name='tables')
     timeout = models.IntegerField(default=30)
     expired = models.BooleanField(default=False)

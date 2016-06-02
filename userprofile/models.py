@@ -14,6 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
 from notifications.models import Notification
 from base.cctx import ConnectionContext
+from base.char_trunc import TruncatingCharField
 import operator
 from django.db.models import Q
 from django.core.cache import cache
@@ -134,7 +135,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, related_name='profile')
     activated = models.BooleanField(default=False)
     #this is the internal userid
-    userid = models.CharField(max_length=100)
+    userid = TruncatingCharField(max_length=100)
     future_user = models.BooleanField(default=False, blank=False)
     location = generic.GenericRelation(LocationMgr)
     do_sync = models.BooleanField(default=False)
@@ -149,10 +150,10 @@ class UserProfile(models.Model):
 	(IOS, 'iPhone'),
 	(ANDROID, 'Android'),
     )
-    device_type = models.CharField(max_length=10,
+    device_type = TruncatingCharField(max_length=10,
 		    		   choices=DEVICE_CHOICES,
 				   default=IOS)
-    device_id = models.CharField(max_length=100)
+    device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True,max_length=200)
 
     objects = UserProfileManager()
@@ -279,7 +280,7 @@ class FutureUser(models.Model):
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
-    phone = models.CharField(max_length=20, blank=True)
+    phone = TruncatingCharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
 
     objects = FutureUserManager()
