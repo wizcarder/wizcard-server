@@ -70,7 +70,7 @@ class UserProfileManager(models.Manager):
                 # other guy is a follower
                 # split into 2 cases here. if the reverse relationship is in pending, then
                 # follower, else follower-d (reverse connection was either deleted or declined)
-                if Wizcard.objects.is_wizconnection_pending(user.wizcard, me):
+                if Wizcard.objects.is_wizconnection_pending(user.wizcard, me.wizcard):
                     follower.append(user)
                 else:
                     follower_d.append(user)
