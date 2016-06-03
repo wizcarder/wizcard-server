@@ -72,7 +72,7 @@ class ResponseN(Response):
         d['notifType'] = _type
 
     def add_seq(self, d, _s):
-        d['seqNum'] = _s
+        d['notificationId'] = _s
 
     def add_data_and_seq_with_notif(self, d, n, seq=0):
         a = self.add_data_array(d)
