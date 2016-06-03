@@ -378,8 +378,10 @@ class ParseMsgAndDispatch(object):
                                                             device_id)
                 user.set_password(password)
                 user.save()
-            # mark for sync.
-            user.profile.do_sync = True
+
+            # mark for sync if profile is activated
+            if user.profile.activated:
+                user.profile.do_sync = True
 
         user.profile.device_id = device_id
         user.profile.save()

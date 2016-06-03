@@ -65,7 +65,7 @@ class UserProfileManager(models.Manager):
                 connected.append(user)
             elif Wizcard.objects.is_wizconnection(
                     user.wizcard,
-                    me):
+                    me.wizcard):
                 # split into 2 cases here. if the reverse relationship is in pending, then
                 # follower, else follower-d (reverse connection was either deleted or declined)
                 if Wizcard.objects.is_wizconnection_pending(user.wizcard, me):
