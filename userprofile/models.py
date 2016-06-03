@@ -62,10 +62,12 @@ class UserProfileManager(models.Manager):
             elif Wizcard.objects.are_wizconnections(
                     user.wizcard,
                     me.wizcard):
+                # 2-way connected
                 connected.append(user)
-            elif Wizcard.objects.is_wizconnection(
-                    user.wizcard,
-                    me.wizcard):
+            elif Wizcard.objects.is_wizcard_following(
+                    me.wizcard,
+                    user.wizcard):
+                # other guy is a follower
                 # split into 2 cases here. if the reverse relationship is in pending, then
                 # follower, else follower-d (reverse connection was either deleted or declined)
                 if Wizcard.objects.is_wizconnection_pending(user.wizcard, me):
@@ -75,6 +77,7 @@ class UserProfileManager(models.Manager):
             elif Wizcard.objects.is_wizcard_following(
                     user.wizcard,
                     me.wizcard):
+                # I'm following him
                 followed.append(user)
             else:
                 others.append(user)
