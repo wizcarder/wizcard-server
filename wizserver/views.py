@@ -730,19 +730,21 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        # notif_id needs to be sent by app in order for server to be able to
-        # support resync of unacted notifs
-        n_id = self.sender['notif_id']
-        n = Notification.objects.get(id=n_id)
+        try: # temp try, except workaround until app bug is fixed
+            # notif_id needs to be sent by app in order for server to be able to
+            # support resync of unacted notifs
+            n_id = self.sender['notif_id']
+            n = Notification.objects.get(id=n_id)
 
-        # now we know that the App has acted upon this notification
-        # we will use this flag during resync notifs and send unacted-upon
-        # notifs to user
-        n.set_acted()
+            # now we know that the App has acted upon this notification
+            # we will use this flag during resync notifs and send unacted-upon
+            # notifs to user
+            n.set_acted()
+        except:
+            pass
 
         # accept wizcard2->wizcard1
         # there should already be a sent request from wizcard2 in PENDING state
-
         if reaccept:
             rel21 = wizcard2.get_relationship(wizcard1)
             if not rel21:
@@ -775,13 +777,16 @@ class ParseMsgAndDispatch(object):
         #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
         Wizcard.objects.uncard(wizcard2, wizcard1)
 
-        n_id = self.sender['notif_id']
-        n = Notification.objects.get(id=n_id)
+        try:
+            n_id = self.sender['notif_id']
+            n = Notification.objects.get(id=n_id)
 
-        # now we know that the App has acted upon this notification
-        #  we will use this flag during resync notifs and send unacted-upon
-        #  notifs to user
-        n.set_acted()
+            # now we know that the App has acted upon this notification
+            #  we will use this flag during resync notifs and send unacted-upon
+            #  notifs to user
+            n.set_acted()
+        except:
+            pass
 
         # AA TODO: Might have to send notif to wizcard2
 
