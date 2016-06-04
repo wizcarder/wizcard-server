@@ -384,7 +384,6 @@ class ParseMsgAndDispatch(object):
                 user.profile.do_sync = True
 
         user.profile.device_id = device_id
-        user.profile.save()
 
         #all done. #clear cache
         cache.delete_many([k_user, k_device_id, k_rand, k_retry])
@@ -733,17 +732,13 @@ class ParseMsgAndDispatch(object):
 
         # notif_id needs to be sent by app in order for server to be able to
         # support resync of unacted notifs
+        n_id = self.sender['notif_id']
+        n = Notification.objects.get(id=n_id)
 
-        try:
-            n_id = self.sender['notif_id']
-            n = Notification.objects.get(n_id)
-
-            # now we know that the App has acted upon this notification
-            #  we will use this flag during resync notifs and send unacted-upon
-            #  notifs to user
-            n.acted()
-        except:
-            pass
+        # now we know that the App has acted upon this notification
+        # we will use this flag during resync notifs and send unacted-upon
+        # notifs to user
+        n.set_acted()
 
         # accept wizcard2->wizcard1
         # there should already be a sent request from wizcard2 in PENDING state
@@ -780,22 +775,19 @@ class ParseMsgAndDispatch(object):
         #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
         Wizcard.objects.uncard(wizcard2, wizcard1)
 
-        try:
-            n_id = self.sender['notif_id']
-            n = Notification.objects.get(n_id)
+        n_id = self.sender['notif_id']
+        n = Notification.objects.get(id=n_id)
 
-            # now we know that the App has acted upon this notification
-            #  we will use this flag during resync notifs and send unacted-upon
-            #  notifs to user
-            n.acted()
-        except:
-            pass
+        # now we know that the App has acted upon this notification
+        #  we will use this flag during resync notifs and send unacted-upon
+        #  notifs to user
+        n.set_acted()
 
-        #AA TODO: Might have to send notif to wizcard2
+        # AA TODO: Might have to send notif to wizcard2
 
         return self.response
 
-    #this is to withdraw sent request. May not be used now
+    # this is to withdraw sent request. May not be used now
     def WizConnectionRequestWithdraw(self):
         try:
             wizcard1 = self.user.wizcard
@@ -849,7 +841,7 @@ class ParseMsgAndDispatch(object):
                 else:
                     wizcard2 = Wizcard.objects.get(id=w_id)
                     try:
-                        # earlier thought was to change it to wizcard2->wizcard1 (P). O second thoughts
+                        # earlier thought was to change it to wizcard2->wizcard1 (P). On second thoughts
                         # this doesn't work well because now they can never connect
                         # Best is probably to delete the -> altogether
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
@@ -1199,6 +1191,9 @@ class ParseMsgAndDispatch(object):
             # create future user
             self.do_future_user(table, receiver_type, receivers)
 
+            # AA: TODO. an error/info case is when connection already exists.
+            # App can be told about it to pop an "already connected" message
+
         return self.response
 
     def do_future_user(self, obj, receiver_type, receivers):
@@ -1239,7 +1234,10 @@ class ParseMsgAndDispatch(object):
                         rel21.save()
                     #Q notif for from_wizcard as well since unlike the
                     # regular case, app is not going to be adding 1/2 card
-                    # to rolodex here
+                    # to rolodex here, server has to tell the app to do so
+                    # AA:TODO need to insert a 1/2 card flag in the notif
+                    # AA: TODO This notif need not be sent if self.user was
+                    # already connected
                     notify.send(wizcard.user, recipient=self.user,
                                 verb=verbs.WIZREQ_T[0],
                                 description=cctx.description,

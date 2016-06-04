@@ -133,6 +133,9 @@ class NotifResponse(ResponseN):
         return self.notifWizcard(notif, verbs.ACCEPT_IMPLICIT)
 
     def notifWizConnectionU(self, notif):
+        # clear the acted flag. This will get set back when app tells us
+        # via accept/decline_connection req
+        notif.clear_acted()
         return self.notifWizcard(notif, verbs.ACCEPT_EXPLICIT)
 
     def notifWizConnectionF(self, notif):
