@@ -15,6 +15,7 @@ try:
     from django.utils import timezone
     now = timezone.now
 except ImportError:
+    from datetime import datetime
     now = datetime.datetime.now()
 
 class NotificationManager(models.Manager):
@@ -74,8 +75,13 @@ class Notification(models.Model):
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     readed = models.BooleanField(default=False, blank=False)
 
-    #new one to support resync of "un-acted-upon" notifs
-    acted_upon = models.BooleanField(default=False, blank=False)
+    # new one to support resync of "un-acted-upon" notifs. We will set this
+    # flag to False for user exposed notifs (type 2 currently) when we create
+    # those specific notifs. App implicitly lets us know that it has acted on it
+    # by passing notif_id in the associated message that caused the action
+    # (accept_connection_request, decline_connection_request) at which point we set
+    # the flag back to True
+    acted_upon = models.BooleanField(default=True, blank=False)
 
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
     actor_object_id = models.CharField(max_length=255)
@@ -139,8 +145,12 @@ class Notification(models.Model):
             self.readed = True
             self.save()
 
-    def acted(self):
+    def set_acted(self):
         self.acted_upon = True
+        self.save()
+
+    def clear_acted(self):
+        self.acted_upon = False
         self.save()
 
 def notify_handler(verb, **kwargs):
