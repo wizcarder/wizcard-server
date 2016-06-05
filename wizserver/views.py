@@ -65,7 +65,7 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        response =  pdispatch.dispatch()
+        response = pdispatch.dispatch()
         #send response
         return response.respond()
 
@@ -523,7 +523,7 @@ class ParseMsgAndDispatch(object):
         if not self.userprofile.activated:
             return self.response
 
-        if self.lat == None and self.lng == None:
+        if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
                 self.lng = self.userprofile.location.get().lng
@@ -532,7 +532,6 @@ class ParseMsgAndDispatch(object):
                 #are coming correctly...
                 logger.warning('No location information available')
                 return self.response
-
 
         #any wizcards dropped nearby
         #AA:TODO: Use come caching framework to cache these
@@ -898,17 +897,17 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("timeout", t.timeout_value/60)
         else:
             try:
-                city = wizlib.reverse_geo_from_latlng(self.lat, self.lng)
+                location = wizlib.reverse_geo_from_latlng(self.lat, self.lng)
             except:
-                city = ""
+                location = ""
 
-            self.response.add_data("city", wizlib.format_city_name(city))
+            self.response.add_data("city", wizlib.format_location_name(location))
 
             flick_card = WizcardFlick.objects.create(wizcard=wizcard,
                                                      lat=self.lat,
                                                      lng=self.lng,
                                                      timeout=timeout,
-                                                     reverse_geo_name=city,
+                                                     reverse_geo_name=location,
                                                      a_created = a_created)
             location = flick_card.create_location(self.lat, self.lng)
             location.start_timer(timeout)
@@ -941,10 +940,6 @@ class ParseMsgAndDispatch(object):
                             target=flick_card,
                             action_object=rel)
 
-            return self.response
-        except KeyError:
-            self.securityException()
-            self.response.ignore()
             return self.response
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -1138,7 +1133,18 @@ class ParseMsgAndDispatch(object):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
-        if receiver_type == 'wiz_untrusted':
+        if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U]:
+            # add location to cctx. For nearby based exchange, use
+            # senders location (which should be same as receivers too)
+            try:
+                location_str = wizlib.reverse_geo_from_latlng(
+                    self.userprofile.location.get().lat,
+                    self.userprofile.location.get().lng
+                )
+            except:
+                logging.error("couldn't get location for user [%s]", self.userprofile.userid)
+                location_str = ""
+
             for _id in receivers:
                 r_user = User.objects.get(id=_id)
                 r_wizcard = r_user.wizcard
@@ -1146,6 +1152,7 @@ class ParseMsgAndDispatch(object):
                 cctx = ConnectionContext(
                     asset_obj=wizcard,
                     connection_mode=receiver_type,
+                    location=location_str
                 )
                 if wizcard.get_relationship(r_wizcard):
                     # wizcard->r_wizcard exists previously.
@@ -1165,20 +1172,29 @@ class ParseMsgAndDispatch(object):
 
                     #Q notif for to_wizcard
                     notify.send(self.user, recipient=r_user,
-                                verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
-                                description=cctx.description,
+                                verb=verbs.WIZREQ_T[0] if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T]
+                                else verbs.WIZREQ_U[0],
                                 target=wizcard,
                                 action_object=rel12)
 
+                    # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
+                    # let server push this via notif 1.
+                    # TODO: AA Maybe going forward do this as an update (type 3) instead of 1.
+                    notify.send(r_user, recipient=self.user,
+                                verb=verbs.WIZREQ_T[0],
+                                target=r_wizcard,
+                                action_object=rel21)
+
                     count += 1
                     self.response.add_data("count", count)
-        elif receiver_type in ['email', 'sms']:
+        elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             #future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
 
         return self.response
 
     def WizcardSendTableToXYZ(self, table, receiver_type, receivers):
+        #AA TODO: move the 'wiz_xyz' strings into verbs file
         if receiver_type in ['wiz_untrusted', 'wiz_trusted']:
             #receiverIDs has wizUserIDs
             for _id in receivers:
@@ -1221,7 +1237,6 @@ class ParseMsgAndDispatch(object):
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZREQ_U[0],
-                                    description=cctx.description,
                                     target=obj,
                                     action_object=rel12)
 
@@ -1237,6 +1252,7 @@ class ParseMsgAndDispatch(object):
                         rel21.status=verbs.ACCEPTED
                         rel21.cctx=cctx
                         rel21.save()
+
                     #Q notif for from_wizcard as well since unlike the
                     # regular case, app is not going to be adding 1/2 card
                     # to rolodex here, server has to tell the app to do so
@@ -1245,7 +1261,6 @@ class ParseMsgAndDispatch(object):
                     # already connected
                     notify.send(wizcard.user, recipient=self.user,
                                 verb=verbs.WIZREQ_T[0],
-                                description=cctx.description,
                                 target=wizcard,
                                 action_object=rel21)
                 elif ContentType.objects.get_for_model(obj) == \
@@ -1259,8 +1274,8 @@ class ParseMsgAndDispatch(object):
                     inviter=self.user,
                     content_type=ContentType.objects.get_for_model(obj),
                     object_id=obj.id,
-                    phone=r if receiver_type == 'sms' else "",
-                    email=r if receiver_type == 'email' else ""
+                    phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
+                    email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 ).save()
 
                 if receiver_type == 'email':

@@ -88,7 +88,6 @@ class Notification(models.Model):
     actor = generic.GenericForeignKey('actor_content_type', 'actor_object_id')
 
     verb = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
 
     target_content_type = models.ForeignKey(ContentType, related_name='notify_target',
         blank=True, null=True)
@@ -167,7 +166,6 @@ def notify_handler(verb, **kwargs):
         actor_object_id=actor.pk,
         verb=unicode(verb),
         public=bool(kwargs.pop('public', True)),
-        description=kwargs.pop('description', None),
         timestamp=kwargs.pop('timestamp', now())
     )
 

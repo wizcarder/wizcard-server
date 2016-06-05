@@ -311,6 +311,34 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+#send get cards to seed location information
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+notif = NotifParser(objs['data'], uid1, wuid1)
+nrsp = notif.process()
+
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+notif = NotifParser(objs['data'], uid2, wuid2)
+nrsp = notif.process()
+
+reqmsg = messages.get_cards
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+notif = NotifParser(objs['data'], uid3, wuid3)
+nrsp = notif.process()
+
 #contacts verify
 reqmsg = messages.contacts_verify
 reqmsg['sender']['userID'] = uid1

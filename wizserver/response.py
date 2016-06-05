@@ -1,10 +1,9 @@
 # define all outbound responses here
+import datetime
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User
-from wizcardship.models import WizConnectionRequest, Wizcard, WizcardFlick
+from wizcardship.models import  Wizcard, WizcardFlick
 from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
-from notifications.models import Notification
 from base.cctx import NotifContext
 from django.http import HttpResponse
 from wizcard.celery import client
@@ -12,7 +11,6 @@ import logging
 import fields
 import json
 import pdb
-from wizcard import err
 from wizserver import verbs
 
 logger = logging.getLogger(__name__)
@@ -117,7 +115,19 @@ class NotifResponse(ResponseN):
 
         if notif.action_object and notif.action_object.cctx != '':
             cctx = notif.action_object.cctx
-            nctx = NotifContext(cctx.description, cctx.asset_id, cctx.asset_type)
+            cctx.describe()
+
+            #update the timestamp on the WizConnectionRequest
+            notif.action_object.created = datetime.datetime.now()
+            notif.action_object.save()
+
+            nctx = NotifContext(
+                description=cctx.description,
+                asset_id=cctx.asset_id,
+                asset_type=cctx.asset_type,
+                connection_mode=cctx.connection_mode,
+                timestamp = notif.action_object.created.strftime("%d. %B %Y")
+            )
 
             if cctx.asset_type == ContentType.objects.get(model="virtualtable").name:
                 #AA:TODO this lookup can be avoided by using the notify.send better

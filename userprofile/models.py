@@ -289,7 +289,11 @@ class FutureUser(models.Model):
     objects = FutureUserManager()
 
     def generate_self_invite(self, real_user):
-        cctx = ConnectionContext(asset_obj=self.content_object)
+        cctx = ConnectionContext(
+            asset_obj=self.content_object,
+            connection_mode=verbs.INVITE_VERBS[verbs.SMS_INVITE] if self.phone
+            else verbs.INVITE_VERBS[verbs.EMAIL_INVITE]
+        )
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
 

@@ -86,5 +86,5 @@ def reverse_geo_from_latlng(lat, lng):
 
     return out
 
-def format_city_name(city):
-    return "@"+city if city else "@location unknown"
+def format_location_name(location):
+    return "@"+location if location else "@location unknown"

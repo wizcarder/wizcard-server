@@ -16,8 +16,22 @@ TABLE_INVITE        = 13
 WIZCARD_FORWARD     = 14
 TABLE_JOIN          = 15
 TABLE_LEAVE         = 16
-FOLLOW_EXPLICIT    = 17
+FOLLOW_EXPLICIT     = 17
 
+# receiver types
+WIZCARD_CONNECT_U   = 1
+WIZCARD_CONNECT_T   = 2
+WIZCARD_INVITE      = 3
+EMAIL_INVITE        = 4
+SMS_INVITE          = 5
+
+INVITE_VERBS = {
+    WIZCARD_CONNECT_U:'wiz_untrusted',
+    WIZCARD_CONNECT_T: 'wiz_trusted',
+    WIZCARD_INVITE: 'wizcard_invite',
+    EMAIL_INVITE: 'email',
+    SMS_INVITE: 'sms'
+}
 
 PENDING = 1
 ACCEPTED = 2

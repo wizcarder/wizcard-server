@@ -6,7 +6,7 @@ sys.path.append(".")
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
 #from base.db import WizcardDB
-from base.db import WizcardDB
+from base.rds_db import WizcardDB
 from server import LocationServiceServer
 from wizcard import settings
 from wizcard import instances
