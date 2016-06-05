@@ -57,7 +57,10 @@ class ConnectionContext(object):
         if self.asset_type == ContentType.objects.get(model="wizcard").name:
             if self.connection_mode in [verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T],
                                         verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U]]:
-                self.description = "via wizcard exchange {}".format(wizlib.format_location_name(self.location))
+                try:
+                    self.description = "via wizcard exchange {}".format(wizlib.format_location_name(self.location))
+                except:
+                    self.description = "via wizcard exchange"
             elif self.connection_mode == verbs.INVITE_VERBS[verbs.WIZCARD_INVITE]:
                 self.description = "via WizCard Invite"
             elif self.connection_mode == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
