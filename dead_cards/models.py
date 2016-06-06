@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
 from base.char_trunc import TruncatingCharField
+from base.emailField import EmailField
 from lib.preserialize.serialize import serialize
 from wizserver import fields
 from lib.ocr import OCR
@@ -20,7 +21,7 @@ class DeadCards(models.Model):
     first_name = TruncatingCharField(max_length=40, blank=True)
     last_name = TruncatingCharField(max_length=40, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
+    email = EmailField(blank=True)
     company = TruncatingCharField(max_length=40, blank=True)
     title = TruncatingCharField(max_length=200, blank=True)
     web = TruncatingCharField(max_length=200, blank=True)

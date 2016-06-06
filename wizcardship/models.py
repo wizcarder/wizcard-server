@@ -34,6 +34,7 @@ from django.core.files.storage import FileSystemStorage
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
 from base.char_trunc import TruncatingCharField
+from base.emailField import EmailField
 from django.conf import settings
 import logging
 import operator
@@ -147,7 +148,7 @@ class WizcardManager(models.Manager):
 
         #email
         if email:
-            email_result = Q(email=email)
+            email_result = Q(email=email.lower())
             qlist.append(email_result)
 
         result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=userID).exclude(user__profile__is_visible=False)
@@ -163,7 +164,7 @@ class Wizcard(models.Model):
     first_name = TruncatingCharField(max_length=40, blank=True)
     last_name = TruncatingCharField(max_length=40, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
+    email = EmailField(blank=True)
 
     #media objects
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",

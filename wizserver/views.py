@@ -743,15 +743,15 @@ class ParseMsgAndDispatch(object):
             pass
 
         # accept wizcard2->wizcard1
-        # there should already be a sent request from wizcard2 in PENDING state
-        if reaccept:
-            rel21 = wizcard2.get_relationship(wizcard1)
-            if not rel21:
-                Wizcard.objects.cardit(wizcard2, wizcard1)
+        # there could already be a sent request from wizcard2 (pending or declined)
+        rel21 = wizcard2.get_relationship(wizcard1)
+
+        if reaccept and not rel21:
+            #recreate the connection request
+            rel21 = Wizcard.objects.cardit(wizcard2, wizcard1)
 
         Wizcard.objects.becard(wizcard2, wizcard1)
 
-        rel21 = wizcard2.get_relationship(wizcard1)
         # Q notif for implicit accept to wizcard2
         notify.send(self.user,
                     recipient=self.r_user,
@@ -1248,21 +1248,19 @@ class ParseMsgAndDispatch(object):
                                                        status=verbs.ACCEPTED,
                                                        cctx=cctx)
 
-                    else:
+                    elif rel21.status != verbs.ACCEPTED:
                         rel21.status=verbs.ACCEPTED
                         rel21.cctx=cctx
                         rel21.save()
 
-                    #Q notif for from_wizcard as well since unlike the
-                    # regular case, app is not going to be adding 1/2 card
-                    # to rolodex here, server has to tell the app to do so
-                    # AA:TODO need to insert a 1/2 card flag in the notif
-                    # AA: TODO This notif need not be sent if self.user was
-                    # already connected
-                    notify.send(wizcard.user, recipient=self.user,
-                                verb=verbs.WIZREQ_T[0],
-                                target=wizcard,
-                                action_object=rel21)
+                        # Q notif for from_wizcard as well since unlike the
+                        # regular case, app is not going to be adding 1/2 card
+                        # to rolodex here, server has to tell the app to do so
+                        # AA:TODO need to insert a 1/2 card flag in the notif
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T[0],
+                                    target=wizcard,
+                                    action_object=rel21)
                 elif ContentType.objects.get_for_model(obj) == \
                         ContentType.objects.get(model="virtualtable"):
                     #Q this to the receiver

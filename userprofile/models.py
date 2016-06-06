@@ -15,6 +15,7 @@ from notifications.models import notify
 from notifications.models import Notification
 from base.cctx import ConnectionContext
 from base.char_trunc import TruncatingCharField
+from base.emailField import EmailField
 import operator
 from django.db.models import Q
 from django.core.cache import cache
@@ -270,7 +271,7 @@ class FutureUserManager(models.Manager):
     def check_future_user(self, email=None, phone=None):
         qlist = []
         if email:
-            qlist.append(Q(email=email))
+            qlist.append(Q(email=email.lower()))
         if phone:
             qlist.append(Q(phone=phone))
 
@@ -284,7 +285,7 @@ class FutureUser(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     phone = TruncatingCharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
+    email = EmailField(blank=True)
 
     objects = FutureUserManager()
 
