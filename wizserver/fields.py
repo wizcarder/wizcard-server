@@ -12,7 +12,7 @@ wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnailUrl']
 wizcard_fields_mini = ['wizcard_id', 'user_id', 'thumbnailUrl', \
                        'first_name', 'last_name']
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
-                  'phone', 'email', 'thumbnailUrl', 'contact_container']
+                  'thumbnailUrl', 'contact_container']
 
 wizcard_fields_keymap = {
         'wizcard_id': 'id',

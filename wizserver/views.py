@@ -752,12 +752,20 @@ class ParseMsgAndDispatch(object):
 
         Wizcard.objects.becard(wizcard2, wizcard1)
 
-        # Q notif for implicit accept to wizcard2
+        # Q notif to both sides.
+        notify.send(self.r_user,
+                    recipient=self.user,
+                    verb=verbs.WIZREQ_T[0],
+                    target=wizcard2,
+                    action_object=rel21)
+
+        # Q notif for wizcard2 to change his half card to full
+        rel12 = wizcard1.get_relationship(wizcard2)
         notify.send(self.user,
                     recipient=self.r_user,
                     verb=verbs.WIZREQ_T[0],
                     target=wizcard1,
-                    action_object=rel21)
+                    action_object=rel12)
 
         return self.response
 
@@ -1179,9 +1187,8 @@ class ParseMsgAndDispatch(object):
 
                     # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
                     # let server push this via notif 1.
-                    # TODO: AA Maybe going forward do this as an update (type 3) instead of 1.
                     notify.send(r_user, recipient=self.user,
-                                verb=verbs.WIZREQ_T[0],
+                                verb=verbs.WIZREQ_T_HALF[0],
                                 target=r_wizcard,
                                 action_object=rel21)
 

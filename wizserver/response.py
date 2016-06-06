@@ -89,6 +89,7 @@ class NotifResponse(ResponseN):
         notifHandler = {
             verbs.WIZREQ_U[0] 	                : self.notifWizConnectionU,
             verbs.WIZREQ_T[0]  	                : self.notifWizConnectionT,
+            verbs.WIZREQ_T_HALF[0]              : self.notifWizConnectionH,
             verbs.WIZREQ_F[0]                   : self.notifWizConnectionF,
             verbs.WIZCARD_ACCEPT[0]             : self.notifAcceptedWizcard,
             verbs.WIZCARD_REVOKE[0]	            : self.notifRevokedWizcard,
@@ -108,10 +109,12 @@ class NotifResponse(ResponseN):
         for notification in notifications:
             notifHandler[notification.verb](notification)
 
-    def notifWizcard(self, notif, notifType):
+    def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
+
+        template = fields.wizcard_template_brief if half else fields.wizcard_template_full
         out = Wizcard.objects.serialize(wizcard,
-                template=fields.wizcard_template_full)
+                template=template)
 
         if notif.action_object and notif.action_object.cctx != '':
             cctx = notif.action_object.cctx
@@ -141,6 +144,9 @@ class NotifResponse(ResponseN):
 
     def notifWizConnectionT(self, notif):
         return self.notifWizcard(notif, verbs.ACCEPT_IMPLICIT)
+
+    def notifWizConnectionH(self, notif):
+        return self.notifWizcard(notif, verbs.ACCEPT_IMPLICIT, half=True)
 
     def notifWizConnectionU(self, notif):
         # clear the acted flag. This will get set back when app tells us

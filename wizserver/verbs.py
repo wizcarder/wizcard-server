@@ -47,6 +47,7 @@ RELATIONSHIP_STATUSES = (
     # (Verb, APNS_REQUIRED, APNS_TEXT)
 WIZREQ_U = ('wizconnection request untrusted', 1)
 WIZREQ_T = ('wizconnection request trusted', 1)
+WIZREQ_T_HALF = ('wizconnection request trusted half', 0)
 WIZREQ_F = ('wizconnection request follow', 1)
 WIZCARD_ACCEPT = ('accepted wizcard', 1)
 WIZCARD_REVOKE = ('revoked wizcard', 0)
