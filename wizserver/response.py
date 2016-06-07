@@ -100,6 +100,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_TABLE_JOIN[0]         : self.notifJoinTable,
             verbs.WIZCARD_TABLE_LEAVE[0]        : self.notifLeaveTable,
             verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
+            verbs.WIZCARD_UPDATE_HALF[0]        : self.notifWizcardUpdateH,
             verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
@@ -111,8 +112,8 @@ class NotifResponse(ResponseN):
 
     def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
+        template = fields.wizcard_template_half if half else fields.wizcard_template_full
 
-        template = fields.wizcard_template_brief if half else fields.wizcard_template_full
         out = Wizcard.objects.serialize(wizcard,
                 template=template)
 
@@ -213,6 +214,9 @@ class NotifResponse(ResponseN):
 
     def notifWizcardUpdate(self, notif):
         return self.notifWizcard(notif, verbs.UPDATE_WIZCARD)
+
+    def notifWizcardUpdateH(self, notif):
+        return self.notifWizcard(notif, verbs.UPDATE_WIZCARD, half=True)
 
     def notifWizWebWizcardUpdate(self, notif):
         return self.notifWizcard(notif, verbs.WIZWEB_UPDATE_WIZCARD)

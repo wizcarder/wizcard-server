@@ -56,6 +56,7 @@ WIZCARD_DELETE = ('deleted wizcard', 0)
 WIZCARD_TABLE_TIMEOUT = ('table timeout', 1)
 WIZCARD_TABLE_DESTROY = ('table destroy', 1)
 WIZCARD_UPDATE = ('wizcard update', 1)
+WIZCARD_UPDATE_HALF = ('wizcard update half', 1)
 WIZCARD_FLICK_TIMEOUT = ('flick timeout', 1)
 WIZCARD_FLICK_PICK = ('flick pick', 1)
 WIZCARD_TABLE_INVITE = ('table invite', 1)
@@ -98,6 +99,11 @@ apns_notification_dictionary = {
         'alert': '{0.first_name} {0.last_name}  deleted {1.tablename} table',
     },
     WIZCARD_UPDATE[0]: {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'alert': '{0.first_name} {0.last_name} has an updated wizcard',
+    },
+    WIZCARD_UPDATE_HALF[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
         'alert': '{0.first_name} {0.last_name} has an updated wizcard',

@@ -125,9 +125,9 @@ class WizcardManager(models.Manager):
 
         return err.OK
 
-    def update_wizconnection(self, wizcard1, wizcard2):
+    def update_wizconnection(self, wizcard1, wizcard2, half=False):
         notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb=verbs.WIZCARD_UPDATE[0],
+                    verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0] ,
                     target=wizcard1)
 
     def query_users(self, userID, name, phone, email):
@@ -213,6 +213,12 @@ class Wizcard(models.Model):
 
         return None
 
+    def connected_status_string(self):
+        return "connected"
+
+    def followed_status_string(self):
+        return "followed"
+
     def get_thumbnail_url(self):
         return self.thumbnailImage.remote_url()
 
@@ -242,8 +248,13 @@ class Wizcard(models.Model):
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
 
     def flood(self):
-        for wizcard in self.get_followers().all():
-            Wizcard.objects.update_wizconnection(self, wizcard)
+        # full card for connections and half for followers
+        for wizcard in self.get_connections():
+            Wizcard.objects.update_wizconnection(self, wizcard, half=False)
+
+        for wizcard in self.get_followers_only():
+            pdb.set_trace()
+            Wizcard.objects.update_wizconnection(self, wizcard, half=True)
 
     def check_flick_duplicates(self, lat, lng):
         if not settings.DO_FLICK_AGGLOMERATE:
@@ -281,12 +292,12 @@ class Wizcard(models.Model):
             from_wizcard=self,
             to_wizcard=wizcard).delete()
 
-    #relationships into me
+    # ME ->
     def get_connected_to(self, status):
         return self.wizconnections_to.filter(
             requests_to__status=status)
 
-    #relationships out from me
+    # ME <-
     def get_connected_from(self, status):
         return self.wizconnections_from.filter(
             requests_from__status=status)
@@ -298,6 +309,11 @@ class Wizcard(models.Model):
             requests_from__status=verbs.ACCEPTED,
             requests_from__to_wizcard=self
         )
+
+    # exclude connected
+    def get_followers_only(self):
+        return self.get_connected_to(verbs.ACCEPTED).exclude(requests_from__status=verbs.ACCEPTED,
+            requests_from__to_wizcard=self)
 
     def get_pending_to(self):
         return self.get_connected_to(verbs.PENDING)
