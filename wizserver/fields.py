@@ -11,17 +11,21 @@ wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnailUrl']
 
 wizcard_fields_mini = ['wizcard_id', 'user_id', 'thumbnailUrl', \
                        'first_name', 'last_name']
+
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
-                  'thumbnailUrl', 'contact_container']
+                  'phone', 'email', 'thumbnailUrl', 'contact_container', 'status']
 
 wizcard_fields_keymap = {
         'wizcard_id': 'id',
-        'thumbnailUrl': 'get_thumbnail_url'
+        'thumbnailUrl': 'get_thumbnail_url',
+        'status': 'connected_status_string'
         }
+
 wizcard_fields_keymap_brief = {
         'wizcard_id': 'id',
         'thumbnailUrl': 'get_thumbnail_url',
-        'contact_container': 'get_latest_contact_container'
+        'contact_container': 'get_latest_contact_container',
+        'status': 'followed_status_string'
         }
 
 wizcard_related_objects_template = {
@@ -38,8 +42,17 @@ wizcard_template_mini = {
     'key_map' : wizcard_fields_keymap
 }
 
+#use this for nearby
 wizcard_template_brief = {
     'fields': wizcard_fields,
+    'exclude': ['phone', 'email', 'status'],
+    'key_map' : wizcard_fields_keymap_brief
+}
+
+#use these for rolodex (half/full)
+wizcard_template_half = {
+    'fields': wizcard_fields,
+    'exclude': ['phone', 'email'],
     'key_map' : wizcard_fields_keymap_brief
 }
 
