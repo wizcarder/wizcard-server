@@ -115,13 +115,13 @@ class UserProfileManager(models.Manager):
         return id2
 
     def check_user_exists(self, query_type, query_key):
-        if query_type == 'phone':
+        if query_type == verbs.INVITE_VERBS[verbs.SMS_INVITE]:
             username = UserProfile.objects.username_from_phone_num(query_key)
             if User.objects.filter(username=username).exists():
                 user = User.objects.get(username=username)
                 if user.profile.activated:
                     return user.wizcard
-        elif query_type == 'email':
+        elif query_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
             email_wizcards =  Wizcard.objects.filter(email=query_key)
             #AR: Need to change the model to make it uniq
             if email_wizcards:

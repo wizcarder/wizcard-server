@@ -1224,7 +1224,8 @@ class ParseMsgAndDispatch(object):
                 notify.send(self.user, recipient=r_user,
                             verb=verbs.WIZCARD_TABLE_INVITE[0],
                             target=table)
-        elif receiver_type in ['email', 'sms']:
+        elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE],
+                               verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             # create future user
             self.do_future_user(table, receiver_type, receivers)
 
@@ -1269,14 +1270,13 @@ class ParseMsgAndDispatch(object):
                         rel21.cctx=cctx
                         rel21.save()
 
-                        # Q notif for from_wizcard as well since unlike the
-                        # regular case, app is not going to be adding 1/2 card
-                        # to rolodex here, server has to tell the app to do so
-                        # AA:TODO need to insert a 1/2 card flag in the notif
-                        notify.send(wizcard.user, recipient=self.user,
-                                    verb=verbs.WIZREQ_T[0],
-                                    target=wizcard,
-                                    action_object=rel21)
+                    # Q notif for from_wizcard as well since unlike the
+                    # regular case, app is not going to be adding 1/2 card
+                    # to rolodex here, server has to tell the app to do so
+                    notify.send(wizcard.user, recipient=self.user,
+                                verb=verbs.WIZREQ_T_HALF[0],
+                                target=wizcard,
+                                action_object=rel21)
                 elif ContentType.objects.get_for_model(obj) == \
                         ContentType.objects.get(model="virtualtable"):
                     #Q this to the receiver

@@ -7,6 +7,32 @@ from datetime import datetime
 LAT1 = 37.885938
 LNG1 = -122.506419
 
+NEXMO_PHONE1 = "14084641727"
+NEXMO_PHONE2 = "+918971546485"
+
+PHONE1 = "+14084641727"
+PHONE2 = "+15085332708"
+PHONE3 = "+15086892263"
+PHONE4 = "+15086892263"
+
+FUTURE_PHONE1 = "+11111111111"
+FUTURE_PHONE2 = "+12222222222"
+FUTURE_PHONE3 = "+13333333333"
+FUTURE_PHONE4 = "+14444444444"
+FUTURE_USERNAME1 = FUTURE_PHONE1+'@wizcard.com'
+FUTURE_USERNAME2 = FUTURE_PHONE2+'@wizcard.com'
+FUTURE_USERNAME3 = FUTURE_PHONE3+'@wizcard.com'
+FUTURE_USERNAME4 = FUTURE_PHONE4+'@wizcard.com'
+FUTURE_EMAIL1 = "abcd@future.com"
+FUTURE_EMAIL2 = "efgh@future.com"
+FUTURE_EMAIL3 = "ijkl@future.com"
+FUTURE_EMAIL4 = "mnop@future.com"
+
+EMAIL1 = "aammundi@gmail.com"
+EMAIL2 = "amsaha@gmail.com"
+EMAIL3 = "wizcard1@gmail.com"
+EMAIL4 = "nothere@gmail.com"
+
 phone_check_req = {
     "header" : {
         "msgType" : "phone_check_req",
@@ -193,7 +219,7 @@ edit_card1 = {
         "last_name" : "Ammundi",
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
-        "phone1" : 8971546485,
+        "phone1" : PHONE1,
         "userID" : "USER1",
         "deviceType": "ios",
         #wizUserID should be the userID got from response of above register message
@@ -222,7 +248,7 @@ edit_card2 = {
         "last_name" : "Saha",
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
-        "phone1" : 4084642727,
+        "phone1" : PHONE2,
         "userID" : "USER2",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
@@ -250,7 +276,7 @@ edit_card3 = {
         "last_name" : "One",
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
-        "phone1" : 4084643737,
+        "phone1" : PHONE3,
         "userID" : "USER3",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",

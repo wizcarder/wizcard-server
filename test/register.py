@@ -23,38 +23,9 @@ TEST_TABLE = False
 TEST_FLICK = False
 TEST_WIZWEB = False
 
-
-NEXMO_PHONE1 = "14084641727"
-NEXMO_PHONE2 = "+918971546485"
-
-PHONE1 = "+14084641727"
-PHONE2 = "+15085332708"
-PHONE3 = "+15086892263"
-PHONE4 = "+15086892263"
-
-FUTURE_PHONE1 = "+11111111111"
-FUTURE_PHONE2 = "+12222222222"
-FUTURE_PHONE3 = "+13333333333"
-FUTURE_PHONE4 = "+14444444444"
-FUTURE_USERNAME1 = FUTURE_PHONE1+'@wizcard.com'
-FUTURE_USERNAME2 = FUTURE_PHONE2+'@wizcard.com'
-FUTURE_USERNAME3 = FUTURE_PHONE3+'@wizcard.com'
-FUTURE_USERNAME4 = FUTURE_PHONE4+'@wizcard.com'
-FUTURE_EMAIL1 = "abcd@future.com"
-FUTURE_EMAIL2 = "efgh@future.com"
-FUTURE_EMAIL3 = "ijkl@future.com"
-FUTURE_EMAIL4 = "mnop@future.com"
-
-EMAIL1 = "aammundi@gmail.com"
-EMAIL2 = "amsaha@gmail.com"
-EMAIL3 = "wizcard1@gmail.com"
-EMAIL4 = "nothere@gmail.com"
-
-
-
-USERNAME1 = PHONE1+'@wizcard.com'
-USERNAME2 = PHONE2+'@wizcard.com'
-USERNAME3 = PHONE3+'@wizcard.com'
+USERNAME1 = messages.PHONE1+'@wizcard.com'
+USERNAME2 = messages.PHONE2+'@wizcard.com'
+USERNAME3 = messages.PHONE3+'@wizcard.com'
 USERNAME4 = "wizweb_user1" + ''.join(random.choice(string.digits) for x in range(2))
 USERNAME4_FIRST_NAME = "WizWeb_1"
 USERNAME4_LAST_NAME = "Last_1"
@@ -91,8 +62,8 @@ DEFAULT_MEDIA_URL = "www.youtube.com"
 DEFAULT_BIZCARD_URL = "www.youtube.com"
 
 
-verify_phones_list = [PHONE1, PHONE2, PHONE3]
-verify_emails_list = [EMAIL1, EMAIL2, EMAIL3, EMAIL4]
+verify_phones_list = [messages.PHONE1, messages.PHONE2, messages.PHONE3]
+verify_emails_list = [messages.EMAIL1, messages.EMAIL2, messages.EMAIL3, messages.EMAIL4]
 
 #server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
@@ -140,7 +111,7 @@ reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID1
 reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['target'] = NEXMO_PHONE1
+reqmsg['sender']['target'] = messages.NEXMO_PHONE1
 reqmsg['sender']['responseMode'] = 'sms'
 reqmsg['sender']['test_mode'] = not TEST_NEXMO
 send_request(conn, reqmsg)
@@ -162,7 +133,7 @@ reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID2
 reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = USERNAME2
-reqmsg['sender']['target'] = PHONE2
+reqmsg['sender']['target'] = messages.PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
 reqmsg['sender']['test_mode'] = not TEST_NEXMO
 
@@ -187,7 +158,7 @@ reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID3
 reqmsg['header']['hash'] = HASH3
 reqmsg['sender']['username'] = USERNAME3
-reqmsg['sender']['target'] = PHONE3
+reqmsg['sender']['target'] = messages.PHONE3
 reqmsg['sender']['responseMode'] = 'sms'
 reqmsg['sender']['test_mode'] = not TEST_NEXMO
 
@@ -403,7 +374,7 @@ reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['assetID'] = e1_id
 reqmsg['sender']['assetType'] = "wizcard"
 reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [FUTURE_PHONE1, FUTURE_PHONE2]
+reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_PHONE1, messages.FUTURE_PHONE2]
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -414,7 +385,7 @@ reqmsg['sender']['assetType'] = "wizcard"
 reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['sender']['assetID'] = e2_id
 reqmsg['receiver']['receiverType'] = "email"
-reqmsg['receiver']['receiverIDs'] = [FUTURE_EMAIL1, FUTURE_EMAIL2]
+reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_EMAIL1, messages.FUTURE_EMAIL2]
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -425,8 +396,8 @@ print "creating future user 1 and 2"
 reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID4
 reqmsg['header']['hash'] = HASH2
-reqmsg['sender']['username'] = FUTURE_USERNAME1
-reqmsg['sender']['target'] = FUTURE_PHONE1
+reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
+reqmsg['sender']['target'] = messages.FUTURE_PHONE1
 reqmsg['sender']['responseMode'] = 'sms'
 reqmsg['sender']['test_mode'] = not TEST_NEXMO
 
@@ -438,7 +409,7 @@ response_key = objs['data']['challenge_key']
 reqmsg = messages.phone_check_resp
 reqmsg['header']['deviceID'] = DEVICE_ID4
 reqmsg['header']['hash'] = HASH2
-reqmsg['sender']['username'] = FUTURE_USERNAME1
+reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
 reqmsg['sender']['responseKey'] = response_key
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
@@ -449,8 +420,8 @@ fuid1 = objs['data']['userID']
 reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID5
 reqmsg['header']['hash'] = HASH2
-reqmsg['sender']['username'] = FUTURE_USERNAME2
-reqmsg['sender']['target'] = FUTURE_PHONE2
+reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
+reqmsg['sender']['target'] = messages.FUTURE_PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
 reqmsg['sender']['test_mode'] = not TEST_NEXMO
 
@@ -462,7 +433,7 @@ response_key = objs['data']['challenge_key']
 reqmsg = messages.phone_check_resp
 reqmsg['header']['deviceID'] = DEVICE_ID5
 reqmsg['header']['hash'] = HASH2
-reqmsg['sender']['username'] = FUTURE_USERNAME2
+reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
 reqmsg['sender']['responseKey'] = response_key
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
@@ -471,7 +442,7 @@ fuid2 = objs['data']['userID']
 
 print "logging in future user 1 and 2"
 reqmsg = messages.login
-reqmsg['sender']['username'] = FUTURE_USERNAME1
+reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
 reqmsg['sender']['userID'] = fuid1
 reqmsg['header']['deviceID'] = DEVICE_ID4
 send_request(conn, reqmsg)
@@ -479,7 +450,7 @@ send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 fwuid1 = objs['data']['wizUserID']
 
-reqmsg['sender']['username'] = FUTURE_USERNAME2
+reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
 reqmsg['sender']['userID'] = fuid2
 reqmsg['header']['deviceID'] = DEVICE_ID5
 send_request(conn, reqmsg)
@@ -506,8 +477,8 @@ print "creating wizcard for future user"
 reqmsg = messages.edit_card1
 reqmsg['sender']['userID'] = fuid1
 reqmsg['sender']['wizUserID'] = fwuid1
-reqmsg['sender']['email'] = FUTURE_EMAIL1
-reqmsg['sender']['phone1'] = FUTURE_PHONE1
+reqmsg['sender']['email'] = messages.FUTURE_EMAIL1
+reqmsg['sender']['phone1'] = messages.FUTURE_PHONE1
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -516,8 +487,8 @@ fe1_id = objs['data']['wizCardID']
 reqmsg = messages.edit_card1
 reqmsg['sender']['userID'] = fuid2
 reqmsg['sender']['wizUserID'] = fwuid2
-reqmsg['sender']['email'] = FUTURE_EMAIL2
-reqmsg['sender']['phone1'] = FUTURE_PHONE2
+reqmsg['sender']['email'] = messages.FUTURE_EMAIL2
+reqmsg['sender']['phone1'] = messages.FUTURE_PHONE2
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -595,7 +566,7 @@ send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
         # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(D)
+        # uid1(A)<->uid3(P)
         # uid1(A)<->fuid1(P)
         # uid1(A)<->fuid2(P)
 
@@ -622,6 +593,11 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(A)
+        # uid1(A)<->uid3(D)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(P)
+
 # fuid2 decline
 reqmsg = messages.decline_connection_request
 reqmsg['sender']['userID'] = fuid2
@@ -631,6 +607,11 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(A)
+        # uid1(A)<->uid3(D)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(D)
+
 #u1 delete U2 rolodex
 reqmsg = messages.delete_rolodex_card
 reqmsg['sender']['userID'] = uid1
@@ -639,6 +620,11 @@ reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":Fa
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+
+        # uid1->uid2(A)
+        # uid1(A)<->uid3(D)
+        # uid1(A)<->fuid1(P)
+        # uid1(A)<->fuid2(D)
 
 #u1 reaccept U2
 reqmsg = messages.accept_connection_request
@@ -650,6 +636,11 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(A)
+        # uid1(A)<->uid3(D)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(D)
+
 #u3 reaccept u1
 reqmsg = messages.accept_connection_request
 reqmsg['sender']['userID'] = uid3
@@ -660,6 +651,11 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(A)
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(D)
+
 # u1 delete U2 Rolodex
 reqmsg = messages.delete_rolodex_card
 reqmsg['sender']['userID'] = uid1
@@ -669,14 +665,10 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-#U2 delete U1 rolodex
-reqmsg = messages.delete_rolodex_card
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e1_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+        # uid1->uid2(A)
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(D)
 
 # u1 <-> U2
 reqmsg = messages.send_asset_to_xyz
@@ -690,37 +682,39 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-reqmsg = messages.accept_connection_request
+        # uid1->uid2(A)
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(D)
+
+#U2 delete U1 rolodex
+reqmsg = messages.delete_rolodex_card
 reqmsg['sender']['userID'] = uid2
 reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['receiver']['wizUserID'] = wuid1
+reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e1_id])
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-# u1 invite U2 when connected
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(D)
+
+# u1 invite fuid1 when connected
 reqmsg = messages.send_asset_to_xyz
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['assetID'] = e1_id
 reqmsg['sender']['assetType'] = "wizcard"
 reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [PHONE2]
+reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_PHONE1]
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-# u1 (re)invite fuid2
-reqmsg = messages.send_asset_to_xyz
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [FUTURE_PHONE2]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(D)
 
 # u1 delete card fuid2
 reqmsg = messages.delete_rolodex_card
@@ -731,6 +725,26 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1->fuid2(D)
+
+# u1 invite fuid2 when declined
+reqmsg = messages.send_asset_to_xyz
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['assetID'] = e1_id
+reqmsg['sender']['assetType'] = "wizcard"
+reqmsg['receiver']['receiverType'] = "sms"
+reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_PHONE2]
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(D)
+
 # fuid2 accept u1
 reqmsg = messages.accept_connection_request
 reqmsg['sender']['userID'] = fuid2
@@ -740,17 +754,9 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-#fuid2 invite u1
-reqmsg = messages.send_asset_to_xyz
-reqmsg['sender']['userID'] = fuid2
-reqmsg['sender']['wizUserID'] = fwuid2
-reqmsg['sender']['assetID'] = fe2_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [NEXMO_PHONE1]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+        # uid1(A)<->uid3(A)
+        # uid1(A)->fuid1(A)
+        # uid1(A)<->fuid2(A)
 
 #delete rolodex card for u1
 print "deleting all cards of ", uid1
@@ -761,6 +767,10 @@ reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":Fa
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+
+        # uid1(A)->uid3(A)
+        # uid1->fuid1(P)
+        # uid1->fuid2(D)
 
 #user query
 reqmsg = messages.user_query
@@ -919,7 +929,7 @@ if TEST_TABLE:
     reqmsg['sender']['assetID'] = tid_1
     reqmsg['sender']['assetType'] = "table"
     reqmsg['receiver']['receiverType'] = "email"
-    reqmsg['receiver']['receiverIDs'] = [FUTURE_EMAIL3, FUTURE_EMAIL4]
+    reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_EMAIL3, messages.FUTURE_EMAIL4]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -931,7 +941,7 @@ if TEST_TABLE:
     reqmsg['sender']['assetID'] = tid_2
     reqmsg['sender']['assetType'] = "table"
     reqmsg['receiver']['receiverType'] = "sms"
-    reqmsg['receiver']['receiverIDs'] = [FUTURE_PHONE3, FUTURE_PHONE4]
+    reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_PHONE3, messages.FUTURE_PHONE4]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -1129,7 +1139,7 @@ if TEST_WIZWEB:
     reqmsg['sender']['mode'] = 1
     reqmsg['sender']['first_name'] = USERNAME4_FIRST_NAME
     reqmsg['sender']['last_name'] = USERNAME4_LAST_NAME
-    reqmsg['sender']['phone'] = PHONE4
+    reqmsg['sender']['phone'] = messages.PHONE4
     reqmsg['sender']['title'] = DEFAULT_TITLE
     reqmsg['sender']['company'] = DEFAULT_COMPANY
     reqmsg['sender']['start'] = START1
@@ -1148,7 +1158,7 @@ if TEST_WIZWEB:
     reqmsg['sender']['mode'] = 2
     reqmsg['sender']['first_name'] = USERNAME1
     reqmsg['sender']['last_name'] = USERNAME1
-    reqmsg['sender']['phone'] = PHONE1
+    reqmsg['sender']['phone'] = messages.PHONE1
     reqmsg['sender']['title'] = DEFAULT_TITLE
     reqmsg['sender']['company'] = DEFAULT_COMPANY
     reqmsg['sender']['start'] = START1
