@@ -1162,28 +1162,37 @@ class ParseMsgAndDispatch(object):
                     connection_mode=receiver_type,
                     location=location_str
                 )
-                if wizcard.get_relationship(r_wizcard):
-                    # wizcard->r_wizcard exists previously.
+
+                rel12 = wizcard.get_relationship(r_wizcard)
+
+                # wizcard->r_wizcard exists previously ?. This could/should
+                # happen only if other guy had declined. In this case, we're
+                # sending the tag as "others", thus allowing sender to send
+                # a connect request.
+                if rel12 and rel12.status != verbs.DECLINED:
+                    # something's not right.
                     self.response.error_response(err.EXISTING_CONNECTION)
                 else:
                     #create wizcard1->wizcard2
-                    rel12 = Wizcard.objects.cardit(wizcard,
-                                                   r_wizcard,
-                                                   status=verbs.PENDING,
-                                                   cctx=cctx)
+                    if not rel12:
+                        rel12 = Wizcard.objects.cardit(wizcard,
+                                                       r_wizcard,
+                                                       status=verbs.PENDING,
+                                                       cctx=cctx)
+                        #Q notif for to_wizcard
+                        notify.send(self.user, recipient=r_user,
+                                    verb=verbs.WIZREQ_T[0] if receiver_type ==
+                                                              verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T]
+                                    else verbs.WIZREQ_U[0],
+                                    target=wizcard,
+                                    action_object=rel12)
+
                     #create and accept implicitly wizcard2->wizcard1
                     rel21 = Wizcard.objects.cardit(r_wizcard,
                                                    wizcard,
                                                    verbs.ACCEPTED,
                                                    cctx=cctx
                                                    )
-
-                    #Q notif for to_wizcard
-                    notify.send(self.user, recipient=r_user,
-                                verb=verbs.WIZREQ_T[0] if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T]
-                                else verbs.WIZREQ_U[0],
-                                target=wizcard,
-                                action_object=rel12)
 
                     # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
                     # let server push this via notif 1.

@@ -127,7 +127,7 @@ class WizcardManager(models.Manager):
 
     def update_wizconnection(self, wizcard1, wizcard2, half=False):
         notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0] ,
+                    verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
                     target=wizcard1)
 
     def query_users(self, userID, name, phone, email):
