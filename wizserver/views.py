@@ -1256,10 +1256,24 @@ class ParseMsgAndDispatch(object):
                                     verb=verbs.WIZREQ_U[0],
                                     target=obj,
                                     action_object=rel12)
+                    elif rel12.status is verbs.ACCEPTED:
+                        # transition it from half to full
+                        notify.send(self.user, recipient=wizcard.user,
+                                    verb=verbs.WIZREQ_T[0],
+                                    target=obj,
+                                    action_object=rel12)
+                    elif rel12.status is verbs.DECLINED:
+                        # reset 2 to pending. Yes there is a potential "don't bother me" angle
+                        # to this..but better to promote connections
+                        rel12.reset()
+                        notify.send(self.user, recipient=wizcard.user,
+                                    verb=verbs.WIZREQ_U[0],
+                                    target=obj,
+                                    action_object=rel12)
 
-                    #create and accept implicitly wizcard2->wizcard1
                     rel21 = wizcard.get_relationship(obj)
                     if not rel21:
+                        # create and accept implicitly wizcard2->wizcard1
                         rel21 = Wizcard.objects.cardit(wizcard,
                                                        obj,
                                                        status=verbs.ACCEPTED,
@@ -1269,20 +1283,20 @@ class ParseMsgAndDispatch(object):
                                     target=wizcard,
                                     action_object=rel21)
 
-                    elif rel21.status != verbs.ACCEPTED:
+                    elif rel21.status is verbs.DECLINED:
                         # if declined, follower-d case, full card can be added
-                        # else, 1/2 card
-                        verb=verbs.WIZREQ_T_HALF[0] if rel21.status is verbs.PENDING else verbs.WIZREQ_T[0]
-                        rel21.status=verbs.ACCEPTED
                         rel21.cctx=cctx
-                        rel21.save()
+                        rel21.accept()
 
                         notify.send(wizcard.user, recipient=self.user,
-                                    verb=verb,
+                                    verb=verbs.WIZREQ_T[0],
                                     target=wizcard,
                                     action_object=rel21)
                     else:
-                        # was already in ACCEPTED, leave as-is
+                        # was already in ACCEPTED, leave as-is.
+                        # if was in PENDING, it means he has previously sent us a req.
+                        # so that an unacted req should exist in the App.
+                        # Better to leave as is and have user use the req to connect
                         pass
 
                 elif ContentType.objects.get_for_model(obj) == \
