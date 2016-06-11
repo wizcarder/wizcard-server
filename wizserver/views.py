@@ -1272,12 +1272,13 @@ class ParseMsgAndDispatch(object):
                     elif rel21.status != verbs.ACCEPTED:
                         # if declined, follower-d case, full card can be added
                         # else, 1/2 card
+                        verb=verbs.WIZREQ_T_HALF[0] if rel21.status is verbs.PENDING else verbs.WIZREQ_T[0]
                         rel21.status=verbs.ACCEPTED
                         rel21.cctx=cctx
                         rel21.save()
 
                         notify.send(wizcard.user, recipient=self.user,
-                                    verb=verbs.WIZREQ_T_HALF[0] if rel21.status is verbs.PENDING else verbs.WIZREQ_T[0],
+                                    verb=verb,
                                     target=wizcard,
                                     action_object=rel21)
                     else:
