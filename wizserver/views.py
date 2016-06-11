@@ -1264,19 +1264,24 @@ class ParseMsgAndDispatch(object):
                                                        obj,
                                                        status=verbs.ACCEPTED,
                                                        cctx=cctx)
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T_HALF[0],
+                                    target=wizcard,
+                                    action_object=rel21)
 
                     elif rel21.status != verbs.ACCEPTED:
                         rel21.status=verbs.ACCEPTED
                         rel21.cctx=cctx
                         rel21.save()
 
-                    # Q notif for from_wizcard as well since unlike the
-                    # regular case, app is not going to be adding 1/2 card
-                    # to rolodex here, server has to tell the app to do so
-                    notify.send(wizcard.user, recipient=self.user,
-                                verb=verbs.WIZREQ_T_HALF[0],
-                                target=wizcard,
-                                action_object=rel21)
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T_HALF[0],
+                                    target=wizcard,
+                                    action_object=rel21)
+                    else:
+                        # was already in ACCEPTED, leave as-is
+                        pass
+
                 elif ContentType.objects.get_for_model(obj) == \
                         ContentType.objects.get(model="virtualtable"):
                     #Q this to the receiver
