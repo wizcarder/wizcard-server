@@ -328,12 +328,16 @@ class Wizcard(models.Model):
 
     # exclude connected
     def get_followers_only(self):
-        return self.get_connected_to(verbs.ACCEPTED).exclude(requests_from__status=verbs.ACCEPTED,
-            requests_from__to_wizcard=self)
+        return self.get_connected_to(verbs.ACCEPTED).exclude(
+            id__in=Wizcard.objects.filter(
+                requests_from__status=verbs.ACCEPTED,
+                requests_from__to_wizcard=self))
 
     def get_following_only(self):
-        return self.get_connected_from(verbs.ACCEPTED).exclude(requests_to__status=verbs.ACCEPTED,
-            requests_from__to_wizcard=self)
+        return self.get_connected_from(verbs.ACCEPTED).exclude(
+            id__in=Wizcard.objects.filter(
+                requests_to__status=verbs.ACCEPTED,
+                requests_to__from_wizcard=self))
 
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
