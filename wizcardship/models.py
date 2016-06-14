@@ -155,6 +155,26 @@ class WizcardManager(models.Manager):
 
         return result, len(result)
 
+    def get_connection_status(self, wizcard1, wizcard2):
+        if wizcard1 == wizcard2:
+            return verbs.OWN
+        elif Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
+            return verbs.CONNECTED
+        elif Wizcard.objects.is_wizcard_following(wizcard1, wizcard2):
+            # other guy is a follower
+            # split into 2 cases here. if the reverse relationship is in pending, then
+            # follower, else follower-d (reverse connection was either deleted or declined)
+            if Wizcard.objects.is_wizconnection_pending(wizcard2, wizcard1):
+                return verbs.FOLLOWER
+            else:
+                return verbs.FOLLOWER_D
+        elif Wizcard.objects.is_wizcard_following(wizcard2, wizcard1):
+            # I'm following him
+            return verbs.FOLLOWED
+        else:
+            return verbs.OTHERS
+
+
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
     wizconnections_to = models.ManyToManyField('self',

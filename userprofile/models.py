@@ -58,43 +58,33 @@ class UserProfileManager(models.Manager):
         ret = dict()
 
         for user in users:
-            if user == me:
+            connection_status = Wizcard.objects.get_connection_status(me.wizcard, user.wizcard)
+            if connection_status is verbs.OWN:
                 own.append(user)
-            elif Wizcard.objects.are_wizconnections(
-                    user.wizcard,
-                    me.wizcard):
+            elif connection_status is verbs.CONNECTED:
                 # 2-way connected
                 connected.append(user)
-            elif Wizcard.objects.is_wizcard_following(
-                    me.wizcard,
-                    user.wizcard):
-                # other guy is a follower
-                # split into 2 cases here. if the reverse relationship is in pending, then
-                # follower, else follower-d (reverse connection was either deleted or declined)
-                if Wizcard.objects.is_wizconnection_pending(user.wizcard, me.wizcard):
-                    follower.append(user)
-                else:
-                    follower_d.append(user)
-            elif Wizcard.objects.is_wizcard_following(
-                    user.wizcard,
-                    me.wizcard):
-                # I'm following him
+            elif connection_status is verbs.FOLLOWER:
+                follower.append(user)
+            elif connection_status is verbs.FOLLOWER_D:
+                follower_d.append(user)
+            elif connection_status is verbs.FOLLOWED:
                 followed.append(user)
             else:
                 others.append(user)
 
         if len(own):
-            ret['own'] = own
+            ret[verbs.OWN] = own
         if len(connected):
-            ret['connected'] = connected
+            ret[verbs.CONNECTED] = connected
         if len(follower):
-            ret['follower'] = follower
+            ret[verbs.FOLLOWER] = follower
         if len(follower_d):
-            ret['follower-d'] = follower_d
+            ret[verbs.FOLLOWER_D] = follower_d
         if len(followed):
-            ret['followed'] = followed
+            ret[verbs.FOLLOWED] = followed
         if len(others):
-            ret['others'] = others
+            ret[verbs.OTHERS] = others
 
         return ret
 

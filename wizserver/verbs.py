@@ -44,6 +44,14 @@ RELATIONSHIP_STATUSES = (
     (BLOCKED, 'Blocked'),
 )
 
+# tags
+OWN = "own"
+CONNECTED = "connected"
+FOLLOWER = "follower"
+FOLLOWER_D = "follower-d"
+FOLLOWED = "followed"
+OTHERS = "others"
+
     # (Verb, APNS_REQUIRED, APNS_TEXT)
 WIZREQ_U = ('wizconnection request untrusted', 1)
 WIZREQ_T = ('wizconnection request trusted', 1)

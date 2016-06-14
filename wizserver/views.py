@@ -709,6 +709,7 @@ class ParseMsgAndDispatch(object):
     # NOTE: A->B doesn't denote direction of request. It denotes that B is FOLLOWING A. ie
     # B has A's wizcard in roldex
     def WizcardAccept(self):
+        status = []
         try:
             wizcard1 = self.user.wizcard
             reaccept = self.sender.get('reaccept', False)
@@ -767,6 +768,11 @@ class ParseMsgAndDispatch(object):
                     target=wizcard1,
                     action_object=rel12)
 
+        status.append(
+            dict(status=Wizcard.objects.get_connection_status(wizcard1, wizcard2),
+                 wizCardID=wizcard2.id)
+        )
+        self.response.add_data("status", status)
         return self.response
 
     def WizConnectionRequestDecline(self):
@@ -1141,6 +1147,7 @@ class ParseMsgAndDispatch(object):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
+        status = []
         if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U]:
             # add location to cctx. For nearby based exchange, use
             # senders location (which should be same as receivers too)
@@ -1202,7 +1209,12 @@ class ParseMsgAndDispatch(object):
                                 action_object=rel21)
 
                     count += 1
-                    self.response.add_data("count", count)
+                    status.append(dict(
+                        status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
+                        wizCardID=r_wizcard.id)
+                    )
+            self.response.add_data("count", count)
+            self.response.add_data("status", status)
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             #future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
