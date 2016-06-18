@@ -524,7 +524,7 @@ else:
 	}
 
 
-GCM_API_KEY = 'AIzaSyDimK6uqvYF_GckgNpP5xf2Fofqw7pM0eE'
+GCM_API_KEY = 'AIzaSyAz_uc7MiPtC_JK1ZjurpsdxxDlfPAy4-c'
 
 CELERY_TIMEZONE = 'UTC'
 SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
