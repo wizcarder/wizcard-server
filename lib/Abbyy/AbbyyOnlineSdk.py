@@ -26,8 +26,6 @@ class ProcessingSettings:
 	FieldComponents = "true"
 
 class RunOCR:
-
-
 	def RunProc( self,filePath,  language, outputFormat ):
 		print "Uploading.."
 		processor = AbbyyOnlineSdk()
@@ -189,7 +187,7 @@ class AbbyyOnlineSdk:
 
 
 	def buildAuthInfo( self ):
-		return { "Authorization" : "Basic %s" % base64.encodestring( "%s:%s" % (self.ApplicationId, self.Password) ) }
+		return { "Authorization" : "Basic %s" % base64.b64encode("%s:%s" % (self.ApplicationId, self.Password) ) }
 
 	def getOpener( self ):
 		if self.Proxy == None:

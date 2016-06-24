@@ -578,9 +578,10 @@ class ParseMsgAndDispatch(object):
             wizcard = Wizcard(user=self.user)
             wizcard.save()
 
-            #this is also the time User object can get first/last name
-	self.userprofile.activated = True
-	userprofile_modify = True
+        # set activated to true.
+        if not self.userprofile.activated:
+            self.userprofile.activated = True
+            userprofile_modify = True
 
         #AA:TODO: Change app to call this phone as well
         phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1']
