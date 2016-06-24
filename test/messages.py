@@ -27,6 +27,9 @@ FUTURE_EMAIL1 = "abcd@future.com"
 FUTURE_EMAIL2 = "efgh@future.com"
 FUTURE_EMAIL3 = "ijkl@future.com"
 FUTURE_EMAIL4 = "mnop@future.com"
+OCR_PHONE = "+919590203441"
+OCR_USERNAME = OCR_PHONE+'@wizcard.com'
+
 
 EMAIL1 = "aammundi@gmail.com"
 EMAIL2 = "amsaha@gmail.com"
@@ -149,6 +152,24 @@ register3 = {
 	"wizUserID" : ""
     },
 }
+ocr_register = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "register",
+    },
+    "sender" : {
+        #maybe should have a separate data file for lat, lng and read with some
+        #random index from there
+        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
+        "lat" : 37.785838,
+        "lng" : -122.406419,
+        "deviceType": "android",
+        "userID" : "",
+	"wizUserID" : ""
+    },
+}
 
 location = {
     "header" : {
@@ -248,7 +269,7 @@ edit_card2 = {
         "last_name" : "Saha",
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
-        "phone1" : PHONE2,
+        "phone1" : OCR_PHONE,
         "userID" : "USER2",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
