@@ -1093,7 +1093,6 @@ if OCR_FLAG:
     reqmsg['sender']['f_ocrCardImage'] = ocr_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    pdb.set_trace()
     objs = handle_response(conn, reqmsg['header']['msgType'])
     contact_container = objs['data']['ocr_result']['contact_container']
 
