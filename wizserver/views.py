@@ -578,7 +578,8 @@ class ParseMsgAndDispatch(object):
             wizcard = Wizcard(user=self.user)
             wizcard.save()
 
-            #this is also the time User object can get first/last name
+        # set activated to true.
+        if not self.userprofile.activated:
             self.userprofile.activated = True
             userprofile_modify = True
 

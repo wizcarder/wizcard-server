@@ -67,9 +67,9 @@ verify_emails_list = [messages.EMAIL1, messages.EMAIL2, messages.EMAIL3, message
 
 #server_url = "www.totastyle.com"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
-server_url = "localhost"
+server_url = "ec2-54-153-11-241.us-west-1.compute.amazonaws.com"
 
-server_port = 8000
+server_port = 80
 #server_port = 8002
 #server_port = 80
 
@@ -161,11 +161,11 @@ reqmsg['sender']['username'] = USERNAME3
 reqmsg['sender']['target'] = messages.PHONE3
 reqmsg['sender']['responseMode'] = 'sms'
 reqmsg['sender']['test_mode'] = not TEST_NEXMO
-
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 response_key = objs['data']['challenge_key']
+
 
 #resp = objs['data']['key']
 reqmsg = messages.phone_check_resp
@@ -177,6 +177,15 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 uid3 = objs['data']['userID']
+
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID3
+reqmsg['header']['hash'] = HASH3
+reqmsg['sender']['username'] = USERNAME3
+reqmsg['sender']['target'] = messages.PHONE3
+reqmsg['sender']['responseMode'] = 'sms'
+reqmsg['sender']['test_mode'] = not TEST_NEXMO
+
 
 reqmsg = messages.login
 reqmsg['sender']['username'] = USERNAME1
@@ -226,6 +235,7 @@ reqmsg['sender']['wizUserID']=wuid3
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+
 
 reqmsg = messages.edit_card1
 reqmsg['sender']['userID'] = uid1
@@ -1044,14 +1054,59 @@ if TEST_FLICK:
     objs = handle_response(conn, reqmsg['header']['msgType'])
 
 if OCR_FLAG:
+    #OCR USER 
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['deviceID'] = DEVICE_ID3
+    reqmsg['header']['hash'] = HASH3
+    reqmsg['sender']['username'] = messages.OCR_USERNAME
+    reqmsg['sender']['target'] = messages.OCR_PHONE
+    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['test_mode'] = not TEST_NEXMO
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
+    response_key = objs['data']['challenge_key']
+    
+    #resp = objs['data']['key']
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['deviceID'] = DEVICE_ID3
+    reqmsg['header']['hash'] = HASH3
+    reqmsg['sender']['username'] = messages.OCR_USERNAME
+    reqmsg['sender']['responseKey'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
+    ocr_uid = objs['data']['userID']
+    
+    reqmsg = messages.login
+    reqmsg['sender']['username'] = messages.OCR_USERNAME
+    reqmsg['sender']['userID'] = ocr_uid
+    reqmsg['header']['deviceID'] = DEVICE_ID3
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
+    ocr_wuid = objs['data']['wizUserID']
+
     reqmsg = messages.ocr_req_self
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['wizCardID'] = e1_id
+    reqmsg['sender']['userID'] = ocr_uid
+    reqmsg['sender']['wizUserID'] = ocr_wuid
     reqmsg['sender']['f_ocrCardImage'] = ocr_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
+    contact_container = objs['data']['ocr_result']['contact_container']
+
+    reqmsg = messages.edit_card2
+    reqmsg['sender']['userID'] = ocr_uid 
+    reqmsg['sender']['wizUserID'] = ocr_wuid
+    contacts = contact_container
+    #populate file
+    for c in contacts:
+        c['f_bizCardImage'] = cc_out
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
+    ocr_wizcard_id = objs['data']['wizCardID']
 
     reqmsg = messages.ocr_dead_card
     reqmsg['sender']['userID'] = uid1
