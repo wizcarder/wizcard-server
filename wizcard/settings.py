@@ -123,10 +123,10 @@ elif RUNENV == 'prod':
     DATABASES = {
 	    'default': {
 	        'ENGINE': 'django.db.backends.mysql',
-	        'NAME': 'wizcard',
+	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'wizcarddb',
-            'HOST': 'wizcardprod.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+            'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 
@@ -376,14 +376,14 @@ AWS_RETURN_PATH='wizcarder@gmail.com'
 AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
 # RAVEN config for Sentry
-RAVEN_CONFIG = {
-    #for new AWS prod/stage
-    ##'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
-    #'CELERY_LOGLEVEL': logging.ERROR
-
-    #for bitnami AWS instance
-    #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
-}
+#RAVEN_CONFIG = {
+#    #for new AWS prod/stage
+#    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+#    #'CELERY_LOGLEVEL': logging.ERROR
+#
+#    #for bitnami AWS instance
+#    #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
+#}
 
 # Advanced Django 1.3.x+ Logging
 #
@@ -508,10 +508,10 @@ PYAPNS_CONFIG = {
   ]
 }
 
-if RUNENV == "stage":
 # RAVEN config for Sentry
+if RUNENV == "prod":
     RAVEN_CONFIG = {
-    #for new AWS prod/stage
+    #for new AWS prod
         'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
     }
 elif RUNENV == "test" :
