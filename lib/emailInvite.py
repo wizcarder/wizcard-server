@@ -65,16 +65,16 @@ def create_template(wizcard_id):
 def sendmail(from_wizcard,to,template):
     html = 'emailinvite.html'
 
-    if template == 'emailscan'
+    if template == 'emailscan':
         html = 'emailinfo.html'
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Business Card
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Business Card"
     elif template == 'emailscaninvite':
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect"
 
     elif template == 'emailinfo':
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Connect on WizCard
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Connect on WizCard"
     else:
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Use WizCard and Connect
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Use WizCard and Connect"
     emailurl = from_wizcard.emailTemplate.remote_url()
     if not emailurl:
         create_template(from_wizcard.id)
