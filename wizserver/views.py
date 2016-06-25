@@ -1219,6 +1219,13 @@ class ParseMsgAndDispatch(object):
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             #future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
+            if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
+                for r in receivers:
+                    wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
+                    if wizcard:
+                        sendmail.delay(self.user.wizcard,r,template="emailinfo")
+                    else:
+                        sendmail.delay(self.user.wizcard, r,template="emailinvite")
 
         return self.response
 
@@ -1242,12 +1249,13 @@ class ParseMsgAndDispatch(object):
             # create future user
             self.do_future_user(table, receiver_type, receivers)
 
+
             # AA: TODO. an error/info case is when connection already exists.
             # App can be told about it to pop an "already connected" message
 
         return self.response
 
-    def do_future_user(self, obj, receiver_type, receivers):
+    def do_future_user(self, obj, receiver_type, receivers,deadcard=True):
         for r in receivers:
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
@@ -1327,10 +1335,10 @@ class ParseMsgAndDispatch(object):
                     email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 ).save()
 
-                if receiver_type == 'email':
-                    sendmail.delay(self.user.wizcard, r)
 
-        return
+
+
+
 
     def UserQuery(self):
         try:
@@ -1704,13 +1712,20 @@ class ParseMsgAndDispatch(object):
         #or rescan
         deadcard.save()
 
-        if inviteother == 1:
+        if inviteother:
             receiver_type = "email"
             receivers = [deadcard.email]
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
+
+                sendmail.delay(self.user.wizcard, r, template="emailscaninvite")
+
+
             else:
                 self.response.error_response(err.NO_RECEIVER)
+        else:
+            sendmail.delay(self.user.wizcard, r, template="emailscan")
+
 
         return self.response
 
