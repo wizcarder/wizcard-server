@@ -73,7 +73,6 @@ def sendmail(from_wizcard,to,template):
     elif template == 'emailscaninvite':
         subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect
 
-
     elif template == 'emailinfo':
         subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Connect on WizCard
 
