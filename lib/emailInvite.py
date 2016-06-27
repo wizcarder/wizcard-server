@@ -68,16 +68,16 @@ def sendmail(from_wizcard,to,template):
 
     if template == 'emailscan':
         html = 'emailinfo.html'
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Business Card
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Business Card"
         emailurl = settings.EMAIL_DEFAULT_IMAGE
     elif template == 'emailscaninvite':
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect"
 
     elif template == 'emailinfo':
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Connect on WizCard
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Connect on WizCard"
 
     else:
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Use WizCard and Connect
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Use WizCard and Connect"
 
     if not emailurl:
         create_template(from_wizcard.id)
