@@ -1718,13 +1718,13 @@ class ParseMsgAndDispatch(object):
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
 
-                sendmail.delay(self.user.wizcard, r, template="emailscaninvite")
+                sendmail.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
 
 
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
-            sendmail.delay(self.user.wizcard, r, template="emailscan")
+            sendmail.delay(self.user.wizcard, receivers[0], template="emailscan")
 
 
         return self.response
