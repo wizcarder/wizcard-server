@@ -34,15 +34,27 @@ def pushNotificationToApp(
         target_object = \
                 t_content_type.get_object_for_this_type(pk=target_object_id)
 
-    
-    apns = ApnsMsg(
+
+    if receiver.is_ios():
+        apns = ApnsMsg(
+                sender,
+                receiver.reg_token,
+                action_object,
+                target_object,
+                verbs.apns_notification_dictionary[verb],
+                receiver.is_ios())
+        apns.format_alert_msg('alert')
+    else:
+        gcm = ApnsMsg(
             sender,
             receiver.reg_token,
             action_object,
             target_object,
-            verbs.apns_notification_dictionary[verb],
+            verbs.gcm_notification_dictionary[verb],
             receiver.is_ios())
-    apns.format_alert_msg()
+
+
+        apns.format_alert_msg('body')
     apns.send()
 
 
@@ -56,12 +68,12 @@ class ApnsMsg(object):
         self.aps = dict(aps=apns_args.copy())
         self.is_ios = is_ios
 
-    def format_alert_msg(self):
-        alert_msg = self.aps['aps']['alert'].format(
+    def format_alert_msg(self,mesgkey):
+        alert_msg = self.aps['aps'][mesgkey].format(
                 self.sender, 
                 self.target_object,
                 self.action_object)
-        self.aps['aps']['alert'] = alert_msg
+        self.aps['aps'][mesgkey] = alert_msg
 
     def send(self):
         if self.is_ios:
