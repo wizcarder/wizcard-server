@@ -69,7 +69,7 @@ def sendmail(from_wizcard,to,template):
     if template == 'emailscan':
         html = 'emailinfo.html'
         subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Business Card
-        emailurl = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-prod/invites/email_info.png"
+        emailurl = settings.EMAIL_DEFAULT_IMAGE
     elif template == 'emailscaninvite':
         subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect
 
