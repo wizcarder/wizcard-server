@@ -133,3 +133,35 @@ apns_notification_dictionary = {
     },
 }
 
+gcm_notification_dictionary = {
+    WIZREQ_U[0]	: {
+        'title':'Connection Request',
+        #AA:TODO: separate verb from push message
+        'body': '{0.first_name} {0.last_name} would like to connect with you',
+    },
+    WIZREQ_F[0]	: {
+        'title':'Follow Request',
+        #AA:TODO: separate verb from push message
+        'body': '{0.first_name} {0.last_name} would like to follow you',
+    },
+    WIZREQ_T[0]	: {
+        'title': 'Connected',
+        'body': 'you have a new contact {0.first_name} {0.last_name}',
+    },
+    WIZCARD_ACCEPT[0]: {
+        'title': 'Accepted',
+        'body': '{0.first_name} {0.last_name} accepted your invitation',
+    },
+
+    WIZCARD_UPDATE[0]: {
+        'title': 'Updated WizCard',
+        'body': '{0.first_name} {0.last_name} has an updated wizcard',
+    },
+    WIZCARD_UPDATE_HALF[0]: {
+        'title': 'Updated WizCard',
+        'body': '{0.first_name} {0.last_name} has an updated wizcard',
+    },
+
+
+}
+
