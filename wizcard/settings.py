@@ -124,11 +124,11 @@ elif RUNENV == 'test':
 elif RUNENV == 'prod':
     DATABASES = {
 	    'default': {
-	        'ENGINE': 'django.db.backends.mysql',
+	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
-	        'PASSWORD': 'wizcarddb',
-            'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+	        'PASSWORD': 'gowizcard',
+		'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 
