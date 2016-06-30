@@ -10,7 +10,7 @@ def send_gcm_message(key,reg_token,data):
 
 
 
-    response = gcm.json_request(registration_ids=reg_token, data=data,delay_while_idle=False)
+    response = gcm.json_request(registration_ids=reg_token, notification=data,delay_while_idle=False)
 
     # Successfully handled registration_ids
     if response and 'success' in response:
