@@ -9,10 +9,12 @@ urlpatterns = patterns('',
     # url(r'^$', 'wizcard_schema.views.home', name='home'),
     url(r'^$', include('wizserver.urls')),
     url(r'^healthstatus$', include('healthstatus.urls')),
+    url(r'^admin/django-ses/', include('django_ses.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-     url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
 )
+urlpatterns += (url(r'^admin/django-ses/', include('django_ses.urls')),)

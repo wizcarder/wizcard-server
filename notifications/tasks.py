@@ -3,6 +3,7 @@ from celery.contrib import rdb
 from wizserver import verbs
 from pyapns import notify as apns_notify
 from pyapns import configure, provision, feedback
+from androidgcm import send_gcm_message
 from django.conf import settings
 from django.contrib.auth.models import User
 import logging
@@ -33,17 +34,29 @@ def pushNotificationToApp(
         target_object = \
                 t_content_type.get_object_for_this_type(pk=target_object_id)
 
-    
-    apns = ApnsMsg(
+
+    if receiver.is_ios():
+        apns = ApnsMsg(
+                sender,
+                receiver.reg_token,
+                action_object,
+                target_object,
+                verbs.apns_notification_dictionary[verb],
+                receiver.is_ios())
+        apns.format_alert_msg()
+        apns.send()
+    else:
+        gcm = ApnsMsg(
             sender,
             receiver.reg_token,
             action_object,
             target_object,
-            verbs.apns_notification_dictionary[verb],
+            verbs.gcm_notification_dictionary[verb],
             receiver.is_ios())
-    apns.format_alert_msg()
-    apns.send()
 
+
+        gcm.format_alert_msg()
+        gcm.send()
 
 class ApnsMsg(object):
     def __init__(self, sender, reg_token, action_object,
@@ -56,11 +69,19 @@ class ApnsMsg(object):
         self.is_ios = is_ios
 
     def format_alert_msg(self):
-        alert_msg = self.aps['aps']['alert'].format(
+        if self.is_ios:
+            alert_msg = self.aps['aps']['alert'].format(
                 self.sender, 
                 self.target_object,
                 self.action_object)
-        self.aps['aps']['alert'] = alert_msg
+            self.aps['aps']['alert'] = alert_msg
+        else:
+            alert_msg = self.aps['aps']['body'].format(
+                self.sender,
+                self.target_object,
+                self.action_object)
+
+            self.aps['aps']['body'] = alert_msg
 
     def send(self):
         if self.is_ios:
@@ -78,11 +99,11 @@ class ApnsMsg(object):
         return
 
     def pushAndroid(self):
-        #send_gcm_message(
-        #    settings.GCM_API_KEY,
-		#	self.reg_token,
-		#	self.aps
-        #)
+        send_gcm_message(
+            settings.GCM_API_KEY,
+			[self.reg_token],
+			self.aps
+        )
         return
 
 

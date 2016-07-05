@@ -8,6 +8,7 @@ from __future__ import absolute_import
 import djcelery
 import os
 djcelery.setup_loader()
+import logging
 
 from kombu import Queue, Exchange
 from wizcard import instances
@@ -27,9 +28,13 @@ BROKER_VHOST = 'wizcard_vhost'
 CELERY_RESULT_BACKEND = 'rpc'
 
 IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
+EMAIL_TEMPLATE = '/invites/email_templatev4.png'
+EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
 OCR_QUEUE_NAME = 'ocr'
 CELERY_DEFAULT_QUEUE = 'default'
 CELERY_BEAT_QUEUE_NAME = 'beat'
+
+
 
 CELERY_IMAGE_UPLOAD_Q = Queue(IMAGE_UPLOAD_QUEUE_NAME,
                               Exchange(IMAGE_UPLOAD_QUEUE_NAME),
@@ -90,33 +95,40 @@ if RUNENV == 'dev':
     DATABASES = {
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+	        'NAME': 'wizcard-dev',
+	        'USER': 'wizuser',
+	        'PASSWORD': 'gowizcard',
+                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'PORT': '5432',
+	    }
+#    DATABASES = {
+#	    'default': {
+#	        'ENGINE': 'django.db.backends.mysql',
+#	        'NAME': 'wizcard',
+#	        'USER': 'root',
+#	        'PASSWORD': 'mydb',
+#                'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+#	    }
+
+    }
+elif RUNENV == 'test':
+    DATABASES = {
+	    'default': {
+	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-            'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '5432',
+                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
-
     }
-elif RUNENV == 'stage':
+elif RUNENV == 'prod':
     DATABASES = {
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-            'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '5432',
-	    }
-    }
-elif RUNENV == 'prod':
-    DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.mysql',
-	        'NAME': 'wizcard',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'wizcarddb',
-            'HOST': 'wizcardprod.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+		'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 
@@ -248,7 +260,7 @@ USER_LASTSEEN_TIMEOUT = 60
 MAX_PHONE_CHECK_RETRIES = 3
 
 #for UT..avoid nexmo
-PHONE_CHECK =  True
+PHONE_CHECK = False
 #retry timeout
 PHONE_CHECK_TIMEOUT = 180
 
@@ -273,20 +285,21 @@ WIZCARD_FUTURE_USERNAME_EXTENSION = '@future.com'
 
 WIZWEB_DEVICE_ID = 'wizweb'
 
-NEXMO_API_KEY = '4788a696'
-NEXMO_API_SECRET = '185e2f6f'
-NEXMO_OWN_NUMBER = '12243109118'
+#NEXMO_API_KEY = '4788a696'
+#NEXMO_API_SECRET = '185e2f6f'
+#NEXMO_OWN_NUMBER = '12243109118'
 
 #This one is from wizcarder account
-#NEXMO_API_KEY = '46ba6fbd'
-#NEXMO_API_SECRET = '3c1d7f33'
-#NEXMO_OWN_NUMBER = '12184294228'
+NEXMO_API_KEY = '46ba6fbd'
+NEXMO_API_SECRET = '3c1d7f33'
+NEXMO_OWN_NUMBER = '12184294228'
+NEXMO_SENDERID = 'WZCARD'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',
         'api_key': NEXMO_API_KEY,
         'api_secret': NEXMO_API_SECRET,
-        'from':NEXMO_OWN_NUMBER,
+        'from': NEXMO_SENDERID,
         'to':None,
         'text':""
     }
@@ -336,24 +349,45 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
     'meishi',
     'healthstatus',
+    'django_ses',
 )
 
 #django-storage settings
+
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_BUCKET_ENV = "-" + RUNENV
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV
-S3_URL = 'http://%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
+EMAIL_DEFAULT_IMAGE = S3_URL +  "invites/email_info.png"
+
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
 STATIC_URL = S3_URL + STATIC_DIRECTORY
 MEDIA_URL = S3_URL + MEDIA_DIRECTORY
 
+#django-ses Settings
+SES_SMTP_USER = 'AKIAJIXICBLUCPSKQPKA'
+SES_SMTP_PASS = 'AgHl9hZWrbH51ur6WorLxNJ7ETxb8fmqHg2OUbkVDKrv'
+AWS_SES_REGION_NAME = 'us-east-1'
+AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
+EMAIL_BACKEND='django_ses.SESBackend'
+AWS_RETURN_PATH='wizcarder@gmail.com'
+
 
 
 AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
+# RAVEN config for Sentry
+#RAVEN_CONFIG = {
+#    #for new AWS prod/stage
+#    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+#    #'CELERY_LOGLEVEL': logging.ERROR
+#
+#    #for bitnami AWS instance
+#    #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
+#}
 
 # Advanced Django 1.3.x+ Logging
 #
@@ -374,91 +408,97 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-	'verbose': {
-	    'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
-	    'datefmt': '%a, %d %b %Y %H:%M:%S %z',
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
+            'datefmt': '%a, %d %b %Y %H:%M:%S %z',
+            },
+        'simple': {
+            'format': '[%(levelname)s] %(asctime)s - %(message)s',
+            'datefmt': '%a, %d %b %Y %H:%M:%S %z',
         },
-	'simple': {
-	    'format': '[%(levelname)s] %(asctime)s - %(message)s',
-	    'datefmt': '%a, %d %b %Y %H:%M:%S %z',
-	},
-	'django-default-verbose': {
-	    'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-	},
-	'common-logging-v2': {
-	    'format': '[%(asctime)s] - %(message)s',
-	    'datefmt': '%d/%b/%Y:%H:%M:%S %z',
-	},
-	'parsefriendly': {
-	    'format': '[%(levelname)s] %(asctime)s - M:%(module)s, P:%(process)d, T:%(thread)d, MSG:%(message)s',
-	    'datefmt': '%d/%b/%Y:%H:%M:%S %z',
-	},
+        'django-default-verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'common-logging-v2': {
+            'format': '[%(asctime)s] - %(message)s',
+            'datefmt': '%d/%b/%Y:%H:%M:%S %z',
+        },
+        'parsefriendly': {
+            'format': '[%(levelname)s] %(asctime)s - M:%(module)s, P:%(process)d, T:%(thread)d, MSG:%(message)s',
+            'datefmt': '%d/%b/%Y:%H:%M:%S %z',
+        },
     },
     'handlers': {
-	'null': {
-	    'level':'DEBUG',
-	    'class':'django.utils.log.NullHandler',
-	},
-	'console-simple':{
-	    'level':'DEBUG',
-	    'class':'logging.StreamHandler',
-	    'formatter': 'simple'
-	},
-	'console':{
-	    'level':'DEBUG',
-	    'class':'logging.StreamHandler',
-	    'formatter': 'verbose'
-	},
-	'log-file': {
-	    'level': 'DEBUG',
-	    'class': 'logging.handlers.WatchedFileHandler',
-	    'formatter': 'verbose',
-	    #consider: 'filename': '/var/log/<myapp>/app.log',
-	    #will need perms at location below:
-            'filename': './log/app.log',
-	    'mode': 'a', #append+create
-	},
-	'timed-log-file': {
-	    'level': 'DEBUG',
-	    'class': 'logging.handlers.TimedRotatingFileHandler', # Python logging lib
-	    'formatter': 'parsefriendly',
-	    #consider: 'filename': '/var/log/<myapp>/app.log',
-	    #will need perms at location below:
-	    'filename': './log/app-timed.log',
-	    'when': 'midnight',
-	    #'backupCount': '30', #approx 1 month worth
-	},
-	'watched-log-file': {
-	    'level': 'DEBUG',
-	    'class': 'logging.handlers.WatchedFileHandler',
-	    'formatter': 'parsefriendly',
-	    #consider: 'filename': '/var/log/<myapp>/app.log',
-	    #will need perms at location below:
-	    'filename': './log/app-watched.log',
-	    'mode': 'a', #append+create
-	},
+        'null': {
+            'level':'DEBUG',
+            'class':'django.utils.log.NullHandler',
+        },
+        'console-simple':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'log-file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.WatchedFileHandler',
+            'formatter': 'verbose',
+            #consider: 'filename': '/var/log/<myapp>/app.log',
+            #will need perms at location below:
+                'filename': './log/app.log',
+            'mode': 'a', #append+create
+        },
+        'timed-log-file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler', # Python logging lib
+            'formatter': 'parsefriendly',
+            #consider: 'filename': '/var/log/<myapp>/app.log',
+            #will need perms at location below:
+            'filename': './log/app-timed.log',
+            'when': 'midnight',
+            #'backupCount': '30', #approx 1 month worth
+        },
+        'watched-log-file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.WatchedFileHandler',
+            'formatter': 'parsefriendly',
+            #consider: 'filename': '/var/log/<myapp>/app.log',
+            #will need perms at location below:
+            'filename': './log/app-watched.log',
+            'mode': 'a', #append+create
+        },
         'sentry': {
             'level': 'ERROR',
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
         },
-
     },
     'loggers': {
-	'django': {
-	    'level':'DEBUG',
-	    'handlers': ['timed-log-file'],
-	    'propagate': False,
-	},
-        'wizserver': {
-            'level': 'DEBUG',
-	    'handlers': ['console', 'watched-log-file'],
-            'propagate': False,
-        },
-        'sentry.errors': {
-            'level': 'DEBUG',
+	    'django': {
+	        'level':'DEBUG',
+	        'handlers': ['timed-log-file'],
+	        'propagate': False,
+	    },
+        #AA TODO: Need to figure this out. Sentry logging still not working
+        'raven': {
+            'level': 'ERROR',
             'handlers': ['console'],
             'propagate': False,
         },
+        'sentry.errors': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'wizserver': {
+            'level': 'DEBUG',
+	        'handlers': ['console', 'watched-log-file'],
+            'propagate': False,
+        },
+
     }
 }
 
@@ -473,14 +513,27 @@ PYAPNS_CONFIG = {
 }
 
 # RAVEN config for Sentry
-RAVEN_CONFIG = {
-    #for new AWS prod/stage
-    'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
-    #for bitnami AWS instance
-    #'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407'
-}
+if RUNENV == "prod":
+    RAVEN_CONFIG = {
+    #for new AWS prod
+        'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+    }
+elif RUNENV == "test" :
+    RAVEN_CONFIG = {
+        'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
+    }
+else:
+	RAVEN_CONFIG = {
+		'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
+	}
 
-GCM_API_KEY = 'luwnZqJkI14QTs1CXVpJfmHj3vRGrrb13npuWypl'
+
+GCM_API_KEY = 'AIzaSyAz_uc7MiPtC_JK1ZjurpsdxxDlfPAy4-c'
 
 CELERY_TIMEZONE = 'UTC'
+SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
+# Find templates in the same folder as settings.py.
+TEMPLATE_DIRS = (
+            os.path.join(SETTINGS_PATH, 'templates'),
+            )
 

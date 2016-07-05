@@ -23,8 +23,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage
+from django.core.files.storage import default_storage as storage
 from django.core import serializers
+from raven.contrib.django.raven_compat.models import client
 from lib.preserialize.serialize import serialize
 from lib.ocr import OCR
 from django.core.files.storage import default_storage
@@ -37,7 +38,7 @@ from response import Response, NotifResponse
 from userprofile.models import UserProfile
 from userprofile.models import FutureUser
 from lib import wizlib
-from lib.emailInvite import create_template as create_template
+from lib.emailInvite import create_template,sendmail 
 from wizcard import err
 from location_mgr.models import LocationMgr
 from dead_cards.models import DeadCards
@@ -64,7 +65,7 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        response =  pdispatch.dispatch()
+        response = pdispatch.dispatch()
         #send response
         return response.respond()
 
@@ -126,11 +127,11 @@ class ParseMsgAndDispatch(object):
                 self.user = User.objects.get(id=sender['wizUserID'])
                 self.userprofile = self.user.profile
             except:
-                logger.debug('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
+                logger.error('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
 
             if self.userprofile.userid != self.sender['userID']:
-                logger.debug('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
+                logger.error('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
 
         #AA:TODO - Move to header
@@ -259,7 +260,8 @@ class ParseMsgAndDispatch(object):
         username = self.sender['username']
         response_mode = self.sender['responseMode']
         response_target = self.sender['target']
-        test_mode = self.sender['test_mode'] if self.sender.has_key('test_mode') else False
+	if settings.RUNENV == 'dev':
+	        test_mode = self.sender['test_mode'] if self.sender.has_key('test_mode') else False
 
         #AA_TODO: security check for checkMode type
         k_user = (settings.PHONE_CHECK_USER_KEY % username)
@@ -309,7 +311,7 @@ class ParseMsgAndDispatch(object):
                 logger.error('nexmo send via (%s) failed to (%s)', response_mode, response_target)
                 return self.response
 
-        if test_mode:
+        if self.sender['test_mode']:
             self.response.add_data("challenge_key", d[k_rand])
 
         return self.response
@@ -376,11 +378,12 @@ class ParseMsgAndDispatch(object):
                                                             device_id)
                 user.set_password(password)
                 user.save()
-            # mark for sync.
-            user.profile.do_sync = True
+
+            # mark for sync if profile is activated
+            if user.profile.activated:
+                user.profile.do_sync = True
 
         user.profile.device_id = device_id
-        user.profile.save()
 
         #all done. #clear cache
         cache.delete_many([k_user, k_device_id, k_rand, k_retry])
@@ -520,7 +523,7 @@ class ParseMsgAndDispatch(object):
         if not self.userprofile.activated:
             return self.response
 
-        if self.lat == None and self.lng == None:
+        if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
                 self.lng = self.userprofile.location.get().lng
@@ -529,7 +532,6 @@ class ParseMsgAndDispatch(object):
                 #are coming correctly...
                 logger.warning('No location information available')
                 return self.response
-
 
         #any wizcards dropped nearby
         #AA:TODO: Use come caching framework to cache these
@@ -576,7 +578,8 @@ class ParseMsgAndDispatch(object):
             wizcard = Wizcard(user=self.user)
             wizcard.save()
 
-            #this is also the time User object can get first/last name
+        # set activated to true.
+        if not self.userprofile.activated:
             self.userprofile.activated = True
             userprofile_modify = True
 
@@ -697,23 +700,28 @@ class ParseMsgAndDispatch(object):
             wizcard.save()
             wizcard.flood()
 
-
-        create_template.delay(wizcard)
-
+        create_template.delay(wizcard.pk)
 
         self.response.add_data("wizCardID", wizcard.pk)
-
-
-
         return self.response
 
-    #This is doing 2-way presently
+    # Set both sides to accept. There should already be wizcard1(me)->wizcard2(him) in ACCEPT
+    # and wizcard2->wizcard1 in PENDING.
+    # NOTE: A->B doesn't denote direction of request. It denotes that B is FOLLOWING A. ie
+    # B has A's wizcard in roldex
     def WizcardAccept(self):
+        status = []
         try:
             wizcard1 = self.user.wizcard
+            reaccept = self.sender.get('reaccept', False)
             #AA TODO: Change to wizcardID
-            self.r_user = User.objects.get(id=self.receiver['wizUserID'])
-            wizcard2 = self.r_user.wizcard
+
+            try:
+                wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            except:
+                self.r_user = User.objects.get(id=self.receiver['wizUserID'])
+                wizcard2 = self.r_user.wizcard
+
         except KeyError:
             self.securityException()
             self.securityException()
@@ -723,20 +731,49 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        #accept wizcard2->wizcard1
-        #there should already be a sent request from wizcard2 in PENDING state
-        #AA:TODO: Wrap this in try, except for case when inbound req was somehow
-        #not there
+        try: # temp try, except workaround until app bug is fixed
+            # notif_id needs to be sent by app in order for server to be able to
+            # support resync of unacted notifs
+            n_id = self.sender['notif_id']
+            n = Notification.objects.get(id=n_id)
+
+            # now we know that the App has acted upon this notification
+            # we will use this flag during resync notifs and send unacted-upon
+            # notifs to user
+            n.set_acted()
+        except:
+            pass
+
+        # accept wizcard2->wizcard1
+        # there could already be a sent request from wizcard2 (pending or declined)
+        rel21 = wizcard2.get_relationship(wizcard1)
+
+        if reaccept and not rel21:
+            #recreate the connection request
+            rel21 = Wizcard.objects.cardit(wizcard2, wizcard1)
+
         Wizcard.objects.becard(wizcard2, wizcard1)
 
-        rel12 = wizcard2.get_relationship(wizcard1)
-        #Q notif for implicit accept to from_wizcard
+        # Q notif to both sides.
+        notify.send(self.r_user,
+                    recipient=self.user,
+                    verb=verbs.WIZREQ_T[0],
+                    target=wizcard2,
+                    action_object=rel21)
+
+        # Q notif for wizcard2 to change his half card to full
+        rel12 = wizcard1.get_relationship(wizcard2)
         notify.send(self.user,
                     recipient=self.r_user,
                     verb=verbs.WIZREQ_T[0],
                     target=wizcard1,
                     action_object=rel12)
 
+        status.append(
+            dict(status=Wizcard.objects.get_connection_status(wizcard1, wizcard2),
+                 wizCardID=wizcard2.id)
+        )
+        self.response.add_data("status", status)
         return self.response
 
     def WizConnectionRequestDecline(self):
@@ -751,14 +788,25 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        #wizcard2 must have sent a wizconnection_request, lets clear it
+        #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
         Wizcard.objects.uncard(wizcard2, wizcard1)
 
-        #AA TODO: Might have to send notif to wizcard2
+        try:
+            n_id = self.sender['notif_id']
+            n = Notification.objects.get(id=n_id)
+
+            # now we know that the App has acted upon this notification
+            #  we will use this flag during resync notifs and send unacted-upon
+            #  notifs to user
+            n.set_acted()
+        except:
+            pass
+
+        # AA TODO: Might have to send notif to wizcard2
 
         return self.response
 
-    #this is to withdraw sent request
+    # this is to withdraw sent request. May not be used now
     def WizConnectionRequestWithdraw(self):
         try:
             wizcard1 = self.user.wizcard
@@ -784,8 +832,8 @@ class ParseMsgAndDispatch(object):
         #also, the wizconnection request would have been unaccepted so far.
         #maybe can be used as a consistency check...
 
-        #clear my wizconnection_request
-        Wizcard.objects.clear(wizcard1, wizcard2)
+        #remove my wizconnection_request
+        Wizcard.objects.uncardit(wizcard1, wizcard2)
         return self.response
 
     def WizcardRolodexDelete(self):
@@ -794,15 +842,35 @@ class ParseMsgAndDispatch(object):
             wizcards = self.receiver['wizCardIDs']
 
             for w in wizcards:
-                wizcard2 = Wizcard.objects.get(id=w)
                 try:
-                    Wizcard.objects.clear(wizcard2, wizcard1)
-                    #Q a notif to other guy so that the app on the other side can react
-                    #notify.send(self.user, recipient=wizcard2.user,
-                    #            verb=verbs.WIZCARD_REVOKE[0],
-                    #            target=wizcard1)
+                    w_id = w.get("wizCardID")
+                    dead_card = w.get("dead_card")
                 except:
-                    pass
+                    self.response.error_response(err.INVALID_MESSAGE)
+                    return self.response
+
+                if dead_card:
+                    try:
+                        wizcard2 = DeadCards.objects.get(id=w_id)
+                    except:
+                        self.response.error_response(err.OBJECT_DOESNT_EXIST)
+                        return self.response
+
+                    wizcard2.delete()
+                else:
+                    wizcard2 = Wizcard.objects.get(id=w_id)
+                    try:
+                        # earlier thought was to change it to wizcard2->wizcard1 (P). On second thoughts
+                        # this doesn't work well because now they can never connect
+                        # Best is probably to delete the -> altogether
+                        Wizcard.objects.uncardit(wizcard2, wizcard1)
+
+                        # Q a notif to other guy so that the app on the other side can react
+                        notify.send(self.user, recipient=wizcard2.user,
+                                    verb=verbs.WIZCARD_REVOKE[0],
+                                    target=wizcard1)
+                    except:
+                        pass
         except KeyError:
             self.securityException()
             self.response.ignore()
@@ -844,17 +912,17 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("timeout", t.timeout_value/60)
         else:
             try:
-                city = wizlib.reverse_geo_from_latlng(self.lat, self.lng)
+                location = wizlib.reverse_geo_from_latlng(self.lat, self.lng)
             except:
-                city = ""
+                location = ""
 
-            self.response.add_data("city", wizlib.format_city_name(city))
+            self.response.add_data("city", wizlib.format_location_name(location))
 
             flick_card = WizcardFlick.objects.create(wizcard=wizcard,
                                                      lat=self.lat,
                                                      lng=self.lng,
                                                      timeout=timeout,
-                                                     reverse_geo_name=city,
+                                                     reverse_geo_name=location,
                                                      a_created = a_created)
             location = flick_card.create_location(self.lat, self.lng)
             location.start_timer(timeout)
@@ -887,10 +955,6 @@ class ParseMsgAndDispatch(object):
                             target=flick_card,
                             action_object=rel)
 
-            return self.response
-        except KeyError:
-            self.securityException()
-            self.response.ignore()
             return self.response
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -1040,8 +1104,6 @@ class ParseMsgAndDispatch(object):
             self.securityException()
             self.response.ignore()
             return self.response
-        logger.debug('sender %s', self.sender)
-        logger.debug('receiver %s', self.receiver)
 
         if asset_type == "wizcard":
             try:
@@ -1086,12 +1148,19 @@ class ParseMsgAndDispatch(object):
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
-        if receiver_type in ['wiz_untrusted', 'wiz_trusted', 'wiz_follow', 'wiz_follow_connect']:
-            if receiver_type == 'wiz_trusted':
-                implicit = True
-            else:
-                implicit = False
-            #receiverIDs has wizUserIDs
+        status = []
+        if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U]:
+            # add location to cctx. For nearby based exchange, use
+            # senders location (which should be same as receivers too)
+            try:
+                location_str = wizlib.reverse_geo_from_latlng(
+                    self.userprofile.location.get().lat,
+                    self.userprofile.location.get().lng
+                )
+            except:
+                logging.error("couldn't get location for user [%s]", self.userprofile.userid)
+                location_str = ""
+
             for _id in receivers:
                 r_user = User.objects.get(id=_id)
                 r_wizcard = r_user.wizcard
@@ -1099,26 +1168,33 @@ class ParseMsgAndDispatch(object):
                 cctx = ConnectionContext(
                     asset_obj=wizcard,
                     connection_mode=receiver_type,
+                    location=location_str
                 )
 
-                if receiver_type in ['wiz_follow', 'wiz_follow_connect']:
-                    #we will always add to our rolodex for new path cases
-                    if not Wizcard.objects.is_wizcard_following(r_wizcard, wizcard):
-                        #add to my rolodex = create relationship from r_wizcard->wizcard
-                        Wizcard.objects.cardit(r_wizcard,
-                                               wizcard,
-                                               status=verbs.ACCEPTED,
-                                               cctx=cctx)
-                if receiver_type in ['wiz_trusted', 'wiz_untrusted'] and \
-                        not wizcard.get_relationship(r_wizcard):
-                    relstatus = \
-                        verbs.ACCEPTED if receiver_type == 'wiz_trusted' else verbs.PENDING
+                rel12 = wizcard.get_relationship(r_wizcard)
 
+                # wizcard->r_wizcard exists previously ?. This could/should
+                # happen only if other guy had declined. In this case, we're
+                # sending the tag as "others", thus allowing sender to send
+                # a connect request.
+                if rel12 and rel12.status != verbs.DECLINED:
+                    # something's not right.
+                    self.response.error_response(err.EXISTING_CONNECTION)
+                else:
                     #create wizcard1->wizcard2
-                    rel12 = Wizcard.objects.cardit(wizcard,
-                                                   r_wizcard,
-                                                   status=relstatus,
-                                                   cctx=cctx)
+                    if not rel12:
+                        rel12 = Wizcard.objects.cardit(wizcard,
+                                                       r_wizcard,
+                                                       status=verbs.PENDING,
+                                                       cctx=cctx)
+                        #Q notif for to_wizcard
+                        notify.send(self.user, recipient=r_user,
+                                    verb=verbs.WIZREQ_T[0] if receiver_type ==
+                                                              verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T]
+                                    else verbs.WIZREQ_U[0],
+                                    target=wizcard,
+                                    action_object=rel12)
+
                     #create and accept implicitly wizcard2->wizcard1
                     rel21 = Wizcard.objects.cardit(r_wizcard,
                                                    wizcard,
@@ -1126,22 +1202,35 @@ class ParseMsgAndDispatch(object):
                                                    cctx=cctx
                                                    )
 
-                    #Q notif for to_wizcard
-                    notify.send(self.user, recipient=r_user,
-                        verb=verbs.WIZREQ_T[0] if receiver_type == 'wiz_trusted' else verbs.WIZREQ_U[0],
-                        description=cctx.description,
-                        target=wizcard,
-                        action_object=rel12)
+                    # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
+                    # let server push this via notif 1.
+                    notify.send(r_user, recipient=self.user,
+                                verb=verbs.WIZREQ_T_HALF[0],
+                                target=r_wizcard,
+                                action_object=rel21)
 
                     count += 1
-                self.response.add_data("count", count)
-        elif receiver_type in ['email', 'sms']:
+                    status.append(dict(
+                        status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
+                        wizCardID=r_wizcard.id)
+                    )
+            self.response.add_data("count", count)
+            self.response.add_data("status", status)
+        elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             #future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
+            if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
+                for r in receivers:
+                    wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
+                    if wizcard:
+                        sendmail.delay(self.user.wizcard,r,template="emailinfo")
+                    else:
+                        sendmail.delay(self.user.wizcard, r,template="emailinvite")
 
         return self.response
 
     def WizcardSendTableToXYZ(self, table, receiver_type, receivers):
+        #AA TODO: move the 'wiz_xyz' strings into verbs file
         if receiver_type in ['wiz_untrusted', 'wiz_trusted']:
             #receiverIDs has wizUserIDs
             for _id in receivers:
@@ -1155,84 +1244,101 @@ class ParseMsgAndDispatch(object):
                 notify.send(self.user, recipient=r_user,
                             verb=verbs.WIZCARD_TABLE_INVITE[0],
                             target=table)
-        elif receiver_type in ['email', 'sms']:
-            #create future user
+        elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE],
+                               verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
+            # create future user
             self.do_future_user(table, receiver_type, receivers)
+
+
+            # AA: TODO. an error/info case is when connection already exists.
+            # App can be told about it to pop an "already connected" message
 
         return self.response
 
-    def do_future_user(self, obj, receiver_type, receivers):
-        if receiver_type == 'sms':
-            for phone in receivers:
-                #for a typed out email/sms, the user may still be in wiz
-                #AA: TODO APP: search can be avoided if app indicates whether
-                #this was from data-source or free-form
-                wizcard = UserProfile.objects.check_user_exists('phone',
-                                                                phone)
-                if wizcard:
-                    cctx = ConnectionContext(
-                        asset_obj=obj,
-                        connection_mode=receiver_type,
-                    )
-                    if ContentType.objects.get_for_model(obj) == \
-                            ContentType.objects.get(model="wizcard"):
-                        if not obj.get_relationship(wizcard):
-                            rel = Wizcard.objects.cardit(obj,
-                                                         wizcard,
-                                                         status=verbs.PENDING,
-                                                         cctx=cctx)
-                            #Q notif for to_wizcard
-                            notify.send(self.user, recipient=wizcard.user,
-                                        verb=verbs.WIZREQ_U[0],
-                                        description=cctx.description,
-                                        target=obj,
-                                        action_object=rel)
-                    elif ContentType.objects.get_for_model(obj) == \
-                            ContentType.objects.get(model="virtualtable"):
-                        #Q this to the receiver
+    def do_future_user(self, obj, receiver_type, receivers,deadcard=True):
+        for r in receivers:
+            # for a typed out email/sms, the user may still be in wiz
+            wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
+            if wizcard:
+                cctx = ConnectionContext(
+                    asset_obj=obj,
+                    connection_mode=receiver_type,
+                )
+                if ContentType.objects.get_for_model(obj) == \
+                        ContentType.objects.get(model="wizcard"):
+                    rel12 = obj.get_relationship(wizcard)
+                    if not rel12:
+                        rel12 = Wizcard.objects.cardit(obj,
+                                                       wizcard,
+                                                       status=verbs.PENDING,
+                                                       cctx=cctx)
+                        #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
-                                    verb=verbs.WIZCARD_TABLE_INVITE[0],
-                                    target=obj)
-                else:
-                    FutureUser(
-                        inviter=self.user,
-                        content_type=ContentType.objects.get_for_model(obj),
-                        object_id=obj.id,
-                        phone=phone).save()
-        else:
-            for email in receivers:
-                wizcard = UserProfile.objects.check_user_exists('email',
-                                                                email)
-                if wizcard:
-                    cctx = ConnectionContext(
-                        asset_obj=obj,
-                        connection_mode=receiver_type,
-                    )
-                    if ContentType.objects.get_for_model(obj) == \
-                            ContentType.objects.get(model="wizcard"):
-                        if not obj.get_relationship(wizcard):
-                            rel = Wizcard.objects.cardit(obj,
-                                                         wizcard,
-                                                         status=verbs.PENDING,
-                                                         cctx=cctx)
-                            #Q notif for to_wizcard
-                            notify.send(self.user, recipient=wizcard.user,
-                                        verb=verbs.WIZREQ_U[0],
-                                        description=cctx.description,
-                                        target=obj,
-                                        action_object=rel)
-                    elif ContentType.objects.get_for_model(obj) == \
-                            ContentType.objects.get(model="virtualtable"):
-                        #Q this to the receiver
+                                    verb=verbs.WIZREQ_U[0],
+                                    target=obj,
+                                    action_object=rel12)
+                    elif rel12.status is verbs.ACCEPTED:
+                        # transition it from half to full
                         notify.send(self.user, recipient=wizcard.user,
-                                    verb=verbs.WIZCARD_TABLE_INVITE[0],
-                                    target=obj)
-                else:
-                    FutureUser(
-                        inviter=self.user,
-                        content_type=ContentType.objects.get_for_model(obj),
-                        object_id=obj.id,
-                        email=email).save()
+                                    verb=verbs.WIZREQ_T[0],
+                                    target=obj,
+                                    action_object=rel12)
+                    elif rel12.status is verbs.DECLINED:
+                        # reset 2 to pending. Yes there is a potential "don't bother me" angle
+                        # to this..but better to promote connections
+                        rel12.reset()
+                        notify.send(self.user, recipient=wizcard.user,
+                                    verb=verbs.WIZREQ_U[0],
+                                    target=obj,
+                                    action_object=rel12)
+
+                    rel21 = wizcard.get_relationship(obj)
+                    if not rel21:
+                        # create and accept implicitly wizcard2->wizcard1
+                        rel21 = Wizcard.objects.cardit(wizcard,
+                                                       obj,
+                                                       status=verbs.ACCEPTED,
+                                                       cctx=cctx)
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T_HALF[0],
+                                    target=wizcard,
+                                    action_object=rel21)
+
+                    elif rel21.status is verbs.DECLINED:
+                        # if declined, follower-d case, full card can be added
+                        rel21.cctx=cctx
+                        rel21.accept()
+
+                        notify.send(wizcard.user, recipient=self.user,
+                                    verb=verbs.WIZREQ_T[0],
+                                    target=wizcard,
+                                    action_object=rel21)
+                    else:
+                        # was already in ACCEPTED, leave as-is.
+                        # if was in PENDING, it means he has previously sent us a req.
+                        # so that an unacted req should exist in the App.
+                        # Better to leave as is and have user use the req to connect
+                        pass
+
+                elif ContentType.objects.get_for_model(obj) == \
+                        ContentType.objects.get(model="virtualtable"):
+                    #Q this to the receiver
+                    notify.send(self.user, recipient=wizcard.user,
+                                verb=verbs.WIZCARD_TABLE_INVITE[0],
+                                target=obj)
+            else:
+                FutureUser(
+                    inviter=self.user,
+                    content_type=ContentType.objects.get_for_model(obj),
+                    object_id=obj.id,
+                    phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
+                    email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
+                ).save()
+
+
+
+
+
 
     def UserQuery(self):
         try:
@@ -1515,8 +1621,7 @@ class ParseMsgAndDispatch(object):
         result = ocr.process(path)
         if result.has_key('errno'):
             self.response.error_response(result)
-            #AA:TODO: handle properly. We need to raise an exception to ourselves
-            raise Exception(result['str'])
+            logging.error(result['str'])
             return self.response
 
         if result.has_key('first_name') and result.get('first_name'):
@@ -1539,11 +1644,6 @@ class ParseMsgAndDispatch(object):
             c.phone = result.get('phone')
         c.end="current"
         c.save()
-
-        #set this user to be activated. EditCard need not be sent
-        #if there are no edits required after OCR scanning
-        self.userprofile.activated = True
-        self.userprofile.save()
 
         wc = wizcard.serialize()
 
@@ -1612,13 +1712,20 @@ class ParseMsgAndDispatch(object):
         #or rescan
         deadcard.save()
 
-        if inviteother == 1:
+        if inviteother:
             receiver_type = "email"
             receivers = [deadcard.email]
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
+
+                sendmail.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
+
+
             else:
                 self.response.error_response(err.NO_RECEIVER)
+        else:
+            sendmail.delay(self.user.wizcard, receivers[0], template="emailscan")
+
 
         return self.response
 
@@ -1682,7 +1789,7 @@ class ParseMsgAndDispatch(object):
         wizcard = self.user.wizcard
 
         if not wizcard.emailTemplate:
-            create_template.delay(wizcard)
+            create_template.delay(wizcard.pk)
 
         email = wizcard.emailTemplate.remote_url()
         self.response.add_data("emailTemplate", email)

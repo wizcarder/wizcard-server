@@ -12,7 +12,10 @@ from virtual_table.models import VirtualTable
 from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
+from notifications.models import Notification
 from base.cctx import ConnectionContext
+from base.char_trunc import TruncatingCharField
+from base.emailField import EmailField
 import operator
 from django.db.models import Q
 from django.core.cache import cache
@@ -28,37 +31,62 @@ class UserProfileManager(models.Manager):
         s = dict()
         template = fields.wizcard_template_brief
 
-        own, requested, connected, others = self.split_users(me, users)
-        if own:
-            s['own'] = UserProfile.objects.serialize(own, template)
-        if connected:
-            s['connected'] = UserProfile.objects.serialize(connected, template)
-        if requested:
-            s['requested'] = UserProfile.objects.serialize(requested, template)
-        if others:
-            s['others'] = UserProfile.objects.serialize(others, template)
+        ret = self.split_users(me, users)
+        if ret.has_key('own'):
+            s['own'] = UserProfile.objects.serialize(ret['own'], template)
+        if ret.has_key('connected'):
+            s['connected'] = UserProfile.objects.serialize(ret['connected'], template)
+        if ret.has_key('follower'):
+            s['follower'] = UserProfile.objects.serialize(ret['follower'], template)
+        if ret.has_key('follower-d'):
+            s['follower-d'] = UserProfile.objects.serialize(ret['follower-d'], template)
+        if ret.has_key('followed'):
+            s['followed'] = UserProfile.objects.serialize(ret['followed'], template)
+        if ret.has_key('others'):
+            s['others'] = UserProfile.objects.serialize(ret['others'], template)
 
         return s
 
     def split_users(self, me, users):
         own = []
         connected = []
-        requested = []
+        follower = []
+        follower_d = []
+        followed = []
         others = []
 
+        ret = dict()
+
         for user in users:
-            if Wizcard.objects.are_wizconnections(user.wizcard, me.wizcard):
-                connected.append(user)
-            elif user == me:
+            connection_status = Wizcard.objects.get_connection_status(me.wizcard, user.wizcard)
+            if connection_status is verbs.OWN:
                 own.append(user)
-            elif Wizcard.objects.is_wizconnection_pending(
-                    me.wizcard,
-                    user.wizcard):
-                requested.append(user)
+            elif connection_status is verbs.CONNECTED:
+                # 2-way connected
+                connected.append(user)
+            elif connection_status is verbs.FOLLOWER:
+                follower.append(user)
+            elif connection_status is verbs.FOLLOWER_D:
+                follower_d.append(user)
+            elif connection_status is verbs.FOLLOWED:
+                followed.append(user)
             else:
                 others.append(user)
-        #AA:TODO make it dict
-        return own, requested, connected, others
+
+        if len(own):
+            ret[verbs.OWN] = own
+        if len(connected):
+            ret[verbs.CONNECTED] = connected
+        if len(follower):
+            ret[verbs.FOLLOWER] = follower
+        if len(follower_d):
+            ret[verbs.FOLLOWER_D] = follower_d
+        if len(followed):
+            ret[verbs.FOLLOWED] = followed
+        if len(others):
+            ret[verbs.OTHERS] = others
+
+        return ret
 
     def serialize(self, users, template):
         wizcards = map(lambda u: u.wizcard, users)
@@ -75,15 +103,15 @@ class UserProfileManager(models.Manager):
 
     def gen_password(self, id1, id2, id3=None):
         return id2
-    
+
     def check_user_exists(self, query_type, query_key):
-        if query_type == 'phone':
+        if query_type == verbs.INVITE_VERBS[verbs.SMS_INVITE]:
             username = UserProfile.objects.username_from_phone_num(query_key)
             if User.objects.filter(username=username).exists():
                 user = User.objects.get(username=username)
                 if user.profile.activated:
                     return user.wizcard
-        elif query_type == 'email':
+        elif query_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
             email_wizcards =  Wizcard.objects.filter(email=query_key)
             #AR: Need to change the model to make it uniq
             if email_wizcards:
@@ -101,7 +129,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, related_name='profile')
     activated = models.BooleanField(default=False)
     #this is the internal userid
-    userid = models.CharField(max_length=100)
+    userid = TruncatingCharField(max_length=100)
     future_user = models.BooleanField(default=False, blank=False)
     location = generic.GenericRelation(LocationMgr)
     do_sync = models.BooleanField(default=False)
@@ -116,10 +144,10 @@ class UserProfile(models.Model):
 	(IOS, 'iPhone'),
 	(ANDROID, 'Android'),
     )
-    device_type = models.CharField(max_length=10, 
-		    		   choices=DEVICE_CHOICES, 
+    device_type = TruncatingCharField(max_length=10,
+		    		   choices=DEVICE_CHOICES,
 				   default=IOS)
-    device_id = models.CharField(max_length=100)
+    device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True,max_length=200)
 
     objects = UserProfileManager()
@@ -128,7 +156,7 @@ class UserProfile(models.Model):
         return self.userid
 
     def online(self):
-        cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(), 
+        cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(),
                 settings.USER_LASTSEEN_TIMEOUT)
 
     def can_send_data(self, on_wifi):
@@ -168,7 +196,7 @@ class UserProfile(models.Model):
             return l
         except ObjectDoesNotExist:
             #create
-            l_tuple = location.send(sender=self, lat=lat, lng=lng, 
+            l_tuple = location.send(sender=self, lat=lat, lng=lng,
                                     tree="PTREE")
             l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
 
@@ -212,7 +240,7 @@ class UserProfile(models.Model):
         if tables.count():
         # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(
-                    tables, 
+                    tables,
                     self.user,
                     fields.table_template)
             s['tables'] = tbls
@@ -223,43 +251,68 @@ class UserProfile(models.Model):
             dc = DeadCards.objects.serialize(deadcards)
             s['deadcards'] = dc
 
+        # notifications. This is done by simply setting readed=False for
+        # those user.notifs which have acted=False
+        # This way, these notifs will be sent natively via get_cards
+        Notification.objects.unacted(self.user).update(readed=False)
         return s
 
 class FutureUserManager(models.Manager):
     def check_future_user(self, email=None, phone=None):
         qlist = []
         if email:
-            qlist.append(Q(email=email))
+            qlist.append(Q(email=email.lower()))
         if phone:
             qlist.append(Q(phone=phone))
-        return self.filter(reduce(operator.or_, qlist))
+
+        if qlist:
+            return self.filter(reduce(operator.or_, qlist))
+        return None
 
 class FutureUser(models.Model):
     inviter = models.ForeignKey(User, related_name='invitees')
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
-    phone = models.CharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
+    phone = TruncatingCharField(max_length=20, blank=True)
+    email = EmailField(blank=True)
 
     objects = FutureUserManager()
 
     def generate_self_invite(self, real_user):
-        cctx = ConnectionContext(asset_obj=self.content_object)
+        cctx = ConnectionContext(
+            asset_obj=self.content_object,
+            connection_mode=verbs.INVITE_VERBS[verbs.SMS_INVITE] if self.phone
+            else verbs.INVITE_VERBS[verbs.EMAIL_INVITE]
+        )
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
-            #spoof an exchange, as if it came from the inviter
 
-            rel = Wizcard.objects.cardit(self.content_object,
-                                         real_user.wizcard,
-                                         cctx=cctx)
+            #spoof an exchange, as if it came from the inviter
+            rel12 = Wizcard.objects.cardit(self.content_object,
+                                           real_user.wizcard,
+                                           cctx=cctx)
+
+            #sender always accepts the receivers wizcard
+            rel21 = Wizcard.objects.cardit(real_user.wizcard,
+                                           self.content_object,
+                                           status=verbs.ACCEPTED,
+                                           cctx=cctx)
             #Q notif for to_wizcard
             notify.send(self.inviter,
                         recipient=real_user,
                         verb=verbs.WIZREQ_U[0],
                         description=cctx.description,
                         target=self.content_object,
-                        action_object=rel)
+                        action_object=rel12)
+
+            #Q implicit notif for from_wizcard
+            notify.send(real_user,
+                        recipient=self.inviter,
+                        verb=verbs.WIZREQ_T[0],
+                        description=cctx.description,
+                        target=real_user.wizcard,
+                        action_object=rel21)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
             #Q this to the receiver

@@ -4,6 +4,37 @@
 
 from datetime import datetime
 
+LAT1 = 37.885938
+LNG1 = -122.506419
+
+NEXMO_PHONE1 = "14084641727"
+NEXMO_PHONE2 = "+918971546485"
+
+PHONE1 = "+14084641727"
+PHONE2 = "+15085332708"
+PHONE3 = "+15086892263"
+PHONE4 = "+15086892263"
+
+FUTURE_PHONE1 = "+11111111111"
+FUTURE_PHONE2 = "+12222222222"
+FUTURE_PHONE3 = "+13333333333"
+FUTURE_PHONE4 = "+14444444444"
+FUTURE_USERNAME1 = FUTURE_PHONE1+'@wizcard.com'
+FUTURE_USERNAME2 = FUTURE_PHONE2+'@wizcard.com'
+FUTURE_USERNAME3 = FUTURE_PHONE3+'@wizcard.com'
+FUTURE_USERNAME4 = FUTURE_PHONE4+'@wizcard.com'
+FUTURE_EMAIL1 = "abcd@future.com"
+FUTURE_EMAIL2 = "efgh@future.com"
+FUTURE_EMAIL3 = "ijkl@future.com"
+FUTURE_EMAIL4 = "mnop@future.com"
+OCR_PHONE = "+919590203441"
+OCR_USERNAME = OCR_PHONE+'@wizcard.com'
+
+
+EMAIL1 = "aammundi@gmail.com"
+EMAIL2 = "amsaha@gmail.com"
+EMAIL3 = "wizcard1@gmail.com"
+EMAIL4 = "nothere@gmail.com"
 
 phone_check_req = {
     "header" : {
@@ -121,6 +152,24 @@ register3 = {
 	"wizUserID" : ""
     },
 }
+ocr_register = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "register",
+    },
+    "sender" : {
+        #maybe should have a separate data file for lat, lng and read with some
+        #random index from there
+        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
+        "lat" : 37.785838,
+        "lng" : -122.406419,
+        "deviceType": "android",
+        "userID" : "",
+	"wizUserID" : ""
+    },
+}
 
 location = {
     "header" : {
@@ -191,7 +240,7 @@ edit_card1 = {
         "last_name" : "Ammundi",
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
-        "phone1" : 8971546485,
+        "phone1" : PHONE1,
         "userID" : "USER1",
         "deviceType": "ios",
         #wizUserID should be the userID got from response of above register message
@@ -220,7 +269,7 @@ edit_card2 = {
         "last_name" : "Saha",
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
-        "phone1" : 4084642727,
+        "phone1" : OCR_PHONE,
         "userID" : "USER2",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
@@ -248,7 +297,7 @@ edit_card3 = {
         "last_name" : "One",
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
-        "phone1" : 4084643737,
+        "phone1" : PHONE3,
         "userID" : "USER3",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
@@ -463,12 +512,33 @@ accept_connection_request = {
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
+        "reaccept" : False,
+        # this is dummy...the right thing to do is to get the
+        # correct notif_id from the get_cards and pass it back in here
+        "notif_id": 1
     },
     "receiver" : {
         "wizUserID" : "",
     }
 }
 
+decline_connection_request = {
+    "header" : {
+        "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f02460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "decline_connection_request",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+        "notif_id": 1
+
+    },
+    "receiver" : {
+        "wizCardID" : "",
+    }
+}
 
 flick_pickers = {
     "header" : {
@@ -549,17 +619,15 @@ my_flicks = {
 
 get_cards = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "deviceID" : "17b90b2e03dc7b38",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
         "msgType" : "get_cards",
     },
     "sender" : {
-        "lat" : 37.785838,
-        "lng" : -122.406419,
-        "deviceType": "ios",
-        "userID" : "",
-        "wizUserID" : ""
+        "deviceType": "android",
+        "lat": LAT1,
+        "lng": LNG1
     },
 }
 

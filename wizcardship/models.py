@@ -33,6 +33,8 @@ from django.core.files.storage import default_storage
 from django.core.files.storage import FileSystemStorage
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
+from base.char_trunc import TruncatingCharField
+from base.emailField import EmailField
 from django.conf import settings
 import logging
 import operator
@@ -76,10 +78,15 @@ class WizcardManager(models.Manager):
     def cardit(self, wizcard1, wizcard2, status=verbs.PENDING, cctx=""):
         return wizcard1.add_relationship(wizcard2, status=status, ctx=cctx)
 
+    #wizcard1 withdraws previously sent relationship
+    def uncardit(self, wizcard1, wizcard2):
+        wizcard1.remove_relationship(wizcard2)
+
     #wizcard2 follows wizcard1 (accepts wizcard1's req)
     def becard(self, wizcard1, wizcard2, cctx=""):
         rel = wizcard1.get_relationship(wizcard2)
-        rel.cctx = cctx
+        if cctx:
+            rel.cctx = cctx
         rel.accept()
         return rel
 
@@ -89,9 +96,10 @@ class WizcardManager(models.Manager):
         rel.decline()
         return rel
 
-    #clear the relationship wizcard1->wizcard2
-    def clear(self, wizcard1, wizcard2):
-        wizcard1.remove_relationship(wizcard2)
+    #reset the relationship wizcard1->wizcard2 back to pending
+    def reset(self, wizcard1, wizcard2):
+        rel = wizcard1.get_relationship(wizcard2)
+        rel.reset()
 
     #wrapper for 2-way exchanges
     def exchange(self, wizcard1, wizcard2, cctx):
@@ -117,9 +125,9 @@ class WizcardManager(models.Manager):
 
         return err.OK
 
-    def update_wizconnection(self, wizcard1, wizcard2):
+    def update_wizconnection(self, wizcard1, wizcard2, half=False):
         notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb=verbs.WIZCARD_UPDATE[0],
+                    verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
                     target=wizcard1)
 
     def query_users(self, userID, name, phone, email):
@@ -140,15 +148,32 @@ class WizcardManager(models.Manager):
 
         #email
         if email:
-            email_result = Q(email=email)
+            email_result = Q(email=email.lower())
             qlist.append(email_result)
 
         result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=userID).exclude(user__profile__is_visible=False)
 
         return result, len(result)
 
-    def save_email_template(self, id, obj):
-        self.objects.get(id=id).emailTemplate.save(obj.name, obj)
+    def get_connection_status(self, wizcard1, wizcard2):
+        if wizcard1 == wizcard2:
+            return verbs.OWN
+        elif Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
+            return verbs.CONNECTED
+        elif Wizcard.objects.is_wizcard_following(wizcard1, wizcard2):
+            # other guy is a follower
+            # split into 2 cases here. if the reverse relationship is in pending, then
+            # follower, else follower-d (reverse connection was either deleted or declined)
+            if Wizcard.objects.is_wizconnection_pending(wizcard2, wizcard1):
+                return verbs.FOLLOWER
+            else:
+                return verbs.FOLLOWER_D
+        elif Wizcard.objects.is_wizcard_following(wizcard2, wizcard1):
+            # I'm following him
+            return verbs.FOLLOWED
+        else:
+            return verbs.OTHERS
+
 
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
@@ -156,10 +181,10 @@ class Wizcard(models.Model):
                                             through='WizConnectionRequest',
                                             symmetrical=False,
                                             related_name='wizconnections_from')
-    first_name = models.CharField(max_length=40, blank=True)
-    last_name = models.CharField(max_length=40, blank=True)
-    phone = models.CharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
+    first_name = TruncatingCharField(max_length=40, blank=True)
+    last_name = TruncatingCharField(max_length=40, blank=True)
+    phone = TruncatingCharField(max_length=20, blank=True)
+    email = EmailField(blank=True)
 
     #media objects
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
@@ -182,7 +207,9 @@ class Wizcard(models.Model):
         return serialize(self, **template)
 
     def serialize_wizconnections(self, template=fields.wizcard_template_full):
-        return serialize(self.get_following().all(), **template)
+        s1 = serialize(self.get_connections(), **template)
+        s2 = serialize(self.get_following_only(), **fields.wizcard_template_half)
+        return s1+s2
 
     def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
         return serialize(
@@ -194,9 +221,6 @@ class Wizcard(models.Model):
         if qs.exists():
             return qs[0].company
         return None
-
-    def save_email_template(self,  obj):
-        self.emailTemplate.save(obj.name, obj)
 
     def get_latest_contact_container(self):
         qs = self.contact_container.all()
@@ -211,11 +235,20 @@ class Wizcard(models.Model):
 
         return None
 
+    def connected_status_string(self):
+        return "connected"
+
+    def followed_status_string(self):
+        return "followed"
+
     def get_thumbnail_url(self):
         return self.thumbnailImage.remote_url()
 
     def get_email_template_url(self):
         return self.emailTemplate.remote_url()
+
+    def save_email_template(self, obj):
+        self.emailTemplate.save(obj.name, obj)
 
     def get_name(self):
         return self.first_name + " " + self.last_name
@@ -237,8 +270,12 @@ class Wizcard(models.Model):
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
 
     def flood(self):
-        for wizcard in self.get_followers().all():
-            Wizcard.objects.update_wizconnection(self, wizcard)
+        # full card for connections and half for followers
+        for wizcard in self.get_connections():
+            Wizcard.objects.update_wizconnection(self, wizcard, half=False)
+
+        for wizcard in self.get_followers_only():
+            Wizcard.objects.update_wizconnection(self, wizcard, half=True)
 
     def check_flick_duplicates(self, lat, lng):
         if not settings.DO_FLICK_AGGLOMERATE:
@@ -276,12 +313,12 @@ class Wizcard(models.Model):
             from_wizcard=self,
             to_wizcard=wizcard).delete()
 
-    #those following me
+    # ME ->
     def get_connected_to(self, status):
         return self.wizconnections_to.filter(
             requests_to__status=status)
 
-    #those i'm following
+    # ME <-
     def get_connected_from(self, status):
         return self.wizconnections_from.filter(
             requests_from__status=status)
@@ -309,13 +346,26 @@ class Wizcard(models.Model):
     def get_following(self):
         return self.get_connected_from(verbs.ACCEPTED)
 
+    # exclude connected
+    def get_followers_only(self):
+        return self.get_connected_to(verbs.ACCEPTED).exclude(
+            id__in=Wizcard.objects.filter(
+                requests_from__status=verbs.ACCEPTED,
+                requests_from__to_wizcard=self))
+
+    def get_following_only(self):
+        return self.get_connected_from(verbs.ACCEPTED).exclude(
+            id__in=Wizcard.objects.filter(
+                requests_to__status=verbs.ACCEPTED,
+                requests_to__from_wizcard=self))
+
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
-    company = models.CharField(max_length=40, blank=True)
-    title = models.CharField(max_length=200, blank=True)
-    start = models.CharField(max_length=30, blank=True)
-    end = models.CharField(max_length=30, blank=True)
-    phone = models.CharField(max_length=20, blank=True)
+    company = TruncatingCharField(max_length=40, blank=True)
+    title = TruncatingCharField(max_length=200, blank=True)
+    start = TruncatingCharField(max_length=30, blank=True)
+    end = TruncatingCharField(max_length=30, blank=True)
+    phone = TruncatingCharField(max_length=20, blank=True)
     f_bizCardImage = WizcardQueuedFileField(upload_to="bizcards",
                                             storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.URLField(blank=True)
@@ -362,6 +412,11 @@ class WizConnectionRequest(models.Model):
         self.status = verbs.DECLINED
         self.save()
         signals.wizcardship_declined.send(sender=self)
+        return self
+
+    def reset(self):
+        self.status = verbs.PENDING
+        self.save()
         return self
 
     def cancel(self):
@@ -443,14 +498,14 @@ class WizcardFlickManager(models.Manager):
 
 class WizcardFlick(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    a_created = models.CharField(max_length=40, blank=True)
+    a_created = TruncatingCharField(max_length=40, blank=True)
     wizcard = models.ForeignKey(Wizcard, related_name='flicked_cards')
     timeout = models.IntegerField(default=30)
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
     location = generic.GenericRelation(LocationMgr)
     expired = models.BooleanField(default=False)
-    reverse_geo_name = models.CharField(max_length=100, default=None)
+    reverse_geo_name = TruncatingCharField(max_length=100, default=None)
     #who picked my flicked card?
     flick_pickers = models.ManyToManyField(Wizcard)
 

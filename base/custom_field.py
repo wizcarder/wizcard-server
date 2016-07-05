@@ -14,7 +14,10 @@ class WizcardQueuedFieldFile(FieldFile):
 
     def remote_url(self):
         if bool(self):
-            return self.storage.remote.url(self.name)
+            url = self.storage.remote.url(self.name)
+            # remove the signed part for now until there's a clean way
+            # to handle it
+            return url.split("?Signature")[0]
         return None
 
     def local_path(self):

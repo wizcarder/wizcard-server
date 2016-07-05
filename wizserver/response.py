@@ -1,17 +1,16 @@
 # define all outbound responses here
+import datetime
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User
-from wizcardship.models import WizConnectionRequest, Wizcard, WizcardFlick
+from wizcardship.models import  Wizcard, WizcardFlick
 from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
-from notifications.models import Notification
 from base.cctx import NotifContext
 from django.http import HttpResponse
+from wizcard.celery import client
 import logging
 import fields
 import json
 import pdb
-from wizcard import err
 from wizserver import verbs
 
 logger = logging.getLogger(__name__)
@@ -38,6 +37,11 @@ class Response:
     def error_response(self, err):
         self.add_result("Error", err['errno'])
         self.add_result("Description", err['str'])
+        logger.error('%s: %s' % (err['errno'], err['str']))
+        try:
+            raise RuntimeError('%s: %s' % (err['errno'], err['str']))
+        except:
+            client.captureException()
         return self
 
     def ignore(self):
@@ -66,7 +70,7 @@ class ResponseN(Response):
         d['notifType'] = _type
 
     def add_seq(self, d, _s):
-        d['seqNum'] = _s
+        d['notificationId'] = _s
 
     def add_data_and_seq_with_notif(self, d, n, seq=0):
         a = self.add_data_array(d)
@@ -85,6 +89,7 @@ class NotifResponse(ResponseN):
         notifHandler = {
             verbs.WIZREQ_U[0] 	                : self.notifWizConnectionU,
             verbs.WIZREQ_T[0]  	                : self.notifWizConnectionT,
+            verbs.WIZREQ_T_HALF[0]              : self.notifWizConnectionH,
             verbs.WIZREQ_F[0]                   : self.notifWizConnectionF,
             verbs.WIZCARD_ACCEPT[0]             : self.notifAcceptedWizcard,
             verbs.WIZCARD_REVOKE[0]	            : self.notifRevokedWizcard,
@@ -95,6 +100,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_TABLE_JOIN[0]         : self.notifJoinTable,
             verbs.WIZCARD_TABLE_LEAVE[0]        : self.notifLeaveTable,
             verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
+            verbs.WIZCARD_UPDATE_HALF[0]        : self.notifWizcardUpdateH,
             verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
@@ -104,14 +110,28 @@ class NotifResponse(ResponseN):
         for notification in notifications:
             notifHandler[notification.verb](notification)
 
-    def notifWizcard(self, notif, notifType):
+    def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
+        template = fields.wizcard_template_half if half else fields.wizcard_template_full
+
         out = Wizcard.objects.serialize(wizcard,
-                template=fields.wizcard_template_full)
+                template=template)
 
         if notif.action_object and notif.action_object.cctx != '':
             cctx = notif.action_object.cctx
-            nctx = NotifContext(cctx.description, cctx.asset_id, cctx.asset_type)
+            cctx.describe()
+
+            #update the timestamp on the WizConnectionRequest
+            notif.action_object.created = datetime.datetime.now()
+            notif.action_object.save()
+
+            nctx = NotifContext(
+                description=cctx.description,
+                asset_id=cctx.asset_id,
+                asset_type=cctx.asset_type,
+                connection_mode=cctx.connection_mode,
+                timestamp = notif.action_object.created.strftime("%d. %B %Y")
+            )
 
             if cctx.asset_type == ContentType.objects.get(model="virtualtable").name:
                 #AA:TODO this lookup can be avoided by using the notify.send better
@@ -126,7 +146,13 @@ class NotifResponse(ResponseN):
     def notifWizConnectionT(self, notif):
         return self.notifWizcard(notif, verbs.ACCEPT_IMPLICIT)
 
+    def notifWizConnectionH(self, notif):
+        return self.notifWizcard(notif, verbs.ACCEPT_IMPLICIT, half=True)
+
     def notifWizConnectionU(self, notif):
+        # clear the acted flag. This will get set back when app tells us
+        # via accept/decline_connection req
+        notif.clear_acted()
         return self.notifWizcard(notif, verbs.ACCEPT_EXPLICIT)
 
     def notifWizConnectionF(self, notif):
@@ -188,6 +214,9 @@ class NotifResponse(ResponseN):
 
     def notifWizcardUpdate(self, notif):
         return self.notifWizcard(notif, verbs.UPDATE_WIZCARD)
+
+    def notifWizcardUpdateH(self, notif):
+        return self.notifWizcard(notif, verbs.UPDATE_WIZCARD, half=True)
 
     def notifWizWebWizcardUpdate(self, notif):
         return self.notifWizcard(notif, verbs.WIZWEB_UPDATE_WIZCARD)
