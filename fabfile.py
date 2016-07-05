@@ -8,8 +8,8 @@ import re
 env.venv = '/home/'+env.runuser+'/'+env.henv
 env.activate = 'source /home/' +env.runuser+'/'+ env.henv+'/bin/activate'
 env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
-env.awskey = '/home/anand/aws/stagewizcard.pem'
-env.gitkey = '/home/anand/.ssh/id_rsa'
+env.awskey = './certs/stagewizcard.pem'
+env.gitkey = '/home/ubuntu/.ssh/id_rsa'
 #env.henv = 'dev'
 #env.function = 'WIZSERVER'
 
@@ -81,7 +81,7 @@ def installpackage(name=env.installroot + "/req.txt"):
 @task
 def gitcloneupdate():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
-    if env.henv != 'dev':
+    if env.henv == 'dev':
         with settings(warn_only=True):
          local("scp -i %s %s ubuntu@%s:/home/ubuntu/.ssh/id_rsa" % (env.awskey,env.gitkey,env.host)) 
 
