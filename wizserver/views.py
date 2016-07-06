@@ -279,7 +279,10 @@ class ParseMsgAndDispatch(object):
         d[k_rand] = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
         d[k_retry] = 1
         cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
-	self.sender['test_mode'] = True
+	if not self.sender.has_key('test_mode'):
+		self.sender['test_mode'] = True
+		
+
 
         #send a text with the rand
         if settings.PHONE_CHECK:
