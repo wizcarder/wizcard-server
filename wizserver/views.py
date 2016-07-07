@@ -279,14 +279,9 @@ class ParseMsgAndDispatch(object):
         d[k_rand] = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
         d[k_retry] = 1
         cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
-	if not self.sender.has_key('test_mode'):
-		self.sender['test_mode'] = True
-		
-
 
         #send a text with the rand
         if settings.PHONE_CHECK:
-	    self.sender['test_mode'] = False
             msg = settings.PHONE_CHECK_MESSAGE.copy()
             msg['to'] = response_target
 
@@ -314,7 +309,8 @@ class ParseMsgAndDispatch(object):
                 logger.error('nexmo send via (%s) failed to (%s)', response_mode, response_target)
                 return self.response
 
-        if self.sender['test_mode']:
+        if self.sender.has_key('test_mode'):
+            #AA TODO: got to make this tighter/secure
             self.response.add_data("challenge_key", d[k_rand])
 
         return self.response
