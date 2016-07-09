@@ -18,7 +18,6 @@ import pprint
 
 TEST_IMAGE=False
 OCR_FLAG = False
-TEST_NEXMO = False
 TEST_TABLE = False
 TEST_FLICK = False
 TEST_WIZWEB = False
@@ -65,13 +64,12 @@ DEFAULT_BIZCARD_URL = "www.youtube.com"
 verify_phones_list = [messages.PHONE1, messages.PHONE2, messages.PHONE3]
 verify_emails_list = [messages.EMAIL1, messages.EMAIL2, messages.EMAIL3, messages.EMAIL4]
 
-#server_url = "www.totastyle.com"
+#server_url = "localhost"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 server_url = "ec2-54-153-11-241.us-west-1.compute.amazonaws.com"
 
 server_port = 80
-#server_port = 8002
-#server_port = 80
+#server_port = 8000
 
 test_image_path = "test/photo.JPG"
 ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
@@ -113,7 +111,6 @@ reqmsg['header']['hash'] = HASH1
 reqmsg['sender']['username'] = USERNAME1
 reqmsg['sender']['target'] = messages.NEXMO_PHONE1
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = not TEST_NEXMO
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -135,7 +132,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = USERNAME2
 reqmsg['sender']['target'] = messages.PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = not TEST_NEXMO
 
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
@@ -160,7 +156,6 @@ reqmsg['header']['hash'] = HASH3
 reqmsg['sender']['username'] = USERNAME3
 reqmsg['sender']['target'] = messages.PHONE3
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = not TEST_NEXMO
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -177,15 +172,6 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 uid3 = objs['data']['userID']
-
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID3
-reqmsg['header']['hash'] = HASH3
-reqmsg['sender']['username'] = USERNAME3
-reqmsg['sender']['target'] = messages.PHONE3
-reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = not TEST_NEXMO
-
 
 reqmsg = messages.login
 reqmsg['sender']['username'] = USERNAME1
@@ -409,7 +395,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
 reqmsg['sender']['target'] = messages.FUTURE_PHONE1
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = not TEST_NEXMO
 
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
@@ -433,7 +418,6 @@ reqmsg['header']['hash'] = HASH2
 reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
 reqmsg['sender']['target'] = messages.FUTURE_PHONE2
 reqmsg['sender']['responseMode'] = 'sms'
-reqmsg['sender']['test_mode'] = not TEST_NEXMO
 
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
@@ -1054,19 +1038,18 @@ if TEST_FLICK:
     objs = handle_response(conn, reqmsg['header']['msgType'])
 
 if OCR_FLAG:
-    #OCR USER 
+    #OCR USER
     reqmsg = messages.phone_check_req
     reqmsg['header']['deviceID'] = DEVICE_ID3
     reqmsg['header']['hash'] = HASH3
     reqmsg['sender']['username'] = messages.OCR_USERNAME
     reqmsg['sender']['target'] = messages.OCR_PHONE
     reqmsg['sender']['responseMode'] = 'sms'
-    reqmsg['sender']['test_mode'] = not TEST_NEXMO
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
     response_key = objs['data']['challenge_key']
-    
+
     #resp = objs['data']['key']
     reqmsg = messages.phone_check_resp
     reqmsg['header']['deviceID'] = DEVICE_ID3
@@ -1077,7 +1060,7 @@ if OCR_FLAG:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
     ocr_uid = objs['data']['userID']
-    
+
     reqmsg = messages.login
     reqmsg['sender']['username'] = messages.OCR_USERNAME
     reqmsg['sender']['userID'] = ocr_uid
@@ -1097,7 +1080,7 @@ if OCR_FLAG:
     contact_container = objs['data']['ocr_result']['contact_container']
 
     reqmsg = messages.edit_card2
-    reqmsg['sender']['userID'] = ocr_uid 
+    reqmsg['sender']['userID'] = ocr_uid
     reqmsg['sender']['wizUserID'] = ocr_wuid
     contacts = contact_container
     #populate file

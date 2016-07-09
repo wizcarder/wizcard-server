@@ -11,10 +11,13 @@ logging.basicConfig(level=logging.INFO)
 env.venv = '/home/'+env.runuser+'/'+env.henv
 env.activate = 'source /home/' +env.runuser+'/'+ env.henv+'/bin/activate'
 env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
+env.awskey = './certs/stagewizcard.pem'
+env.gitkey = '/home/ubuntu/.ssh/id_rsa'
 if env.henv != 'dev':
     env.key_filename = ['/home/ubuntu/test.env/certs/stagewizcard.pem']
 else:
     env.key_filename = ['/home/anand/testenv/wizcard-server/certs/wizcard-default.pem']
+    env.key_filename = ['./certs/wizcard-default.pem']
 env.gitkey = '/home/ubuntu/.ssh/id_rsa'
 #env.henv = 'dev'
 #env.function = 'WIZSERVER'
@@ -88,7 +91,7 @@ def installpackage(name=env.installroot + "/req.txt"):
 @task
 def gitcloneupdate():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
-    if env.henv != 'dev':
+    if env.henv == 'dev':
         with settings(warn_only=True):
          local("scp -i %s %s %s@%s:/home/%s/.ssh/id_rsa" % (env.key_filename[0],env.gitkey,env.runuser,env.host,env.runuser)) 
 
