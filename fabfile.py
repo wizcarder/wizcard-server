@@ -12,10 +12,10 @@ env.venv = '/home/'+env.runuser+'/'+env.henv
 env.activate = 'source /home/' +env.runuser+'/'+ env.henv+'/bin/activate'
 env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
 if env.henv != 'dev':
-    env.key_filename = ['/home/anand/aws/stagewizcard.pem']
+    env.key_filename = ['/home/ubuntu/test.env/certs/stagewizcard.pem']
 else:
     env.key_filename = ['/home/anand/testenv/wizcard-server/certs/wizcard-default.pem']
-env.gitkey = '/home/anand/.ssh/id_rsa'
+env.gitkey = '/home/ubuntu/.ssh/id_rsa'
 #env.henv = 'dev'
 #env.function = 'WIZSERVER'
 
