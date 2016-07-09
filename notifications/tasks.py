@@ -102,7 +102,7 @@ class ApnsMsg(object):
         send_gcm_message(
             settings.GCM_API_KEY,
 			[self.reg_token],
-			self.aps
+			self.aps['aps']
         )
         return
 
