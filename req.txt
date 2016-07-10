@@ -53,3 +53,4 @@ botocore==0.100.0
 psycopg2==2.6.1
 python-gcm
 django-ses
+pyfcm
