@@ -80,7 +80,7 @@ CELERYBEAT_SCHEDULE = {
 
 # Django settings for wizcard project.
 
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
