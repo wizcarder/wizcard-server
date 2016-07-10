@@ -1,27 +1,25 @@
-from gcm import GCM
+from pyfcm import FCMNotification
+#from gcm import GCM
 import logging
+import pdb
 
 logger = logging.getLogger(__name__)
 
 
-
 def send_gcm_message(key, reg_token, data):
-    gcm = GCM(key)
+	push_service = FCMNotification(api_key=key)
+	
+	# Your api-key can be gotten from:  https://console.firebase.google.com/project/<project-name>/settings/cloudmessaging
+	
+	registration_id = reg_token
+	message_title = data['title']
+	message_body = data['body']
+	result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
+	
+	if result['success'] > 0:
+            logger.debug("Successfully sent notification for %s",reg_token)
+	else:
+	    logger.debug("Remove reg_token %s", reg_token)
 
 
 
-    response = gcm.json_request(registration_ids=reg_token, data=data, delay_while_idle=False)
-
-    # Successfully handled registration_ids
-    if response and 'success' in response:
-        for reg_id, success_id in response['success'].items():
-            logger.debug("Successfully sent notification for %s",reg_id)
-
-            # Handling errors
-            if 'errors' in response:
-                for error, reg_ids in response['errors'].items():
-                    # Check for errors and act accordingly
-                    if error in ['NotRegistered', 'InvalidRegistration']:
-                                                                # Remove reg_ids from database
-                        for reg_id in reg_ids:
-                            logger.debug("Removing reg_id: %s from db",reg_id)
