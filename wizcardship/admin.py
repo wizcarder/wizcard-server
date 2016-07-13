@@ -5,8 +5,8 @@ from models import WizConnectionRequest, Wizcard, UserBlocks
 
 class WizConnectionRequestAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
-    list_display = ('from_wizcard', 'to_wizcard', 'accepted', 'created')
-    list_filter = ('accepted',)
+    list_display = ('from_wizcard', 'to_wizcard', 'status','created')
+    list_filter = ('status',)
     actions = ('accept_wizconnection', 'decline_wizconnection', 'cancel_wizconnection')
 
     def accept_wizconnection(self, request, queryset):
