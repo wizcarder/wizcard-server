@@ -426,6 +426,8 @@ class ParseMsgAndDispatch(object):
                 self.response.add_data("wizcard", s['wizcard'])
                 if 'wizconnections' in s:
                     self.response.add_data("rolodex", s['wizconnections'])
+                if 'context' in s:
+                    self.response.add_data("context", s['context'])
                 if 'wizcard_flicks' in s:
                     self.response.add_data("wizcard_flicks", s['wizcard_flicks'])
                 if 'tables' in s:
