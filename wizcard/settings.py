@@ -100,9 +100,9 @@ if RUNENV == 'dev':
 	        'NAME': 'wizcard-dev',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
                 'PORT': '5432',
-		'CONN_MAX_AGE' : 60,
+		#'CONN_MAX_AGE' : 60,
 	    }
 #    DATABASES = {
 #	    'default': {
@@ -121,7 +121,7 @@ elif RUNENV == 'test':
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
 	    }
     }
 elif RUNENV == 'prod':
@@ -131,7 +131,7 @@ elif RUNENV == 'prod':
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-		'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+		'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
 	    }
     }
 
