@@ -242,8 +242,6 @@ class UserProfile(models.Model):
             s['context'] = serialize(map(lambda x: x.get_relationship(wizcard).cctx.context, wizcon_to), **fields.cctx_wizcard_template)
 
 
-
-
         #tables
         tables = VirtualTable.objects.user_tables(self.user)
         if tables.count():
