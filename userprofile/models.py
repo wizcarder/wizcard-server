@@ -235,6 +235,18 @@ class UserProfile(models.Model):
             wc = wizcard.serialize_wizconnections()
             s['wizconnections'] = wc
 
+        conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard)
+
+        ctx=[]
+
+        for tmpc in conn:
+            ctx.append(serialize(tmpc,**fields.connection_context_wizcard))
+
+        if len(ctx):
+            s['context']= serialize(ctx)
+
+
+
         #tables
         tables = VirtualTable.objects.user_tables(self.user)
         if tables.count():
