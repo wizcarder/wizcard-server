@@ -235,12 +235,13 @@ class UserProfile(models.Model):
             wc = wizcard.serialize_wizconnections()
             s['wizconnections'] = wc
 
-        conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard)
+        conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard,status=verbs.ACCEPTED)
 
         ctx=[]
 
         for tmpc in conn:
-            ctx.append(serialize(tmpc,**fields.connection_context_wizcard))
+            if tmpc.cctx:
+                ctx.append(serialize(tmpc.cctx.context,**fields.connection_context_wizcard))
 
         if len(ctx):
             s['context']= serialize(ctx)
