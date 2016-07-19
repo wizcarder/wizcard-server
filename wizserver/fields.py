@@ -7,10 +7,13 @@ contact_container_template = {
     'fields':  contact_container_fields,
     'key_map': contact_container_keymap
 }
+
 wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnailUrl']
 
 wizcard_fields_mini = ['wizcard_id', 'user_id', 'thumbnailUrl', \
                        'first_name', 'last_name']
+
+wizcard_fields_micro = ['wizcard_id']
 
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
                   'phone', 'email', 'thumbnailUrl', 'contact_container', 'status']
@@ -42,6 +45,12 @@ wizcard_template_mini = {
     'key_map' : wizcard_fields_keymap
 }
 
+wizcard_template_micro = {
+    'fields': wizcard_fields_micro,
+    'merge' : True,
+    'key_map' : wizcard_fields_keymap
+}
+
 #use this for nearby
 wizcard_template_brief = {
     'fields': wizcard_fields,
@@ -69,6 +78,7 @@ flick_pickers_template = {
 related_wizcard_template_brief = {
     'wizcard': wizcard_template_brief
 }
+
 
 related_wizcard_template_full = {
     'wizcard': wizcard_template_full
@@ -129,4 +139,10 @@ dead_cards_wizcard_template = {
     'fields': ['id', 'first_name', 'last_name', \
                'phone', 'email', 'contact_container'],
     'key_map': {'contact_container': 'get_deadcard_cc'}
+}
+
+cctx_wizcard_template = {
+    'fields' : ['connection_mode', 'description', 'location', 'asset_type', 'wizcard'],
+    'key_map' : {'wizcard' : 'asset_obj'},
+    'related' : {'asset_obj' : wizcard_template_micro}
 }
