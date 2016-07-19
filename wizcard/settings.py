@@ -100,9 +100,9 @@ if RUNENV == 'dev':
 	        'NAME': 'wizcard-dev',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-                'PORT': '5432',
-		'CONN_MAX_AGE' : 60,
+            'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+            'PORT': '5432',
+		    'CONN_MAX_AGE' : 60,
 	    }
 #    DATABASES = {
 #	    'default': {

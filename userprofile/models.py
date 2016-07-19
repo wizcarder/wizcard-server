@@ -235,10 +235,11 @@ class UserProfile(models.Model):
             wc = wizcard.serialize_wizconnections()
             s['wizconnections'] = wc
 
-	# Populate Context for Wizcards that this user  is following
-	wizcon_to = wizcard.get_following()
-	if wizcon_to:
-	    s['context'] = serialize(map(lambda x: x.get_relationship(wizcard).cctx.context, wizcon_to), **fields.cctx_wizcard_template)
+
+        # Populate Context for Wizcards that this user  is following
+        wizcon_to = wizcard.get_following()
+        if wizcon_to:
+            s['context'] = serialize(map(lambda x: x.get_relationship(wizcard).cctx.context, wizcon_to), **fields.cctx_wizcard_template)
 
 
 
@@ -300,12 +301,11 @@ class FutureUser(models.Model):
             rel12 = Wizcard.objects.cardit(self.content_object,
                                            real_user.wizcard,
                                            cctx=cctx)
-
-	    cctx = ConnectionContext(
-            		asset_obj=real_user.wizcard,
-		        connection_mode=verbs.INVITE_VERBS[verbs.SMS_INVITE] if self.phone
-	            else verbs.INVITE_VERBS[verbs.EMAIL_INVITE]
-        	)
+            cctx = ConnectionContext(
+                asset_obj=real_user.wizcard,
+                connection_mode=verbs.INVITE_VERBS[verbs.SMS_INVITE] if self.phone
+                else verbs.INVITE_VERBS[verbs.EMAIL_INVITE]
+            )
             #sender always accepts the receivers wizcard
             rel21 = Wizcard.objects.cardit(real_user.wizcard,
                                            self.content_object,
