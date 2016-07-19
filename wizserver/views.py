@@ -426,6 +426,8 @@ class ParseMsgAndDispatch(object):
                 self.response.add_data("wizcard", s['wizcard'])
                 if 'wizconnections' in s:
                     self.response.add_data("rolodex", s['wizconnections'])
+                if 'context' in s:
+                    self.response.add_data("context", s['context'])
                 if 'wizcard_flicks' in s:
                     self.response.add_data("wizcard_flicks", s['wizcard_flicks'])
                 if 'tables' in s:
@@ -1194,6 +1196,14 @@ class ParseMsgAndDispatch(object):
                                     target=wizcard,
                                     action_object=rel12)
 
+                    #Context should always have the from_wizcard and for the time being sender's location - Still debating
+
+                    cctx = ConnectionContext(
+                        asset_obj=r_wizcard,
+                        connection_mode=receiver_type,
+                        location=location_str
+                    )
+
                     #create and accept implicitly wizcard2->wizcard1
                     rel21 = Wizcard.objects.cardit(r_wizcard,
                                                    wizcard,
@@ -1293,7 +1303,8 @@ class ParseMsgAndDispatch(object):
 
                     rel21 = wizcard.get_relationship(obj)
                     if not rel21:
-                        # create and accept implicitly wizcard2->wizcard1
+                        # create and accept implicitly wizcard2->wizcard1 with cctx->asset_obj as the from_wizcard
+                        cctx = ConnectionContext(asset_obj = wizcard,connection_mode=receiver_type)
                         rel21 = Wizcard.objects.cardit(wizcard,
                                                        obj,
                                                        status=verbs.ACCEPTED,
