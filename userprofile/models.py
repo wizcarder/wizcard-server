@@ -301,6 +301,11 @@ class FutureUser(models.Model):
                                            real_user.wizcard,
                                            cctx=cctx)
 
+	    cctx = ConnectionContext(
+            		asset_obj=real_user.wizcard,
+		        connection_mode=verbs.INVITE_VERBS[verbs.SMS_INVITE] if self.phone
+	            else verbs.INVITE_VERBS[verbs.EMAIL_INVITE]
+        	)
             #sender always accepts the receivers wizcard
             rel21 = Wizcard.objects.cardit(real_user.wizcard,
                                            self.content_object,
