@@ -240,7 +240,7 @@ class UserProfile(models.Model):
         ctx=[]
 
         for tmpc in conn:
-            ctx.append(serialize(tmpc,**fields.connection_context_wizcard))
+            ctx.append(serialize(tmpc.cctx.context,**fields.connection_context_wizcard))
 
         if len(ctx):
             s['context']= serialize(ctx)
