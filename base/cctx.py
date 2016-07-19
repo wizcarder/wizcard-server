@@ -20,10 +20,6 @@ class ConnectionContext(object):
             location=location
         )
 
-    def serialize_cctx_wizcard(self,template=fields.connection_context_wizcard):
-        s=serialize(self._cctx,**template)
-        return s
-
 
     @property
     def context(self):
