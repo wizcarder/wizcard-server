@@ -142,7 +142,6 @@ dead_cards_wizcard_template = {
 }
 
 cctx_wizcard_template = {
-    'fields' : ['connection_mode', 'description', 'location', 'asset_type', 'wizcard'],
     'key_map' : {'wizcard' : 'asset_obj'},
     'related' : {'asset_obj' : wizcard_template_micro}
 }

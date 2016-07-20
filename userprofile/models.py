@@ -237,9 +237,9 @@ class UserProfile(models.Model):
 
 
         # Populate Context for Wizcards that this user  is following
-        wizcon_to = wizcard.get_following()
-        if wizcon_to:
-            s['context'] = serialize(map(lambda x: x.get_relationship(wizcard).cctx.context, wizcon_to), **fields.cctx_wizcard_template)
+	conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard,status=verbs.ACCEPTED)
+        if conn:
+            s['context'] = serialize(map(lambda x: x.cctx.context, conn), **fields.cctx_wizcard_template)
 
 
         #tables

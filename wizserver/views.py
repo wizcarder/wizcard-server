@@ -1166,12 +1166,6 @@ class ParseMsgAndDispatch(object):
                 r_user = User.objects.get(id=_id)
                 r_wizcard = r_user.wizcard
 
-                cctx = ConnectionContext(
-                    asset_obj=wizcard,
-                    connection_mode=receiver_type,
-                    location=location_str
-                )
-
                 rel12 = wizcard.get_relationship(r_wizcard)
 
                 # wizcard->r_wizcard exists previously ?. This could/should
@@ -1184,10 +1178,16 @@ class ParseMsgAndDispatch(object):
                 else:
                     #create wizcard1->wizcard2
                     if not rel12:
+	                cctx1 = ConnectionContext(
+	                    asset_obj=wizcard,
+	                    connection_mode=receiver_type,
+	                    location=location_str
+	                )
+
                         rel12 = Wizcard.objects.cardit(wizcard,
                                                        r_wizcard,
                                                        status=verbs.PENDING,
-                                                       cctx=cctx)
+                                                       cctx=cctx1)
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=r_user,
                                     verb=verbs.WIZREQ_T[0] if receiver_type ==
@@ -1197,7 +1197,7 @@ class ParseMsgAndDispatch(object):
                                     action_object=rel12)
 
                     #Context should always have the from_wizcard and for the time being sender's location - Still debating
-                    cctx = ConnectionContext(
+                    cctx2 = ConnectionContext(
                         asset_obj=r_wizcard,
                         connection_mode=receiver_type,
                         location=location_str
@@ -1207,7 +1207,7 @@ class ParseMsgAndDispatch(object):
                     rel21 = Wizcard.objects.cardit(r_wizcard,
                                                    wizcard,
                                                    verbs.ACCEPTED,
-                                                   cctx=cctx
+                                                   cctx=cctx2
                                                    )
 
                     # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
@@ -1268,18 +1268,18 @@ class ParseMsgAndDispatch(object):
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
             if wizcard:
-                cctx = ConnectionContext(
-                    asset_obj=obj,
-                    connection_mode=receiver_type,
-                )
                 if ContentType.objects.get_for_model(obj) == \
                         ContentType.objects.get(model="wizcard"):
                     rel12 = obj.get_relationship(wizcard)
                     if not rel12:
+	                cctx1 = ConnectionContext(
+	                    asset_obj=obj,
+	                    connection_mode=receiver_type,
+	                )
                         rel12 = Wizcard.objects.cardit(obj,
                                                        wizcard,
                                                        status=verbs.PENDING,
-                                                       cctx=cctx)
+                                                       cctx=cctx1)
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZREQ_U[0],
@@ -1303,11 +1303,11 @@ class ParseMsgAndDispatch(object):
                     rel21 = wizcard.get_relationship(obj)
                     if not rel21:
                         # create and accept implicitly wizcard2->wizcard1 with cctx->asset_obj as the from_wizcard
-                        cctx = ConnectionContext(asset_obj = wizcard,connection_mode=receiver_type)
+                        cctx2 = ConnectionContext(asset_obj = wizcard,connection_mode=receiver_type)
                         rel21 = Wizcard.objects.cardit(wizcard,
                                                        obj,
                                                        status=verbs.ACCEPTED,
-                                                       cctx=cctx)
+                                                       cctx=cctx2)
                         notify.send(wizcard.user, recipient=self.user,
                                     verb=verbs.WIZREQ_T_HALF[0],
                                     target=wizcard,
@@ -1315,7 +1315,7 @@ class ParseMsgAndDispatch(object):
 
                     elif rel21.status is verbs.DECLINED:
                         # if declined, follower-d case, full card can be added
-                        rel21.cctx=cctx
+                        rel21.cctx=cctx2
                         rel21.accept()
 
                         notify.send(wizcard.user, recipient=self.user,
@@ -1733,7 +1733,7 @@ class ParseMsgAndDispatch(object):
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
-            sendmail.delay(self.user.wizcard, receivers[0], template="emailscan")
+            sendmail.delay(self.user.wizcard, deadcard.email, template="emailscan")
 
 
         return self.response
