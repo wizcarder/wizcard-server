@@ -1723,7 +1723,7 @@ class ParseMsgAndDispatch(object):
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
-            sendmail.delay(self.user.wizcard, receivers[0], template="emailscan")
+            sendmail.delay(self.user.wizcard, deadcard.email, template="emailscan")
 
 
         return self.response
