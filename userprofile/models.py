@@ -231,14 +231,14 @@ class UserProfile(models.Model):
             s['wizcard_flicks'] = wf
 
         #wizconnections
-        if wizcard.wizconnections_to.count():
+        if wizcard.wizconnections_from.count():
             wc = wizcard.serialize_wizconnections()
             s['wizconnections'] = wc
 
         # Populate Context for Wizcards that this user  is following
-	conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard,status=verbs.ACCEPTED)
+        conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard,status=verbs.ACCEPTED)
         if conn:
-            s['context'] = serialize(map(lambda x: x.cctx.context, conn), **fields.cctx_wizcard_template)
+            s['context'] = serialize(map(lambda x: dict({'timestamp':x.created.strftime("%d. %B %Y")},**x.cctx.context), conn), **fields.cctx_wizcard_template)
 
 
         #tables
