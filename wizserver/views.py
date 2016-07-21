@@ -750,8 +750,24 @@ class ParseMsgAndDispatch(object):
         rel21 = wizcard2.get_relationship(wizcard1)
 
         if reaccept and not rel21:
+
+            try:
+                location_str = wizlib.reverse_geo_from_latlng(
+                    self.userprofile.location.get().lat,
+                    self.userprofile.location.get().lng
+                )
+            except:
+                logging.error("couldn't get location for user [%s]", self.userprofile.userid)
+                location_str = ""
+
+
+            cctx1 = ConnectionContext(
+                asset_obj=wizcard1,
+                connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U],
+                location=location_str
+            )
             #recreate the connection request
-            rel21 = Wizcard.objects.cardit(wizcard2, wizcard1)
+            rel21 = Wizcard.objects.cardit(wizcard2, wizcard1,cctx=cctx1)
 
         Wizcard.objects.becard(wizcard2, wizcard1)
 
