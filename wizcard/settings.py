@@ -82,7 +82,7 @@ CELERYBEAT_SCHEDULE = {
 
 DEBUG = False
 if RUNENV != 'prod':
-	DEBUG = True
+	DEBUG = False
 ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
@@ -100,9 +100,10 @@ if RUNENV == 'dev':
 	        'NAME': 'wizcard-dev',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
                 'PORT': '5432',
-		#'CONN_MAX_AGE' : 60,
+            	'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+            	'PORT': '5432',
+		'CONN_MAX_AGE' : 60,
 	    }
 #    DATABASES = {
 #	    'default': {
@@ -139,7 +140,7 @@ elif RUNENV == 'prod':
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'Asia/Calcutta'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -450,11 +451,12 @@ LOGGING = {
         },
         'log-file': {
             'level': 'DEBUG',
-            'class': 'logging.handlers.WatchedFileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
             #consider: 'filename': '/var/log/<myapp>/app.log',
             #will need perms at location below:
-                'filename': './log/app.log',
+            'filename': './log/app.log',
+            'backupCount': 5,
             'mode': 'a', #append+create
         },
         'timed-log-file': {
@@ -465,15 +467,16 @@ LOGGING = {
             #will need perms at location below:
             'filename': './log/app-timed.log',
             'when': 'midnight',
-            #'backupCount': '30', #approx 1 month worth
+            'backupCount': '30', #approx 1 month worth
         },
         'watched-log-file': {
             'level': 'DEBUG',
-            'class': 'logging.handlers.WatchedFileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'parsefriendly',
             #consider: 'filename': '/var/log/<myapp>/app.log',
             #will need perms at location below:
             'filename': './log/app-watched.log',
+            'backupCount' : 30,
             'mode': 'a', #append+create
         },
         'sentry': {

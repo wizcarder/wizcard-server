@@ -14,6 +14,7 @@ wizcard_fields_mini = ['wizcard_id', 'user_id', 'thumbnailUrl', \
                        'first_name', 'last_name']
 
 wizcard_fields_micro = ['wizcard_id']
+
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
                   'phone', 'email', 'thumbnailUrl', 'contact_container', 'status']
 
@@ -43,6 +44,12 @@ wizcard_template_mini = {
     'fields': wizcard_fields_mini,
     'key_map' : wizcard_fields_keymap
 }
+wizcard_template_micro = {
+    'fields': wizcard_fields_micro,
+    'merge' : True,
+    'key_map' : wizcard_fields_keymap
+}
+
 wizcard_template_micro = {
     'fields': wizcard_fields_micro,
     'merge' : True,
@@ -139,8 +146,7 @@ dead_cards_wizcard_template = {
     'key_map': {'contact_container': 'get_deadcard_cc'}
 }
 
-connection_context_wizcard = {
-    'fields' : ['connection_mode', 'description', 'location', 'asset_type', 'wizcard'],
+cctx_wizcard_template = {
     'key_map' : {'wizcard' : 'asset_obj'},
     'related' : {'asset_obj' : wizcard_template_micro}
 }
