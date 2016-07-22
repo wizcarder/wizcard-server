@@ -100,9 +100,8 @@ if RUNENV == 'dev':
 	        'NAME': 'wizcard-dev',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'PORT': '5432',
-            	'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-            	'PORT': '5432',
+    	        'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+		'PORT': '5432',
 		'CONN_MAX_AGE' : 60,
 	    }
 #    DATABASES = {
@@ -122,7 +121,7 @@ elif RUNENV == 'test':
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 elif RUNENV == 'prod':
@@ -132,7 +131,7 @@ elif RUNENV == 'prod':
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-		'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+		'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 
@@ -524,7 +523,7 @@ PYAPNS_CONFIG = {
 if RUNENV == "prod":
     RAVEN_CONFIG = {
     #for new AWS prod
-        'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@app.getsentry.com/87350',
+        'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
     }
 elif RUNENV == "test" :
     RAVEN_CONFIG = {
