@@ -1,9 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from wizserver import verbs
 from lib import wizlib
-from wizserver import fields
-from lib.preserialize.serialize import serialize
-
 
 
 class ConnectionContext(object):
@@ -19,7 +16,7 @@ class ConnectionContext(object):
             description=description,
             location=location
         )
-
+        self.describe()
 
     @property
     def context(self):

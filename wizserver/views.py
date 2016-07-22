@@ -750,7 +750,6 @@ class ParseMsgAndDispatch(object):
         rel21 = wizcard2.get_relationship(wizcard1)
 
         if reaccept and not rel21:
-
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
                     self.userprofile.location.get().lat,
@@ -1732,9 +1731,8 @@ class ParseMsgAndDispatch(object):
             if cc_e.has_key('web'):
                 deadcard.web = cc_e['web']
 
-
-        #no f_bizCardEdit..for now atleast. This will always come via scan
-        #or rescan
+        # no f_bizCardEdit..for now atleast. This will always come via scan
+        # or rescan
         deadcard.save()
 
         if inviteother:
@@ -1744,13 +1742,10 @@ class ParseMsgAndDispatch(object):
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
 
                 sendmail.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
-
-
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
             sendmail.delay(self.user.wizcard, deadcard.email, template="emailscan")
-
 
         return self.response
 

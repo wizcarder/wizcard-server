@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
-from lib.pytrie import SortedStringTrie as trie
 from lib.preserialize.serialize import serialize
 from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
@@ -13,14 +12,13 @@ from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
 from notifications.models import Notification
-from base.cctx import ConnectionContext
+from base.cctx import ConnectionContext, NotifContext
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
 import operator
 from django.db.models import Q
 from django.core.cache import cache
 from django.conf import settings
-from lib import wizlib
 from django.utils import timezone
 import string
 import random
@@ -36,8 +34,10 @@ class UserProfileManager(models.Manager):
             s['own'] = UserProfile.objects.serialize(ret['own'], template)
         if ret.has_key('connected'):
             s['connected'] = UserProfile.objects.serialize(ret['connected'], template)
-        if ret.has_key('follower'):
-            s['follower'] = UserProfile.objects.serialize(ret['follower'], template)
+        # lets remove follower for now. The *assumption* is that follower is represented on
+        # the me.app as a notif anyway. Since they are on the same screen, it's redundant.
+        #if ret.has_key('follower'):
+        #    s['follower'] = UserProfile.objects.serialize(ret['follower'], template)
         if ret.has_key('follower-d'):
             s['follower-d'] = UserProfile.objects.serialize(ret['follower-d'], template)
         if ret.has_key('followed'):
@@ -238,7 +238,14 @@ class UserProfile(models.Model):
         # Populate Context for Wizcards that this user  is following
         conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard,status=verbs.ACCEPTED)
         if conn:
-            s['context'] = serialize(map(lambda x: dict({'timestamp':x.created.strftime("%d. %B %Y")},**x.cctx.context), conn), **fields.cctx_wizcard_template)
+            cctx = map(lambda x: NotifContext(
+                description=x.cctx.description,
+                asset_id=x.cctx.asset_id,
+                asset_type=x.cctx.asset_type,
+                connection_mode=x.cctx.connection_mode,
+                timestamp=x.created).context, conn)
+
+            s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
 
 
         #tables
