@@ -15,6 +15,7 @@
 import pdb
 import json
 import logging
+import re
 from django.db.models import Q
 from django.http import HttpResponse
 from django.views.generic import View
@@ -120,6 +121,26 @@ class ParseMsgAndDispatch(object):
         #is_authenticated check
         return True
 
+    def validateAppVersion(self):
+
+        if 'appversion' in self.msg['header']:
+            appversion = self.msg['header']['version']
+            versions = re.match('(\d+)\.(\d+)\.?(\d+)?', appversion)
+
+            if versions:
+                appmajor = int(versions.group(1))
+                appminor = int(versions.group(2))
+                #apppatch = int(versions.group(3))
+
+            if appmajor < settings.APP_MAJOR:
+                return False
+            if appmajor == settings.APP_MAJOR and appminor < settings.APP_MINOR:
+                return False
+        else:
+            return False
+
+        return True
+
     def validateSender(self, sender):
         self.sender = sender
         if not self.msg_is_initial():
@@ -172,6 +193,12 @@ class ParseMsgAndDispatch(object):
             logger.warning('user failed header security check on msg {%s}', \
                            self.msg_type)
             return False, self.response
+
+        if not self.validateAppVersion():
+            self.response.error_response(err.VERSION_UPGRADE)
+            return False, self.response
+
+
 
         if self.msg.has_key('sender') and not self.validateSender(self.msg['sender']):
             self.securityException()
