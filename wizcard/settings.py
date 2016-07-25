@@ -24,6 +24,9 @@ BROKER_HOST = 'localhost'
 BROKER_PORT = 5672
 BROKER_VHOST = 'wizcard_vhost'
 
+APP_MAJOR = 1
+APP_MINOR = 14
+
 #CELERY_RESULT_BACKEND = 'amqp://'
 CELERY_RESULT_BACKEND = 'rpc'
 
@@ -98,9 +101,9 @@ if RUNENV == 'dev':
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 	        'NAME': 'wizcard-dev',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'gowizcard',
-    	        'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+	        'USER': 'anandr',
+	        'PASSWORD': '',
+    	        'HOST': '',
 		'PORT': '5432',
 		'CONN_MAX_AGE' : 60,
 	    }
