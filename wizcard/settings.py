@@ -25,7 +25,7 @@ BROKER_PORT = 5672
 BROKER_VHOST = 'wizcard_vhost'
 
 APP_MAJOR = 1
-APP_MINOR = 4
+APP_MINOR = 3
 
 #CELERY_RESULT_BACKEND = 'amqp://'
 CELERY_RESULT_BACKEND = 'rpc'
@@ -101,10 +101,10 @@ if RUNENV == 'dev':
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 	        'NAME': 'wizcard-dev',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-                'PORT': '5432',
+	        'USER': 'anandr',
+	        'PASSWORD': '',
+    	        'HOST': '',
+		'PORT': '5432',
 		'CONN_MAX_AGE' : 60,
 	    }
 #    DATABASES = {
@@ -124,7 +124,7 @@ elif RUNENV == 'test':
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com',
 	    }
     }
 elif RUNENV == 'prod':
@@ -134,7 +134,7 @@ elif RUNENV == 'prod':
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-		'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+		'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com',
 	    }
     }
 

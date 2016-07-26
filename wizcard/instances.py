@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-TEST_AWSHOSTS=['ec2-52-8-161-151.us-west-1.compute.amazonaws.com']
-#DEV_AWSHOSTS=['ec2-54-153-11-241.us-west-1.compute.amazonaws.com']
+TEST_AWSHOSTS=['ec2-52-66-102-242.ap-south-1.compute.amazonaws.com']
+DEV_AWSHOSTS=['ec2-54-153-11-241.us-west-1.compute.amazonaws.com']
 PROD_AWSHOSTS=['ec2-54-193-120-172.us-west-1.compute.amazonaws.com','ec2-52-8-23-147.us-west-1.compute.amazonaws.com']
-PROD_AWSHOSTS=['ec2-54-193-120-172.us-west-1.compute.amazonaws.com','ec2-52-8-23-147.us-west-1.compute.amazonaws.com']
-DEV_AWSHOSTS=['localhost']
 STG_AWSHOSTS=['localhost']
 
 stg_memcache_hosts=[]

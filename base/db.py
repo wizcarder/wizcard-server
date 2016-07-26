@@ -12,19 +12,11 @@ class WizcardDB(object):
                     password=passwd,
                     dbname=db)
 	else:
-                if socket.find('postgres') != -1:
-        	        self.db = psycopg2.connect(
-                         host=socket,
-                         user=user,
-                         password=passwd,
-                         dbname=db)
-                else:
-                    import MySQLdb
-                    self.db = MySQLdb.connect(
-                     host=socket,
-                     user=user,
-                     passwd=passwd,
-                     db=db)
+		self.db = psycopg2.connect(
+               		host=socket,
+			user=user,
+			password=passwd,
+			dbname=db)
 
         self.cursor = self.db.cursor()
 
