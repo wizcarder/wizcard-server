@@ -15,6 +15,7 @@
 import pdb
 import json
 import logging
+import version
 import re
 from django.db.models import Q
 from django.http import HttpResponse
@@ -123,8 +124,11 @@ class ParseMsgAndDispatch(object):
 
     def validateAppVersion(self):
 
-        if 'appversion' in self.msg['header']:
+        if 'version' in self.msg['header']:
             appversion = self.msg['header']['version']
+            versionHandler(appversion)
+
+        
             versions = re.match('(\d+)\.(\d+)\.?(\d+)?', appversion)
 
             if versions:
