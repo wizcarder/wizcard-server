@@ -231,7 +231,7 @@ class UserProfile(models.Model):
             s['wizcard_flicks'] = wf
 
         #wizconnections
-        if wizcard.wizconnections_to.count():
+        if wizcard.wizconnections_from.count():
             wc = wizcard.serialize_wizconnections()
             s['wizconnections'] = wc
 
