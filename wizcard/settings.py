@@ -124,7 +124,7 @@ elif RUNENV == 'test':
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com',
 	    }
     }
 elif RUNENV == 'prod':
@@ -134,7 +134,7 @@ elif RUNENV == 'prod':
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-		'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+		'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com',
 	    }
     }
 
