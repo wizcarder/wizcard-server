@@ -16,6 +16,7 @@ class ConnectionContext(object):
             description=description,
             location=location
         )
+        self.describe()
 
     @property
     def context(self):
