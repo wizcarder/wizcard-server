@@ -15,7 +15,6 @@
 import pdb
 import json
 import logging
-import version
 import re
 from django.db.models import Q
 from django.http import HttpResponse
