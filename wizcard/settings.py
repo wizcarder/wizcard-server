@@ -101,10 +101,10 @@ if RUNENV == 'dev':
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 	        'NAME': 'wizcard-dev',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
-                'PORT': '5432',
+	        'USER': 'anandr',
+	        'PASSWORD': '',
+    	        'HOST': '',
+		'PORT': '5432',
 		'CONN_MAX_AGE' : 60,
 	    }
 #    DATABASES = {
@@ -124,7 +124,7 @@ elif RUNENV == 'test':
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
 	    }
     }
 elif RUNENV == 'prod':
@@ -134,7 +134,7 @@ elif RUNENV == 'prod':
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-		'HOST': 'wizcardpostgres.caqhxrq8dyl5.us-west-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+		'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
 	    }
     }
 

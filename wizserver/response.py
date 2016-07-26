@@ -119,7 +119,6 @@ class NotifResponse(ResponseN):
 
         if notif.action_object and notif.action_object.cctx != '':
             cctx = notif.action_object.cctx
-            cctx.describe()
 
             #update the timestamp on the WizConnectionRequest
             notif.action_object.created = datetime.datetime.now()
