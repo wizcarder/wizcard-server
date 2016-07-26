@@ -132,6 +132,9 @@ class ParseMsgAndDispatch(object):
                 appminor = int(versions.group(2))
                 #apppatch = int(versions.group(3))
 
+	    if appmajor == 1 and appminor <= 3:
+               return True
+
             if appmajor < settings.APP_MAJOR:
                 return False
             if appmajor == settings.APP_MAJOR and appminor < settings.APP_MINOR:
