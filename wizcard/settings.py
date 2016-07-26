@@ -24,6 +24,9 @@ BROKER_HOST = 'localhost'
 BROKER_PORT = 5672
 BROKER_VHOST = 'wizcard_vhost'
 
+APP_MAJOR = 1
+APP_MINOR = 4
+
 #CELERY_RESULT_BACKEND = 'amqp://'
 CELERY_RESULT_BACKEND = 'rpc'
 
