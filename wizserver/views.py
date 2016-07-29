@@ -122,7 +122,6 @@ class ParseMsgAndDispatch(object):
         return True
 
     def validateAppVersion(self):
-
         if 'version' in self.msg['header']:
             appversion = self.msg['header']['version']
             versions = re.match('(\d+)\.(\d+)\.?(\d+)?', appversion)
@@ -297,18 +296,25 @@ class ParseMsgAndDispatch(object):
         k_rand = (settings.PHONE_CHECK_USER_RAND_KEY % username)
         k_retry = (settings.PHONE_CHECK_USER_RETRY_KEY % username)
 
-        user = cache.get(k_user)
-        if user:
-            #should not be. Lets just clear it
-            cache.delete(k_user)
+        rand_val = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
+        d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
 
-        d = dict()
-        #new req, generate random num
-        d[k_user] = username
-        d[k_device_id] = device_id
-        d[k_rand] = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
-        d[k_retry] = 1
-        cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
+        if d.has_key(k_user):
+            # sms/nexmo issues. Lets store upto 3 passcodes
+            if len(d[k_rand]) >= 3:
+                self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
+                return self.response
+
+            d[k_rand].append(rand_val)
+            cache.set_many(d)
+        else:
+            d = dict()
+            #new req, generate random num
+            d[k_user] = username
+            d[k_device_id] = device_id
+            d[k_rand] = [random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)]
+            d[k_retry] = 1
+            cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
         #send a text with the rand
         if settings.PHONE_CHECK:
@@ -385,7 +391,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_INVALID_DEVICE)
             return self.response
 
-        if settings.PHONE_CHECK and int(challenge_response) != d[k_rand]:
+        if settings.PHONE_CHECK and int(challenge_response) not in d[k_rand]:
             logger.info('{%s, [%s]!=[%s]} invalid challenge response', k_user, challenge_response, d[k_rand])
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
