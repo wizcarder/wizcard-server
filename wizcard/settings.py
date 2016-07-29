@@ -25,7 +25,7 @@ BROKER_PORT = 5672
 BROKER_VHOST = 'wizcard_vhost'
 
 APP_MAJOR = 1
-APP_MINOR = 3
+APP_MINOR = 4
 
 #CELERY_RESULT_BACKEND = 'amqp://'
 CELERY_RESULT_BACKEND = 'rpc'
@@ -124,7 +124,7 @@ elif RUNENV == 'test':
 	        'NAME': 'wizcard',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com', # Set to empty string for localhost. Not used with sqlite3.
+                'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com:5432',
 	    }
     }
 elif RUNENV == 'prod':
@@ -134,7 +134,7 @@ elif RUNENV == 'prod':
 	        'NAME': 'wizcard-prod',
 	        'USER': 'wizuser',
 	        'PASSWORD': 'gowizcard',
-		'HOST': 'wizcard-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+		'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com:5432',
 	    }
     }
 
