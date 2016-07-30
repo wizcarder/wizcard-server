@@ -121,7 +121,6 @@ class ParseMsgAndDispatch(object):
         return True
 
 
-
     def validateSender(self, sender):
         self.sender = sender
         if not self.msg_is_initial():
