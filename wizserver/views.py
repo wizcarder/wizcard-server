@@ -12,7 +12,6 @@
 
 .. autofunction:: user_unblock
 """
-import pdb
 import json
 import logging
 import re
@@ -121,6 +120,7 @@ class ParseMsgAndDispatch(object):
         #is_authenticated check
         return True
 
+<<<<<<< HEAD
     def validateAppVersion(self):
         if 'version' in self.msg['header']:
             appversion = self.msg['header']['version']
@@ -142,6 +142,8 @@ class ParseMsgAndDispatch(object):
             return False
 
         return True
+=======
+>>>>>>> navimumbai
 
     def validateSender(self, sender):
         self.sender = sender
@@ -165,6 +167,34 @@ class ParseMsgAndDispatch(object):
                          self.user.first_name+" "+self.user.last_name, self.lat, self.lng)
 
         return True
+
+    def validateAppVersion(self):
+        if 'version' in self.msg['header']:
+            appversion = self.msg['header']['version']
+            versions = re.match('(\d+)\.(\d+)\.?(\d+)?', appversion)
+
+            if versions:
+                appmajor = int(versions.group(1))
+                appminor = int(versions.group(2))
+
+                # Checking major and minor versions only, expecting patches to be backward compatible
+                # apppatch = int(versions.group(3))
+                
+                # Hack for earlier versions - AnandR to do version check as handlers and add default handler
+                if appmajor == 1 and appminor >= 1 and appminor <= 3:
+                    return True
+
+                if appmajor < settings.APP_MAJOR or (appmajor == settings.APP_MAJOR and appminor < settings.APP_MINOR):
+                    logger.error('Failed Version Validation - App Version: %s , Expected Version - %s.%s', appversion, int(settings.APP_MAJOR), int(settings.APP_MINOR))
+                    return False
+                else:
+                    return True
+            else:
+                logger.error('Not able to get Version from the client headers - Something Fishy')
+
+        else:
+            logger.error('Client not sending App Version - Something Fishy')
+            return False
 
     def validateWizWebMsg(self):
         if self.msg.has_key('sender'):
