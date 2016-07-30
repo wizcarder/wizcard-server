@@ -64,9 +64,9 @@ DEFAULT_BIZCARD_URL = "www.youtube.com"
 verify_phones_list = [messages.PHONE1, messages.PHONE2, messages.PHONE3]
 verify_emails_list = [messages.EMAIL1, messages.EMAIL2, messages.EMAIL3, messages.EMAIL4]
 
-#server_url = "localhost"
+server_url = "localhost"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
-server_url = "ec2-54-153-11-241.us-west-1.compute.amazonaws.com"
+#server_url = "ec2-54-153-11-241.us-west-1.compute.amazonaws.com"
 
 server_port = 80
 #server_port = 8000
@@ -115,6 +115,38 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 response_key = objs['data'].get('challenge_key', 1234)
+
+# send some more requests to simulate user retry
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID1
+reqmsg['header']['hash'] = HASH1
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+reqmsg['sender']['responseMode'] = 'sms'
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID1
+reqmsg['header']['hash'] = HASH1
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+reqmsg['sender']['responseMode'] = 'sms'
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.phone_check_req
+reqmsg['header']['deviceID'] = DEVICE_ID1
+reqmsg['header']['hash'] = HASH1
+reqmsg['sender']['username'] = USERNAME1
+reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+reqmsg['sender']['responseMode'] = 'sms'
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+# this one should be an error
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 reqmsg = messages.phone_check_resp
 reqmsg['header']['deviceID'] = DEVICE_ID1
