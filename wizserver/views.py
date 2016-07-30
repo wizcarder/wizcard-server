@@ -120,30 +120,7 @@ class ParseMsgAndDispatch(object):
         #is_authenticated check
         return True
 
-<<<<<<< HEAD
-    def validateAppVersion(self):
-        if 'version' in self.msg['header']:
-            appversion = self.msg['header']['version']
-            versions = re.match('(\d+)\.(\d+)\.?(\d+)?', appversion)
 
-            if versions:
-                appmajor = int(versions.group(1))
-                appminor = int(versions.group(2))
-                #apppatch = int(versions.group(3))
-
-	    if appmajor == 1 and appminor <= 3:
-               return True
-
-            if appmajor < settings.APP_MAJOR:
-                return False
-            if appmajor == settings.APP_MAJOR and appminor < settings.APP_MINOR:
-                return False
-        else:
-            return False
-
-        return True
-=======
->>>>>>> navimumbai
 
     def validateSender(self, sender):
         self.sender = sender
