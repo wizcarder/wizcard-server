@@ -120,30 +120,6 @@ class ParseMsgAndDispatch(object):
         #is_authenticated check
         return True
 
-<<<<<<< HEAD
-    def validateAppVersion(self):
-        if 'version' in self.msg['header']:
-            appversion = self.msg['header']['version']
-            versions = re.match('(\d+)\.(\d+)\.?(\d+)?', appversion)
-
-            if versions:
-                appmajor = int(versions.group(1))
-                appminor = int(versions.group(2))
-                #apppatch = int(versions.group(3))
-
-	    if appmajor == 1 and appminor <= 3:
-               return True
-
-            if appmajor < settings.APP_MAJOR:
-                return False
-            if appmajor == settings.APP_MAJOR and appminor < settings.APP_MINOR:
-                return False
-        else:
-            return False
-
-        return True
-=======
->>>>>>> navimumbai
 
     def validateSender(self, sender):
         self.sender = sender
@@ -834,6 +810,15 @@ class ParseMsgAndDispatch(object):
             #recreate the connection request
             rel21 = Wizcard.objects.cardit(wizcard2, wizcard1,cctx=cctx1)
 
+        if not wizcard1.get_relationship(wizcard2):
+            # wizcard1.user has deleted wizcard 2 from rolodex even before wizcard2.user has accepted it
+            rel21.delete()
+            status.append(
+                dict(status="asktoinvite",wizcardID=wizcard1.id)
+            )
+            self.response.add_data("status",status)
+            return self.response
+        
         Wizcard.objects.becard(wizcard2, wizcard1)
 
         # Q notif to both sides.
@@ -946,6 +931,10 @@ class ParseMsgAndDispatch(object):
                         # this doesn't work well because now they can never connect
                         # Best is probably to delete the -> altogether
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
+
+                        #If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
+                        nq = Notification.objects.filter(recipient=self.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
+                        noarr = map(lambda x: x.delete(),nq)
 
                         # Q a notif to other guy so that the app on the other side can react
                         notify.send(self.user, recipient=wizcard2.user,
