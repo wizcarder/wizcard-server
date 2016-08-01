@@ -23,6 +23,7 @@ CRITICAL_ERROR = {'errno':21, 'str':"something went wrong...please delete and re
 LIB_OCR_ERROR = {'errno': 22, 'str':"OCR lib error"}
 NO_RECEIVER = {'errno' : 23, 'str': "No receiver in the request"}
 VERSION_UPGRADE = {'errno' : 24, 'str': "We have a better version of WizCard, Upgrade to Continue"}
+REVERSE_INVITE = {'errno': 25, 'str': "Invitation expired/revoked, Do you want to invite
 
 IGNORE = {'result':1, 'ignore':1, 'errStr':""}
 
