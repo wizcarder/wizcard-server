@@ -854,7 +854,11 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
-        Wizcard.objects.uncard(wizcard2, wizcard1)
+        if wizcard2.get_relationship(wizcard1):
+            Wizcard.objects.uncard(wizcard2, wizcard1)
+        else:
+            logger.info("Relationship Doesnt Exist: %s to %s", wizcard2, wizcard1)
+
 
         try:
             n_id = self.sender['notif_id']
