@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 TEST_AWSHOSTS=['ec2-52-66-102-242.ap-south-1.compute.amazonaws.com']
-DEV_AWSHOSTS=['ec2-54-153-11-241.us-west-1.compute.amazonaws.com']
+DEV_AWSHOSTS=['localhost']
 PROD_AWSHOSTS=['ec2-52-66-114-251.ap-south-1.compute.amazonaws.com','ec2-52-66-110-201.ap-south-1.compute.amazonaws.com']
 STG_AWSHOSTS=['localhost']
 
