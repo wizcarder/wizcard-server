@@ -12,7 +12,7 @@ from notifications import NotifParser
 import random
 import string
 import pprint
-proj_path="/home/ubuntu/test.env"
+proj_path="/Users/aammundi/wizcard/wizcard-server"
 sys.path.append(proj_path)
 from wizcard import settings
 
@@ -62,6 +62,9 @@ START1 = "Jan 27, 2010"
 DEFAULT_MEDIA_URL = "www.youtube.com"
 DEFAULT_BIZCARD_URL = "www.youtube.com"
 
+INDIA_INTERNATIONAL_PREFIX = '00'
+INDIA_COUNTRY_CODE = '91'
+
 
 verify_phones_list = [messages.PHONE1, messages.PHONE2, messages.PHONE3]
 verify_emails_list = [messages.EMAIL1, messages.EMAIL2, messages.EMAIL3, messages.EMAIL4]
@@ -69,10 +72,10 @@ verify_emails_list = [messages.EMAIL1, messages.EMAIL2, messages.EMAIL3, message
 server_url = "localhost"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 #server_url = "ec2-54-153-11-241.us-west-1.compute.amazonaws.com"
-server_url = "ec2-52-66-102-242.ap-south-1.compute.amazonaws.com"
+#server_url = "ec2-52-66-102-242.ap-south-1.compute.amazonaws.com"
 
-server_port = 80
-#server_port = 8000
+#server_port = 80
+server_port = 8000
 
 test_image_path = "test/photo.JPG"
 ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
@@ -359,13 +362,26 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 notif = NotifParser(objs['data'], uid3, wuid3)
 nrsp = notif.process()
 
-#contacts verify
-reqmsg = messages.contacts_verify
+#contacts upload user 1
+reqmsg = messages.contacts_upload
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['verify_phones'] = verify_phones_list
-reqmsg['receiver']['verify_emails'] = verify_emails_list
+reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+reqmsg['receiver']['ab_list'] = messages.USER1_AB
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#contacts upload user 2
+reqmsg = messages.contacts_upload
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+reqmsg['receiver']['ab_list'] = messages.USER2_AB
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])

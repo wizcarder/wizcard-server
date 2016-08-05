@@ -37,6 +37,8 @@ class LocationUpdateSchema(colander.MappingSchema):
     pass
 class ContactsVerifySchema(colander.MappingSchema):
     pass
+class ContactsUploadSchema(colander.MappingSchema):
+    pass
 class NotificationsGetSchema(colander.MappingSchema):
     pass
 class WizcardEditSchema(colander.MappingSchema):

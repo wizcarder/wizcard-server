@@ -88,3 +88,8 @@ def reverse_geo_from_latlng(lat, lng):
 
 def format_location_name(location):
     return "@"+location if location else "@location unknown"
+
+
+# phone number cleanup
+def clean_phone_number(phone, international_prefix, country_code):
+    return phone
