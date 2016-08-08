@@ -13,6 +13,7 @@
 .. autofunction:: user_unblock
 """
 import json
+import pdb
 import logging
 import re
 from django.db.models import Q
@@ -812,7 +813,8 @@ class ParseMsgAndDispatch(object):
         if not wizcard1.get_relationship(wizcard2):
             # wizcard1.user has deleted wizcard 2 from rolodex even before wizcard2.user has accepted it
 
-            rel21.delete()
+	    if rel21:
+		rel21.delete()	    
             self.response.error_response(err.REVERSE_INVITE)
             return self.response
         
