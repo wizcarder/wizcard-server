@@ -814,8 +814,8 @@ class ParseMsgAndDispatch(object):
             # wizcard1.user has deleted wizcard 2 from rolodex even before wizcard2.user has accepted it
             if rel21:
                 rel21.delete()
-                self.response.error_response(err.REVERSE_INVITE)
-                return self.response
+            self.response.error_response(err.REVERSE_INVITE)
+            return self.response
         
         Wizcard.objects.becard(wizcard2, wizcard1)
 
