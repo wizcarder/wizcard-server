@@ -812,11 +812,10 @@ class ParseMsgAndDispatch(object):
 
         if not wizcard1.get_relationship(wizcard2):
             # wizcard1.user has deleted wizcard 2 from rolodex even before wizcard2.user has accepted it
-
-	    if rel21:
-		rel21.delete()	    
-            self.response.error_response(err.REVERSE_INVITE)
-            return self.response
+            if rel21:
+                rel21.delete()
+                self.response.error_response(err.REVERSE_INVITE)
+                return self.response
         
         Wizcard.objects.becard(wizcard2, wizcard1)
 
@@ -936,9 +935,8 @@ class ParseMsgAndDispatch(object):
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
 
                         #If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
-                        nq = Notification.objects.filter(recipient=self.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
+                        nq = Notification.objects.filter(recipient=wizcard2.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
                         noarr = map(lambda x: x.delete(),nq)
-			
 
                         # Q a notif to other guy so that the app on the other side can react
                         notify.send(self.user, recipient=wizcard2.user,
