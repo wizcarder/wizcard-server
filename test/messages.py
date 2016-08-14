@@ -40,6 +40,74 @@ EMAIL2 = "amsaha@gmail.com"
 EMAIL3 = "wizcard1@gmail.com"
 EMAIL4 = "nothere@gmail.com"
 
+USER1_AB = [
+    {
+        'name': "Anand Ammundi",
+        'phone': PHONE1,
+        'email': EMAIL1
+    },
+    {
+        'name': "Andy Ammundi",
+        'phone': PHONE1,
+        'email': EMAIL2,
+    },
+    {
+        'name': "Anand Ramani",
+        'phone': PHONE2,
+        'email': EMAIL2
+    },
+    {
+        'name': "Akash Jindal",
+        'phone': PHONE3,
+        'email': EMAIL3
+    },
+    {
+        'name': "Ishaan Ammundi",
+        'phone': PHONE4,
+        'email': EMAIL4
+    },
+    {
+        'name': "Sang",
+        'phone': FUTURE_PHONE1,
+        'email': FUTURE_EMAIL1
+    },
+]
+
+
+
+USER2_AB = [
+    {
+        'name': "Anand Ammundi",
+        'phone': PHONE1,
+        'email': EMAIL1
+    },
+    {
+        'name': "Andy Ammundi",
+        'phone': PHONE1,
+        'email': EMAIL2,
+    },
+    {
+        'name': "Anand Ramani",
+        'phone': PHONE2,
+        'email': EMAIL2
+    },
+    {
+        'name': "Akash Jindal",
+        'phone': PHONE3,
+        'email': EMAIL3
+    },
+    {
+        'name': "Ishaan Ammundi",
+        'phone': PHONE4,
+        'email': EMAIL4
+    },
+    {
+        'name': "Sang",
+        'phone': FUTURE_PHONE1,
+        'email': FUTURE_EMAIL1
+    }
+]
+
 phone_check_req = {
     "header" : {
         "msgType" : "phone_check_req",
@@ -115,7 +183,7 @@ register1 = {
         "lng" : -122.406416,
         "deviceType": "ios",
         "userID" : "",
-	"wizUserID" : "",
+        "wizUserID" : "",
     },
 }
 
@@ -134,7 +202,7 @@ register2 = {
         "lng" : -122.406418,
         "deviceType": "ios",
         "userID" : "",
-	"wizUserID" : ""
+        "wizUserID" : ""
     },
 }
 
@@ -153,7 +221,7 @@ register3 = {
         "lng" : -122.406419,
         "deviceType": "ios",
         "userID" : "",
-	"wizUserID" : ""
+        "wizUserID" : ""
     },
 }
 ocr_register = {
@@ -171,7 +239,7 @@ ocr_register = {
         "lng" : -122.406419,
         "deviceType": "android",
         "userID" : "",
-	"wizUserID" : ""
+        "wizUserID" : ""
     },
 }
 
@@ -188,7 +256,7 @@ location = {
         "lat" : "",
         "lng" : "",
         "userID" : "",
-	"wizUserID" : ""
+        "wizUserID" : ""
     },
 }
 
@@ -203,11 +271,33 @@ contacts_verify = {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
         "userID" : "",
-	"wizUserID" : "",
+        "wizUserID" : "",
     },
     "receiver" : {
-	"verify_phones" : "",
-	"verify_emails" : "",
+        "verify_phones" : "",
+        "verify_emails" : "",
+    }
+
+}
+
+
+contacts_upload = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "contacts_upload",
+    },
+    "sender" : {
+        #maybe should have a separate data file for lat, lng and read with some
+        #random index from there
+        "userID" : "",
+        "wizUserID" : "",
+    },
+    "receiver" : {
+        "prefix" : "",
+        "country_code" : "",
+        'ab_list': []
     }
 
 }
@@ -249,7 +339,7 @@ edit_card1 = {
         "deviceType": "ios",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
-	"contact_container" : [contact_container, contact_container, contact_container]
+        "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
@@ -277,7 +367,7 @@ edit_card2 = {
         "userID" : "USER2",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
-	"contact_container" : [contact_container, contact_container, contact_container]
+        "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
@@ -305,7 +395,7 @@ edit_card3 = {
         "userID" : "USER3",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
-	"contact_container" : [contact_container, contact_container, contact_container]
+        "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
@@ -401,7 +491,7 @@ table_join = {
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
-	"tableID": "",
+        "tableID": "",
         "password" : "test"
     },
 }
@@ -754,15 +844,15 @@ wizweb_add_edit_card = {
     },
     "sender" : {
         "username" : "",
-	"userID" : "",
-	"first_name" : "",
-	"last_name" : "",
-	"phone" : "",
-	"title" : "",
-	"company" : "",
-	"mediaUrl" : "",
-	"f_bizCardUrl" : "",
-	"contact_container" : [contact_container, contact_container, contact_container]
+        "userID" : "",
+        "first_name" : "",
+        "last_name" : "",
+        "phone" : "",
+        "title" : "",
+        "company" : "",
+        "mediaUrl" : "",
+        "f_bizCardUrl" : "",
+        "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 

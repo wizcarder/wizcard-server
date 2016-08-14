@@ -15,20 +15,12 @@
 import json
 import logging
 import re
-from django.db.models import Q
-from django.http import HttpResponse
 from django.views.generic import View
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage as storage
-from django.core import serializers
-from raven.contrib.django.raven_compat.models import client
-from lib.preserialize.serialize import serialize
 from lib.ocr import OCR
-from django.core.files.storage import default_storage
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
@@ -36,13 +28,13 @@ from virtual_table.models import VirtualTable, Membership
 from meishi.models import Meishi
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
+from userprofile.models import AddressBook, AB_Candidate_Emails, AB_Candidate_Phones, AB_Candidate_Names, AB_User
 from userprofile.models import FutureUser
 from lib import wizlib
-from lib.emailInvite import create_template,sendmail 
+from lib.emailInvite import create_template, sendmail
 from wizcard import err
-from location_mgr.models import LocationMgr
 from dead_cards.models import DeadCards
-from wizserver import msg_test, fields
+from wizserver import fields
 from django.utils import timezone
 import random
 from django.core.cache import cache
@@ -52,7 +44,7 @@ import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from test import messages
+import pdb
 
 now = timezone.now
 
@@ -119,7 +111,6 @@ class ParseMsgAndDispatch(object):
         #username, userID, wizUserID, deviceID
         #is_authenticated check
         return True
-
 
     def validateSender(self, sender):
         self.sender = sender
@@ -237,6 +228,7 @@ class ParseMsgAndDispatch(object):
             'register'                    : (message_format.RegisterSchema, self.Register),
             'current_location'            : (message_format.LocationUpdateSchema, self.LocationUpdate),
             'contacts_verify'	          : (message_format.ContactsVerifySchema, self.ContactsVerify),
+            'contacts_upload'             : (message_format.ContactsUploadSchema, self.ContactsUpload),
             'get_cards'                   : (message_format.NotificationsGetSchema, self.NotificationsGet),
             'edit_card'                   : (message_format.WizcardEditSchema, self.WizcardEdit),
             'accept_connection_request'   : (message_format.WizcardAcceptSchema, self.WizcardAccept),
@@ -490,6 +482,105 @@ class ParseMsgAndDispatch(object):
     def LocationUpdate(self):
         #update location in ptree
         self.userprofile.create_or_update_location(self.lat, self.lng)
+        return self.response
+
+    def ContactsUpload(self):
+        # 'prefix': "", 'country_code": "", ab_entry: [{name:"", phone:phone, emails:email}, {}]
+        int_prefix = self.receiver.get('prefix', None)
+        country_code = self.receiver.get('country_code', None)
+
+        for ab_entry in self.receiver.get('ab_list'):
+            if not ab_entry.has_key('name'):
+                continue
+            name = ab_entry.get('name')
+
+            if ab_entry.has_key('phone'):
+                phone = wizlib.clean_phone_number(ab_entry.get('phone'), int_prefix, country_code)
+                do_phone = True
+            else:
+                do_phone = False
+
+            if ab_entry.has_key('email'):
+                email = ab_entry.get('email')
+                do_email = True
+            else:
+                do_email = False
+
+            if not do_email and not do_phone:
+                continue
+
+            if do_email:
+                try:
+                    emailEntry = AB_Candidate_Emails.objects.get(email=email)
+                    # update join table
+                    AB_User.objects.get_or_create(user=self.user, ab_entry=emailEntry.ab_entry)
+                except ObjectDoesNotExist:
+                    emailEntry = None
+
+            if do_phone:
+                try:
+                    phoneEntry = AB_Candidate_Phones.objects.get(phone=phone)
+                    # update join table
+                    AB_User.objects.get_or_create(user=self.user, ab_entry=phoneEntry.ab_entry)
+                except ObjectDoesNotExist:
+                    phoneEntry = None
+
+            if not emailEntry and not phoneEntry:
+                # brand new. create AB model instance and mapping to user
+                abEntry = AddressBook.objects.create(name=name)
+                AB_Candidate_Names.objects.create(name=name, ab_entry=abEntry)
+
+                if do_email:
+                    emailEntry = AB_Candidate_Emails.objects.create(email=email, ab_entry=abEntry)
+                if do_phone:
+                    phoneEntry = AB_Candidate_Phones.objects.create(phone=phone, ab_entry=abEntry)
+
+                # join table
+                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
+            elif emailEntry and phoneEntry:
+                # skip the messy ones
+                if emailEntry.ab_entry != phoneEntry.ab_entry:
+                    continue
+
+                abEntry = emailEntry.ab_entry
+                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
+
+                if not abEntry.name_finalized:
+                    # add to candidate list
+                    AB_Candidate_Names.objects.create(name=name, ab_entry=abEntry)
+            elif emailEntry:
+                abEntry = emailEntry.ab_entry
+                if do_phone:
+                    AB_Candidate_Phones.objects.create(
+                        phone=phone,
+                        ab_entry=abEntry)
+
+                if not abEntry.name_finalized:
+                    # add to candidate list
+                    AB_Candidate_Names.objects.create(
+                        name=name,
+                        ab_entry=abEntry)
+
+                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
+            else:
+                # found phone
+                abEntry = phoneEntry.ab_entry
+                if do_email:
+                    AB_Candidate_Emails.objects.create(
+                        email=email,
+                        ab_entry=abEntry)
+
+                if not abEntry.name_finalized:
+                    # add to candidate list
+                    AB_Candidate_Names.objects.create(
+                        name=name,
+                        ab_entry=abEntry)
+
+                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
+
+            # run a candidate selection for the ab_entry
+            abEntry.run_selection_decision()
+
         return self.response
 
     def ContactsVerify(self):

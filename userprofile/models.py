@@ -337,6 +337,47 @@ class FutureUser(models.Model):
                         verb=verbs.WIZCARD_TABLE_INVITE[0],
                         target=self.content_object)
 
+
+# Model for Address-Book Support. Standard M2M-through
+class AddressBook(models.Model):
+    # this is the high confidence, cleaned up phone
+    phone = TruncatingCharField(max_length=20, blank=True)
+    # to indicate if above entry is definitely the right one
+    phone_finalized = models.BooleanField(default=False)
+
+    email = EmailField(blank=True)
+    # to indicate if above entry is definitely the right one
+    email_finalized = models.BooleanField(default=False)
+
+    name = TruncatingCharField(max_length=40)
+    # to indicate if above entry is definitely the right one
+    name_finalized = models.BooleanField(default=False)
+
+    users = models.ManyToManyField(User, through='AB_User')
+
+    def __repr__(self):
+        return str(self.email) + self.phone
+
+    def run_selection_decision(self):
+        pass
+
+class AB_Candidate_Phones(models.Model):
+    phone = TruncatingCharField(max_length=20)
+    ab_entry = models.ForeignKey(AddressBook, related_name='candidate_phones')
+
+class AB_Candidate_Emails(models.Model):
+    email = EmailField()
+    ab_entry = models.ForeignKey(AddressBook, related_name='candidate_emails')
+
+class AB_Candidate_Names(models.Model):
+    name = TruncatingCharField(max_length=40)
+    ab_entry = models.ForeignKey(AddressBook, related_name='candidate_names')
+
+class AB_User(models.Model):
+    user = models.ForeignKey(User)
+    ab_entry = models.ForeignKey(AddressBook)
+
+
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile = UserProfile(user=instance)
