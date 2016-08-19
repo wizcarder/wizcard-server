@@ -224,7 +224,7 @@ if RUNENV == 'dev':
          'LOCATION': 'default-cache'
      }
     }
-elif RUNENV == 'stage':
+elif RUNENV == 'test':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
