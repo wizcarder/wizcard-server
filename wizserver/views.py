@@ -1025,13 +1025,15 @@ class ParseMsgAndDispatch(object):
                         # Best is probably to delete the -> altogether
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
 
-                        #If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
-                        nq = Notification.objects.filter(recipient=self.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
-                        noarr = map(lambda x: x.delete(),nq)
-			
 
+                        #If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
+                        nq = Notification.objects.filter(recipient=wizcard2.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0]).delete()
+
+                        if nq:
+                            Wizcard.objects.uncardit(wizcard1,wizcard2)
+                        else:
                         # Q a notif to other guy so that the app on the other side can react
-                        notify.send(self.user, recipient=wizcard2.user,
+                            notify.send(self.user, recipient=wizcard2.user,
                                     verb=verbs.WIZCARD_REVOKE[0],
                                     target=wizcard1)
                     except:
