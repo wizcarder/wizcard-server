@@ -1028,10 +1028,16 @@ class ParseMsgAndDispatch(object):
 
 
                         #If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
-                        nq = Notification.objects.filter(recipient=wizcard2.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0]).delete()
+                        nq = Notification.objects.filter(recipient=wizcard2.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
+                        # if nq is there => there are notifications which wizcard2.user has not seen so dont bother him just delete the notifs and bring all
+                        # connections to a clean state
                         if nq:
+                            noarr = map(lambda x: x.delete(),nq)
                             Wizcard.objects.uncardit(wizcard1,wizcard2)
                         else:
+                        # If nq is not there then wizcard2.user knows about this connection so he has to either accept or decline which takes its own course or
+                        # its an already existing connection which turns this into a half card for Wizcard2.user
+
                         # Q a notif to other guy so that the app on the other side can react
                             notify.send(self.user, recipient=wizcard2.user,
                                     verb=verbs.WIZCARD_REVOKE[0],
