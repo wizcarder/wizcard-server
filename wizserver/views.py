@@ -13,6 +13,7 @@
 .. autofunction:: user_unblock
 """
 import json
+import pdb
 import logging
 import re
 from django.views.generic import View
@@ -111,8 +112,6 @@ class ParseMsgAndDispatch(object):
         #username, userID, wizUserID, deviceID
         #is_authenticated check
         return True
-
-
 
     def validateSender(self, sender):
         self.sender = sender
@@ -907,6 +906,13 @@ class ParseMsgAndDispatch(object):
             #recreate the connection request
             rel21 = Wizcard.objects.cardit(wizcard2, wizcard1,cctx=cctx1)
 
+        if not wizcard1.get_relationship(wizcard2):
+            # wizcard1.user has deleted wizcard 2 from rolodex even before wizcard2.user has accepted it
+            if rel21:
+                rel21.delete()
+            self.response.error_response(err.REVERSE_INVITE)
+            return self.response
+        
         Wizcard.objects.becard(wizcard2, wizcard1)
 
         # Q notif to both sides.
@@ -944,7 +950,11 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
-        Wizcard.objects.uncard(wizcard2, wizcard1)
+        if wizcard2.get_relationship(wizcard1):
+            Wizcard.objects.uncard(wizcard2, wizcard1)
+        else:
+            logger.info("Relationship Doesnt Exist: %s to %s", wizcard2, wizcard1)
+
 
         try:
             n_id = self.sender['notif_id']
@@ -1020,8 +1030,20 @@ class ParseMsgAndDispatch(object):
                         # Best is probably to delete the -> altogether
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
 
+
+                        #If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
+                        nq = Notification.objects.filter(recipient=wizcard2.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
+                        # if nq is there => there are notifications which wizcard2.user has not seen so dont bother him just delete the notifs and bring all
+                        # connections to a clean state
+                        if nq:
+                            noarr = map(lambda x: x.delete(),nq)
+                            Wizcard.objects.uncardit(wizcard1,wizcard2)
+                        else:
+                        # If nq is not there then wizcard2.user knows about this connection so he has to either accept or decline which takes its own course or
+                        # its an already existing connection which turns this into a half card for Wizcard2.user
+
                         # Q a notif to other guy so that the app on the other side can react
-                        notify.send(self.user, recipient=wizcard2.user,
+                            notify.send(self.user, recipient=wizcard2.user,
                                     verb=verbs.WIZCARD_REVOKE[0],
                                     target=wizcard1)
                     except:

@@ -14,6 +14,7 @@ from kombu import Queue, Exchange
 from wizcard import instances
 
 TEST = False
+SHELL_PLUS="bpython"
 RUNENV = os.getenv('WIZRUNENV','dev')
 BROKER_TRANSPORT = 'amqp'
 BROKER_USER = 'wizcard_user'
@@ -101,7 +102,7 @@ if RUNENV == 'dev':
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 	        'NAME': 'wizcard-dev',
-	        'USER': 'anandr',
+	        'USER': 'kappu',
 	        'PASSWORD': '',
     	        'HOST': '',
 		'PORT': '5432',
@@ -224,7 +225,7 @@ if RUNENV == 'dev':
          'LOCATION': 'default-cache'
      }
     }
-elif RUNENV == 'stage':
+elif RUNENV == 'test':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -358,6 +359,7 @@ INSTALLED_APPS = (
     'meishi',
     'healthstatus',
     'django_ses',
+    'recommendation',
 )
 
 #django-storage settings

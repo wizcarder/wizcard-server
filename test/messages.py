@@ -15,6 +15,10 @@ PHONE2 = "+15085332708"
 PHONE3 = "+14086892263"
 PHONE4 = "+15086892263"
 
+DELETE_ROLODEX_PHONE1 = "+919986134853"
+DELETE_ROLODEX_PHONE2 = "+919845123397"
+DELETE_ROLODEX_PHONE3 = "+917259617853"
+
 FUTURE_PHONE1 = "+11111111111"
 FUTURE_PHONE2 = "+12222222222"
 FUTURE_PHONE3 = "+13333333333"
@@ -892,3 +896,84 @@ get_email_template = {
         "deviceType": "ios",
     },
 }
+rolodex_edit_card1 = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17C",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "edit_card",
+    },
+    "sender" : {
+        #maybe should have a separate data file for lat, lng and read with some
+        #random index from there
+        "address_city" : "Bangalore",
+        "address_state" : "KA",
+        "address_street1" : "JP Nagar",
+        "address_zip" : 560078,
+        "email" : "aanandr@gmail.com",
+        "first_name" : "Anand",
+        "last_name" : "Ramani",
+        "imageWasEdited" : "0",
+        "location" : "Bangalore",
+        "phone1" : OCR_PHONE,
+        "userID" : "USER2",
+        #wizUserID should be the userID got from response of above register message
+        "wizUserID" : "",
+	"contact_container" : [contact_container, contact_container, contact_container]
+    },
+}
+rolodex_edit_card2 = {
+    "header" : {
+	"deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+	"hash" : "da0f7402460b85205c85618edf685916",
+	#above 2 fields are not currently used by server
+	"msgType" : "edit_card",
+    },
+    "sender" : {
+	#maybe should have a separate data file for lat, lng and read with some
+	#random index from there
+	"address_city" : "Chennai",
+	"address_state" : "TN",
+	"address_street1" : "Poes Garden",
+	"address_zip" : 600014,
+	"email" : "ranandr@gmail.com",
+	"first_name" : "Anand",
+	"last_name" : "Sankar",
+	"imageWasEdited" : "0",
+	"location" : "Bangalore",
+	"phone1" : OCR_PHONE,
+	"userID" : "USER2",
+	#wizUserID should be the userID got from response of above register message
+	"wizUserID" : "",
+	"contact_container" : [contact_container, contact_container, contact_container]
+    },
+}
+
+
+rolodex_edit_card3 = {
+    "header" : {
+	"deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+	"hash" : "da0f7402460b85205c85618edf685916",
+	#above 2 fields are not currently used by server
+	"msgType" : "edit_card",
+    },
+    "sender" : {
+	#maybe should have a separate data file for lat, lng and read with some
+	#random index from there
+	"address_city" : "Chandigarh",
+	"address_state" : "PJ",
+	"address_street1" : "Mohali",
+	"address_zip" : 300014,
+	"email" : "akashjindal@gmail.com",
+	"first_name" : "Akash",
+	"last_name" : "Jindal",
+	"imageWasEdited" : "0",
+	"location" : "Mohali",
+	"phone1" : OCR_PHONE,
+	"userID" : "USER2",
+	#wizUserID should be the userID got from response of above register message
+	"wizUserID" : "",
+	"contact_container" : [contact_container, contact_container, contact_container]
+    },
+}
+
