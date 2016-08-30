@@ -89,7 +89,21 @@ def reverse_geo_from_latlng(lat, lng):
 def format_location_name(location):
     return "@"+location if location else "@location unknown"
 
+# separates into 1st word and the rest
+def split_name(name):
+    return name.split()[:1][0].lower(), " ".join(name.split()[1:]).lower()
 
 # phone number cleanup
 def clean_phone_number(phone, international_prefix, country_code):
     return phone
+
+# email valid
+def is_valid_email(email):
+    return True
+
+# most common element in list
+from collections import Counter
+
+def most_common(lst):
+    data = Counter(lst).most_common(1)[0]
+    return data[0], data[1]

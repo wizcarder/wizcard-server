@@ -492,45 +492,44 @@ class ParseMsgAndDispatch(object):
         country_code = self.receiver.get('country_code', None)
 
         for ab_entry in self.receiver.get('ab_list'):
+            do_email = False
+            do_phone = False
+
             if not ab_entry.has_key('name'):
                 continue
             name = ab_entry.get('name')
+            first_name, last_name = wizlib.split_name(name)
 
             if ab_entry.has_key('phone'):
                 phone = wizlib.clean_phone_number(ab_entry.get('phone'), int_prefix, country_code)
                 do_phone = True
-            else:
-                do_phone = False
+                try:
+                    phoneEntry = AB_Candidate_Phones.objects.get(phone=phone)
+                except ObjectDoesNotExist:
+                    phoneEntry = None
 
             if ab_entry.has_key('email'):
-                email = ab_entry.get('email')
-                do_email = True
-            else:
-                do_email = False
+                email = ab_entry.get('email').lower()
+                if wizlib.is_valid_email(email):
+                    do_email = True
+                    try:
+                        emailEntry = AB_Candidate_Emails.objects.get(email=email)
+                    except ObjectDoesNotExist:
+                        emailEntry = None
 
             if not do_email and not do_phone:
                 continue
 
-            if do_email:
-                try:
-                    emailEntry = AB_Candidate_Emails.objects.get(email=email)
-                    # update join table
-                    AB_User.objects.get_or_create(user=self.user, ab_entry=emailEntry.ab_entry)
-                except ObjectDoesNotExist:
-                    emailEntry = None
-
-            if do_phone:
-                try:
-                    phoneEntry = AB_Candidate_Phones.objects.get(phone=phone)
-                    # update join table
-                    AB_User.objects.get_or_create(user=self.user, ab_entry=phoneEntry.ab_entry)
-                except ObjectDoesNotExist:
-                    phoneEntry = None
-
             if not emailEntry and not phoneEntry:
                 # brand new. create AB model instance and mapping to user
-                abEntry = AddressBook.objects.create(name=name)
-                AB_Candidate_Names.objects.create(name=name, ab_entry=abEntry)
+                abEntry = AddressBook.objects.create(
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                AB_Candidate_Names.objects.create(
+                    first_name=first_name,
+                    last_name=last_name,
+                    ab_entry=abEntry)
 
                 if do_email:
                     emailEntry = AB_Candidate_Emails.objects.create(email=email, ab_entry=abEntry)
@@ -547,9 +546,12 @@ class ParseMsgAndDispatch(object):
                 abEntry = emailEntry.ab_entry
                 AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
 
-                if not abEntry.name_finalized:
+                if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
                     # add to candidate list
-                    AB_Candidate_Names.objects.create(name=name, ab_entry=abEntry)
+                    AB_Candidate_Names.objects.create(
+                        first_name=first_name,
+                        last_name=last_name
+                    )
             elif emailEntry:
                 abEntry = emailEntry.ab_entry
                 if do_phone:
@@ -557,10 +559,11 @@ class ParseMsgAndDispatch(object):
                         phone=phone,
                         ab_entry=abEntry)
 
-                if not abEntry.name_finalized:
+                if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
                     # add to candidate list
                     AB_Candidate_Names.objects.create(
-                        name=name,
+                        first_name=first_name,
+                        last_name=last_name,
                         ab_entry=abEntry)
 
                 AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
@@ -572,16 +575,17 @@ class ParseMsgAndDispatch(object):
                         email=email,
                         ab_entry=abEntry)
 
-                if not abEntry.name_finalized:
+                if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
                     # add to candidate list
                     AB_Candidate_Names.objects.create(
-                        name=name,
+                        first_name=first_name,
+                        last_name=last_name,
                         ab_entry=abEntry)
 
                 AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
 
             # run a candidate selection for the ab_entry
-            abEntry.run_selection_decision()
+            abEntry.run_finalize_decision()
 
         return self.response
 

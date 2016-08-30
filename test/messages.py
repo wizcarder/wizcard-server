@@ -12,7 +12,7 @@ NEXMO_PHONE2 = "+918971546485"
 
 PHONE1 = "+14084641727"
 PHONE2 = "+15085332708"
-PHONE3 = "+15086892263"
+PHONE3 = "+14086892263"
 PHONE4 = "+15086892263"
 
 FUTURE_PHONE1 = "+11111111111"
@@ -45,7 +45,7 @@ USER1_AB = [
     {
         'name': "Andy Ammundi",
         'phone': PHONE1,
-        'email': EMAIL2,
+        'email': EMAIL1,
     },
     {
         'name': "Anand Ramani",

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from lib.preserialize.serialize import serialize
+from lib import wizlib
 from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
@@ -339,6 +340,10 @@ class FutureUser(models.Model):
 
 
 # Model for Address-Book Support. Standard M2M-through
+MIN_MATCHES_FOR_PHONE_DECISION = 3
+MIN_MATCHES_FOR_EMAIL_DECISION = 3
+MIN_MATCHES_FOR_NAME_DECISION = 4
+
 class AddressBook(models.Model):
     # this is the high confidence, cleaned up phone
     phone = TruncatingCharField(max_length=20, blank=True)
@@ -349,29 +354,95 @@ class AddressBook(models.Model):
     # to indicate if above entry is definitely the right one
     email_finalized = models.BooleanField(default=False)
 
-    name = TruncatingCharField(max_length=40)
+    first_name = TruncatingCharField(max_length=40)
+    last_name = TruncatingCharField(max_length=40)
     # to indicate if above entry is definitely the right one
-    name_finalized = models.BooleanField(default=False)
+    first_name_finalized = models.BooleanField(default=False)
+    last_name_finalized = models.BooleanField(default=False)
 
     users = models.ManyToManyField(User, through='AB_User')
 
     def __repr__(self):
-        return str(self.email) + self.phone
+        return self.first_name + " " + self.last_name + " " + (self.email) + " " + self.phone
 
-    def run_selection_decision(self):
-        pass
+    # look through all the candidates and check if there is
+    # a majority wins case
+    def run_finalize_decision(self):
+        save = False
+        if not self.phone_finalized:
+            common, count = wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))
+            if count >= MIN_MATCHES_FOR_PHONE_DECISION:
+                self.phone = common
+                self.phone_finalized = True
+                save = True
+
+        if not self.email_finalized:
+            common, count = wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))
+            if count >= MIN_MATCHES_FOR_EMAIL_DECISION:
+                self.email = common
+                self.email_finalized = True
+                save = True
+
+        if not self.first_name_finalized:
+            common, count = wizlib.most_common(map(lambda x: x.first_name, self.candidate_names.all()))
+            if count >= MIN_MATCHES_FOR_NAME_DECISION:
+                self.first_name = common
+                self.first_name_finalized = True
+                save = True
+
+        if not self.last_name_finalized:
+            common, count = wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))
+            if count >= MIN_MATCHES_FOR_NAME_DECISION:
+                self.last_name = common
+                self.last_name_finalized = True
+                save = True
+        if save:
+            self.save()
+
+    def get_phone(self):
+        if self.phone_finalized:
+            return self.phone
+        else:
+            return wizlib.most_common(map(lambda x: x.phone, self.candidate_phone))[0]
+
+    def get_email(self):
+        if self.email_finalized:
+            return self.email
+        else:
+            return wizlib.most_common(map(lambda x: x.email, self.candidate_emails))[0]
+
+    def get_name(self):
+        first_name = \
+            self.first_name if self.first_name_finalized else \
+                wizlib.most_common(map(lambda x: x.first_name, self.candidate_names.all()))[0]
+        last_name = self.last_name if self.last_name_finalized else \
+                wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))[0]
+
+        return first_name + " " + last_name
 
 class AB_Candidate_Phones(models.Model):
     phone = TruncatingCharField(max_length=20)
     ab_entry = models.ForeignKey(AddressBook, related_name='candidate_phones')
 
+    def __repr__(self):
+        return self.phone
+
 class AB_Candidate_Emails(models.Model):
     email = EmailField()
     ab_entry = models.ForeignKey(AddressBook, related_name='candidate_emails')
 
+    def __repr__(self):
+        return self.email
+
+
 class AB_Candidate_Names(models.Model):
-    name = TruncatingCharField(max_length=40)
+    first_name = TruncatingCharField(max_length=40)
+    last_name = TruncatingCharField(max_length=40)
     ab_entry = models.ForeignKey(AddressBook, related_name='candidate_names')
+
+    def __repr__(self):
+        return self.first_name + " " + self.last_name
+
 
 class AB_User(models.Model):
     user = models.ForeignKey(User)
