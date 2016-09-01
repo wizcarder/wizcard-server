@@ -1343,10 +1343,10 @@ class ParseMsgAndDispatch(object):
                         ContentType.objects.get(model="wizcard"):
                     rel12 = obj.get_relationship(wizcard)
                     if not rel12:
-	                cctx1 = ConnectionContext(
-	                    asset_obj=obj,
-	                    connection_mode=receiver_type,
-	                )
+                        cctx1 = ConnectionContext(
+                            asset_obj=obj,
+                            connection_mode=receiver_type,
+                        )
                         rel12 = Wizcard.objects.cardit(obj,
                                                        wizcard,
                                                        status=verbs.PENDING,
@@ -1372,9 +1372,9 @@ class ParseMsgAndDispatch(object):
                                     action_object=rel12)
 
                     rel21 = wizcard.get_relationship(obj)
+                    cctx2 = ConnectionContext(asset_obj = wizcard,connection_mode=receiver_type)
                     if not rel21:
                         # create and accept implicitly wizcard2->wizcard1 with cctx->asset_obj as the from_wizcard
-                        cctx2 = ConnectionContext(asset_obj = wizcard,connection_mode=receiver_type)
                         rel21 = Wizcard.objects.cardit(wizcard,
                                                        obj,
                                                        status=verbs.ACCEPTED,
@@ -1414,10 +1414,6 @@ class ParseMsgAndDispatch(object):
                     phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
                     email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 ).save()
-
-
-
-
 
 
     def UserQuery(self):
