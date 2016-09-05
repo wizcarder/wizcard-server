@@ -39,6 +39,76 @@ EMAIL1 = "aammundi@gmail.com"
 EMAIL2 = "amsaha@gmail.com"
 EMAIL3 = "wizcard1@gmail.com"
 EMAIL4 = "nothere@gmail.com"
+EMAIL5 = "amnothere@gmail.com"
+
+
+USER1_AB = [
+    {
+        'name': "Anand Ammundi",
+        'phone': [PHONE1],
+        'email': [EMAIL1]
+    },
+    {
+        'name': "Andy Ammundi",
+        'phone': [PHONE1],
+        'email': [EMAIL2],
+    },
+    {
+        'name': "Anand Ramani",
+        'phone': [PHONE2, PHONE3],
+        'email': [EMAIL3]
+    },
+    {
+        'name': "Akash Jindal",
+        'phone': [PHONE3],
+        'email': [EMAIL4]
+    },
+    {
+        'name': "Ishaan Ammundi",
+        'phone': [PHONE4, PHONE1],
+        'email': [EMAIL5]
+    },
+    {
+        'name': "Sang",
+        'phone': [FUTURE_PHONE1, FUTURE_EMAIL2],
+        'email': [FUTURE_EMAIL1]
+    },
+]
+
+
+
+USER2_AB = [
+    {
+        'name': "Anand Ammundi",
+        'phone': [PHONE1, PHONE2],
+        'email': [EMAIL1]
+    },
+    {
+        'name': "Andy Ammundi",
+        'phone': [PHONE2],
+        'email': [EMAIL1],
+    },
+    {
+        'name': "Anand Ramani",
+        'phone': [PHONE2],
+        'email': [EMAIL2]
+    },
+    {
+        'name': "Akash Jindal",
+        'phone': [PHONE3],
+        'email': [EMAIL3]
+    },
+    {
+        'name': "Ishaan Ammundi",
+        'phone': [PHONE4],
+        'email': [EMAIL4]
+    },
+    {
+        'name': "Sang",
+        'phone': [FUTURE_PHONE1],
+        'email': [FUTURE_EMAIL1]
+    }
+]
 
 USER1_AB = [
     {
