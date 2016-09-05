@@ -500,26 +500,25 @@ class ParseMsgAndDispatch(object):
             first_name, last_name = wizlib.split_name(name)
 
             if ab_entry.has_key('phone'):
-                phone = wizlib.clean_phone_number(ab_entry.get('phone'), int_prefix, country_code)
-                do_phone = True
-                try:
-                    phoneEntry = AB_Candidate_Phones.objects.get(phone=phone)
-                except ObjectDoesNotExist:
-                    phoneEntry = None
+                phone_list = wizlib.clean_phone_number(ab_entry.get('phone'), int_prefix, country_code)
+                if len(phone_list):
+                    do_phone = True
+
+                phoneEntryList = list(set([AB_Candidate_Phones.objects.get(phone=x)
+                                  for x in phone_list if AB_Candidate_Phones.objects.filter(phone=x).exists()]))
 
             if ab_entry.has_key('email'):
-                email = ab_entry.get('email').lower()
-                if wizlib.is_valid_email(email):
+                email_list = list(set([x.lower() for x in ab_entry.get('email') if wizlib.is_valid_email(x)]))
+                if len(email_list):
                     do_email = True
-                    try:
-                        emailEntry = AB_Candidate_Emails.objects.get(email=email)
-                    except ObjectDoesNotExist:
-                        emailEntry = None
+
+                emailEntryList = [AB_Candidate_Emails.objects.get(email=x)
+                                  for x in email_list if AB_Candidate_Emails.objects.filter(email=x).exists()]
 
             if not do_email and not do_phone:
                 continue
 
-            if not emailEntry and not phoneEntry:
+            if not len(emailEntryList) and not len(phoneEntryList):
                 # brand new. create AB model instance and mapping to user
                 abEntry = AddressBook.objects.create(
                     first_name=first_name,
@@ -531,32 +530,41 @@ class ParseMsgAndDispatch(object):
                     ab_entry=abEntry)
 
                 if do_email:
-                    emailEntry = AB_Candidate_Emails.objects.create(email=email, ab_entry=abEntry)
+                    for email in email_list:
+                        AB_Candidate_Emails.objects.create(email=email, ab_entry=abEntry)
                 if do_phone:
-                    phoneEntry = AB_Candidate_Phones.objects.create(phone=phone, ab_entry=abEntry)
+                    for phone in phone_list:
+                        AB_Candidate_Phones.objects.create(phone=phone, ab_entry=abEntry)
 
                 # join table
                 AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
-            elif emailEntry and phoneEntry:
-                # skip the messy ones
-                if emailEntry.ab_entry != phoneEntry.ab_entry:
+            elif len(emailEntryList) and len(phoneEntryList):
+                # ideally all should point to the same ABEntry
+                l1 = set([x.ab_entry for x in emailEntryList])
+                l2 = set([y.ab_entry for y in phoneEntryList])
+
+                try:
+                    # if valid intersection
+                    abEntry = list(l1&l2)[0]
+                except:
                     continue
 
-                abEntry = emailEntry.ab_entry
                 AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
 
-                if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
+                if not (abEntry.first_name_finalized or abEntry.last_name_finalized):
                     # add to candidate list
                     AB_Candidate_Names.objects.create(
                         first_name=first_name,
-                        last_name=last_name
+                        last_name=last_name,
+                        ab_entry=abEntry
                     )
-            elif emailEntry:
-                abEntry = emailEntry.ab_entry
+            elif len(emailEntryList):
+                abEntry = list(set([x.ab_entry for x in emailEntryList]))[0]
                 if do_phone:
-                    AB_Candidate_Phones.objects.create(
-                        phone=phone,
-                        ab_entry=abEntry)
+                    for phone in phone_list:
+                        AB_Candidate_Phones.objects.create(
+                            phone=phone,
+                            ab_entry=abEntry)
 
                 if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
                     # add to candidate list
@@ -568,11 +576,12 @@ class ParseMsgAndDispatch(object):
                 AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
             else:
                 # found phone
-                abEntry = phoneEntry.ab_entry
+                abEntry = list(set([x.ab_entry for x in phoneEntryList]))[0]
                 if do_email:
-                    AB_Candidate_Emails.objects.create(
-                        email=email,
-                        ab_entry=abEntry)
+                    for email in email_list:
+                        AB_Candidate_Emails.objects.create(
+                            email=email,
+                            ab_entry=abEntry)
 
                 if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
                     # add to candidate list
@@ -1030,8 +1039,7 @@ class ParseMsgAndDispatch(object):
                         # Best is probably to delete the -> altogether
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
 
-
-                        #If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
+                        # If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
                         nq = Notification.objects.filter(recipient=wizcard2.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
                         # if nq is there => there are notifications which wizcard2.user has not seen so dont bother him just delete the notifs and bring all
                         # connections to a clean state
@@ -1039,10 +1047,11 @@ class ParseMsgAndDispatch(object):
                             noarr = map(lambda x: x.delete(),nq)
                             Wizcard.objects.uncardit(wizcard1,wizcard2)
                         else:
-                        # If nq is not there then wizcard2.user knows about this connection so he has to either accept or decline which takes its own course or
-                        # its an already existing connection which turns this into a half card for Wizcard2.user
+                            # If nq is not there then wizcard2.user knows about this connection so he has to either
+                            # accept or decline which takes its own course or
+                            # its an already existing connection which turns this into a half card for Wizcard2.user
 
-                        # Q a notif to other guy so that the app on the other side can react
+                            # Q a notif to other guy so that the app on the other side can react
                             notify.send(self.user, recipient=wizcard2.user,
                                     verb=verbs.WIZCARD_REVOKE[0],
                                     target=wizcard1)
@@ -1354,11 +1363,11 @@ class ParseMsgAndDispatch(object):
                 else:
                     #create wizcard1->wizcard2
                     if not rel12:
-	                cctx1 = ConnectionContext(
-	                    asset_obj=wizcard,
-	                    connection_mode=receiver_type,
-	                    location=location_str
-	                )
+                        cctx1 = ConnectionContext(
+                            asset_obj=wizcard,
+                            connection_mode=receiver_type,
+                            location=location_str
+                        )
 
                         rel12 = Wizcard.objects.cardit(wizcard,
                                                        r_wizcard,
@@ -1448,10 +1457,10 @@ class ParseMsgAndDispatch(object):
                         ContentType.objects.get(model="wizcard"):
                     rel12 = obj.get_relationship(wizcard)
                     if not rel12:
-	                cctx1 = ConnectionContext(
-	                    asset_obj=obj,
-	                    connection_mode=receiver_type,
-	                )
+                        cctx1 = ConnectionContext(
+                            asset_obj=obj,
+                            connection_mode=receiver_type,
+                        )
                         rel12 = Wizcard.objects.cardit(obj,
                                                        wizcard,
                                                        status=verbs.PENDING,
@@ -1519,10 +1528,6 @@ class ParseMsgAndDispatch(object):
                     phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
                     email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 ).save()
-
-
-
-
 
 
     def UserQuery(self):

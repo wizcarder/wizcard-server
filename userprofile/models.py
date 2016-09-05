@@ -354,8 +354,8 @@ class AddressBook(models.Model):
     # to indicate if above entry is definitely the right one
     email_finalized = models.BooleanField(default=False)
 
-    first_name = TruncatingCharField(max_length=40)
-    last_name = TruncatingCharField(max_length=40)
+    first_name = TruncatingCharField(max_length=40,blank=True)
+    last_name = TruncatingCharField(max_length=40, blank=True)
     # to indicate if above entry is definitely the right one
     first_name_finalized = models.BooleanField(default=False)
     last_name_finalized = models.BooleanField(default=False)
