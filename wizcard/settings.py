@@ -128,6 +128,16 @@ elif RUNENV == 'test':
                 'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
 	    }
     }
+elif RUNENV == 'stage':
+    DATABASES = {
+	    'default': {
+	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+	        'NAME': 'wizcard-stage',
+	        'USER': 'wizuser',
+	        'PASSWORD': 'gowizcard',
+                'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+	    }
+    }
 elif RUNENV == 'prod':
     DATABASES = {
 	    'default': {
