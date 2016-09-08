@@ -494,12 +494,12 @@ class ParseMsgAndDispatch(object):
             do_email = False
             do_phone = False
 
-            if not ab_entry.has_key('name'):
+            if 'name' in ab_entry:
                 continue
             name = ab_entry.get('name')
             first_name, last_name = wizlib.split_name(name)
 
-            if ab_entry.has_key('phone'):
+            if 'phone' in ab_entry:
                 phone_list = wizlib.clean_phone_number(ab_entry.get('phone'), int_prefix, country_code)
                 if len(phone_list):
                     do_phone = True
@@ -507,7 +507,7 @@ class ParseMsgAndDispatch(object):
                 phoneEntryList = list(set([AB_Candidate_Phones.objects.get(phone=x)
                                   for x in phone_list if AB_Candidate_Phones.objects.filter(phone=x).exists()]))
 
-            if ab_entry.has_key('email'):
+            if 'email' in ab_entry:
                 email_list = list(set([x.lower() for x in ab_entry.get('email') if wizlib.is_valid_email(x)]))
                 if len(email_list):
                     do_email = True

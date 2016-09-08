@@ -369,28 +369,28 @@ class AddressBook(models.Model):
     # a majority wins case
     def run_finalize_decision(self):
         save = False
-        if not self.phone_finalized:
+        if not self.phone_finalized and self.candidate_phones.count():
             common, count = wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))
             if count >= MIN_MATCHES_FOR_PHONE_DECISION:
                 self.phone = common
                 self.phone_finalized = True
                 save = True
 
-        if not self.email_finalized:
+        if not self.email_finalized and self.candidate_emails.count():
             common, count = wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))
             if count >= MIN_MATCHES_FOR_EMAIL_DECISION:
                 self.email = common
                 self.email_finalized = True
                 save = True
 
-        if not self.first_name_finalized:
+        if not self.first_name_finalized and self.candidate_names.count():
             common, count = wizlib.most_common(map(lambda x: x.first_name, self.candidate_names.all()))
             if count >= MIN_MATCHES_FOR_NAME_DECISION:
                 self.first_name = common
                 self.first_name_finalized = True
                 save = True
 
-        if not self.last_name_finalized:
+        if not self.last_name_finalized and self.candidate_names.count():
             common, count = wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))
             if count >= MIN_MATCHES_FOR_NAME_DECISION:
                 self.last_name = common
