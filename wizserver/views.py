@@ -237,6 +237,7 @@ class ParseMsgAndDispatch(object):
             #'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestWithdraw),
             'withdraw_connection_request' : (message_format.WizConnectionRequestWithdrawSchema, self.WizConnectionRequestWithdraw),
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
+            'archived_cards'          : (message_format.WizcardRolodexArchivedCardsSchema, self.WizcardRolodexArchivedCards),
             'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
             'card_flick_accept'           : (message_format.WizcardFlickPickSchema, self.WizcardFlickPick),
             'card_flick_accept_connect'   : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
@@ -1061,6 +1062,17 @@ class ParseMsgAndDispatch(object):
             self.securityException()
             self.response.ignore()
 
+        return self.response
+
+    def WizcardRolodexArchivedCards(self):
+        try:
+            wizcard = self.user.wizcard
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        a_wc = wizcard.get_deleted()
+        self.response.add_data("wizcards", Wizcard.objects.serialize(a_wc, fields.wizcard_template_full))
         return self.response
 
     def WizcardFlick(self):

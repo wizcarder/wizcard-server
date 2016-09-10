@@ -359,6 +359,14 @@ class Wizcard(models.Model):
                 requests_to__status=verbs.ACCEPTED,
                 requests_to__from_wizcard=self))
 
+    def get_deleted(self):
+        # dummy logic for now to unblock akash
+        return self.get_connected_from(verbs.ACCEPTED).exclude(
+            id__in=Wizcard.objects.filter(
+                requests_to__status=verbs.ACCEPTED,
+                requests_to__from_wizcard=self))
+
+
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
     company = TruncatingCharField(max_length=40, blank=True)
