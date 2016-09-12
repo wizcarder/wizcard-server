@@ -334,7 +334,7 @@ class Wizcard(models.Model):
     # cards I have deleted
     def get_deleted(self):
         return self.wizconnections_from.filter(
-            requests_from_status=verbs.DELETED
+            requests_from__status=verbs.DELETED
         )
 
     #2 way connected...

@@ -43,6 +43,8 @@ class NotificationsGetSchema(colander.MappingSchema):
     pass
 class WizcardEditSchema(colander.MappingSchema):
     pass
+class RolodexEditSchema(colander.MappingSchema):
+    pass
 class WizcardAcceptSchema(colander.MappingSchema):
     pass
 class WizConnectionRequestDeclineSchema(colander.MappingSchema):

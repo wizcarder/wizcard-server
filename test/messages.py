@@ -756,6 +756,23 @@ delete_rolodex_card = {
     }
 }
 
+edit_rolodex_card = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "edit_rolodex_card",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : ""
+    },
+    "receiver" : {
+        "wizCardID" : "",
+        "notes" : "",
+    }
+}
+
 card_details = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",

@@ -244,12 +244,12 @@ class UserProfile(models.Model):
                 asset_id=x.cctx.asset_id,
                 asset_type=x.cctx.asset_type,
                 connection_mode=x.cctx.connection_mode,
+                notes=x.cctx.user_context.notes if x.cctx.user_context else "",
                 timestamp=x.created.strftime("%d %B %Y")).context, conn)
 
             s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
 
-
-        #tables
+        # tables
         tables = VirtualTable.objects.user_tables(self.user)
         if tables.count():
         # serialize created and joined tables

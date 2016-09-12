@@ -864,14 +864,27 @@ reqmsg = messages.delete_rolodex_card
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id, e3_id, fe1_id, fe2_id])
+reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id, fe1_id, fe2_id])
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-        # uid1(A)->uid3(A)
+        # uid1(A)<->uid3(A)
         # uid1->fuid1(P)
         # uid1->fuid2(D)
+
+
+# u1 edit rolodex card of u3
+print "adding notes to  ", uid3
+reqmsg = messages.edit_rolodex_card
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['wizCardID'] = wuid3
+reqmsg['receiver']['notes'] = "test one test two"
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #user query
 reqmsg = messages.user_query
@@ -1394,8 +1407,6 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 wuid1 = objs['data']['wizUserID']
-
-
 
 reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID2

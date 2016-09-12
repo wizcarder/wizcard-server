@@ -232,6 +232,7 @@ class ParseMsgAndDispatch(object):
             'contacts_upload'             : (message_format.ContactsUploadSchema, self.ContactsUpload),
             'get_cards'                   : (message_format.NotificationsGetSchema, self.NotificationsGet),
             'edit_card'                   : (message_format.WizcardEditSchema, self.WizcardEdit),
+            'edit_rolodex_card'           : (message_format.RolodexEditSchema, self.RolodexEdit),
             'accept_connection_request'   : (message_format.WizcardAcceptSchema, self.WizcardAccept),
             'decline_connection_request'  : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestDecline),
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
@@ -714,6 +715,22 @@ class ParseMsgAndDispatch(object):
         self.userprofile.create_or_update_location(self.lat, self.lng)
         return notifResponse
 
+    def RolodexEdit(self):
+        wizcard1 = self.user.wizcard
+        try:
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+        except ObjectDoesNotExist:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        if 'notes' in self.receiver:
+            # get conn represented by w1<-w2
+            rel = wizcard2.get_relationship(wizcard1)
+            rel.cctx.notes = self.receiver['notes']
+            rel.save()
+
+        return self.response
+
     def WizcardEdit(self):
         modify = False
         user_modify = False
@@ -759,7 +776,7 @@ class ParseMsgAndDispatch(object):
                 wizcard.email = email
                 modify = True
 
-        if self.sender.has_key('thumbnailImage') and \
+        if 'thumbnailImage' in self.sender and \
                 self.sender['thumbnailImage']:
             b64image = bytes(self.sender['thumbnailImage'])
             rawimage = b64image.decode('base64')
