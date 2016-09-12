@@ -79,8 +79,11 @@ class WizcardManager(models.Manager):
         return wizcard1.add_relationship(wizcard2, status=status, ctx=cctx)
 
     #wizcard1 withdraws previously sent relationship
-    def uncardit(self, wizcard1, wizcard2):
-        wizcard1.remove_relationship(wizcard2)
+    def uncardit(self, wizcard1, wizcard2, soft=True):
+        if soft:
+            wizcard1.set_delete_relationship(wizcard2)
+        else:
+            wizcard1.remove_relationship(wizcard2)
 
     #wizcard2 follows wizcard1 (accepts wizcard1's req)
     def becard(self, wizcard1, wizcard2, cctx=""):
@@ -312,6 +315,11 @@ class Wizcard(models.Model):
         WizConnectionRequest.objects.filter(
             from_wizcard=self,
             to_wizcard=wizcard).delete()
+
+    def set_delete_relationship(self, wizcard):
+        WizConnectionRequest.objects.filter(
+            from_wizcard=self,
+            to_wizcard=wizcard).update(status=verbs.DELETED)
 
     # ME ->
     def get_connected_to(self, status):

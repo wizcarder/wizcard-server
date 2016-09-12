@@ -36,11 +36,14 @@ INVITE_VERBS = {
 PENDING = 1
 ACCEPTED = 2
 DECLINED = 3
-BLOCKED = 4
+DELETED = 4
+BLOCKED = 5
+
 RELATIONSHIP_STATUSES = (
     (PENDING, 'Pending'),
     (ACCEPTED, 'Accepted'),
     (DECLINED, 'Declined'),
+    (DELETED, 'Deleted'),
     (BLOCKED, 'Blocked'),
 )
 

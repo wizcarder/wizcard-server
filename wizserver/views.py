@@ -234,10 +234,8 @@ class ParseMsgAndDispatch(object):
             'edit_card'                   : (message_format.WizcardEditSchema, self.WizcardEdit),
             'accept_connection_request'   : (message_format.WizcardAcceptSchema, self.WizcardAccept),
             'decline_connection_request'  : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestDecline),
-            #'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestWithdraw),
-            'withdraw_connection_request' : (message_format.WizConnectionRequestWithdrawSchema, self.WizConnectionRequestWithdraw),
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
-            'archived_cards'          : (message_format.WizcardRolodexArchivedCardsSchema, self.WizcardRolodexArchivedCards),
+            'archived_cards'              : (message_format.WizcardRolodexArchivedCardsSchema, self.WizcardRolodexArchivedCards),
             'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
             'card_flick_accept'           : (message_format.WizcardFlickPickSchema, self.WizcardFlickPick),
             'card_flick_accept_connect'   : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
@@ -860,6 +858,9 @@ class ParseMsgAndDispatch(object):
     # B has A's wizcard in roldex
     def WizcardAccept(self):
         status = []
+        verb1 = verbs.WIZREQ_T[0]
+        verb2 = verbs.WIZREQ_T[0]
+
         try:
             wizcard1 = self.user.wizcard
             reaccept = self.sender.get('reaccept', False)
@@ -880,24 +881,19 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        try: # temp try, except workaround until app bug is fixed
-            # notif_id needs to be sent by app in order for server to be able to
-            # support resync of unacted notifs
-            n_id = self.sender['notif_id']
-            n = Notification.objects.get(id=n_id)
+        n_id = self.sender['notif_id']
+        n = Notification.objects.get(id=n_id)
 
-            # now we know that the App has acted upon this notification
-            # we will use this flag during resync notifs and send unacted-upon
-            # notifs to user
-            n.set_acted()
-        except:
-            pass
+        # now we know that the App has acted upon this notification
+        # we will use this flag during resync notifs and send unacted-upon
+        # notifs to user
+        n.set_acted()
 
         # accept wizcard2->wizcard1
         # there could already be a sent request from wizcard2 (pending or declined)
         rel21 = wizcard2.get_relationship(wizcard1)
 
-        if reaccept and not rel21:
+        if reaccept:
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
                     self.userprofile.location.get().lat,
@@ -907,38 +903,35 @@ class ParseMsgAndDispatch(object):
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
                 location_str = ""
 
-
             cctx1 = ConnectionContext(
                 asset_obj=wizcard1,
                 connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U],
                 location=location_str
             )
-            #recreate the connection request
-            rel21 = Wizcard.objects.cardit(wizcard2, wizcard1,cctx=cctx1)
-
-        if not wizcard1.get_relationship(wizcard2):
-            # wizcard1.user has deleted wizcard 2 from rolodex even before wizcard2.user has accepted it
-            if rel21:
-                rel21.delete()
-            self.response.error_response(err.REVERSE_INVITE)
-            return self.response
-        
-        Wizcard.objects.becard(wizcard2, wizcard1)
+            # set connection back to accepted state
+            rel21.accept()
+        elif wizcard1.get_relationship(wizcard2).status == verbs.DELETED:
+            Wizcard.objects.becard(wizcard2, wizcard1)
+            verb1 = verbs.WIZREQ_T_HALF[0]
+            verb2 = None
+        else:
+            Wizcard.objects.becard(wizcard2, wizcard1)
 
         # Q notif to both sides.
         notify.send(self.r_user,
                     recipient=self.user,
-                    verb=verbs.WIZREQ_T[0],
+                    verb=verb1,
                     target=wizcard2,
                     action_object=rel21)
 
         # Q notif for wizcard2 to change his half card to full
-        rel12 = wizcard1.get_relationship(wizcard2)
-        notify.send(self.user,
-                    recipient=self.r_user,
-                    verb=verbs.WIZREQ_T[0],
-                    target=wizcard1,
-                    action_object=rel12)
+        if verb2:
+            rel12 = wizcard1.get_relationship(wizcard2)
+            notify.send(self.user,
+                        recipient=self.r_user,
+                        verb=verb2,
+                        target=wizcard1,
+                        action_object=rel12)
 
         status.append(
             dict(status=Wizcard.objects.get_connection_status(wizcard1, wizcard2),
@@ -965,50 +958,14 @@ class ParseMsgAndDispatch(object):
         else:
             logger.info("Relationship Doesnt Exist: %s to %s", wizcard2, wizcard1)
 
+        n_id = self.sender['notif_id']
+        n = Notification.objects.get(id=n_id)
 
-        try:
-            n_id = self.sender['notif_id']
-            n = Notification.objects.get(id=n_id)
+        # now we know that the App has acted upon this notification
+        #  we will use this flag during resync notifs and send unacted-upon
+        #  notifs to user
+        n.set_acted()
 
-            # now we know that the App has acted upon this notification
-            #  we will use this flag during resync notifs and send unacted-upon
-            #  notifs to user
-            n.set_acted()
-        except:
-            pass
-
-        # AA TODO: Might have to send notif to wizcard2
-
-        return self.response
-
-    # this is to withdraw sent request. May not be used now
-    def WizConnectionRequestWithdraw(self):
-        try:
-            wizcard1 = self.user.wizcard
-            #AA: TODO Change to wizCardID
-            try:
-                wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-                self.r_user = wizcard2.user
-            except:
-                self.r_user = User.objects.get(id=self.receiver['wizUserID'])
-                wizcard2 = self.r_user.wizcard
-        except KeyError:
-            self.securityException()
-            self.response.ignore()
-            return self.response
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response
-
-        #AA:TODO: Withdraw would only happen if the previously Q'd receiver
-        #notif is still unread. Remove it. if there is no notification, then
-        # sender can't withdraw
-
-        #also, the wizconnection request would have been unaccepted so far.
-        #maybe can be used as a consistency check...
-
-        #remove my wizconnection_request
-        Wizcard.objects.uncardit(wizcard1, wizcard2)
         return self.response
 
     def WizcardRolodexDelete(self):
@@ -1034,30 +991,31 @@ class ParseMsgAndDispatch(object):
                     wizcard2.delete()
                 else:
                     wizcard2 = Wizcard.objects.get(id=w_id)
-                    try:
-                        # earlier thought was to change it to wizcard2->wizcard1 (P). On second thoughts
-                        # this doesn't work well because now they can never connect
-                        # Best is probably to delete the -> altogether
+                    # If this is a delete right after an invite was sent by wizcard1 then we have to remove
+                    # notif 2 for wizcard2 and set rel to clean state
+                    if Notification.objects.filter(
+                            recipient=wizcard2.user,
+                            target_object_id=wizcard1.id,
+                            readed=False,
+                            verb=verbs.WIZREQ_U[0]).exists():
+                        Notification.objects.get(
+                            recipient=wizcard2.user,
+                            target_object_id=wizcard1.id,
+                            readed=False,
+                            verb=verbs.WIZREQ_U[0]).delete()
+
+                        Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+                        Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
+                    else:
+                        # wizcard2.user knows about this connection so he has to either
+                        # accept or decline which takes its own course or
+                        # its an already existing connection which turns this into a half card f
+                        # or Wizcard2.user set to deleted state
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
-
-                        # If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
-                        nq = Notification.objects.filter(recipient=wizcard2.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
-                        # if nq is there => there are notifications which wizcard2.user has not seen so dont bother him just delete the notifs and bring all
-                        # connections to a clean state
-                        if nq:
-                            noarr = map(lambda x: x.delete(),nq)
-                            Wizcard.objects.uncardit(wizcard1,wizcard2)
-                        else:
-                            # If nq is not there then wizcard2.user knows about this connection so he has to either
-                            # accept or decline which takes its own course or
-                            # its an already existing connection which turns this into a half card for Wizcard2.user
-
-                            # Q a notif to other guy so that the app on the other side can react
-                            notify.send(self.user, recipient=wizcard2.user,
+                        # Q a notif to other guy so that the app on the other side can react
+                        notify.send(self.user, recipient=wizcard2.user,
                                     verb=verbs.WIZCARD_REVOKE[0],
                                     target=wizcard1)
-                    except:
-                        pass
         except KeyError:
             self.securityException()
             self.response.ignore()
@@ -1366,10 +1324,11 @@ class ParseMsgAndDispatch(object):
                 rel12 = wizcard.get_relationship(r_wizcard)
 
                 # wizcard->r_wizcard exists previously ?. This could/should
-                # happen only if other guy had declined. In this case, we're
+                # happen only if other guy had declined/deleted. In this case, we're
                 # sending the tag as "others", thus allowing sender to send
                 # a connect request.
-                if rel12 and rel12.status != verbs.DECLINED:
+                if rel12 and (rel12.status != verbs.DECLINED or
+                                      rel12.status != verbs.DELETED):
                     # something's not right.
                     self.response.error_response(err.EXISTING_CONNECTION)
                 else:
@@ -1460,7 +1419,7 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-    def do_future_user(self, obj, receiver_type, receivers,deadcard=True):
+    def do_future_user(self, obj, receiver_type, receivers, deadcard=True):
         for r in receivers:
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
@@ -1488,7 +1447,8 @@ class ParseMsgAndDispatch(object):
                                     verb=verbs.WIZREQ_T[0],
                                     target=obj,
                                     action_object=rel12)
-                    elif rel12.status is verbs.DECLINED:
+                    elif rel12.status is verbs.DECLINED or \
+                                    rel12.status is verbs.DELETED:
                         # reset 2 to pending. Yes there is a potential "don't bother me" angle
                         # to this..but better to promote connections
                         rel12.reset()
@@ -1510,8 +1470,9 @@ class ParseMsgAndDispatch(object):
                                     target=wizcard,
                                     action_object=rel21)
 
-                    elif rel21.status is verbs.DECLINED:
-                        # if declined, follower-d case, full card can be added
+                    elif rel21.status is verbs.DECLINED or \
+                                    rel21.status is verbs.DELETED:
+                        # if declined/deleted, follower-d case, full card can be added
                         rel21.cctx=cctx2
                         rel21.accept()
 
@@ -1762,22 +1723,22 @@ class ParseMsgAndDispatch(object):
     def Settings(self):
         modify = False
 
-        if self.sender.has_key('media'):
+        if 'media' in self.sender:
             if self.sender['media'].has_key('wifiOnly'):
                 wifi_data = self.sender['media']['wifiOnly']
                 if self.userprofile.is_wifi_data != wifi_data:
                     self.userprofile.is_wifi_data = wifi_data
                     modify = True
 
-        if self.sender.has_key('privacy'):
-            if self.sender['privacy'].has_key('invisible'):
-                visible_nearby = not(self.sender['privacy']['invisible'])
-                if self.userprofile.is_visible_nearby != visible_nearby:
-                    self.userprofile.is_visible_nearby = visible_nearby
+        if 'privacy' in self.sender:
+            if 'invisible' in self.sender['privacy']:
+                visible = not(self.sender['privacy']['invisible'])
+                if self.userprofile.is_visible != visible:
+                    self.userprofile.is_visible = visible
                     modify = True
 
-            if self.sender['privacy'].has_key('blockUnsolicited'):
-                block_unsolicited = not(self.sender['privacy']['blockUnsolicited'])
+            if 'dnd' in self.sender['privacy']:
+                block_unsolicited = self.sender['privacy']['dnd']
                 if self.userprofile.block_unsolicited != block_unsolicited:
                     self.userprofile.block_unsolicited = block_unsolicited
                     modify = True
