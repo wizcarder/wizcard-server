@@ -331,6 +331,12 @@ class Wizcard(models.Model):
         return self.wizconnections_from.filter(
             requests_from__status=status)
 
+    # cards I have deleted
+    def get_deleted(self):
+        return self.wizconnections_from.filter(
+            requests_from_status=verbs.DELETED
+        )
+
     #2 way connected...
     def get_connections(self):
         return self.wizconnections_to.filter(
@@ -362,13 +368,6 @@ class Wizcard(models.Model):
                 requests_from__to_wizcard=self))
 
     def get_following_only(self):
-        return self.get_connected_from(verbs.ACCEPTED).exclude(
-            id__in=Wizcard.objects.filter(
-                requests_to__status=verbs.ACCEPTED,
-                requests_to__from_wizcard=self))
-
-    def get_deleted(self):
-        # dummy logic for now to unblock akash
         return self.get_connected_from(verbs.ACCEPTED).exclude(
             id__in=Wizcard.objects.filter(
                 requests_to__status=verbs.ACCEPTED,
