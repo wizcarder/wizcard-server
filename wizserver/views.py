@@ -494,7 +494,7 @@ class ParseMsgAndDispatch(object):
             do_email = False
             do_phone = False
 
-            if 'name' in ab_entry:
+            if not 'name' in ab_entry:
                 continue
             name = ab_entry.get('name')
             first_name, last_name = wizlib.split_name(name)
