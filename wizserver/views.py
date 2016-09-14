@@ -897,14 +897,16 @@ class ParseMsgAndDispatch(object):
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-
-        n_id = self.sender['notif_id']
-        n = Notification.objects.get(id=n_id)
+	    try:
+	        n_id = self.sender['notif_id']
+		    n = Notification.objects.get(id=n_id)
 
         # now we know that the App has acted upon this notification
         # we will use this flag during resync notifs and send unacted-upon
         # notifs to user
-        n.set_acted()
+        	n.set_acted()
+        except:
+            pass
 
         # accept wizcard2->wizcard1
         # there could already be a sent request from wizcard2 (pending or declined)
@@ -1475,9 +1477,9 @@ class ParseMsgAndDispatch(object):
                                     action_object=rel12)
 
                     rel21 = wizcard.get_relationship(obj)
+                    cctx2 = ConnectionContext(asset_obj = wizcard,connection_mode=receiver_type)
                     if not rel21:
                         # create and accept implicitly wizcard2->wizcard1 with cctx->asset_obj as the from_wizcard
-                        cctx2 = ConnectionContext(asset_obj = wizcard,connection_mode=receiver_type)
                         rel21 = Wizcard.objects.cardit(wizcard,
                                                        obj,
                                                        status=verbs.ACCEPTED,
