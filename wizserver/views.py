@@ -897,14 +897,14 @@ class ParseMsgAndDispatch(object):
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-	    try:
-	        n_id = self.sender['notif_id']
-		    n = Notification.objects.get(id=n_id)
+        try:
+            n_id = self.sender['notif_id']
+            n = Notification.objects.get(id=n_id)
 
         # now we know that the App has acted upon this notification
         # we will use this flag during resync notifs and send unacted-upon
         # notifs to user
-        	n.set_acted()
+            n.set_acted()
         except:
             pass
 
@@ -1345,8 +1345,8 @@ class ParseMsgAndDispatch(object):
                 # wizcard->r_wizcard exists previously ?. This could/should
                 # happen only if other guy had declined/deleted. In this case, we're
                 # sending the tag as "others", thus allowing sender to send
-                # a connect request.
-                if rel12 and (rel12.status != verbs.DECLINED or
+                # a connect request. IT should be neither declined nor deleted
+                if rel12 and (rel12.status != verbs.DECLINED and
                                       rel12.status != verbs.DELETED):
                     # something's not right.
                     self.response.error_response(err.EXISTING_CONNECTION)
@@ -1364,10 +1364,14 @@ class ParseMsgAndDispatch(object):
                                                        status=verbs.PENDING,
                                                        cctx=cctx1)
                         #Q notif for to_wizcard
-                        notify.send(self.user, recipient=r_user,
-                                    verb=verbs.WIZREQ_T[0] if receiver_type ==
-                                                              verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T]
-                                    else verbs.WIZREQ_U[0],
+
+                    # This need not be in the if not rel12 clause as we guarantee that rel12 is created by now
+                    # And in case of reconnect (after delete on both sides) rel12 will be there already but we still need to send notifs
+
+                    notify.send(self.user, recipient=r_user,
+                                verb=verbs.WIZREQ_T[0] if receiver_type ==
+                                                          verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T]
+                                                        else verbs.WIZREQ_U[0],
                                     target=wizcard,
                                     action_object=rel12)
 
