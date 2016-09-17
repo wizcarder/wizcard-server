@@ -5,9 +5,6 @@
 .. autoclass:: UserRecommendation
     :members:
 
-.. autoclass:: RecommenderMeta
-    :members:
-
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -18,6 +15,7 @@ from django.utils import timezone
 from django.conf import settings
 from notifications.signals import notify
 from notifications.tasks import pushNotificationToApp
+from userprofile.models import AddressBook
 import logging
 import pdb
 
@@ -29,46 +27,59 @@ class Recommendation(models.Model):
     reco_object_id = models.PositiveIntegerField()
     reco = generic.GenericForeignKey('reco_content_type','reco_object_id')
     recommendation_for = models.ManyToManyField(User,through='UserRecommendation',symmetrical=False)
-    isactive = models.BooleanField(default=False)
+
+
+    def getRecoObject(self):
+        pass
+
+
 
 
 class UserRecommendation(models.Model):
 
-    ACTIONS = (
-        (0, 'IGNORE'),
-        (1, 'CLICK'),
-        (2, 'CLICKANDINVITE')
-    )
-    created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User)
-    reco = models.ForeignKey(Recommendation)
+    Viewed = 0
+    Acted = 1
+    Dismissed = 2
+    New = 3
 
-    useraction = models.PositiveSmallIntegerField(choices=ACTIONS)
-
-
-
-
-class RecommenderMeta(models.Model):
     MODELS = (
         (0,'AB_RECO'),
         (1, 'WIZCONNECTIONS_RECO')
     )
-    score = models.DecimalField(max_digits=5, decimal_places=2)
-    recomodel = models.IntegerField(choices=MODELS)
-    userrecommend = models.ForeignKey(UserRecommendation)
+
+    ACTIONS = (
+
+        (Viewed, 'VIEWED'),
+        (Acted, 'ACTED'),
+        (Dismissed, 'DISMISSED'),
+	    (New, 'NEW'),
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User)
+    reco = models.ForeignKey(Recommendation,related_name='user_recos')
+    useraction = models.PositiveSmallIntegerField(choices=ACTIONS,default = New)
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    recomodel = models.IntegerField(choices=MODELS,default=0)
+
+    def getReco(self):
+        reco_list = []
+        reco_dict = dict()
+        if self.reco.reco_content_type == ContentType.objects.get(model='addressbook'):
+            ab_object = AddressBook.objects.get(pk=self.reco.reco_object_id)
+            reco_dict['phone'] = ab_object.get_phone()
+            reco_dict['email'] = ab_object.get_email()
+            reco_dict['name'] = ab_object.get_name()
+            reco_dict['type'] = self.reco.reco_content_type.model
+            reco_dict['recoid'] = self.pk
+
+        if self.reco.reco_content_type == ContentType.objects.get(model='userprofile'):
+            pass
 
 
+        return reco_dict
 
 
-
-
-
-
-
-
-
-
-
+        
 
 
 
