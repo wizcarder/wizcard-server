@@ -121,6 +121,8 @@ class MeishiEndSchema(colander.MappingSchema):
     pass
 class GetEmailTemplateSchema(colander.MappingSchema):
     pass
+class GetRecommendationsSchema(colander.MappingSchema):
+    pass
 
 
 #wizweb
