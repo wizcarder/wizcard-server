@@ -244,7 +244,7 @@ class UserProfile(models.Model):
                 asset_id=x.cctx.asset_id,
                 asset_type=x.cctx.asset_type,
                 connection_mode=x.cctx.connection_mode,
-                notes=x.cctx.user_context.notes if x.cctx.user_context else "",
+                notes=x.cctx.notes if x.cctx.notes else "",
                 timestamp=x.created.strftime("%d %B %Y")).context, conn)
 
             s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
@@ -403,13 +403,13 @@ class AddressBook(models.Model):
         if self.phone_finalized:
             return self.phone
         else:
-            return wizlib.most_common(map(lambda x: x.phone, self.candidate_phone))[0]
+            return wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))[0]
 
     def get_email(self):
         if self.email_finalized:
             return self.email
         else:
-            return wizlib.most_common(map(lambda x: x.email, self.candidate_emails))[0]
+            return wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))[0]
 
     def get_name(self):
         first_name = \
