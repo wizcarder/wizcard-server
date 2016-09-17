@@ -389,6 +389,29 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+#contacts upload user 2
+reqmsg = messages.contacts_upload
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+reqmsg['receiver']['ab_list'] = messages.USER2_AB
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+reqmsg = messages.get_recommendations
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['size'] = 5
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
 reqmsg = messages.card_details
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
