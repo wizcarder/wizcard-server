@@ -22,6 +22,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from lib.ocr import OCR
+from lib.preserialize import serialize
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
@@ -45,6 +46,7 @@ import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
+from recommendation_alt1.models import UserRecommendation_a1, Recommendation_a1
 import pdb
 
 now = timezone.now
@@ -266,6 +268,7 @@ class ParseMsgAndDispatch(object):
             'meishi_find'                 : (message_format.MeishiFindSchema, self.MeishiFind),
             'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
             'get_email_template'          : (message_format.GetEmailTemplateSchema, self.GetEmailTemplate),
+            'get_recommendations'         : (message_format.GetRecommendationsSchema, self.GetRecommendations),
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -1012,16 +1015,13 @@ class ParseMsgAndDispatch(object):
                     wizcard2 = Wizcard.objects.get(id=w_id)
                     # If this is a delete right after an invite was sent by wizcard1 then we have to remove
                     # notif 2 for wizcard2 and set rel to clean state
-                    if Notification.objects.filter(
+                    notfns =  Notification.objects.filter(
                             recipient=wizcard2.user,
                             target_object_id=wizcard1.id,
                             readed=False,
-                            verb=verbs.WIZREQ_U[0]).exists():
-                        Notification.objects.get(
-                            recipient=wizcard2.user,
-                            target_object_id=wizcard1.id,
-                            readed=False,
-                            verb=verbs.WIZREQ_U[0]).delete()
+                            verb=verbs.WIZREQ_U[0])
+                    if notfns:
+                        map(lambda x: x.delete(), notfns)
 
                         Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
                         Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
@@ -2145,6 +2145,27 @@ class ParseMsgAndDispatch(object):
 
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
+
+    def GetRecommendations(self):
+
+        size = self.sender['size'] if 'size' in self.sender else 10
+
+        recos = UserRecommendation_a1.objects.filter(user=self.user).order_by('-score')[:size]
+        reco_list = []
+        for ur in recos:
+            reco_list.append(ur.getReco())
+
+        self.response.add_data("recos",serialize.serialize(reco_list))
+        return self.response
+
+
+
+
+
+
+
+
+
 
 
 VALIDATOR = 0
