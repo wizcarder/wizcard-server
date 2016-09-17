@@ -118,7 +118,7 @@ if RUNENV == 'dev':
 #	    }
 
     }
-elif RUNENV == 'test':
+elif RUNENV == 'test': 
     DATABASES = {
 	    'default': {
 	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
