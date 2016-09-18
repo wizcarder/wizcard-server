@@ -46,7 +46,7 @@ import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from recommendation_alt1.models import UserRecommendation_a1, Recommendation_a1
+from recommendation.models import UserRecommendation, Recommendation
 import pdb
 
 now = timezone.now
@@ -2150,7 +2150,7 @@ class ParseMsgAndDispatch(object):
 
         size = self.sender['size'] if 'size' in self.sender else 10
 
-        recos = UserRecommendation_a1.objects.filter(user=self.user).order_by('-score')[:size]
+        recos = UserRecommendation.objects.filter(user=self.user).order_by('-score')[:size]
         reco_list = []
         for ur in recos:
             reco_list.append(ur.getReco())
