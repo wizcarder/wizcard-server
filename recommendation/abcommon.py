@@ -15,7 +15,7 @@ from lib.preserialize.serialize import serialize
 
 from django.core.wsgi import get_wsgi_application
 from userprofile.models import *
-from recommendation_alt1.models import *
+from recommendation.models import *
 application = get_wsgi_application()
 
 from django.core.cache import cache
@@ -28,42 +28,54 @@ class ABReco (object) :
 
     def __init__(self,user):
         self.recotarget = user
-        self.reco = dict()
-	
 
+    def putReco(self, rectype, score, object_id):
+        recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
+                                                               reco_object_id=object_id)
+        recuser, created = UserRecommendation.objects.get_or_create(user=self.recotarget, reco=recnew)
+        if created:
+            recuser.useraction = 3
+            recuser.score = score
+            recuser.recomodel = 0
+            recuser.save()
+        else:
+            recuser.score += 2
+            recuser.save()
 
     def getData(self):
-        #abmap = {x:len(tWizcarders(x)) for x in user.getaddressbook()}
-        #return abmap
-
         abentries = map(lambda x:x.ab_entry,AB_User.objects.filter(user=self.recotarget))
 
         wizusers = map(lambda x:x.user,self.recotarget.wizcard.get_connections())
 
         for entry in abentries:
             users = map(lambda x: x.user,AB_User.objects.filter(ab_entry=entry))
+            if not entry.get_phone() and not  entry.get_email():
+                continue
+		
 
             for user in users:
                 if user in wizusers:
-                    if entry.pk in self.reco.keys():
-                        self.reco[entry.pk] += 2
-                    else:
-                        if entry.get_phone() or entry.get_email():
-                            self.reco[entry.pk] = 2
+                    self.putReco('addressbook',3,entry.pk)
+
 
             if entry.get_phone() and entry.get_email():
-                if entry.pk in self.reco.keys():
-                    self.reco[entry.pk] += 1
-                else:
-                    self.reco[entry.pk] = 1
+                self.putReco('addressbook', 1,entry.pk)
 
             # THIS NEEDS TO BE A WIZCARD USER and not a AB entry
-            if UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.SMS_INVITE], entry.phone) or UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.email):
-                self.reco[entry.pk] += 1
+            w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.SMS_INVITE], entry.phone)
+            if not w1:
+                w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.email)
+            if w1:
+                if not self.recotarget.wizcard.get_relationship(w1):
+                    self.putReco('wizcard',2,w1.pk)
+	
+
 
 
 #        self.reco = OrderedDict(sorted(self.reco.items(), key=lambda x: x[1]), reverse=True)
-        return self.reco
+
+
+
 		
 
 
@@ -125,6 +137,7 @@ for w in wall:
 for w in wall:
     treco = ABReco(w.user)
     reco = treco.getData()
+    '''
     for rec in reco.keys():
 
         recnew,created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model='addressbook'),reco_object_id=rec)
@@ -137,6 +150,7 @@ for w in wall:
         else:
             recuser.score = reco[rec]
 	    recuser.save()
+    '''
 
 
 
