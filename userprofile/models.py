@@ -364,8 +364,6 @@ class AddressBook(models.Model):
 
     def __repr__(self):
         return self.first_name + " " + self.last_name + " " + (self.email) + " " + self.phone
-    def serialize(self, template=fields.addressbook_template):
-        return serialize(self, **template)
 
     # look through all the candidates and check if there is
     # a majority wins case
@@ -405,13 +403,19 @@ class AddressBook(models.Model):
         if self.phone_finalized:
             return self.phone
         else:
-            return wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))[0]
+	    if self.candidate_phones.all():
+            	return wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))[0]
+	    else:
+	    	return ""
 
     def get_email(self):
         if self.email_finalized:
             return self.email
         else:
-            return wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))[0]
+	    if self.candidate_emails.all():
+		return wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))[0]
+	    else:
+		return ""
 
     def get_name(self):
         first_name = \
