@@ -888,6 +888,7 @@ class ParseMsgAndDispatch(object):
 
             try:
                 wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+                self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             except:
                 self.r_user = User.objects.get(id=self.receiver['wizUserID'])
                 wizcard2 = self.r_user.wizcard
