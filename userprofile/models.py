@@ -364,6 +364,8 @@ class AddressBook(models.Model):
 
     def __repr__(self):
         return self.first_name + " " + self.last_name + " " + (self.email) + " " + self.phone
+    def serialize(self, template=fields.addressbook_template):
+        return serialize(self, **template)
 
     # look through all the candidates and check if there is
     # a majority wins case
