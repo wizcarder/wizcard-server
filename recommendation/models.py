@@ -71,6 +71,11 @@ class UserRecommendation(models.Model):
             reco_dict['name'] = ab_object.get_name()
             reco_dict['type'] = self.reco.reco_content_type.model
             reco_dict['recoid'] = self.pk
+        if self.reco.reco_content_type == ContentType.objects.get(model='wizcard'):
+            w_object = Wizcard.objects.get(pk=self.reco.reco_object_id)
+            reco_dict['wizcard'] = w_object.serialize()
+            reco_dict['type'] = self.reco.reco_content_type.model
+            reco_dict['recoid'] = self.pk
 
         if self.reco.reco_content_type == ContentType.objects.get(model='userprofile'):
             pass
