@@ -66,9 +66,7 @@ class UserRecommendation(models.Model):
         reco_dict = dict()
         if self.reco.reco_content_type == ContentType.objects.get(model='addressbook'):
             ab_object = AddressBook.objects.get(pk=self.reco.reco_object_id)
-            reco_dict['phone'] = ab_object.get_phone()
-            reco_dict['email'] = ab_object.get_email()
-            reco_dict['name'] = ab_object.get_name()
+            reco_dict['addressbook'] = ab_object.serialize()
             reco_dict['type'] = self.reco.reco_content_type.model
             reco_dict['recoid'] = self.pk
         if self.reco.reco_content_type == ContentType.objects.get(model='wizcard'):
