@@ -269,6 +269,7 @@ class ParseMsgAndDispatch(object):
             'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
             'get_email_template'          : (message_format.GetEmailTemplateSchema, self.GetEmailTemplate),
             'get_recommendations'         : (message_format.GetRecommendationsSchema, self.GetRecommendations),
+            'set_reco_action'               : (message_format.SetRecoActionSchema, self.SetRecoAction),
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -2158,6 +2159,27 @@ class ParseMsgAndDispatch(object):
 
         self.response.add_data("recos",serialize.serialize(reco_list))
         return self.response
+
+    def SetRecoAction(self):
+        recoid = self.sender['recoID']
+        action = self.sender['action']
+        if not recoid or not action:
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
+
+        recoptr = UserRecommendation.objects.get(id=recoid)
+        if recoptr:
+            try:
+                recoptr.setAction(action)
+            except:
+                self.response.error_response(err.INVALID_RECOACTION)
+        else:
+            self.response.error_response(err.INVALID_RECOID)
+
+
+        return self.response
+
+
 
 
 
