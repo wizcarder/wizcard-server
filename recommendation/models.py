@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.conf import settings
 from notifications.signals import notify
 from notifications.tasks import pushNotificationToApp
-from Wizcard.models import Wizcard
+from wizcardship.models import Wizcard
 from userprofile.models import AddressBook
 import logging
 import pdb
