@@ -123,6 +123,8 @@ class GetEmailTemplateSchema(colander.MappingSchema):
     pass
 class GetRecommendationsSchema(colander.MappingSchema):
     pass
+class SetRecoActionSchema(colander.MappingSchema):
+    pass
 
 
 #wizweb
