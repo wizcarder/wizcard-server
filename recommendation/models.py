@@ -22,6 +22,8 @@ import pdb
 
 # Create your models here.
 
+logger = logging.getLogger(__name__)
+
 
 class Recommendation(models.Model):
     reco_content_type = models.ForeignKey(ContentType,related_name="reco")
@@ -81,6 +83,12 @@ class UserRecommendation(models.Model):
 
 
         return reco_dict
+
+
+    def setAction(self,action=New):
+
+        self.useraction = action
+        self.save()
 
 
         
