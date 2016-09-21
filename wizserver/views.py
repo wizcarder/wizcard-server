@@ -1294,6 +1294,11 @@ class ParseMsgAndDispatch(object):
                 self.response.ignore()
                 return self.response
 
+            #AnandR to use signals - temp solution to unblock App
+            if 'recoID' in self.sender:
+                recobj = UserRecommendation.objects.get(id=self.sender['recoID'])
+                recobj.setAction(1)
+
             self.response = self.WizcardSendWizcardToXYZ(
                 wizcard,
                 receiver_type,
