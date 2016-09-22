@@ -429,6 +429,16 @@ class AddressBook(models.Model):
 
         return first_name + " " + last_name
 
+    def is_phone_final(self):
+        return self.phone_finalized
+
+    def is_email_final(self):
+        return self.email_finalized
+
+    def is_name_final(self):
+        return self.first_name_finalized and self.last_name_finalized
+
+
 class AB_Candidate_Phones(models.Model):
     phone = TruncatingCharField(max_length=20)
     ab_entry = models.ForeignKey(AddressBook, related_name='candidate_phones')
