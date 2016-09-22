@@ -675,6 +675,21 @@ class ParseMsgAndDispatch(object):
         if not self.userprofile.activated:
             return self.response
 
+        if self.sender.has_key('recoActions'):
+
+            recoactions = self.sender['recoActions']
+            for rectuple in recoactions:
+                recid = rectuple['recoID']
+                recaction = rectuple['action']
+                try:
+                    reco_object = UserRecommendations.objects.get(id=recid)
+                    reco_object.setAction(recaction)
+                except:
+                    logger.warning('Recommendation Action failed for %s', str(recid))
+                    pass
+
+
+
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
@@ -1293,11 +1308,6 @@ class ParseMsgAndDispatch(object):
                 self.securityException()
                 self.response.ignore()
                 return self.response
-
-            #AnandR to use signals - temp solution to unblock App
-            if 'recoID' in self.sender:
-                recobj = UserRecommendation.objects.get(id=self.sender['recoID'])
-                recobj.setAction(1)
 
             self.response = self.WizcardSendWizcardToXYZ(
                 wizcard,
