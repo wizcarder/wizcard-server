@@ -3,7 +3,7 @@ from collections import OrderedDict
 import os,sys
 import logging
 
-proj_path="/Users/kappu/Documents/Anand/wizcard-server"
+proj_path="."
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wizcard.settings")
 sys.path.append(proj_path)
@@ -44,6 +44,8 @@ class ABReco (object) :
 
     def getData(self):
         abentries = map(lambda x:x.ab_entry,AB_User.objects.filter(user=self.recotarget))
+	if not abentries:
+		return {}
 
         wizusers = map(lambda x:x.user,self.recotarget.wizcard.get_connections())
 
@@ -51,24 +53,33 @@ class ABReco (object) :
             users = map(lambda x: x.user,AB_User.objects.filter(ab_entry=entry))
             if not entry.get_phone() and not  entry.get_email():
                 continue
+
+	    if entry.get_phone():
+	            w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.SMS_INVITE], entry.get_phone())
+            if not w1 and entry.get_email():
+                w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.get_email())
+            if w1:
+                if not self.recotarget.wizcard.get_relationship(w1):
+		    print "Adding Reco " + str(w1.pk) + " for " + self.recotarget.username
+                    self.putReco('wizcard',2,w1.pk)
+		    continue
 		
 
             for user in users:
                 if user in wizusers:
+		    print "Adding Reco " + str(entry.pk) + " for " + user.username
                     self.putReco('addressbook',3,entry.pk)
 
 
             if entry.get_phone() and entry.get_email():
+		print "Adding Reco " + str(entry.pk) + " for " + user.username
                 self.putReco('addressbook', 1,entry.pk)
 
             # THIS NEEDS TO BE A WIZCARD USER and not a AB entry
-            w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.SMS_INVITE], entry.phone)
-            if not w1:
-                w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.email)
-            if w1:
-                if not self.recotarget.wizcard.get_relationship(w1):
-                    self.putReco('wizcard',2,w1.pk)
 	
+	    if entry.get_phone() or entry.get_email():
+		print "Adding Reco " + str(entry.pk) + " for " + user.username
+		self.putReco('addressbook',0.1,entry.pk)
 
 
 
@@ -126,9 +137,14 @@ reco = RunReco("AbCommon",recotarget)
 reco.getReco()
 reco.putReco()
 '''
+wall=[]
+if len(sys.argv) > 1:
+	wid = sys.argv[1]
+	wall.append(Wizcard.objects.get(id=wid))
 
 reco=dict()
-wall = Wizcard.objects.all()
+if len(wall) == 0:
+	wall = Wizcard.objects.all()
 for w in wall:
     treco = WizReco(w.user)
     reco[w.user.pk]=treco.getData()
@@ -136,6 +152,7 @@ for w in wall:
 
 for w in wall:
     treco = ABReco(w.user)
+    print "Generating Reco for " + w.user.username
     reco = treco.getData()
     '''
     for rec in reco.keys():
