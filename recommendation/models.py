@@ -62,7 +62,6 @@ class UserRecommendation(models.Model):
     reco = models.ForeignKey(Recommendation,related_name='user_recos')
     useraction = models.PositiveSmallIntegerField(choices=ACTIONS,default = New)
     score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    recomodel = models.IntegerField(choices=MODELS,default=0)
     lastaction_time = models.DateTimeField(auto_now=True)
 
     def getReco(self):
@@ -86,10 +85,22 @@ class UserRecommendation(models.Model):
         return reco_dict
 
 
+
+
     def setAction(self,action=New):
 
         self.useraction = action
         self.save()
+
+
+class RecommenderMeta(models.Model):
+    MODELS = (
+        (0, 'AB_RECO'),
+        (1, 'WIZCONNECTIONS_RECO')
+    )
+    modelscore = models.DecimalField(max_digits=5, decimal_places=2,default=0)
+    recomodel = models.IntegerField(choices=MODELS)
+    userrecommend = models.ForeignKey(UserRecommendation)
 
 
         
