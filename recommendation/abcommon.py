@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import os,sys
 import logging
+from decimal import *
 
 proj_path="."
 
@@ -33,19 +34,25 @@ class ABReco (object) :
         recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
                                                                reco_object_id=object_id)
         recuser, created = UserRecommendation.objects.get_or_create(user=self.recotarget, reco=recnew)
+
+
+
         if created:
             recuser.useraction = 3
             recuser.score = score
-            recuser.recomodel = 0
             recuser.save()
         else:
-            recuser.score += 2
+            recuser.score = recuser.score + Decimal(score)
             recuser.save()
+
+        recmeta,created = RecommenderMeta.objects.get_or_create(recomodel=0, userrecommend=recuser)
+        recmeta.modelscore = score
+        recmeta.save()
 
     def getData(self):
         abentries = map(lambda x:x.ab_entry,AB_User.objects.filter(user=self.recotarget))
-	if not abentries:
-		return {}
+        if not abentries:
+            return {}
 
         wizusers = map(lambda x:x.user,self.recotarget.wizcard.get_connections())
 
@@ -54,32 +61,45 @@ class ABReco (object) :
             if not entry.get_phone() and not  entry.get_email():
                 continue
 
-	    if entry.get_phone():
-	            w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.SMS_INVITE], entry.get_phone())
-            if not w1 and entry.get_email():
-                w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.get_email())
-            if w1:
-                if not self.recotarget.wizcard.get_relationship(w1):
-		    print "Adding Reco " + str(w1.pk) + " for " + self.recotarget.username
-                    self.putReco('wizcard',2,w1.pk)
-		    continue
-		
 
+
+            if entry.get_phone():
+             w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.SMS_INVITE], entry.get_phone())
+             if not w1 and entry.get_email():
+                w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.get_email())
+             if w1:
+                if not self.recotarget.wizcard.get_relationship(w1):
+                    print "Adding Reco " + str(w1.pk) + " for " + self.recotarget.username
+
+                    self.putReco('wizcard',2,w1.pk)
+                    continue
+
+            #Now it can only be addressbook
+            recotype = 'addressbook'
+            score = 0
             for user in users:
                 if user in wizusers:
-		    print "Adding Reco " + str(entry.pk) + " for " + user.username
-                    self.putReco('addressbook',3,entry.pk)
-
+                    print "Adding Reco " + str(entry.pk) + " for " + user.username
+                    score = score + 2
 
             if entry.get_phone() and entry.get_email():
-		print "Adding Reco " + str(entry.pk) + " for " + user.username
-                self.putReco('addressbook', 1,entry.pk)
+                print "Adding Reco " + str(entry.pk) + " for " + user.username
+                score = score + 1
 
-            # THIS NEEDS TO BE A WIZCARD USER and not a AB entry
-	
-	    if entry.get_phone() or entry.get_email():
-		print "Adding Reco " + str(entry.pk) + " for " + user.username
-		self.putReco('addressbook',0.1,entry.pk)
+            if entry.is_phone_final():
+                score = score + 0.5
+
+            if entry.is_email_final():
+                score = score + 0.5
+
+            if entry.is_name_final():
+                score = score + 0.5
+
+            if entry.get_phone() or entry.get_email():
+                score = score + 0.1
+
+            print "Adding Reco " + str(entry.pk) + " for " + user.username
+            self.putReco(recotype,score,entry.pk)
 
 
 
@@ -87,7 +107,7 @@ class ABReco (object) :
 
 
 
-		
+
 
 
 class WizReco(object):
@@ -139,12 +159,12 @@ reco.putReco()
 '''
 wall=[]
 if len(sys.argv) > 1:
-	wid = sys.argv[1]
-	wall.append(Wizcard.objects.get(id=wid))
+    wid = sys.argv[1]
+    wall.append(Wizcard.objects.get(id=wid))
 
 reco=dict()
 if len(wall) == 0:
-	wall = Wizcard.objects.all()
+    wall = Wizcard.objects.all()
 for w in wall:
     treco = WizReco(w.user)
     reco[w.user.pk]=treco.getData()
@@ -154,6 +174,7 @@ for w in wall:
     treco = ABReco(w.user)
     print "Generating Reco for " + w.user.username
     reco = treco.getData()
+
     '''
     for rec in reco.keys():
 
@@ -163,10 +184,10 @@ for w in wall:
             recuser.useraction = 3
             recuser.score = reco[rec]
             recuser.recomodel = 0
-	    recuser.save()
+        recuser.save()
         else:
             recuser.score = reco[rec]
-	    recuser.save()
+        recuser.save()
     '''
 
 
