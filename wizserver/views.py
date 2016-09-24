@@ -682,7 +682,7 @@ class ParseMsgAndDispatch(object):
                 recid = rectuple['recoID']
                 recaction = rectuple['action']
                 try:
-                    reco_object = UserRecommendations.objects.get(id=recid)
+                    reco_object = UserRecommendation.objects.get(id=recid)
                     reco_object.setAction(recaction)
                 except:
                     logger.warning('Recommendation Action failed for %s', str(recid))
@@ -2167,7 +2167,7 @@ class ParseMsgAndDispatch(object):
 
         size = self.sender['size'] if 'size' in self.sender else 10
 
-        recos = UserRecommendation.objects.filter(user=self.user).order_by('-score')[:size]
+        recos = UserRecommendation.objects.filter(user=self.user,useraction = 3).order_by('-score')[:size]
         reco_list = []
         for ur in recos:
             reco_list.append(ur.getReco())
