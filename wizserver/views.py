@@ -1423,13 +1423,6 @@ class ParseMsgAndDispatch(object):
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             #future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
-            if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                for r in receivers:
-                    wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
-                    if wizcard:
-                        sendmail.delay(self.user.wizcard,r,template="emailinfo")
-                    else:
-                        sendmail.delay(self.user.wizcard, r,template="emailinvite")
 
         return self.response
 
@@ -1533,9 +1526,13 @@ class ParseMsgAndDispatch(object):
                     notify.send(self.user, recipient=wizcard.user,
                                 verb=verbs.WIZCARD_TABLE_INVITE[0],
                                 target=obj)
+
+                if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
+                    sendmail.delay(self.user.wizcard, r, template="emailinfo")
+
             else:
                 fphone = r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else None
-                femail = r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else None
+                femail = r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else None
                 future_users = FutureUser.objects.check_future_user(
                     femail,
                     fphone)
@@ -1548,6 +1545,8 @@ class ParseMsgAndDispatch(object):
                         email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                     ).save()
 
+                if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
+                    sendmail.delay(self.user.wizcard, r, template="emailinvite")
 
     def UserQuery(self):
         try:
