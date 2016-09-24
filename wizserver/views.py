@@ -1534,13 +1534,19 @@ class ParseMsgAndDispatch(object):
                                 verb=verbs.WIZCARD_TABLE_INVITE[0],
                                 target=obj)
             else:
-                FutureUser(
-                    inviter=self.user,
-                    content_type=ContentType.objects.get_for_model(obj),
-                    object_id=obj.id,
-                    phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
-                    email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
-                ).save()
+                fphone = r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else None
+                femail = r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else None
+                future_users = FutureUser.objects.check_future_user(
+                    femail,
+                    fphone)
+                if not future_users:
+                    FutureUser(
+                        inviter=self.user,
+                        content_type=ContentType.objects.get_for_model(obj),
+                        object_id=obj.id,
+                        phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
+                        email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
+                    ).save()
 
 
     def UserQuery(self):
