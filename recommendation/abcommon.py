@@ -29,6 +29,7 @@ class ABReco (object) :
 
     def __init__(self,user):
         self.recotarget = user
+        self.recomodel = 0
 
     def putReco(self, rectype, score, object_id):
         recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
@@ -45,7 +46,7 @@ class ABReco (object) :
             recuser.score = recuser.score + Decimal(score)
             recuser.save()
 
-        recmeta,created = RecommenderMeta.objects.get_or_create(recomodel=0, userrecommend=recuser)
+        recmeta,created = RecommenderMeta.objects.get_or_create(recomodel=self.recomodel, userrecommend=recuser)
         recmeta.modelscore = score
         recmeta.save()
 
@@ -113,20 +114,50 @@ class ABReco (object) :
 class WizReco(object):
     def __init__(self,user):
         self.recotarget = user
-        self.reco = dict()
+        self.recomodel = 1
 
     def getData(self):
         targetwizcard = self.recotarget.wizcard
+
+        recodict = dict()
+
         for hop1 in targetwizcard.get_connections():
             for hop2 in hop1.get_connections():
             # Eliminate the self wizcard
                 if targetwizcard.phone != hop2.phone:
                     if hop2.user in self.reco:
-                        reco[hop2.user] = reco[hop2.user] + 1
+                        recodict[hop2.pk] +=  1
                     else:
-                        reco[hop2.user] = 1
+                        recodict[hop2.pk] = 1
 
-        return self.reco
+        for wizreco in recodict.keys():
+            if recodict[wizreco] == 1:
+                continue
+
+            self.putReco("wizcard", 10 * self.reco[wizreco], wizreco)
+
+
+
+    def putData(self):
+
+        recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
+                                                               reco_object_id=object_id)
+
+        recuser, created = UserRecommendation.objects.get_or_create(user=self.recotarget, reco=recnew)
+
+        if created:
+            recuser.useraction = 3
+            recuser.score = score
+            recuser.save()
+        else:
+            recuser.score = recuser.score + Decimal(score)
+            recuser.save()
+
+        recmeta, created = RecommenderMeta.objects.get_or_create(recomodel=self.recomodel, userrecommend=recuser)
+        recmeta.modelscore = score
+        recmeta.save()
+
+
 
 
 
@@ -167,7 +198,7 @@ if len(wall) == 0:
     wall = Wizcard.objects.all()
 for w in wall:
     treco = WizReco(w.user)
-    reco[w.user.pk]=treco.getData()
+    reco = treco.getData()
 
 
 for w in wall:
