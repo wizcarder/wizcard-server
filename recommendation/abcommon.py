@@ -59,16 +59,26 @@ class ABReco (object) :
 
         for entry in abentries:
             users = map(lambda x: x.user,AB_User.objects.filter(ab_entry=entry))
+
             if not entry.get_phone() and not  entry.get_email():
                 continue
 
+            entry_username = entry.get_phone() + '@wizcard.com'
 
+            # Eliminate Self from the recommendation
+            if entry_username == self.recotarget.username:
+                continue
 
-            if entry.get_phone():
-             w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.SMS_INVITE], entry.get_phone())
-             if not w1 and entry.get_email():
+            w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.SMS_INVITE], entry.get_phone())
+
+            if not w1 and entry.get_email():
                 w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.get_email())
-             if w1:
+
+            # Eliminate Self in recommendation
+            if self.recotarget.id == w1.id:
+                continue
+
+            if w1:
                 if not self.recotarget.wizcard.get_relationship(w1):
                     print "Adding Reco " + str(w1.pk) + " for " + self.recotarget.username
 
@@ -82,6 +92,8 @@ class ABReco (object) :
                 if user in wizusers:
                     print "Adding Reco " + str(entry.pk) + " for " + user.username
                     score = score + 2
+
+
 
             if entry.get_phone() and entry.get_email():
                 print "Adding Reco " + str(entry.pk) + " for " + user.username
