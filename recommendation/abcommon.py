@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import os,sys
 import logging
+import pdb
 from decimal import *
 
 proj_path="."
@@ -13,6 +14,8 @@ from wizserver import fields
 from wizcardship.models import WizConnectionRequest,Wizcard
 from base.cctx import *
 from lib.preserialize.serialize import serialize
+import pika
+import json
 
 from django.core.wsgi import get_wsgi_application
 from userprofile.models import *
@@ -24,6 +27,8 @@ from django.core.cache import cache
 logger = logging.getLogger(__name__)
 
 from lib.preserialize.serialize import serialize
+
+
 
 class ABReco (object) :
 
@@ -173,32 +178,46 @@ class WizReco(object):
 
 
 
-'''
-# Initially was thinking of putting it in memcache
-class RunReco (object) :
-    def __init__(self,model,user):
-        self.runmodel = AbCommon(user)
-        self.reco = {}
-        self.user = user
+connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+channel = connection.channel()
 
-    def getReco(self):
-            data = self.runmodel.getData()
-            reco = self.runmodel.genReco(data)
+channel.queue_declare(queue='rectrigger')
 
-    def putReco(self):
-        value = serialize(reco)
-        res = cache.set(self.user.pk,value)
-        if res:
-            logger.error("Cannot add value for user: %s" % self.user.pk)
-        else:
-            res = cache.get(self.user.pk)
-            print res
+def callback(ch, method, properties, body):
+    body_data = json.loads(body)
+
+    wuser = ""
+    rmodel = ""
+    if body_data.has_key('recotarget'):
+        wuser = Wizcard.objects.get(id=body_data['recotarget']).user
+    else:
+        print "No user specified in message: Reco generation not happening"
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
+
+    if body_data.has_key('recmodel'):
+        rmodel = body_data['recmodel']
+    else:
+        print "No model specified in message: Reco generation not happening"
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
+
+    if rmodel == 'ABReco':
+        treco = ABReco(wuser)
+        reco = treco.getData()
+    elif rmodel == 'WizReco':
+        treco = WizReco(wuser)
+        reco = treco.getData()
+
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-recotarget = Wizcard.objects.get(id=1).user
-reco = RunReco("AbCommon",recotarget)
-reco.getReco()
-reco.putReco()
+channel.basic_consume(callback,
+                      queue='rectrigger')
+print "Waiting for wizcardid"
+
+channel.start_consuming()
+
 '''
 wall=[]
 if len(sys.argv) > 1:
@@ -218,30 +237,4 @@ for w in wall:
     print "Generating Reco for " + w.user.username
     reco = treco.getData()
 
-    '''
-    for rec in reco.keys():
-
-        recnew,created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model='addressbook'),reco_object_id=rec)
-        recuser,created = UserRecommendation.objects.get_or_create(user=w.user,reco=recnew)
-        if created:
-            recuser.useraction = 3
-            recuser.score = reco[rec]
-            recuser.recomodel = 0
-        recuser.save()
-        else:
-            recuser.score = reco[rec]
-        recuser.save()
-    '''
-
-
-
-
-
-
-
-
-
-
-
-
-
+'''
