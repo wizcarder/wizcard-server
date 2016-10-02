@@ -14,10 +14,15 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 from notifications.signals import notify
+from recommendation.signals import genreco
 from notifications.tasks import pushNotificationToApp
 from wizcardship.models import Wizcard
 from userprofile.models import AddressBook
+from celery import shared_task
+import json
 import logging
+import pika
+
 import pdb
 
 # Create your models here.
@@ -34,6 +39,35 @@ class Recommendation(models.Model):
 
     def getRecoObject(self):
         pass
+
+@shared_task
+def addtoQtask(recotarget,recmodel):
+
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    channel = connection.channel()
+
+    channel.queue_declare(queue='rectrigger')
+
+    body_dict = {'recotarget' : str(recotarget), 'recmodel': recmodel}
+    body_data = json.dumps(body_dict)
+
+
+    channel.basic_publish(exchange='',
+                          routing_key='rectrigger',
+                          body=body_data)
+    logger.info("Sending %s to Q", recotarget)
+    connection.close()
+
+def addtoQ(**kwargs):
+    logger.debug("CAll back in recommendation worked")
+    kwargs.pop('signal', None)
+    recotarget = kwargs.pop('recotarget')
+    recmodel = kwargs.pop('recmodel')
+    addtoQtask.delay(recotarget,recmodel)
+
+
+genreco.connect(addtoQ, dispatch_uid='recommendation.models.recommendation')
+
 
 
 
@@ -101,6 +135,9 @@ class RecommenderMeta(models.Model):
     modelscore = models.DecimalField(max_digits=5, decimal_places=2,default=0)
     recomodel = models.IntegerField(choices=MODELS)
     userrecommend = models.ForeignKey(UserRecommendation)
+
+
+
 
 
         
