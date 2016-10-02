@@ -46,7 +46,7 @@ import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from recommendation.models import UserRecommendation, Recommendation
+from recommendation.models import UserRecommendation, Recommendation,genreco
 import pdb
 
 now = timezone.now
@@ -598,6 +598,7 @@ class ParseMsgAndDispatch(object):
 
             # run a candidate selection for the ab_entry
             abEntry.run_finalize_decision()
+            genreco.send(self.user,recotarget=str(self.user.wizcard.id),recmodel='ABReco')
 
         return self.response
 
@@ -977,6 +978,7 @@ class ParseMsgAndDispatch(object):
                  wizCardID=wizcard2.id)
         )
         self.response.add_data("status", status)
+        genreco.send(self.user, recotarget=str(self.user.wizcard.id), recmodel='WizReco')
         return self.response
 
     def WizConnectionRequestDecline(self):
