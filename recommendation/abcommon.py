@@ -175,26 +175,12 @@ class WizReco(object):
         recmeta.save()
 
 
-
-
-
-connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
-
-channel.queue_declare(queue='rectrigger')
-
 def callback(ch, method, properties, body):
     body_data = json.loads(body)
+    pdb.set_trace()
 
     wuser = ""
     rmodel = ""
-    if body_data.has_key('recotarget'):
-        wuser = Wizcard.objects.get(id=body_data['recotarget']).user
-    else:
-        print "No user specified in message: Reco generation not happening"
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        return
-
     if body_data.has_key('recmodel'):
         rmodel = body_data['recmodel']
     else:
@@ -202,39 +188,60 @@ def callback(ch, method, properties, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
 
+
+    if rmodel != "all" and body_data.has_key('recotarget'):
+        wuser = Wizcard.objects.get(id=int(body_data['recotarget'])).user
+        if not wuser:
+            print "No user specified in message: Reco generation not happening"
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            return
+
+
     if rmodel == 'ABReco':
         treco = ABReco(wuser)
         reco = treco.getData()
     elif rmodel == 'WizReco':
         treco = WizReco(wuser)
         reco = treco.getData()
+    elif rmodel =='all':
+        reco = dict()
+
+        wall = Wizcard.objects.all()
+
+        for w in wall:
+            treco = WizReco(w.user)
+            reco = treco.getData()
+
+        for w in wall:
+            treco = ABReco(w.user)
+            print "Generating Reco for " + w.user.username
+            reco = treco.getData()
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-channel.basic_consume(callback,
-                      queue='rectrigger')
-print "Waiting for wizcardid"
 
-channel.start_consuming()
+if __name__ == "__main__":
+    validqs = ['recoall', 'recotrigger']
+    if len(sys.argv) > 1:
+
+        qname = sys.argv[1]
+    else:
+        qname = 'recoall'
+
+    if qname not in validqs:
+        sys.stderr.write("Invalid Q Name %s\n", qname)
+        exit(1)
+
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    channel = connection.channel()
+
+    channel.queue_declare(queue=qname)
+    channel.basic_consume(callback, queue=qname)
+    channel.start_consuming()
+
+
 
 '''
-wall=[]
-if len(sys.argv) > 1:
-    wid = sys.argv[1]
-    wall.append(Wizcard.objects.get(id=wid))
-
-reco=dict()
-if len(wall) == 0:
-    wall = Wizcard.objects.all()
-for w in wall:
-    treco = WizReco(w.user)
-    reco = treco.getData()
-
-
-for w in wall:
-    treco = ABReco(w.user)
-    print "Generating Reco for " + w.user.username
-    reco = treco.getData()
 
 '''
