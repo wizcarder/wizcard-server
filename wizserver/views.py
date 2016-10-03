@@ -679,7 +679,9 @@ class ParseMsgAndDispatch(object):
         if self.sender.has_key('recoActions'):
 
             recoactions = self.sender['recoActions']
+
             for rectuple in recoactions:
+
                 recid = rectuple['recoID']
                 recaction = rectuple['action']
                 try:
@@ -688,6 +690,10 @@ class ParseMsgAndDispatch(object):
                 except:
                     logger.warning('Recommendation Action failed for %s', str(recid))
                     pass
+            if recoactions:
+                genreco.send(self.user, recotarget=str(self.user.wizcard.id), recmodel='WizReco')
+                genreco.send(self.user, recotarget=str(self.user.wizcard.id), recmodel='ABReco')
+
 
 
 
