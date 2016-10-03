@@ -19,6 +19,7 @@ from notifications.tasks import pushNotificationToApp
 from wizcardship.models import Wizcard
 from userprofile.models import AddressBook
 from celery import shared_task
+from recommendation.tasks import addtoQtask
 import json
 import logging
 import pika
@@ -40,30 +41,16 @@ class Recommendation(models.Model):
     def getRecoObject(self):
         pass
 
-@shared_task
-def addtoQtask(recotarget,recmodel):
-
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-    channel = connection.channel()
-
-    channel.queue_declare(queue='rectrigger')
-
-    body_dict = {'recotarget' : str(recotarget), 'recmodel': recmodel}
-    body_data = json.dumps(body_dict)
 
 
-    channel.basic_publish(exchange='',
-                          routing_key='rectrigger',
-                          body=body_data)
-    logger.info("Sending %s to Q", recotarget)
-    connection.close()
+
 
 def addtoQ(**kwargs):
     logger.debug("CAll back in recommendation worked")
     kwargs.pop('signal', None)
     recotarget = kwargs.pop('recotarget')
     recmodel = kwargs.pop('recmodel')
-    addtoQtask.delay(recotarget,recmodel)
+    addtoQtask.delay('rectrigger',recotarget,recmodel)
 
 
 genreco.connect(addtoQ, dispatch_uid='recommendation.models.recommendation')
