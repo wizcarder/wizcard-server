@@ -142,7 +142,7 @@ class WizReco(object):
             for hop2 in hop1.get_connections():
             # Eliminate the self wizcard
                 if targetwizcard.phone != hop2.phone:
-                    if hop2.user in self.reco:
+                    if hop2.user.pk in recodict.keys():
                         recodict[hop2.pk] +=  1
                     else:
                         recodict[hop2.pk] = 1
@@ -152,7 +152,6 @@ class WizReco(object):
                 continue
 
             self.putReco("wizcard", 10 * self.reco[wizreco], wizreco)
-
 
 
     def putData(self):
