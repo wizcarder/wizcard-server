@@ -24,9 +24,10 @@ BROKER_PASSWORD = 'wizcard_pass'
 BROKER_HOST = 'localhost'
 BROKER_PORT = 5672
 BROKER_VHOST = 'wizcard_vhost'
+BROKER_URL = 'amqp://wizcard_user:wizcard_pass@localhost:5672/wizcard_vhost'
 
 APP_MAJOR = 1
-APP_MINOR = 5
+APP_MINOR = 6
 
 #CELERY_RESULT_BACKEND = 'amqp://'
 CELERY_RESULT_BACKEND = 'rpc'
@@ -72,6 +73,8 @@ CELERY_ROUTES = {
     }
 }
 
+CELERY_ACCEPT_CONTENT = ['pickle','json','msgpack','yaml']
+
 from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
     'tick': {
@@ -79,6 +82,10 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=60),
         'options': {'queue': CELERY_BEAT_QUEUE_NAME}
     },
+    'triggerRecoAll': {
+        'task': 'recommendation.tasks.triggerRecoAll',
+        'schedule' : timedelta(minutes=1),
+    }
 }
 
 
