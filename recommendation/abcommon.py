@@ -79,6 +79,9 @@ class ABReco (object) :
             if not w1 and entry.get_email():
                 w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.get_email())
 
+	    if not w1:
+		continue
+
             # Eliminate Self in recommendation
             if self.recotarget.id == w1.id:
                 continue
@@ -142,7 +145,7 @@ class WizReco(object):
             for hop2 in hop1.get_connections():
             # Eliminate the self wizcard
                 if targetwizcard.phone != hop2.phone:
-                    if hop2.user.pk in recodict.keys():
+                    if hop2.pk in recodict.keys():
                         recodict[hop2.pk] +=  1
                     else:
                         recodict[hop2.pk] = 1
@@ -151,10 +154,10 @@ class WizReco(object):
             if recodict[wizreco] == 1:
                 continue
 
-            self.putReco("wizcard", 10 * self.reco[wizreco], wizreco)
+            self.putReco("wizcard", 10 * recodict[wizreco], wizreco)
 
 
-    def putData(self):
+    def putReco(self,rectype,score,object_id):
 
         recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
                                                                reco_object_id=object_id)
@@ -176,7 +179,6 @@ class WizReco(object):
 
 def callback(ch, method, properties, body):
     body_data = json.loads(body)
-    pdb.set_trace()
 
     wuser = ""
     rmodel = ""
@@ -221,7 +223,7 @@ def callback(ch, method, properties, body):
 
 
 if __name__ == "__main__":
-    validqs = ['recoall', 'recotrigger']
+    validqs = ['recoall', 'rectrigger']
     if len(sys.argv) > 1:
 
         qname = sys.argv[1]
@@ -232,10 +234,22 @@ if __name__ == "__main__":
         sys.stderr.write("Invalid Q Name %s\n", qname)
         exit(1)
 
+    wall = Wizcard.objects.all()
+
+    for w in wall:
+        treco = WizReco(w.user)
+        reco = treco.getData()
+
+    for w in wall:
+        treco = ABReco(w.user)
+        print "Generating Reco for " + w.user.username
+        reco = treco.getData()
+
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
     channel = connection.channel()
 
     channel.queue_declare(queue=qname)
+    print "Waiting for Q items"
     channel.basic_consume(callback, queue=qname)
     channel.start_consuming()
 
