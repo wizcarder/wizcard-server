@@ -149,7 +149,7 @@ class ParseMsgAndDispatch(object):
 
                 # Checking major and minor versions only, expecting patches to be backward compatible
                 # apppatch = int(versions.group(3))
-                
+
                 # Hack for earlier versions - AnandR to do version check as handlers and add default handler
                 if appmajor == 1 and appminor >= 1 and appminor <= 3:
                     return True
@@ -508,6 +508,7 @@ class ParseMsgAndDispatch(object):
                 if len(phone_list):
                     do_phone = True
 
+                pdb.set_trace()
                 phoneEntryList = list(set([AB_Candidate_Phones.objects.get(phone=x)
                                   for x in phone_list if AB_Candidate_Phones.objects.filter(phone=x).exists()]))
 
@@ -693,9 +694,6 @@ class ParseMsgAndDispatch(object):
             if recoactions:
                 genreco.send(self.user, recotarget=str(self.user.wizcard.id), recmodel='WizReco')
                 genreco.send(self.user, recotarget=str(self.user.wizcard.id), recmodel='ABReco')
-
-
-
 
         if self.lat is None and self.lng is None:
             try:
@@ -901,6 +899,7 @@ class ParseMsgAndDispatch(object):
     # B has A's wizcard in roldex
     def WizcardAccept(self):
         status = []
+        cctx = None
         verb1 = verbs.WIZREQ_T[0]
         verb2 = verbs.WIZREQ_T[0]
 
@@ -924,21 +923,17 @@ class ParseMsgAndDispatch(object):
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-        try:
+
+        if 'notif_id' in self.sender:
             n_id = self.sender['notif_id']
             n = Notification.objects.get(id=n_id)
 
-        # now we know that the App has acted upon this notification
-        # we will use this flag during resync notifs and send unacted-upon
-        # notifs to user
+            # now we know that the App has acted upon this notification
+            # we will use this flag during resync notifs and send unacted-upon
+            # notifs to user
             n.set_acted()
-        except:
-            pass
 
-        # accept wizcard2->wizcard1
-        # there could already be a sent request from wizcard2 (pending or declined)
-        rel21 = wizcard2.get_relationship(wizcard1)
-
+        # add-to-rolodex case. Happens when user had previously declined/deleted this guy
         if reaccept:
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
@@ -949,19 +944,17 @@ class ParseMsgAndDispatch(object):
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
                 location_str = ""
 
-            cctx1 = ConnectionContext(
+            cctx = ConnectionContext(
                 asset_obj=wizcard1,
                 connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U],
                 location=location_str
             )
-            # set connection back to accepted state
-            rel21.accept()
-        elif wizcard1.get_relationship(wizcard2).status == verbs.DELETED:
-            Wizcard.objects.becard(wizcard2, wizcard1)
+
+        if wizcard1.get_relationship(wizcard2).status == verbs.DELETED:
             verb1 = verbs.WIZREQ_T_HALF[0]
             verb2 = None
-        else:
-            Wizcard.objects.becard(wizcard2, wizcard1)
+
+        rel21 = Wizcard.objects.becard(wizcard2, wizcard1, cctx)
 
         # Q notif to both sides.
         notify.send(self.r_user,
@@ -1366,66 +1359,74 @@ class ParseMsgAndDispatch(object):
                 r_wizcard = r_user.wizcard
 
                 rel12 = wizcard.get_relationship(r_wizcard)
+                cctx1 = ConnectionContext(
+                        asset_obj=wizcard,
+                        connection_mode=receiver_type,
+                        location=location_str)
 
-                # wizcard->r_wizcard exists previously ?. This could/should
-                # happen only if other guy had declined/deleted. In this case, we're
-                # sending the tag as "others", thus allowing sender to send
-                # a connect request. IT should be neither declined nor deleted
-                if rel12 and (rel12.status != verbs.DECLINED and
-                                      rel12.status != verbs.DELETED):
-                    # something's not right.
-                    self.response.error_response(err.EXISTING_CONNECTION)
+                if rel12:
+                    # wizcard->r_wizcard exists previously ?. This could/should
+                    # happen if other guy had declined/deleted. In this case, we're
+                    # sending the tag as "others", thus allowing sender to send
+                    # a connect request.
+                    if rel12.status != verbs.DECLINED and rel12.status != verbs.DELETED:
+                        # something's not right.
+                        self.response.error_response(err.EXISTING_CONNECTION)
+                        continue
+                    else:
+                        # set it to pending. We'll send a notif
+                        rel12.reset()
+                        rel12.set_context(cctx1)
                 else:
                     #create wizcard1->wizcard2
-                    if not rel12:
-                        cctx1 = ConnectionContext(
-                            asset_obj=wizcard,
-                            connection_mode=receiver_type,
-                            location=location_str
-                        )
+                    rel12 = Wizcard.objects.cardit(wizcard,
+                                                   r_wizcard,
+                                                   status=verbs.PENDING,
+                                                   cctx=cctx1)
+                #Q notif for to_wizcard
+                notify.send(self.user, recipient=r_user,
+                            verb=verbs.WIZREQ_T[0] if receiver_type ==
+                                                      verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T] else
+                            verbs.WIZREQ_U[0],
+                            target=wizcard,
+                            action_object=rel12)
 
-                        rel12 = Wizcard.objects.cardit(wizcard,
-                                                       r_wizcard,
-                                                       status=verbs.PENDING,
-                                                       cctx=cctx1)
-                        #Q notif for to_wizcard
-
-                    # This need not be in the if not rel12 clause as we guarantee that rel12 is created by now
-                    # And in case of reconnect (after delete on both sides) rel12 will be there already but we still need to send notifs
-
-                    notify.send(self.user, recipient=r_user,
-                                verb=verbs.WIZREQ_T[0] if receiver_type ==
-                                                          verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T]
-                                                        else verbs.WIZREQ_U[0],
-                                    target=wizcard,
-                                    action_object=rel12)
-
-                    #Context should always have the from_wizcard and for the time being sender's location - Still debating
-                    cctx2 = ConnectionContext(
-                        asset_obj=r_wizcard,
-                        connection_mode=receiver_type,
-                        location=location_str
-                    )
-
-                    #create and accept implicitly wizcard2->wizcard1
+                rel21 = r_wizcard.get_relationship(wizcard)
+                #Context should always have the from_wizcard and for the time being sender's location - Still debating
+                cctx2 = ConnectionContext(
+                    asset_obj=r_wizcard,
+                    connection_mode=receiver_type,
+                    location=location_str
+                )
+                # reverse connection, if exists, has to be PENDING
+                # otherwise, would have been follwer-d
+                if rel21:
+                    if rel21.status != verbs.DECLINED and rel21.status != verbs.DELETED:
+                        # something's not right.
+                        self.response.error_response(err.INVALID_STATE)
+                        continue
+                    else:
+                        rel21.set_context(cctx2)
+                else:
+                    # create and accept implicitly wizcard2->wizcard1
                     rel21 = Wizcard.objects.cardit(r_wizcard,
                                                    wizcard,
                                                    verbs.ACCEPTED,
                                                    cctx=cctx2
                                                    )
 
-                    # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
-                    # let server push this via notif 1.
-                    notify.send(r_user, recipient=self.user,
-                                verb=verbs.WIZREQ_T_HALF[0],
-                                target=r_wizcard,
-                                action_object=rel21)
+                # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
+                # let server push this via notif 1.
+                notify.send(r_user, recipient=self.user,
+                            verb=verbs.WIZREQ_T_HALF[0],
+                            target=r_wizcard,
+                            action_object=rel21)
 
-                    count += 1
-                    status.append(dict(
-                        status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
-                        wizCardID=r_wizcard.id)
-                    )
+                count += 1
+                status.append(dict(
+                    status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
+                    wizCardID=r_wizcard.id)
+                )
             self.response.add_data("count", count)
             self.response.add_data("status", status)
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
@@ -1454,13 +1455,9 @@ class ParseMsgAndDispatch(object):
             # create future user
             self.do_future_user(table, receiver_type, receivers)
 
-
-            # AA: TODO. an error/info case is when connection already exists.
-            # App can be told about it to pop an "already connected" message
-
         return self.response
 
-    def do_future_user(self, obj, receiver_type, receivers, deadcard=True):
+    def do_future_user(self, obj, receiver_type, receivers):
         for r in receivers:
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
@@ -1480,12 +1477,6 @@ class ParseMsgAndDispatch(object):
                         #Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZREQ_U[0],
-                                    target=obj,
-                                    action_object=rel12)
-                    elif rel12.status is verbs.ACCEPTED:
-                        # transition it from half to full
-                        notify.send(self.user, recipient=wizcard.user,
-                                    verb=verbs.WIZREQ_T[0],
                                     target=obj,
                                     action_object=rel12)
                     elif rel12.status is verbs.DECLINED or \
@@ -1514,7 +1505,7 @@ class ParseMsgAndDispatch(object):
                     elif rel21.status is verbs.DECLINED or \
                                     rel21.status is verbs.DELETED:
                         # if declined/deleted, follower-d case, full card can be added
-                        rel21.cctx=cctx2
+                        rel21.set_context(cctx2)
                         rel21.accept()
 
                         notify.send(wizcard.user, recipient=self.user,
@@ -1539,20 +1530,13 @@ class ParseMsgAndDispatch(object):
                     sendmail.delay(self.user.wizcard, r, template="emailinfo")
 
             else:
-                fphone = r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else None
-                femail = r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else None
-                future_users = FutureUser.objects.check_future_user(
-                    femail,
-                    fphone)
-                if not future_users:
-                    FutureUser(
+                FutureUser.objects.get_or_create(
                         inviter=self.user,
                         content_type=ContentType.objects.get_for_model(obj),
                         object_id=obj.id,
                         phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
                         email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
-                    ).save()
-
+                )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
                     sendmail.delay(self.user.wizcard, r, template="emailinvite")
 
@@ -1932,7 +1916,6 @@ class ParseMsgAndDispatch(object):
             receivers = [deadcard.email]
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
-
                 sendmail.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
             else:
                 self.response.error_response(err.NO_RECEIVER)
@@ -2180,7 +2163,21 @@ class ParseMsgAndDispatch(object):
 
         size = self.sender['size'] if 'size' in self.sender else 10
 
+        # AA: Comments: BIG Overarching comment...please get into the habit
+        # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.
+        # the right side of the editor will have some color if there are any
+        # PEP warnings/errors. Function name starting in uppercase is OK.
+
+        # AA:Comments: Expose this as a model API instead of a direct filter
+        # There will be more and more filtering/conditional checks/splicing
+        # etc as we go forward.
         recos = UserRecommendation.objects.filter(user=self.user,useraction = 3).order_by('-score')[:size]
+
+        # AA: Comments: Refactor below. The model should provide these outputs.
+        # Doing this here will hinder debugging. Typically, the goal is that
+        # all things are model API's. Then its easy to simply call those
+        # from there for any model...also, all active logic pieces are in one
+        # place
         reco_list = []
         for ur in recos:
             reco_list.append(ur.getReco())
@@ -2189,13 +2186,16 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def SetRecoAction(self):
-        recoid = self.sender['recoID']
-        action = self.sender['action']
+        recoid = self.sender['recoID'] if 'recoID' in self.sender else None
+        action = self.sender['action'] if 'action' in self.sender else None
         if not recoid or not action:
             self.response.error_response(err.INVALID_MESSAGE)
             return self.response
 
         recoptr = UserRecommendation.objects.get(id=recoid)
+        # AA: Comments: before below if can happen, an exception will occur
+        # from the get hence above has to be in try except ObjectNotFound with appropriate
+        # sentry log
         if recoptr:
             try:
                 recoptr.setAction(action)

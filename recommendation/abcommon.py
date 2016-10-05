@@ -28,7 +28,24 @@ logger = logging.getLogger(__name__)
 
 from lib.preserialize.serialize import serialize
 
+# AA: Comments: check all the PEP warnings on the right side pane in pycharm.
+# Basic Ones that should be clean are:
+# 1) Tabs, Space (you'll see a yellow highlight in the editor on pycharm wherever those show up)
+# 2) x, y) instead of x,y)
+# 3) Line spacing...single line between methods and 2 lines between classes
 
+# AA: Generic code architecture comment. The layout needs to be modular and extensible
+# have a base class that defines the vectors for running a recommender, gettings its results, setting score logic etc
+# have a singleton set that is used to register these recommenders
+# from the recommenders perspective, it'll be anything that implements those vectors...when it inits, it'll register
+# itself to the top level singleton
+
+# running reco is to run the "run" vector in the base class...from here all things can be controlled...including
+# things like whether it is to run the recommender in celery.as
+
+# Other generic comment: I think your approach is to come up with a quick POC first and then iterate on top of it.
+# I really feel taking a top down approach will payoff much quicker and cleaner. have the higher lever constructs,
+# modularize it from the start...any interfaces that the app needs can be quickly mocked up within the stub methods.
 
 class ABReco (object) :
 
@@ -177,6 +194,7 @@ class WizReco(object):
         recmeta.save()
 
 
+# AA COmments: I'll work on this. Will intergrate it with the existing client
 def callback(ch, method, properties, body):
     body_data = json.loads(body)
 
@@ -198,6 +216,7 @@ def callback(ch, method, properties, body):
             return
 
 
+
     if rmodel == 'ABReco':
         treco = ABReco(wuser)
         reco = treco.getData()
@@ -206,7 +225,8 @@ def callback(ch, method, properties, body):
         reco = treco.getData()
     elif rmodel =='all':
         reco = dict()
-
+# AA Comments: This doesn't look right...callback shouldn't be handling so much
+# Also, can't load .all() like that into memory...wont scale
         wall = Wizcard.objects.all()
 
         for w in wall:
@@ -240,6 +260,8 @@ if __name__ == "__main__":
         treco = WizReco(w.user)
         reco = treco.getData()
 
+    # AA COmments: Why twice ? Also, same comment as above. This needs to be more sophisticated.
+    # Also...why would this be required at all ? Looks like it'll run only once in its lifetime.
     for w in wall:
         treco = ABReco(w.user)
         print "Generating Reco for " + w.user.username

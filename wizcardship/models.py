@@ -434,6 +434,10 @@ class WizConnectionRequest(models.Model):
         self.save()
         return self
 
+    def set_context(self, cctx):
+        self.cctx = cctx
+        self.save()
+
     def cancel(self):
         signals.wizcardship_cancelled.send(sender=self)
         #self.delete()

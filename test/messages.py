@@ -79,7 +79,7 @@ USER1_AB = [
 
 USER2_AB = [
     {
-        'name': "Anand Ammundi",
+        'name': "A Ammundi",
         'phone': [PHONE1, PHONE2],
         'email': [EMAIL1]
     },

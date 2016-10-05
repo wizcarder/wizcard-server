@@ -30,6 +30,10 @@ import pdb
 
 logger = logging.getLogger(__name__)
 
+#AA: COmment: Have a manager class for below, put all global stuff (like serialization) in here
+# things that operate over all instances (ie, exist at the table level) should be in the manager.
+# generation of reco as another example. We will need to use celery to split up the DB into
+# splices and run recos...enabler methods for all that potentially goes here
 
 class Recommendation(models.Model):
     reco_content_type = models.ForeignKey(ContentType,related_name="reco")
@@ -44,6 +48,13 @@ class Recommendation(models.Model):
 
 
 
+# check right hand side for the PEP warnings (too many blank lines, space after ,
+
+# AA: Comment: Keep all models together
+
+
+# AA: This needs to be refactored. I'll take care of it. Lets use LocationServiceClient and Server for this.
+# I'll abstract it out so that it can be used as a platform layer
 
 def addtoQ(**kwargs):
     logger.debug("CAll back in recommendation worked")
@@ -53,6 +64,7 @@ def addtoQ(**kwargs):
     addtoQtask.delay('rectrigger',recotarget,recmodel)
 
 
+# AA: Signal connect goes in the end of the file
 genreco.connect(addtoQ, dispatch_uid='recommendation.models.recommendation')
 
 
@@ -90,6 +102,16 @@ class UserRecommendation(models.Model):
         reco_dict = dict()
         if self.reco.reco_content_type == ContentType.objects.get(model='addressbook'):
             ab_object = AddressBook.objects.get(pk=self.reco.reco_object_id)
+
+            # AA: COmments directly calling serialize is not correct and prone to errors. This has to go
+            # via a custom serialize with the fields specifically called out.
+
+            # also why is serialize being done here ? it's best to do it in the end at the
+            # reco_dict level. This way is very hacky. You want to extract the appropriate params
+            # out from AB object (Via an method in AB Object) and use that here instead of serialize
+
+            # lastly, wouldn't the type tell the app what kind of reco it is ? shouldn't have the key called
+            # 'addressbook' and 'wizcard'...should be a common name
             reco_dict['addressbook'] = ab_object.serialize()
             reco_dict['type'] = self.reco.reco_content_type.model
             reco_dict['recoid'] = self.pk
@@ -122,12 +144,3 @@ class RecommenderMeta(models.Model):
     modelscore = models.DecimalField(max_digits=5, decimal_places=2,default=0)
     recomodel = models.IntegerField(choices=MODELS)
     userrecommend = models.ForeignKey(UserRecommendation)
-
-
-
-
-
-        
-
-
-
