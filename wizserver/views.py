@@ -508,7 +508,6 @@ class ParseMsgAndDispatch(object):
                 if len(phone_list):
                     do_phone = True
 
-                pdb.set_trace()
                 phoneEntryList = list(set([AB_Candidate_Phones.objects.get(phone=x)
                                   for x in phone_list if AB_Candidate_Phones.objects.filter(phone=x).exists()]))
 
@@ -931,10 +930,20 @@ class ParseMsgAndDispatch(object):
             # now we know that the App has acted upon this notification
             # we will use this flag during resync notifs and send unacted-upon
             # notifs to user
-            n.set_acted()
+            n.set_acted(True)
 
-        # add-to-rolodex case. Happens when user had previously declined/deleted this guy
-        if reaccept:
+        # check err 25 case
+        rel21 = wizcard2.get_relationship(wizcard1)
+        if rel21:
+            if rel21.status is verbs.DELETED:
+                self.response.error_response(err.REVERSE_INVITE)
+                # remove arrow and set to clean state
+                Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+                return self.response
+            else:
+                Wizcard.objects.becard(wizcard2, wizcard1)
+        elif reaccept:
+            # add-to-rolodex case. Happens when user had previously declined/deleted this guy
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
                     self.userprofile.location.get().lat,
@@ -949,12 +958,11 @@ class ParseMsgAndDispatch(object):
                 connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U],
                 location=location_str
             )
+            Wizcard.objects.becard(wizcard2, wizcard1, cctx)
 
         if wizcard1.get_relationship(wizcard2).status == verbs.DELETED:
             verb1 = verbs.WIZREQ_T_HALF[0]
             verb2 = None
-
-        rel21 = Wizcard.objects.becard(wizcard2, wizcard1, cctx)
 
         # Q notif to both sides.
         notify.send(self.r_user,
@@ -993,9 +1001,14 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
-        if wizcard2.get_relationship(wizcard1):
-            Wizcard.objects.uncard(wizcard2, wizcard1)
-        else:
+        try:
+            rel21 = wizcard2.get_relationship(wizcard1)
+            if rel21.status is verbs.PENDING:
+                Wizcard.objects.uncard(wizcard2, wizcard1)
+            elif rel21.status is verbs.DECLINED:
+                # error 25 scenario for declined case. We need to remove this arrow
+                Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+        except ObjectDoesNotExist:
             logger.info("Relationship Doesnt Exist: %s to %s", wizcard2, wizcard1)
 
         n_id = self.sender['notif_id']
@@ -1004,7 +1017,7 @@ class ParseMsgAndDispatch(object):
         # now we know that the App has acted upon this notification
         #  we will use this flag during resync notifs and send unacted-upon
         #  notifs to user
-        n.set_acted()
+        n.set_acted(True)
 
         return self.response
 
@@ -1033,21 +1046,25 @@ class ParseMsgAndDispatch(object):
                     wizcard2 = Wizcard.objects.get(id=w_id)
                     # If this is a delete right after an invite was sent by wizcard1 then we have to remove
                     # notif 2 for wizcard2 and set rel to clean state
-                    notfns =  Notification.objects.filter(
+                    n = Notification.objects.filter(
                             recipient=wizcard2.user,
                             target_object_id=wizcard1.id,
                             readed=False,
                             verb=verbs.WIZREQ_U[0])
-                    if notfns:
-                        map(lambda x: x.delete(), notfns)
-
+                    if n.count():
+                        map(lambda x: x.delete(), n)
                         Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
                         Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
+                    elif Notification.objects.filter(
+                            recipient=wizcard2.user,
+                            target_object_id=wizcard1.id,
+                            acted_upon=False,
+                            verb=verbs.WIZREQ_U[0]).exists():
+                        # error 25 trigger. We will set w1->w2(Deleted), then use this as a trigger
+                        # for Error25 generation when the action comes in
+                        Wizcard.objects.uncardit(wizcard1, wizcard2)
                     else:
-                        # wizcard2.user knows about this connection so he has to either
-                        # accept or decline which takes its own course or
-                        # its an already existing connection which turns this into a half card f
-                        # or Wizcard2.user set to deleted state
+                        # regular case.
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
                         # Q a notif to other guy so that the app on the other side can react
                         notify.send(self.user, recipient=wizcard2.user,
@@ -1201,7 +1218,6 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-
     def WizcardFlickWithdraw(self):
         try:
             self.flicked_card = WizcardFlick.objects.get(id=self.sender['flickCardID'])
@@ -1337,7 +1353,6 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         return self.response
-
 
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
