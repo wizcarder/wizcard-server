@@ -411,6 +411,24 @@ class AddressBook(models.Model):
             else:
                 return ""
 
+    def get_all_phones(self):
+        if self.phone_finalized:
+            return [self.phone]
+        else:
+            if self.candidate_phones.all():
+                return self.candidate_phones.all()
+            else:
+                return []
+
+    def get_all_emails(self):
+        if self.email_finalized:
+            return [self.email]
+        else:
+            if self.candidate_emails.all():
+                return self.candidate_emails.all()
+            else:
+                return []
+
     def get_email(self):
         if self.email_finalized:
             return self.email
@@ -419,6 +437,8 @@ class AddressBook(models.Model):
                 return wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))[0]
             else:
                 return ""
+
+
 
     def get_name(self):
         first_name = \
