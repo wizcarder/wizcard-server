@@ -1573,8 +1573,9 @@ class ParseMsgAndDispatch(object):
         #send back to app for selection
 
         if count:
-            users_s = Wizcard.objects.serialize(result,
-                                                template=fields.wizcard_template_brief)
+            users_s = UserProfile.objects.serialize_split(
+                self.user,
+                map(lambda x: x.user, result))
             self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
 

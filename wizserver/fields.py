@@ -150,9 +150,12 @@ cctx_wizcard_template = {
     'key_map' : {'wizcard' : 'asset_obj'},
     'related' : {'asset_obj' : wizcard_template_micro}
 }
+
 addressbook_template = {
-	'fields' : ['id','phone', 'email','name'],
-	'key_map' : {'phone' : 'get_phone',
-		        'email' : 'get_email',
-                'name' : 'get_name'}
+    'fields' : ['id','phone', 'email','name'],
+    'key_map' : {''
+                 'phone' : 'get_phone',
+                 'email' : 'get_email',
+                 'name' : 'get_name'
+                 }
 }
