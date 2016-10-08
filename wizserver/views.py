@@ -1380,10 +1380,7 @@ class ParseMsgAndDispatch(object):
                         location=location_str)
 
                 if rel12:
-                    # wizcard->r_wizcard exists previously ?. This could/should
-                    # happen if other guy had declined/deleted. In this case, we're
-                    # sending the tag as "others", thus allowing sender to send
-                    # a connect request.
+                    # wizcard->r_wizcard exists previously ? Should only happen if deleted/declined
                     if rel12.status != verbs.DECLINED and rel12.status != verbs.DELETED:
                         # something's not right.
                         self.response.error_response(err.EXISTING_CONNECTION)
@@ -1413,15 +1410,17 @@ class ParseMsgAndDispatch(object):
                     connection_mode=receiver_type,
                     location=location_str
                 )
-                # reverse connection, if exists, has to be PENDING
-                # otherwise, would have been follwer-d
+
+                # reverse connection, if exists, should be deleted/declined
                 if rel21:
                     if rel21.status != verbs.DECLINED and rel21.status != verbs.DELETED:
                         # something's not right.
                         self.response.error_response(err.INVALID_STATE)
                         continue
                     else:
+                        # set it to accepted. We'll send a notif
                         rel21.set_context(cctx2)
+                        rel21.accept()
                 else:
                     # create and accept implicitly wizcard2->wizcard1
                     rel21 = Wizcard.objects.cardit(r_wizcard,
