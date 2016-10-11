@@ -416,7 +416,7 @@ class AddressBook(models.Model):
             return [self.phone]
         else:
             if self.candidate_phones.all():
-                return map(lambda x: x.phone, self.candidate_phones.all())
+                return [wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))[0]]
             else:
                 return []
 
@@ -425,7 +425,7 @@ class AddressBook(models.Model):
             return [self.email]
         else:
             if self.candidate_emails.all():
-                return map(lambda x: x.email, self.candidate_emails.all())
+                return [wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))[0]]
             else:
                 return []
 
