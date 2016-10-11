@@ -1,24 +1,21 @@
 #!/usr/bin/env python
-
 import sys
+import pdb
+
 sys.path.append(".")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
-from base.db import WizcardDB
-#from base.rds_db import WizcardDB
-from server import LocationServiceServer
+#from base.db import WizcardDB
+from base.rds_db import WizcardDB
+from server import RabbitServer
 from wizcard import settings
-from wizcard import instances
+import rconfig
 import pika
-import uuid
-import heapq
+
 import json
 import logging
-import rconfig
-import pdb
-import daemon
-import os
+
 
 DEFAULT_MAX_LOOKUP_RESULTS = 10
 
@@ -36,12 +33,9 @@ else:
 
 logger = logging.getLogger(__name__)
 
-class TreeServer(LocationServiceServer):
+class TreeServer(RabbitServer):
 
     def __init__(self, *args, **kwargs):
-
-        RUNENV = kwargs.pop('RUNENV')
-
         super(TreeServer, self).__init__(*args, **kwargs)
         self.ptree = trie()
         self.vtree = trie()
@@ -64,7 +58,7 @@ class TreeServer(LocationServiceServer):
         logger.info('initing trees from db')
 
         sdict = settings.DATABASES['default']
-        logger.info('initing trees from %s, %s',sdict['HOST'], RUNENV)
+        logger.info('initing trees from %s, %s',sdict['HOST'])
 
         wdb = WizcardDB(
                 socket=sdict['HOST'],
@@ -74,7 +68,7 @@ class TreeServer(LocationServiceServer):
         )
 
         wdb.table_select('select * from location_mgr_locationmgr')
-        for row in wdb.ResultIter(wdb.cursor):
+        for row in wdb.ResultIter():
                 pk = row[0]
                 key = row[3]
                 tree_type = row[4]
@@ -213,21 +207,17 @@ class TreeServer(LocationServiceServer):
         #one result is over and one is under. take the larger one
         return (result, count) if count > prev_count else (prev_result, prev_count)
 
+
+import daemon
 def main():
     logging.basicConfig(level=logging.INFO)
     isdaemon = False
-    RUNENV = os.getenv('WIZRUNENV', 'dev')
     for params in sys.argv:
         if params == '--D' or params == '-daemon':
             isdaemon = True
 
-    amqpuser = settings.LOCATION_USER
-    amqppass = settings.LOCATION_PASS
-#   amqphost = instances.ALLHOSTS[RUNENV]['LOCATIONSERVER'][0]
-    amqphost = settings.BROKER_HOST
-    url = 'amqp://' + amqpuser + ':' + amqppass + '@'+amqphost+':5672'
+    ts = TreeServer(**rconfig.TREE_SERVER_CONFIG)
 
-    ts = TreeServer(url,RUNENV=RUNENV)
     if isdaemon:
         with daemon.DaemonContext():
             ts.run()

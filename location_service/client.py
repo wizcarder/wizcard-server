@@ -4,12 +4,9 @@ import sys
 sys.path.append("../wizcard-server")
 sys.path.append("../wizcard-server/lib")
 
-from lib.pytrie import SortedStringTrie as trie
-from lib import wizlib
+
 import pika
 import uuid
-import heapq
-#from base.borg import Borg
 import rconfig
 import json
 import logging
@@ -26,11 +23,11 @@ BASIC_CONN = 2
 
 logger = logging.getLogger(__name__)
 
-class LocationServiceClient(object):
+class RabbitClient(object):
     def __init__(self, *args, **kwargs):
         self.host = kwargs.get('host', rconfig.HOST)
-        self.exchange = kwargs.get('exchange', rconfig.EXCHANGE)
-        self.routing_key = kwargs.get('routing_key', rconfig.ROUTING_KEY)
+        self.exchange = kwargs.get('exchange', rconfig.DEFAULT_EXCHANGE)
+        self.routing_key = kwargs.get('routing_key', rconfig.DEFAULT_ROUTING_KEY)
         self.connection = None
         self.type = BASIC_CONN
         self.channel = None
@@ -79,6 +76,11 @@ class LocationServiceClient(object):
         if self.corr_id == props.correlation_id:
             self.response = body
             self.channel.stop_consuming()
+
+
+class TreeStateClient(RabbitClient):
+    def __init__(self):
+        super(TreeStateClient, self).__init__(**rconfig.TREE_SERVER_CONFIG)
 
     def tree_insert(self, **kwargs):
         kwargs['fn'] = TREE_INSERT

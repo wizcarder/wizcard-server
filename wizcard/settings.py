@@ -14,17 +14,8 @@ from kombu import Queue, Exchange
 from wizcard import instances
 
 TEST = False
-SHELL_PLUS="bpython"
-RUNENV = os.getenv('WIZRUNENV','dev')
-BROKER_TRANSPORT = 'amqp'
-BROKER_USER = 'wizcard_user'
-LOCATION_USER = 'location_user'
-LOCATION_PASS = 'location_pass'
-BROKER_PASSWORD = 'wizcard_pass'
-BROKER_HOST = 'localhost'
-BROKER_PORT = 5672
-BROKER_VHOST = 'wizcard_vhost'
-BROKER_URL = 'amqp://wizcard_user:wizcard_pass@localhost:5672/wizcard_vhost'
+#SHELL_PLUS="bpython"
+RUNENV = os.getenv('WIZRUNENV', 'dev')
 
 APP_MAJOR = 1
 APP_MINOR = 6
@@ -93,7 +84,7 @@ CELERYBEAT_SCHEDULE = {
 
 DEBUG = False
 if RUNENV != 'prod':
-	DEBUG = False
+    DEBUG = False
 ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
@@ -106,44 +97,37 @@ MANAGERS = ADMINS
 
 if RUNENV == 'dev':
     DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard-dev',
-	        'USER': 'kappu',
-	        'PASSWORD': '',
-    	        'HOST': '',
-		'PORT': '5432',
-		'CONN_MAX_AGE' : 60,
-	    }
-#    DATABASES = {
-#	    'default': {
-#	        'ENGINE': 'django.db.backends.mysql',
-#	        'NAME': 'wizcard',
-#	        'USER': 'root',
-#	        'PASSWORD': 'mydb',
-#                'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
-#	    }
+        'default': {
+            #'ENGINE': 'django.db.backends.mysql',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard',
+            #'USER': 'root',
+            #'PASSWORD': '',
+            'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+            # 'PORT': '5432',
+            # 'CONN_MAX_AGE' : 60,
+        }
 
     }
-elif RUNENV == 'test': 
+elif RUNENV == 'test':
     DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
-	    }
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard',
+            'USER': 'wizuser',
+            'PASSWORD': 'gowizcard',
+            'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+        }
     }
 elif RUNENV == 'prod':
     DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard-prod',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'gowizcard',
-		'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
-	    }
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard-prod',
+            'USER': 'wizuser',
+            'PASSWORD': 'gowizcard',
+            'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+        }
     }
 
 # Local time zone for this installation. Choices can be found here:

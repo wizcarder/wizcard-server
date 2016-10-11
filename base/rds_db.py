@@ -17,7 +17,7 @@ class WizcardDB(object):
         self.cursor.execute(query)
         
     #An iterator that uses fetchmany to keep memory usage down"
-    def ResultIter(self, cursor, arraysize=1000):
+    def ResultIter(self, arraysize=1000):
         while True:
             results = self.cursor.fetchmany(arraysize)
             if not results:
@@ -27,7 +27,7 @@ class WizcardDB(object):
 
     # Fetch a single row using fetchone() method.
     def fetch_one(self):
-        self.data = cursor.fetchone()
+        self.data = self.cursor.fetchone()
 
     # disconnect from server
     def close(self):

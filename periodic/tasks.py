@@ -3,14 +3,14 @@ from celery.contrib import rdb
 from periodic.models import Periodic, PeriodicManager
 from location_mgr.models import LocationMgr
 from location_mgr.signals import location_timeout
-from location_service.client import LocationServiceClient
+from location_service.client import TreeStateClient
 import logging
 
 logger = logging.getLogger(__name__)
 @task(ignore_result=True)
 def tick():
     logger.debug('Timer Tick received')
-    tsc = LocationServiceClient()
+    tsc = TreeStateClient()
     tsc.print_trees(tree_type=None)
     e = Periodic.objects.get_expired()
     if e.count():
