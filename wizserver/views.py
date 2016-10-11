@@ -898,12 +898,12 @@ class ParseMsgAndDispatch(object):
     # B has A's wizcard in roldex
     def WizcardAccept(self):
         status = []
-        cctx = None
         verb1 = verbs.WIZREQ_T[0]
         verb2 = verbs.WIZREQ_T[0]
 
         try:
             wizcard1 = self.user.wizcard
+            flag = self.sender.get('flag', "accept")
             reaccept = self.sender.get('reaccept', False)
             #AA TODO: Change to wizcardID
 
@@ -929,17 +929,8 @@ class ParseMsgAndDispatch(object):
                 # notifs to user
                 Notification.objects.get(id=self.sender['notif_id']).set_acted(True)
 
-        # check err 25 case
         rel21 = wizcard2.get_relationship(wizcard1)
-        if rel21:
-            if rel21.status is verbs.DELETED:
-                self.response.error_response(err.REVERSE_INVITE)
-                # remove arrow and set to clean state
-                Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
-                return self.response
-            else:
-                Wizcard.objects.becard(wizcard2, wizcard1)
-        elif reaccept:
+        if flag is "reaccept" or flag is "unarchive" or reaccept:
             # add-to-rolodex case. Happens when user had previously declined/deleted this guy
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
@@ -956,6 +947,15 @@ class ParseMsgAndDispatch(object):
                 location=location_str
             )
             Wizcard.objects.becard(wizcard2, wizcard1, cctx)
+        elif rel21:
+            # check err 25 case
+            if rel21.status is verbs.DELETED:
+                self.response.error_response(err.REVERSE_INVITE)
+                # remove arrow and set to clean state
+                Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+                return self.response
+            else:
+                Wizcard.objects.becard(wizcard2, wizcard1)
 
         if wizcard1.get_relationship(wizcard2).status == verbs.DELETED:
             verb1 = verbs.WIZREQ_T_HALF[0]
