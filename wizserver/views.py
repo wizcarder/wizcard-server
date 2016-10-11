@@ -923,14 +923,11 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        if 'notif_id' in self.sender:
-            n_id = self.sender['notif_id']
-            n = Notification.objects.get(id=n_id)
-
-            # now we know that the App has acted upon this notification
-            # we will use this flag during resync notifs and send unacted-upon
-            # notifs to user
-            n.set_acted(True)
+        if 'notif_id' in self.sender and self.sender['notif_id']:
+                # now we know that the App has acted upon this notification
+                # we will use this flag during resync notifs and send unacted-upon
+                # notifs to user
+                Notification.objects.get(id=self.sender['notif_id']).set_acted(True)
 
         # check err 25 case
         rel21 = wizcard2.get_relationship(wizcard1)
