@@ -904,7 +904,6 @@ class ParseMsgAndDispatch(object):
         try:
             wizcard1 = self.user.wizcard
             flag = self.sender.get('flag', "accept")
-            reaccept = self.sender.get('reaccept', False)
             #AA TODO: Change to wizcardID
 
             try:
@@ -930,7 +929,7 @@ class ParseMsgAndDispatch(object):
                 Notification.objects.get(id=self.sender['notif_id']).set_acted(True)
 
         rel21 = wizcard2.get_relationship(wizcard1)
-        if flag is "reaccept" or flag is "unarchive" or reaccept:
+        if flag is "reaccept" or flag is "unarchive":
             # add-to-rolodex case. Happens when user had previously declined/deleted this guy
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
