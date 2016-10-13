@@ -19,25 +19,28 @@ for hosts in TEST_AWSHOSTS:
 
 ALLHOSTS = {
     'stage': {
-        'RABBITSERVER': [STG_AWSHOSTS[0]],
+        'RECOSERVER': STG_AWSHOSTS,
+        'LOCATIONSERVER':[STG_AWSHOSTS[0]],
         'WIZSERVER': STG_AWSHOSTS,
         'NGINX': STG_AWSHOSTS,
         'MEMCACHE': stg_memcache_hosts,
     },
     'dev': {
-        'RABBITSERVER': DEV_AWSHOSTS,
+        'RECOSERVER': DEV_AWSHOSTS,
         'WIZSERVER': DEV_AWSHOSTS,
         'NGINX': DEV_AWSHOSTS,
         'MEMCACHE': DEV_AWSHOSTS,
     },
     'test': {
         'RABBITSERVER': TEST_AWSHOSTS,
+        'LOCATIONSERVER': TEST_AWSHOSTS,
         'WIZSERVER': TEST_AWSHOSTS,
         'NGINX': TEST_AWSHOSTS,
         'MEMCACHE': TEST_AWSHOSTS,
     },
     'prod': {
-        'RABBITSERVER': [PROD_AWSHOSTS[0]],
+        'LOCATIONSERVER': [PROD_AWSHOSTS[0]],
+        'RABBITSERVER': PROD_AWSHOSTS,
         'WIZSERVER': PROD_AWSHOSTS,
         'NGINX': PROD_AWSHOSTS,
         'MEMCACHE': prod_memcache_hosts,
