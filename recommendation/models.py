@@ -24,8 +24,6 @@ import json
 import logging
 import pika
 
-import pdb
-
 # Create your models here.
 
 logger = logging.getLogger(__name__)
@@ -36,22 +34,16 @@ logger = logging.getLogger(__name__)
 # splices and run recos...enabler methods for all that potentially goes here
 
 class Recommendation(models.Model):
-    reco_content_type = models.ForeignKey(ContentType,related_name="reco")
+    reco_content_type = models.ForeignKey(ContentType, related_name="reco")
     reco_object_id = models.PositiveIntegerField()
-    reco = generic.GenericForeignKey('reco_content_type','reco_object_id')
-    recommendation_for = models.ManyToManyField(User,through='UserRecommendation',symmetrical=False)
-
+    reco = generic.GenericForeignKey('reco_content_type', 'reco_object_id')
+    recommendation_for = models.ManyToManyField(User, through='UserRecommendation', symmetrical=False)
 
     def getRecoObject(self):
         pass
 
-
-
-
-# check right hand side for the PEP warnings (too many blank lines, space after ,
-
+# check right hand side for the PEP warnings (too many blank lines, space after , 
 # AA: Comment: Keep all models together
-
 
 # AA: This needs to be refactored. I'll take care of it. Lets use LocationServiceClient and Server for this.
 # I'll abstract it out so that it can be used as a platform layer
@@ -60,15 +52,11 @@ def addtoQ(**kwargs):
     logger.debug("CAll back in recommendation worked")
     kwargs.pop('signal', None)
     recotarget = kwargs.pop('recotarget')
-    recmodel = kwargs.pop('recmodel')
-    addtoQtask.delay('rectrigger',recotarget,recmodel)
+    addtoQtask(recotarget)
 
 
 # AA: Signal connect goes in the end of the file
 genreco.connect(addtoQ, dispatch_uid='recommendation.models.recommendation')
-
-
-
 
 
 class UserRecommendation(models.Model):
@@ -79,21 +67,21 @@ class UserRecommendation(models.Model):
     New = 3
 
     MODELS = (
-        (0,'AB_RECO'),
+        (0, 'AB_RECO'), 
         (1, 'WIZCONNECTIONS_RECO')
     )
 
     ACTIONS = (
 
-        (Viewed, 'VIEWED'),
-        (Acted, 'ACTED'),
-        (Dismissed, 'DISMISSED'),
-	    (New, 'NEW'),
+        (Viewed, 'VIEWED'), 
+        (Acted, 'ACTED'), 
+        (Dismissed, 'DISMISSED'), 
+	    (New, 'NEW'), 
     )
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User)
-    reco = models.ForeignKey(Recommendation,related_name='user_recos')
-    useraction = models.PositiveSmallIntegerField(choices=ACTIONS,default = New)
+    reco = models.ForeignKey(Recommendation, related_name='user_recos')
+    useraction = models.PositiveSmallIntegerField(choices=ACTIONS, default = New)
     score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     lastaction_time = models.DateTimeField(auto_now=True)
 
@@ -124,13 +112,10 @@ class UserRecommendation(models.Model):
         if self.reco.reco_content_type == ContentType.objects.get(model='userprofile'):
             pass
 
-
         return reco_dict
 
 
-
-
-    def setAction(self,action=New):
+    def setAction(self, action=New):
 
         self.useraction = action
         self.save()
@@ -138,9 +123,9 @@ class UserRecommendation(models.Model):
 
 class RecommenderMeta(models.Model):
     MODELS = (
-        (0, 'AB_RECO'),
+        (0, 'AB_RECO'), 
         (1, 'WIZCONNECTIONS_RECO')
     )
-    modelscore = models.DecimalField(max_digits=5, decimal_places=2,default=0)
+    modelscore = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     recomodel = models.IntegerField(choices=MODELS)
     userrecommend = models.ForeignKey(UserRecommendation)
