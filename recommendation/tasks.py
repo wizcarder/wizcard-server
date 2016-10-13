@@ -1,29 +1,42 @@
 import json
 import logging
 import pika
+import sys
+sys.path.append("../wizcard-server")
+from location_service import rconfig
+from location_service.client import RabbitClient
 from celery import shared_task,task
 logger = logging.getLogger(__name__)
 
+
+
+class RecoClient(RabbitClient):
+    def __init__(self, *args, **kwargs):
+        super(RecoClient, self).__init__(**rconfig.RECO_Q_CONFIG)
+
+    def gen_allreco(self, **kwargs):
+        kwargs['fn'] = 2 
+        response = self.call(kwargs)
+        return response
+
+    def gen_abreco(self, **kwargs):
+        kwargs['fn'] = 0
+        response = self.call(kwargs)
+        return response
+
+    def gen_wizreco(self, **kwargs):
+        kwargs['fn'] = 1
+        response = self.call(kwargs)
+        return response
+
+
+def addtoQtask(recotarget):
+    recoclient = RecoClient()
+    recoclient.gen_allreco(target=recotarget)
+
 @task(ignore_result=True)
 def triggerRecoAll():
-    addtoQtask.delay('recoall','all','all')
+    recoclient = RecoClient()
+    recoclient.gen_allreco(target='full')
 
-
-@shared_task
-def addtoQtask(recqueue,recotarget,recmodel):
-
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-    channel = connection.channel()
-
-    channel.queue_declare(queue=recqueue)
-
-    body_dict = {'recotarget' : str(recotarget), 'recmodel': recmodel}
-    body_data = json.dumps(body_dict)
-
-
-    channel.basic_publish(exchange='',
-                          routing_key=recqueue,
-                          body=body_data)
-    logger.info("Sending %s to Q", recotarget)
-    connection.close()
 

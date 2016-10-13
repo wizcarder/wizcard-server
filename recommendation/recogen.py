@@ -198,14 +198,30 @@ class RecoRunner(RabbitServer):
 
 
     def runreco(self,target,torun):
-        self.recorunners[torun](target)
+        if target == 'full':
+            i = 0
+            while True:
+                qs = Wizcard.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
+                try:
+                    for rec in qs:
+                        self.recorunners[torun](rec.id)
+
+                except Wizcard.DoesNotExist:
+                    break
+
+                i += 1
+        else:
+
+            self.recorunners[torun](target)
 
     def run_abreco(self,target):
-        abreco_inst = ABReco(target)
+        tuser = Wizcard.objects.get(id=target).user
+        abreco_inst = ABReco(tuser)
         recos = abreco_inst.getData()
 
-    def run_wizreco(self):
-        wizreco_inst = WizReco(target)
+    def run_wizreco(self,target):
+        tuser = Wizcard.objects.get(id=target).user
+        wizreco_inst = WizReco(tuser)
         recos = wizreco_inst.getData()
 
     def run_allreco(self,target):
