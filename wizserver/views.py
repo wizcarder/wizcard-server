@@ -598,7 +598,7 @@ class ParseMsgAndDispatch(object):
 
             # run a candidate selection for the ab_entry
             abEntry.run_finalize_decision()
-            genreco.send(self.user,recotarget=str(self.user.wizcard.id),recmodel='ABReco')
+            genreco.send(self.user,recotarget=str(self.user.wizcard.id))
 
         return self.response
 
@@ -691,8 +691,8 @@ class ParseMsgAndDispatch(object):
                     logger.warning('Recommendation Action failed for %s', str(recid))
                     pass
             if recoactions:
-                genreco.send(self.user, recotarget=str(self.user.wizcard.id), recmodel='WizReco')
-                genreco.send(self.user, recotarget=str(self.user.wizcard.id), recmodel='ABReco')
+                genreco.send(self.user, recotarget=str(self.user.wizcard.id))
+                genreco.send(self.user, recotarget=str(self.user.wizcard.id))
 
         if self.lat is None and self.lng is None:
             try:
