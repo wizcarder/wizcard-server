@@ -18,7 +18,7 @@ BROKER_VHOST = 'wizcard_vhost'
 
 
 # URLS
-AMPQ_DEFAULT_URL = 'amqp://' + BROKER_USER + ':' + BROKER_PASSWORD + '@'+ BROKER_HOST +':5672'
+AMPQ_DEFAULT_URL = 'amqp://' + BROKER_USER + ':' + BROKER_PASSWORD + '@'+ BROKER_HOST +':5672' + '/' + BROKER_VHOST
 AMPQ_TREE_URL = 'amqp://' + TREE_USER + ':' + TREE_PASSWORD + '@'+ BROKER_HOST +':5672'
 
 
