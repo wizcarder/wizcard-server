@@ -202,16 +202,14 @@ class RecoRunner(RabbitServer):
             i = 0
             while True:
                 qs = Wizcard.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
-                try:
+                if qs:
                     for rec in qs:
                         self.recorunners[torun](rec.id)
-
-                except Wizcard.DoesNotExist:
+                else:
                     break
 
                 i += 1
         else:
-
             self.recorunners[torun](target)
 
     def run_abreco(self,target):
