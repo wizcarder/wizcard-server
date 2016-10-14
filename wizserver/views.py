@@ -598,7 +598,7 @@ class ParseMsgAndDispatch(object):
 
             # run a candidate selection for the ab_entry
             abEntry.run_finalize_decision()
-            genreco.send(self.user,recotarget=str(self.user))
+            genreco.send(self.user,recotarget=str(self.user.id))
 
         return self.response
 
