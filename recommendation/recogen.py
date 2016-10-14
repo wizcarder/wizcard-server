@@ -11,7 +11,7 @@ sys.path.append("../wizcard-server")
 sys.path.append("../wizcard-server/location_service")
 
 from rabbit_service.server import RabbitServer
-from rabbit_service import rconfig
+import rconfig
 
 from django.core.wsgi import get_wsgi_application
 from userprofile.models import *
@@ -217,7 +217,7 @@ class RecoRunner(RabbitServer):
         except:
             pass
         if tuser:
-            abreco_inst = ABReco(target)
+            abreco_inst = ABReco(tuser)
             recos = abreco_inst.getData()
 
     def run_wizreco(self,target):
@@ -227,7 +227,7 @@ class RecoRunner(RabbitServer):
         except:
             pass
         if tuser:
-            wizreco_inst = WizReco(target)
+            wizreco_inst = WizReco(tuser)
             recos = wizreco_inst.getData()
 
     def run_allreco(self,target):
@@ -300,14 +300,14 @@ import daemon
 def main():
     logging.basicConfig(level=logging.INFO)
     isdaemon = False
-    QCONFIG = rconfig.RECO_Q_CONFIG
+    QCONFIG = rconfig.RECO_TRIGGER_CONFIG
     for params in sys.argv:
         if params == '--D' or params == '-daemon':
             isdaemon = True
         if params == 'trigger':
-            QCONFIG = rconfig.RECO_Q_CONFIG
+            QCONFIG = rconfig.RECO_TRIGGER_CONFIG
         if params == 'full':
-            QCONFIG == rconfig.RECO_Q_CONFIG
+            QCONFIG = rconfig.RECO_PERIODIC_CONFIG
 
     ts = RecoRunner(**QCONFIG)
 
