@@ -213,6 +213,7 @@ class RecoRunner(RabbitServer):
             self.recorunners[torun](target)
 
     def run_abreco(self,target):
+        tuser = None
         try:
             tuser = User.objects.get(id=target)
         except:
@@ -222,6 +223,7 @@ class RecoRunner(RabbitServer):
             recos = abreco_inst.getData()
 
     def run_wizreco(self,target):
+        tuser = None
         try:
             tuser = User.objects.get(id=target)
         except:
