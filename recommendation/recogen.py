@@ -213,13 +213,19 @@ class RecoRunner(RabbitServer):
             self.recorunners[torun](target)
 
     def run_abreco(self,target):
-        tuser = User.objects.get(id=target)
+        try:
+            tuser = User.objects.get(id=target)
+        except:
+            pass
         if tuser:
             abreco_inst = ABReco(target)
             recos = abreco_inst.getData()
 
     def run_wizreco(self,target):
-        tuser = User.objects.get(id=target)
+        try:
+            tuser = User.objects.get(id=target)
+        except:
+            pass
         if tuser:
             wizreco_inst = WizReco(target)
             recos = wizreco_inst.getData()
