@@ -294,16 +294,16 @@ import daemon
 def main():
     logging.basicConfig(level=logging.INFO)
     isdaemon = False
-    QCONFIG = **rconfig.RECO_TRIGGER_CONFIG
+    QCONFIG = rconfig.RECO_Q_CONFIG
     for params in sys.argv:
         if params == '--D' or params == '-daemon':
             isdaemon = True
         if params == 'trigger':
-            QCONFIG = **rconfig.RECO_TRIGGER_CONFIG
+            QCONFIG = rconfig.RECO_Q_CONFIG
         if params == 'full':
-            QCONFIG == **rconfig.RECO_PERIODIC_CONFIG
+            QCONFIG == rconfig.RECO_Q_CONFIG
 
-    ts = RecoRunner(QCONFIG)
+    ts = RecoRunner(**QCONFIG)
 
     if isdaemon:
         with daemon.DaemonContext():
