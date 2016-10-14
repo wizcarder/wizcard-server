@@ -7,17 +7,10 @@ sys.path.append("../wizcard-server/lib")
 
 import pika
 import uuid
-import rconfig
+from rabbit_service import rconfig
 import json
 import logging
-import pdb
 
-DEFAULT_MAX_LOOKUP_RESULTS = 10
-
-TREE_INSERT = 1
-TREE_DELETE = 2
-TREE_LOOKUP = 3
-PRINT_TREES = 4
 RPC_CONN = 1
 BASIC_CONN = 2
 
@@ -76,29 +69,3 @@ class RabbitClient(object):
         if self.corr_id == props.correlation_id:
             self.response = body
             self.channel.stop_consuming()
-
-
-class TreeStateClient(RabbitClient):
-    def __init__(self):
-        super(TreeStateClient, self).__init__(**rconfig.TREE_SERVER_CONFIG)
-
-    def tree_insert(self, **kwargs):
-        kwargs['fn'] = TREE_INSERT
-        response = self.call(kwargs)
-        return response
-
-    def tree_delete(self, **kwargs):
-        kwargs['fn'] = TREE_DELETE
-        response = self.call(kwargs)
-        return response
-
-    def lookup(self, **kwargs):
-        kwargs['fn'] = TREE_LOOKUP
-        response = self.call(kwargs, rpc=True)
-        return response['result'], response['count']
-
-    def print_trees(self, **kwargs):
-        kwargs['fn'] = PRINT_TREES
-        response = self.call(kwargs, rpc=True)
-        #print response
-        return response

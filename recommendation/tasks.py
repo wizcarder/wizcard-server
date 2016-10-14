@@ -1,11 +1,9 @@
-import json
 import logging
-import pika
 import sys
 sys.path.append("../wizcard-server")
-from location_service import rconfig
-from location_service.client import RabbitClient
-from celery import shared_task,task
+from rabbit_service import rconfig
+from rabbit_service.client import RabbitClient
+from celery import shared_task, task
 logger = logging.getLogger(__name__)
 
 

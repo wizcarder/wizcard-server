@@ -1,10 +1,10 @@
-from celery import task
-from celery.contrib import rdb
-from periodic.models import Periodic, PeriodicManager
-from location_mgr.models import LocationMgr
-from location_mgr.signals import location_timeout
-from location_service.client import TreeStateClient
 import logging
+
+from celery import task
+
+from periodic.models import Periodic
+from location_mgr.signals import location_timeout
+from location_service.tree_state_client import TreeStateClient
 
 logger = logging.getLogger(__name__)
 @task(ignore_result=True)

@@ -1,8 +1,6 @@
 #import ...
-from collections import OrderedDict
-import os,sys
-import logging
-import pdb
+import os
+import sys
 from decimal import *
 
 proj_path="."
@@ -12,27 +10,15 @@ sys.path.append(proj_path)
 sys.path.append("../wizcard-server")
 sys.path.append("../wizcard-server/location_service")
 
-from wizserver import verbs
-from wizserver import fields
-from wizcardship.models import WizConnectionRequest,Wizcard
-from base.cctx import *
-from lib.preserialize.serialize import serialize
-from location_service.server import RabbitServer
-from location_service import rconfig
-import pika
-import time
-import json
+from rabbit_service.server import RabbitServer
+from rabbit_service import rconfig
 
 from django.core.wsgi import get_wsgi_application
 from userprofile.models import *
 from recommendation.models import *
 application = get_wsgi_application()
 
-from django.core.cache import cache
-
 logger = logging.getLogger(__name__)
-
-from lib.preserialize.serialize import serialize
 
 # AA: Comments: check all the PEP warnings on the right side pane in pycharm.
 # Basic Ones that should be clean are:
