@@ -2181,7 +2181,7 @@ class ParseMsgAndDispatch(object):
         # AA:Comments: Expose this as a model API instead of a direct filter
         # There will be more and more filtering/conditional checks/splicing
         # etc as we go forward.
-        recos = UserRecommendation.objects.filter(user=self.user,useraction = 3).order_by('-score')[:size]
+        recos = UserRecommendation.objects.filter(user=self.user,useraction__in = [0,3]).order_by('-score')[:size]
 
         # AA: Comments: Refactor below. The model should provide these outputs.
         # Doing this here will hinder debugging. Typically, the goal is that
