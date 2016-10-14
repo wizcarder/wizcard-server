@@ -692,7 +692,6 @@ class ParseMsgAndDispatch(object):
                     pass
             if recoactions:
                 genreco.send(self.user, recotarget=str(self.user.id))
-                genreco.send(self.user, recotarget=str(self.user.id))
 
         if self.lat is None and self.lng is None:
             try:
