@@ -95,6 +95,13 @@ class ABReco (RecoModel) :
         if not abentries:
             return {}
 
+        #Check if this user has a active wizcard
+        try:
+            twizcard = self.recotarget.wizcard
+        except:
+            return
+
+
         # Get all the wizcards connected to this user who has a wizcard
         wizusers = map(lambda x:x.user,self.recotarget.wizcard.get_connections())
 
@@ -166,7 +173,12 @@ class WizReco(RecoModel):
         self.recomodel = 1
 
     def getData(self):
-        targetwizcard = self.recotarget.wizcard
+        
+        targetwizcard = None
+        try:
+            targetwizcard = self.recotarget.wizcard
+        except:
+            return
         recodict = dict()
 
         for hop1 in targetwizcard.get_connections():
