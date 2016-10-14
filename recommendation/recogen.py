@@ -81,6 +81,13 @@ class ABReco (RecoModel) :
         if not abentries:
             return {}
 
+        #Check if this user has a active wizcard
+        try:
+            twizcard = self.recotarget.wizcard
+        except:
+            return
+
+
         # Get all the wizcards connected to this user who has a wizcard
         wizusers = map(lambda x:x.user,self.recotarget.wizcard.get_connections())
 
@@ -152,7 +159,12 @@ class WizReco(RecoModel):
         self.recomodel = 1
 
     def getData(self):
-        targetwizcard = self.recotarget.wizcard
+        
+        targetwizcard = None
+        try:
+            targetwizcard = self.recotarget.wizcard
+        except:
+            return
         recodict = dict()
 
         for hop1 in targetwizcard.get_connections():
@@ -187,7 +199,7 @@ class RecoRunner(RabbitServer):
         if target == 'full':
             i = 0
             while True:
-                qs = Wizcard.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
+                qs = User.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
                 if qs:
                     for rec in qs:
                         self.recorunners[torun](rec.id)
@@ -199,14 +211,24 @@ class RecoRunner(RabbitServer):
             self.recorunners[torun](target)
 
     def run_abreco(self,target):
-        tuser = Wizcard.objects.get(id=target).user
-        abreco_inst = ABReco(tuser)
-        recos = abreco_inst.getData()
+        tuser = None
+        try:
+            tuser = User.objects.get(id=target)
+        except:
+            pass
+        if tuser:
+            abreco_inst = ABReco(target)
+            recos = abreco_inst.getData()
 
     def run_wizreco(self,target):
-        tuser = Wizcard.objects.get(id=target).user
-        wizreco_inst = WizReco(tuser)
-        recos = wizreco_inst.getData()
+        tuser = None
+        try:
+            tuser = User.objects.get(id=target)
+        except:
+            pass
+        if tuser:
+            wizreco_inst = WizReco(target)
+            recos = wizreco_inst.getData()
 
     def run_allreco(self,target):
         self.run_abreco(target)
@@ -278,11 +300,16 @@ import daemon
 def main():
     logging.basicConfig(level=logging.INFO)
     isdaemon = False
+    QCONFIG = rconfig.RECO_Q_CONFIG
     for params in sys.argv:
         if params == '--D' or params == '-daemon':
             isdaemon = True
+        if params == 'trigger':
+            QCONFIG = rconfig.RECO_Q_CONFIG
+        if params == 'full':
+            QCONFIG == rconfig.RECO_Q_CONFIG
 
-    ts = RecoRunner(**rconfig.RECO_Q_CONFIG)
+    ts = RecoRunner(**QCONFIG)
 
     if isdaemon:
         with daemon.DaemonContext():
