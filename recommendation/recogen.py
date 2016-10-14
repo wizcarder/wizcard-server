@@ -201,7 +201,7 @@ class RecoRunner(RabbitServer):
         if target == 'full':
             i = 0
             while True:
-                qs = Wizcard.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
+                qs = User.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
                 if qs:
                     for rec in qs:
                         self.recorunners[torun](rec.id)
@@ -213,13 +213,11 @@ class RecoRunner(RabbitServer):
             self.recorunners[torun](target)
 
     def run_abreco(self,target):
-        tuser = Wizcard.objects.get(id=target).user
-        abreco_inst = ABReco(tuser)
+        abreco_inst = ABReco(target)
         recos = abreco_inst.getData()
 
     def run_wizreco(self,target):
-        tuser = Wizcard.objects.get(id=target).user
-        wizreco_inst = WizReco(tuser)
+        wizreco_inst = WizReco(target)
         recos = wizreco_inst.getData()
 
     def run_allreco(self,target):
@@ -292,11 +290,16 @@ import daemon
 def main():
     logging.basicConfig(level=logging.INFO)
     isdaemon = False
+    QCONFIG = **rconfig.RECO_TRIGGER_CONFIG
     for params in sys.argv:
         if params == '--D' or params == '-daemon':
             isdaemon = True
+        if params == 'trigger':
+            QCONFIG = **rconfig.RECO_TRIGGER_CONFIG
+        if params == 'full':
+            QCONFIG == **rconfig.RECO_PERIODIC_CONFIG
 
-    ts = RecoRunner(**rconfig.RECO_Q_CONFIG)
+    ts = RecoRunner(QCONFIG)
 
     if isdaemon:
         with daemon.DaemonContext():
