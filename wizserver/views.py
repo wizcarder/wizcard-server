@@ -598,7 +598,7 @@ class ParseMsgAndDispatch(object):
 
             # run a candidate selection for the ab_entry
             abEntry.run_finalize_decision()
-            genreco.send(self.user,recotarget=str(self.user.wizcard.id))
+            genreco.send(self.user,recotarget=str(self.user))
 
         return self.response
 
@@ -691,8 +691,8 @@ class ParseMsgAndDispatch(object):
                     logger.warning('Recommendation Action failed for %s', str(recid))
                     pass
             if recoactions:
-                genreco.send(self.user, recotarget=str(self.user.wizcard.id))
-                genreco.send(self.user, recotarget=str(self.user.wizcard.id))
+                genreco.send(self.user, recotarget=str(self.user.id))
+                genreco.send(self.user, recotarget=str(self.user.id))
 
         if self.lat is None and self.lng is None:
             try:
@@ -981,7 +981,7 @@ class ParseMsgAndDispatch(object):
                  wizCardID=wizcard2.id)
         )
         self.response.add_data("status", status)
-        genreco.send(self.user, recotarget=str(self.user.wizcard.id), recmodel='WizReco')
+        genreco.send(self.user, recotarget=str(self.user.id))
         return self.response
 
     def WizConnectionRequestDecline(self):
