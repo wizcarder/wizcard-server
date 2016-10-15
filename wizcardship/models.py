@@ -28,7 +28,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
 from location_mgr.models import LocationMgr
 from django.http import HttpResponseBadRequest, Http404
-from notifications.signals import notify
 from django.core.files.storage import default_storage
 from django.core.files.storage import FileSystemStorage
 from base.custom_storage import WizcardQueuedS3BotoStorage
@@ -42,6 +41,7 @@ from django.db.models import Q
 from lib import wizlib
 from wizcard import err
 from wizserver import verbs
+from notifications.models import notify, Notification
 from base.cctx import ConnectionContext
 from django.db.models import ImageField
 from django.utils import timezone
@@ -129,9 +129,15 @@ class WizcardManager(models.Manager):
         return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2, half=False):
-        notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
-                    target=wizcard1)
+        # suppress if unread notif already exists
+        if not Notification.objects.filter(
+                recipient=wizcard2.user,
+                target_object_id=wizcard1.id,
+                readed=False,
+                verb=verbs.WIZCARD_UPDATE[0]).exists():
+            notify.send(wizcard1.user, recipient=wizcard2.user,
+                        verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
+                        target=wizcard1)
 
     def query_users(self, userID, name, phone, email):
         #name can be first name, last name or even combined

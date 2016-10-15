@@ -33,7 +33,7 @@ from userprofile.models import UserProfile
 from userprofile.models import AddressBook, AB_Candidate_Emails, AB_Candidate_Phones, AB_Candidate_Names, AB_User
 from userprofile.models import FutureUser
 from lib import wizlib
-from lib.emailInvite import create_template, sendmail
+from lib.email_invite import create_template, sendmail
 from wizcard import err
 from dead_cards.models import DeadCards
 from wizserver import fields

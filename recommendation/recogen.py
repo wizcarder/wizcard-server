@@ -10,8 +10,7 @@ sys.path.append(proj_path)
 sys.path.append("../wizcard-server")
 sys.path.append("../wizcard-server/location_service")
 
-from rabbit_service.server import RabbitServer
-import rconfig
+from rabbit_service.server import RabbitServer, rconfig
 
 from django.core.wsgi import get_wsgi_application
 from userprofile.models import *

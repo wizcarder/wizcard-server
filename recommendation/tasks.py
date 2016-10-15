@@ -2,17 +2,18 @@ import logging
 import sys
 sys.path.append("../wizcard-server")
 #from rabbit_service import rconfig
-from rabbit_service.client import RabbitClient
+from rabbit_service.client import RabbitClient, rconfig
 from celery import shared_task, task
+from pika.credentials import PlainCredentials
 import pdb
-import rconfig
 logger = logging.getLogger(__name__)
 
 
 
 class RecoClient(RabbitClient):
     def __init__(self, *args, **kwargs):
-        super(RecoClient, self).__init__(*args, **kwargs)
+        creds = PlainCredentials(rconfig.RECO_USER, rconfig.RECO_PASSWORD)
+        super(RecoClient, self).__init__(credentials=creds, **kwargs)
 
     def gen_allreco(self, **kwargs):
         kwargs['fn'] = 2 

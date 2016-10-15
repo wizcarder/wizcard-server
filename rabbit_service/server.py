@@ -23,7 +23,8 @@ class RabbitServer(object):
 
     """
     def __init__(self, url=rconfig.AMPQ_DEFAULT_URL, exchange=rconfig.DEFAULT_EXCHANGE, exchange_type=rconfig.EXCHANGE_TYPE,
-                 queue=rconfig.DEFAULT_QUEUE, routing_key=rconfig.DEFAULT_ROUTING_KEY):
+                 queue=rconfig.DEFAULT_QUEUE, routing_key=rconfig.DEFAULT_ROUTING_KEY,
+                 virtual_host=None):
         """Create a new instance of the consumer class, passing in the AMQP
         URL used to connect to RabbitMQ.
 
@@ -34,7 +35,7 @@ class RabbitServer(object):
         self._channel = None
         self._closing = False
         self._consumer_tag = None
-        self._url = url
+        self._url = url + '/' + virtual_host
         self._exchange = exchange
         self._exchange_type = exchange_type
         self._queue = queue

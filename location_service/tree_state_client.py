@@ -1,6 +1,6 @@
 from rabbit_service.client import RabbitClient
-from rabbit_service.rconfig import TREE_SERVER_CONFIG
-
+from rabbit_service import rconfig
+from pika.credentials import PlainCredentials
 
 DEFAULT_MAX_LOOKUP_RESULTS = 10
 
@@ -11,7 +11,8 @@ PRINT_TREES = 4
 
 class TreeStateClient(RabbitClient):
     def __init__(self):
-        super(TreeStateClient, self).__init__(**TREE_SERVER_CONFIG)
+        creds = PlainCredentials(rconfig.TREE_USER, rconfig.TREE_PASSWORD)
+        super(TreeStateClient, self).__init__(credentials=creds, **rconfig.TREE_SERVER_CONFIG)
 
     def tree_insert(self, **kwargs):
         kwargs['fn'] = TREE_INSERT

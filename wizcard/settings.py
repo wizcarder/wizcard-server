@@ -1,86 +1,13 @@
-#####celery related stuff######
-from __future__ import absolute_import
-# ^^^ The above is required if you want to import from the celery
-# library. If you don't have this then `from celery.schedules import
-# becomes `proj.celery.schedules` in Python 2.x since it allows
-# for relative imports by default.
-# Celery settings
-import djcelery
+# Django settings for wizcard project.
 import os
-djcelery.setup_loader()
-import logging
 
 from kombu import Queue, Exchange
 from wizcard import instances
 
-TEST = False
-#SHELL_PLUS="bpython"
 RUNENV = os.getenv('WIZRUNENV', 'dev')
 
 APP_MAJOR = 1
 APP_MINOR = 6
-
-#CELERY_RESULT_BACKEND = 'amqp://'
-CELERY_RESULT_BACKEND = 'rpc'
-
-IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
-EMAIL_TEMPLATE = '/invites/email_templatev4.png'
-EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
-OCR_QUEUE_NAME = 'ocr'
-CELERY_DEFAULT_QUEUE = 'default'
-CELERY_BEAT_QUEUE_NAME = 'beat'
-
-
-
-CELERY_IMAGE_UPLOAD_Q = Queue(IMAGE_UPLOAD_QUEUE_NAME,
-                              Exchange(IMAGE_UPLOAD_QUEUE_NAME),
-                              routing_key=IMAGE_UPLOAD_QUEUE_NAME)
-
-CELERY_OCR_Q = Queue(OCR_QUEUE_NAME,
-                     Exchange(OCR_QUEUE_NAME),
-                     routing_key=OCR_QUEUE_NAME)
-
-CELERY_DEFAULT_Q = Queue(CELERY_DEFAULT_QUEUE,
-                         Exchange(CELERY_DEFAULT_QUEUE),
-                         routing_key=CELERY_DEFAULT_QUEUE,
-                         delivery_mode=1)
-
-CELERY_BEAT_Q = Queue(CELERY_BEAT_QUEUE_NAME,
-                         Exchange(CELERY_BEAT_QUEUE_NAME),
-                         routing_key=CELERY_BEAT_QUEUE_NAME,
-                         delivery_mode=1)
-
-CELERY_QUEUES = (
-            CELERY_IMAGE_UPLOAD_Q,
-            CELERY_OCR_Q,
-            CELERY_DEFAULT_Q,
-            CELERY_BEAT_Q
-)
-
-CELERY_ROUTES = {
-    'queued_storage.tasks.Transfer': {
-        'queue': IMAGE_UPLOAD_QUEUE_NAME,
-        'routing_key': IMAGE_UPLOAD_QUEUE_NAME
-    }
-}
-
-CELERY_ACCEPT_CONTENT = ['pickle','json','msgpack','yaml']
-
-from datetime import timedelta
-CELERYBEAT_SCHEDULE = {
-    'tick': {
-        'task': 'periodic.tasks.tick',
-        'schedule': timedelta(seconds=60),
-        'options': {'queue': CELERY_BEAT_QUEUE_NAME}
-    },
-    'triggerRecoAll': {
-        'task': 'recommendation.tasks.triggerRecoAll',
-        'schedule' : timedelta(minutes=1),
-    }
-}
-
-
-# Django settings for wizcard project.
 
 DEBUG = False
 if RUNENV != 'prod':
@@ -232,8 +159,6 @@ elif RUNENV == 'prod':
     }
 
 
-
-
 DEFAULT_MAX_LOOKUP_RESULTS = 20
 DEFAULT_MAX_MEISHI_LOOKUP_RESULTS = 2
 
@@ -295,6 +220,8 @@ NEXMO_API_SECRET = '3c1d7f33'
 NEXMO_OWN_NUMBER = '12184294228'
 NEXMO_SENDERID = 'WZCARD'
 
+EMAIL_TEMPLATE = '/invites/email_templatev4.png'
+
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',
         'api_key': NEXMO_API_KEY,
@@ -335,7 +262,6 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'django_extensions',
-    'djcelery',
     'storages',
     'userprofile',
     'wizserver',
