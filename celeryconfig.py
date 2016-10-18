@@ -29,7 +29,6 @@ CELERY_ROUTES = {
     'periodic.tasks.tick': {'queue': CELERY_BEAT_QUEUE_NAME},
     'queued_storage.tasks.Transfer': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
     'queued_storage.tasks.TransferAndDelete': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
-    'recommendation.tasks.triggerRecoAll': {'queue': RECO_QUEUE_NAME},
     'wizcard.celery.debug_task': {'queue': CELERY_DEFAULT_QUEUE},
 }
 
@@ -42,9 +41,4 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=60),
         'options': {'queue': CELERY_BEAT_QUEUE_NAME}
     },
-    'triggerRecoAll': {
-        'task': 'recommendation.tasks.triggerRecoAll',
-        'schedule' : timedelta(minutes=1),
-        'options': {'queue': RECO_QUEUE_NAME}
-    }
 }
