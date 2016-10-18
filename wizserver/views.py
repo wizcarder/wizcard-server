@@ -927,7 +927,9 @@ class ParseMsgAndDispatch(object):
                 # notifs to user
                 Notification.objects.get(id=self.sender['notif_id']).set_acted(True)
 
+        rel12 = wizcard1.get_relationship(wizcard2)
         rel21 = wizcard2.get_relationship(wizcard1)
+
         if flag == "reaccept" or flag == "unarchive":
             # add-to-rolodex case. Happens when user had previously declined/deleted this guy
             try:
@@ -945,15 +947,15 @@ class ParseMsgAndDispatch(object):
                 location=location_str
             )
             Wizcard.objects.becard(wizcard2, wizcard1, cctx)
-        elif rel21:
-            # check err 25 case
-            if rel21.status is verbs.DELETED:
-                self.response.error_response(err.REVERSE_INVITE)
-                # remove arrow and set to clean state
-                Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
-                return self.response
-            else:
-                Wizcard.objects.becard(wizcard2, wizcard1)
+        elif rel12.status is verbs.DELETED:
+            # err 25 case
+            # remove arrows and set to clean state
+            Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+            Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
+            self.response.error_response(err.REVERSE_INVITE)
+            return self.response
+        else:
+            Wizcard.objects.becard(wizcard2, wizcard1)
 
         if wizcard1.get_relationship(wizcard2).status == verbs.DELETED:
             verb1 = verbs.WIZREQ_T_HALF[0]
@@ -995,16 +997,12 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
-        try:
-            rel21 = wizcard2.get_relationship(wizcard1)
-            if rel21.status is verbs.PENDING:
-                Wizcard.objects.uncard(wizcard2, wizcard1)
-            elif rel21.status is verbs.DECLINED:
-                # error 25 scenario for declined case. We need to remove this arrow
-                Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
-        except ObjectDoesNotExist:
-            logger.info("Relationship Doesnt Exist: %s to %s", wizcard2, wizcard1)
+        if wizcard1.get_relationship(wizcard2).status is verbs.DELETED:
+            # error 25 scenario for declined case. We need to remove both arrows
+            Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+            Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
+        else:
+            Wizcard.objects.uncard(wizcard2, wizcard1)
 
         n_id = self.sender['notif_id']
         n = Notification.objects.get(id=n_id)
@@ -1055,9 +1053,8 @@ class ParseMsgAndDispatch(object):
                             target_object_id=wizcard1.id,
                             acted_upon=False,
                             verb=verbs.WIZREQ_U[0]).exists():
-                        # error 25 trigger. We will set w1->w2(Deleted), then use this as a trigger
-                        # for Error25 generation when the action comes in
-                        Wizcard.objects.uncardit(wizcard1, wizcard2)
+                        # delete state w2->w1
+                        Wizcard.objects.uncardit(wizcard2, wizcard1)
                     else:
                         # regular case.
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
@@ -1135,7 +1132,6 @@ class ParseMsgAndDispatch(object):
         #AA:TODO put all this in fields.py with template
         self.response.add_data("flickCardID", flick_card.pk)
         return self.response
-
 
     def WizcardFlickPick(self):
         #wizcard1 is following wizcard2
