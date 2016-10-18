@@ -2,6 +2,9 @@
 import os
 import sys
 from decimal import *
+from datetime import datetime, timedelta
+from django.utils import timezone
+import time
 
 proj_path="."
 
@@ -42,6 +45,10 @@ ABRECO = 0
 WIZRECO = 1
 ALLRECO = 2
 
+# Interval between running recommendations fully
+
+RECO_INTERVAL = 1
+
 
 class RecoModel(object):
 
@@ -52,19 +59,25 @@ class RecoModel(object):
     def putReco(self, rectype, score, object_id):
         recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
                                                                reco_object_id=object_id)
-        recuser, created = UserRecommendation.objects.get_or_create(user=self.recotarget, reco=recnew)
 
-        if created:
+
+
+        recuser, ucreated = UserRecommendation.objects.get_or_create(user=self.recotarget, reco=recnew)
+
+        if ucreated:
             recuser.useraction = 3
-            recuser.score = score
-            recuser.save()
-        else:
-            recuser.score = recuser.score + Decimal(score)
             recuser.save()
 
-        recmeta, created = RecommenderMeta.objects.get_or_create(recomodel=self.recomodel, userrecommend=recuser)
+        recmeta, mcreated = RecommenderMeta.objects.get_or_create(recomodel=self.recomodel, userrecommend=recuser)
         recmeta.modelscore = score
         recmeta.save()
+        
+        #Update scores across all recommendations for this UserRecommendation object
+        recuser.updateScore()
+        recuser.save()
+
+
+
 
 
 class ABReco (RecoModel) :
@@ -185,7 +198,8 @@ class WizReco(RecoModel):
 class RecoRunner(RabbitServer):
 
     def __init__(self, *args, **kwargs):
-        super(RecoRunner, self).__init__(*args, **kwargs)
+        if args or kwargs:
+            super(RecoRunner, self).__init__(*args, **kwargs)
 
         self.recorunners = {
              ABRECO: self.run_abreco,
@@ -197,13 +211,21 @@ class RecoRunner(RabbitServer):
     def runreco(self,target,torun):
         if target == 'full':
             i = 0
+
             while True:
-                qs = User.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
+                tdelta = timezone.timedelta(minutes = RECO_INTERVAL)
+                current_time = timezone.now()
+                checktime = current_time - tdelta
+                time_str = checktime.strftime("%a, %d %b %Y %H:%M:%S +0000")
+		print time_str
+                qs = UserProfile.objects.filter(reco_generated_at__lt=checktime)
+                #qs = User.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
                 if qs:
                     for rec in qs:
-                        self.recorunners[torun](rec.id)
-                else:
-                    break
+                        self.recorunners[torun](rec.user.id)
+                print "Sleeping..."
+                time.sleep(10)
+                print "Waking up..."
 
                 i += 1
         else:
@@ -229,9 +251,16 @@ class RecoRunner(RabbitServer):
             wizreco_inst = WizReco(tuser)
             recos = wizreco_inst.getData()
 
+    def updateRecoTime(self,target):
+        uprofile = User.objects.get(id=target).profile
+        uprofile.reco_generated_at = timezone.now()
+        uprofile.save()
+
+
     def run_allreco(self,target):
         self.run_abreco(target)
         self.run_wizreco(target)
+        self.updateRecoTime(target)
 
     def on_message(self, ch, basic_deliver, props, body):
         logger.info('Received message # %s from %s: %s',
@@ -299,62 +328,42 @@ import daemon
 def main():
     logging.basicConfig(level=logging.INFO)
     isdaemon = False
+    fullrun = False
     QCONFIG = rconfig.RECO_TRIGGER_CONFIG
     for params in sys.argv:
         if params == '--D' or params == '-daemon':
             isdaemon = True
         if params == 'trigger':
             QCONFIG = rconfig.RECO_TRIGGER_CONFIG
+            ts = RecoRunner(**QCONFIG)
         if params == 'full':
-            QCONFIG = rconfig.RECO_PERIODIC_CONFIG
-
-    ts = RecoRunner(**QCONFIG)
+            fullrun = True
+            ts=RecoRunner()
 
     if isdaemon:
         with daemon.DaemonContext():
-            ts.run()
+            if fullrun:
+                ts.runreco('full',ALLRECO)
+            else:
+                ts.run()
     else:
         try:
-            ts.run()
+            if fullrun:
+                ts.runreco('full',ALLRECO)
+            else:
+                ts.run()
         except KeyboardInterrupt:
+            if fullrun:
+                exit(0)
             ts.stop()
 
 
 
 
 
+
 if __name__ == "__main__":
-
     main()
-
-
-'''
-
-
-    validqs = [ABRECO, WIZRECO, ALLRECO]
-
-    if len(sys.argv) < 3:
-        print "Usage recogen.py <wizcardid> <modelid[0,1,2]>"
-        print "Running for all wizcards and generating all recos"
-        print "Sleeping for 5 secs - Giving a chance to quit - Press Ctrl-C"
-        time.sleep(5)
-    else:
-        wizcard_id = int(sys.argv[1])
-
-        if len(sys.argv) > 1:
-            qname = int(sys.argv[2])
-        else:
-            qname = ALLRECO
-
-        if qname not in validqs:
-            sys.stderr.write("Invalid Model Name " + str(qname) + "\n")
-            exit(1)
-        wall = Wizcard.objects.get(id=wizcard_id)
-
-        recorunner = RunReco(wall,qname)
-        recorunner.runreco()
-'''
-
 
 
 
