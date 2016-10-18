@@ -5,6 +5,9 @@
 .. autoclass:: UserRecommendation
     :members:
 
+.. autoclass:: RecommenderMeta
+    :members:
+
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -115,6 +118,19 @@ class UserRecommendation(models.Model):
         return reco_dict
 
 
+    def updateScore(self):
+        metaobjects = self.reco_meta.all()
+
+        self.score = 0
+
+        for obj in metaobjects:
+            self.score += obj.modelscore
+
+        self.save()
+
+
+
+
     def setAction(self, action=New):
 
         self.useraction = action
@@ -128,4 +144,4 @@ class RecommenderMeta(models.Model):
     )
     modelscore = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     recomodel = models.IntegerField(choices=MODELS)
-    userrecommend = models.ForeignKey(UserRecommendation)
+    userrecommend = models.ForeignKey(UserRecommendation, related_name='reco_meta')
