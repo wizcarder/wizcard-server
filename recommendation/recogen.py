@@ -5,6 +5,8 @@ from decimal import *
 from datetime import datetime, timedelta
 from django.utils import timezone
 import time
+import logging
+import daemon
 
 proj_path="."
 
@@ -20,7 +22,17 @@ from userprofile.models import *
 from recommendation.models import *
 application = get_wsgi_application()
 
-logger = logging.getLogger(__name__)
+LOG_FILENAME="./recogentrigger.log"
+logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
+#logger = logging.getLogger('RecoGenTrigger')
+#logger.setLevel(logging.DEBUG)
+
+# Add the log message handler to the logger
+#handler = logging.handlers.RotatingFileHandler(
+#              LOG_FILENAME, maxBytes=1000000, backupCount=5)
+
+#logger.addHandler(handler)
+
 
 # AA: Comments: check all the PEP warnings on the right side pane in pycharm.
 # Basic Ones that should be clean are:
@@ -47,7 +59,7 @@ ALLRECO = 2
 
 # Interval between running recommendations fully
 
-RECO_INTERVAL = 1
+RECO_INTERVAL = 120
 
 
 class RecoModel(object):
@@ -59,8 +71,6 @@ class RecoModel(object):
     def putReco(self, rectype, score, object_id):
         recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
                                                                reco_object_id=object_id)
-
-
 
         recuser, ucreated = UserRecommendation.objects.get_or_create(user=self.recotarget, reco=recnew)
 
@@ -130,7 +140,7 @@ class ABReco (RecoModel) :
 
             if w1:
                 if not self.recotarget.wizcard.get_relationship(w1):
-                    print "Adding Reco " + str(w1.pk) + " for " + self.recotarget.username
+                    logging.info("Adding Reco " + str(w1.pk) + " for " + self.recotarget.username)
 
                     self.putReco('wizcard',2,w1.pk)
                     continue
@@ -144,7 +154,7 @@ class ABReco (RecoModel) :
                     score = score + 2
 
             if entry.get_phone() and entry.get_email():
-                print "Adding Reco " + str(entry.pk) + " for " + user.username
+                logging.info("Adding Reco " + str(entry.pk) + " for " + user.username)
                 score = score + 1
 
             if entry.is_phone_final():
@@ -160,7 +170,7 @@ class ABReco (RecoModel) :
             if entry.get_phone() or entry.get_email():
                 score = score + 0.1
 
-            print "Adding Reco " + str(entry.pk) + " for " + user.username
+            logging.info("Adding Reco " + str(entry.pk) + " for " + user.username)
             self.putReco(recotype,score,entry.pk)
 
 
@@ -217,15 +227,14 @@ class RecoRunner(RabbitServer):
                 current_time = timezone.now()
                 checktime = current_time - tdelta
                 time_str = checktime.strftime("%a, %d %b %Y %H:%M:%S +0000")
-		print time_str
-                qs = UserProfile.objects.filter(reco_generated_at__lt=checktime)
+                logging.info(time_str)
+                qs = UserProfile.objects.filter(reco_generated_at__lt=checktime,pk__gte = i * 100, pk__lt =  (i+1) * 100)
                 #qs = User.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
                 if qs:
                     for rec in qs:
                         self.recorunners[torun](rec.user.id)
-                print "Sleeping..."
-                time.sleep(10)
-                print "Waking up..."
+                else:
+                    break
 
                 i += 1
         else:
@@ -263,7 +272,7 @@ class RecoRunner(RabbitServer):
         self.updateRecoTime(target)
 
     def on_message(self, ch, basic_deliver, props, body):
-        logger.info('Received message # %s from %s: %s',
+        logging.info('Received message # %s from %s: %s',
                     basic_deliver.delivery_tag, props.app_id, body)
         args = json.loads(body)
         fn = args.pop('fn')
@@ -286,7 +295,7 @@ def callback(ch, method, properties, body):
     if body_data.has_key('recmodel'):
         rmodel = body_data['recmodel']
     else:
-        print "No model specified in message: Reco generation not happening"
+        logging.error("No model specified in message: Reco generation not happening")
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
 
@@ -294,7 +303,7 @@ def callback(ch, method, properties, body):
     if rmodel != "all" and body_data.has_key('recotarget'):
         wuser = Wizcard.objects.get(id=int(body_data['recotarget'])).user
         if not wuser:
-            print "No user specified in message: Reco generation not happening"
+            logging.error("No user specified in message: Reco generation not happening")
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
@@ -318,13 +327,12 @@ def callback(ch, method, properties, body):
 
         for w in wall:
             treco = ABReco(w.user)
-            print "Generating Reco for " + w.user.username
+            logging.info("Generating Reco for " + w.user.username)
             reco = treco.getData()
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-import daemon
 def main():
     logging.basicConfig(level=logging.INFO)
     isdaemon = False
@@ -335,31 +343,24 @@ def main():
             isdaemon = True
         if params == 'trigger':
             QCONFIG = rconfig.RECO_TRIGGER_CONFIG
-            ts = RecoRunner(**QCONFIG)
         if params == 'full':
             fullrun = True
-            ts=RecoRunner()
 
-    if isdaemon:
-        with daemon.DaemonContext():
-            if fullrun:
-                ts.runreco('full',ALLRECO)
-            else:
-                ts.run()
+
+
+    if fullrun:
+        ts = RecoRunner()
+        ts.runreco('full', ALLRECO)
     else:
-        try:
-            if fullrun:
-                ts.runreco('full',ALLRECO)
-            else:
+        ts = RecoRunner(**QCONFIG)
+        if isdaemon:
+            with daemon.DaemonContext():
                 ts.run()
-        except KeyboardInterrupt:
-            if fullrun:
-                exit(0)
-            ts.stop()
-
-
-
-
+        else:
+            try:
+                ts.run()
+            except KeyboardInterrupt:
+                ts.stop()
 
 
 if __name__ == "__main__":
