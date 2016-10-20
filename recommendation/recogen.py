@@ -22,16 +22,16 @@ from userprofile.models import *
 from recommendation.models import *
 application = get_wsgi_application()
 
-LOG_FILENAME="./recogentrigger.log"
-logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
-#logger = logging.getLogger('RecoGenTrigger')
-#logger.setLevel(logging.DEBUG)
+LOG_FILENAME="./log/recogen.log"
+#logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
+logger = logging.getLogger('RecoGen')
+logger.setLevel(logging.DEBUG)
 
 # Add the log message handler to the logger
-#handler = logging.handlers.RotatingFileHandler(
-#              LOG_FILENAME, maxBytes=1000000, backupCount=5)
+handler = logging.handlers.RotatingFileHandler(
+             LOG_FILENAME, maxBytes=1000000, backupCount=5)
 
-#logger.addHandler(handler)
+logger.addHandler(handler)
 
 
 # AA: Comments: check all the PEP warnings on the right side pane in pycharm.
@@ -140,7 +140,7 @@ class ABReco (RecoModel) :
 
             if w1:
                 if not self.recotarget.wizcard.get_relationship(w1):
-                    logging.info("Adding Reco " + str(w1.pk) + " for " + self.recotarget.username)
+                    logger.info("Adding Reco " + str(w1.pk) + " for " + self.recotarget.username)
 
                     self.putReco('wizcard',2,w1.pk)
                     continue
@@ -154,7 +154,7 @@ class ABReco (RecoModel) :
                     score = score + 2
 
             if entry.get_phone() and entry.get_email():
-                logging.info("Adding Reco " + str(entry.pk) + " for " + user.username)
+                logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
                 score = score + 1
 
             if entry.is_phone_final():
@@ -170,7 +170,7 @@ class ABReco (RecoModel) :
             if entry.get_phone() or entry.get_email():
                 score = score + 0.1
 
-            logging.info("Adding Reco " + str(entry.pk) + " for " + user.username)
+            logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
             self.putReco(recotype,score,entry.pk)
 
 
@@ -227,7 +227,7 @@ class RecoRunner(RabbitServer):
                 current_time = timezone.now()
                 checktime = current_time - tdelta
                 time_str = checktime.strftime("%a, %d %b %Y %H:%M:%S +0000")
-                logging.info(time_str)
+                logger.info(time_str)
                 qs = UserProfile.objects.filter(reco_generated_at__lt=checktime,pk__gte = i * 100, pk__lt =  (i+1) * 100)
                 #qs = User.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
                 if qs:
@@ -272,7 +272,7 @@ class RecoRunner(RabbitServer):
         self.updateRecoTime(target)
 
     def on_message(self, ch, basic_deliver, props, body):
-        logging.info('Received message # %s from %s: %s',
+        logger.info('Received message # %s from %s: %s',
                     basic_deliver.delivery_tag, props.app_id, body)
         args = json.loads(body)
         fn = args.pop('fn')
@@ -295,7 +295,7 @@ def callback(ch, method, properties, body):
     if body_data.has_key('recmodel'):
         rmodel = body_data['recmodel']
     else:
-        logging.error("No model specified in message: Reco generation not happening")
+        logger.error("No model specified in message: Reco generation not happening")
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
 
@@ -303,7 +303,7 @@ def callback(ch, method, properties, body):
     if rmodel != "all" and body_data.has_key('recotarget'):
         wuser = Wizcard.objects.get(id=int(body_data['recotarget'])).user
         if not wuser:
-            logging.error("No user specified in message: Reco generation not happening")
+            logger.error("No user specified in message: Reco generation not happening")
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
@@ -327,14 +327,14 @@ def callback(ch, method, properties, body):
 
         for w in wall:
             treco = ABReco(w.user)
-            logging.info("Generating Reco for " + w.user.username)
+            logger.info("Generating Reco for " + w.user.username)
             reco = treco.getData()
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+
     isdaemon = False
     fullrun = False
     QCONFIG = rconfig.RECO_TRIGGER_CONFIG
