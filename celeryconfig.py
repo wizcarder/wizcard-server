@@ -26,10 +26,9 @@ RECO_QUEUE_NAME = 'reco'
 CELERY_ROUTES = {
     'lib.ocr.run_ocr' : {'queue': OCR_QUEUE_NAME},
     'notifications.tasks.pushNotificationToApp': {'queue': PUSHNOTIF_QUEUE_NAME},
-    'periodic.tasks.tick': {'queue': CELERY_BEAT_QUEUE_NAME},
+    'periodic.tasks.tick': {'queue': CELERY_DEFAULT_QUEUE},
     'queued_storage.tasks.Transfer': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
     'queued_storage.tasks.TransferAndDelete': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
-    'recommendation.tasks.triggerRecoAll': {'queue': RECO_QUEUE_NAME},
     'wizcard.celery.debug_task': {'queue': CELERY_DEFAULT_QUEUE},
 }
 
@@ -40,11 +39,6 @@ CELERYBEAT_SCHEDULE = {
     'tick': {
         'task': 'periodic.tasks.tick',
         'schedule': timedelta(seconds=60),
-        'options': {'queue': CELERY_BEAT_QUEUE_NAME}
+#       'options': {'queue': CELERY_BEAT_QUEUE_NAME}
     },
-    'triggerRecoAll': {
-        'task': 'recommendation.tasks.triggerRecoAll',
-        'schedule' : timedelta(minutes=1),
-        'options': {'queue': RECO_QUEUE_NAME}
-    }
 }
