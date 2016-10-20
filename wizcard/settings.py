@@ -221,6 +221,7 @@ NEXMO_OWN_NUMBER = '12184294228'
 NEXMO_SENDERID = 'WZCARD'
 
 EMAIL_TEMPLATE = '/invites/email_templatev4.png'
+EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',
