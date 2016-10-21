@@ -27,11 +27,11 @@ if RUNENV == 'dev':
         'default': {
             #'ENGINE': 'django.db.backends.mysql',
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'wizcard',
-            #'USER': 'root',
-            #'PASSWORD': '',
+            'NAME': 'wizcard-dev',
+            'USER': 'kappu',
+            'PASSWORD': '',
             'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
-            # 'PORT': '5432',
+             'PORT': '5432',
             # 'CONN_MAX_AGE' : 60,
         }
 
@@ -44,6 +44,16 @@ elif RUNENV == 'test':
             'USER': 'wizuser',
             'PASSWORD': 'gowizcard',
             'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+        }
+    }
+elif RUNENV == 'stage':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard-prod',
+            'USER': 'wizuser',
+            'PASSWORD': 'gowizcard',
+            'HOST': 'wizcard-prod-clone.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
         }
     }
 elif RUNENV == 'prod':
@@ -185,7 +195,7 @@ MAX_PHONE_CHECK_RETRIES = 3
 #for UT..avoid nexmo
 PHONE_CHECK = False
 if RUNENV == 'prod':
-	PHONE_CHECK = True
+    PHONE_CHECK = True
 #retry timeout
 PHONE_CHECK_TIMEOUT = 180
 
@@ -459,7 +469,7 @@ else:
 
 GCM_API_KEY = 'AIzaSyAz_uc7MiPtC_JK1ZjurpsdxxDlfPAy4-c'
 
-CELERY_TIMEZONE = 'UTC'
+CELERY_TIMEZONE = TIME_ZONE
 SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
 # Find templates in the same folder as settings.py.
 TEMPLATE_DIRS = (
