@@ -3,7 +3,7 @@ TEST_AWSHOSTS = ['ec2-52-66-102-242.ap-south-1.compute.amazonaws.com']
 DEV_AWSHOSTS = ['localhost']
 PROD_AWSHOSTS = ['ec2-52-66-114-251.ap-south-1.compute.amazonaws.com',
                  'ec2-52-66-110-201.ap-south-1.compute.amazonaws.com']
-STG_AWSHOSTS = ['localhost']
+STG_AWSHOSTS = ['ec2-52-66-64-201.ap-south-1.compute.amazonaws.com']
 LOCALHOST = ['localhost']
 
 stg_memcache_hosts = []
@@ -22,13 +22,14 @@ ALLHOSTS = {
     'stage': {
         'RABBITSERVER': LOCALHOST,
         'RECOSERVER': STG_AWSHOSTS,
-        'LOCATIONSERVER':[STG_AWSHOSTS[0]],
+        'LOCATIONSERVER':STG_AWSHOSTS,
         'WIZSERVER': STG_AWSHOSTS,
         'NGINX': STG_AWSHOSTS,
         'MEMCACHE': stg_memcache_hosts,
     },
     'dev': {
         'RABBITSERVER': LOCALHOST,
+	'LOCATIONSERVER':DEV_AWSHOSTS,
         'RECOSERVER': DEV_AWSHOSTS,
         'WIZSERVER': DEV_AWSHOSTS,
         'NGINX': DEV_AWSHOSTS,
@@ -36,6 +37,7 @@ ALLHOSTS = {
     },
     'test': {
         'RABBITSERVER': LOCALHOST,
+	'RECOSERVER' : TEST_AWSHOSTS,
         'LOCATIONSERVER': TEST_AWSHOSTS,
         'WIZSERVER': TEST_AWSHOSTS,
         'NGINX': TEST_AWSHOSTS,
