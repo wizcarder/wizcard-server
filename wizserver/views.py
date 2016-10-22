@@ -1700,7 +1700,6 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("tableID", joined.pk)
         return self.response
 
-
     def TableLeave(self):
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
@@ -1915,6 +1914,7 @@ class ParseMsgAndDispatch(object):
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
+        deadcard.activated = True
         deadcard.save()
 
         if inviteother:

@@ -143,8 +143,8 @@ class UserProfile(models.Model):
     IOS = 'ios'
     ANDROID='android'
     DEVICE_CHOICES = (
-	(IOS, 'iPhone'),
-	(ANDROID, 'Android'),
+        (IOS, 'iPhone'),
+        (ANDROID, 'Android'),
     )
     device_type = TruncatingCharField(max_length=10,
 		    		   choices=DEVICE_CHOICES,
@@ -261,7 +261,7 @@ class UserProfile(models.Model):
             s['tables'] = tbls
 
         #dead card
-        deadcards = self.user.dead_cards.all()
+        deadcards = self.user.dead_cards.filter(activated=True)
         if deadcards.count():
             dc = DeadCards.objects.serialize(deadcards)
             s['deadcards'] = dc
