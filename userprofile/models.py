@@ -138,7 +138,7 @@ class UserProfile(models.Model):
     is_wifi_data = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
     block_unsolicited = models.BooleanField(default=False)
-    reco_generated_at = models.DateTimeField(auto_now=False)
+    reco_generated_at = models.DateTimeField(auto_now=True)
 
     IOS = 'ios'
     ANDROID='android'
