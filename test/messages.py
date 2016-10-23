@@ -162,7 +162,7 @@ register_sync = {
         #random index from there
         "lat" : 37.785834,
         "lng" : -122.406415,
-        "deviceType": "ios",
+        "deviceType": "android",
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "userID" : "2UIPIEPbBk"
 
@@ -183,7 +183,7 @@ register1 = {
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785835,
         "lng" : -122.406416,
-        "deviceType": "ios",
+        "deviceType": "android",
         "userID" : "",
         "wizUserID" : "",
     },
@@ -202,7 +202,7 @@ register2 = {
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785837,
         "lng" : -122.406418,
-        "deviceType": "ios",
+        "deviceType": "android",
         "userID" : "",
         "wizUserID" : ""
     },
@@ -221,7 +221,7 @@ register3 = {
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "ios",
+        "deviceType": "android",
         "userID" : "",
         "wizUserID" : ""
     },
@@ -338,7 +338,7 @@ edit_card1 = {
         "location" : "San Francisco Bay Area",
         "phone1" : PHONE1,
         "userID" : "USER1",
-        "deviceType": "ios",
+        "deviceType": "android",
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
         "contact_container" : [contact_container, contact_container, contact_container]
@@ -412,7 +412,7 @@ table_create = {
     "sender" : {
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "ios",
+        "deviceType": "android",
         "userID" : "",
         "wizUserID" : "",
         "table_name" : "",
@@ -508,7 +508,7 @@ table_edit = {
     "sender" : {
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "ios",
+        "deviceType": "android",
         "userID" : "",
         "wizUserID" : "",
         "tableID": "",
@@ -577,7 +577,7 @@ card_flick = {
         "lat" : 37.785834,
         "lng" : -122.406415,
         "timeout": 1,
-        "deviceType": "ios",
+        "deviceType": "android",
         "created":str(datetime.now())
 
     },
@@ -899,7 +899,7 @@ meishi_start = {
         "wizCardID" : "",
         "lat" : 37.785834,
         "lng" : -122.406415,
-        "deviceType": "ios",
+        "deviceType": "android",
     },
 }
 meishi_find = {
@@ -912,7 +912,7 @@ meishi_find = {
         "userID" : "",
         "wizCardID" : "",
         "mID" : "",
-        "deviceType": "ios",
+        "deviceType": "android",
     },
 }
 get_email_template = {
@@ -925,7 +925,7 @@ get_email_template = {
         "userID" : "",
         "wizCardID" : "",
         "mID" : "",
-        "deviceType": "ios",
+        "deviceType": "android",
     },
 }
 rolodex_edit_card1 = {
