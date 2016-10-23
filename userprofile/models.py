@@ -60,16 +60,16 @@ class UserProfileManager(models.Manager):
 
         for user in users:
             connection_status = Wizcard.objects.get_connection_status(me.wizcard, user.wizcard)
-            if connection_status is verbs.OWN:
+            if connection_status == verbs.OWN:
                 own.append(user)
-            elif connection_status is verbs.CONNECTED:
+            elif connection_status == verbs.CONNECTED:
                 # 2-way connected
                 connected.append(user)
-            elif connection_status is verbs.FOLLOWER:
+            elif connection_status == verbs.FOLLOWER:
                 follower.append(user)
-            elif connection_status is verbs.FOLLOWER_D:
+            elif connection_status == verbs.FOLLOWER_D:
                 follower_d.append(user)
-            elif connection_status is verbs.FOLLOWED:
+            elif connection_status == verbs.FOLLOWED:
                 followed.append(user)
             else:
                 others.append(user)
@@ -238,7 +238,7 @@ class UserProfile(models.Model):
             s['wizconnections'] = wc
 
         # Populate Context for Wizcards that this user  is following
-        conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard,status=verbs.ACCEPTED)
+        conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard, status=verbs.ACCEPTED)
         if conn:
             cctx = map(lambda x: NotifContext(
                 description=x.cctx.description,

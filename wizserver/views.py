@@ -942,12 +942,12 @@ class ParseMsgAndDispatch(object):
                 location_str = ""
 
             cctx = ConnectionContext(
-                asset_obj=wizcard1,
+                asset_obj=wizcard2,
                 connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U],
                 location=location_str
             )
             Wizcard.objects.becard(wizcard2, wizcard1, cctx)
-        elif rel12.status is verbs.DELETED:
+        elif rel12.status == verbs.DELETED:
             # err 25 case
             # remove arrows and set to clean state
             Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
@@ -1348,6 +1348,9 @@ class ParseMsgAndDispatch(object):
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
         status = []
+        to_notify = True
+        from_notify = True
+
         if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U]:
             # add location to cctx. For nearby based exchange, use
             # senders location (which should be same as receivers too)
@@ -1371,11 +1374,10 @@ class ParseMsgAndDispatch(object):
                         location=location_str)
 
                 if rel12:
-                    # wizcard->r_wizcard exists previously ? Should only happen if deleted/declined
-                    if rel12.status != verbs.DECLINED and rel12.status != verbs.DELETED:
-                        # something's not right.
-                        self.response.error_response(err.EXISTING_CONNECTION)
-                        continue
+                    # wizcard->r_wizcard exists previously ?
+                    if rel12.status == verbs.ACCEPTED or rel12.status == verbs.PENDING:
+                        to_notify = False
+                        pass
                     else:
                         # set it to pending. We'll send a notif
                         rel12.reset()
@@ -1387,12 +1389,13 @@ class ParseMsgAndDispatch(object):
                                                    status=verbs.PENDING,
                                                    cctx=cctx1)
                 #Q notif for to_wizcard
-                notify.send(self.user, recipient=r_user,
-                            verb=verbs.WIZREQ_T[0] if receiver_type ==
-                                                      verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T] else
-                            verbs.WIZREQ_U[0],
-                            target=wizcard,
-                            action_object=rel12)
+                if to_notify:
+                    notify.send(
+                        self.user, recipient=r_user,
+                        verb=verbs.WIZREQ_T[0] if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T] else
+                        verbs.WIZREQ_U[0],
+                        target=wizcard,
+                        action_object=rel12)
 
                 rel21 = r_wizcard.get_relationship(wizcard)
                 #Context should always have the from_wizcard and for the time being sender's location - Still debating
@@ -1404,10 +1407,9 @@ class ParseMsgAndDispatch(object):
 
                 # reverse connection, if exists, should be deleted/declined
                 if rel21:
-                    if rel21.status != verbs.DECLINED and rel21.status != verbs.DELETED:
-                        # something's not right.
-                        self.response.error_response(err.INVALID_STATE)
-                        continue
+                    if rel21.status == verbs.ACCEPTED:
+                        from_notify = False
+                        pass
                     else:
                         # set it to accepted. We'll send a notif
                         rel21.set_context(cctx2)
@@ -1422,10 +1424,11 @@ class ParseMsgAndDispatch(object):
 
                 # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
                 # let server push this via notif 1.
-                notify.send(r_user, recipient=self.user,
-                            verb=verbs.WIZREQ_T_HALF[0],
-                            target=r_wizcard,
-                            action_object=rel21)
+                if from_notify:
+                    notify.send(r_user, recipient=self.user,
+                                verb=verbs.WIZREQ_T_HALF[0],
+                                target=r_wizcard,
+                                action_object=rel21)
 
                 count += 1
                 status.append(dict(
@@ -1484,8 +1487,8 @@ class ParseMsgAndDispatch(object):
                                     verb=verbs.WIZREQ_U[0],
                                     target=obj,
                                     action_object=rel12)
-                    elif rel12.status is verbs.DECLINED or \
-                                    rel12.status is verbs.DELETED:
+                    elif rel12.status == verbs.DECLINED or \
+                                    rel12.status == verbs.DELETED:
                         # reset 2 to pending. Yes there is a potential "don't bother me" angle
                         # to this..but better to promote connections
                         rel12.reset()
@@ -1507,8 +1510,8 @@ class ParseMsgAndDispatch(object):
                                     target=wizcard,
                                     action_object=rel21)
 
-                    elif rel21.status is verbs.DECLINED or \
-                                    rel21.status is verbs.DELETED:
+                    elif rel21.status == verbs.DECLINED or \
+                                    rel21.status == verbs.DELETED:
                         # if declined/deleted, follower-d case, full card can be added
                         rel21.set_context(cctx2)
                         rel21.accept()
