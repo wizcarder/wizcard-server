@@ -1,37 +1,31 @@
 #import ...
 import os
 import sys
-from decimal import *
 from datetime import datetime, timedelta
 from django.utils import timezone
 import time
 import logging
 import daemon
+import re
 
 proj_path="."
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wizcard.settings")
 sys.path.append(proj_path)
-sys.path.append("../wizcard-server")
-sys.path.append("../wizcard-server/location_service")
+sys.path.append("..")
+sys.path.append("../location_service")
 
 from rabbit_service.server import RabbitServer, rconfig
+from lib import wizlib
 
 from django.core.wsgi import get_wsgi_application
 from userprofile.models import *
 from recommendation.models import *
 application = get_wsgi_application()
 
-LOG_FILENAME="./log/recogen.log"
 #logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
 logger = logging.getLogger('RecoGen')
-logger.setLevel(logging.DEBUG)
 
-# Add the log message handler to the logger
-handler = logging.handlers.RotatingFileHandler(
-             LOG_FILENAME, maxBytes=1000000, backupCount=5)
-
-logger.addHandler(handler)
 
 
 # AA: Comments: check all the PEP warnings on the right side pane in pycharm.
@@ -59,7 +53,27 @@ ALLRECO = 2
 
 # Interval between running recommendations fully
 
-RECO_INTERVAL = 120
+RECO_INTERVAL = 1
+
+def isValidPhone(phonenum):
+
+    if re.match("\+?\d{10,}",str(phonenum)):
+        return True
+    else:
+        return False
+
+
+
+def setupLogger(target='trigger'):
+    logger.setLevel(logging.DEBUG)
+    LOG_FILENAME = "./log/recogen" + "_" + target + ".log"
+
+    # Add the log message handler to the logger
+    handler = logging.handlers.RotatingFileHandler(
+        LOG_FILENAME, maxBytes=1000000, backupCount=5)
+
+    logger.addHandler(handler)
+
 
 
 class RecoModel(object):
@@ -154,8 +168,9 @@ class ABReco (RecoModel) :
                     score = score + 2
 
             if entry.get_phone() and entry.get_email():
-                logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
+                logger.debug("Adding Reco " + entry.get_phone() + " for " + entry.get_email() + user.username)
                 score = score + 1
+	    logger.debug("Checking Reco " + entry.get_phone() + " for " + entry.get_email() + user.username)
 
             if entry.is_phone_final():
                 score = score + 0.5
@@ -167,7 +182,7 @@ class ABReco (RecoModel) :
                 score = score + 0.5
 
             # This includes all AB entries - Might be too much need to take a call??
-            if entry.get_phone() or entry.get_email():
+            if (entry.get_phone() and isValidPhone(entry.get_phone())) or entry.get_email():
                 score = score + 0.1
 
             logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
@@ -221,7 +236,6 @@ class RecoRunner(RabbitServer):
     def runreco(self,target,torun):
         if target == 'full':
             i = 0
-
             while True:
                 tdelta = timezone.timedelta(minutes = RECO_INTERVAL)
                 current_time = timezone.now()
@@ -238,7 +252,14 @@ class RecoRunner(RabbitServer):
 
                 i += 1
         else:
-            self.recorunners[torun](target)
+            tdelta = timezone.timedelta(minutes = 5)
+            current_time = timezone.now()
+            checktime = current_time - tdelta
+            try:
+                qs = UserProfile.objects.get(reco_generated_at__lt=checktime,user=User.objects.get(id=target))
+                self.recorunners[torun](target)
+            except:
+                return
 
     def run_abreco(self,target):
         tuser = None
@@ -349,9 +370,12 @@ def main():
 
 
     if fullrun:
+        setupLogger(target='full')
         ts = RecoRunner()
         ts.runreco('full', ALLRECO)
+
     else:
+        setupLogger(target='trigger')
         ts = RecoRunner(**QCONFIG)
         if isdaemon:
             with daemon.DaemonContext():
@@ -365,6 +389,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
