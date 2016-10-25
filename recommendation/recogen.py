@@ -12,10 +12,11 @@ proj_path="."
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wizcard.settings")
 sys.path.append(proj_path)
-sys.path.append("../wizcard-server")
-sys.path.append("../wizcard-server/location_service")
+sys.path.append("..")
+sys.path.append("../location_service")
 
 from rabbit_service.server import RabbitServer, rconfig
+from lib import wizlib
 
 from django.core.wsgi import get_wsgi_application
 from userprofile.models import *
@@ -167,8 +168,9 @@ class ABReco (RecoModel) :
                     score = score + 2
 
             if entry.get_phone() and entry.get_email():
-                logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
+                logger.debug("Adding Reco " + entry.get_phone() + " for " + entry.get_email() + user.username)
                 score = score + 1
+	    logger.debug("Checking Reco " + entry.get_phone() + " for " + entry.get_email() + user.username)
 
             if entry.is_phone_final():
                 score = score + 0.5
@@ -250,11 +252,11 @@ class RecoRunner(RabbitServer):
 
                 i += 1
         else:
-            tdelta = timezone.timedelta(minutes = 2)
+            tdelta = timezone.timedelta(minutes = 5)
             current_time = timezone.now()
-            checktime = current_time -
+            checktime = current_time - tdelta
             try:
-                qs = UserProfile.objects.filter(reco_generated_at__lt=checktime,id=User.objects.get(id=target))
+                qs = UserProfile.objects.get(reco_generated_at__lt=checktime,user=User.objects.get(id=target))
                 self.recorunners[torun](target)
             except:
                 return
