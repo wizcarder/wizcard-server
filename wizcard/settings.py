@@ -25,10 +25,10 @@ MANAGERS = ADMINS
 if RUNENV == 'dev':
     DATABASES = {
         'default': {
-            #'ENGINE': 'django.db.backends.mysql',
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'wizcard-dev',
-            'USER': 'kappu',
+            'ENGINE': 'django.db.backends.mysql',
+            #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard',
+            'USER': 'root',
             'PASSWORD': '',
             'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
              'PORT': '5432',
