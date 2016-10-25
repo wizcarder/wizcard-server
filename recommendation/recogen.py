@@ -1,12 +1,12 @@
 #import ...
 import os
 import sys
-from decimal import *
 from datetime import datetime, timedelta
 from django.utils import timezone
 import time
 import logging
 import daemon
+import re
 
 proj_path="."
 
@@ -55,7 +55,8 @@ ALLRECO = 2
 RECO_INTERVAL = 1
 
 def isValidPhone(phonenum):
-    if len(str(phonenum)) >= 10:
+
+    if re.match("\+?\d{10,}", str(phonenum)):
         return True
     else:
         return False
@@ -179,7 +180,7 @@ class ABReco (RecoModel) :
                 score = score + 0.5
 
             # This includes all AB entries - Might be too much need to take a call??
-            if (entry.get_phone() and isValidPhone(entry.get_phone)) or entry.get_email():
+            if (entry.get_phone() and isValidPhone(entry.get_phone())) or entry.get_email():
                 score = score + 0.1
 
             logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
@@ -249,7 +250,14 @@ class RecoRunner(RabbitServer):
 
                 i += 1
         else:
-            self.recorunners[torun](target)
+            tdelta = timezone.timedelta(minutes = 2)
+            current_time = timezone.now()
+            checktime = current_time - tdelta
+            qs = UserProfile.objects.filter(reco_generated_at__lt=checktime,pk=target)
+            if qs:
+                self.recorunners[torun](target)
+            else:
+                return
 
     def run_abreco(self,target):
         tuser = None
