@@ -56,7 +56,7 @@ RECO_INTERVAL = 1
 
 def isValidPhone(phonenum):
 
-    if re.match("\+?\d{10,}", str(phonenum)):
+    if re.match("\+?\d{10,}",str(phonenum)):
         return True
     else:
         return False
@@ -252,11 +252,11 @@ class RecoRunner(RabbitServer):
         else:
             tdelta = timezone.timedelta(minutes = 2)
             current_time = timezone.now()
-            checktime = current_time - tdelta
-            qs = UserProfile.objects.filter(reco_generated_at__lt=checktime,pk=target)
-            if qs:
+            checktime = current_time -
+            try:
+                qs = UserProfile.objects.filter(reco_generated_at__lt=checktime,id=User.objects.get(id=target))
                 self.recorunners[torun](target)
-            else:
+            except:
                 return
 
     def run_abreco(self,target):
