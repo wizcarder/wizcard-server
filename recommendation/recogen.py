@@ -22,16 +22,9 @@ from userprofile.models import *
 from recommendation.models import *
 application = get_wsgi_application()
 
-LOG_FILENAME="./log/recogen.log"
 #logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
 logger = logging.getLogger('RecoGen')
-logger.setLevel(logging.DEBUG)
 
-# Add the log message handler to the logger
-handler = logging.handlers.RotatingFileHandler(
-             LOG_FILENAME, maxBytes=1000000, backupCount=5)
-
-logger.addHandler(handler)
 
 
 # AA: Comments: check all the PEP warnings on the right side pane in pycharm.
@@ -59,7 +52,26 @@ ALLRECO = 2
 
 # Interval between running recommendations fully
 
-RECO_INTERVAL = 120
+RECO_INTERVAL = 1
+
+def isValidPhone(phonenum):
+    if len(str(phonenum)) >= 10:
+        return True
+    else:
+        return False
+
+
+
+def setupLogger(target='trigger'):
+    logger.setLevel(logging.DEBUG)
+    LOG_FILENAME = "./log/recogen" + "_" + target + ".log"
+
+    # Add the log message handler to the logger
+    handler = logging.handlers.RotatingFileHandler(
+        LOG_FILENAME, maxBytes=1000000, backupCount=5)
+
+    logger.addHandler(handler)
+
 
 
 class RecoModel(object):
@@ -167,7 +179,7 @@ class ABReco (RecoModel) :
                 score = score + 0.5
 
             # This includes all AB entries - Might be too much need to take a call??
-            if entry.get_phone() or entry.get_email():
+            if (entry.get_phone() and isValidPhone(entry.get_phone)) or entry.get_email():
                 score = score + 0.1
 
             logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
@@ -221,7 +233,6 @@ class RecoRunner(RabbitServer):
     def runreco(self,target,torun):
         if target == 'full':
             i = 0
-
             while True:
                 tdelta = timezone.timedelta(minutes = RECO_INTERVAL)
                 current_time = timezone.now()
@@ -349,9 +360,12 @@ def main():
 
 
     if fullrun:
+        setupLogger(target='full')
         ts = RecoRunner()
         ts.runreco('full', ALLRECO)
+
     else:
+        setupLogger(target='trigger')
         ts = RecoRunner(**QCONFIG)
         if isdaemon:
             with daemon.DaemonContext():
@@ -365,6 +379,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
