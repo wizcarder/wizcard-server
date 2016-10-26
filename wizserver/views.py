@@ -2213,18 +2213,6 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-
-
-
-
-
-
-
-
-
-
-
-
 VALIDATOR = 0
 HANDLER = 1
 
