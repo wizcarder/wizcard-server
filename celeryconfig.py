@@ -13,7 +13,7 @@ from rabbit_service import rconfig
 BROKER_URL = rconfig.AMPQ_DEFAULT_URL
 
 EMAIL_TEMPLATE = '/invites/email_templatev4.png'
-EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
+EMAIL_FROM_ADDR = 'wizcarder@getwizcard.com'
 
 OCR_QUEUE_NAME = 'ocr'
 PUSHNOTIF_QUEUE_NAME = 'pushnotif'
@@ -24,7 +24,7 @@ RECO_QUEUE_NAME = 'reco'
 
 
 CELERY_ROUTES = {
-    'lib.ocr.run_ocr' : {'queue': OCR_QUEUE_NAME},
+    'lib.ocr.run_ocr': {'queue': OCR_QUEUE_NAME},
     'notifications.tasks.pushNotificationToApp': {'queue': PUSHNOTIF_QUEUE_NAME},
     'periodic.tasks.tick': {'queue': CELERY_DEFAULT_QUEUE},
     'queued_storage.tasks.Transfer': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
@@ -32,7 +32,7 @@ CELERY_ROUTES = {
     'wizcard.celery.debug_task': {'queue': CELERY_DEFAULT_QUEUE},
 }
 
-CELERY_ACCEPT_CONTENT = ['pickle','json','msgpack','yaml']
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
 from datetime import timedelta
 CELERYBEAT_SCHEDULE = {

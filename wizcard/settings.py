@@ -463,7 +463,7 @@ elif RUNENV == "test" :
         'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
     }
 else:
-	RAVEN_CONFIG = {
+    RAVEN_CONFIG = {
 		'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
 	}
 

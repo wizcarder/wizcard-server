@@ -2,10 +2,6 @@
 
 import sys
 import os
-
-sys.path.append("../wizcard-server")
-sys.path.append("../wizcard-server/lib")
-
 import pika
 import uuid
 from rabbit_service import rconfig
@@ -17,7 +13,8 @@ RPC_CONN = 1
 BASIC_CONN = 2
 
 logger = logging.getLogger(__name__)
-RUNENV=os.getenv("WIZRUNENV", "dev")
+RUNENV = os.getenv("WIZRUNENV", "dev")
+
 
 class RabbitClient(object):
     def __init__(self, *args, **kwargs):
@@ -33,11 +30,11 @@ class RabbitClient(object):
 
     def connection_setup(self):
         self.connection = pika.BlockingConnection(
-                             pika.ConnectionParameters(
-                                 host=self.host,
-                                 virtual_host=self.virtual_host,
-                                 credentials=self.credentials
-                             )
+            pika.ConnectionParameters(
+                host=self.host,
+                virtual_host=self.virtual_host,
+                credentials=self.credentials
+            )
         )
 
     def connection_close(self):
@@ -53,16 +50,16 @@ class RabbitClient(object):
             self.corr_id = str(uuid.uuid4())
             callback_queue = result.method.queue
             self.channel.basic_consume(self.on_response, no_ack=True,
-                    queue=callback_queue)
+                                       queue=callback_queue)
 
             params['rpc'] = True
             self.channel.basic_publish(exchange=self.exchange,
-                    routing_key=self.routing_key,
-                    properties=pika.BasicProperties(
-                        reply_to = callback_queue,
-                        correlation_id = self.corr_id,
-                        ),
-                    body=json.dumps(params))
+                                       routing_key=self.routing_key,
+                                       properties=pika.BasicProperties(
+                                           reply_to=callback_queue,
+                                           correlation_id=self.corr_id,
+                                       ),
+                                       body=json.dumps(params))
 
             self.channel.start_consuming()
         else:
@@ -79,3 +76,6 @@ class RabbitClient(object):
         if self.corr_id == props.correlation_id:
             self.response = body
             self.channel.stop_consuming()
+
+
+

@@ -1,6 +1,8 @@
 import pdb
+
 PSEUDO_SELECTORS = (':all', ':pk', ':local', ':related')
 DEFAULT_SELECTORS = (':pk', ':local')
+
 
 def convert_to_camel(s):
     if '_' not in s:
@@ -72,7 +74,9 @@ class ModelFieldResolver(object):
         # Assume a field or property
         return attr
 
+
 resolver = ModelFieldResolver()
+
 
 def parse_selectors(model, fields=None, exclude=None, key_map=None, **options):
     """Validates fields are valid and maps pseudo-fields to actual fields
@@ -93,7 +97,7 @@ def parse_selectors(model, fields=None, exclude=None, key_map=None, **options):
 
         if cleaned is None:
             raise AttributeError('The "{0}" attribute could not be found '
-                'on the model "{1}"'.format(actual, model))
+                                 'on the model "{1}"'.format(actual, model))
 
         # Mapped value, so use the original name listed in `fields`
         if type(cleaned) is list:
@@ -116,13 +120,13 @@ def get_field_value(obj, name, allow_missing=False):
     elif not allow_missing:
         raise ValueError('{} has no attribute {}'.format(obj, name))
 
-    #AA: Fix after upgrading to latest django. ManyRelatedMgr was being 
+    ## AA: Fix after upgrading to latest django. ManyRelatedMgr was being
     # returned as callable...but it's  not..need to dig deeper. For now, 
-    #moved it up before the callable check/call
+    # moved it up before the callable check/call
 
     # Handle a local many-to-many or a reverse foreign key
     if value.__class__.__name__ in ('RelatedManager', 'ManyRelatedManager',
-            'GenericRelatedObjectManager'):
+                                    'GenericRelatedObjectManager'):
         value = value.all()
     # Check for callable
     elif callable(value):

@@ -166,7 +166,7 @@ class TreeServer(RabbitServer):
         tree_type = kwargs.pop('tree_type', None)
         result = dict()
         print 'Tree State'
-        if tree_type == None:
+        if tree_type is None:
             for ttype in self.location_tree_handles:
                 tree = self.get_tree_from_type(ttype)
                 print '{ttype} : {tree}'.format (ttype=ttype, tree=tree)

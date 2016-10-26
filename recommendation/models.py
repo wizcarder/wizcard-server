@@ -9,23 +9,15 @@
     :members:
 
 """
-from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
-from django.utils import timezone
-from django.conf import settings
-from notifications.signals import notify
 from recommendation.signals import genreco
-from notifications.tasks import pushNotificationToApp
 from wizcardship.models import Wizcard
 from userprofile.models import AddressBook
-from celery import shared_task
 from recommendation.tasks import addtoQtask
-import json
 import logging
-import pika
 
 # Create your models here.
 
@@ -35,6 +27,7 @@ logger = logging.getLogger(__name__)
 # things that operate over all instances (ie, exist at the table level) should be in the manager.
 # generation of reco as another example. We will need to use celery to split up the DB into
 # splices and run recos...enabler methods for all that potentially goes here
+
 
 class Recommendation(models.Model):
     reco_content_type = models.ForeignKey(ContentType, related_name="reco")
@@ -127,9 +120,6 @@ class UserRecommendation(models.Model):
             self.score += obj.modelscore
 
         self.save()
-
-
-
 
     def setAction(self, action=New):
 

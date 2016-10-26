@@ -1,2 +1,2 @@
 from django.dispatch import Signal
-genreco  = Signal(providing_args=['recotarget'])
+genreco = Signal(providing_args=['recotarget'])

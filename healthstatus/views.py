@@ -27,7 +27,7 @@ from django.conf import settings
 
 
 class HealthStatusHandler(View):
-    def get(self,request,*args, **kwargs):
+    def get(self, request, *args, **kwargs):
         self.request = request
         username = "Healthcheck"
         user, created = User.objects.get_or_create(username=username)
@@ -37,7 +37,6 @@ class HealthStatusHandler(View):
         else:
             response = HttpResponse("Healthcheck Failed", status=404)
             return response
-
 
 
 healthstatus_handler = HealthStatusHandler.as_view()

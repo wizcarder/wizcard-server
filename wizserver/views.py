@@ -151,8 +151,9 @@ class ParseMsgAndDispatch(object):
                 # apppatch = int(versions.group(3))
 
                 # Hack for earlier versions - AnandR to do version check as handlers and add default handler
-                if appmajor == 1 and appminor >= 1 and appminor <= 3:
-                    return True
+                if appmajor == 1 and appminor >= 1:
+                    if appminor <= 3:
+                        return True
 
                 if appmajor < settings.APP_MAJOR or (appmajor == settings.APP_MAJOR and appminor < settings.APP_MINOR):
                     logger.error('Failed Version Validation - App Version: %s , Expected Version - %s.%s', appversion, int(settings.APP_MAJOR), int(settings.APP_MINOR))
@@ -1090,7 +1091,7 @@ class ParseMsgAndDispatch(object):
         timeout = self.sender['timeout']
         a_created = self.sender['created']
 
-        if self.lat == None and self.lng == None:
+        if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
                 self.lng = self.userprofile.location.get().lng
@@ -1161,8 +1162,6 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        return self.response
-
     def WizcardFlickConnect(self):
         #wizcard1 sends implicit connect to wizcard2
         try:
@@ -1192,8 +1191,6 @@ class ParseMsgAndDispatch(object):
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-
-        return self.response
 
     def WizcardMyFlicks(self):
         self.wizcard = Wizcard.objects.get(id=self.sender['wizCardID'])

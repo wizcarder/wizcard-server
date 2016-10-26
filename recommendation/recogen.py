@@ -26,8 +26,6 @@ application = get_wsgi_application()
 #logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
 logger = logging.getLogger('RecoGen')
 
-
-
 # AA: Comments: check all the PEP warnings on the right side pane in pycharm.
 # Basic Ones that should be clean are:
 # 1) Tabs, Space (you'll see a yellow highlight in the editor on pycharm wherever those show up)
@@ -54,6 +52,7 @@ ALLRECO = 2
 # Interval between running recommendations fully
 
 RECO_INTERVAL = 1
+
 
 def isValidPhone(phonenum):
 
@@ -101,19 +100,16 @@ class RecoModel(object):
         recuser.save()
 
 
+class ABReco (RecoModel):
 
-
-
-class ABReco (RecoModel) :
-
-    def __init__(self,user):
+    def __init__(self, user):
         #RecoModel.__init__(user)
         super(ABReco, self).__init__(user)
         self.recomodel = 0
 
-
+    @property
     def getData(self):
-        abentries = map(lambda x:x.ab_entry,AB_User.objects.filter(user=self.recotarget))
+        abentries = map(lambda x: x.ab_entry, AB_User.objects.filter(user=self.recotarget))
         if not abentries:
             return {}
 
@@ -123,16 +119,15 @@ class ABReco (RecoModel) :
         except:
             return
 
-
         # Get all the wizcards connected to this user who has a wizcard
-        wizusers = map(lambda x:x.user,self.recotarget.wizcard.get_connections())
+        wizusers = map(lambda x: x.user, self.recotarget.wizcard.get_connections())
 
         for entry in abentries:
 
             #Get all the users who have this abentry
-            users = map(lambda x: x.user,AB_User.objects.filter(ab_entry=entry))
+            users = map(lambda x: x.user, AB_User.objects.filter(ab_entry=entry))
 
-            if not entry.get_phone() and not  entry.get_email():
+            if not entry.get_phone() and not entry.get_email():
                 continue
 
             entry_username = entry.get_phone() + '@wizcard.com'
@@ -147,7 +142,6 @@ class ABReco (RecoModel) :
             if not w1 and entry.get_email():
                 w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.get_email())
 
-
             # Eliminate Self in recommendation
             if w1 and self.recotarget.id == w1.id:
                 continue
@@ -156,7 +150,7 @@ class ABReco (RecoModel) :
                 if not self.recotarget.wizcard.get_relationship(w1):
                     logger.info("Adding Reco " + str(w1.pk) + " for " + self.recotarget.username)
 
-                    self.putReco('wizcard',2,w1.pk)
+                    self.putReco('wizcard', 2, w1.pk)
                     continue
 
             #Now it can only be addressbook
@@ -165,33 +159,32 @@ class ABReco (RecoModel) :
             for user in users:
                 #Checking if the AB entry is in my wizconnections then its a common entry
                 if user in wizusers:
-                    score = score + 2
+                    score += 2
 
             if entry.get_phone() and entry.get_email():
                 logger.debug("Adding Reco " + entry.get_phone() + " for " + entry.get_email() + user.username)
-                score = score + 1
-	    logger.debug("Checking Reco " + entry.get_phone() + " for " + entry.get_email() + user.username)
+                score += 1
 
             if entry.is_phone_final():
-                score = score + 0.5
+                score += 0.5
 
             if entry.is_email_final():
-                score = score + 0.5
+                score += 0.5
 
             if entry.is_name_final():
-                score = score + 0.5
+                score += 0.5
 
             # This includes all AB entries - Might be too much need to take a call??
             if (entry.get_phone() and isValidPhone(entry.get_phone())) or entry.get_email():
-                score = score + 0.1
+                score += 0.1
 
             logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
-            self.putReco(recotype,score,entry.pk)
+            self.putReco(recotype, score, entry.pk)
 
 
 class WizReco(RecoModel):
 
-    def __init__(self,user):
+    def __init__(self, user):
         super(WizReco,self).__init__(user)
         self.recomodel = 1
 
@@ -206,10 +199,10 @@ class WizReco(RecoModel):
 
         for hop1 in targetwizcard.get_connections():
             for hop2 in hop1.get_connections():
-            # Eliminate the self wizcard
+                # Eliminate the self wizcard
                 if targetwizcard.phone != hop2.phone:
                     if hop2.pk in recodict.keys():
-                        recodict[hop2.pk] +=  1
+                        recodict[hop2.pk] += 1
                     else:
                         recodict[hop2.pk] = 1
 
@@ -229,11 +222,10 @@ class RecoRunner(RabbitServer):
         self.recorunners = {
              ABRECO: self.run_abreco,
              WIZRECO: self.run_wizreco,
-             ALLRECO : self.run_allreco,
+             ALLRECO: self.run_allreco,
          }
 
-
-    def runreco(self,target,torun):
+    def runreco(self, target, torun):
         if target == 'full':
             i = 0
             while True:
@@ -242,7 +234,7 @@ class RecoRunner(RabbitServer):
                 checktime = current_time - tdelta
                 time_str = checktime.strftime("%a, %d %b %Y %H:%M:%S +0000")
                 logger.info(time_str)
-                qs = UserProfile.objects.filter(reco_generated_at__lt=checktime,pk__gte = i * 100, pk__lt =  (i+1) * 100)
+                qs = UserProfile.objects.filter(reco_generated_at__lt=checktime, pk__gte = i * 100, pk__lt = (i+1) * 100)
                 #qs = User.objects.filter(pk__gte = i * 100, pk__lt = (i+1) * 100)
                 if qs:
                     for rec in qs:
@@ -256,12 +248,12 @@ class RecoRunner(RabbitServer):
             current_time = timezone.now()
             checktime = current_time - tdelta
             try:
-                qs = UserProfile.objects.get(reco_generated_at__lt=checktime,user=User.objects.get(id=target))
+                qs = UserProfile.objects.get(reco_generated_at__lt=checktime, user=User.objects.get(id=target))
                 self.recorunners[torun](target)
             except:
                 return
 
-    def run_abreco(self,target):
+    def run_abreco(self, target):
         tuser = None
         try:
             tuser = User.objects.get(id=target)
@@ -269,9 +261,9 @@ class RecoRunner(RabbitServer):
             pass
         if tuser:
             abreco_inst = ABReco(tuser)
-            recos = abreco_inst.getData()
+            recos = abreco_inst.getData
 
-    def run_wizreco(self,target):
+    def run_wizreco(self, target):
         tuser = None
         try:
             tuser = User.objects.get(id=target)
@@ -279,15 +271,14 @@ class RecoRunner(RabbitServer):
             pass
         if tuser:
             wizreco_inst = WizReco(tuser)
-            recos = wizreco_inst.getData()
+            wizreco_inst.getData()
 
-    def updateRecoTime(self,target):
+    def updateRecoTime(self, target):
         uprofile = User.objects.get(id=target).profile
         uprofile.reco_generated_at = timezone.now()
         uprofile.save()
 
-
-    def run_allreco(self,target):
+    def run_allreco(self, target):
         self.run_abreco(target)
         self.run_wizreco(target)
         self.updateRecoTime(target)
@@ -299,59 +290,8 @@ class RecoRunner(RabbitServer):
         fn = args.pop('fn')
         rpc = args.pop('rpc', False)
         target = args.pop('target')
-        response = self.runreco(target=target,torun=fn)
+        self.runreco(target=target, torun=fn)
         self.acknowledge_message(basic_deliver.delivery_tag)
-
-
-
-
-
-
-# AA COmments: I'll work on this. Will intergrate it with the existing client
-def callback(ch, method, properties, body):
-    body_data = json.loads(body)
-
-    wuser = ""
-    rmodel = ""
-    if body_data.has_key('recmodel'):
-        rmodel = body_data['recmodel']
-    else:
-        logger.error("No model specified in message: Reco generation not happening")
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        return
-
-
-    if rmodel != "all" and body_data.has_key('recotarget'):
-        wuser = Wizcard.objects.get(id=int(body_data['recotarget'])).user
-        if not wuser:
-            logger.error("No user specified in message: Reco generation not happening")
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            return
-
-
-
-    if rmodel == 'ABReco':
-        treco = ABReco(wuser)
-        reco = treco.getData()
-    elif rmodel == 'WizReco':
-        treco = WizReco(wuser)
-        reco = treco.getData()
-    elif rmodel =='all':
-        reco = dict()
-# AA Comments: This doesn't look right...callback shouldn't be handling so much
-# Also, can't load .all() like that into memory...wont scale
-        wall = Wizcard.objects.all()
-
-        for w in wall:
-            treco = WizReco(w.user)
-            reco = treco.getData()
-
-        for w in wall:
-            treco = ABReco(w.user)
-            logger.info("Generating Reco for " + w.user.username)
-            reco = treco.getData()
-
-    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def main():
@@ -366,8 +306,6 @@ def main():
             QCONFIG = rconfig.RECO_TRIGGER_CONFIG
         if params == 'full':
             fullrun = True
-
-
 
     if fullrun:
         setupLogger(target='full')

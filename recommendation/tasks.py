@@ -1,13 +1,12 @@
 import logging
 import sys
-sys.path.append("../wizcard-server")
+
 #from rabbit_service import rconfig
 from rabbit_service.client import RabbitClient, rconfig
 from celery import shared_task, task
 from pika.credentials import PlainCredentials
 import pdb
 logger = logging.getLogger(__name__)
-
 
 
 class RecoClient(RabbitClient):
@@ -34,6 +33,7 @@ class RecoClient(RabbitClient):
 def addtoQtask(recotarget):
     recoclient = RecoClient(**rconfig.RECO_TRIGGER_CONFIG)
     recoclient.gen_allreco(target=recotarget)
+
 
 @task(ignore_result=True)
 def triggerRecoAll():

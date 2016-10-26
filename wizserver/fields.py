@@ -1,6 +1,6 @@
 contact_container_fields = ['company', 'title', 'phone', 'start', 'end', 'f_bizCardUrl']
 contact_container_keymap = {
-        'f_bizCardUrl':'get_fbizcard_url'
+        'f_bizCardUrl': 'get_fbizcard_url'
         }
 
 contact_container_template = {

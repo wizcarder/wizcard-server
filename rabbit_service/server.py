@@ -5,7 +5,7 @@ import pika
 from rabbit_service import rconfig
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
-                '-35s %(lineno) -5d: %(message)s')
+              '-35s %(lineno) -5d: %(message)s')
 LOGGER = logging.getLogger(__name__)
 
 
@@ -22,7 +22,9 @@ class RabbitServer(object):
     commands that were issued and that should surface in the output as well.
 
     """
-    def __init__(self, url=rconfig.AMPQ_DEFAULT_URL, exchange=rconfig.DEFAULT_EXCHANGE, exchange_type=rconfig.EXCHANGE_TYPE,
+
+    def __init__(self, url=rconfig.AMPQ_DEFAULT_URL, exchange=rconfig.DEFAULT_EXCHANGE,
+                 exchange_type=rconfig.EXCHANGE_TYPE,
                  queue=rconfig.DEFAULT_QUEUE, routing_key=rconfig.DEFAULT_ROUTING_KEY,
                  virtual_host=None):
         """Create a new instance of the consumer class, passing in the AMQP
@@ -51,8 +53,8 @@ class RabbitServer(object):
         """
         LOGGER.info('Connecting to %s', self._url)
         return pika.SelectConnection(pika.URLParameters(self._url),
-                                        self.on_connection_open,
-                                        stop_ioloop_on_close=False)
+                                     self.on_connection_open,
+                                     stop_ioloop_on_close=False)
 
     def close_connection(self):
         """This method closes the connection to RabbitMQ."""
@@ -82,7 +84,7 @@ class RabbitServer(object):
             self._connection.ioloop.stop()
         else:
             LOGGER.warning('Connection closed, reopening in 5 seconds: (%s) %s',
-                            reply_code, reply_text)
+                           reply_code, reply_text)
             self._connection.add_timeout(5, self.reconnect)
 
     def on_connection_open(self, unused_connection):
@@ -106,7 +108,6 @@ class RabbitServer(object):
         self._connection.ioloop.stop()
 
         if not self._closing:
-
             # Create a new connection
             self._connection = self.connect()
 
@@ -134,7 +135,7 @@ class RabbitServer(object):
 
         """
         LOGGER.warning('Channel %i was closed: (%s) %s',
-                        channel, reply_code, reply_text)
+                       channel, reply_code, reply_text)
         self._connection.close()
 
     def on_channel_open(self, channel):
@@ -161,8 +162,8 @@ class RabbitServer(object):
         """
         LOGGER.info('Declaring exchange %s', exchange_name)
         self._channel.exchange_declare(self.on_exchange_declareok,
-                                        exchange_name,
-                                        self._exchange_type)
+                                       exchange_name,
+                                       self._exchange_type)
 
     def on_exchange_declareok(self, unused_frame):
         """Invoked by pika when RabbitMQ has finished the Exchange.Declare RPC
@@ -198,7 +199,7 @@ class RabbitServer(object):
         LOGGER.info('Binding %s to %s with %s',
                     self._exchange, self._queue, self._routing_key)
         self._channel.queue_bind(self.on_bindok, self._queue,
-                                    self._exchange, self._routing_key)
+                                 self._exchange, self._routing_key)
 
     def add_on_cancel_callback(self):
         """Add a callback that will be invoked if RabbitMQ cancels the consumer
@@ -283,7 +284,7 @@ class RabbitServer(object):
         LOGGER.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         self._consumer_tag = self._channel.basic_consume(self.on_message,
-                                                            self._queue)
+                                                         self._queue)
 
     def on_bindok(self, unused_frame):
         """Invoked by pika when the Queue.Bind method has completed. At this
