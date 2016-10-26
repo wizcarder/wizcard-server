@@ -52,7 +52,7 @@ class RunOCR:
 		#while task.IsActive == True :
 		#while task.Status == "Queued" or task.Status == "InProgress":
                 while task.IsActive():
-					count += 1
+			count += 1
 			time.sleep( 2 )
 			sys.stdout.write( "." )
 			task = processor.GetTaskStatus( task )
