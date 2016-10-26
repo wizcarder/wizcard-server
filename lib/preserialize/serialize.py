@@ -77,7 +77,9 @@ def queryset_to_list(queryset, fields, **options):
         return list(queryset)
 
     return map(lambda x: model_to_dict(x, fields, **options),
-            queryset.iterator())
+               queryset.iterator())
+
+
 
 def serialize(obj, fields=None, exclude=None, **options):
     """Recursively attempts to find ``Model`` and ``QuerySet`` instances

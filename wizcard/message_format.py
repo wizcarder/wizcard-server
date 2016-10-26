@@ -37,9 +37,13 @@ class LocationUpdateSchema(colander.MappingSchema):
     pass
 class ContactsVerifySchema(colander.MappingSchema):
     pass
+class ContactsUploadSchema(colander.MappingSchema):
+    pass
 class NotificationsGetSchema(colander.MappingSchema):
     pass
 class WizcardEditSchema(colander.MappingSchema):
+    pass
+class RolodexEditSchema(colander.MappingSchema):
     pass
 class WizcardAcceptSchema(colander.MappingSchema):
     pass
@@ -48,6 +52,8 @@ class WizConnectionRequestDeclineSchema(colander.MappingSchema):
 class WizConnectionRequestWithdrawSchema(colander.MappingSchema):
     pass
 class WizcardRolodexDeleteSchema(colander.MappingSchema):
+    pass
+class WizcardRolodexArchivedCardsSchema(colander.MappingSchema):
     pass
 class WizcardFlickSchema(colander.MappingSchema):
     pass
@@ -114,6 +120,10 @@ class MeishiFindSchema(colander.MappingSchema):
 class MeishiEndSchema(colander.MappingSchema):
     pass
 class GetEmailTemplateSchema(colander.MappingSchema):
+    pass
+class GetRecommendationsSchema(colander.MappingSchema):
+    pass
+class SetRecoActionSchema(colander.MappingSchema):
     pass
 
 

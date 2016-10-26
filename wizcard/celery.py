@@ -4,23 +4,20 @@ import os
 
 from celery import Celery
 from raven import Client
-from raven.contrib.celery import register_signal, register_logger_signal
-from kombu import Consumer, Exchange, Queue
-
-from django.conf import settings
+from raven.contrib.celery import register_signal
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wizcard.settings')
+
+from django.conf import settings
 
 wizcard_app = Celery('wizcard')
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
-wizcard_app.config_from_object('django.conf:settings')
-wizcard_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
-wizcard_app.autodiscover_tasks(settings.INSTALLED_APPS + ("lib.emailInvite", "lib.ocr"))
+wizcard_app.config_from_object('celeryconfig')
+wizcard_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS + ("lib.ocr", "lib.email_invite"))
 
-CELERY_IMPORTS=("periodic.tasks",)
 
 if hasattr(settings, 'RAVEN_CONFIG'):
     # Celery signal registration

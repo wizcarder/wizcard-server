@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from lib.preserialize.serialize import serialize
+from lib import wizlib
 from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
@@ -24,6 +25,7 @@ import string
 import random
 import pdb
 
+
 class UserProfileManager(models.Manager):
     def serialize_split(self, me, users):
         s = dict()
@@ -36,7 +38,7 @@ class UserProfileManager(models.Manager):
             s['connected'] = UserProfile.objects.serialize(ret['connected'], template)
         # lets remove follower for now. The *assumption* is that follower is represented on
         # the me.app as a notif anyway. Since they are on the same screen, it's redundant.
-        #if ret.has_key('follower'):
+        # if ret.has_key('follower'):
         #    s['follower'] = UserProfile.objects.serialize(ret['follower'], template)
         if ret.has_key('follower-d'):
             s['follower-d'] = UserProfile.objects.serialize(ret['follower-d'], template)
@@ -59,16 +61,16 @@ class UserProfileManager(models.Manager):
 
         for user in users:
             connection_status = Wizcard.objects.get_connection_status(me.wizcard, user.wizcard)
-            if connection_status is verbs.OWN:
+            if connection_status == verbs.OWN:
                 own.append(user)
-            elif connection_status is verbs.CONNECTED:
+            elif connection_status == verbs.CONNECTED:
                 # 2-way connected
                 connected.append(user)
-            elif connection_status is verbs.FOLLOWER:
+            elif connection_status == verbs.FOLLOWER:
                 follower.append(user)
-            elif connection_status is verbs.FOLLOWER_D:
+            elif connection_status == verbs.FOLLOWER_D:
                 follower_d.append(user)
-            elif connection_status is verbs.FOLLOWED:
+            elif connection_status == verbs.FOLLOWED:
                 followed.append(user)
             else:
                 others.append(user)
@@ -93,7 +95,7 @@ class UserProfileManager(models.Manager):
         return serialize(wizcards, **template)
 
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
-        userid =  ''.join(random.choice(chars) for x in range(size))
+        userid = ''.join(random.choice(chars) for x in range(size))
         try:
             User.objects.get(username=userid)
             userid = self.id_generator()
@@ -112,8 +114,8 @@ class UserProfileManager(models.Manager):
                 if user.profile.activated:
                     return user.wizcard
         elif query_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-            email_wizcards =  Wizcard.objects.filter(email=query_key)
-            #AR: Need to change the model to make it uniq
+            email_wizcards = Wizcard.objects.filter(email=query_key)
+            # AR: Need to change the model to make it uniq
             if email_wizcards:
                 return email_wizcards[0]
         return None
@@ -124,11 +126,12 @@ class UserProfileManager(models.Manager):
     def futureusername_from_phone_num(self, phone_num):
         return phone_num + settings.WIZCARD_FUTURE_USERNAME_EXTENSION
 
+
 class UserProfile(models.Model):
     # This field is required.
     user = models.OneToOneField(User, related_name='profile')
     activated = models.BooleanField(default=False)
-    #this is the internal userid
+    # this is the internal userid
     userid = TruncatingCharField(max_length=100)
     future_user = models.BooleanField(default=False, blank=False)
     location = generic.GenericRelation(LocationMgr)
@@ -137,18 +140,19 @@ class UserProfile(models.Model):
     is_wifi_data = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
     block_unsolicited = models.BooleanField(default=False)
+    reco_generated_at = models.DateTimeField(auto_now=True)
 
     IOS = 'ios'
-    ANDROID='android'
+    ANDROID = 'android'
     DEVICE_CHOICES = (
-	(IOS, 'iPhone'),
-	(ANDROID, 'Android'),
+        (IOS, 'iPhone'),
+        (ANDROID, 'Android'),
     )
     device_type = TruncatingCharField(max_length=10,
-		    		   choices=DEVICE_CHOICES,
-				   default=IOS)
+                                      choices=DEVICE_CHOICES,
+                                      default=IOS)
     device_id = TruncatingCharField(max_length=100)
-    reg_token = models.CharField(db_index=True,max_length=200)
+    reg_token = models.CharField(db_index=True, max_length=200)
 
     objects = UserProfileManager()
 
@@ -157,7 +161,7 @@ class UserProfile(models.Model):
 
     def online(self):
         cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(),
-                settings.USER_LASTSEEN_TIMEOUT)
+                  settings.USER_LASTSEEN_TIMEOUT)
 
     def can_send_data(self, on_wifi):
         return True if on_wifi else not self.is_wifi_data
@@ -166,9 +170,9 @@ class UserProfile(models.Model):
         now = timezone.now()
         ls = cache.get(settings.USER_ONLINE_PREFIX % self.online_key())
         if bool(ls):
-            return(True, (now - ls))
+            return (True, (now - ls))
         else:
-            return(False, None)
+            return (False, None)
 
     def is_online(self):
         on, ls = self.last_seen()
@@ -195,7 +199,7 @@ class UserProfile(models.Model):
             l.reset_timer()
             return l
         except ObjectDoesNotExist:
-            #create
+            # create
             l_tuple = location.send(sender=self, lat=lat, lng=lng,
                                     tree="PTREE")
             l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
@@ -208,58 +212,59 @@ class UserProfile(models.Model):
             return None, None
 
         result, count = l.lookup(cache_key, n)
-        #convert result to query set result
+        # convert result to query set result
         if count and not count_only:
-            users = [UserProfile.objects.get(id=x).user for x in result if UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
+            users = [UserProfile.objects.get(id=x).user for x in result if
+                     UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
         return users, count
 
     def do_resync(self):
         s = {}
-        #add callouts to all serializable objects here
+        # add callouts to all serializable objects here
 
-	    #wizcard
+        # wizcard
         try:
             wizcard = self.user.wizcard
         except ObjectDoesNotExist:
             return s
 
         s['wizcard'] = wizcard.serialize(fields.wizcard_template_full)
-        #flicks (put  before wizconnections since wizconnection could refer to flicks)
+        # flicks (put  before wizconnections since wizconnection could refer to flicks)
 
         if wizcard.flicked_cards.count():
             wf = wizcard.serialize_wizcardflicks()
             s['wizcard_flicks'] = wf
 
-        #wizconnections
+        # wizconnections
         if wizcard.wizconnections_from.count():
             wc = wizcard.serialize_wizconnections()
             s['wizconnections'] = wc
 
         # Populate Context for Wizcards that this user  is following
-        conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard,status=verbs.ACCEPTED)
+        conn = WizConnectionRequest.objects.filter(to_wizcard=wizcard, status=verbs.ACCEPTED)
         if conn:
             cctx = map(lambda x: NotifContext(
                 description=x.cctx.description,
                 asset_id=x.cctx.asset_id,
                 asset_type=x.cctx.asset_type,
                 connection_mode=x.cctx.connection_mode,
+                notes=x.cctx.notes if x.cctx.notes else "",
                 timestamp=x.created.strftime("%d %B %Y")).context, conn)
 
             s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
 
-
-        #tables
+        # tables
         tables = VirtualTable.objects.user_tables(self.user)
         if tables.count():
-        # serialize created and joined tables
+            # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(
-                    tables,
-                    self.user,
-                    fields.table_template)
+                tables,
+                self.user,
+                fields.table_template)
             s['tables'] = tbls
 
-        #dead card
-        deadcards = self.user.dead_cards.all()
+        # dead card
+        deadcards = self.user.dead_cards.filter(activated=True)
         if deadcards.count():
             dc = DeadCards.objects.serialize(deadcards)
             s['deadcards'] = dc
@@ -269,6 +274,7 @@ class UserProfile(models.Model):
         # This way, these notifs will be sent natively via get_cards
         Notification.objects.unacted(self.user).update(readed=False)
         return s
+
 
 class FutureUserManager(models.Manager):
     def check_future_user(self, email=None, phone=None):
@@ -281,6 +287,7 @@ class FutureUserManager(models.Manager):
         if qlist:
             return self.filter(reduce(operator.or_, qlist))
         return None
+
 
 class FutureUser(models.Model):
     inviter = models.ForeignKey(User, related_name='invitees')
@@ -301,7 +308,7 @@ class FutureUser(models.Model):
         if ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="wizcard"):
 
-            #spoof an exchange, as if it came from the inviter
+            # spoof an exchange, as if it came from the inviter
             rel12 = Wizcard.objects.cardit(self.content_object,
                                            real_user.wizcard,
                                            cctx=cctx)
@@ -310,12 +317,12 @@ class FutureUser(models.Model):
                 connection_mode=verbs.INVITE_VERBS[verbs.SMS_INVITE] if self.phone
                 else verbs.INVITE_VERBS[verbs.EMAIL_INVITE]
             )
-            #sender always accepts the receivers wizcard
+            # sender always accepts the receivers wizcard
             rel21 = Wizcard.objects.cardit(real_user.wizcard,
                                            self.content_object,
                                            status=verbs.ACCEPTED,
                                            cctx=cctx)
-            #Q notif for to_wizcard
+            # Q notif for to_wizcard
             notify.send(self.inviter,
                         recipient=real_user,
                         verb=verbs.WIZREQ_U[0],
@@ -323,7 +330,7 @@ class FutureUser(models.Model):
                         target=self.content_object,
                         action_object=rel12)
 
-            #Q implicit notif for from_wizcard
+            # Q implicit notif for from_wizcard
             notify.send(real_user,
                         recipient=self.inviter,
                         verb=verbs.WIZREQ_T[0],
@@ -332,15 +339,166 @@ class FutureUser(models.Model):
                         action_object=rel21)
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
-            #Q this to the receiver
+            # Q this to the receiver
             notify.send(self.inviter, recipient=real_user,
                         verb=verbs.WIZCARD_TABLE_INVITE[0],
                         target=self.content_object)
+
+
+# Model for Address-Book Support. Standard M2M-through
+MIN_MATCHES_FOR_PHONE_DECISION = 3
+MIN_MATCHES_FOR_EMAIL_DECISION = 3
+MIN_MATCHES_FOR_NAME_DECISION = 4
+
+
+class AddressBook(models.Model):
+    # this is the high confidence, cleaned up phone
+    phone = TruncatingCharField(max_length=20, blank=True)
+    # to indicate if above entry is definitely the right one
+    phone_finalized = models.BooleanField(default=False)
+
+    email = EmailField(blank=True)
+    # to indicate if above entry is definitely the right one
+    email_finalized = models.BooleanField(default=False)
+
+    first_name = TruncatingCharField(max_length=40, blank=True)
+    last_name = TruncatingCharField(max_length=40, blank=True)
+    # to indicate if above entry is definitely the right one
+    first_name_finalized = models.BooleanField(default=False)
+    last_name_finalized = models.BooleanField(default=False)
+    users = models.ManyToManyField(User, through='AB_User')
+
+    def __repr__(self):
+        return self.first_name + " " + self.last_name + " " + (self.email) + " " + self.phone
+
+    def serialize(self, template=fields.addressbook_template):
+        return serialize(self, **template)
+
+    # look through all the candidates and check if there is
+    # a majority wins case
+    def run_finalize_decision(self):
+        save = False
+        if not self.phone_finalized and self.candidate_phones.count():
+            common, count = wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))
+            if count >= MIN_MATCHES_FOR_PHONE_DECISION:
+                self.phone = common
+                self.phone_finalized = True
+                save = True
+
+        if not self.email_finalized and self.candidate_emails.count():
+            common, count = wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))
+            if count >= MIN_MATCHES_FOR_EMAIL_DECISION:
+                self.email = common
+                self.email_finalized = True
+                save = True
+
+        if not self.first_name_finalized and self.candidate_names.count():
+            common, count = wizlib.most_common(map(lambda x: x.first_name, self.candidate_names.all()))
+            if count >= MIN_MATCHES_FOR_NAME_DECISION:
+                self.first_name = common
+                self.first_name_finalized = True
+                save = True
+
+        if not self.last_name_finalized and self.candidate_names.count():
+            common, count = wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))
+            if count >= MIN_MATCHES_FOR_NAME_DECISION:
+                self.last_name = common
+                self.last_name_finalized = True
+                save = True
+        if save:
+            self.save()
+
+    def get_phone(self):
+        if self.phone_finalized:
+            return self.phone
+        else:
+            if self.candidate_phones.all():
+                return wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))[0]
+            else:
+                return ""
+
+    def get_all_phones(self):
+        if self.phone_finalized:
+            return [self.phone]
+        else:
+            if self.candidate_phones.all():
+                return [wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))[0]]
+            else:
+                return []
+
+    def get_all_emails(self):
+        if self.email_finalized:
+            return [self.email]
+        else:
+            if self.candidate_emails.all():
+                return [wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))[0]]
+            else:
+                return []
+
+    def get_email(self):
+        if self.email_finalized:
+            return self.email
+        else:
+            if self.candidate_emails.all():
+                return wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))[0]
+            else:
+                return ""
+
+    def get_name(self):
+        first_name = \
+            self.first_name if self.first_name_finalized else \
+                wizlib.most_common(map(lambda x: x.first_name, self.candidate_names.all()))[0]
+        last_name = self.last_name if self.last_name_finalized else \
+            wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))[0]
+
+        return first_name + " " + last_name
+
+    def is_phone_final(self):
+        return self.phone_finalized
+
+    def is_email_final(self):
+        return self.email_finalized
+
+    def is_name_final(self):
+        return self.first_name_finalized and self.last_name_finalized
+
+
+class AB_Candidate_Phones(models.Model):
+    phone = TruncatingCharField(max_length=20)
+    ab_entry = models.ForeignKey(AddressBook, related_name='candidate_phones')
+
+
+    def __repr__(self):
+        return self.phone
+
+
+class AB_Candidate_Emails(models.Model):
+    email = EmailField()
+    ab_entry = models.ForeignKey(AddressBook, related_name='candidate_emails')
+
+    def __repr__(self):
+        return self.email
+
+
+class AB_Candidate_Names(models.Model):
+    first_name = TruncatingCharField(max_length=40)
+    last_name = TruncatingCharField(max_length=40)
+    ab_entry = models.ForeignKey(AddressBook, related_name='candidate_names')
+
+    def __repr__(self):
+        return self.first_name + " " + self.last_name
+
+
+class AB_User(models.Model):
+    user = models.ForeignKey(User)
+    ab_entry = models.ForeignKey(AddressBook)
+
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile = UserProfile(user=instance)
         profile.userid = UserProfile.objects.id_generator()
         profile.save()
+
 
 post_save.connect(create_user_profile, sender=User)

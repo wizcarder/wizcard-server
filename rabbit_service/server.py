@@ -1,13 +1,15 @@
 import logging
+
 import pika
-import rconfig
+
+from rabbit_service import rconfig
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
-                '-35s %(lineno) -5d: %(message)s')
+              '-35s %(lineno) -5d: %(message)s')
 LOGGER = logging.getLogger(__name__)
 
 
-class LocationServiceServer(object):
+class RabbitServer(object):
     """This is an example consumer that will handle unexpected interactions
     with RabbitMQ such as channel and connection closures.
 
@@ -20,7 +22,11 @@ class LocationServiceServer(object):
     commands that were issued and that should surface in the output as well.
 
     """
-    def __init__(self, amqp_url):
+
+    def __init__(self, url=rconfig.AMPQ_DEFAULT_URL, exchange=rconfig.DEFAULT_EXCHANGE,
+                 exchange_type=rconfig.EXCHANGE_TYPE,
+                 queue=rconfig.DEFAULT_QUEUE, routing_key=rconfig.DEFAULT_ROUTING_KEY,
+                 virtual_host=None):
         """Create a new instance of the consumer class, passing in the AMQP
         URL used to connect to RabbitMQ.
 
@@ -31,7 +37,11 @@ class LocationServiceServer(object):
         self._channel = None
         self._closing = False
         self._consumer_tag = None
-        self._url = amqp_url
+        self._url = url + '/' + virtual_host
+        self._exchange = exchange
+        self._exchange_type = exchange_type
+        self._queue = queue
+        self._routing_key = routing_key
 
     def connect(self):
         """This method connects to RabbitMQ, returning the connection handle.
@@ -43,8 +53,8 @@ class LocationServiceServer(object):
         """
         LOGGER.info('Connecting to %s', self._url)
         return pika.SelectConnection(pika.URLParameters(self._url),
-                                        self.on_connection_open,
-                                        stop_ioloop_on_close=False)
+                                     self.on_connection_open,
+                                     stop_ioloop_on_close=False)
 
     def close_connection(self):
         """This method closes the connection to RabbitMQ."""
@@ -74,7 +84,7 @@ class LocationServiceServer(object):
             self._connection.ioloop.stop()
         else:
             LOGGER.warning('Connection closed, reopening in 5 seconds: (%s) %s',
-                            reply_code, reply_text)
+                           reply_code, reply_text)
             self._connection.add_timeout(5, self.reconnect)
 
     def on_connection_open(self, unused_connection):
@@ -98,7 +108,6 @@ class LocationServiceServer(object):
         self._connection.ioloop.stop()
 
         if not self._closing:
-
             # Create a new connection
             self._connection = self.connect()
 
@@ -126,7 +135,7 @@ class LocationServiceServer(object):
 
         """
         LOGGER.warning('Channel %i was closed: (%s) %s',
-                        channel, reply_code, reply_text)
+                       channel, reply_code, reply_text)
         self._connection.close()
 
     def on_channel_open(self, channel):
@@ -141,7 +150,7 @@ class LocationServiceServer(object):
         LOGGER.info('Channel opened')
         self._channel = channel
         self.add_on_channel_close_callback()
-        self.setup_exchange(rconfig.EXCHANGE)
+        self.setup_exchange(self._exchange)
 
     def setup_exchange(self, exchange_name):
         """Setup the exchange on RabbitMQ by invoking the Exchange.Declare RPC
@@ -153,8 +162,8 @@ class LocationServiceServer(object):
         """
         LOGGER.info('Declaring exchange %s', exchange_name)
         self._channel.exchange_declare(self.on_exchange_declareok,
-                                        exchange_name,
-                                        rconfig.EXCHANGE_TYPE)
+                                       exchange_name,
+                                       self._exchange_type)
 
     def on_exchange_declareok(self, unused_frame):
         """Invoked by pika when RabbitMQ has finished the Exchange.Declare RPC
@@ -164,7 +173,7 @@ class LocationServiceServer(object):
 
         """
         LOGGER.info('Exchange declared')
-        self.setup_queue(rconfig.QUEUE)
+        self.setup_queue(self._queue)
 
     def setup_queue(self, queue_name):
         """Setup the queue on RabbitMQ by invoking the Queue.Declare RPC
@@ -188,9 +197,9 @@ class LocationServiceServer(object):
 
         """
         LOGGER.info('Binding %s to %s with %s',
-                    rconfig.EXCHANGE, rconfig.QUEUE, rconfig.ROUTING_KEY)
-        self._channel.queue_bind(self.on_bindok, rconfig.QUEUE,
-                                    rconfig.EXCHANGE, rconfig.ROUTING_KEY)
+                    self._exchange, self._queue, self._routing_key)
+        self._channel.queue_bind(self.on_bindok, self._queue,
+                                 self._exchange, self._routing_key)
 
     def add_on_cancel_callback(self):
         """Add a callback that will be invoked if RabbitMQ cancels the consumer
@@ -275,7 +284,7 @@ class LocationServiceServer(object):
         LOGGER.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         self._consumer_tag = self._channel.basic_consume(self.on_message,
-                                                            rconfig.QUEUE)
+                                                         self._queue)
 
     def on_bindok(self, unused_frame):
         """Invoked by pika when the Queue.Bind method has completed. At this

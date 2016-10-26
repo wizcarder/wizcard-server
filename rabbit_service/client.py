@@ -1,36 +1,28 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.append("../wizcard-server")
-sys.path.append("../wizcard-server/lib")
-
-from lib.pytrie import SortedStringTrie as trie
-from lib import wizlib
+import os
 import pika
 import uuid
-import heapq
-#from base.borg import Borg
-import rconfig
+from rabbit_service import rconfig
 import json
 import logging
-import pdb
+from wizcard.instances import ALLHOSTS
 
-DEFAULT_MAX_LOOKUP_RESULTS = 10
-
-TREE_INSERT = 1
-TREE_DELETE = 2
-TREE_LOOKUP = 3
-PRINT_TREES = 4
 RPC_CONN = 1
 BASIC_CONN = 2
 
 logger = logging.getLogger(__name__)
+RUNENV = os.getenv("WIZRUNENV", "dev")
 
-class LocationServiceClient(object):
+
+class RabbitClient(object):
     def __init__(self, *args, **kwargs):
-        self.host = kwargs.get('host', rconfig.HOST)
-        self.exchange = kwargs.get('exchange', rconfig.EXCHANGE)
-        self.routing_key = kwargs.get('routing_key', rconfig.ROUTING_KEY)
+        self.host = kwargs.get('host', ALLHOSTS[RUNENV]['RABBITSERVER'][0])
+        self.virtual_host = kwargs.get('virtual_host', "")
+        self.credentials = kwargs.get('credentials', None)
+        self.exchange = kwargs.get('exchange', rconfig.DEFAULT_EXCHANGE)
+        self.routing_key = kwargs.get('routing_key', rconfig.DEFAULT_ROUTING_KEY)
         self.connection = None
         self.type = BASIC_CONN
         self.channel = None
@@ -38,7 +30,12 @@ class LocationServiceClient(object):
 
     def connection_setup(self):
         self.connection = pika.BlockingConnection(
-                             pika.ConnectionParameters(host=self.host))
+            pika.ConnectionParameters(
+                host=self.host,
+                virtual_host=self.virtual_host,
+                credentials=self.credentials
+            )
+        )
 
     def connection_close(self):
         if self.connection:
@@ -53,16 +50,16 @@ class LocationServiceClient(object):
             self.corr_id = str(uuid.uuid4())
             callback_queue = result.method.queue
             self.channel.basic_consume(self.on_response, no_ack=True,
-                    queue=callback_queue)
+                                       queue=callback_queue)
 
             params['rpc'] = True
             self.channel.basic_publish(exchange=self.exchange,
-                    routing_key=self.routing_key,
-                    properties=pika.BasicProperties(
-                        reply_to = callback_queue,
-                        correlation_id = self.corr_id,
-                        ),
-                    body=json.dumps(params))
+                                       routing_key=self.routing_key,
+                                       properties=pika.BasicProperties(
+                                           reply_to=callback_queue,
+                                           correlation_id=self.corr_id,
+                                       ),
+                                       body=json.dumps(params))
 
             self.channel.start_consuming()
         else:
@@ -80,23 +77,5 @@ class LocationServiceClient(object):
             self.response = body
             self.channel.stop_consuming()
 
-    def tree_insert(self, **kwargs):
-        kwargs['fn'] = TREE_INSERT
-        response = self.call(kwargs)
-        return response
 
-    def tree_delete(self, **kwargs):
-        kwargs['fn'] = TREE_DELETE
-        response = self.call(kwargs)
-        return response
 
-    def lookup(self, **kwargs):
-        kwargs['fn'] = TREE_LOOKUP
-        response = self.call(kwargs, rpc=True)
-        return response['result'], response['count']
-
-    def print_trees(self, **kwargs):
-        kwargs['fn'] = PRINT_TREES
-        response = self.call(kwargs, rpc=True)
-        #print response
-        return response

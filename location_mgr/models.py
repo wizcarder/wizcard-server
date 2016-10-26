@@ -1,22 +1,15 @@
-from django.db import models
-from lib.pytrie import SortedStringTrie as trie
-from django.contrib.auth.models import User
-from django.contrib.contenttypes import generic
-from django.contrib.contenttypes.models import ContentType
-from location_mgr.signals import location, location_timeout
-from notifications.models import notify, Notification
-from django.db.models.signals import pre_delete
-from periodic.models import Periodic
-from django.db.models.signals import class_prepared
-from lib import wizlib
-from django.utils import timezone
-from wizserver import verbs
-from location_service.client import LocationServiceClient
 import logging
 import heapq
-import random
-import time
-import pdb
+
+from django.db import models
+from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.models import ContentType
+
+from location_mgr.signals import location, location_timeout
+from periodic.models import Periodic
+from lib import wizlib
+from wizserver import verbs
+from location_service.tree_state_client import TreeStateClient
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +17,7 @@ logger = logging.getLogger(__name__)
 class LocationMgrManager(models.Manager):
     def lookup(self, cache_key, tree_type, lat, lng, n,
                exclude_self=False, modifier=None):
-        tsc = LocationServiceClient()
+        tsc = TreeStateClient()
 
         key = wizlib.create_geohash(lat, lng)
         if exclude_self and modifier:
@@ -90,7 +83,7 @@ class LocationMgr(models.Model):
         return updated
 
     def delete_from_tree(self):
-        tsc = LocationServiceClient()
+        tsc = TreeStateClient()
         val = tsc.tree_delete(
 			key=wizlib.modified_key(self.key, self.pk),
 			tree_type=self.tree_type)
@@ -98,7 +91,7 @@ class LocationMgr(models.Model):
         return val
 
     def insert_in_tree(self):
-        tsc = LocationServiceClient()
+        tsc = TreeStateClient()
         tsc.tree_insert(
                 key=wizlib.modified_key(self.key, self.pk),
                 tree_type=self.tree_type,

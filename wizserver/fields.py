@@ -1,6 +1,6 @@
 contact_container_fields = ['company', 'title', 'phone', 'start', 'end', 'f_bizCardUrl']
 contact_container_keymap = {
-        'f_bizCardUrl':'get_fbizcard_url'
+        'f_bizCardUrl': 'get_fbizcard_url'
         }
 
 contact_container_template = {
@@ -149,4 +149,10 @@ dead_cards_wizcard_template = {
 cctx_wizcard_template = {
     'key_map' : {'wizcard' : 'asset_obj'},
     'related' : {'asset_obj' : wizcard_template_micro}
+}
+addressbook_template = {
+	'fields' : ['id','phone', 'email','name'],
+	'key_map' : {'phone' : 'get_all_phones',
+		        'email' : 'get_all_emails',
+                'name' : 'get_name'}
 }

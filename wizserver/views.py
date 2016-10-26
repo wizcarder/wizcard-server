@@ -22,6 +22,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from lib.ocr import OCR
+from lib.preserialize import serialize
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
@@ -29,9 +30,10 @@ from virtual_table.models import VirtualTable, Membership
 from meishi.models import Meishi
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
+from userprofile.models import AddressBook, AB_Candidate_Emails, AB_Candidate_Phones, AB_Candidate_Names, AB_User
 from userprofile.models import FutureUser
 from lib import wizlib
-from lib.emailInvite import create_template, sendmail
+from lib.email_invite import create_template, sendmail
 from wizcard import err
 from dead_cards.models import DeadCards
 from wizserver import fields
@@ -44,6 +46,7 @@ import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
+from recommendation.models import UserRecommendation, Recommendation,genreco
 import pdb
 
 now = timezone.now
@@ -146,10 +149,11 @@ class ParseMsgAndDispatch(object):
 
                 # Checking major and minor versions only, expecting patches to be backward compatible
                 # apppatch = int(versions.group(3))
-                
+
                 # Hack for earlier versions - AnandR to do version check as handlers and add default handler
-                if appmajor == 1 and appminor >= 1 and appminor <= 3:
-                    return True
+                if appmajor == 1 and appminor >= 1:
+                    if appminor <= 3:
+                        return True
 
                 if appmajor < settings.APP_MAJOR or (appmajor == settings.APP_MAJOR and appminor < settings.APP_MINOR):
                     logger.error('Failed Version Validation - App Version: %s , Expected Version - %s.%s', appversion, int(settings.APP_MAJOR), int(settings.APP_MINOR))
@@ -228,13 +232,14 @@ class ParseMsgAndDispatch(object):
             'register'                    : (message_format.RegisterSchema, self.Register),
             'current_location'            : (message_format.LocationUpdateSchema, self.LocationUpdate),
             'contacts_verify'	          : (message_format.ContactsVerifySchema, self.ContactsVerify),
+            'contacts_upload'             : (message_format.ContactsUploadSchema, self.ContactsUpload),
             'get_cards'                   : (message_format.NotificationsGetSchema, self.NotificationsGet),
             'edit_card'                   : (message_format.WizcardEditSchema, self.WizcardEdit),
+            'edit_rolodex_card'           : (message_format.RolodexEditSchema, self.RolodexEdit),
             'accept_connection_request'   : (message_format.WizcardAcceptSchema, self.WizcardAccept),
             'decline_connection_request'  : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestDecline),
-            #'delete_notification_card'    : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestWithdraw),
-            'withdraw_connection_request' : (message_format.WizConnectionRequestWithdrawSchema, self.WizConnectionRequestWithdraw),
             'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
+            'archived_cards'              : (message_format.WizcardRolodexArchivedCardsSchema, self.WizcardRolodexArchivedCards),
             'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
             'card_flick_accept'           : (message_format.WizcardFlickPickSchema, self.WizcardFlickPick),
             'card_flick_accept_connect'   : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
@@ -264,6 +269,8 @@ class ParseMsgAndDispatch(object):
             'meishi_find'                 : (message_format.MeishiFindSchema, self.MeishiFind),
             'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
             'get_email_template'          : (message_format.GetEmailTemplateSchema, self.GetEmailTemplate),
+            'get_recommendations'         : (message_format.GetRecommendationsSchema, self.GetRecommendations),
+            'set_reco_action'               : (message_format.SetRecoActionSchema, self.SetRecoAction),
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -309,7 +316,7 @@ class ParseMsgAndDispatch(object):
             #new req, generate random num
             d[k_user] = username
             d[k_device_id] = device_id
-            d[k_rand] = [rand_val]
+            d[k_rand] = [random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)]
             d[k_retry] = 1
             cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
@@ -328,7 +335,7 @@ class ParseMsgAndDispatch(object):
             elif response_mode == "sms":
                 msg['servicetype'] = "sms"
                 msg['text'] = settings.PHONE_CHECK_RESPONSE_SMS_GREETING % \
-                             rand_val 
+                              d[k_rand]
             else:
                 self.response.error_response(err.INVALID_MESSAGE)
                 return self.response
@@ -483,6 +490,119 @@ class ParseMsgAndDispatch(object):
         self.userprofile.create_or_update_location(self.lat, self.lng)
         return self.response
 
+    def ContactsUpload(self):
+        # 'prefix': "", 'country_code": "", ab_entry: [{name:"", phone:phone, emails:email}, {}]
+        int_prefix = self.receiver.get('prefix', None)
+        country_code = self.receiver.get('country_code', None)
+
+        for ab_entry in self.receiver.get('ab_list'):
+            do_email = False
+            do_phone = False
+
+            if not 'name' in ab_entry:
+                continue
+            name = ab_entry.get('name')
+            first_name, last_name = wizlib.split_name(name)
+
+            if 'phone' in ab_entry:
+                phone_list = wizlib.clean_phone_number(ab_entry.get('phone'), int_prefix, country_code)
+                if len(phone_list):
+                    do_phone = True
+
+                phoneEntryList = list(set([AB_Candidate_Phones.objects.get(phone=x)
+                                  for x in phone_list if AB_Candidate_Phones.objects.filter(phone=x).exists()]))
+
+            if 'email' in ab_entry:
+                email_list = list(set([x.lower() for x in ab_entry.get('email') if wizlib.is_valid_email(x)]))
+                if len(email_list):
+                    do_email = True
+
+                emailEntryList = [AB_Candidate_Emails.objects.get(email=x)
+                                  for x in email_list if AB_Candidate_Emails.objects.filter(email=x).exists()]
+
+            if not do_email and not do_phone:
+                continue
+
+            if not len(emailEntryList) and not len(phoneEntryList):
+                # brand new. create AB model instance and mapping to user
+                abEntry = AddressBook.objects.create(
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                AB_Candidate_Names.objects.create(
+                    first_name=first_name,
+                    last_name=last_name,
+                    ab_entry=abEntry)
+
+                if do_email:
+                    for email in email_list:
+                        AB_Candidate_Emails.objects.create(email=email, ab_entry=abEntry)
+                if do_phone:
+                    for phone in phone_list:
+                        AB_Candidate_Phones.objects.create(phone=phone, ab_entry=abEntry)
+
+                # join table
+                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
+            elif len(emailEntryList) and len(phoneEntryList):
+                # ideally all should point to the same ABEntry
+                l1 = set([x.ab_entry for x in emailEntryList])
+                l2 = set([y.ab_entry for y in phoneEntryList])
+
+                try:
+                    # if valid intersection
+                    abEntry = list(l1&l2)[0]
+                except:
+                    continue
+
+                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
+
+                if not (abEntry.first_name_finalized or abEntry.last_name_finalized):
+                    # add to candidate list
+                    AB_Candidate_Names.objects.create(
+                        first_name=first_name,
+                        last_name=last_name,
+                        ab_entry=abEntry
+                    )
+            elif len(emailEntryList):
+                abEntry = list(set([x.ab_entry for x in emailEntryList]))[0]
+                if do_phone:
+                    for phone in phone_list:
+                        AB_Candidate_Phones.objects.create(
+                            phone=phone,
+                            ab_entry=abEntry)
+
+                if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
+                    # add to candidate list
+                    AB_Candidate_Names.objects.create(
+                        first_name=first_name,
+                        last_name=last_name,
+                        ab_entry=abEntry)
+
+                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
+            else:
+                # found phone
+                abEntry = list(set([x.ab_entry for x in phoneEntryList]))[0]
+                if do_email:
+                    for email in email_list:
+                        AB_Candidate_Emails.objects.create(
+                            email=email,
+                            ab_entry=abEntry)
+
+                if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
+                    # add to candidate list
+                    AB_Candidate_Names.objects.create(
+                        first_name=first_name,
+                        last_name=last_name,
+                        ab_entry=abEntry)
+
+                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
+
+            # run a candidate selection for the ab_entry
+            abEntry.run_finalize_decision()
+            genreco.send(self.user,recotarget=str(self.user.id))
+
+        return self.response
+
     def ContactsVerify(self):
         verify_phone_list = self.receiver.get('verify_phones', [])
         verify_email_list = self.receiver.get('verify_emails', [])
@@ -557,6 +677,23 @@ class ParseMsgAndDispatch(object):
         if not self.userprofile.activated:
             return self.response
 
+        if self.sender.has_key('recoActions'):
+
+            recoactions = self.sender['recoActions']
+
+            for rectuple in recoactions:
+
+                recid = rectuple['recoID']
+                recaction = rectuple['action']
+                try:
+                    reco_object = UserRecommendation.objects.get(id=recid)
+                    reco_object.setAction(recaction)
+                except:
+                    logger.warning('Recommendation Action failed for %s', str(recid))
+                    pass
+            if recoactions:
+                genreco.send(self.user, recotarget=str(self.user.id))
+
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
@@ -600,6 +737,22 @@ class ParseMsgAndDispatch(object):
         #tickle the timer to keep it going and update the location if required
         self.userprofile.create_or_update_location(self.lat, self.lng)
         return notifResponse
+
+    def RolodexEdit(self):
+        wizcard1 = self.user.wizcard
+        try:
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+        except ObjectDoesNotExist:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        if 'notes' in self.receiver:
+            # get conn represented by w1<-w2
+            rel = wizcard2.get_relationship(wizcard1)
+            rel.cctx.notes = self.receiver['notes']
+            rel.save()
+
+        return self.response
 
     def WizcardEdit(self):
         modify = False
@@ -646,7 +799,7 @@ class ParseMsgAndDispatch(object):
                 wizcard.email = email
                 modify = True
 
-        if self.sender.has_key('thumbnailImage') and \
+        if 'thumbnailImage' in self.sender and \
                 self.sender['thumbnailImage']:
             b64image = bytes(self.sender['thumbnailImage'])
             rawimage = b64image.decode('base64')
@@ -745,13 +898,17 @@ class ParseMsgAndDispatch(object):
     # B has A's wizcard in roldex
     def WizcardAccept(self):
         status = []
+        verb1 = verbs.WIZREQ_T[0]
+        verb2 = verbs.WIZREQ_T[0]
+
         try:
             wizcard1 = self.user.wizcard
-            reaccept = self.sender.get('reaccept', False)
+            flag = self.sender.get('flag', "accept")
             #AA TODO: Change to wizcardID
 
             try:
                 wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+                self.r_user = User.objects.get(id=self.receiver['wizUserID'])
             except:
                 self.r_user = User.objects.get(id=self.receiver['wizUserID'])
                 wizcard2 = self.r_user.wizcard
@@ -765,24 +922,17 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        try: # temp try, except workaround until app bug is fixed
-            # notif_id needs to be sent by app in order for server to be able to
-            # support resync of unacted notifs
-            n_id = self.sender['notif_id']
-            n = Notification.objects.get(id=n_id)
+        if 'notif_id' in self.sender and self.sender['notif_id']:
+                # now we know that the App has acted upon this notification
+                # we will use this flag during resync notifs and send unacted-upon
+                # notifs to user
+                Notification.objects.get(id=self.sender['notif_id']).set_acted(True)
 
-            # now we know that the App has acted upon this notification
-            # we will use this flag during resync notifs and send unacted-upon
-            # notifs to user
-            n.set_acted()
-        except:
-            pass
-
-        # accept wizcard2->wizcard1
-        # there could already be a sent request from wizcard2 (pending or declined)
+        rel12 = wizcard1.get_relationship(wizcard2)
         rel21 = wizcard2.get_relationship(wizcard1)
 
-        if reaccept and not rel21:
+        if flag == "reaccept" or flag == "unarchive":
+            # add-to-rolodex case. Happens when user had previously declined/deleted this guy
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
                     self.userprofile.location.get().lat,
@@ -792,44 +942,48 @@ class ParseMsgAndDispatch(object):
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
                 location_str = ""
 
-
-            cctx1 = ConnectionContext(
-                asset_obj=wizcard1,
+            cctx = ConnectionContext(
+                asset_obj=wizcard2,
                 connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U],
                 location=location_str
             )
-            #recreate the connection request
-            rel21 = Wizcard.objects.cardit(wizcard2, wizcard1,cctx=cctx1)
-
-        if not wizcard1.get_relationship(wizcard2):
-            # wizcard1.user has deleted wizcard 2 from rolodex even before wizcard2.user has accepted it
-            if rel21:
-                rel21.delete()
+            Wizcard.objects.becard(wizcard2, wizcard1, cctx)
+        elif rel12.status == verbs.DELETED:
+            # err 25 case
+            # remove arrows and set to clean state
+            Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+            Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
             self.response.error_response(err.REVERSE_INVITE)
             return self.response
-        
-        Wizcard.objects.becard(wizcard2, wizcard1)
+        else:
+            Wizcard.objects.becard(wizcard2, wizcard1)
+
+        if wizcard1.get_relationship(wizcard2).status == verbs.DELETED:
+            verb1 = verbs.WIZREQ_T_HALF[0]
+            verb2 = None
 
         # Q notif to both sides.
         notify.send(self.r_user,
                     recipient=self.user,
-                    verb=verbs.WIZREQ_T[0],
+                    verb=verb1,
                     target=wizcard2,
                     action_object=rel21)
 
         # Q notif for wizcard2 to change his half card to full
-        rel12 = wizcard1.get_relationship(wizcard2)
-        notify.send(self.user,
-                    recipient=self.r_user,
-                    verb=verbs.WIZREQ_T[0],
-                    target=wizcard1,
-                    action_object=rel12)
+        if verb2:
+            rel12 = wizcard1.get_relationship(wizcard2)
+            notify.send(self.user,
+                        recipient=self.r_user,
+                        verb=verb2,
+                        target=wizcard1,
+                        action_object=rel12)
 
         status.append(
             dict(status=Wizcard.objects.get_connection_status(wizcard1, wizcard2),
                  wizCardID=wizcard2.id)
         )
         self.response.add_data("status", status)
+        genreco.send(self.user, recotarget=str(self.user.id))
         return self.response
 
     def WizConnectionRequestDecline(self):
@@ -844,56 +998,21 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        #wizcard2 must have sent a wizconnection_request, lets DECLINE state it
-        if wizcard2.get_relationship(wizcard1):
-            Wizcard.objects.uncard(wizcard2, wizcard1)
+        if wizcard1.get_relationship(wizcard2).status is verbs.DELETED:
+            # error 25 scenario for declined case. We need to remove both arrows
+            Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+            Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
         else:
-            logger.info("Relationship Doesnt Exist: %s to %s", wizcard2, wizcard1)
+            Wizcard.objects.uncard(wizcard2, wizcard1)
 
+        n_id = self.sender['notif_id']
+        n = Notification.objects.get(id=n_id)
 
-        try:
-            n_id = self.sender['notif_id']
-            n = Notification.objects.get(id=n_id)
+        # now we know that the App has acted upon this notification
+        #  we will use this flag during resync notifs and send unacted-upon
+        #  notifs to user
+        n.set_acted(True)
 
-            # now we know that the App has acted upon this notification
-            #  we will use this flag during resync notifs and send unacted-upon
-            #  notifs to user
-            n.set_acted()
-        except:
-            pass
-
-        # AA TODO: Might have to send notif to wizcard2
-
-        return self.response
-
-    # this is to withdraw sent request. May not be used now
-    def WizConnectionRequestWithdraw(self):
-        try:
-            wizcard1 = self.user.wizcard
-            #AA: TODO Change to wizCardID
-            try:
-                wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-                self.r_user = wizcard2.user
-            except:
-                self.r_user = User.objects.get(id=self.receiver['wizUserID'])
-                wizcard2 = self.r_user.wizcard
-        except KeyError:
-            self.securityException()
-            self.response.ignore()
-            return self.response
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response
-
-        #AA:TODO: Withdraw would only happen if the previously Q'd receiver
-        #notif is still unread. Remove it. if there is no notification, then
-        # sender can't withdraw
-
-        #also, the wizconnection request would have been unaccepted so far.
-        #maybe can be used as a consistency check...
-
-        #remove my wizconnection_request
-        Wizcard.objects.uncardit(wizcard1, wizcard2)
         return self.response
 
     def WizcardRolodexDelete(self):
@@ -919,34 +1038,46 @@ class ParseMsgAndDispatch(object):
                     wizcard2.delete()
                 else:
                     wizcard2 = Wizcard.objects.get(id=w_id)
-                    try:
-                        # earlier thought was to change it to wizcard2->wizcard1 (P). On second thoughts
-                        # this doesn't work well because now they can never connect
-                        # Best is probably to delete the -> altogether
+                    # If this is a delete right after an invite was sent by wizcard1 then we have to remove
+                    # notif 2 for wizcard2 and set rel to clean state
+                    n = Notification.objects.filter(
+                            recipient=wizcard2.user,
+                            target_object_id=wizcard1.id,
+                            readed=False,
+                            verb=verbs.WIZREQ_U[0])
+                    if n.count():
+                        map(lambda x: x.delete(), n)
+                        Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+                        Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
+                    elif Notification.objects.filter(
+                            recipient=wizcard2.user,
+                            target_object_id=wizcard1.id,
+                            acted_upon=False,
+                            verb=verbs.WIZREQ_U[0]).exists():
+                        # delete state w2->w1
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
-
-
-                        #If this is a delete right after an invite was sent by wizcard1 then we have to remove notif 2 for wizcard2
-                        nq = Notification.objects.filter(recipient=wizcard2.user,target_object_id=wizcard1.id,readed=False,verb=verbs.WIZREQ_U[0])
-                        # if nq is there => there are notifications which wizcard2.user has not seen so dont bother him just delete the notifs and bring all
-                        # connections to a clean state
-                        if nq:
-                            noarr = map(lambda x: x.delete(),nq)
-                            Wizcard.objects.uncardit(wizcard1,wizcard2)
-                        else:
-                        # If nq is not there then wizcard2.user knows about this connection so he has to either accept or decline which takes its own course or
-                        # its an already existing connection which turns this into a half card for Wizcard2.user
-                        
+                    else:
+                        # regular case.
+                        Wizcard.objects.uncardit(wizcard2, wizcard1)
                         # Q a notif to other guy so that the app on the other side can react
-                            notify.send(self.user, recipient=wizcard2.user,
+                        notify.send(self.user, recipient=wizcard2.user,
                                     verb=verbs.WIZCARD_REVOKE[0],
                                     target=wizcard1)
-                    except:
-                        pass
         except KeyError:
             self.securityException()
             self.response.ignore()
 
+        return self.response
+
+    def WizcardRolodexArchivedCards(self):
+        try:
+            wizcard = self.user.wizcard
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        a_wc = wizcard.get_deleted()
+        self.response.add_data("wizcards", Wizcard.objects.serialize(a_wc, fields.wizcard_template_full))
         return self.response
 
     def WizcardFlick(self):
@@ -960,7 +1091,7 @@ class ParseMsgAndDispatch(object):
         timeout = self.sender['timeout']
         a_created = self.sender['created']
 
-        if self.lat == None and self.lng == None:
+        if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
                 self.lng = self.userprofile.location.get().lng
@@ -1003,7 +1134,6 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("flickCardID", flick_card.pk)
         return self.response
 
-
     def WizcardFlickPick(self):
         #wizcard1 is following wizcard2
         try:
@@ -1031,8 +1161,6 @@ class ParseMsgAndDispatch(object):
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-
-        return self.response
 
     def WizcardFlickConnect(self):
         #wizcard1 sends implicit connect to wizcard2
@@ -1064,8 +1192,6 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        return self.response
-
     def WizcardMyFlicks(self):
         self.wizcard = Wizcard.objects.get(id=self.sender['wizCardID'])
         my_flicked_cards = self.wizcard.flicked_cards.exclude(expired=True)
@@ -1079,7 +1205,6 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("count", count)
 
         return self.response
-
 
     def WizcardFlickWithdraw(self):
         try:
@@ -1217,10 +1342,12 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-
     def WizcardSendWizcardToXYZ(self, wizcard, receiver_type, receivers):
         count = 0
         status = []
+        to_notify = True
+        from_notify = True
+
         if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_U]:
             # add location to cctx. For nearby based exchange, use
             # senders location (which should be same as receivers too)
@@ -1238,73 +1365,78 @@ class ParseMsgAndDispatch(object):
                 r_wizcard = r_user.wizcard
 
                 rel12 = wizcard.get_relationship(r_wizcard)
+                cctx1 = ConnectionContext(
+                        asset_obj=wizcard,
+                        connection_mode=receiver_type,
+                        location=location_str)
 
-                # wizcard->r_wizcard exists previously ?. This could/should
-                # happen only if other guy had declined. In this case, we're
-                # sending the tag as "others", thus allowing sender to send
-                # a connect request.
-                if rel12 and rel12.status != verbs.DECLINED:
-                    # something's not right.
-                    self.response.error_response(err.EXISTING_CONNECTION)
+                if rel12:
+                    # wizcard->r_wizcard exists previously ?
+                    if rel12.status == verbs.ACCEPTED or rel12.status == verbs.PENDING:
+                        to_notify = False
+                        pass
+                    else:
+                        # set it to pending. We'll send a notif
+                        rel12.reset()
+                        rel12.set_context(cctx1)
                 else:
                     #create wizcard1->wizcard2
-                    if not rel12:
-	                cctx1 = ConnectionContext(
-	                    asset_obj=wizcard,
-	                    connection_mode=receiver_type,
-	                    location=location_str
-	                )
+                    rel12 = Wizcard.objects.cardit(wizcard,
+                                                   r_wizcard,
+                                                   status=verbs.PENDING,
+                                                   cctx=cctx1)
+                #Q notif for to_wizcard
+                if to_notify:
+                    notify.send(
+                        self.user, recipient=r_user,
+                        verb=verbs.WIZREQ_T[0] if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T] else
+                        verbs.WIZREQ_U[0],
+                        target=wizcard,
+                        action_object=rel12)
 
-                        rel12 = Wizcard.objects.cardit(wizcard,
-                                                       r_wizcard,
-                                                       status=verbs.PENDING,
-                                                       cctx=cctx1)
-                        #Q notif for to_wizcard
-                        notify.send(self.user, recipient=r_user,
-                                    verb=verbs.WIZREQ_T[0] if receiver_type ==
-                                                              verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T]
-                                    else verbs.WIZREQ_U[0],
-                                    target=wizcard,
-                                    action_object=rel12)
+                rel21 = r_wizcard.get_relationship(wizcard)
+                #Context should always have the from_wizcard and for the time being sender's location - Still debating
+                cctx2 = ConnectionContext(
+                    asset_obj=r_wizcard,
+                    connection_mode=receiver_type,
+                    location=location_str
+                )
 
-                    #Context should always have the from_wizcard and for the time being sender's location - Still debating
-                    cctx2 = ConnectionContext(
-                        asset_obj=r_wizcard,
-                        connection_mode=receiver_type,
-                        location=location_str
-                    )
-
-                    #create and accept implicitly wizcard2->wizcard1
+                # reverse connection, if exists, should be deleted/declined
+                if rel21:
+                    if rel21.status == verbs.ACCEPTED:
+                        from_notify = False
+                        pass
+                    else:
+                        # set it to accepted. We'll send a notif
+                        rel21.set_context(cctx2)
+                        rel21.accept()
+                else:
+                    # create and accept implicitly wizcard2->wizcard1
                     rel21 = Wizcard.objects.cardit(r_wizcard,
                                                    wizcard,
                                                    verbs.ACCEPTED,
                                                    cctx=cctx2
                                                    )
 
-                    # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
-                    # let server push this via notif 1.
+                # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
+                # let server push this via notif 1.
+                if from_notify:
                     notify.send(r_user, recipient=self.user,
                                 verb=verbs.WIZREQ_T_HALF[0],
                                 target=r_wizcard,
                                 action_object=rel21)
 
-                    count += 1
-                    status.append(dict(
-                        status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
-                        wizCardID=r_wizcard.id)
-                    )
+                count += 1
+                status.append(dict(
+                    status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
+                    wizCardID=r_wizcard.id)
+                )
             self.response.add_data("count", count)
             self.response.add_data("status", status)
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             #future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
-            if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                for r in receivers:
-                    wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
-                    if wizcard:
-                        sendmail.delay(self.user.wizcard,r,template="emailinfo")
-                    else:
-                        sendmail.delay(self.user.wizcard, r,template="emailinvite")
 
         return self.response
 
@@ -1328,13 +1460,9 @@ class ParseMsgAndDispatch(object):
             # create future user
             self.do_future_user(table, receiver_type, receivers)
 
-
-            # AA: TODO. an error/info case is when connection already exists.
-            # App can be told about it to pop an "already connected" message
-
         return self.response
 
-    def do_future_user(self, obj, receiver_type, receivers,deadcard=True):
+    def do_future_user(self, obj, receiver_type, receivers):
         for r in receivers:
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
@@ -1356,13 +1484,8 @@ class ParseMsgAndDispatch(object):
                                     verb=verbs.WIZREQ_U[0],
                                     target=obj,
                                     action_object=rel12)
-                    elif rel12.status is verbs.ACCEPTED:
-                        # transition it from half to full
-                        notify.send(self.user, recipient=wizcard.user,
-                                    verb=verbs.WIZREQ_T[0],
-                                    target=obj,
-                                    action_object=rel12)
-                    elif rel12.status is verbs.DECLINED:
+                    elif rel12.status == verbs.DECLINED or \
+                                    rel12.status == verbs.DELETED:
                         # reset 2 to pending. Yes there is a potential "don't bother me" angle
                         # to this..but better to promote connections
                         rel12.reset()
@@ -1384,9 +1507,10 @@ class ParseMsgAndDispatch(object):
                                     target=wizcard,
                                     action_object=rel21)
 
-                    elif rel21.status is verbs.DECLINED:
-                        # if declined, follower-d case, full card can be added
-                        rel21.cctx=cctx2
+                    elif rel21.status == verbs.DECLINED or \
+                                    rel21.status == verbs.DELETED:
+                        # if declined/deleted, follower-d case, full card can be added
+                        rel21.set_context(cctx2)
                         rel21.accept()
 
                         notify.send(wizcard.user, recipient=self.user,
@@ -1406,15 +1530,20 @@ class ParseMsgAndDispatch(object):
                     notify.send(self.user, recipient=wizcard.user,
                                 verb=verbs.WIZCARD_TABLE_INVITE[0],
                                 target=obj)
-            else:
-                FutureUser(
-                    inviter=self.user,
-                    content_type=ContentType.objects.get_for_model(obj),
-                    object_id=obj.id,
-                    phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
-                    email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
-                ).save()
 
+                if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
+                    sendmail.delay(self.user.wizcard, r, template="emailinfo")
+
+            else:
+                FutureUser.objects.get_or_create(
+                        inviter=self.user,
+                        content_type=ContentType.objects.get_for_model(obj),
+                        object_id=obj.id,
+                        phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
+                        email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
+                )
+                if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
+                    sendmail.delay(self.user.wizcard, r, template="emailinvite")
 
     def UserQuery(self):
         try:
@@ -1434,8 +1563,9 @@ class ParseMsgAndDispatch(object):
         #send back to app for selection
 
         if count:
-            users_s = Wizcard.objects.serialize(result,
-                                                template=fields.wizcard_template_brief)
+            users_s = UserProfile.objects.serialize_split(
+                self.user,
+                map(lambda x: x.user, result))
             self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
 
@@ -1570,7 +1700,6 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("tableID", joined.pk)
         return self.response
 
-
     def TableLeave(self):
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
@@ -1636,22 +1765,22 @@ class ParseMsgAndDispatch(object):
     def Settings(self):
         modify = False
 
-        if self.sender.has_key('media'):
+        if 'media' in self.sender:
             if self.sender['media'].has_key('wifiOnly'):
                 wifi_data = self.sender['media']['wifiOnly']
                 if self.userprofile.is_wifi_data != wifi_data:
                     self.userprofile.is_wifi_data = wifi_data
                     modify = True
 
-        if self.sender.has_key('privacy'):
-            if self.sender['privacy'].has_key('invisible'):
-                visible_nearby = not(self.sender['privacy']['invisible'])
-                if self.userprofile.is_visible_nearby != visible_nearby:
-                    self.userprofile.is_visible_nearby = visible_nearby
+        if 'privacy' in self.sender:
+            if 'invisible' in self.sender['privacy']:
+                visible = not(self.sender['privacy']['invisible'])
+                if self.userprofile.is_visible != visible:
+                    self.userprofile.is_visible = visible
                     modify = True
 
-            if self.sender['privacy'].has_key('blockUnsolicited'):
-                block_unsolicited = not(self.sender['privacy']['blockUnsolicited'])
+            if 'dnd' in self.sender['privacy']:
+                block_unsolicited = self.sender['privacy']['dnd']
                 if self.userprofile.block_unsolicited != block_unsolicited:
                     self.userprofile.block_unsolicited = block_unsolicited
                     modify = True
@@ -1785,6 +1914,7 @@ class ParseMsgAndDispatch(object):
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
+        deadcard.activated = True
         deadcard.save()
 
         if inviteother:
@@ -1792,7 +1922,6 @@ class ParseMsgAndDispatch(object):
             receivers = [deadcard.email]
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
-
                 sendmail.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
             else:
                 self.response.error_response(err.NO_RECEIVER)
@@ -2036,6 +2165,53 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
 
+    def GetRecommendations(self):
+
+        size = self.sender['size'] if 'size' in self.sender else 10
+
+        # AA: Comments: BIG Overarching comment...please get into the habit
+        # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.
+        # the right side of the editor will have some color if there are any
+        # PEP warnings/errors. Function name starting in uppercase is OK.
+
+        # AA:Comments: Expose this as a model API instead of a direct filter
+        # There will be more and more filtering/conditional checks/splicing
+        # etc as we go forward.
+        recos = UserRecommendation.objects.filter(user=self.user,useraction__in = [0,3]).order_by('-score')[:size]
+
+        # AA: Comments: Refactor below. The model should provide these outputs.
+        # Doing this here will hinder debugging. Typically, the goal is that
+        # all things are model API's. Then its easy to simply call those
+        # from there for any model...also, all active logic pieces are in one
+        # place
+        reco_list = []
+        for ur in recos:
+            reco_list.append(ur.getReco())
+
+        self.response.add_data("recos",serialize.serialize(reco_list))
+        return self.response
+
+    def SetRecoAction(self):
+        recoid = self.sender['recoID'] if 'recoID' in self.sender else None
+        action = self.sender['action'] if 'action' in self.sender else None
+        if not recoid or not action:
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
+
+        recoptr = UserRecommendation.objects.get(id=recoid)
+        # AA: Comments: before below if can happen, an exception will occur
+        # from the get hence above has to be in try except ObjectNotFound with appropriate
+        # sentry log
+        if recoptr:
+            try:
+                recoptr.setAction(action)
+            except:
+                self.response.error_response(err.INVALID_RECOACTION)
+        else:
+            self.response.error_response(err.INVALID_RECOID)
+
+
+        return self.response
 
 VALIDATOR = 0
 HANDLER = 1

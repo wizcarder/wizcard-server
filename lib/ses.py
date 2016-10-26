@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 class Email(object):
     
     def __init__(self, to, subject):
-	  	self.to = to
-	  	self.subject = subject
-	  	self._html = None
-	  	self._text = None
+        self.to = to
+        self.subject = subject
+        self._html = None
+        self._text = None
 
     def _render(self, emailtemplate, context):
         return render_to_string(emailtemplate,context)

@@ -148,8 +148,8 @@ class Notification(models.Model):
         self.acted_upon = True
         self.save()
 
-    def clear_acted(self):
-        self.acted_upon = False
+    def set_acted(self, flag):
+        self.acted_upon = flag
         self.save()
 
 def notify_handler(verb, **kwargs):

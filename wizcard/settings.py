@@ -1,92 +1,17 @@
-#####celery related stuff######
-from __future__ import absolute_import
-# ^^^ The above is required if you want to import from the celery
-# library. If you don't have this then `from celery.schedules import
-# becomes `proj.celery.schedules` in Python 2.x since it allows
-# for relative imports by default.
-# Celery settings
-import djcelery
+# Django settings for wizcard project.
 import os
-djcelery.setup_loader()
-import logging
 
 from kombu import Queue, Exchange
 from wizcard import instances
 
-TEST = False
-SHELL_PLUS="bpython"
-RUNENV = os.getenv('WIZRUNENV','dev')
-BROKER_TRANSPORT = 'amqp'
-BROKER_USER = 'wizcard_user'
-LOCATION_USER = 'location_user'
-LOCATION_PASS = 'location_pass'
-BROKER_PASSWORD = 'wizcard_pass'
-BROKER_HOST = 'localhost'
-BROKER_PORT = 5672
-BROKER_VHOST = 'wizcard_vhost'
+RUNENV = os.getenv('WIZRUNENV', 'dev')
 
 APP_MAJOR = 1
 APP_MINOR = 6
 
-#CELERY_RESULT_BACKEND = 'amqp://'
-CELERY_RESULT_BACKEND = 'rpc'
-
-IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
-EMAIL_TEMPLATE = '/invites/email_templatev4.png'
-EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
-OCR_QUEUE_NAME = 'ocr'
-CELERY_DEFAULT_QUEUE = 'default'
-CELERY_BEAT_QUEUE_NAME = 'beat'
-
-
-
-CELERY_IMAGE_UPLOAD_Q = Queue(IMAGE_UPLOAD_QUEUE_NAME,
-                              Exchange(IMAGE_UPLOAD_QUEUE_NAME),
-                              routing_key=IMAGE_UPLOAD_QUEUE_NAME)
-
-CELERY_OCR_Q = Queue(OCR_QUEUE_NAME,
-                     Exchange(OCR_QUEUE_NAME),
-                     routing_key=OCR_QUEUE_NAME)
-
-CELERY_DEFAULT_Q = Queue(CELERY_DEFAULT_QUEUE,
-                         Exchange(CELERY_DEFAULT_QUEUE),
-                         routing_key=CELERY_DEFAULT_QUEUE,
-                         delivery_mode=1)
-
-CELERY_BEAT_Q = Queue(CELERY_BEAT_QUEUE_NAME,
-                         Exchange(CELERY_BEAT_QUEUE_NAME),
-                         routing_key=CELERY_BEAT_QUEUE_NAME,
-                         delivery_mode=1)
-
-CELERY_QUEUES = (
-            CELERY_IMAGE_UPLOAD_Q,
-            CELERY_OCR_Q,
-            CELERY_DEFAULT_Q,
-            CELERY_BEAT_Q
-)
-
-CELERY_ROUTES = {
-    'queued_storage.tasks.Transfer': {
-        'queue': IMAGE_UPLOAD_QUEUE_NAME,
-        'routing_key': IMAGE_UPLOAD_QUEUE_NAME
-    }
-}
-
-from datetime import timedelta
-CELERYBEAT_SCHEDULE = {
-    'tick': {
-        'task': 'periodic.tasks.tick',
-        'schedule': timedelta(seconds=60),
-        'options': {'queue': CELERY_BEAT_QUEUE_NAME}
-    },
-}
-
-
-# Django settings for wizcard project.
-
 DEBUG = False
 if RUNENV != 'prod':
-	DEBUG = False
+    DEBUG = False
 ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
@@ -99,54 +24,47 @@ MANAGERS = ADMINS
 
 if RUNENV == 'dev':
     DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard-dev',
-	        'USER': 'anandr',
-	        'PASSWORD': '',
-    	        'HOST': '',
-		'PORT': '5432',
-		'CONN_MAX_AGE' : 60,
-	    }
-#    DATABASES = {
-#	    'default': {
-#	        'ENGINE': 'django.db.backends.mysql',
-#	        'NAME': 'wizcard',
-#	        'USER': 'root',
-#	        'PASSWORD': 'mydb',
-#                'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
-#	    }
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard',
+            'USER': 'root',
+            'PASSWORD': '',
+            'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+             'PORT': '5432',
+            # 'CONN_MAX_AGE' : 60,
+        }
 
     }
 elif RUNENV == 'test':
     DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
-	    }
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard',
+            'USER': 'wizuser',
+            'PASSWORD': 'gowizcard',
+            'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+        }
     }
 elif RUNENV == 'stage':
     DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard-stage',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
-	    }
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard-prod',
+            'USER': 'wizuser',
+            'PASSWORD': 'gowizcard',
+            'HOST': 'wizcard-prod-clone.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+        }
     }
 elif RUNENV == 'prod':
     DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	        'NAME': 'wizcard-prod',
-	        'USER': 'wizuser',
-	        'PASSWORD': 'gowizcard',
-		'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
-	    }
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard-prod',
+            'USER': 'wizuser',
+            'PASSWORD': 'gowizcard',
+            'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+        }
     }
 
 # Local time zone for this installation. Choices can be found here:
@@ -251,8 +169,6 @@ elif RUNENV == 'prod':
     }
 
 
-
-
 DEFAULT_MAX_LOOKUP_RESULTS = 20
 DEFAULT_MAX_MEISHI_LOOKUP_RESULTS = 2
 
@@ -279,7 +195,7 @@ MAX_PHONE_CHECK_RETRIES = 3
 #for UT..avoid nexmo
 PHONE_CHECK = False
 if RUNENV == 'prod':
-	PHONE_CHECK = True
+    PHONE_CHECK = True
 #retry timeout
 PHONE_CHECK_TIMEOUT = 180
 
@@ -313,6 +229,9 @@ NEXMO_API_KEY = '46ba6fbd'
 NEXMO_API_SECRET = '3c1d7f33'
 NEXMO_OWN_NUMBER = '12184294228'
 NEXMO_SENDERID = 'WZCARD'
+
+EMAIL_TEMPLATE = '/invites/email_templatev4.png'
+EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',
@@ -354,7 +273,6 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'django_extensions',
-    'djcelery',
     'storages',
     'userprofile',
     'wizserver',
@@ -369,6 +287,7 @@ INSTALLED_APPS = (
     'meishi',
     'healthstatus',
     'django_ses',
+    'recommendation',
 )
 
 #django-storage settings
@@ -537,21 +456,21 @@ PYAPNS_CONFIG = {
 if RUNENV == "prod":
     RAVEN_CONFIG = {
     #for new AWS prod
-        'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@app.getsentry.com/87350'
+        'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
     }
 elif RUNENV == "test" :
     RAVEN_CONFIG = {
         'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
     }
 else:
-	RAVEN_CONFIG = {
+    RAVEN_CONFIG = {
 		'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
 	}
 
 
 GCM_API_KEY = 'AIzaSyAz_uc7MiPtC_JK1ZjurpsdxxDlfPAy4-c'
 
-CELERY_TIMEZONE = 'UTC'
+CELERY_TIMEZONE = TIME_ZONE
 SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
 # Find templates in the same folder as settings.py.
 TEMPLATE_DIRS = (

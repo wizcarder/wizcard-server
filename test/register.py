@@ -65,6 +65,9 @@ START1 = "Jan 27, 2010"
 DEFAULT_MEDIA_URL = "www.youtube.com"
 DEFAULT_BIZCARD_URL = "www.youtube.com"
 
+INDIA_INTERNATIONAL_PREFIX = '00'
+INDIA_COUNTRY_CODE = '91'
+
 
 verify_phones_list = [messages.PHONE1, messages.PHONE2, messages.PHONE3]
 verify_emails_list = [messages.EMAIL1, messages.EMAIL2, messages.EMAIL3, messages.EMAIL4]
@@ -362,16 +365,52 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 notif = NotifParser(objs['data'], uid3, wuid3)
 nrsp = notif.process()
 
-#contacts verify
-reqmsg = messages.contacts_verify
+#contacts upload user 1
+reqmsg = messages.contacts_upload
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['verify_phones'] = verify_phones_list
-reqmsg['receiver']['verify_emails'] = verify_emails_list
+reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+reqmsg['receiver']['ab_list'] = messages.USER1_AB
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#contacts upload user 2
+reqmsg = messages.contacts_upload
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+reqmsg['receiver']['ab_list'] = messages.USER2_AB
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+#contacts upload user 3
+reqmsg = messages.contacts_upload
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+reqmsg['receiver']['ab_list'] = messages.USER2_AB
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+# get reco for u1
+reqmsg = messages.get_recommendations
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['size'] = 5
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
 
 reqmsg = messages.card_details
 reqmsg['header']['version'] = APP_VERSION
@@ -406,7 +445,6 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 #assetToXYZ tests
 #asset types: wizcard, table
 #receiverType: phone, email, wizUserID
-
 #u1 -> u2, u3 via wiz
 reqmsg = messages.send_asset_to_xyz
 reqmsg['header']['version'] = APP_VERSION
@@ -559,7 +597,6 @@ send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 fe2_id = objs['data']['wizCardID']
 
-
         # connection state so far
         # uid1(A)<->uid2(P)
         # uid1(A)<->uid3(P)
@@ -619,7 +656,6 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 notif = NotifParser(objs['data'], fuid2, fwuid2)
 nrsp = notif.process()
 
-
         # connection state so far
         # uid1(A)<->uid2(P)
         # uid1(A)<->uid3(P)
@@ -652,7 +688,7 @@ send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
         # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(D)
+        # uid1(A)<->uid3(DC)
         # uid1(A)<->fuid1(P)
         # uid1(A)<->fuid2(P)
 
@@ -667,7 +703,7 @@ send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
         # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(D)
+        # uid1(A)<->uid3(DC)
         # uid1(A)<->fuid1(A)
         # uid1(A)<->fuid2(P)
 
@@ -682,9 +718,9 @@ send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
         # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(D)
+        # uid1(A)<->uid3(DC)
         # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(D)
+        # uid1(A)<->fuid2(DC)
 
 #u1 delete U2 rolodex
 reqmsg = messages.delete_rolodex_card
@@ -696,7 +732,7 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-        # uid1->uid2(A)
+        # uid1(DL)<->uid2(A)
         # uid1(A)<->uid3(D)
         # uid1(A)<->fuid1(P)
         # uid1(A)<->fuid2(D)
@@ -706,23 +742,23 @@ reqmsg = messages.accept_connection_request
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['reaccept'] = True
+reqmsg['sender']['flag'] = "reaccept"
 reqmsg['receiver']['wizUserID'] = wuid2
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
         # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(D)
+        # uid1(A)<->uid3(DC)
         # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(D)
+        # uid1(A)<->fuid2(DC)
 
 #u3 reaccept u1
 reqmsg = messages.accept_connection_request
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid3
 reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['sender']['reaccept'] = True
+reqmsg['sender']['flag'] = "reaccept"
 reqmsg['receiver']['wizUserID'] = wuid1
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
@@ -731,7 +767,7 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
         # uid1(A)<->uid2(A)
         # uid1(A)<->uid3(A)
         # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(D)
+        # uid1(A)<->fuid2(DC)
 
 # u1 delete U2 Rolodex
 reqmsg = messages.delete_rolodex_card
@@ -743,10 +779,41 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-        # uid1->uid2(A)
+        # uid1(DL)<->uid2(A)
         # uid1(A)<->uid3(A)
         # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(D)
+        # uid1(A)<->fuid2(DC)
+
+#u1 unarchive u2
+reqmsg = messages.accept_connection_request
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['flag'] = "unarchive"
+reqmsg['receiver']['wizUserID'] = wuid2
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+        # uid1(A)<->uid2(A)
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(DC)
+
+# u1 delete U2 Rolodex
+reqmsg = messages.delete_rolodex_card
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id])
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+        # uid1(DL)<->uid2(A)
+        # uid1(A)<->uid3(A)
+        # uid1(A)<->fuid1(A)
+        # uid1(A)<->fuid2(DC)
 
 # u1 <-> U2
 reqmsg = messages.send_asset_to_xyz
@@ -761,10 +828,10 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-        # uid1->uid2(A)
+        # uid1(A)<->uid2(A)
         # uid1(A)<->uid3(A)
         # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(D)
+        # uid1(A)<->fuid2(DC)
 
 #U2 delete U1 rolodex
 reqmsg = messages.delete_rolodex_card
@@ -776,9 +843,10 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(DL)
         # uid1(A)<->uid3(A)
         # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(D)
+        # uid1(A)<->fuid2(DC)
 
 # u1 invite fuid1 when connected
 reqmsg = messages.send_asset_to_xyz
@@ -793,9 +861,10 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(DL)
         # uid1(A)<->uid3(A)
         # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(D)
+        # uid1(A)<->fuid2(DC)
 
 # u1 delete card fuid2
 reqmsg = messages.delete_rolodex_card
@@ -807,10 +876,12 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(DL)
         # uid1(A)<->uid3(A)
         # uid1(A)<->fuid1(A)
-        # uid1->fuid2(D)
+        # uid1(DL)<->fuid2(DC)
 
+# AA: Debug this
 # u1 invite fuid2 when declined
 reqmsg = messages.send_asset_to_xyz
 reqmsg['header']['version'] = APP_VERSION
@@ -824,9 +895,10 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(DL)
         # uid1(A)<->uid3(A)
         # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(D)
+        # uid1(A)<->fuid2(P)
 
 # fuid2 accept u1
 reqmsg = messages.accept_connection_request
@@ -838,11 +910,12 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+        # uid1(A)<->uid2(DL)
         # uid1(A)<->uid3(A)
-        # uid1(A)->fuid1(A)
+        # uid1(A)<->fuid1(A)
         # uid1(A)<->fuid2(A)
 
-#delete rolodex card for u1
+#delete all rolodex card of u1
 print "deleting all cards of ", uid1
 reqmsg = messages.delete_rolodex_card
 reqmsg['header']['version'] = APP_VERSION
@@ -853,9 +926,22 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
-        # uid1(A)->uid3(A)
-        # uid1->fuid1(P)
-        # uid1->fuid2(D)
+        # uid1(DL)<->uid2(DL)
+        # uid1(DL)<->uid3(A)
+        # uid1(DL)->fuid1(A)
+        # uid1(DL) fuid2(A)
+
+# u1 edit rolodex card of u3
+print "adding notes to  ", uid3
+reqmsg = messages.edit_rolodex_card
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['wizCardID'] = wuid3
+reqmsg['receiver']['notes'] = "test one test two"
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 #user query
 reqmsg = messages.user_query
@@ -867,6 +953,14 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+# archived cards
+reqmsg = messages.archived_cards
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
 
 # Meishi
 reqmsg = messages.meishi_start
@@ -1371,8 +1465,6 @@ send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 wuid1 = objs['data']['wizUserID']
 
-
-
 reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID2
 reqmsg['header']['hash'] = HASH1
@@ -1502,7 +1594,6 @@ send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 e3_id = objs['data']['wizCardID']
 
-
 reqmsg = messages.send_asset_to_xyz
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
@@ -1515,6 +1606,17 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+# send get cards to clear readed on one guy
+reqmsg = messages.get_cards
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+# delete. Expect 3 to go back to new state, and 2 will follow error 24 path upon
+# accept/decline
 reqmsg = messages.delete_rolodex_card
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
@@ -1524,12 +1626,45 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+
 # uid2 accept uid1
 reqmsg = messages.accept_connection_request
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid2
 reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['receiver']['wizUserID'] = wuid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+# recreate 1<->3 to test decline path
+reqmsg = messages.send_asset_to_xyz
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['assetID'] = e1_id
+reqmsg['sender']['assetType'] = "wizcard"
+reqmsg['receiver']['receiverType'] = "wiz_untrusted"
+reqmsg['receiver']['receiverIDs'] = [wuid3]
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+# send get cards to clear readed on 3
+reqmsg = messages.get_cards
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.delete_rolodex_card
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e3_id])
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])

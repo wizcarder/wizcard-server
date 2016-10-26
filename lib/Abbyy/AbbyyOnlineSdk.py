@@ -52,7 +52,7 @@ class RunOCR:
 		#while task.IsActive == True :
 		#while task.Status == "Queued" or task.Status == "InProgress":
                 while task.IsActive():
-	                count = count + 1
+			count += 1
 			time.sleep( 2 )
 			sys.stdout.write( "." )
 			task = processor.GetTaskStatus( task )
@@ -65,12 +65,12 @@ class RunOCR:
 				cardOutput = processor.DownloadResultString( task)
 				cardFields = processor.ExtractFields(cardOutput)
 				print cardFields.items()
-                                return (task.Status, cardFields)
+				return (task.Status, cardFields)
 
 	#			print "Result was written to %s" % cardOutput
 		else:
-                    print "Error processing task %s" % task.Status
-                    return (task.Status, None)
+				print "Error processing task %s" % task.Status
+				return (task.Status, None)
 
 
 

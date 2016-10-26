@@ -27,6 +27,7 @@ class DeadCards(models.Model):
     web = TruncatingCharField(max_length=200, blank=True)
     f_bizCardImage = WizcardQueuedFileField(upload_to="deadcards",
                                             storage=WizcardQueuedS3BotoStorage(delayed=False))
+    activated = models.BooleanField(default=False)
 
     objects = DeadCardsManager()
 

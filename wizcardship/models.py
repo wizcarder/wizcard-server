@@ -28,7 +28,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
 from location_mgr.models import LocationMgr
 from django.http import HttpResponseBadRequest, Http404
-from notifications.signals import notify
 from django.core.files.storage import default_storage
 from django.core.files.storage import FileSystemStorage
 from base.custom_storage import WizcardQueuedS3BotoStorage
@@ -42,6 +41,7 @@ from django.db.models import Q
 from lib import wizlib
 from wizcard import err
 from wizserver import verbs
+from notifications.models import notify, Notification
 from base.cctx import ConnectionContext
 from django.db.models import ImageField
 from django.utils import timezone
@@ -79,8 +79,11 @@ class WizcardManager(models.Manager):
         return wizcard1.add_relationship(wizcard2, status=status, ctx=cctx)
 
     #wizcard1 withdraws previously sent relationship
-    def uncardit(self, wizcard1, wizcard2):
-        wizcard1.remove_relationship(wizcard2)
+    def uncardit(self, wizcard1, wizcard2, soft=True):
+        if soft:
+            wizcard1.set_delete_relationship(wizcard2)
+        else:
+            wizcard1.remove_relationship(wizcard2)
 
     #wizcard2 follows wizcard1 (accepts wizcard1's req)
     def becard(self, wizcard1, wizcard2, cctx=""):
@@ -126,9 +129,15 @@ class WizcardManager(models.Manager):
         return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2, half=False):
-        notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
-                    target=wizcard1)
+        # suppress if unread notif already exists
+        if not Notification.objects.filter(
+                recipient=wizcard2.user,
+                target_object_id=wizcard1.id,
+                readed=False,
+                verb=verbs.WIZCARD_UPDATE[0]).exists():
+            notify.send(wizcard1.user, recipient=wizcard2.user,
+                        verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
+                        target=wizcard1)
 
     def query_users(self, userID, name, phone, email):
         #name can be first name, last name or even combined
@@ -313,6 +322,11 @@ class Wizcard(models.Model):
             from_wizcard=self,
             to_wizcard=wizcard).delete()
 
+    def set_delete_relationship(self, wizcard):
+        WizConnectionRequest.objects.filter(
+            from_wizcard=self,
+            to_wizcard=wizcard).update(status=verbs.DELETED)
+
     # ME ->
     def get_connected_to(self, status):
         return self.wizconnections_to.filter(
@@ -322,6 +336,12 @@ class Wizcard(models.Model):
     def get_connected_from(self, status):
         return self.wizconnections_from.filter(
             requests_from__status=status)
+
+    # cards I have deleted
+    def get_deleted(self):
+        return self.wizconnections_from.filter(
+            requests_from__status=verbs.DELETED
+        )
 
     #2 way connected...
     def get_connections(self):
@@ -358,6 +378,7 @@ class Wizcard(models.Model):
             id__in=Wizcard.objects.filter(
                 requests_to__status=verbs.ACCEPTED,
                 requests_to__from_wizcard=self))
+
 
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
@@ -418,6 +439,10 @@ class WizConnectionRequest(models.Model):
         self.status = verbs.PENDING
         self.save()
         return self
+
+    def set_context(self, cctx):
+        self.cctx = cctx
+        self.save()
 
     def cancel(self):
         signals.wizcardship_cancelled.send(sender=self)

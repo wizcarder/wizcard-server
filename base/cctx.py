@@ -1,13 +1,14 @@
 from django.contrib.contenttypes.models import ContentType
 from wizserver import verbs
 from lib import wizlib
+import pdb
 
 
 class ConnectionContext(object):
     def __repr__(self):
         return self.description
 
-    def __init__(self, asset_obj=None, connection_mode=None, description=None, location=""):
+    def __init__(self, asset_obj=None, connection_mode=None, description=None, location="", notes=""):
         asset_type = ContentType.objects.get_for_model(asset_obj).name if asset_obj else None
         self._cctx = dict(
             asset_obj=asset_obj,
@@ -16,11 +17,27 @@ class ConnectionContext(object):
             description=description,
             location=location
         )
+
+        self._usercctx = dict(
+            notes=notes
+        )
         self.describe()
 
     @property
     def context(self):
         return self._cctx
+
+    @property
+    def user_context(self):
+        if not hasattr(self, '_usercctx'):
+            return None
+        return self._usercctx
+
+    @property
+    def notes(self):
+        if not hasattr(self, '_usercctx'):
+            return None
+        return self._usercctx['notes']
 
     @property
     def asset_type(self):
@@ -54,6 +71,13 @@ class ConnectionContext(object):
     def location(self, location):
         self._cctx['location'] = location
 
+    @notes.setter
+    def notes(self, notes):
+        if not hasattr(self, '_usercctx'):
+            self._usercctx = dict(notes="")
+        else:
+            self._usercctx['notes'] = notes
+
     def describe(self):
         if self.asset_type == ContentType.objects.get(model="wizcard").name:
             if self.connection_mode in [verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T],
@@ -79,13 +103,14 @@ class ConnectionContext(object):
 
 
 class NotifContext(object):
-    def __init__(self, description, asset_id=None, asset_type=None, connection_mode=None, timestamp=None):
+    def __init__(self, description, asset_id=None, asset_type=None, connection_mode=None, timestamp=None, notes=None):
         self._out = dict(
             asset_id=asset_id,
             asset_type=asset_type,
             description=description,
             mode=connection_mode,
-            time=timestamp
+            time=timestamp,
+            notes=notes
         )
 
     def __repr__(self):
