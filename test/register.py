@@ -769,6 +769,18 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
         # uid1(A)<->fuid1(A)
         # uid1(A)<->fuid2(DC)
 
+
+# Do it again (bug test)
+reqmsg = messages.accept_connection_request
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+reqmsg['sender']['flag'] = "reaccept"
+reqmsg['receiver']['wizUserID'] = wuid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
 # u1 delete U2 Rolodex
 reqmsg = messages.delete_rolodex_card
 reqmsg['header']['version'] = APP_VERSION

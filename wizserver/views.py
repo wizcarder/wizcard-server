@@ -931,6 +931,17 @@ class ParseMsgAndDispatch(object):
         rel12 = wizcard1.get_relationship(wizcard2)
         rel21 = wizcard2.get_relationship(wizcard1)
 
+        # safeguard against app bug. Accept only when we're in the right state, ignore otherwise
+        if rel21.status == verbs.ACCEPTED:
+            # already connected...duplicate req...Ignore
+            status.append(
+                dict(
+                    status=Wizcard.objects.get_connection_status(wizcard1, wizcard2),
+                    wizCardID=wizcard2.id)
+            )
+            self.response.add_data("status", status)
+            return self.response
+
         if flag == "reaccept" or flag == "unarchive":
             # add-to-rolodex case. Happens when user had previously declined/deleted this guy
             try:
@@ -958,7 +969,7 @@ class ParseMsgAndDispatch(object):
         else:
             Wizcard.objects.becard(wizcard2, wizcard1)
 
-        if wizcard1.get_relationship(wizcard2).status == verbs.DELETED:
+        if wizcard1.get_relationship(wizcard2).status != verbs.CONNECTED:
             verb1 = verbs.WIZREQ_T_HALF[0]
             verb2 = None
 
@@ -971,7 +982,6 @@ class ParseMsgAndDispatch(object):
 
         # Q notif for wizcard2 to change his half card to full
         if verb2:
-            rel12 = wizcard1.get_relationship(wizcard2)
             notify.send(self.user,
                         recipient=self.r_user,
                         verb=verb2,
@@ -1040,22 +1050,20 @@ class ParseMsgAndDispatch(object):
                     wizcard2 = Wizcard.objects.get(id=w_id)
                     # If this is a delete right after an invite was sent by wizcard1 then we have to remove
                     # notif 2 for wizcard2 and set rel to clean state
-                    n = Notification.objects.filter(
-                            recipient=wizcard2.user,
-                            target_object_id=wizcard1.id,
-                            readed=False,
-                            verb=verbs.WIZREQ_U[0])
-                    if n.count():
-                        map(lambda x: x.delete(), n)
-                        Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
-                        Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
-                    elif Notification.objects.filter(
-                            recipient=wizcard2.user,
-                            target_object_id=wizcard1.id,
-                            acted_upon=False,
-                            verb=verbs.WIZREQ_U[0]).exists():
-                        # delete state w2->w1
-                        Wizcard.objects.uncardit(wizcard2, wizcard1)
+                    if wizcard1.get_relationship(wizcard2).status == verbs.PENDING:
+                        n = Notification.objects.filter(
+                                recipient=wizcard2.user,
+                                target_object_id=wizcard1.id,
+                                readed=False,
+                                verb=verbs.WIZREQ_U[0])
+                        if n.count():
+                            map(lambda x: x.delete(), n)
+                            Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
+                            Wizcard.objects.uncardit(wizcard1, wizcard2, soft=False)
+                        else:
+                            # w2 has read it, but not acted. delete state w2->w1
+                            # no notif in this case. Err25 will be triggered when w2 acts on it
+                            Wizcard.objects.uncardit(wizcard2, wizcard1)
                     else:
                         # regular case.
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
