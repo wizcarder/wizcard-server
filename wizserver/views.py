@@ -969,7 +969,7 @@ class ParseMsgAndDispatch(object):
         else:
             Wizcard.objects.becard(wizcard2, wizcard1)
 
-        if wizcard1.get_relationship(wizcard2).status != verbs.CONNECTED:
+        if wizcard1.get_relationship(wizcard2).status != verbs.ACCEPTED:
             verb1 = verbs.WIZREQ_T_HALF[0]
             verb2 = None
 
