@@ -25,6 +25,8 @@ import string
 import random
 import pdb
 
+RECO_GENERATED_DELTA = timezone.timedelta(hours=3)
+
 
 class UserProfileManager(models.Manager):
     def serialize_split(self, me, users):
@@ -140,7 +142,7 @@ class UserProfile(models.Model):
     is_wifi_data = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
     block_unsolicited = models.BooleanField(default=False)
-    reco_generated_at = models.DateTimeField(auto_now=True)
+    reco_generated_at = models.DateTimeField(default=timezone.now() - RECO_GENERATED_DELTA)
 
     IOS = 'ios'
     ANDROID = 'android'
