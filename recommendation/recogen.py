@@ -52,11 +52,12 @@ ALLRECO = 2
 
 # Interval between running recommendations fully
 
-RECO_INTERVAL = 1
+RECO_INTERVAL = 5
 
 
 def isValidPhone(phonenum):
 
+    phonenum = re.sub('\D', '', phonenum)
     if re.match("\+?\d{10,}",str(phonenum)):
         return True
     else:
@@ -151,7 +152,7 @@ class ABReco (RecoModel):
                 if not self.recotarget.wizcard.get_relationship(w1):
                     logger.info("Adding Reco " + str(w1.pk) + " for " + self.recotarget.username)
 
-                    self.putReco('wizcard', 2, w1.pk)
+                    self.putReco('wizcard', 5, w1.pk)
                     continue
 
             #Now it can only be addressbook
