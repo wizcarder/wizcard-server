@@ -124,6 +124,8 @@ class UserRecommendation(models.Model):
     def setAction(self, action=New):
 
         self.useraction = action
+        if action == Viewed:
+            self.score = 1
         self.save()
 
 
