@@ -121,10 +121,10 @@ class UserRecommendation(models.Model):
 
         self.save()
 
-    def setAction(self, action=New):
+    def setAction(self, action=3):
 
         self.useraction = action
-        if action == Viewed:
+        if action == 0:
             self.score = 1
         self.save()
 
