@@ -263,7 +263,7 @@ class RecoRunner(RabbitServer):
             pass
         if tuser:
             abreco_inst = ABReco(tuser)
-            recos = abreco_inst.getData
+            recos = abreco_inst.getData()
 
     def run_wizreco(self, target):
         tuser = None
