@@ -23,7 +23,10 @@ def pushNotificationToApp(
         return
 
     sender = User.objects.get(id=sender_id)
-    receiver = User.objects.get(id=receiver_id).profile
+    receiver_p = User.objects.get(id=receiver_id).profile
+    if receiver_p.dnd:
+        return
+
     action_object = None
     target_object = None
 
@@ -34,16 +37,16 @@ def pushNotificationToApp(
         target_object = \
                 t_content_type.get_object_for_this_type(pk=target_object_id)
 
-    apns_dict = verbs.apns_notification_dictionary[verb] if receiver.is_ios() else \
+    apns_dict = verbs.apns_notification_dictionary[verb] if receiver_p.is_ios() else \
         verbs.gcm_notification_dictionary[verb]
 
     apns = ApnsMsg(
         sender,
-        receiver.reg_token,
+        receiver_p.reg_token,
         action_object,
         target_object,
         apns_dict,
-        receiver.is_ios())
+        receiver_p.is_ios())
 
     apns.format_alert_msg()
     apns.send()
@@ -83,17 +86,16 @@ class ApnsMsg(object):
     def pushIOS(self):
         apns_notify(
             settings.APP_ID,
-		    self.reg_token,
-		    self.aps
+            self.reg_token,
+            self.aps
         )
-
         return
 
     def pushAndroid(self):
         send_gcm_message(
             settings.GCM_API_KEY,
-			self.reg_token,
-			self.aps['aps']
+            self.reg_token,
+            self.aps['aps']
         )
         return
 

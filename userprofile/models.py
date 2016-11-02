@@ -141,6 +141,7 @@ class UserProfile(models.Model):
     is_profile_private = models.BooleanField(default=False)
     is_wifi_data = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
+    dnd = models.BooleanField(default=False)
     block_unsolicited = models.BooleanField(default=False)
     reco_generated_at = models.DateTimeField(default=timezone.now() - RECO_GENERATED_DELTA)
 
@@ -453,7 +454,7 @@ class AddressBook(models.Model):
         last_name = self.last_name if self.last_name_finalized else \
             wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))[0]
 
-        return first_name + " " + last_name
+        return first_name.capitalize() + " " + last_name.capitalize()
 
     def is_phone_final(self):
         return self.phone_finalized

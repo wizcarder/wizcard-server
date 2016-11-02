@@ -1788,6 +1788,12 @@ class ParseMsgAndDispatch(object):
                     modify = True
 
             if 'dnd' in self.sender['privacy']:
+                dnd = self.sender['privacy']['dnd']
+                if self.userprofile.dnd != dnd:
+                    self.userprofile.dnd = dnd
+                    modify = True
+
+            if 'block_unknown_req' in self.sender['privacy']:
                 block_unsolicited = self.sender['privacy']['dnd']
                 if self.userprofile.block_unsolicited != block_unsolicited:
                     self.userprofile.block_unsolicited = block_unsolicited
