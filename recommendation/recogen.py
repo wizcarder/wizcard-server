@@ -98,7 +98,9 @@ class RecoModel(object):
         recmeta.save()
         
         #Update scores across all recommendations for this UserRecommendation object
-        recuser.updateScore()
+
+        finalscore = recuser.updateScore()
+        logger.info("Updated score for " + self.recotarget.username + " " + str(finalscore))
         recuser.save()
 
 

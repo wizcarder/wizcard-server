@@ -120,6 +120,7 @@ class UserRecommendation(models.Model):
             self.score += obj.modelscore
 
         self.save()
+        return self.score
 
     def setAction(self, action=3):
 
