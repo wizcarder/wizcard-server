@@ -54,3 +54,4 @@ psycopg2==2.6.1
 python-gcm
 django-ses
 pyfcm
+validate_email
