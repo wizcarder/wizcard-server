@@ -25,10 +25,10 @@ MANAGERS = ADMINS
 if RUNENV == 'dev':
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            #'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'wizcard',
-            'USER': 'root',
+            #'ENGINE': 'django.db.backends.mysql',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'wizcard-dev',
+            'USER': 'kappu',
             'PASSWORD': '',
             'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
              'PORT': '5432',
@@ -458,7 +458,7 @@ if RUNENV == "prod":
     #for new AWS prod
         'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
     }
-elif RUNENV == "test" :
+elif RUNENV == "test" or RUNENV == "stage" :
     RAVEN_CONFIG = {
         'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
     }
