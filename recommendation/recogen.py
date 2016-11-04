@@ -154,7 +154,7 @@ class ABReco (RecoModel):
                     continue
                 # Dont consider wizcards which have relationships.
                 if  not twizcard.get_relationship(w1):
-                    logger.info("Adding Reco " + w1.get_name() + " for " + twizcard.get_name())
+                    logger.info("Adding Reco wizcard" + w1.get_name() + " for " + twizcard.get_name())
 
                     self.putReco('wizcard', 5, w1.pk)
                     continue
@@ -168,7 +168,6 @@ class ABReco (RecoModel):
                     score += 2
 
             if entry.get_phone() and entry.get_email():
-                logger.debug("Adding Reco " + entry.get_phone() + " for " + twizcard.get_name())
                 score += 1
 
             if entry.is_phone_final():
@@ -184,7 +183,7 @@ class ABReco (RecoModel):
             if (entry.get_phone() and isValidPhone(entry.get_phone())) or entry.get_email():
                 score += 0.1
 
-            logger.debug("Adding Reco " + str(entry.pk) + " for " + twizcard.get_name())
+            logger.debug("Adding Reco addressbook" + entry.get_name() + " for " + twizcard.get_name())
             self.putReco(recotype, score, entry.pk)
 
 
