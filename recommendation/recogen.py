@@ -144,11 +144,16 @@ class ABReco (RecoModel):
                 w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.get_email())
 
             # Eliminate Self in recommendation
-            if w1 and self.recotarget.id == w1.id:
-                continue
+
 
             if w1:
-                if not self.recotarget.wizcard.get_relationship(w1):
+
+                rwiz = w1.user.wizcard
+                #Elmininate  self
+                if twizcard.id == rwiz.id:
+                    continue
+                # Dont consider wizcards which have relationships.
+                if  not twizcard.get_relationship(rwiz):
                     logger.info("Adding Reco " + str(w1.pk) + " for " + self.recotarget.username)
 
                     self.putReco('wizcard', 5, w1.pk)
@@ -196,8 +201,8 @@ class WizReco(RecoModel):
             targetwizcard = self.recotarget.wizcard
         except:
             return
-        recodict = dict()
 
+        recodict = dict()
         for hop1 in targetwizcard.get_connections():
             for hop2 in hop1.get_connections():
                 # Eliminate the self wizcard
@@ -205,6 +210,9 @@ class WizReco(RecoModel):
                     if hop2.pk in recodict.keys():
                         recodict[hop2.pk] += 1
                     else:
+                        #ELiminate recommendations which have connection requests
+                        if targetwizcard.get_relationship(hop2):
+                            continue
                         recodict[hop2.pk] = 1
 
         for wizreco in recodict.keys():
