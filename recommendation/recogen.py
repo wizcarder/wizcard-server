@@ -115,23 +115,26 @@ class ABReco (RecoModel):
             return {}
 
         #Check if this user has a active wizcard
+
         try:
             twizcard = self.recotarget.wizcard
         except:
             return
 
         # Get all the wizcards connected to this user who has a wizcard
+        wizusers = []
         wizusers = map(lambda x: x.user, self.recotarget.wizcard.get_connections())
 
         for entry in abentries:
 
             #Get all the users who have this abentry
+            users = []
             users = map(lambda x: x.user, AB_User.objects.filter(ab_entry=entry))
 
             if not entry.get_phone() and not entry.get_email():
                 continue
 
-            entry_username = entry.get_phone() + '@wizcard.com'
+            entry_username = UserProfile.objects.username_from_phone_num(entry.get_phone())
 
             # Eliminate Self from the recommendation
             if entry_username == self.recotarget.username:
@@ -143,18 +146,13 @@ class ABReco (RecoModel):
             if not w1 and entry.get_email():
                 w1 = UserProfile.objects.check_user_exists(verbs.INVITE_VERBS[verbs.EMAIL_INVITE], entry.get_email())
 
-            # Eliminate Self in recommendation
-
-
             if w1:
-
-                rwiz = w1.user.wizcard
                 #Elmininate  self
-                if twizcard.id == rwiz.id:
+                if twizcard.id == w1.id:
                     continue
                 # Dont consider wizcards which have relationships.
-                if  not twizcard.get_relationship(rwiz):
-                    logger.info("Adding Reco " + str(w1.pk) + " for " + self.recotarget.username)
+                if  not twizcard.get_relationship(w1):
+                    logger.info("Adding Reco " + w1.get_name() + " for " + twizcard.get_name())
 
                     self.putReco('wizcard', 5, w1.pk)
                     continue
@@ -168,7 +166,7 @@ class ABReco (RecoModel):
                     score += 2
 
             if entry.get_phone() and entry.get_email():
-                logger.debug("Adding Reco " + entry.get_phone() + " for " + entry.get_email() + user.username)
+                logger.debug("Adding Reco " + entry.get_phone() + " for " + twizcard.get_name())
                 score += 1
 
             if entry.is_phone_final():
@@ -184,7 +182,7 @@ class ABReco (RecoModel):
             if (entry.get_phone() and isValidPhone(entry.get_phone())) or entry.get_email():
                 score += 0.1
 
-            logger.debug("Adding Reco " + str(entry.pk) + " for " + user.username)
+            logger.debug("Adding Reco " + str(entry.pk) + " for " + twizcard.get_name())
             self.putReco(recotype, score, entry.pk)
 
 
