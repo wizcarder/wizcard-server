@@ -969,7 +969,7 @@ class ParseMsgAndDispatch(object):
         else:
             Wizcard.objects.becard(wizcard2, wizcard1)
 
-        if wizcard1.get_relationship(wizcard2).status != verbs.CONNECTED:
+        if wizcard1.get_relationship(wizcard2).status != verbs.ACCEPTED:
             verb1 = verbs.WIZREQ_T_HALF[0]
             verb2 = None
 
@@ -1788,6 +1788,12 @@ class ParseMsgAndDispatch(object):
                     modify = True
 
             if 'dnd' in self.sender['privacy']:
+                dnd = self.sender['privacy']['dnd']
+                if self.userprofile.dnd != dnd:
+                    self.userprofile.dnd = dnd
+                    modify = True
+
+            if 'block_unknown_req' in self.sender['privacy']:
                 block_unsolicited = self.sender['privacy']['dnd']
                 if self.userprofile.block_unsolicited != block_unsolicited:
                     self.userprofile.block_unsolicited = block_unsolicited

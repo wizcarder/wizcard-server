@@ -52,7 +52,7 @@ ALLRECO = 2
 
 # Interval between running recommendations fully
 
-RECO_INTERVAL = 5
+RECO_INTERVAL = 1
 
 
 def isValidPhone(phonenum):
@@ -109,7 +109,6 @@ class ABReco (RecoModel):
         super(ABReco, self).__init__(user)
         self.recomodel = 0
 
-    @property
     def getData(self):
         abentries = map(lambda x: x.ab_entry, AB_User.objects.filter(user=self.recotarget))
         if not abentries:
@@ -271,7 +270,7 @@ class RecoRunner(RabbitServer):
             pass
         if tuser:
             abreco_inst = ABReco(tuser)
-            recos = abreco_inst.getData
+            abreco_inst.getData()
 
     def run_wizreco(self, target):
         tuser = None

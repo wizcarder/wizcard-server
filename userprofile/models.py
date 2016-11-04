@@ -25,6 +25,8 @@ import string
 import random
 import pdb
 
+RECO_GENERATED_DELTA = timezone.timedelta(hours=3)
+
 
 class UserProfileManager(models.Manager):
     def serialize_split(self, me, users):
@@ -139,8 +141,9 @@ class UserProfile(models.Model):
     is_profile_private = models.BooleanField(default=False)
     is_wifi_data = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
+    dnd = models.BooleanField(default=False)
     block_unsolicited = models.BooleanField(default=False)
-    reco_generated_at = models.DateTimeField(auto_now=True)
+    reco_generated_at = models.DateTimeField(default=timezone.now() - RECO_GENERATED_DELTA)
 
     IOS = 'ios'
     ANDROID = 'android'
@@ -248,7 +251,7 @@ class UserProfile(models.Model):
                 asset_id=x.cctx.asset_id,
                 asset_type=x.cctx.asset_type,
                 connection_mode=x.cctx.connection_mode,
-                notes=x.cctx.notes if x.cctx.notes else "",
+                notes=x.cctx.notes if hasattr(x.cctx, 'notes') else "",
                 timestamp=x.created.strftime("%d %B %Y")).context, conn)
 
             s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
@@ -451,7 +454,7 @@ class AddressBook(models.Model):
         last_name = self.last_name if self.last_name_finalized else \
             wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))[0]
 
-        return first_name + " " + last_name
+        return first_name.capitalize() + " " + last_name.capitalize()
 
     def is_phone_final(self):
         return self.phone_finalized
