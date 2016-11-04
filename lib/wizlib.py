@@ -93,6 +93,9 @@ def format_location_name(location):
 def split_name(name):
     return name.split()[:1][0].lower(), " ".join(name.split()[1:]).lower()
 
+def is_valid_phone(phone):
+    return True
+
 # phone number cleanup
 def clean_phone_number(phone, international_prefix, country_code):
     return phone
