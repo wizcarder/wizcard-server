@@ -2,6 +2,7 @@ import pdb
 import geohash
 import gc
 from validate_email import validate_email
+import phonenumbers
 from django.conf import settings
 
 
@@ -94,17 +95,60 @@ def format_location_name(location):
 def split_name(name):
     return name.split()[:1][0].lower(), " ".join(name.split()[1:]).lower()
 
+def parse_phone(phone,country=None):
+    try:
+        parsephone = phonenumbers.parse(phone,country)
+        return parsephone
+    except:
+        return None
+
 def is_valid_phone(phone):
-    phonenum = re.sub('\D', '', phonenum)
-    if re.match("\+?\d{10,}", str(phonenum)):
-        return True
-    else:
-        return False
+    parsephone = parse_phone(phone)
+    if parsephone:
+        return phonenumbers.is_valid_number(parsephone)
+    # Should change it to the country the app is sending or an array of countries we have launched in
+    parsephone = parse_phone(phone,"IN")
+    return phonenumbers.is_valid_number(parsephone)
+
+    '''
+    try:
+        parsephone = phonenumbers.parse(phone,None)
+        if phonenumbers.is_valid_number(parsephone):
+          return True
+    except:
+            # Should change it to the country the app is sending or an array of countries we have launched in
+        try:
+            parsephone = phonenumbers.parse(phone,"IN")
+            return phonenumbers.is_valid_number(parsephone)
+        except:
+            return False
+    '''
+
+
 
 
 # phone number cleanup
 def clean_phone_number(phone, international_prefix, country_code):
-    return phone
+    parsephone = parse_phone(phone)
+    if parsephone and phonenumbers.is_valid_number(parsephone):
+        return phonenumbers.format_number(parsephone, phonenumbers.PhoneNumberFormat.E164)
+    parsephone = parse_phone(phone,"IN")
+    if parsephone and phonenumbers.is_valid_number(parsephone):
+        return phonenumbers.format_number(parsephone, phonenumbers.PhoneNumberFormat.E164)
+
+
+    '''
+    try:
+        parsephone = phonenumbers.parse(phone,None)
+        if phonenumbers.is_valid_number(parsephone):
+            return phonenumbers.format_number(parsephone,phonenumbers.PhoneNumberFormat.E164)
+    except:
+        try:
+            parsephone = phonenumbers.parse(phone, "IN")
+            return phonenumbers.format_number(parsephone,phonenumbers.PhoneNumberFormat.E164)
+        except:
+            return phone
+    '''
 
 # email valid
 def is_valid_email(email):
