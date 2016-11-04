@@ -1,6 +1,7 @@
 import pdb
 import geohash
 import gc
+from validate_email import validate_email
 from django.conf import settings
 
 
@@ -94,7 +95,12 @@ def split_name(name):
     return name.split()[:1][0].lower(), " ".join(name.split()[1:]).lower()
 
 def is_valid_phone(phone):
-    return True
+    phonenum = re.sub('\D', '', phonenum)
+    if re.match("\+?\d{10,}", str(phonenum)):
+        return True
+    else:
+        return False
+
 
 # phone number cleanup
 def clean_phone_number(phone, international_prefix, country_code):
@@ -102,7 +108,7 @@ def clean_phone_number(phone, international_prefix, country_code):
 
 # email valid
 def is_valid_email(email):
-    return True
+    return validate_email(email)
 
 # most common element in list
 from collections import Counter
