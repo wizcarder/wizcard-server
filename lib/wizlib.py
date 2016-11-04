@@ -96,7 +96,7 @@ def split_name(name):
     return name.split()[:1][0].lower(), " ".join(name.split()[1:]).lower()
 
 def is_valid_phone(phone):
-    phonenum = re.sub('\D', '', phonenum)
+    phonenum = re.sub('\D', '', phone)
     if re.match("\+?\d{10,}", str(phonenum)):
         return True
     else:
