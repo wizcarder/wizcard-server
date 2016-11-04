@@ -4,7 +4,7 @@ import gc
 import re
 from validate_email import validate_email
 import phonenumbers
-from phone-iso3166 import *
+from phone_iso3166 import *
 from django.conf import settings
 
 
