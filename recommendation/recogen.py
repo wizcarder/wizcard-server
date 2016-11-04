@@ -208,6 +208,7 @@ class WizReco(RecoModel):
                 if targetwizcard.phone != hop2.phone:
                     if hop2.pk in recodict.keys():
                         recodict[hop2.pk] += 1
+                        logger.info("WizReco - Found : " + hop2.get_name() + " for " +  targetwizcard.get_name())
                     else:
                         #ELiminate recommendations which have connection requests
                         if targetwizcard.get_relationship(hop2):
