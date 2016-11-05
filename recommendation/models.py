@@ -126,7 +126,7 @@ class UserRecommendation(models.Model):
 
         self.useraction = action
         if action == 0:
-            self.score = 1
+            self.score = 0.1
         self.save()
 
 

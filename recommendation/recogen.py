@@ -6,10 +6,11 @@ from django.utils import timezone
 import time
 import logging
 import daemon
+from lib import wizlib
 import re
 import json
 
-proj_path="."
+proj_path = "."
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wizcard.settings")
 sys.path.append(proj_path)
@@ -58,12 +59,10 @@ RECO_INTERVAL = 1
 def isValidPhone(phonenum):
 
     phonenum = re.sub('\D', '', phonenum)
-    if re.match("\+?\d{10,}",str(phonenum)):
+    if re.match("\+?\d{10,}", str(phonenum)):
         return True
     else:
         return False
-
-
 
 def setupLogger(target='trigger'):
     logger.setLevel(logging.DEBUG)
@@ -76,10 +75,9 @@ def setupLogger(target='trigger'):
     logger.addHandler(handler)
 
 
-
 class RecoModel(object):
 
-    def __init__(self,user):
+    def __init__(self, user):
         self.recotarget = user
         self.recomodel = None
 
@@ -124,13 +122,11 @@ class ABReco (RecoModel):
             return
 
         # Get all the wizcards connected to this user who has a wizcard
-        wizusers = []
         wizusers = map(lambda x: x.user, self.recotarget.wizcard.get_connections())
 
         for entry in abentries:
 
             #Get all the users who have this abentry
-            users = []
             users = map(lambda x: x.user, AB_User.objects.filter(ab_entry=entry))
 
             if not entry.get_phone() and not entry.get_email():
@@ -150,11 +146,11 @@ class ABReco (RecoModel):
 
             if w1:
                 #Elmininate  self
-                if twizcard.id == w1.id:
+                if twizcard.id == w1.id or twizcard.get_relationship(w1):
                     continue
                 # Dont consider wizcards which have relationships.
-                if  not twizcard.get_relationship(w1):
-                    logger.info("Adding Reco wizcard" + w1.get_name() + " for " + twizcard.get_name())
+                if not twizcard.get_relationship(w1):
+                    logger.info("Adding Reco wizcard " + w1.get_name() + " for " + twizcard.get_name())
 
                     self.putReco('wizcard', 5, w1.pk)
                     continue
@@ -183,19 +179,18 @@ class ABReco (RecoModel):
             if (entry.get_phone() and isValidPhone(entry.get_phone())) or entry.get_email():
                 score += 0.1
 
-            logger.debug("Adding Reco addressbook" + entry.get_name() + " for " + twizcard.get_name())
+            logger.debug("Adding Reco addressbook " + entry.get_name() + " for " + twizcard.get_name())
             self.putReco(recotype, score, entry.pk)
 
 
 class WizReco(RecoModel):
 
     def __init__(self, user):
-        super(WizReco,self).__init__(user)
+        super(WizReco, self).__init__(user)
         self.recomodel = 1
 
     def getData(self):
-        
-        targetwizcard = None
+
         try:
             targetwizcard = self.recotarget.wizcard
         except:
@@ -238,7 +233,7 @@ class RecoRunner(RabbitServer):
         if target == 'full':
             i = 0
             while True:
-                tdelta = timezone.timedelta(minutes = RECO_INTERVAL)
+                tdelta = timezone.timedelta(minutes=RECO_INTERVAL)
                 current_time = timezone.now()
                 checktime = current_time - tdelta
                 time_str = checktime.strftime("%a, %d %b %Y %H:%M:%S +0000")
@@ -297,7 +292,6 @@ class RecoRunner(RabbitServer):
                     basic_deliver.delivery_tag, props.app_id, body)
         args = json.loads(body)
         fn = args.pop('fn')
-        rpc = args.pop('rpc', False)
         target = args.pop('target')
         self.runreco(target=target, torun=fn)
         self.acknowledge_message(basic_deliver.delivery_tag)
