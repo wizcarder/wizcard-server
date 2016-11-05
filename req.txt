@@ -56,4 +56,3 @@ django-ses
 pyfcm
 validate_email
 phonenumbers
-phone-iso3166
