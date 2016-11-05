@@ -4,7 +4,6 @@ import gc
 import re
 from validate_email import validate_email
 import phonenumbers
-from phone_iso3166.country import *
 from django.conf import settings
 
 
@@ -106,7 +105,7 @@ def parse_phone(phone,country=None):
         return None
 
 def is_valid_phone(phone):
-    parsephone = parse_phone(phone,"IN")
+    parsephone = parse_phone(phone, "IN")
     if parsephone:
         return phonenumbers.is_valid_number(parsephone)
     # Should change it to the country the app is sending or an array of countries we have launched in
@@ -119,7 +118,7 @@ def is_valid_phone(phone):
 # phone number cleanup
 # Should handle "09999999999" "99999-99999" and any generic phone number
 def clean_phone_number(phone, international_prefix, country_code):
-    country = phone_country(country_code)
+    country = phonenumbers.phonenumberutil.region_code_for_country_code(int(country_code))
     parsephone = parse_phone(phone, country)
     if parsephone and phonenumbers.is_valid_number(parsephone):
         return phonenumbers.format_number(parsephone, phonenumbers.PhoneNumberFormat.E164)
@@ -128,7 +127,7 @@ def clean_phone_number(phone, international_prefix, country_code):
     if parsephone and phonenumbers.is_valid_number(parsephone):
         return phonenumbers.format_number(parsephone, phonenumbers.PhoneNumberFormat.E164)
 
-
+    return phone
 
 # email valid
 def is_valid_email(email):
