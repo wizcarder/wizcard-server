@@ -6,7 +6,6 @@ from django.utils import timezone
 import time
 import logging
 import daemon
-from lib import wizlib
 import re
 import json
 
