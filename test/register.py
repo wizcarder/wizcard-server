@@ -66,7 +66,9 @@ DEFAULT_MEDIA_URL = "www.youtube.com"
 DEFAULT_BIZCARD_URL = "www.youtube.com"
 
 INDIA_INTERNATIONAL_PREFIX = '00'
+INTERNATIONAL_PREFIX = '+'
 INDIA_COUNTRY_CODE = '91'
+USA_COUNTRY_CODE = '1'
 
 
 verify_phones_list = [messages.PHONE1, messages.PHONE2, messages.PHONE3]
@@ -394,9 +396,8 @@ reqmsg = messages.contacts_upload
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid3
 reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
-reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
-reqmsg['receiver']['ab_list'] = messages.USER2_AB
+reqmsg['receiver']['prefix'] = INTERNATIONAL_PREFIX
+reqmsg['receiver'].update(messages.ab_list_big_1)
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
