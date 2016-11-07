@@ -477,3 +477,13 @@ TEMPLATE_DIRS = (
             os.path.join(SETTINGS_PATH, 'templates'),
             )
 
+#RECOMMENDATION SETTINGS
+
+# In minutes - Interval to check for recommendation for trigger and full
+FULL_RECO_GEN_INTERVAL = 5
+
+# Default size for get_recommendations
+GET_RECO_SIZE = 10
+
+#Periodic RECO_GEN_INTERVAL
+PERIODIC_RECO_GEN_INTERVAL = 1
