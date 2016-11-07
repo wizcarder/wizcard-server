@@ -692,8 +692,11 @@ class ParseMsgAndDispatch(object):
                 except:
                     logger.warning('Recommendation Action failed for %s', str(recid))
                     pass
-            if recoactions:
-                genreco.send(self.user, recotarget=str(self.user.id))
+
+            #AnandR: Ideally we should generate recommendations for every action to check their like and dislike but we are not using the feedback now so commenting this out
+            #if recoactions:
+                #genreco.send(self.user, recotarget=str(self.user.id))
+
 
         if self.lat is None and self.lng is None:
             try:
