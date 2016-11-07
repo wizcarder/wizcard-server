@@ -52,7 +52,7 @@ ALLRECO = 2
 
 # Interval between running recommendations fully
 
-RECO_INTERVAL = 1
+
 
 
 def isValidPhone(phonenum):
@@ -232,7 +232,7 @@ class RecoRunner(RabbitServer):
         if target == 'full':
             i = 0
             while True:
-                tdelta = timezone.timedelta(minutes=RECO_INTERVAL)
+                tdelta = timezone.timedelta(minutes=settings.FULL_RECO_GEN_INTERVAL)
                 current_time = timezone.now()
                 checktime = current_time - tdelta
                 time_str = checktime.strftime("%a, %d %b %Y %H:%M:%S +0000")
@@ -247,12 +247,19 @@ class RecoRunner(RabbitServer):
 
                 i += 1
         else:
-            tdelta = timezone.timedelta(minutes = 5)
+            tdelta = timezone.timedelta(minutes = settings.PERIODIC_RECO_GEN_INTERVAL)
             current_time = timezone.now()
             checktime = current_time - tdelta
             try:
-                qs = UserProfile.objects.get(reco_generated_at__lt=checktime, user=User.objects.get(id=target))
-                self.recorunners[torun](target)
+                target_user = User.objects.get(id=target)
+                qs = UserProfile.objects.get(reco_generated_at__lt=checktime, user=target_user)
+                recos = UserRecommendation.objects.filter(user=target_user, useraction=3)
+                if not recos:
+                    logger.info("Running reco generation for %s" % target_user.username)
+                    self.recorunners[torun](target)
+                else:
+                    logger.info("Recently run recommendation and has new recommendations for %s" % target_user.username)
+                    return
             except:
                 return
 
@@ -300,7 +307,8 @@ def main():
 
     isdaemon = False
     fullrun = False
-    QCONFIG = rconfig.RECO_TRIGGER_CONFIG
+    QCONFIG = rconfig.RECO_TRIGGER_CONFIG 
+    recointerval = settings.FULL_RECO_GEN_INTERVAL
     for params in sys.argv:
         if params == '--D' or params == '-daemon':
             isdaemon = True

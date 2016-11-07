@@ -14,7 +14,7 @@ env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
 env.awskey = './certs/stagewizcard.pem'
 env.gitkey = '/home/ubuntu/.ssh/id_rsa'
 if env.henv != 'dev':
-    env.key_filename = ['/home/ubuntu/test.env/certs/stagewizcard.pem']
+    env.key_filename = ['./certs/prodindia.pem']
 else:
     env.key_filename = ['/home/anand/testenv/wizcard-server/certs/wizcard-default.pem']
     env.key_filename = ['./certs/wizcard-default.pem']
@@ -100,7 +100,7 @@ def gitcloneupdate():
             run("git clone git@github.com:wizcarder/wizcard-server.git  %s" % env.installroot)
         else:
             with cd(env.installroot):
-             run("cd %s && git pull" % env.installroot)
+             run("cd %s && git checkout master && git pull origin master" % env.installroot)
 
 def localgitpullfile():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
@@ -131,7 +131,8 @@ def postinstall():
                 with virtualenv():
 		    with cd(env.installroot):
                         #                        run("python manage.py syncdb")
-                        run("python manage.py makemigrations")
+			if env.henv != 'prod':
+	                        run("python manage.py makemigrations")
                         run("python manage.py migrate")
 
                         #append_settings()
@@ -145,7 +146,7 @@ def init_monit():
             with settings(warn_only=True):
                 intip = getawsip()
 		run("sudo cp monit/* /etc/monit/conf.d/")
-                for files in ("/etc/monit/conf.d/wizserver", "/etc/monit/conf.d/beatcelery", "/etc/monit/conf.d/celeryworker", "/etc/monit/conf.d/celeryflower","/etc/monit/conf.d/twistd", "/etc/monit/conf.d/memcached"):
+                for files in ("/etc/monit/conf.d/wizserver", "/etc/monit/conf.d/beatcelery", "/etc/monit/conf.d/celeryworker", "/etc/monit/conf.d/celeryflower","/etc/monit/conf.d/twistd", "/etc/monit/conf.d/memcached", "/etc/monit/conf.d/recogenfull", "/etc/monit/conf.d/recogentrigger" ):
                     edit_file("XXX",env.installroot,files)
                     edit_file("HOSTIP",intip,files)
 		run("sudo rm /etc/monit/conf.d/*.bak")
@@ -157,7 +158,7 @@ def init_upstart():
             with settings(warn_only=True):
                 intip = getawsip()
 		run("sudo cp upstart/*.conf /etc/init")
-                for files in ("/etc/init/wizserver.conf", "/etc/init/celerybeat.conf", "/etc/init/celeryworker.conf", "/etc/init/locationjob.conf", "/etc/init/celeryflower.conf","/etc/init/twistd.conf"):
+                for files in ("/etc/init/wizserver.conf", "/etc/init/celerybeat.conf", "/etc/init/celeryworker.conf", "/etc/init/locationjob.conf", "/etc/init/celeryflower.conf","/etc/init/twistd.conf", "/etc/init/recogenfull.conf", "/etc/init/recogentrigger.conf"):
                     edit_file("env host=xxx","env host="+intip,files)
                     edit_file("env basedir=xxx","env basedir="+env.installroot,files)
                     edit_file("env runuser=xxx","env runuser="+env.runuser,files)
@@ -188,6 +189,12 @@ def startnginx():
 def stopnginx():
     run("sudo /etc/init.d/nginx stop")
 
+def startreco():
+    with virtualenv():
+	with cd(env.installroot):
+            run("sudo service recogenfull start basedir=%s venv=%s WIZRUNENV=%s runuser=%s PYTHONPATH=$PYTHONPATH:%s" % (env.installroot,env.venv,env.henv,env.runuser,env.installroot),pty=False)
+            run("sudo service recogentrigger start basedir=%s venv=%s WIZRUNENV=%s runuser=%s PYTHONPATH=$PYTHONPATH:%s" % (env.installroot,env.venv,env.henv,env.runuser,env.installroot),pty=False)
+
 def startcelery():
     with virtualenv():
 	with cd(env.installroot):
@@ -199,9 +206,12 @@ def startcelery():
 def startrabbit():
     with virtualenv():
         with cd(env.installroot):
-        	run("sudo service rabbitmq-server restart")
+		run("sudo rabbitmqctl stop_app")
+		run("sudo rabbitmqctl reset")
+		run("sudo rabbitmqctl start_app")
 		fastprint("\nRunning rabbitmqconfig.sh===================================\n")
 		run("pwd;sudo ./rabbitmqconfig.sh")
+        	run("sudo service rabbitmq-server restart")
 		run("ps auxww | grep rabbit")
 
 def startlocation():
@@ -216,7 +226,7 @@ def startservices():
     startrabbit()
     startcelery()
     startlocation()
-    starttwistd()
+#    starttwistd()
     startgunicorn()
     startnginx()
 
@@ -259,8 +269,9 @@ def startwizserverinstance():
     startrabbit()
     startcelery()
     startgunicorn()
-    starttwistd()
+#    starttwistd()
     startnginx()
+#    startreco()
 
 @task
 def startgunicorn():
@@ -286,9 +297,10 @@ def stopwizserver():
 	run("sudo service celerybeat stop")
 	run("sudo service celeryworker stop")
 	run("sudo service celeryflower stop")
-	run("sudo service rabbitmq-server stop")
+#	run("sudo service recogenfull stop")
+#	run("sudo service recogentrigger stop")
         stopmemcached()
-        stoptwistd()
+#        stoptwistd()
         stopnginx()
 
 	
@@ -385,6 +397,8 @@ def checkjobstatus():
         run("sudo service wizserver status")
         run("sudo service celerybeat status")
         run("sudo service rabbitmq-server status")
+        run("sudo service recogenfull status")
+        run("sudo service recogentrigger status")
 
 @task
 def deploy():

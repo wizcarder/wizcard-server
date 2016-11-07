@@ -2192,7 +2192,7 @@ class ParseMsgAndDispatch(object):
 
     def GetRecommendations(self):
 
-        size = self.sender['size'] if 'size' in self.sender else 10
+        size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
 
         # AA: Comments: BIG Overarching comment...please get into the habit
         # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.

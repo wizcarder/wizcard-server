@@ -12,7 +12,7 @@ rabbitmqctl set_permissions -p reco_vhost reco_user ".*" ".*" ".*"
 rabbitmqctl set_permissions -p location_vhost location_user ".*" ".*" ".*"
 
 rabbitmqctl set_user_tags guest none
-rabbitmqctl set_user_tags wizcard_user administrator
+#rabbitmqctl set_user_tags wizcard_user administrator
 #rabbitmqctl set_user_tags reco_user administrator
 #rabbitmqctl set_user_tags location_user administrator
 
