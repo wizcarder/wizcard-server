@@ -17,6 +17,7 @@ from recommendation.signals import genreco
 from wizcardship.models import Wizcard
 from userprofile.models import AddressBook
 from recommendation.tasks import addtoQtask
+from decimal import *
 import logging
 
 # Create your models here.
