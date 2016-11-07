@@ -2212,6 +2212,7 @@ class ParseMsgAndDispatch(object):
         reco_list = []
         for ur in recos:
             reco_list.append(ur.getReco())
+            newscore = ur.updateScore(adjustsent=True)
 
         self.response.add_data("recos",serialize.serialize(reco_list))
         return self.response

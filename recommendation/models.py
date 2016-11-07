@@ -61,6 +61,7 @@ class UserRecommendation(models.Model):
     Acted = 1
     Dismissed = 2
     New = 3
+    Sent = 4
 
     MODELS = (
         (0, 'AB_RECO'), 
@@ -111,13 +112,15 @@ class UserRecommendation(models.Model):
         return reco_dict
 
 
-    def updateScore(self):
-        metaobjects = self.reco_meta.all()
+    def updateScore(self, adjustsent=False):
 
-        self.score = 0
-
-        for obj in metaobjects:
-            self.score += obj.modelscore
+        if adjustsent:
+            self.score = 0.5 * self.score
+        else:
+            metaobjects = self.reco_meta.all()
+            self.score = 0
+            for obj in metaobjects:
+                self.score += obj.modelscore
 
         self.save()
         return self.score
