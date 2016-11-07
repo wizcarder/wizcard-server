@@ -115,7 +115,7 @@ class UserRecommendation(models.Model):
     def updateScore(self, adjustsent=False):
 
         if adjustsent:
-            self.score = 0.5 * self.score
+            self.score = Decimal(0.5) * self.score
         else:
             metaobjects = self.reco_meta.all()
             self.score = 0
