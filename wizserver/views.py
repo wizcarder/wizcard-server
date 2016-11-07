@@ -494,6 +494,8 @@ class ParseMsgAndDispatch(object):
         # 'prefix': "", 'country_code": "", ab_entry: [{name:"", phone:phone, emails:email}, {}]
         int_prefix = self.receiver.get('prefix', None)
         country_code = self.receiver.get('country_code', None)
+        emailEntryList = []
+        phoneEntryList = []
 
         for ab_entry in self.receiver.get('ab_list'):
             do_email = False
@@ -509,18 +511,23 @@ class ParseMsgAndDispatch(object):
                               for x in ab_entry.get('phone') if wizlib.is_valid_phone(x)]
                 if len(phone_list):
                     do_phone = True
-
-                phoneEntryList = list(set([AB_Candidate_Phones.objects.get(phone=x)
-                                  for x in phone_list if AB_Candidate_Phones.objects.filter(phone=x).exists()]))
-
+                try:
+                    phoneEntryList = list(set([AB_Candidate_Phones.objects.get(phone=x)
+                                               for x in phone_list if AB_Candidate_Phones.objects.filter(phone=x).exists()]))
+                except:
+                    logger.error('duplicate phone already in db %s', x)
+                    continue
             if 'email' in ab_entry:
                 email_list = list(set([x.lower() for x in ab_entry.get('email') if wizlib.is_valid_email(x)]))
                 if len(email_list):
                     do_email = True
 
-                emailEntryList = [AB_Candidate_Emails.objects.get(email=x)
-                                  for x in email_list if AB_Candidate_Emails.objects.filter(email=x).exists()]
-
+                try:
+                    emailEntryList = [AB_Candidate_Emails.objects.get(email=x)
+                                      for x in email_list if AB_Candidate_Emails.objects.filter(email=x).exists()]
+                except:
+                    logger.error('duplicate phone already in db %s', x)
+                    continue
             if not do_email and not do_phone:
                 continue
 
@@ -565,7 +572,7 @@ class ParseMsgAndDispatch(object):
                         ab_entry=abEntry
                     )
             elif len(emailEntryList):
-                abEntry = list(set([x.ab_entry for x in emailEntryList]))[0]
+                abEntry = wizlib.most_common([x.ab_entry for x in emailEntryList])[0]
                 if do_phone:
                     for phone in phone_list:
                         AB_Candidate_Phones.objects.create(
@@ -582,7 +589,7 @@ class ParseMsgAndDispatch(object):
                 AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
             else:
                 # found phone
-                abEntry = list(set([x.ab_entry for x in phoneEntryList]))[0]
+                abEntry = wizlib.most_common([x.ab_entry for x in phoneEntryList])[0]
                 if do_email:
                     for email in email_list:
                         AB_Candidate_Emails.objects.create(
