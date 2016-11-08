@@ -607,8 +607,8 @@ class ParseMsgAndDispatch(object):
 
             # run a candidate selection for the ab_entry
             abEntry.run_finalize_decision()
-            genreco.send(self.user,recotarget=self.user.id)
 
+        genreco.send(self.user, recotarget=self.user.id)
         return self.response
 
     def ContactsVerify(self):
