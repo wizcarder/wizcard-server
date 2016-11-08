@@ -316,7 +316,7 @@ class ParseMsgAndDispatch(object):
             #new req, generate random num
             d[k_user] = username
             d[k_device_id] = device_id
-            d[k_rand] = rand_val
+            d[k_rand] = [rand_val]
             d[k_retry] = 1
             cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
