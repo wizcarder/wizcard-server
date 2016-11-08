@@ -7,7 +7,7 @@ from wizcard import instances
 RUNENV = os.getenv('WIZRUNENV', 'dev')
 
 APP_MAJOR = 1
-APP_MINOR = 6
+APP_MINOR = 7
 
 DEBUG = False
 if RUNENV != 'prod':
@@ -63,7 +63,7 @@ elif RUNENV == 'prod':
             'NAME': 'wizcard-prod',
             'USER': 'wizuser',
             'PASSWORD': 'gowizcard',
-            'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+            'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
         }
     }
 
