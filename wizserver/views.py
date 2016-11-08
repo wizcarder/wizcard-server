@@ -607,7 +607,7 @@ class ParseMsgAndDispatch(object):
 
             # run a candidate selection for the ab_entry
             abEntry.run_finalize_decision()
-            genreco.send(self.user,recotarget=str(self.user.id))
+            genreco.send(self.user,recotarget=self.user.id)
 
         return self.response
 
@@ -1004,7 +1004,7 @@ class ParseMsgAndDispatch(object):
                  wizCardID=wizcard2.id)
         )
         self.response.add_data("status", status)
-        genreco.send(self.user, recotarget=str(self.user.id))
+        genreco.send(self.user, recotarget=self.user.id)
         return self.response
 
     def WizConnectionRequestDecline(self):
@@ -2193,7 +2193,6 @@ class ParseMsgAndDispatch(object):
     def GetRecommendations(self):
 
         size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
-	size = 1
 
         # AA: Comments: BIG Overarching comment...please get into the habit
         # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.
