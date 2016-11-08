@@ -508,7 +508,7 @@ class ParseMsgAndDispatch(object):
 
             if 'phone' in ab_entry:
                 phone_list = [wizlib.clean_phone_number(x, int_prefix, country_code)
-                              for x in ab_entry.get('phone') if wizlib.is_valid_phone(x)]
+                              for x in ab_entry.get('phone') if wizlib.is_valid_phone(x,country_prefix=country_code)]
                 if len(phone_list):
                     do_phone = True
                 try:
@@ -2193,6 +2193,7 @@ class ParseMsgAndDispatch(object):
     def GetRecommendations(self):
 
         size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
+	size = 1
 
         # AA: Comments: BIG Overarching comment...please get into the habit
         # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.
