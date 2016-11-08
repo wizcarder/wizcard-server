@@ -456,7 +456,7 @@ PYAPNS_CONFIG = {
 if RUNENV == "prod":
     RAVEN_CONFIG = {
     #for new AWS prod
-        'dsn': 'https://e09392c542d24e058631183b6123c1b4:159738ded89d46bba319ad5887422e9d@app.getsentry.com/41148',
+        'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@sentry.io/87350'
     }
 elif RUNENV == "test" or RUNENV == "stage" :
     RAVEN_CONFIG = {
