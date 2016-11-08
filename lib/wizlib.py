@@ -104,8 +104,8 @@ def parse_phone(phone,country=None):
     except:
         return None
 
-def is_valid_phone(phone):
-    parsephone = parse_phone(phone, "IN")
+def is_valid_phone(phone,country_prefix="IN"):
+    parsephone = parse_phone(phone, country=country_prefix)
     if parsephone:
         return phonenumbers.is_valid_number(parsephone)
     # Should change it to the country the app is sending or an array of countries we have launched in
