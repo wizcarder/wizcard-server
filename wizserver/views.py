@@ -316,7 +316,7 @@ class ParseMsgAndDispatch(object):
             #new req, generate random num
             d[k_user] = username
             d[k_device_id] = device_id
-            d[k_rand] = [random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)]
+            d[k_rand] = rand_val
             d[k_retry] = 1
             cache.set_many(d, timeout=settings.PHONE_CHECK_TIMEOUT)
 
@@ -335,7 +335,7 @@ class ParseMsgAndDispatch(object):
             elif response_mode == "sms":
                 msg['servicetype'] = "sms"
                 msg['text'] = settings.PHONE_CHECK_RESPONSE_SMS_GREETING % \
-                              d[k_rand]
+                               rand_val
             else:
                 self.response.error_response(err.INVALID_MESSAGE)
                 return self.response
