@@ -4,5 +4,5 @@ for i in wizserver celeryworker celeryflower celerybeat locationjob
   sudo service $i status
  done
 
-sudo /etc/init.d/memcached/status
+sudo /etc/init.d/memcached status
 
