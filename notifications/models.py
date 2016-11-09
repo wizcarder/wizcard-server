@@ -179,9 +179,6 @@ def notify_handler(verb, **kwargs):
 
     newnotify.save()
 
-    if not recipient.profile.is_online:
-        return
-
     pushNotificationToApp.delay(
             newnotify.actor_object_id,
             newnotify.recipient_id,
