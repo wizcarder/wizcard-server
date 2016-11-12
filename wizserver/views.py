@@ -1937,21 +1937,23 @@ class ParseMsgAndDispatch(object):
             if cc_e.has_key('web'):
                 deadcard.web = cc_e['web']
 
-        # no f_bizCardEdit..for now atleast. This will always come via scan
-        # or rescan
-        deadcard.activated = True
-        deadcard.save()
-
         if inviteother:
             receiver_type = "email"
             receivers = [deadcard.email]
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
                 sendmail.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
+                deadcard.invited = True
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
             sendmail.delay(self.user.wizcard, deadcard.email, template="emailscan")
+
+        # no f_bizCardEdit..for now atleast. This will always come via scan
+        # or rescan
+        deadcard.activated = True
+        deadcard.save()
+
         return self.response
 
     def MeishiStart(self):
