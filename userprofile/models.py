@@ -144,6 +144,7 @@ class UserProfile(models.Model):
     dnd = models.BooleanField(default=False)
     block_unsolicited = models.BooleanField(default=False)
     reco_generated_at = models.DateTimeField(default=timezone.now() - RECO_GENERATED_DELTA)
+    reco_ready = models.PositiveIntegerField(default=0)
 
     IOS = 'ios'
     ANDROID = 'android'
@@ -191,6 +192,7 @@ class UserProfile(models.Model):
         self.activated = False
         self.future_user = True
         self.save()
+
 
     def is_ios(self):
         return bool(self.device_type == self.IOS)
