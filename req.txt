@@ -56,3 +56,4 @@ django-ses
 pyfcm
 validate_email
 phonenumbers
+boto3
