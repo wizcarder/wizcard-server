@@ -386,7 +386,7 @@ reqmsg['sender']['userID'] = uid2
 reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
 reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
-reqmsg['receiver']['ab_list'] = messages.ab_list_baskar_1
+reqmsg['receiver'].update(messages.ab_list_ananda_1)
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
