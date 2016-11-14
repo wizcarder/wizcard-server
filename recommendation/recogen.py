@@ -81,6 +81,7 @@ class RecoModel(object):
         self.recomodel = None
 
     def putReco(self, rectype, score, object_id):
+        newreco = 0
         recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
                                                                reco_object_id=object_id)
 
@@ -89,6 +90,7 @@ class RecoModel(object):
         if ucreated:
             recuser.useraction = 3
             recuser.save()
+            newreco = 1
 
         recmeta, mcreated = RecommenderMeta.objects.get_or_create(recomodel=self.recomodel, userrecommend=recuser)
         recmeta.modelscore = score
@@ -99,6 +101,7 @@ class RecoModel(object):
         finalscore = recuser.updateScore()
         logger.info("Updated score for " + self.recotarget.username + " " + str(finalscore))
         recuser.save()
+        return newreco
 
 
 class ABReco (RecoModel):
@@ -109,6 +112,7 @@ class ABReco (RecoModel):
         self.recomodel = 0
 
     def getData(self):
+        newrecocount = 0
         abentries = map(lambda x: x.ab_entry, AB_User.objects.filter(user=self.recotarget))
         if not abentries:
             return {}
@@ -179,7 +183,9 @@ class ABReco (RecoModel):
                 score += 0.1
 
             logger.debug("Adding Reco addressbook " + entry.get_name() + " for " + twizcard.get_name())
-            self.putReco(recotype, score, entry.pk)
+            newrecocount += self.putReco(recotype, score, entry.pk)
+
+        return newrecocount
 
 
 class WizReco(RecoModel):
@@ -189,6 +195,8 @@ class WizReco(RecoModel):
         self.recomodel = 1
 
     def getData(self):
+
+        newrecocount = 0
 
         try:
             targetwizcard = self.recotarget.wizcard
@@ -213,7 +221,9 @@ class WizReco(RecoModel):
             if recodict[wizreco] == 1:
                 continue
 
-            self.putReco("wizcard", 10 * recodict[wizreco], wizreco)
+            newrecocount += self.putReco("wizcard", 10 * recodict[wizreco], wizreco)
+
+        return newrecocount
 
 
 class RecoRunner(RabbitServer):
@@ -271,7 +281,8 @@ class RecoRunner(RabbitServer):
             pass
         if tuser:
             abreco_inst = ABReco(tuser)
-            abreco_inst.getData()
+            newreco = abreco_inst.getData()
+        return newreco
 
     def run_wizreco(self, target):
         tuser = None
@@ -281,7 +292,9 @@ class RecoRunner(RabbitServer):
             pass
         if tuser:
             wizreco_inst = WizReco(tuser)
-            wizreco_inst.getData()
+            newreco = wizreco_inst.getData()
+
+        return newreco
 
     def updateRecoTime(self, target):
         uprofile = User.objects.get(id=target).profile
@@ -289,9 +302,16 @@ class RecoRunner(RabbitServer):
         uprofile.save()
 
     def run_allreco(self, target):
-        self.run_abreco(target)
-        self.run_wizreco(target)
+        newreco = 0
+        newreco += self.run_abreco(target)
+        newreco += self.run_wizreco(target)
         self.updateRecoTime(target)
+        self.updateRecoCount(newreco)
+
+    def updateRecoCount(self,recocount):
+        uprofile = User.objects.get(id=target).profile
+        uprofile.reco_ready = recocount
+        uprofile.save()
 
     def on_message(self, ch, basic_deliver, props, body):
         logger.info('Received message # %s from %s: %s',
