@@ -17,6 +17,7 @@ WIZCARD_FORWARD     = 14
 TABLE_JOIN          = 15
 TABLE_LEAVE         = 16
 FOLLOW_EXPLICIT     = 17
+RECO_READY          = 18
 
 # receiver types
 WIZCARD_CONNECT_U   = 1

@@ -735,6 +735,11 @@ class ParseMsgAndDispatch(object):
                 self.user,
                 users)
 
+        reco_count = self.userprofile.reco_ready
+        if reco_count:
+            notifResponse.notifRecoReady(self, reco_count)
+            self.userprofile.reco_ready = 0
+
         tables, count = VirtualTable.objects.lookup(
             self.user.pk,
             self.lat,
@@ -2190,6 +2195,7 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
 
+    @property
     def GetRecommendations(self):
 
         size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
@@ -2202,19 +2208,14 @@ class ParseMsgAndDispatch(object):
         # AA:Comments: Expose this as a model API instead of a direct filter
         # There will be more and more filtering/conditional checks/splicing
         # etc as we go forward.
-        recos = UserRecommendation.objects.filter(user=self.user,useraction__in = [0,3]).order_by('-score')[:size]
+        recos = UserRecommendationManager.getRecommendations(recotarget=self.user, size)
 
-        # AA: Comments: Refactor below. The model should provide these outputs.
-        # Doing this here will hinder debugging. Typically, the goal is that
-        # all things are model API's. Then its easy to simply call those
-        # from there for any model...also, all active logic pieces are in one
-        # place
-        reco_list = []
-        for ur in recos:
-            reco_list.append(ur.getReco())
-            newscore = ur.updateScore(adjustsent=True)
+        if not recos:
+            uprofile = self.user.profile
+            uprofile.reco_ready = 0
+            genreco.send(self.user, recotarget=self.user.id)
 
-        self.response.add_data("recos",serialize.serialize(reco_list))
+        self.response.add_data("recos", recos)
         return self.response
 
     def SetRecoAction(self):

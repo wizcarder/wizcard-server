@@ -261,6 +261,12 @@ class NotifResponse(ResponseN):
             self.add_data_and_seq_with_notif(out, verbs.NEARBY_USERS)
         return self.response
 
+    def notifRecoReady(self,reco_count):
+        out = {'recos_ready': reco_count}
+        if reco_count > 0:
+            self.add_data_and_seq_with_notif(out, verbs.RECO_READY)
+        return self.response
+
     def notifTableLookup(self, count, user, tables):
         out = None
         if tables:
