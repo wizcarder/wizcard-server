@@ -16,6 +16,7 @@ def send_gcm_message(key, reg_token, data):
 	message_body = data['body']
 	result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
 
+	#HACK HACK HACK - AnandR to fix it post event
 	if type(result) is list:
 		push_result = result[0]['success']
 	elif type(result) is dict:
