@@ -56,6 +56,19 @@ def addtoQ(**kwargs):
 genreco.connect(addtoQ, dispatch_uid='recommendation.models.recommendation')
 
 
+class UserRecommendationManager(models.Manager):
+
+    def getRecommendations(self, recotarget, size):
+        recos = UserRecommendation.objects.filter(user=recotarget, useraction__in=[0, 3]).order_by('-score')[:size]
+
+        reco_list = []
+        for ur in recos:
+            reco_list.append(ur.getReco())
+            newscore = ur.updateScore(adjustsent=True)
+
+        return serialize.serialize(reco_list)
+
+
 class UserRecommendation(models.Model):
 
     Viewed = 0
@@ -132,6 +145,7 @@ class UserRecommendation(models.Model):
         if action == 0:
             self.score = 0.1
         self.save()
+
 
 
 class RecommenderMeta(models.Model):
