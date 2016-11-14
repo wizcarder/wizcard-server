@@ -507,8 +507,8 @@ class ParseMsgAndDispatch(object):
             first_name, last_name = wizlib.split_name(name)
 
             if 'phone' in ab_entry:
-                phone_list = [wizlib.clean_phone_number(x, int_prefix, country_code)
-                              for x in ab_entry.get('phone') if wizlib.is_valid_phone(x,country_prefix=country_code)]
+                phone_list = list(set([wizlib.clean_phone_number(x, int_prefix, country_code)
+                              for x in ab_entry.get('phone') if wizlib.is_valid_phone(x,country_prefix=country_code)]))
                 if len(phone_list):
                     do_phone = True
                 try:
