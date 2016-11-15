@@ -54,6 +54,7 @@ ALLRECO = 2
 
 # Interval between running recommendations fully
 
+MIN_RECOS_FOR_PUSH_NOTIF = 0
 
 
 
@@ -309,7 +310,8 @@ class RecoRunner(RabbitServer):
         newreco += self.run_wizreco(target)
         self.updateRecoTime(target)
         self.updateRecoCount(newreco)
-        notify.send(target, recipient=target,
+        if newreco > MIN_RECOS_FOR_PUSH_NOTIF:
+            notify.send(target, recipient=target,
                     verb=verbs.WIZCARD_RECO_READY,
                     target=target.wizcard)
 
