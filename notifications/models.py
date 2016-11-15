@@ -157,7 +157,6 @@ def notify_handler(verb, **kwargs):
     Handler function to create Notification instance upon action signal call.
     """
 
-    pdb.set_trace()
     kwargs.pop('signal', None)
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
