@@ -156,30 +156,34 @@ def notify_handler(verb, **kwargs):
     """
     Handler function to create Notification instance upon action signal call.
     """
+
+    pdb.set_trace()
     kwargs.pop('signal', None)
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
+    onlypush = kwargs.pop('onlypush', False)
 
-    newnotify = Notification(
-        recipient = recipient,
-        actor_content_type=ContentType.objects.get_for_model(actor),
-        actor_object_id=actor.pk,
-        verb=unicode(verb),
-        public=bool(kwargs.pop('public', True)),
-        timestamp=kwargs.pop('timestamp', now())
-    )
+    if not onlypush:
+        newnotify = Notification(
+            recipient = recipient,
+            actor_content_type=ContentType.objects.get_for_model(actor),
+            actor_object_id=actor.pk,
+            verb=unicode(verb),
+            public=bool(kwargs.pop('public', True)),
+            timestamp=kwargs.pop('timestamp', now())
+        )
 
-    for opt in ('target', 'action_object'):
-        obj = kwargs.pop(opt, None)
-        if not obj is None:
-            setattr(newnotify, '%s_object_id' % opt, obj.pk)
-            setattr(newnotify, '%s_content_type' % opt,
+        for opt in ('target', 'action_object'):
+            obj = kwargs.pop(opt, None)
+            if not obj is None:
+                setattr(newnotify, '%s_object_id' % opt, obj.pk)
+                setattr(newnotify, '%s_content_type' % opt,
                     ContentType.objects.get_for_model(obj))
-            setattr(newnotify, '%s' % opt, obj)
+                setattr(newnotify, '%s' % opt, obj)
 
-    newnotify.save()
+        newnotify.save()
 
-    pushNotificationToApp.delay(
+        pushNotificationToApp.delay(
             newnotify.actor_object_id,
             newnotify.recipient_id,
             newnotify.action_object_object_id,
@@ -188,6 +192,32 @@ def notify_handler(verb, **kwargs):
             newnotify.target_content_type,
             newnotify.verb
             )
+    else:
+        pushparam = dict()
+        verb = unicode(verb)
+        for opt in ('target','action_object'):
+            obj = kwargs.pop(opt, None)
+            if not obj is None:
+                tkey = '%s_object_id' % opt
+                pushparam[tkey] = obj.pk
+                tkey = '%s_content_type' % opt
+                pushparam[tkey] = ContentType.objects.get_for_model(obj)
+            else:
+                tkey = '%s_object_id' % opt
+                pushparam[tkey] = None
+                tkey = '%s_content_type'
+                pushparam[tkey] = None
+
+        pushNotificationToApp.delay(
+            actor.pk,
+            recipient.pk,
+            pushparam['action_object_object_id'],
+            pushparam['action_object_content_type'],
+            pushparam['target_object_id'],
+            pushparam['target_content_type'],
+            verb
+            )
+
     #    except:
     #        logging.error("Failed to send APNS to User %s",
     #                recipient.profile.userid)

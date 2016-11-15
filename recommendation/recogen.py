@@ -118,14 +118,14 @@ class ABReco (RecoModel):
         newrecocount = 0
         abentries = map(lambda x: x.ab_entry, AB_User.objects.filter(user=self.recotarget))
         if not abentries:
-            return {}
+            return 0
 
         #Check if this user has a active wizcard
 
         try:
             twizcard = self.recotarget.wizcard
         except:
-            return
+            return 0
 
         # Get all the wizcards connected to this user who has a wizcard
         wizusers = map(lambda x: x.user, self.recotarget.wizcard.get_connections())
@@ -204,7 +204,7 @@ class WizReco(RecoModel):
         try:
             targetwizcard = self.recotarget.wizcard
         except:
-            return
+            return 0
 
         recodict = dict()
         for hop1 in targetwizcard.get_connections():
@@ -276,47 +276,39 @@ class RecoRunner(RabbitServer):
             except:
                 return
 
-    def run_abreco(self, target):
-        tuser = None
-        try:
-            tuser = User.objects.get(id=target)
-        except:
-            pass
-        if tuser:
-            abreco_inst = ABReco(tuser)
-            newreco = abreco_inst.getData()
+    def run_abreco(self, tuser):
+        abreco_inst = ABReco(tuser)
+        newreco = abreco_inst.getData()
         return newreco
 
-    def run_wizreco(self, target):
-        tuser = None
-        try:
-            tuser = User.objects.get(id=target)
-        except:
-            pass
-        if tuser:
-            wizreco_inst = WizReco(tuser)
-            newreco = wizreco_inst.getData()
-
+    def run_wizreco(self, tuser):
+        wizreco_inst = WizReco(tuser)
+        newreco = wizreco_inst.getData()
         return newreco
 
-    def updateRecoTime(self, target):
-        uprofile = User.objects.get(id=target).profile
+    def updateRecoTime(self, tuser):
+        uprofile = tuser.profile
         uprofile.reco_generated_at = timezone.now()
         uprofile.save()
 
     def run_allreco(self, target):
+        tuser = None
+        try:
+            tuser = User.objects.get(id=target)
+        except:
+            return
         newreco = 0
-        newreco += self.run_abreco(target)
-        newreco += self.run_wizreco(target)
-        self.updateRecoTime(target)
-        self.updateRecoCount(newreco)
+        newreco += self.run_abreco(tuser)
+        newreco += self.run_wizreco(tuser)
+        self.updateRecoTime(tuser)
+        self.updateRecoCount(tuser,newreco)
         if newreco > MIN_RECOS_FOR_PUSH_NOTIF:
-            notify.send(target, recipient=target,
-                    verb=verbs.WIZCARD_RECO_READY,
-                    target=target.wizcard)
+            notify.send(tuser, recipient=tuser,
+                    verb=verbs.WIZCARD_RECO_READY[0],
+                    target=tuser.wizcard,onlypush=True)
 
-    def updateRecoCount(self,recocount):
-        uprofile = User.objects.get(id=target).profile
+    def updateRecoCount(self,tuser,recocount):
+        uprofile = tuser.profile
         uprofile.reco_ready = recocount
         uprofile.save()
 
