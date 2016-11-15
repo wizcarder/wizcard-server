@@ -204,7 +204,7 @@ def notify_handler(verb, **kwargs):
             else:
                 tkey = '%s_object_id' % opt
                 pushparam[tkey] = None
-                tkey = '%s_content_type'
+                tkey = '%s_content_type' % opt
                 pushparam[tkey] = None
 
         pushNotificationToApp.delay(
