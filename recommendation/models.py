@@ -18,6 +18,7 @@ from wizcardship.models import Wizcard
 from userprofile.models import AddressBook
 from recommendation.tasks import addtoQtask
 from decimal import *
+from lib.preserialize import serialize
 import logging
 
 # Create your models here.
@@ -95,6 +96,8 @@ class UserRecommendation(models.Model):
     useraction = models.PositiveSmallIntegerField(choices=ACTIONS, default = New)
     score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     lastaction_time = models.DateTimeField(auto_now=True)
+
+    objects = UserRecommendationManager()
 
     def getReco(self):
         reco_list = []

@@ -735,11 +735,6 @@ class ParseMsgAndDispatch(object):
                 self.user,
                 users)
 
-        reco_count = self.userprofile.reco_ready
-        if reco_count:
-            notifResponse.notifRecoReady(self, reco_count)
-            self.userprofile.reco_ready = 0
-
         tables, count = VirtualTable.objects.lookup(
             self.user.pk,
             self.lat,
@@ -2208,11 +2203,13 @@ class ParseMsgAndDispatch(object):
         # AA:Comments: Expose this as a model API instead of a direct filter
         # There will be more and more filtering/conditional checks/splicing
         # etc as we go forward.
-        recos = UserRecommendationManager.getRecommendations(recotarget=self.user, size)
+        recos = UserRecommendation.objects.getRecommendations(recotarget=self.user, size=size)
 
         if not recos:
             uprofile = self.user.profile
-            uprofile.reco_ready = 0
+            if uprofile.reco_ready != 0:
+                uprofile.reco_ready = 0
+                uprofile.save()
             genreco.send(self.user, recotarget=self.user.id)
 
         self.response.add_data("recos", recos)

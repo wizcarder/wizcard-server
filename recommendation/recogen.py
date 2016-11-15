@@ -22,6 +22,8 @@ from lib import wizlib
 from django.core.wsgi import get_wsgi_application
 from userprofile.models import *
 from recommendation.models import *
+from notifications.models import *
+from notifications.signals import notify
 application = get_wsgi_application()
 
 #logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
@@ -307,6 +309,9 @@ class RecoRunner(RabbitServer):
         newreco += self.run_wizreco(target)
         self.updateRecoTime(target)
         self.updateRecoCount(newreco)
+        notify.send(target, recipient=target,
+                    verb=verbs.WIZCARD_RECO_READY,
+                    target=target.wizcard)
 
     def updateRecoCount(self,recocount):
         uprofile = User.objects.get(id=target).profile
