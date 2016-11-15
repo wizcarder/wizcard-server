@@ -2190,7 +2190,6 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
 
-    @property
     def GetRecommendations(self):
 
         size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
