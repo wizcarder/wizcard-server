@@ -106,7 +106,6 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
             verbs.WIZWEB_WIZCARD_UPDATE[0]      : self.notifWizWebWizcardUpdate,
-            verbs.WIZCARD_RECO_READY[0]         : self.notifRecoReady,
         }
         for notification in notifications:
             notifHandler[notification.verb](notification)
@@ -261,14 +260,6 @@ class NotifResponse(ResponseN):
             out = UserProfile.objects.serialize_split(me, users)
             self.add_data_and_seq_with_notif(out, verbs.NEARBY_USERS)
         return self.response
-
-    def notifRecoReady(self,notif):
-        uprofile = notif.actor.profile
-        reco_count = uprofile.reco_ready
-        if reco_count > 0:
-            out = {'recos_ready': reco_count}
-            self.add_data_and_seq_with_notif(out, verbs.RECO_READY)
-            return self.response
 
     def notifTableLookup(self, count, user, tables):
         out = None
