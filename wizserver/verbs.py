@@ -76,6 +76,7 @@ WIZCARD_FORWARD = ('wizcard forward', 1)
 WIZCARD_TABLE_JOIN = ('table join', 0)
 WIZCARD_TABLE_LEAVE = ('table leave', 0)
 WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1)
+WIZCARD_RECO_READY = ('new recommendations ready', 0)
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {
@@ -165,6 +166,10 @@ gcm_notification_dictionary = {
         'title': 'Updated WizCard',
         'body': '{0.first_name} {0.last_name} has an updated wizcard',
     },
+    WIZCARD_RECO_READY[0]: {
+	'title' : 'New Recommendations Ready',
+	'body': 'You have New Recommendations ready',
+    }
 
 
 }
