@@ -135,6 +135,11 @@ apns_notification_dictionary = {
         'badge': 0,
         'alert': 'your wizcard was updated',
     },
+    WIZCARD_RECO_READY[0]: {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'alert': 'New Reco Ready',
+    }
 }
 
 gcm_notification_dictionary = {
