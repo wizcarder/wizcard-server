@@ -270,7 +270,8 @@ class ParseMsgAndDispatch(object):
             'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
             'get_email_template'          : (message_format.GetEmailTemplateSchema, self.GetEmailTemplate),
             'get_recommendations'         : (message_format.GetRecommendationsSchema, self.GetRecommendations),
-            'set_reco_action'               : (message_format.SetRecoActionSchema, self.SetRecoAction),
+            'set_reco_action'             : (message_format.SetRecoActionSchema, self.SetRecoAction),
+            'get_common_connections'      : (message_format.GetCommonConnectionsSchema, self.GetCommonConnections),
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -507,8 +508,8 @@ class ParseMsgAndDispatch(object):
             first_name, last_name = wizlib.split_name(name)
 
             if 'phone' in ab_entry:
-                phone_list = [wizlib.clean_phone_number(x, int_prefix, country_code)
-                              for x in ab_entry.get('phone') if wizlib.is_valid_phone(x,country_prefix=country_code)]
+                phone_list = list(set([wizlib.clean_phone_number(x, int_prefix, country_code)
+                              for x in ab_entry.get('phone') if wizlib.is_valid_phone(x,country_prefix=country_code)]))
                 if len(phone_list):
                     do_phone = True
                 try:
@@ -1590,6 +1591,32 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    def GetCommonConnections(self):
+        MAX_L1_LIST_VIEW = 3
+
+        try:
+            wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        full = self.sender.get('full', False)
+
+        # get common connections between the 2
+        s1 = set(wizcard1.get_following())
+        s2 = set(wizcard2.get_following())
+
+        common = list(s1 & s2)
+        count = len(common)
+        split = None if count < MAX_L1_LIST_VIEW or full else MAX_L1_LIST_VIEW
+        if count:
+            common_s = Wizcard.objects.serialize(common[:split], fields.wizcard_template_brief)
+            self.response.add_data("wizcards", common_s)
+        self.response.add_data("total", count)
+
+        return self.response
+
     def TableQuery(self):
         if not self.receiver.has_key('name'):
             self.securityException()
@@ -1937,21 +1964,23 @@ class ParseMsgAndDispatch(object):
             if cc_e.has_key('web'):
                 deadcard.web = cc_e['web']
 
-        # no f_bizCardEdit..for now atleast. This will always come via scan
-        # or rescan
-        deadcard.activated = True
-        deadcard.save()
-
         if inviteother:
             receiver_type = "email"
             receivers = [deadcard.email]
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
                 sendmail.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
+                deadcard.invited = True
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
             sendmail.delay(self.user.wizcard, deadcard.email, template="emailscan")
+
+        # no f_bizCardEdit..for now atleast. This will always come via scan
+        # or rescan
+        deadcard.activated = True
+        deadcard.save()
+
         return self.response
 
     def MeishiStart(self):

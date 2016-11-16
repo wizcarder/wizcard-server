@@ -386,7 +386,7 @@ reqmsg['sender']['userID'] = uid2
 reqmsg['sender']['wizUserID'] = wuid2
 reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
 reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
-reqmsg['receiver']['ab_list'] = messages.ab_list_baskar_1
+reqmsg['receiver'].update(messages.ab_list_ananda_1)
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -780,6 +780,18 @@ reqmsg['sender']['flag'] = "reaccept"
 reqmsg['receiver']['wizUserID'] = wuid1
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+
+# get common connections between 2 and 3
+reqmsg = messages.get_common_connections
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['sender']['wizCardID'] = e2_id
+reqmsg['sender']['more'] = False
+reqmsg['receiver']['wizCardID'] = e3_id
+send_request(conn, reqmsg)
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
 # u1 delete U2 Rolodex
