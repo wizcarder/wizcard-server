@@ -782,6 +782,18 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+
+# get common connections between 2 and 3
+reqmsg = messages.get_common_connections
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid2
+reqmsg['sender']['wizUserID'] = wuid2
+reqmsg['sender']['wizCardID'] = e2_id
+reqmsg['sender']['more'] = False
+reqmsg['receiver']['wizCardID'] = e3_id
+send_request(conn, reqmsg)
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
 # u1 delete U2 Rolodex
 reqmsg = messages.delete_rolodex_card
 reqmsg['header']['version'] = APP_VERSION

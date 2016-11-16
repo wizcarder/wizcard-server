@@ -470,7 +470,6 @@ class AB_Candidate_Phones(models.Model):
     phone = TruncatingCharField(max_length=20)
     ab_entry = models.ForeignKey(AddressBook, related_name='candidate_phones')
 
-
     def __repr__(self):
         return self.phone
 

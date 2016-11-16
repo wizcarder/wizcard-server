@@ -270,7 +270,8 @@ class ParseMsgAndDispatch(object):
             'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
             'get_email_template'          : (message_format.GetEmailTemplateSchema, self.GetEmailTemplate),
             'get_recommendations'         : (message_format.GetRecommendationsSchema, self.GetRecommendations),
-            'set_reco_action'               : (message_format.SetRecoActionSchema, self.SetRecoAction),
+            'set_reco_action'             : (message_format.SetRecoActionSchema, self.SetRecoAction),
+            'get_common_connections'      : (message_format.GetCommonConnectionsSchema, self.GetCommonConnections),
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -1587,6 +1588,32 @@ class ParseMsgAndDispatch(object):
                 map(lambda x: x.user, result))
             self.response.add_data("queryResult", users_s)
         self.response.add_data("count", count)
+
+        return self.response
+
+    def GetCommonConnections(self):
+        MAX_L1_LIST_VIEW = 3
+
+        try:
+            wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        full = self.sender.get('full', False)
+
+        # get common connections between the 2
+        s1 = set(wizcard1.get_following())
+        s2 = set(wizcard2.get_following())
+
+        common = list(s1 & s2)
+        count = len(common)
+        split = None if count < MAX_L1_LIST_VIEW or full == True else MAX_L1_LIST_VIEW
+        if count:
+            common_s = Wizcard.objects.serialize(common[:split], fields.wizcard_template_brief)
+            self.response.add_data("wizcards", common_s)
+        self.response.add_data("total", count)
 
         return self.response
 

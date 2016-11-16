@@ -125,7 +125,8 @@ class GetRecommendationsSchema(colander.MappingSchema):
     pass
 class SetRecoActionSchema(colander.MappingSchema):
     pass
-
+class GetCommonConnectionsSchema(colander.MappingSchema):
+    pass
 
 #wizweb
 class WizWebUserQuerySchema(colander.MappingSchema):
