@@ -1609,7 +1609,7 @@ class ParseMsgAndDispatch(object):
 
         common = list(s1 & s2)
         count = len(common)
-        split = None if count < MAX_L1_LIST_VIEW or full == True else MAX_L1_LIST_VIEW
+        split = None if count < MAX_L1_LIST_VIEW or full else MAX_L1_LIST_VIEW
         if count:
             common_s = Wizcard.objects.serialize(common[:split], fields.wizcard_template_brief)
             self.response.add_data("wizcards", common_s)
