@@ -12,7 +12,7 @@ PRINT_TREES = 4
 class TreeStateClient(RabbitClient):
     def __init__(self):
         creds = PlainCredentials(rconfig.TREE_USER, rconfig.TREE_PASSWORD)
-        super(TreeStateClient, self).__init__(credentials=creds, **rconfig.TREE_SERVER_CONFIG)
+        super(TreeStateClient, self).__init__(credentials=creds, **rconfig.TREE_CLIENT_CONFIG)
 
     def tree_insert(self, **kwargs):
         kwargs['fn'] = TREE_INSERT

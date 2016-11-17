@@ -48,11 +48,19 @@ RECO_PERIODIC_ROUTING_KEY = 'reco_periodic_key'
 
 TREE_SERVER_CONFIG = {
     'virtual_host': TREE_VHOST,
-    'host' : TREE_HOST,
     'url' : AMPQ_TREE_URL,
     'exchange' : 'trees',
     'queue': TREE_SERVER_Q_NAME,
     'routing_key': TREE_SERVER_ROUTING_KEY,
+}
+
+TREE_CLIENT_CONFIG = {
+    'virtual_host': TREE_SERVER_CONFIG['virtual_host'],
+    'host' : TREE_HOST,
+    'url' : TREE_SERVER_CONFIG['url'],
+    'exchange' : TREE_SERVER_CONFIG['exchange'],
+    'queue': TREE_SERVER_CONFIG['queue'],
+    'routing_key': TREE_SERVER_CONFIG['routing_key'],
 }
 
 RECO_TRIGGER_CONFIG = {
