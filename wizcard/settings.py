@@ -157,14 +157,14 @@ elif RUNENV == 'test':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': instances.ALLHOSTS[RUNENV]['MEMCACHE']
+            'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
         }
     }
 elif RUNENV == 'prod':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': instances.ALLHOSTS[RUNENV]['MEMCACHE']
+            'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
         }
     }
 
