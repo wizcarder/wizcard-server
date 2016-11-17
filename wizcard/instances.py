@@ -1,26 +1,12 @@
 #!/usr/bin/env python
 TEST_AWSHOSTS = ['ec2-52-66-102-242.ap-south-1.compute.amazonaws.com']
 DEV_AWSHOSTS = ['localhost']
-PROD_AWSHOSTS = ['ec2-52-66-114-251.ap-south-1.compute.amazonaws.com',
-                 'ec2-52-66-110-201.ap-south-1.compute.amazonaws.com']
 PROD_AWSHOSTS = ['ec2-35-154-15-196.ap-south-1.compute.amazonaws.com',
-		'ec2-35-154-20-38.ap-south-1.compute.amazonaws.com',
 		'ec2-35-154-4-181.ap-south-1.compute.amazonaws.com',
-		'ec2-35-154-12-69.ap-south-1.compute.amazonaws.com']
+		'ec2-35-154-12-69.ap-south-1.compute.amazonaws.com',
+		'ec2-35-154-20-38.ap-south-1.compute.amazonaws.com']
 STG_AWSHOSTS = ['ec2-52-66-64-201.ap-south-1.compute.amazonaws.com']
 LOCALHOST = ['localhost']
-
-stg_memcache_hosts = []
-prod_memcache_hosts = []
-test_memcache_hosts = []
-for hosts in STG_AWSHOSTS:
-    stg_memcache_hosts.append(hosts+":11211")
-for hosts in PROD_AWSHOSTS:
-    prod_memcache_hosts.append(hosts+":11211")
-for hosts in DEV_AWSHOSTS:
-    prod_memcache_hosts.append(hosts+":11211")
-for hosts in TEST_AWSHOSTS:
-    test_memcache_hosts.append(hosts+":11211")
 
 ALLHOSTS = {
     'stage': {
@@ -29,7 +15,7 @@ ALLHOSTS = {
         'LOCATIONSERVER':STG_AWSHOSTS,
         'WIZSERVER': STG_AWSHOSTS,
         'NGINX': STG_AWSHOSTS,
-        'MEMCACHE': stg_memcache_hosts,
+        'MEMCACHE': STG_AWSHOSTS,
     },
     'dev': {
         'RABBITSERVER': LOCALHOST,
@@ -52,6 +38,39 @@ ALLHOSTS = {
         'LOCATIONSERVER': [PROD_AWSHOSTS[0]],
         'WIZSERVER': PROD_AWSHOSTS,
         'NGINX': PROD_AWSHOSTS,
-        'MEMCACHE': prod_memcache_hosts,
+        'MEMCACHE': PROD_AWSHOSTS,
     }
 }
+
+RUNHOSTS = {'dev': {'LOCATIONSERVER': ['localhost'],
+         'MEMCACHE': ['localhost:11211'],
+         'NGINX': ['localhost'],
+         'RABBITSERVER': ['localhost'],
+         'RECOSERVER': ['localhost'],
+         'WIZSERVER': ['localhost']},
+ 'prod': {'LOCATIONSERVER': ['172.31.22.220'],
+          'MEMCACHE': ['172.31.22.220:11211',
+                       '172.31.22.221:11211',
+                       '172.31.22.223:11211',
+                       '172.31.22.222:11211'],
+          'NGINX': ['172.31.22.220',
+                    '172.31.22.221',
+                    '172.31.22.223',
+                    '172.31.22.222'],
+          'RABBITSERVER': ['localhost'],
+          'WIZSERVER': ['172.31.22.220',
+                        '172.31.22.221',
+                        '172.31.22.223',
+                        '172.31.22.222']},
+ 'stage': {'LOCATIONSERVER': ['172.31.9.38'],
+           'MEMCACHE': ['172.31.9.38:11211'],
+           'NGINX': ['172.31.9.38'],
+           'RABBITSERVER': ['localhost'],
+           'RECOSERVER': ['172.31.9.38'],
+           'WIZSERVER': ['172.31.9.38']},
+ 'test': {'LOCATIONSERVER': ['172.31.30.21'],
+          'MEMCACHE': ['172.31.30.21:11211'],
+          'NGINX': ['172.31.30.21'],
+          'RABBITSERVER': ['localhost'],
+          'RECOSERVER': ['172.31.30.21'],
+          'WIZSERVER': ['172.31.30.21']}}
