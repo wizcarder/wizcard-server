@@ -1,4 +1,7 @@
+from wizcard.instances  import *
+import os
 
+RUNENV = os.getenv('WIZRUNENV', 'dev')
 # AMPQ Settings
 BROKER_TRANSPORT = 'amqp'
 BROKER_HOST = 'localhost'
@@ -20,8 +23,9 @@ RECO_PASSWORD = 'reco_pass'
 
 
 # URLS
+TREE_HOST =  RUNHOSTS[RUNENV]['LOCATIONSERVER'][0]
 AMPQ_DEFAULT_URL = 'amqp://' + BROKER_USER + ':' + BROKER_PASSWORD + '@'+ BROKER_HOST +':5672' + '/' + BROKER_VHOST
-AMPQ_TREE_URL = 'amqp://' + TREE_USER + ':' + TREE_PASSWORD + '@'+ BROKER_HOST +':5672'
+AMPQ_TREE_URL = 'amqp://' + TREE_USER + ':' + TREE_PASSWORD + '@'+ TREE_HOST +':5672'
 AMPQ_RECO_URL = 'amqp://' + RECO_USER + ':' + RECO_PASSWORD + '@'+ BROKER_HOST +':5672'
 
 

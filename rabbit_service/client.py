@@ -7,7 +7,7 @@ import uuid
 from rabbit_service import rconfig
 import json
 import logging
-from wizcard.instances import ALLHOSTS
+from wizcard.instances import RUNHOSTS
 
 RPC_CONN = 1
 BASIC_CONN = 2
@@ -18,7 +18,7 @@ RUNENV = os.getenv("WIZRUNENV", "dev")
 
 class RabbitClient(object):
     def __init__(self, *args, **kwargs):
-        self.host = kwargs.get('host', ALLHOSTS[RUNENV]['RABBITSERVER'][0])
+        self.host = kwargs.get('host', RUNHOSTS[RUNENV]['RABBITSERVER'][0])
         self.virtual_host = kwargs.get('virtual_host', "")
         self.credentials = kwargs.get('credentials', None)
         self.exchange = kwargs.get('exchange', rconfig.DEFAULT_EXCHANGE)
