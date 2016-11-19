@@ -323,9 +323,12 @@ class ParseMsgAndDispatch(object):
 
         #send a text with the rand
         if settings.PHONE_CHECK:
-            msg = settings.PHONE_CHECK_MESSAGE.copy()
+            msg = wizlib.choose_nexmo_config(response_target)
+            if not msg:
+                self.response.error_response(err.INVALID_MESSAGE)
+                return self.response
+            
             msg['to'] = response_target
-
             if response_mode == "voice":
                 keystr = str(d[k_rand])
                 keystr = str.format(','.join([keystr[i:i+1] for i in range(0, len(keystr))]))

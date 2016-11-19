@@ -129,6 +129,24 @@ def clean_phone_number(phone, international_prefix, country_code):
 
     return phone
 
+def choose_nexmo_config(phone):
+    parseph = parse_phone(phone)
+    nexmo_config = settings.PHONE_CHECK_MESSAGE.copy()
+    if parseph:
+        country = phonenumbers.phonenumberutil.region_code_for_country_code(parseph.country_code)
+    else:
+        return {}
+
+    #ANANDR: This can be array or dict based will make it optimal later
+    if country == "US":
+        nexmo_config['from'] = settings.NEXMO_OWN_NUMBER
+    elif country == "IN":
+        nexmo_config['from'] = settings.NEXMO_SENDERID
+    else:
+        nexmo_config['from'] = settings.NEXMO_SENDERID
+
+    return nexmo_config
+
 # email valid
 def is_valid_email(email):
     return validate_email(email)
