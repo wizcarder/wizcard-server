@@ -451,19 +451,20 @@ class WizConnectionRequest(models.Model):
         if hasattr(self.cctx, '_usercctx'):
             if type(self.cctx.notes) is not dict:
                 old_notes = self.cctx.notes
-                self._usercctx = dict(
+                self.cctx._usercctx = dict(
                     notes = dict(
                         note=old_notes,
                         last_saved=self.created.strftime("%d %B %Y")
                     )
                 )
         else:
-            self._usercctx = dict(
+            self.cctx._usercctx = dict(
                     notes = dict(
                         note="",
                         last_saved=self.created.strftime("%d %B %Y")
                     )
                 )
+        self.save()
 
 
 class WizcardFlickManager(models.Manager):
