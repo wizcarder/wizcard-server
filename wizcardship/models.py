@@ -391,7 +391,6 @@ class ContactContainer(models.Model):
                                             storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.URLField(blank=True)
 
-
     def __unicode__(self):
         return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)}
 
@@ -447,6 +446,24 @@ class WizConnectionRequest(models.Model):
     def cancel(self):
         signals.wizcardship_cancelled.send(sender=self)
         #self.delete()
+
+    def fix_context(self):
+        if hasattr(self.cctx, '_usercctx'):
+            if type(self.cctx.notes) is not dict:
+                old_notes = self.cctx.notes
+                self._usercctx = dict(
+                    notes = dict(
+                        note=old_notes,
+                        last_saved=self.created.strftime("%d %B %Y")
+                    )
+                )
+        else:
+            self._usercctx = dict(
+                    notes = dict(
+                        note="",
+                        last_saved=self.created.strftime("%d %B %Y")
+                    )
+                )
 
 
 class WizcardFlickManager(models.Manager):

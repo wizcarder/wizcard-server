@@ -253,7 +253,7 @@ class UserProfile(models.Model):
                 asset_id=x.cctx.asset_id,
                 asset_type=x.cctx.asset_type,
                 connection_mode=x.cctx.connection_mode,
-                notes=x.cctx.notes if hasattr(x.cctx, 'notes') else "",
+                notes=x.cctx.notes,
                 timestamp=x.created.strftime("%d %B %Y")).context, conn)
 
             s['context'] = serialize(cctx, **fields.cctx_wizcard_template)

@@ -963,7 +963,9 @@ reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['receiver']['wizCardID'] = wuid3
-reqmsg['receiver']['notes'] = "test one test two"
+reqmsg['receiver']['notes']['note'] = "test one test two"
+reqmsg['receiver']['notes']['last_saved'] = "1st Jan 2016"
+
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])

@@ -8,7 +8,8 @@ class ConnectionContext(object):
     def __repr__(self):
         return self.description
 
-    def __init__(self, asset_obj=None, connection_mode=None, description=None, location="", notes=""):
+    def __init__(self, asset_obj=None, connection_mode=None, description=None, location="", notes="",
+                 last_saved=""):
         asset_type = ContentType.objects.get_for_model(asset_obj).name if asset_obj else None
         self._cctx = dict(
             asset_obj=asset_obj,
@@ -19,7 +20,10 @@ class ConnectionContext(object):
         )
 
         self._usercctx = dict(
-            notes=notes
+            notes = dict(
+                note=notes,
+                last_saved=last_saved
+            )
         )
         self.describe()
 
@@ -29,15 +33,15 @@ class ConnectionContext(object):
 
     @property
     def user_context(self):
-        if not hasattr(self, '_usercctx'):
-            return None
         return self._usercctx
 
     @property
     def notes(self):
-        if not hasattr(self, '_usercctx'):
-            return None
         return self._usercctx['notes']
+
+    @property
+    def notes_last_saved(self):
+        return self._usercctx['last_saved']
 
     @property
     def asset_type(self):
@@ -73,10 +77,11 @@ class ConnectionContext(object):
 
     @notes.setter
     def notes(self, notes):
-        if not hasattr(self, '_usercctx'):
-            self._usercctx = dict(notes="")
-        else:
-            self._usercctx['notes'] = notes
+        self._usercctx['notes']['note'] = notes
+
+    @notes_last_saved.setter
+    def notes_last_saved(self, last_saved):
+        self._usercctx['notes']['last_saved'] = last_saved
 
     def describe(self):
         if self.asset_type == ContentType.objects.get(model="wizcard").name:

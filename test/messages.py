@@ -787,7 +787,10 @@ edit_rolodex_card = {
     },
     "receiver" : {
         "wizCardID" : "",
-        "notes" : "",
+        "notes" : {
+            'note': "",
+            'last_saved': ""
+        }
     }
 }
 

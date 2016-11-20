@@ -455,6 +455,7 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def Register(self):
+        pdb.set_trace()
         #fill in device details
         try:
             self.userprofile.device_type = self.sender['deviceType']
@@ -764,7 +765,8 @@ class ParseMsgAndDispatch(object):
         if 'notes' in self.receiver:
             # get conn represented by w1<-w2
             rel = wizcard2.get_relationship(wizcard1)
-            rel.cctx.notes = self.receiver['notes']
+            rel.cctx.notes = self.receiver['notes']['note']
+            rel.cctx.notes_last_saved = self.receiver['notes']['last_saved']
             rel.save()
 
         return self.response
