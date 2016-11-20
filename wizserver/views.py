@@ -455,7 +455,6 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def Register(self):
-        pdb.set_trace()
         #fill in device details
         try:
             self.userprofile.device_type = self.sender['deviceType']
