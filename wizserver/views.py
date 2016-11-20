@@ -739,6 +739,10 @@ class ParseMsgAndDispatch(object):
                 self.user,
                 users)
 
+        reco_count = self.userprofile.reco_ready
+        if reco_count:
+            self.userprofile.reco_ready = 0
+
         tables, count = VirtualTable.objects.lookup(
             self.user.pk,
             self.lat,
