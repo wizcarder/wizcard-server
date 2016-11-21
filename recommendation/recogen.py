@@ -157,8 +157,7 @@ class ABReco (RecoModel):
                 # Dont consider wizcards which have relationships.
                 if not twizcard.get_relationship(w1):
                     logger.info("Adding Reco wizcard " + w1.get_name() + " for " + twizcard.get_name())
-
-                    self.putReco('wizcard', 5, w1.pk)
+                    newrecocount += self.putReco('wizcard', 5, w1.pk)
                     continue
 
             #Now it can only be addressbook
