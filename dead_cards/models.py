@@ -87,7 +87,7 @@ class DeadCards(models.Model):
 
     def fix_context(self):
         if not self.cctx:
-            self.cctx = ConnectionContext()
+            self.cctx = ConnectionContext(asset_obj=self)
 
         if hasattr(self.cctx, '_usercctx'):
             if type(self.cctx.notes) is not dict:

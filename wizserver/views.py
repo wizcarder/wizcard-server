@@ -1963,6 +1963,7 @@ class ParseMsgAndDispatch(object):
                 location_str = ""
 
             cctx = ConnectionContext(
+		asset_obj = deadcard,
                 location=location_str
             )
 
