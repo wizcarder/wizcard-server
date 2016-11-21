@@ -24,7 +24,6 @@ WIZCARD_CONNECT_T   = 2
 WIZCARD_INVITE      = 3
 EMAIL_INVITE        = 4
 SMS_INVITE          = 5
-SCAN_CARD           = 6
 
 
 INVITE_VERBS = {

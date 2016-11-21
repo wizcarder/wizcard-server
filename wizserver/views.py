@@ -1937,7 +1937,6 @@ class ParseMsgAndDispatch(object):
                                     rawimage, "image/jpeg")
         d.f_bizCardImage.save(upfile.name, upfile)
         d.recognize()
-
         self.response.add_data("response", d.serialize())
         return self.response
 
@@ -1961,16 +1960,11 @@ class ParseMsgAndDispatch(object):
             except:
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
                 location_str = ""
-
             cctx = ConnectionContext(
 		asset_obj = deadcard,
                 location=location_str
             )
-
             deadcard.set_context(cctx)
-
-        # If notes is added, the assumption is that the card already exists and no other action is possible at this moment so return after notes is added
-        # Also notes is added to sender in the request vs the receiver in a typical wizcard connection request.
 
         if 'notes' in self.sender:
             deadcard.cctx.notes = self.sender['notes']['note']
@@ -2018,8 +2012,6 @@ class ParseMsgAndDispatch(object):
         deadcard.save()
 
         return self.response
-
-
 
     def MeishiStart(self):
         lat = self.sender['lat']
