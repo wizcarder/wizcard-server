@@ -848,7 +848,11 @@ ocr_dead_card_edit = {
         "wizUserID" : "",
         "deadCardID": "",
         "inviteother" : 0,
-        "contact_container": [contact_container]
+        "contact_container": [contact_container],
+        "notes" : {
+            'note': "",
+            'last_saved': ""
+        }
     },
 }
 wizweb_query_user = {

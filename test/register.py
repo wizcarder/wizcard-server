@@ -18,7 +18,7 @@ from wizcard import settings
 
 
 TEST_IMAGE=False
-OCR_FLAG = False
+OCR_FLAG = True
 TEST_TABLE = False
 TEST_FLICK = False
 TEST_WIZWEB = False
@@ -247,6 +247,7 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 wuid3 = objs['data']['wizUserID']
+
 
 #send register
 
@@ -1349,8 +1350,19 @@ if OCR_FLAG:
     reqmsg['sender']['userID'] = uid1
     reqmsg['sender']['wizUserID'] = wuid1
     reqmsg['sender']['deadCardID'] = dc1_id
-    reqmsg['sender']['inviteother'] = 1
+    reqmsg['sender']['inviteother'] = 0
     reqmsg['sender']['contact_container'][0]['email'] = 'anandramani98@gmail.com'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
+
+    reqmsg = messages.ocr_dead_card_edit
+    reqmsg['header']['version'] = APP_VERSION
+    reqmsg['sender']['userID'] = uid1
+    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['sender']['deadCardID'] = dc1_id
+    reqmsg['sender']['notes']['note'] = "Test Dead Card notes"
+    reqmsg['sender']['notes']['last_saved'] = "1st Jan 2016"
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])

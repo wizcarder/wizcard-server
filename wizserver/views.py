@@ -1951,21 +1951,22 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        try:
-            location_str = wizlib.reverse_geo_from_latlng(
-                self.userprofile.location.get().lat,
-                self.userprofile.location.get().lng
+        if not deadcard.activated:
+            try:
+                location_str = wizlib.reverse_geo_from_latlng(
+                    self.userprofile.location.get().lat,
+                    self.userprofile.location.get().lng
+                )
+
+            except:
+                logging.error("couldn't get location for user [%s]", self.userprofile.userid)
+                location_str = ""
+
+            cctx = ConnectionContext(
+                location=location_str
             )
 
-        except:
-            logging.error("couldn't get location for user [%s]", self.userprofile.userid)
-            location_str = ""
-
-        cctx = ConnectionContext(
-            location=location_str
-        )
-
-        d.set_context(cctx)
+            deadcard.set_context(cctx)
 
         # If notes is added, the assumption is that the card already exists and no other action is possible at this moment so return after notes is added
         # Also notes is added to sender in the request vs the receiver in a typical wizcard connection request.
@@ -1995,6 +1996,7 @@ class ParseMsgAndDispatch(object):
                 deadcard.title = cc_e['title']
             if cc_e.has_key('web'):
                 deadcard.web = cc_e['web']
+
 
         if inviteother:
             receiver_type = "email"
