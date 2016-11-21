@@ -23,9 +23,12 @@ from django.conf import settings
 from django.utils import timezone
 import string
 import random
+import pytz
+import datetime
 import pdb
 
-RECO_GENERATED_DELTA = timezone.timedelta(hours=3)
+RECO_DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
+RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010,01,01))
 
 
 class UserProfileManager(models.Manager):
@@ -143,7 +146,7 @@ class UserProfile(models.Model):
     is_visible = models.BooleanField(default=True)
     dnd = models.BooleanField(default=False)
     block_unsolicited = models.BooleanField(default=False)
-    reco_generated_at = models.DateTimeField(default=timezone.now() - RECO_GENERATED_DELTA)
+    reco_generated_at = models.DateTimeField(default=RECO_DEFAULT_TIME)
     reco_ready = models.PositiveIntegerField(default=0)
 
     IOS = 'ios'
@@ -273,6 +276,13 @@ class UserProfile(models.Model):
         if deadcards.count():
             dc = DeadCards.objects.serialize(deadcards)
             s['deadcards'] = dc
+            dead_cctx = map(lambda x: NotifContext(
+                description=x.cctx.description,
+                asset_id=x.cctx.asset_id,
+                asset_type=x.cctx.asset_type,
+                connection_mode=x.cctx.connection_mode,
+                notes=x.cctx.notes,
+                timestamp=x.created.strftime("%d %B %Y")).context, deadcards)
 
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False

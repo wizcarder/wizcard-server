@@ -97,6 +97,11 @@ class ConnectionContext(object):
                 self.description = "via Email Invite"
             elif self.connection_mode == verbs.INVITE_VERBS[verbs.SMS_INVITE]:
                 self.description = "via SMS Invite"
+            elif self.connection_mode == verbs.INVITE_VERBS[verbs.SCAN_CARD]:
+                try:
+                    self.description = "Scanned Card at {}".format(wizlib.format_location_name(self.location))
+                except:
+                    self.description = "Scanned Card"
             else:
                 self.description = wizlib.format_location_name(self.location)
         elif self.asset_type == ContentType.objects.get(model="virtualtable").name:
