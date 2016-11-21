@@ -140,13 +140,15 @@ table_template = {
                  'wizcards': 'get_member_wizcards'}
 }
 
+
 dead_cards_wizcard_template = {
     'fields': ['id', 'first_name', 'last_name',
-               'phone', 'email', 'invited', 'contact_container', 'context', 'notes'],
-    'key_map': {'contact_container': 'get_deadcard_cc',
-                'context' : 'get_context',
-                'notes': 'get_notes'}
+               'phone', 'email', 'invited', 'contact_container', 'created', 'context'],
+    'key_map' : {'created': 'created_on',
+                 'contact_container' : 'get_deadcard_cc',
+                 'context': 'get_deadcard_context'},
 }
+
 
 cctx_wizcard_template = {
     'key_map' : {'wizcard' : 'asset_obj'},

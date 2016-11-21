@@ -75,15 +75,19 @@ class DeadCards(models.Model):
     def deadcard_url(self):
         return self.f_bizCardImage.remote_url()
 
+    def created_on(self):
+        return self.created.strftime("%d %B %Y")
+
     def set_context(self, cctx):
         self.cctx = cctx
         self.save()
 
     def get_context(self):
-        return self.cctx.context
+        return self.cctx
 
-    def get_notes(self):
-        return self.cctx.user_context
+    def get_deadcard_context(self):
+        return dict(description = self.cctx.description, notes = self.cctx.notes)
+
 
     def fix_context(self):
         if not self.cctx:
