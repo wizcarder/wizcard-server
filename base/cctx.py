@@ -105,6 +105,11 @@ class ConnectionContext(object):
             self.description = "via flick pick @{}".format(self.object.reverse_geo_name)
         elif self.asset_type == ContentType.objects.get(model="meishi").name:
             self.description = "via meishi"
+        elif self.asset_type == ContentType.objects.get(model="deadcards").name:
+            try:
+                self.description = "Scanned Card at {}".format(wizlib.format_location_name(self.location))
+            except:
+                self.description = "Scanned Card"
 
 
 class NotifContext(object):

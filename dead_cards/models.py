@@ -4,9 +4,12 @@ from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
+from base.cctx import ConnectionContext
 from lib.preserialize.serialize import serialize
 from wizserver import fields
 from lib.ocr import OCR
+from picklefield.fields import PickledObjectField
+
 import pdb
 
 # Create your models here.
@@ -29,6 +32,8 @@ class DeadCards(models.Model):
     f_bizCardImage = WizcardQueuedFileField(upload_to="deadcards",
                                             storage=WizcardQueuedS3BotoStorage(delayed=False))
     activated = models.BooleanField(default=False)
+    cctx = PickledObjectField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     objects = DeadCardsManager()
 
@@ -54,6 +59,7 @@ class DeadCards(models.Model):
         self.company = result.get('company', "")
         self.title = result.get('job', "")
         self.web = result.get('web', "")
+        self.cctx = ConnectionContext()
         self.save()
 
     def get_deadcard_cc(self):
@@ -68,6 +74,38 @@ class DeadCards(models.Model):
 
     def deadcard_url(self):
         return self.f_bizCardImage.remote_url()
+
+    def set_context(self, cctx):
+        self.cctx = cctx
+        self.save()
+
+    def get_context(self):
+        return self.cctx.context
+
+    def get_notes(self):
+        return self.cctx.user_context
+
+    def fix_context(self):
+        if not self.cctx:
+            self.cctx = ConnectionContext(asset_obj=self)
+
+        if hasattr(self.cctx, '_usercctx'):
+            if type(self.cctx.notes) is not dict:
+                old_notes = self.cctx.notes
+                self.cctx._usercctx = dict(
+                    notes=dict(
+                        note=old_notes,
+                        last_saved=self.created.strftime("%d %B %Y")
+                    )
+                )
+        else:
+            self.cctx._usercctx = dict(
+                notes=dict(
+                    note="",
+                    last_saved=self.created.strftime("%d %B %Y")
+                )
+            )
+        self.save()
 
     #AA:TODO refactor. This should reuse CC model
     def serialize(self):

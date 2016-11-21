@@ -25,12 +25,13 @@ WIZCARD_INVITE      = 3
 EMAIL_INVITE        = 4
 SMS_INVITE          = 5
 
+
 INVITE_VERBS = {
     WIZCARD_CONNECT_U:'wiz_untrusted',
     WIZCARD_CONNECT_T: 'wiz_trusted',
     WIZCARD_INVITE: 'wizcard_invite',
     EMAIL_INVITE: 'email',
-    SMS_INVITE: 'sms'
+    SMS_INVITE: 'sms',
 }
 
 PENDING = 1
