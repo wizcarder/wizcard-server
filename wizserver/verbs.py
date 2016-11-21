@@ -33,7 +33,6 @@ INVITE_VERBS = {
     WIZCARD_INVITE: 'wizcard_invite',
     EMAIL_INVITE: 'email',
     SMS_INVITE: 'sms',
-    SCAN_CARD: 'scan'
 }
 
 PENDING = 1

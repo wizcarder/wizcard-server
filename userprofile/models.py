@@ -276,13 +276,6 @@ class UserProfile(models.Model):
         if deadcards.count():
             dc = DeadCards.objects.serialize(deadcards)
             s['deadcards'] = dc
-            dead_cctx = map(lambda x: NotifContext(
-                description=x.cctx.description,
-                asset_id=x.cctx.asset_id,
-                asset_type=x.cctx.asset_type,
-                connection_mode=x.cctx.connection_mode,
-                notes=x.cctx.notes,
-                timestamp=x.created.strftime("%d %B %Y")).context, deadcards)
 
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False

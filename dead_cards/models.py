@@ -59,7 +59,7 @@ class DeadCards(models.Model):
         self.company = result.get('company', "")
         self.title = result.get('job', "")
         self.web = result.get('web', "")
-        self.cctx
+        self.cctx = ConnectionContext()
         self.save()
 
     def get_deadcard_cc(self):
@@ -79,7 +79,16 @@ class DeadCards(models.Model):
         self.cctx = cctx
         self.save()
 
+    def get_context(self):
+        return self.cctx.context
+
+    def get_notes(self):
+        return self.cctx.user_context
+
     def fix_context(self):
+        if not self.cctx:
+            self.cctx = ConnectionContext()
+
         if hasattr(self.cctx, '_usercctx'):
             if type(self.cctx.notes) is not dict:
                 old_notes = self.cctx.notes

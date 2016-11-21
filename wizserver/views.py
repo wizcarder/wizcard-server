@@ -1938,25 +1938,6 @@ class ParseMsgAndDispatch(object):
         d.f_bizCardImage.save(upfile.name, upfile)
         d.recognize()
 
-        try:
-            location_str = wizlib.reverse_geo_from_latlng(
-                self.userprofile.location.get().lat,
-                self.userprofile.location.get().lng
-            )
-
-        except:
-            logging.error("couldn't get location for user [%s]", self.userprofile.userid)
-            location_str = ""
-
-
-        cctx = ConnectionContext(
-            asset_obj=d,
-            connection_mode=verbs.INVITE_VERBS[verbs.SCAN_CARD],
-            location=location_str
-        )
-
-        d.set_context(cctx)
-
         self.response.add_data("response", d.serialize())
         return self.response
 
@@ -1970,6 +1951,22 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
+        try:
+            location_str = wizlib.reverse_geo_from_latlng(
+                self.userprofile.location.get().lat,
+                self.userprofile.location.get().lng
+            )
+
+        except:
+            logging.error("couldn't get location for user [%s]", self.userprofile.userid)
+            location_str = ""
+
+        cctx = ConnectionContext(
+            location=location_str
+        )
+
+        d.set_context(cctx)
+
         # If notes is added, the assumption is that the card already exists and no other action is possible at this moment so return after notes is added
         # Also notes is added to sender in the request vs the receiver in a typical wizcard connection request.
 
@@ -1977,7 +1974,6 @@ class ParseMsgAndDispatch(object):
             deadcard.cctx.notes = self.sender['notes']['note']
             deadcard.cctx.notes_last_saved = self.sender['notes']['last_saved']
             deadcard.save()
-            return self.response
 
         if self.sender.has_key('first_name'):
             deadcard.first_name = self.sender['first_name']
@@ -2010,7 +2006,8 @@ class ParseMsgAndDispatch(object):
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
-            sendmail.delay(self.user.wizcard, deadcard.email, template="emailscan")
+            if deadcard.activated == False:
+                sendmail.delay(self.user.wizcard, deadcard.email, template="emailscan")
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
