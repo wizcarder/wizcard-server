@@ -298,7 +298,7 @@ AWS_SECRET_ACCESS_KEY = '23wDEZPCxXTs0zVnxcznzDsoDzm4KWo0NMimWe+0'
 AWS_BUCKET_ENV = "-" + RUNENV
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV
 S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
-EMAIL_DEFAULT_IMAGE = S3_URL +  "invites/email_info.png"
+EMAIL_DEFAULT_IMAGE = S3_URL +  "/invites/email_info.png"
 
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
