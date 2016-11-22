@@ -143,9 +143,8 @@ table_template = {
 
 dead_cards_wizcard_template = {
     'fields': ['id', 'first_name', 'last_name',
-               'phone', 'email', 'invited', 'contact_container', 'created', 'context'],
-    'key_map' : {'created': 'created_on',
-                 'contact_container' : 'get_deadcard_cc',
+               'phone', 'email', 'invited', 'contact_container', 'context'],
+    'key_map' : { 'contact_container' : 'get_deadcard_cc',
                  'context': 'get_deadcard_context'},
 }
 
