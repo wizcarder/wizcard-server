@@ -1976,6 +1976,8 @@ class ParseMsgAndDispatch(object):
         if self.sender.has_key('last_name'):
             deadcard.last_name = self.sender['last_name']
         inviteother = self.sender.get('inviteother', False)
+        if self.sender.has_key('phone'):
+            deadcard.phone = self.sender['phone']
 
         cc = self.sender.get('contact_container', None)
         if cc:
