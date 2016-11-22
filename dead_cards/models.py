@@ -86,7 +86,7 @@ class DeadCards(models.Model):
         return self.cctx
 
     def get_deadcard_context(self):
-        return dict(description = self.cctx.description, notes = self.cctx.notes)
+        return dict(description = self.cctx.description, notes = self.cctx.notes, created = self.created_on())
 
 
     def fix_context(self):
