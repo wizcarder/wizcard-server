@@ -1392,6 +1392,10 @@ class ParseMsgAndDispatch(object):
                 r_user = User.objects.get(id=_id)
                 r_wizcard = r_user.wizcard
 
+                if self.user.wizcard.id == r_wizcard.id:
+                    self.response.error_response(err.SELF_INVITE)
+                    return self.response
+
                 rel12 = wizcard.get_relationship(r_wizcard)
                 cctx1 = ConnectionContext(
                         asset_obj=wizcard,
@@ -1494,7 +1498,15 @@ class ParseMsgAndDispatch(object):
         for r in receivers:
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
+
             if wizcard:
+                #Assuming that its always one receiver in this call - If its many we might have to return a response per receiver
+                # Might be good to have a seperate error handler for self invite
+
+                if self.user.wizcard.id == wizcard.id:
+                    self.response.error_response(err.SELF_INVITE)
+                    return self.response
+
                 if ContentType.objects.get_for_model(obj) == \
                         ContentType.objects.get(model="wizcard"):
                     rel12 = obj.get_relationship(wizcard)
