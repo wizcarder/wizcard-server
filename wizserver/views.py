@@ -1388,11 +1388,14 @@ class ParseMsgAndDispatch(object):
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
                 location_str = ""
 
+            numreceivers = len(receivers)
+
             for _id in receivers:
                 r_user = User.objects.get(id=_id)
                 r_wizcard = r_user.wizcard
 
-                if self.user.wizcard.id == r_wizcard.id:
+                # IF there are more receivers its ok to fail one silently
+                if numreceivers == 1 and self.user.wizcard.id == r_wizcard.id:
                     self.response.error_response(err.SELF_INVITE)
                     return self.response
 
@@ -1495,15 +1498,16 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def do_future_user(self, obj, receiver_type, receivers):
+
+        numreceivers = len(receivers)
         for r in receivers:
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
 
             if wizcard:
-                #Assuming that its always one receiver in this call - If its many we might have to return a response per receiver
-                # Might be good to have a seperate error handler for self invite
+                ## If there are more 1 receiver, its ok to fail silently otherwise throw an error
 
-                if self.user.wizcard.id == wizcard.id:
+                if numreceivers == 1 and self.user.wizcard.id == wizcard.id:
                     self.response.error_response(err.SELF_INVITE)
                     return self.response
 
