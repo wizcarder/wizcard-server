@@ -18,7 +18,7 @@ from wizcard import settings
 
 
 TEST_IMAGE=False
-OCR_FLAG = True
+OCR_FLAG = False
 TEST_TABLE = False
 TEST_FLICK = False
 TEST_WIZWEB = False
@@ -488,6 +488,32 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+
+# Self invite - Should throw an error
+reqmsg = messages.send_asset_to_xyz
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['assetID'] = e1_id
+reqmsg['sender']['assetType'] = "wizcard"
+reqmsg['receiver']['receiverType'] = "sms"
+reqmsg['receiver']['receiverIDs'] = [messages.SELF_PHONE]
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+# Self invite + some other number - Shouldnt  throw an error and silently pass
+reqmsg = messages.send_asset_to_xyz
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['assetID'] = e1_id
+reqmsg['sender']['assetType'] = "wizcard"
+reqmsg['receiver']['receiverType'] = "sms"
+reqmsg['receiver']['receiverIDs'] = [messages.SELF_PHONE,messages.FUTURE_PHONE1]
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
 #now create future u1 and u2
 
 print "creating future user 1 and 2"
