@@ -25,6 +25,7 @@ NO_RECEIVER = {'errno' : 23, 'str': "No receiver in the request"}
 VERSION_UPGRADE = {'errno' : 24, 'str': "We have a better version of WizCard, Upgrade to Continue"}
 REVERSE_INVITE = {'errno': 25, 'str': "Invitation expired/revoked, Do you want to invite?"}
 INVALID_STATE = {'errno': 26, 'str': "Invalid connection state"}
+SELF_INVITE = {'errno': 27, 'str': "Connecting with Yourself - You are well connected;)"}
 
 
 IGNORE = {'result':1, 'ignore':1, 'errStr':""}
