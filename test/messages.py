@@ -34,6 +34,8 @@ FUTURE_EMAIL4 = "mnop@future.com"
 OCR_PHONE = "+919590203441"
 OCR_USERNAME = OCR_PHONE+'@wizcard.com'
 
+SELF_PHONE = "+" + NEXMO_PHONE1
+
 
 EMAIL1 = "aammundi@gmail.com"
 EMAIL2 = "amsaha@gmail.com"
