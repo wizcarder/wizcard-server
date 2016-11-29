@@ -774,6 +774,7 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+
     def WizcardEdit(self):
         modify = False
         user_modify = False
@@ -827,6 +828,18 @@ class ParseMsgAndDispatch(object):
                                         (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                                         rawimage, "image/jpeg")
             wizcard.thumbnailImage.save(upfile.name, upfile)
+            modify = True
+
+        if 'videourl' in self.sender and self.sender['videourl']:
+            wizcard.videoUrl = self.sender['videourl']
+            modify = True
+
+        if 'extProfiles' in self.sender and self.sender['extProfiles']:
+            currentprofiles = wizcard.onlineProfiles
+
+            for extprof in self.sender['extProfiles'].keys() :
+                currentprofiles[extprof] = self.sender['extProfiles'][extprof]
+            wizcard.onlineProfiles = currentprofiles
             modify = True
 
         if 'contact_container' in self.sender:

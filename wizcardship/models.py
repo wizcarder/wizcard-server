@@ -34,6 +34,7 @@ from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
+from picklefield.fields import PickledObjectField
 from django.conf import settings
 import logging
 import operator
@@ -43,7 +44,7 @@ from wizcard import err
 from wizserver import verbs
 from notifications.models import notify, Notification
 from base.cctx import ConnectionContext
-from django.db.models import ImageField
+from django.db.models import ImageField,URLField
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -198,7 +199,8 @@ class Wizcard(models.Model):
     #media objects
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
-
+    videoUrl = URLField(blank=True)
+    onlineProfiles = PickledObjectField(blank=True)
     #email template
     emailTemplate = WizcardQueuedFileField(upload_to="invites",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
@@ -261,6 +263,14 @@ class Wizcard(models.Model):
 
     def get_name(self):
         return self.first_name + " " + self.last_name
+
+    @property
+    def get_videoUrl(self):
+        return self.videoUrl
+
+    @property
+    def get_onlineProfiles(self):
+        return self.onlineProfiles
 
     def get_latest_title(self):
         qs = self.contact_container.all()
