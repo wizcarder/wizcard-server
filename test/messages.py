@@ -397,6 +397,7 @@ edit_card3 = {
         "location" : "San Francisco Bay Area",
         "phone1" : PHONE3,
         "userID" : "USER3",
+	"extFields" : {'linkedin': 'http://www.linkedin.com/testli','facebook': 'http://www.facebook.com/testfb', 'www': 'http://www.website.com/testww'},
         #wizUserID should be the userID got from response of above register message
         "wizUserID" : "",
         "contact_container" : [contact_container, contact_container, contact_container]
