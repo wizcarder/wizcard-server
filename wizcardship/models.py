@@ -200,7 +200,7 @@ class Wizcard(models.Model):
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
     videoUrl = URLField(blank=True)
-    onlineProfiles = PickledObjectField(blank=True)
+    extFields = PickledObjectField(blank=True)
     #email template
     emailTemplate = WizcardQueuedFileField(upload_to="invites",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
@@ -269,8 +269,8 @@ class Wizcard(models.Model):
         return self.videoUrl
 
     @property
-    def get_onlineProfiles(self):
-        return self.onlineProfiles
+    def get_extFields(self):
+        return self.extFields
 
     def get_latest_title(self):
         qs = self.contact_container.all()

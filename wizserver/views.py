@@ -834,12 +834,13 @@ class ParseMsgAndDispatch(object):
             wizcard.videoUrl = self.sender['videourl']
             modify = True
 
-        if 'extProfiles' in self.sender and self.sender['extProfiles']:
-            currentprofiles = wizcard.onlineProfiles
-
-            for extprof in self.sender['extProfiles'].keys() :
-                currentprofiles[extprof] = self.sender['extProfiles'][extprof]
-            wizcard.onlineProfiles = currentprofiles
+        if 'extFields' in self.sender and self.sender['extFields']:
+            currentprofiles = wizcard.extFields
+            if not currentprofiles:
+                currentprofiles = dict()
+            for extfield in self.sender['extFields'].keys() :
+                currentprofiles[extfield] = self.sender['extFields'][extfield]
+            wizcard.extFields = currentprofiles
             modify = True
 
         if 'contact_container' in self.sender:
