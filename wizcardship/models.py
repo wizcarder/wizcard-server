@@ -252,6 +252,7 @@ class Wizcard(models.Model):
     
     def save_smsurl(self,url):
         self.smsurl =  wizlib.shorten_url(url)
+	self.save()
 
     def get_smsurl(self):
         return self.smsurl
