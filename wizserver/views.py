@@ -835,12 +835,8 @@ class ParseMsgAndDispatch(object):
             modify = True
 
         if 'extFields' in self.sender and self.sender['extFields']:
-            currentprofiles = wizcard.extFields
-            if not currentprofiles:
-                currentprofiles = dict()
-            for extfield in self.sender['extFields'].keys() :
-                currentprofiles[extfield] = self.sender['extFields'][extfield]
-            wizcard.extFields = currentprofiles
+            wizcard.extFields.update(self.sender['extFields'])
+            wizcard.save()
             modify = True
 
         if 'contact_container' in self.sender:
