@@ -46,8 +46,8 @@ import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from recommendation.models import UserRecommendation, Recommendation,genreco
-import pdb
+from recommendation.models import UserRecommendation, Recommendation, genreco
+from raven.contrib.django.raven_compat.models import client
 
 now = timezone.now
 
@@ -60,9 +60,13 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        response = pdispatch.dispatch()
+        try:
+            pdispatch.dispatch()
+        except:
+            client.captureException()
+
         #send response
-        return response.respond()
+        return pdispatch.response.respond()
 
 class ParseMsgAndDispatch(object):
     def __init__(self, request):
@@ -77,7 +81,6 @@ class ParseMsgAndDispatch(object):
         self.sender = None
         self.receiver = None
         self.response = Response()
-
 
     def __repr__(self):
         out = ""
@@ -200,8 +203,6 @@ class ParseMsgAndDispatch(object):
         if not self.validateAppVersion():
             self.response.error_response(err.VERSION_UPGRADE)
             return False, self.response
-
-
 
         if self.msg.has_key('sender') and not self.validateSender(self.msg['sender']):
             self.securityException()
@@ -836,7 +837,6 @@ class ParseMsgAndDispatch(object):
 
         if 'extFields' in self.sender and self.sender['extFields']:
             wizcard.extFields.update(self.sender['extFields'])
-            wizcard.save()
             modify = True
 
         if 'contact_container' in self.sender:
