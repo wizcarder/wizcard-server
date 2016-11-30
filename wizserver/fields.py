@@ -16,7 +16,7 @@ wizcard_fields_mini = ['wizcard_id', 'user_id', 'thumbnailUrl', \
 wizcard_fields_micro = ['wizcard_id']
 
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
-                  'phone', 'email', 'thumbnailUrl', 'contact_container', 'status']
+                  'phone', 'email', 'thumbnailUrl', 'contact_container', 'status','videoUrl', 'extFields']
 
 wizcard_fields_keymap = {
         'wizcard_id': 'id',
