@@ -64,6 +64,7 @@ class WizRequestHandler(View):
             pdispatch.dispatch()
         except:
             client.captureException()
+            pdispatch.response.error_response(err.INTERNAL_ERROR)
 
         #send response
         return pdispatch.response.respond()
@@ -709,7 +710,6 @@ class ParseMsgAndDispatch(object):
             #if recoactions:
                 #genreco.send(self.user, recotarget=str(self.user.id))
 
-
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
@@ -756,7 +756,9 @@ class ParseMsgAndDispatch(object):
 
         #tickle the timer to keep it going and update the location if required
         self.userprofile.create_or_update_location(self.lat, self.lng)
-        return notifResponse
+
+        self.response = notifResponse
+        return self.response
 
     def RolodexEdit(self):
         wizcard1 = self.user.wizcard
