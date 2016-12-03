@@ -688,11 +688,12 @@ class ParseMsgAndDispatch(object):
             userprofile_modify = True
 
         #AA:TODO: Change app to call this phone as well
-        phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1']
+        if 'phone' in self.sender or 'phone1' in self.sender:
+            phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1']
 
-        if wizcard.phone != phone:
-            wizcard.phone = phone
-            modify = True
+            if wizcard.phone != phone:
+                wizcard.phone = phone
+                modify = True
 
         if 'first_name' in self.sender:
             first_name = self.sender['first_name']
