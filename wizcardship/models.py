@@ -268,7 +268,7 @@ class Wizcard(models.Model):
 
     def save_email_template(self, obj):
         self.emailTemplate.save(obj.name, obj)
-        self.set_smsurl(self.get_email_template_url())
+        self.save_smsurl(self.get_email_template_url())
 
     def get_name(self):
         return self.first_name + " " + self.last_name
