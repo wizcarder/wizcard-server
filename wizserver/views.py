@@ -727,8 +727,8 @@ class ParseMsgAndDispatch(object):
             wizcard.thumbnailImage.save(upfile.name, upfile)
             modify = True
 
-        if 'videourl' in self.sender and self.sender['videourl']:
-            wizcard.videoUrl = self.sender['videourl']
+        if 'videoUrl' in self.sender and self.sender['videoUrl']:
+            wizcard.videoUrl = self.sender['videoUrl']
             modify = True
 
         if 'extFields' in self.sender and self.sender['extFields']:
