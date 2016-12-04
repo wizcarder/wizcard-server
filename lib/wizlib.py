@@ -169,3 +169,9 @@ def shorten_url(url):
             return ""
     else:
         return ""
+
+
+def fix_extFields(w):
+    w.extFields = {}
+    w.save()
+
