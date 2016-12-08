@@ -127,6 +127,8 @@ class SetRecoActionSchema(colander.MappingSchema):
     pass
 class GetCommonConnectionsSchema(colander.MappingSchema):
     pass
+class GetVideoThumbnailSchema(colander.MappingSchema):
+    pass
 
 #wizweb
 class WizWebUserQuerySchema(colander.MappingSchema):
