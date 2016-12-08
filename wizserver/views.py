@@ -275,6 +275,7 @@ class ParseMsgAndDispatch(object):
             'get_recommendations'         : (message_format.GetRecommendationsSchema, self.GetRecommendations),
             'set_reco_action'             : (message_format.SetRecoActionSchema, self.SetRecoAction),
             'get_common_connections'      : (message_format.GetCommonConnectionsSchema, self.GetCommonConnections),
+            'get_video_thumbnail'         : (message_format.GetVideoThumbnailSchema, self.GetVideoThumbnailUrl)
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -670,7 +671,6 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-
     def WizcardEdit(self):
         modify = False
         user_modify = False
@@ -729,6 +729,10 @@ class ParseMsgAndDispatch(object):
 
         if 'videoUrl' in self.sender and self.sender['videoUrl']:
             wizcard.videoUrl = self.sender['videoUrl']
+            modify = True
+
+        if 'videoThumbnailUrl' in self.sender:
+            wizcard.videoThumbnailUrl = self.sender['videoThumbnailUrl']
             modify = True
 
         if 'extFields' in self.sender and self.sender['extFields']:
@@ -1544,6 +1548,13 @@ class ParseMsgAndDispatch(object):
             common_s = Wizcard.objects.serialize(common[:split], fields.wizcard_template_brief)
             self.response.add_data("wizcards", common_s)
         self.response.add_data("total", count)
+
+        return self.response
+
+    def GetVideoThumbnailUrl(self):
+        # AA:TODO
+        self.response.add_data("videoThumbnailUrl",
+                               'https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/thumbnails/output.png')
 
         return self.response
 

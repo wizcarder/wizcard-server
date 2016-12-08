@@ -200,6 +200,7 @@ class Wizcard(models.Model):
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
     videoUrl = URLField(blank=True)
+    videoThumbnailUrl = URLField(blank=True)
     extFields = PickledObjectField(default={}, blank=True)
     #email template
     emailTemplate = WizcardQueuedFileField(upload_to="invites",
