@@ -413,6 +413,16 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+reqmsg = messages.contacts_upload
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+reqmsg['receiver'].update(messages.ab_list_anandr_1)
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
 
 reqmsg = messages.card_details
 reqmsg['header']['version'] = APP_VERSION
@@ -1043,6 +1053,14 @@ else:
     m_nearby = objs['data']['m_nearby']
 
 
+reqmsg = messages.get_video_thumbnail_url
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
 #clean all rolodexes
 
 
@@ -1272,7 +1290,6 @@ if TEST_FLICK:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
 
-
     reqmsg = messages.my_flicks
     reqmsg['header']['version'] = APP_VERSION
     reqmsg['sender']['userID'] = uid1
@@ -1300,6 +1317,7 @@ if TEST_FLICK:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
+
 
 if OCR_FLAG:
     #OCR USER

@@ -200,10 +200,12 @@ class Wizcard(models.Model):
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
     videoUrl = URLField(blank=True)
-    onlineProfiles = PickledObjectField(blank=True)
+    videoThumbnailUrl = URLField(blank=True)
+    extFields = PickledObjectField(default={}, blank=True)
     #email template
     emailTemplate = WizcardQueuedFileField(upload_to="invites",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
+    smsurl = URLField(blank=True)
 
     objects = WizcardManager()
 
@@ -248,6 +250,13 @@ class Wizcard(models.Model):
 
     def connected_status_string(self):
         return "connected"
+    
+    def save_smsurl(self,url):
+        self.smsurl =  wizlib.shorten_url(url)
+	self.save()
+
+    def get_smsurl(self):
+        return self.smsurl
 
     def followed_status_string(self):
         return "followed"
@@ -260,6 +269,7 @@ class Wizcard(models.Model):
 
     def save_email_template(self, obj):
         self.emailTemplate.save(obj.name, obj)
+        self.save_smsurl(self.get_email_template_url())
 
     def get_name(self):
         return self.first_name + " " + self.last_name
@@ -269,8 +279,8 @@ class Wizcard(models.Model):
         return self.videoUrl
 
     @property
-    def get_onlineProfiles(self):
-        return self.onlineProfiles
+    def get_extFields(self):
+        return self.extFields
 
     def get_latest_title(self):
         qs = self.contact_container.all()

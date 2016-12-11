@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.storage import default_storage as storage
 from django.template import Template,Context
+from django.utils.encoding import smart_str, smart_unicode
 from wizcardship.models import WizcardManager, Wizcard
 from wizcard import settings
 from PIL import Image,ImageFont, ImageDraw
@@ -22,7 +23,8 @@ def create_template(wizcard_id):
 
     wizcard = Wizcard.objects.get(id=wizcard_id)
 
-    data = {"name" : wizcard.first_name + " " + wizcard.last_name, "company": wizcard.get_latest_company(), "title" : wizcard.get_latest_title(), "email" : wizcard.email, "phone" : wizcard.phone}
+#    data = {"name" : wizcard.first_name + " " + wizcard.last_name, "company": wizcard.get_latest_company(), "title" : wizcard.get_latest_title(), "email" : wizcard.email, "phone" : wizcard.phone}
+    data = {"name" : smart_str(wizcard.first_name) + " " + smart_str(wizcard.last_name), "company": smart_str(wizcard.get_latest_company()), "title" : smart_str(wizcard.get_latest_title()), "email" : smart_str(wizcard.email), "phone" : smart_str(wizcard.phone)}
     data["invite_name"] = data["name"]
 
 #    position = {'email': '490,462', 'title': '380,388', 'phone': '198,464', 'name':'378,315', 'company' : '381, 371'}
@@ -45,9 +47,9 @@ def create_template(wizcard_id):
     for field in position.keys():
         font = fonts[field]
         if data[field] and (field=='name' or field == 'invited_name'):
-            draw.text(map(int, str(position[field]).split(',')), str(data[field]), font=font, fill=(150, 183, 1))
+            draw.text(map(int, smart_str(position[field]).split(',')), smart_str(data[field]), font=font, fill=(150, 183, 1))
         elif data[field]:
-            draw.text(map(int, str(position[field]).split(',')), str(data[field]), font=font, fill=(49, 63, 81))
+            draw.text(map(int, smart_str(position[field]).split(',')), smart_str(data[field]), font=font, fill=(49, 63, 81))
 
     im_io = StringIO.StringIO()
     im_bg.save(im_io, format='png')

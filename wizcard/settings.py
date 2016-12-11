@@ -469,6 +469,8 @@ else:
 
 
 GCM_API_KEY = 'AIzaSyAz_uc7MiPtC_JK1ZjurpsdxxDlfPAy4-c'
+SHORTEN_API_KEY = 'AIzaSyBiw4HSRUb8VlR5oY0bLuRPTjT2G-fW8qo'
+SHORTEN_SERVICE = 'Google'
 
 CELERY_TIMEZONE = TIME_ZONE
 SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))

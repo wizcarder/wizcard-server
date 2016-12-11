@@ -4,6 +4,7 @@ import gc
 import re
 from validate_email import validate_email
 import phonenumbers
+from pyshorteners import Shortener
 from django.conf import settings
 
 
@@ -157,3 +158,20 @@ from collections import Counter
 def most_common(lst):
     data = Counter(lst).most_common(1)[0]
     return data[0], data[1]
+
+
+def shorten_url(url):
+    if url:
+        try:
+            shortener = Shortener(settings.SHORTEN_SERVICE, api_key=settings.SHORTEN_API_KEY)
+            return shortener.short(url)
+        except:
+            return ""
+    else:
+        return ""
+
+
+def fix_extFields(w):
+    w.extFields = {}
+    w.save()
+

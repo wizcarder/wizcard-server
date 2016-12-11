@@ -57,3 +57,4 @@ pyfcm
 validate_email
 phonenumbers
 boto3
+pyshorteners

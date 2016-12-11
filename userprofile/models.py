@@ -25,10 +25,13 @@ import string
 import random
 import pytz
 import datetime
+import logging
 import pdb
 
 RECO_DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
 RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010,01,01))
+
+logger = logging.getLogger(__name__)
 
 
 class UserProfileManager(models.Manager):
@@ -386,35 +389,44 @@ class AddressBook(models.Model):
     # a majority wins case
     def run_finalize_decision(self):
         save = False
-        if not self.phone_finalized and self.candidate_phones.count():
-            common, count = wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))
-            if count >= MIN_MATCHES_FOR_PHONE_DECISION:
-                self.phone = common
-                self.phone_finalized = True
-                save = True
+        try:
+            if not self.phone_finalized and self.candidate_phones.count():
+                common, count = wizlib.most_common(map(lambda x: x.phone, self.candidate_phones.all()))
+                if count >= MIN_MATCHES_FOR_PHONE_DECISION:
+                    self.phone = common
+                    self.phone_finalized = True
+                    save = True
 
-        if not self.email_finalized and self.candidate_emails.count():
-            common, count = wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))
-            if count >= MIN_MATCHES_FOR_EMAIL_DECISION:
-                self.email = common
-                self.email_finalized = True
-                save = True
+            if not self.email_finalized and self.candidate_emails.count():
+                common, count = wizlib.most_common(map(lambda x: x.email, self.candidate_emails.all()))
+                if count >= MIN_MATCHES_FOR_EMAIL_DECISION:
+                    self.email = common
+                    self.email_finalized = True
+                    save = True
 
-        if not self.first_name_finalized and self.candidate_names.count():
-            common, count = wizlib.most_common(map(lambda x: x.first_name, self.candidate_names.all()))
-            if count >= MIN_MATCHES_FOR_NAME_DECISION:
-                self.first_name = common
-                self.first_name_finalized = True
-                save = True
+            if not self.first_name_finalized and self.candidate_names.count():
+                common, count = wizlib.most_common(map(lambda x: x.first_name, self.candidate_names.all()))
+                if count >= MIN_MATCHES_FOR_NAME_DECISION:
+                    self.first_name = common
+                    self.first_name_finalized = True
+                    save = True
 
-        if not self.last_name_finalized and self.candidate_names.count():
-            common, count = wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))
-            if count >= MIN_MATCHES_FOR_NAME_DECISION:
-                self.last_name = common
-                self.last_name_finalized = True
-                save = True
-        if save:
-            self.save()
+            if not self.last_name_finalized and self.candidate_names.count():
+                common, count = wizlib.most_common(map(lambda x: x.last_name, self.candidate_names.all()))
+                if count >= MIN_MATCHES_FOR_NAME_DECISION:
+                    self.last_name = common
+                    self.last_name_finalized = True
+                    save = True
+            if save:
+                self.save()
+        except:
+            # really weird..adding debugs to see wtf is happening
+            logger.error('WTF IS HAPPENING %s: %s, %s, %s',
+                         self,
+                         self.candidate_names.all(),
+                         self.candidate_phones.all(),
+                         self.candidate_emails.all())
+            pass
 
     def get_phone(self):
         if self.phone_finalized:

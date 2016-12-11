@@ -46,8 +46,9 @@ import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from recommendation.models import UserRecommendation, Recommendation,genreco
-import pdb
+from recommendation.models import UserRecommendation, Recommendation, genreco
+from raven.contrib.django.raven_compat.models import client
+from wizserver.tasks import contacts_upload_task
 
 now = timezone.now
 
@@ -60,9 +61,14 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        response = pdispatch.dispatch()
+        try:
+            pdispatch.dispatch()
+        except:
+            client.captureException()
+            pdispatch.response.error_response(err.INTERNAL_ERROR)
+
         #send response
-        return response.respond()
+        return pdispatch.response.respond()
 
 class ParseMsgAndDispatch(object):
     def __init__(self, request):
@@ -77,7 +83,6 @@ class ParseMsgAndDispatch(object):
         self.sender = None
         self.receiver = None
         self.response = Response()
-
 
     def __repr__(self):
         out = ""
@@ -201,8 +206,6 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.VERSION_UPGRADE)
             return False, self.response
 
-
-
         if self.msg.has_key('sender') and not self.validateSender(self.msg['sender']):
             self.securityException()
             self.response.ignore()
@@ -272,6 +275,7 @@ class ParseMsgAndDispatch(object):
             'get_recommendations'         : (message_format.GetRecommendationsSchema, self.GetRecommendations),
             'set_reco_action'             : (message_format.SetRecoActionSchema, self.SetRecoAction),
             'get_common_connections'      : (message_format.GetCommonConnectionsSchema, self.GetCommonConnections),
+            'get_video_thumbnail'         : (message_format.GetVideoThumbnailSchema, self.GetVideoThumbnailUrl)
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -498,120 +502,12 @@ class ParseMsgAndDispatch(object):
         # 'prefix': "", 'country_code": "", ab_entry: [{name:"", phone:phone, emails:email}, {}]
         int_prefix = self.receiver.get('prefix', None)
         country_code = self.receiver.get('country_code', None)
-        emailEntryList = []
-        phoneEntryList = []
+        ab_list = self.receiver.get('ab_list')
 
-        for ab_entry in self.receiver.get('ab_list'):
-            do_email = False
-            do_phone = False
+        contacts_upload_task.delay(self.user, int_prefix, country_code, ab_list)
 
-            if not 'name' in ab_entry:
-                continue
-            name = ab_entry.get('name')
-            first_name, last_name = wizlib.split_name(name)
-
-            if 'phone' in ab_entry:
-                phone_list = list(set([wizlib.clean_phone_number(x, int_prefix, country_code)
-                              for x in ab_entry.get('phone') if wizlib.is_valid_phone(x,country_prefix=country_code)]))
-                if len(phone_list):
-                    do_phone = True
-                try:
-                    phoneEntryList = list(set([AB_Candidate_Phones.objects.get(phone=x)
-                                               for x in phone_list if AB_Candidate_Phones.objects.filter(phone=x).exists()]))
-                except:
-                    logger.error('duplicate phone already in db %s', x)
-                    continue
-            if 'email' in ab_entry:
-                email_list = list(set([x.lower() for x in ab_entry.get('email') if wizlib.is_valid_email(x)]))
-                if len(email_list):
-                    do_email = True
-
-                try:
-                    emailEntryList = [AB_Candidate_Emails.objects.get(email=x)
-                                      for x in email_list if AB_Candidate_Emails.objects.filter(email=x).exists()]
-                except:
-                    logger.error('duplicate phone already in db %s', x)
-                    continue
-            if not do_email and not do_phone:
-                continue
-
-            if not len(emailEntryList) and not len(phoneEntryList):
-                # brand new. create AB model instance and mapping to user
-                abEntry = AddressBook.objects.create(
-                    first_name=first_name,
-                    last_name=last_name
-                )
-                AB_Candidate_Names.objects.create(
-                    first_name=first_name,
-                    last_name=last_name,
-                    ab_entry=abEntry)
-
-                if do_email:
-                    for email in email_list:
-                        AB_Candidate_Emails.objects.create(email=email, ab_entry=abEntry)
-                if do_phone:
-                    for phone in phone_list:
-                        AB_Candidate_Phones.objects.create(phone=phone, ab_entry=abEntry)
-
-                # join table
-                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
-            elif len(emailEntryList) and len(phoneEntryList):
-                # ideally all should point to the same ABEntry
-                l1 = set([x.ab_entry for x in emailEntryList])
-                l2 = set([y.ab_entry for y in phoneEntryList])
-
-                try:
-                    # if valid intersection
-                    abEntry = list(l1&l2)[0]
-                except:
-                    continue
-
-                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
-
-                if not (abEntry.first_name_finalized or abEntry.last_name_finalized):
-                    # add to candidate list
-                    AB_Candidate_Names.objects.create(
-                        first_name=first_name,
-                        last_name=last_name,
-                        ab_entry=abEntry
-                    )
-            elif len(emailEntryList):
-                abEntry = wizlib.most_common([x.ab_entry for x in emailEntryList])[0]
-                if do_phone:
-                    for phone in phone_list:
-                        AB_Candidate_Phones.objects.create(
-                            phone=phone,
-                            ab_entry=abEntry)
-
-                if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
-                    # add to candidate list
-                    AB_Candidate_Names.objects.create(
-                        first_name=first_name,
-                        last_name=last_name,
-                        ab_entry=abEntry)
-
-                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
-            else:
-                # found phone
-                abEntry = wizlib.most_common([x.ab_entry for x in phoneEntryList])[0]
-                if do_email:
-                    for email in email_list:
-                        AB_Candidate_Emails.objects.create(
-                            email=email,
-                            ab_entry=abEntry)
-
-                if not (abEntry.first_name_finalized and abEntry.last_name_finalized):
-                    # add to candidate list
-                    AB_Candidate_Names.objects.create(
-                        first_name=first_name,
-                        last_name=last_name,
-                        ab_entry=abEntry)
-
-                AB_User.objects.get_or_create(user=self.user, ab_entry=abEntry)
-
-            # run a candidate selection for the ab_entry
-            abEntry.run_finalize_decision()
-
+        # AA:TODO ideally this would be better is signal is sent after above task finishes
+        # for that we'll need to chain tasks and wrap this signal sending in a task as well
         genreco.send(self.user, recotarget=self.user.id)
         return self.response
 
@@ -708,7 +604,6 @@ class ParseMsgAndDispatch(object):
             #if recoactions:
                 #genreco.send(self.user, recotarget=str(self.user.id))
 
-
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
@@ -755,7 +650,9 @@ class ParseMsgAndDispatch(object):
 
         #tickle the timer to keep it going and update the location if required
         self.userprofile.create_or_update_location(self.lat, self.lng)
-        return notifResponse
+
+        self.response = notifResponse
+        return self.response
 
     def RolodexEdit(self):
         wizcard1 = self.user.wizcard
@@ -774,7 +671,6 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-
     def WizcardEdit(self):
         modify = False
         user_modify = False
@@ -792,11 +688,12 @@ class ParseMsgAndDispatch(object):
             userprofile_modify = True
 
         #AA:TODO: Change app to call this phone as well
-        phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1']
+        if 'phone' in self.sender or 'phone1' in self.sender:
+            phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1']
 
-        if wizcard.phone != phone:
-            wizcard.phone = phone
-            modify = True
+            if wizcard.phone != phone:
+                wizcard.phone = phone
+                modify = True
 
         if 'first_name' in self.sender:
             first_name = self.sender['first_name']
@@ -830,16 +727,16 @@ class ParseMsgAndDispatch(object):
             wizcard.thumbnailImage.save(upfile.name, upfile)
             modify = True
 
-        if 'videourl' in self.sender and self.sender['videourl']:
-            wizcard.videoUrl = self.sender['videourl']
+        if 'videoUrl' in self.sender and self.sender['videoUrl']:
+            wizcard.videoUrl = self.sender['videoUrl']
             modify = True
 
-        if 'extProfiles' in self.sender and self.sender['extProfiles']:
-            currentprofiles = wizcard.onlineProfiles
+        if 'videoThumbnailUrl' in self.sender:
+            wizcard.videoThumbnailUrl = self.sender['videoThumbnailUrl']
+            modify = True
 
-            for extprof in self.sender['extProfiles'].keys() :
-                currentprofiles[extprof] = self.sender['extProfiles'][extprof]
-            wizcard.onlineProfiles = currentprofiles
+        if 'extFields' in self.sender and self.sender['extFields']:
+            wizcard.extFields.update(self.sender['extFields'])
             modify = True
 
         if 'contact_container' in self.sender:
@@ -1651,6 +1548,13 @@ class ParseMsgAndDispatch(object):
             common_s = Wizcard.objects.serialize(common[:split], fields.wizcard_template_brief)
             self.response.add_data("wizcards", common_s)
         self.response.add_data("total", count)
+
+        return self.response
+
+    def GetVideoThumbnailUrl(self):
+        # AA:TODO
+        self.response.add_data("videoThumbnailUrl",
+                               'https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/thumbnails/output.png')
 
         return self.response
 
