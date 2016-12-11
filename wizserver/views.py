@@ -49,6 +49,8 @@ from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, Recommendation, genreco
 from raven.contrib.django.raven_compat.models import client
 from wizserver.tasks import contacts_upload_task
+from converter import Converter
+from django.core.files import File
 
 now = timezone.now
 
@@ -1552,9 +1554,24 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def GetVideoThumbnailUrl(self):
-        # AA:TODO
-        self.response.add_data("videoThumbnailUrl",
-                               'https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/thumbnails/output.png')
+        wizcard = self.user.wizcard
+        VIDEO_SEEK_SECONDS = 5
+        OUTFILE_PATH = "/tmp/"
+        videoUrl = self.sender['videoUrl']
+
+        filename = "thumbnail_video-%s.%s.jpg" % (wizcard.pk, now().strftime ("%Y-%m-%d %H:%M"))
+        outfile = OUTFILE_PATH+filename
+
+        c = Converter()
+        c.thumbnail(videoUrl, VIDEO_SEEK_SECONDS, outfile, size='160:120')
+
+        # upload file to aws and get url
+        f = File(open(outfile))
+        wizcard.thumbnailVideo.save(filename, f)
+        wizcard.videoThumbnailUrl = wizcard.thumbnailVideo.remote_url()
+        wizcard.save()
+
+        self.response.add_data("videoThumbnailUrl", wizcard.videoThumbnailUrl)
 
         return self.response
 

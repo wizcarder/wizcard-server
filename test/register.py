@@ -1052,11 +1052,11 @@ else:
     # expect nearby response
     m_nearby = objs['data']['m_nearby']
 
-
 reqmsg = messages.get_video_thumbnail_url
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['videoUrl'] = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/bizcards/test_video.mp4"
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])

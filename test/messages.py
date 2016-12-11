@@ -1050,6 +1050,7 @@ get_video_thumbnail_url = {
         #random index from there
         "userID" : "",
         "wizUserID" : "",
+        "videoUrl": ""
     },
 }
 
