@@ -3,7 +3,7 @@ TEST_AWSHOSTS = ['ec2-52-66-102-242.ap-south-1.compute.amazonaws.com']
 DEV_AWSHOSTS = ['localhost']
 PROD_AWSHOSTS = ['ec2-35-154-15-196.ap-south-1.compute.amazonaws.com',
 		'ec2-35-154-4-181.ap-south-1.compute.amazonaws.com']
-STG_AWSHOSTS = ['ec2-35-154-87-9.ap-south-1.compute.amazonaws.com']
+STG_AWSHOSTS = ['ec2-35-154-81-185.ap-south-1.compute.amazonaws.com']
 LOCALHOST = ['localhost']
 
 ALLHOSTS = {
@@ -54,12 +54,12 @@ RUNHOSTS = {'dev': {'LOCATIONSERVER': ['localhost'],
           'RABBITSERVER': ['localhost'],
           'WIZSERVER': ['172.31.22.220',
                         '172.31.22.221']},
- 'stage': {'LOCATIONSERVER': ['172.31.23.142'],
-           'MEMCACHE': ['172.31.23.142:11211'],
-           'NGINX': ['172.31.23.142'],
+ 'stage': {'LOCATIONSERVER': ['172.31.9.38'],
+           'MEMCACHE': ['172.31.9.38:11211'],
+           'NGINX': ['172.31.9.38'],
            'RABBITSERVER': ['localhost'],
-           'RECOSERVER': ['172.31.23.142'],
-           'WIZSERVER': ['172.31.23.142']},
+           'RECOSERVER': ['172.31.9.38'],
+           'WIZSERVER': ['172.31.9.38']},
  'test': {'LOCATIONSERVER': ['172.31.30.21'],
           'MEMCACHE': ['172.31.30.21:11211'],
           'NGINX': ['172.31.30.21'],
