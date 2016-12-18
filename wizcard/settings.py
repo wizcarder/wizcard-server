@@ -288,6 +288,7 @@ INSTALLED_APPS = (
     'healthstatus',
     'django_ses',
     'recommendation',
+    'stats',
 )
 
 #django-storage settings
@@ -299,6 +300,7 @@ AWS_BUCKET_ENV = "-" + RUNENV
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV
 S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 EMAIL_DEFAULT_IMAGE = S3_URL +  "/invites/email_info.png"
+DEFAULT_VIDEO_THUMBNAIL = AWS_STORAGE_BUCKET_NAME+ "/thumbnails/no-video-uploaded.gif"
 
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'

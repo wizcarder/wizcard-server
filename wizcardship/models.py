@@ -200,7 +200,8 @@ class Wizcard(models.Model):
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False), blank=True)
     thumbnailVideo = WizcardQueuedFileField(upload_to="thumbnails",
-            storage=WizcardQueuedS3BotoStorage(delayed=False))
+            storage=WizcardQueuedS3BotoStorage(delayed=False),
+            default=settings.DEFAULT_VIDEO_THUMBNAIL)
     videoUrl = URLField(blank=True)
     videoThumbnailUrl = URLField(blank=True)
     extFields = PickledObjectField(default={}, blank=True)
@@ -255,7 +256,7 @@ class Wizcard(models.Model):
     
     def save_smsurl(self,url):
         self.smsurl =  wizlib.shorten_url(url)
-	self.save()
+        self.save()
 
     def get_smsurl(self):
         return self.smsurl
