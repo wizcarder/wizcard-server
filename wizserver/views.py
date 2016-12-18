@@ -49,6 +49,7 @@ from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, Recommendation, genreco
 from raven.contrib.django.raven_compat.models import client
 from wizserver.tasks import contacts_upload_task
+from stats.models import Stats
 from converter import Converter
 from django.core.files import File
 
@@ -85,6 +86,8 @@ class ParseMsgAndDispatch(object):
         self.sender = None
         self.receiver = None
         self.response = Response()
+        self.user_stats = None
+        self.global_stats = Stats.objects.get_global_stat()
 
     def __repr__(self):
         out = ""
@@ -120,6 +123,10 @@ class ParseMsgAndDispatch(object):
         #hashed passwd check
         #username, userID, wizUserID, deviceID
         #is_authenticated check
+        if self.msg_type not in verbs.wizcardMsgTypes:
+            return False
+
+        self.msg_id = verbs.wizcardMsgTypes[self.msg_type]
         return True
 
     def validateSender(self, sender):
@@ -128,6 +135,7 @@ class ParseMsgAndDispatch(object):
             try:
                 self.user = User.objects.get(id=sender['wizUserID'])
                 self.userprofile = self.user.profile
+                self.user_stats, created = Stats.objects.get_or_create(user=self.user)
             except:
                 logger.error('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
                 return False
@@ -225,59 +233,306 @@ class ParseMsgAndDispatch(object):
 
     def headerProcess(self):
 
+        VALIDATOR = 0
+        HANDLER = 1
+        STATS = 2
+
         msgTypesValidatorsAndHandlers = {
             # wizweb messages
-            'wizweb_query_user'		  : (message_format.WizWebUserQuerySchema, self.WizWebUserQuery),
-            'wizweb_query_wizcard'	  : (message_format.WizWebWizcardQuerySchema, self.WizWebWizcardQuery),
-            'wizweb_create_user'	  : (message_format.WizWebUserCreateSchema, self.WizWebUserCreate),
-            'wizweb_add_edit_card'	  : (message_format.WizWebAddEditCardSchema, self.WizWebAddEditCard),
-            'login'                       : (message_format.LoginSchema, self.Login),
-            'phone_check_req'             : (message_format.PhoneCheckRequestSchema, self.PhoneCheckRequest),
-            'phone_check_rsp'             : (message_format.PhoneCheckResponseSchema, self.PhoneCheckResponse),
-            'register'                    : (message_format.RegisterSchema, self.Register),
-            'current_location'            : (message_format.LocationUpdateSchema, self.LocationUpdate),
-            'contacts_verify'	          : (message_format.ContactsVerifySchema, self.ContactsVerify),
-            'contacts_upload'             : (message_format.ContactsUploadSchema, self.ContactsUpload),
-            'get_cards'                   : (message_format.NotificationsGetSchema, self.NotificationsGet),
-            'edit_card'                   : (message_format.WizcardEditSchema, self.WizcardEdit),
-            'edit_rolodex_card'           : (message_format.RolodexEditSchema, self.RolodexEdit),
-            'accept_connection_request'   : (message_format.WizcardAcceptSchema, self.WizcardAccept),
-            'decline_connection_request'  : (message_format.WizConnectionRequestDeclineSchema, self.WizConnectionRequestDecline),
-            'delete_rolodex_card'         : (message_format.WizcardRolodexDeleteSchema, self.WizcardRolodexDelete),
-            'archived_cards'              : (message_format.WizcardRolodexArchivedCardsSchema, self.WizcardRolodexArchivedCards),
-            'card_flick'                  : (message_format.WizcardFlickSchema, self.WizcardFlick),
-            'card_flick_accept'           : (message_format.WizcardFlickPickSchema, self.WizcardFlickPick),
-            'card_flick_accept_connect'   : (message_format.WizcardFlickConnectSchema, self.WizcardFlickConnect),
-            'my_flicks'                   : (message_format.WizcardMyFlickSchema, self.WizcardMyFlicks),
-            'flick_withdraw'              : (message_format.WizcardFlickWithdrawSchema, self.WizcardFlickWithdraw),
-            'flick_edit'                  : (message_format.WizcardFlickEditSchema, self.WizcardFlickEdit),
-            'query_flicks'                : (message_format.WizcardFlickQuerySchema, self.WizcardFlickQuery),
-            'flick_pickers'               : (message_format.WizcardFlickPickersSchema, self.WizcardFlickPickers),
-            'send_asset_to_xyz'           : (message_format.WizcardSendAssetToXYZSchema, self.WizcardSendAssetToXYZ),
-            'send_query_user'             : (message_format.UserQuerySchema, self.UserQuery),
-            'get_card_details'            : (message_format.WizcardGetDetailSchema, self.WizcardGetDetail),
-            'query_tables'                : (message_format.TableQuerySchema, self.TableQuery),
-            'my_tables'                   : (message_format.TableMyTablesSchema, self.TableMyTables),
-            'table_summary'               : (message_format.TableSummarySchema, self.TableSummary),
-            'table_details'               : (message_format.TableDetailsSchema, self.TableDetails),
-            'create_table'                : (message_format.TableCreateSchema, self.TableCreate),
-            'join_table'                  : (message_format.TableJoinSchema, self.TableJoin),
-            'join_table_by_invite'        : (message_format.TableJoinByInviteSchema, self.TableJoinByInvite),
-            'leave_table'                 : (message_format.TableLeaveSchema, self.TableLeave),
-            'destroy_table'               : (message_format.TableDestroySchema, self.TableDestroy),
-            'table_edit'                  : (message_format.TableEditSchema, self.TableEdit),
-            'settings'                    : (message_format.SettingsSchema, self.Settings),
-            'ocr_req_self'                : (message_format.OcrRequestSelfSchema, self.OcrReqSelf),
-            'ocr_req_dead_card'           : (message_format.OcrRequestDeadCardSchema, self.OcrReqDeadCard),
-            'ocr_dead_card_edit'          : (message_format.OcrDeadCardEditSchema, self.OcrDeadCardEdit),
-            'meishi_start'                : (message_format.MeishiStartSchema, self.MeishiStart),
-            'meishi_find'                 : (message_format.MeishiFindSchema, self.MeishiFind),
-            'meishi_end'                  : (message_format.MeishiEndSchema, self.MeishiEnd),
-            'get_email_template'          : (message_format.GetEmailTemplateSchema, self.GetEmailTemplate),
-            'get_recommendations'         : (message_format.GetRecommendationsSchema, self.GetRecommendations),
-            'set_reco_action'             : (message_format.SetRecoActionSchema, self.SetRecoAction),
-            'get_common_connections'      : (message_format.GetCommonConnectionsSchema, self.GetCommonConnections),
-            'get_video_thumbnail'         : (message_format.GetVideoThumbnailSchema, self.GetVideoThumbnailUrl)
+            verbs.MSG_WIZWEB_QUERY_USER:
+                (
+                    message_format.WizWebUserQuerySchema,
+                    self.WizWebUserQuery,
+                    None
+                ),
+            verbs.MSG_WIZWEB_QUERY_WIZCARD:
+                (
+                    message_format.WizWebWizcardQuerySchema,
+                    self.WizWebWizcardQuery,
+                    None
+                ),
+            verbs.MSG_WIZWEB_CREATE_USER:
+                (
+                    message_format.WizWebUserCreateSchema,
+                    self.WizWebUserCreate,
+                    None
+                ),
+            verbs.MSG_WIZWEB_ADD_EDIT_CARD:
+                (
+                    message_format.WizWebAddEditCardSchema,
+                    self.WizWebAddEditCard,
+                    None
+                ),
+            verbs.MSG_LOGIN:
+                (
+                    message_format.LoginSchema,
+                    self.Login,
+                    Stats.objects.inc_login
+                ),
+            verbs.MSG_PHONE_CHECK_REQ:
+                (
+                    message_format.PhoneCheckRequestSchema,
+                    self.PhoneCheckRequest,
+                    Stats.objects.inc_phone_check_req
+                ),
+            verbs.MSG_PHONE_CHECK_RESP:
+                (
+                    message_format.PhoneCheckResponseSchema,
+                    self.PhoneCheckResponse,
+                    Stats.objects.inc_phone_check_rsp
+                ),
+            verbs.MSG_REGISTER:
+                (
+                    message_format.RegisterSchema,
+                    self.Register,
+                    Stats.objects.inc_register
+                 ),
+            verbs.MSG_CURRENT_LOCATION:
+                (
+                    message_format.LocationUpdateSchema,
+                    self.LocationUpdate,
+                    Stats.objects.inc_location_update
+                ),
+            verbs.MSG_CONTACTS_UPLOAD:
+                (
+                    message_format.ContactsUploadSchema,
+                    self.ContactsUpload,
+                    Stats.objects.inc_contacts_upload
+                ),
+            verbs.MSG_NOTIFICATIONS_GET:
+                (
+                    message_format.NotificationsGetSchema,
+                    self.NotificationsGet,
+                    Stats.objects.inc_get_cards,
+                ),
+            verbs.MSG_WIZCARD_EDIT:
+                (
+                    message_format.WizcardEditSchema,
+                    self.WizcardEdit,
+                    Stats.objects.inc_edit_card,
+                ),
+            verbs.MSG_WIZCARD_ACCEPT:
+                (
+                    message_format.WizcardAcceptSchema,
+                    self.WizcardAccept,
+                    Stats.objects.inc_wizcard_accept,
+                ),
+            verbs.MSG_WIZCARD_DECLINE:
+                (
+                    message_format.WizConnectionRequestDeclineSchema,
+                    self.WizConnectionRequestDecline,
+                    Stats.objects.inc_wizcard_decline,
+                ),
+            verbs.MSG_ROLODEX_EDIT:
+                (
+                    message_format.RolodexEditSchema,
+                    self.RolodexEdit,
+                    Stats.objects.inc_rolodex_edit,
+                ),
+            verbs.MSG_ROLODEX_DELETE:
+                (
+                    message_format.WizcardRolodexDeleteSchema,
+                    self.WizcardRolodexDelete,
+                    Stats.objects.inc_rolodex_delete,
+                ),
+            verbs.MSG_ARCHIVED_CARDS:
+                (
+                    message_format.WizcardRolodexArchivedCardsSchema,
+                    self.WizcardRolodexArchivedCards,
+                    Stats.objects.inc_archived_cards,
+                ),
+            verbs.MSG_FLICK:
+                (
+                    message_format.WizcardFlickSchema,
+                    self.WizcardFlick,
+                    None,
+                ),
+            verbs.MSG_FLICK_ACCEPT:
+                (
+                    message_format.WizcardFlickPickSchema,
+                    self.WizcardFlickPick,
+                    None
+                ),
+            verbs.MSG_FLICK_ACCEPT_CONNECT:
+                (
+                    message_format.WizcardFlickConnectSchema,
+                    self.WizcardFlickConnect,
+                    None
+                ),
+            verbs.MSG_MY_FLICKS:
+                (
+                    message_format.WizcardMyFlickSchema,
+                    self.WizcardMyFlicks,
+                    None
+                ),
+            verbs.MSG_FLICK_WITHDRAW:
+                (
+                    message_format.WizcardFlickWithdrawSchema,
+                    self.WizcardFlickWithdraw,
+                    None
+                ),
+            verbs.MSG_FLICK_EDIT:
+                (
+                    message_format.WizcardFlickEditSchema,
+                    self.WizcardFlickEdit,
+                    None
+                ),
+            verbs.MSG_FLICK_QUERY:
+                (
+                    message_format.WizcardFlickQuerySchema,
+                    self.WizcardFlickQuery,
+                    None
+                ),
+            verbs.MSG_FLICK_PICKS:
+                (
+                    message_format.WizcardFlickPickersSchema,
+                    self.WizcardFlickPickers,
+                    None
+                ),
+            verbs.MSG_SEND_ASSET_XYZ:
+                (
+                    message_format.WizcardSendAssetToXYZSchema,
+                    self.WizcardSendAssetToXYZ,
+                    Stats.objects.inc_send_asset_xyz,
+                ),
+            verbs.MSG_QUERY_USER:
+                (
+                    message_format.UserQuerySchema,
+                    self.UserQuery,
+                    Stats.objects.inc_user_query,
+                ),
+            verbs.MSG_CARD_DETAILS:
+                (
+                    message_format.WizcardGetDetailSchema,
+                    self.WizcardGetDetail,
+                    Stats.objects.inc_card_details,
+                ),
+            verbs.MSG_TABLE_QUERY:
+                (
+                    message_format.TableQuerySchema,
+                    self.TableQuery,
+                    None,
+                ),
+            verbs.MSG_MY_TABLES:
+                (
+                    message_format.TableMyTablesSchema,
+                    self.TableMyTables,
+                    None
+                ),
+            verbs.MSG_TABLE_SUMMARY:
+                (
+                    message_format.TableSummarySchema,
+                    self.TableSummary,
+                    None,
+                ),
+            verbs.MSG_TABLE_DETAILS:
+                (
+                    message_format.TableDetailsSchema,
+                    self.TableDetails,
+                    None,
+                ),
+            verbs.MSG_CREATE_TABLE:
+                (
+                    message_format.TableCreateSchema,
+                    self.TableCreate,
+                    None,
+                ),
+            verbs.MSG_JOIN_TABLE:
+                (
+                    message_format.TableJoinSchema,
+                    self.TableJoin,
+                    None,
+                ),
+            verbs.MSG_LEAVE_TABLE:
+                (
+                    message_format.TableLeaveSchema,
+                    self.TableLeave,
+                    None
+                ),
+            verbs.MSG_DESTROY_TABLE:
+                (
+                    message_format.TableDestroySchema,
+                    self.TableDestroy,
+                    None,
+                ),
+            verbs.MSG_TABLE_EDIT:
+                (
+                    message_format.TableEditSchema,
+                    self.TableEdit,
+                    None
+                ),
+            verbs.MSG_SETTINGS:
+                (
+                    message_format.SettingsSchema,
+                    self.Settings,
+                    Stats.objects.inc_settings,
+                ),
+            verbs.MSG_OCR_SELF:
+                (
+                    message_format.OcrRequestSelfSchema,
+                    self.OcrReqSelf,
+                    Stats.objects.inc_ocr_self,
+                ),
+            verbs.MSG_OCR_DEAD_CARD:
+                (
+                    message_format.OcrRequestDeadCardSchema,
+                    self.OcrReqDeadCard,
+                    Stats.objects.inc_ocr_dead
+                ),
+            verbs.MSG_OCR_EDIT:
+                (
+                    message_format.OcrDeadCardEditSchema,
+                    self.OcrDeadCardEdit,
+                    Stats.objects.inc_ocr_dead_edit
+                ),
+            verbs.MSG_MEISHI_START:
+                (
+                    message_format.MeishiStartSchema,
+                    self.MeishiStart,
+                    None
+                ),
+            verbs.MSG_MEISHI_FIND:
+                (
+                    message_format.MeishiFindSchema,
+                    self.MeishiFind,
+                    None,
+                ),
+            verbs.MSG_MEISHI_END:
+                (
+                    message_format.MeishiEndSchema,
+                    self.MeishiEnd,
+                    None
+                ),
+            verbs.MSG_EMAIL_TEMPLATE:
+                (
+                    message_format.GetEmailTemplateSchema,
+                    self.GetEmailTemplate,
+                    Stats.objects.inc_email_template,
+                ),
+            verbs.MSG_GET_RECOMMENDATION:
+                (
+                    message_format.GetRecommendationsSchema,
+                    self.GetRecommendations,
+                    Stats.objects.inc_get_recommendation
+                ),
+            verbs.MSG_SET_RECO_ACTION:
+                (
+                    message_format.SetRecoActionSchema,
+                    self.SetRecoAction,
+                    Stats.objects.inc_set_reco,
+                ),
+            verbs.MSG_GET_COMMON_CONNECTIONS:
+                (
+                    message_format.GetCommonConnectionsSchema,
+                    self.GetCommonConnections,
+                    Stats.objects.inc_get_common_connections,
+                ),
+            verbs.MSG_GET_VIDEO_THUMBNAIL:
+                (
+                    message_format.GetVideoThumbnailSchema,
+                    self.GetVideoThumbnailUrl,
+                    Stats.objects.inc_video_thumbnail
+                )
         }
         #update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
@@ -285,7 +540,12 @@ class ParseMsgAndDispatch(object):
                 self.lat,
                 self.lng)
 
-        response = msgTypesValidatorsAndHandlers[self.msg_type][HANDLER]()
+        # process
+        response = msgTypesValidatorsAndHandlers[self.msg_id][HANDLER]()
+
+        # bump stats
+        if msgTypesValidatorsAndHandlers[self.msg_id][STATS]:
+            msgTypesValidatorsAndHandlers[self.msg_id][STATS](self.user_stats, self.global_stats)
 
         self.headerPostProcess()
         return response
@@ -2244,11 +2504,7 @@ class ParseMsgAndDispatch(object):
         else:
             self.response.error_response(err.INVALID_RECOID)
 
-
         return self.response
-
-VALIDATOR = 0
-HANDLER = 1
 
 wizrequest_handler = WizRequestHandler.as_view()
 #wizconnection_request = login_required(WizConnectionRequestView.as_view())

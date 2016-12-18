@@ -1,22 +1,8 @@
 import pdb
-import messages
-
-ACCEPT_IMPLICIT     = 1
-ACCEPT_EXPLICIT     = 2
-DELETE_IMPLICIT     = 3
-TABLE_TIMEOUT       = 4
-UPDATE_WIZCARD      = 5
-FLICKED_WIZCARD     = 6
-NEARBY_USERS        = 7
-NEARBY_TABLES       = 8
-FLICK_TIMEOUT       = 9
-FLICK_PICK          = 10
-WITHDRAW_REQUEST    = 11
-WIZWEB_UPDATE_WIZCARD = 12
-TABLE_INVITE        = 13
-WIZCARD_FORWARD     = 14
-TABLE_JOIN          = 15
-TABLE_LEAVE         = 16
+import sys
+proj_path="."
+sys.path.append(proj_path)
+from wizserver import verbs
 
 
 class NotifParser:
@@ -34,22 +20,22 @@ class NotifParser:
 
     def process_one(self):
         notifTableHandler = {
-            ACCEPT_IMPLICIT :       self.accept_implicit,
-            ACCEPT_EXPLICIT :       self.accept_explicit,
-            DELETE_IMPLICIT :       self.delete_implicit,
-            TABLE_TIMEOUT   :       self.table_timeout,
-            UPDATE_WIZCARD  :       self.update_wizcard,
-            FLICKED_WIZCARD :       self.flicked_wizcard,
-            NEARBY_USERS    :       self.nearby_users,
-            NEARBY_TABLES   :       self.nearby_tables,
-            FLICK_TIMEOUT   :       self.flick_timeout,
-            FLICK_PICK      :       self.flick_pick,
-            WITHDRAW_REQUEST   :    self.withdraw_request,
-            WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard,
-            TABLE_INVITE    :       self.table_invite,
-            WIZCARD_FORWARD :       self.wizcard_forward,
-            TABLE_JOIN :       self.table_join,
-            TABLE_LEAVE :       self.table_leave,
+            verbs.NOTIF_ACCEPT_IMPLICIT :       self.accept_implicit,
+            verbs.NOTIF_ACCEPT_EXPLICIT :       self.accept_explicit,
+            verbs.NOTIF_DELETE_IMPLICIT :       self.delete_implicit,
+            verbs.NOTIF_TABLE_TIMEOUT   :       self.table_timeout,
+            verbs.NOTIF_UPDATE_WIZCARD  :       self.update_wizcard,
+            verbs.NOTIF_NEARBY_FLICKED_WIZCARD :       self.flicked_wizcard,
+            verbs.NOTIF_NEARBY_USERS    :       self.nearby_users,
+            verbs.NOTIF_NEARBY_TABLES   :       self.nearby_tables,
+            verbs.NOTIF_FLICK_TIMEOUT   :       self.flick_timeout,
+            verbs.NOTIF_FLICK_PICK      :       self.flick_pick,
+            verbs.NOTIF_WITHDRAW_REQUEST   :    self.withdraw_request,
+            verbs.NOTIF_WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard,
+            verbs.NOTIF_TABLE_INVITE    :       self.table_invite,
+            verbs.NOTIF_WIZCARD_FORWARD :       self.wizcard_forward,
+            verbs.NOTIF_TABLE_JOIN :            self.table_join,
+            verbs.NOTIF_TABLE_LEAVE :           self.table_leave,
         }
 
         if self.count:
