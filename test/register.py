@@ -1061,7 +1061,28 @@ send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
 
+# this one will work with oembed
+reqmsg = messages.get_video_thumbnail_url
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['videoUrl'] = "https://youtu.be/kvjxoBG5euo"
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+# this one will return error
+reqmsg = messages.get_video_thumbnail_url
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+reqmsg['sender']['videoUrl'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
 #clean all rolodexes
+
+
 
 
 # Table Tests

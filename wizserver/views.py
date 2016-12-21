@@ -32,7 +32,7 @@ from response import Response, NotifResponse
 from userprofile.models import UserProfile
 from userprofile.models import AddressBook, AB_Candidate_Emails, AB_Candidate_Phones, AB_Candidate_Names, AB_User
 from userprofile.models import FutureUser
-from lib import wizlib
+from lib import wizlib, noembed
 from lib.email_invite import create_template, sendmail
 from wizcard import err
 from dead_cards.models import DeadCards
@@ -593,7 +593,7 @@ class ParseMsgAndDispatch(object):
             if not msg:
                 self.response.error_response(err.INVALID_MESSAGE)
                 return self.response
-            
+
             msg['to'] = response_target
             if response_mode == "voice":
                 keystr = str(d[k_rand])
@@ -1815,22 +1815,33 @@ class ParseMsgAndDispatch(object):
 
     def GetVideoThumbnailUrl(self):
         wizcard = self.user.wizcard
-        VIDEO_SEEK_SECONDS = 5
-        OUTFILE_PATH = "/tmp/"
         videoUrl = self.sender['videoUrl']
 
-        filename = "thumbnail_video-%s.%s.jpg" % (wizcard.pk, now().strftime ("%Y-%m-%d %H:%M"))
-        outfile = OUTFILE_PATH+filename
+        try:
+            resp = noembed.embed(videoUrl)
+            wizcard.videoThumbnailUrl = resp.thumbnail_url
+        except:
+            # Try with ffmpeg
+            VIDEO_SEEK_SECONDS = 5
+            OUTFILE_PATH = "/tmp/"
+            videoUrl = self.sender['videoUrl']
 
-        c = Converter()
-        c.thumbnail(videoUrl, VIDEO_SEEK_SECONDS, outfile, size='160:120')
+            filename = "thumbnail_video-%s.%s.jpg" % (wizcard.pk, now().strftime ("%Y-%m-%d %H:%M"))
+            outfile = OUTFILE_PATH+filename
 
-        # upload file to aws and get url
-        f = File(open(outfile))
-        wizcard.thumbnailVideo.save(filename, f)
-        wizcard.videoThumbnailUrl = wizcard.thumbnailVideo.remote_url()
+            c = Converter()
+            try:
+                c.thumbnail(videoUrl, VIDEO_SEEK_SECONDS, outfile, size='160:120')
+            except:
+                self.response.error_response(err.EMBED_FAILED)
+                return self.response
+
+            # upload file to aws and get url
+            f = File(open(outfile))
+            wizcard.thumbnailVideo.save(filename, f)
+            wizcard.videoThumbnailUrl = wizcard.thumbnailVideo.remote_url()
+
         wizcard.save()
-
         self.response.add_data("videoThumbnailUrl", wizcard.videoThumbnailUrl)
 
         return self.response

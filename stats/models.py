@@ -275,7 +275,7 @@ class StatsMgr(models.Manager):
 class Stats(models.Model):
 
     # lets use admin user to hold global stats
-    user = models.OneToOneField(User, blank=True)
+    user = models.OneToOneField(User, blank=True, null=True)
     is_global = models.BooleanField(default=False)
 
     # API stats
