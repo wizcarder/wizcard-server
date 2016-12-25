@@ -463,7 +463,7 @@ if RUNENV == "prod":
     #for new AWS prod
         'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@sentry.io/87350'
     }
-elif RUNENV == "dev" or RUNENV == "stage" :
+elif RUNENV == "test" or RUNENV == "stage" :
     RAVEN_CONFIG = {
         'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
     }
