@@ -1839,7 +1839,7 @@ class ParseMsgAndDispatch(object):
             # upload file to aws and get url
             remote_path = '/thumbnails/' + filename
             videoThumbnailUrl = wizlib.uploadtoS3(outfile, remote_dir=remote_path)
-            if videoThunbmailUrl == -1:
+            if videoThumbnailUrl == -1:
                 self.response.error_response(err.EMBED_FAILED)
                 return self.response
 
