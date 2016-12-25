@@ -20,7 +20,7 @@ django-extensions==1.4.9
 django-pdb==0.4.1
 django-picklefield==0.3.1
 django-queued-storage==0.6
-django-storages==1.1.8
+django-storages==1.5.1
 docutils==0.12
 enum34==1.0.4
 gunicorn==19.3.0
