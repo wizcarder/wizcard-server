@@ -297,6 +297,9 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_BUCKET_ENV = "-" + RUNENV
+AWS_QUERYSTRING_AUTH = False
+#Expiry set to 100 years
+AWS_QUERYSTRING_EXPIRE = 3153600000
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV
 S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 EMAIL_DEFAULT_IMAGE = S3_URL +  "/invites/email_info.png"
@@ -460,7 +463,7 @@ if RUNENV == "prod":
     #for new AWS prod
         'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@sentry.io/87350'
     }
-elif RUNENV == "test" or RUNENV == "stage" :
+elif RUNENV == "dev" or RUNENV == "stage" :
     RAVEN_CONFIG = {
         'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
     }

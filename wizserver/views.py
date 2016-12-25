@@ -1814,19 +1814,19 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def GetVideoThumbnailUrl(self):
-        wizcard = self.user.wizcard
         videoUrl = self.sender['videoUrl']
 
         try:
             resp = noembed.embed(videoUrl)
-            wizcard.videoThumbnailUrl = resp.thumbnail_url
+            videoThumbnailUrl = resp.thumbnail_url
         except:
             # Try with ffmpeg
             VIDEO_SEEK_SECONDS = 5
             OUTFILE_PATH = "/tmp/"
             videoUrl = self.sender['videoUrl']
+            rand_val = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
 
-            filename = "thumbnail_video-%s.%s.jpg" % (wizcard.pk, now().strftime ("%Y-%m-%d %H:%M"))
+            filename = "thumbnail_video-%s.%s.jpg" % (rand_val, now().strftime ("%Y-%m-%d %H:%M"))
             outfile = OUTFILE_PATH+filename
 
             c = Converter()
@@ -1837,12 +1837,14 @@ class ParseMsgAndDispatch(object):
                 return self.response
 
             # upload file to aws and get url
-            f = File(open(outfile))
-            wizcard.thumbnailVideo.save(filename, f)
-            wizcard.videoThumbnailUrl = wizcard.thumbnailVideo.remote_url()
+            remote_path = '/thumbnails/' + filename
+            videoThumbnailUrl = wizlib.uploadtoS3(outfile, remote_dir=remote_path)
+            if videoThunbmailUrl == -1:
+                self.response.error_response(err.EMBED_FAILED)
+                return self.response
 
-        wizcard.save()
-        self.response.add_data("videoThumbnailUrl", wizcard.videoThumbnailUrl)
+
+        self.response.add_data("videoThumbnailUrl", videoThumbnailUrl)
 
         return self.response
 

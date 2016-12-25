@@ -6,6 +6,8 @@ from validate_email import validate_email
 import phonenumbers
 from pyshorteners import Shortener
 from django.conf import settings
+from django.core.files.storage import default_storage
+
 
 
 #general purpose utils
@@ -174,4 +176,18 @@ def shorten_url(url):
 def fix_extFields(w):
     w.extFields = {}
     w.save()
+
+
+def uploadtoS3(outfile, remote_dir=None):
+    try:
+        f = open(outfile, 'rb')
+        contents = f.read()
+        rfile = default_storage.open(remote_dir, "wb")
+        rfile.write(contents)
+        rfile.close()
+        remote_url = default_storage.url(remote_dir)
+        return remote_url
+    except:
+        return -1
+
 
