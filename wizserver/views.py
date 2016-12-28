@@ -1003,6 +1003,10 @@ class ParseMsgAndDispatch(object):
 
         if 'contact_container' in self.sender:
             contactContainerList = self.sender['contact_container']
+            cc_latest = wizcard.get_latest_contact_container()[0]
+            title = cc_latest['title']
+            company = cc_latest['company']
+            card_url = cc_latest['f_bizCardUrl']
             wizcard.contact_container.all().delete()
             modify = True
 
@@ -1049,6 +1053,9 @@ class ParseMsgAndDispatch(object):
                         c.f_bizCardImage.save(upfile.name, upfile)
                     except:
                         pass
+                else:
+                    c.card_url = card_url
+                    c.save()
                 if 'b_bizCardImage' in contactItem and contactItem['b_bizCardImage']:
                     #AA:TODO: Remove try
                     try:
