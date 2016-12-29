@@ -941,9 +941,9 @@ class ParseMsgAndDispatch(object):
         try:
             wizcard = self.user.wizcard
         except ObjectDoesNotExist:
-            wizcard = Wizcard(user=self.user)
-            ContactContainer(wizcard=wizcard)
-            wizcard.save()
+            wizcard = Wizcard.objects.create(user=self.user)
+            ContactContainer.objects.create(wizcard=wizcard)
+
 
         # set activated to true.
         if not self.userprofile.activated:
