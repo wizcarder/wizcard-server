@@ -188,6 +188,4 @@ def uploadtoS3(outfile, remote_dir=None):
         remote_url = default_storage.url(remote_dir)
         return remote_url
     except:
-        return -1
-
-
+        raise RuntimeError('upload to S3 failed')

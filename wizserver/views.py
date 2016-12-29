@@ -942,6 +942,7 @@ class ParseMsgAndDispatch(object):
             wizcard = self.user.wizcard
         except ObjectDoesNotExist:
             wizcard = Wizcard(user=self.user)
+            ContactContainer(wizcard=wizcard)
             wizcard.save()
 
         # set activated to true.
@@ -1002,44 +1003,21 @@ class ParseMsgAndDispatch(object):
             modify = True
 
         if 'contact_container' in self.sender:
-            contactContainerList = self.sender['contact_container']
-            cc_latest = wizcard.get_latest_contact_container()[0]
-            title = cc_latest['title']
-            company = cc_latest['company']
-            card_url = cc_latest['f_bizCardUrl']
-            wizcard.contact_container.all().delete()
+            contact_container_list = self.sender['contact_container']
+
+            cc = wizcard.contact_container.all()[0]
+
             modify = True
 
-            for count, contactItem in enumerate(contactContainerList):
+            for count, contactItem in enumerate(contact_container_list):
                 if 'title' in contactItem:
-                    title = contactItem['title']
-                else:
-                    title = ""
+                    cc.title = contactItem['title']
                 if 'company' in contactItem:
-                    company = contactItem['company']
-                else:
-                    company = ""
+                    cc.company = contactItem['company']
                 if 'phone' in contactItem:
-                    phone = contactItem['phone']
-                else:
-                    phone = ""
-                if 'start' in contactItem:
-                    start = contactItem['start']
-                else:
-                    start = ""
-                if 'end' in contactItem:
-                    end = contactItem['end']
-                else:
-                    end = ""
+                    cc.phone = contactItem['phone']
 
-                #AA:TODO - Can there be 1 save with image
-                c = ContactContainer(wizcard=wizcard,
-                                     title=title,
-                                     company=company,
-                                     phone=phone,
-                                     start=start,
-                                     end=end)
-                c.save()
+                cc.save()
                 if 'f_bizCardImage' in contactItem and contactItem['f_bizCardImage']:
                     #AA:TODO: Remove try
                     try:
@@ -1047,23 +1025,10 @@ class ParseMsgAndDispatch(object):
                         rawimage = b64image.decode('base64')
                         #AA:TODO: better file name
                         upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % \
-                                                    (wizcard.pk, c.pk, now().strftime \
+                                                    (wizcard.pk, cc.pk, now().strftime \
                                                         ("%Y-%m-%d %H:%M")), rawimage, \
                                                     "image/jpeg")
-                        c.f_bizCardImage.save(upfile.name, upfile)
-                    except:
-                        pass
-                else:
-                    c.card_url = card_url
-                    c.save()
-                if 'b_bizCardImage' in contactItem and contactItem['b_bizCardImage']:
-                    #AA:TODO: Remove try
-                    try:
-                        b64image = bytes(contactItem['b_bizCardImage'])
-                        rawimage = b64image.decode('base64')
-                        #AA:TODO: better file name
-                        upfile = SimpleUploadedFile("%s-b_bc.%s.%s.jpg" % (wizcard.pk, c.pk, now().strftime("%Y-%m-%d %H:%M")), rawimage, "image/jpeg")
-                        c.b_bizCardImage.save(upfile.name, upfile)
+                        cc.f_bizCardImage.save(upfile.name, upfile)
                     except:
                         pass
 
@@ -1845,8 +1810,10 @@ class ParseMsgAndDispatch(object):
 
             # upload file to aws and get url
             remote_path = '/thumbnails/' + filename
-            videoThumbnailUrl = wizlib.uploadtoS3(outfile, remote_dir=remote_path)
-            if videoThumbnailUrl == -1:
+
+            try:
+                videoThumbnailUrl = wizlib.uploadtoS3(outfile, remote_dir=remote_path)
+            except:
                 self.response.error_response(err.EMBED_FAILED)
                 return self.response
 
