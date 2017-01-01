@@ -199,9 +199,6 @@ class Wizcard(models.Model):
     #media objects
     thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False), blank=True)
-    thumbnailVideo = WizcardQueuedFileField(upload_to="thumbnails",
-            storage=WizcardQueuedS3BotoStorage(delayed=False),
-            default=settings.DEFAULT_VIDEO_THUMBNAIL)
     videoUrl = URLField(blank=True)
     videoThumbnailUrl = URLField(blank=True)
     extFields = PickledObjectField(default={}, blank=True)

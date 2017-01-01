@@ -134,10 +134,18 @@ class UserProfileManager(models.Manager):
     def futureusername_from_phone_num(self, phone_num):
         return phone_num + settings.WIZCARD_FUTURE_USERNAME_EXTENSION
 
+    def get_admin_user(self):
+        return User.objects.filter(is_staff=True, is_superuser=True)[0] \
+            if User.objects.filter(is_staff=True, is_superuser=True).exists() else None
+
+    def is_admin_user(self, user):
+        return user.is_staff and user.is_superuser
+
 
 class UserProfile(models.Model):
     # This field is required.
     user = models.OneToOneField(User, related_name='profile')
+    is_admin = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
     # this is the internal userid
     userid = TruncatingCharField(max_length=100)
@@ -516,6 +524,8 @@ class AB_User(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile = UserProfile(user=instance)
+        if UserProfile.objects.is_admin_user(instance):
+            profile.is_admin = True
         profile.userid = UserProfile.objects.id_generator()
         profile.save()
 

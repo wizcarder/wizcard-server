@@ -938,15 +938,10 @@ class ParseMsgAndDispatch(object):
         user_modify = False
         userprofile_modify = False
 
-        try:
-            wizcard = self.user.wizcard
-        except ObjectDoesNotExist:
-            wizcard = Wizcard.objects.create(user=self.user)
+        wizcard, created = Wizcard.objects.get_or_create(user=self.user)
+        if created:
             ContactContainer.objects.create(wizcard=wizcard)
-
-
-        # set activated to true.
-        if not self.userprofile.activated:
+            # set activated to true.
             self.userprofile.activated = True
             userprofile_modify = True
 
@@ -999,7 +994,7 @@ class ParseMsgAndDispatch(object):
             modify = True
 
         if 'extFields' in self.sender and self.sender['extFields']:
-            wizcard.extFields.update(self.sender['extFields'])
+            wizcard.extFields = self.sender['extFields'].copy()
             modify = True
 
         if 'contact_container' in self.sender:
@@ -1032,7 +1027,8 @@ class ParseMsgAndDispatch(object):
                     except:
                         pass
 
-        #check if futureUser states exist for this phone or email
+        # check if futureUser states exist for this phone or email
+        # check if futureUser states exist for this phone or email
         future_users = FutureUser.objects.check_future_user(
             wizcard.email,
             wizcard.phone)
@@ -1042,7 +1038,7 @@ class ParseMsgAndDispatch(object):
         if future_users.count():
             future_users.delete()
 
-        #flood to contacts
+        # flood to contacts
         if user_modify:
             self.user.save()
         if userprofile_modify:
@@ -1050,6 +1046,23 @@ class ParseMsgAndDispatch(object):
         if modify:
             wizcard.save()
             wizcard.flood()
+
+        if created:
+            # connect implicitly with admin wizcard
+            # me(A)<-admin
+            admin_user = UserProfile.objects.get_admin_user()
+            Wizcard.objects.cardit(wizcard, admin_user.wizcard, status=verbs.ACCEPTED, cctx="")
+            # me->admin(P)
+            Wizcard.objects.cardit(admin_user.wizcard, wizcard, status=verbs.PENDING, cctx="")
+
+            # notify me
+            rel12 = admin_user.wizcard.get_relationship(wizcard)
+
+            notify.send(
+                admin_user.wizcard.user, recipient=wizcard.user,
+                verb=verbs.WIZREQ_T[0],
+                target=admin_user.wizcard,
+                action_object=rel12)
 
         create_template.delay(wizcard.pk)
 

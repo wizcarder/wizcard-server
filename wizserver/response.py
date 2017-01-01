@@ -138,6 +138,10 @@ class NotifResponse(ResponseN):
                 nctx.key_val('numSitting', VirtualTable.objects.get(id=cctx.asset_id).numSitting)
 
             self.add_data_to_dict(out, "context", nctx.context)
+
+        if UserProfile.objects.is_admin_user(wizcard.user):
+            self.add_data_to_dict(out, "admin", 'True')
+
         self.add_data_and_seq_with_notif(out, notifType, notif.id)
 
         return self.response

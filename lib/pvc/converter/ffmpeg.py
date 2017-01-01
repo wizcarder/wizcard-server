@@ -521,7 +521,6 @@ class FFMpeg(object):
         >>> FFMpeg().thumbnails('test1.ogg', [(5, '/tmp/shot.png', '320x240'),
         >>>                                   (10, '/tmp/shot2.png', None, 5)])
         """
-        pdb.set_trace()
         #if not os.path.exists(fname):
         #    raise IOError('No such file: ' + fname)
 

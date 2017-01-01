@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from wizserver import verbs
 from django.db.models.signals import post_save
+from userprofile.models import UserProfile
 import pdb
 
 
@@ -12,8 +13,7 @@ class StatsMgr(models.Manager):
     def get_global_stat(self):
         if not Stats.objects.filter(is_global=True).exists():
             # find admin user
-            admin_user = User.objects.filter(is_staff=True, is_superuser=True)[0] \
-                if User.objects.filter(is_staff=True, is_superuser=True).exists() else None
+            admin_user = UserProfile.objects.get_admin_user()
 
             # create and point to admin
             return Stats.objects.create(is_global=True, user=admin_user)
@@ -323,6 +323,8 @@ class Stats(models.Model):
 def create_user_stats(sender, instance, created, **kwargs):
     if created:
         user_stats = Stats(user=instance)
+        if UserProfile.objects.is_admin_user(instance):
+            user_stats.is_global = True
         user_stats.save()
 
 

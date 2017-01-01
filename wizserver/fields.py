@@ -22,7 +22,7 @@ wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
 wizcard_fields_keymap = {
         'wizcard_id': 'id',
         'thumbnailUrl': 'get_thumbnail_url',
-        'status': 'connected_status_string'
+        'status': 'connected_status_string',
         }
 
 wizcard_fields_keymap_brief = {
