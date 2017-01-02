@@ -133,7 +133,7 @@ SMS_INVITE          = 5
 
 
 INVITE_VERBS = {
-    WIZCARD_CONNECT_U:'wiz_untrusted',
+    WIZCARD_CONNECT_U: 'wiz_untrusted',
     WIZCARD_CONNECT_T: 'wiz_trusted',
     WIZCARD_INVITE: 'wizcard_invite',
     EMAIL_INVITE: 'email',

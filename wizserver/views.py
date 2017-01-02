@@ -1051,9 +1051,28 @@ class ParseMsgAndDispatch(object):
             # connect implicitly with admin wizcard
             # me(A)<-admin
             admin_user = UserProfile.objects.get_admin_user()
-            Wizcard.objects.cardit(wizcard, admin_user.wizcard, status=verbs.ACCEPTED, cctx="")
+
+            try:
+                location_str = wizlib.reverse_geo_from_latlng(
+                    self.userprofile.location.get().lat,
+                    self.userprofile.location.get().lng
+                )
+            except:
+                logging.error("couldn't get location for user [%s]", self.userprofile.userid)
+                location_str = ""
+
+            cctx1 = ConnectionContext(
+                asset_obj=wizcard,
+                connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T],
+                location=location_str)
+            Wizcard.objects.cardit(wizcard, admin_user.wizcard, status=verbs.ACCEPTED, cctx=cctx1)
+
             # me->admin(P)
-            Wizcard.objects.cardit(admin_user.wizcard, wizcard, status=verbs.PENDING, cctx="")
+            cctx2 = ConnectionContext(
+                asset_obj=admin_user.wizcard,
+                connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T],
+                location=location_str)
+            Wizcard.objects.cardit(admin_user.wizcard, wizcard, status=verbs.PENDING, cctx=cctx2)
 
             # notify me
             rel12 = admin_user.wizcard.get_relationship(wizcard)
@@ -1627,7 +1646,7 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("count", count)
             self.response.add_data("status", status)
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
-            #future user handling
+            # future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
 
         return self.response
@@ -1655,15 +1674,13 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def do_future_user(self, obj, receiver_type, receivers):
-
         numreceivers = len(receivers)
         for r in receivers:
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
 
             if wizcard:
-                ## If there are more 1 receiver, its ok to fail silently otherwise throw an error
-
+                # If there are more 1 receiver, its ok to fail silently otherwise throw an error
                 if numreceivers == 1 and self.user.wizcard.id == wizcard.id:
                     self.response.error_response(err.SELF_INVITE)
                     return self.response
@@ -1830,9 +1847,7 @@ class ParseMsgAndDispatch(object):
                 self.response.error_response(err.EMBED_FAILED)
                 return self.response
 
-
         self.response.add_data("videoThumbnailUrl", videoThumbnailUrl)
-
         return self.response
 
     def TableQuery(self):

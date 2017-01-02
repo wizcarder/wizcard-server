@@ -6,10 +6,12 @@ from userprofile.models import UserProfile
 from django.utils import timezone
 from wizserver import verbs
 from notifications import notify
+from base.cctx import ConnectionContext
 import pdb
 
 now = timezone.now
 
+LOCATION_STR  = "WizCard HQ"
 
 class Command(BaseCommand):
     help = 'connect admin wizcard to existing users. This should be run only Once'
@@ -25,10 +27,20 @@ class Command(BaseCommand):
         for w in Wizcard.objects.exclude(id=wizcard.id):
             # w(A)<-wizcard
             self.stdout.write('adding me->W(A) for "%s"' % w)
-            Wizcard.objects.cardit(wizcard, w, status=verbs.ACCEPTED, cctx="")
+            cctx1 = ConnectionContext(
+                asset_obj=wizcard,
+                connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T],
+                location=LOCATION_STR)
+
+            Wizcard.objects.cardit(wizcard, w, status=verbs.ACCEPTED, cctx=cctx1)
 
             self.stdout.write('adding me(P)<-W for "%s"' % w)
-            Wizcard.objects.cardit(w, wizcard, status=verbs.PENDING, cctx="")
+
+            cctx2 = ConnectionContext(
+                asset_obj=w,
+                connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T],
+                location=LOCATION_STR)
+            Wizcard.objects.cardit(w, wizcard, status=verbs.PENDING, cctx=cctx2)
 
             # notify w
             rel12 = wizcard.get_relationship(w)
