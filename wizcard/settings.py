@@ -289,6 +289,7 @@ INSTALLED_APPS = (
     'django_ses',
     'recommendation',
     'stats',
+    'commands'
 )
 
 #django-storage settings
