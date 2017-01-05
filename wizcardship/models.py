@@ -242,7 +242,6 @@ class Wizcard(models.Model):
             out = dict()
             out['company'] = cc.company
             out['title'] = cc.title
-            out['f_bizCardUrl'] = cc.get_fbizcard_url()
             #app needs single-element array with dict in it
             return [out]
 
