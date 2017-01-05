@@ -1049,7 +1049,6 @@ class ParseMsgAndDispatch(object):
 
         if created:
             # connect implicitly with admin wizcard
-            # me(A)<-admin
             admin_user = UserProfile.objects.get_admin_user()
 
             try:
@@ -1061,27 +1060,28 @@ class ParseMsgAndDispatch(object):
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
                 location_str = ""
 
+            # me->admin(P)
             cctx1 = ConnectionContext(
                 asset_obj=wizcard,
                 connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T],
                 location=location_str)
-            Wizcard.objects.cardit(wizcard, admin_user.wizcard, status=verbs.ACCEPTED, cctx=cctx1)
+            Wizcard.objects.cardit(wizcard, admin_user.wizcard, status=verbs.PENDING, cctx=cctx1)
 
-            # me->admin(P)
+            # me(A)<-admin
             cctx2 = ConnectionContext(
                 asset_obj=admin_user.wizcard,
                 connection_mode=verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T],
                 location=location_str)
-            Wizcard.objects.cardit(admin_user.wizcard, wizcard, status=verbs.PENDING, cctx=cctx2)
+            Wizcard.objects.cardit(admin_user.wizcard, wizcard, status=verbs.ACCEPTED, cctx=cctx2)
 
             # notify me
-            rel12 = admin_user.wizcard.get_relationship(wizcard)
+            rel21 = admin_user.wizcard.get_relationship(wizcard)
 
             notify.send(
                 admin_user.wizcard.user, recipient=wizcard.user,
                 verb=verbs.WIZREQ_T[0],
                 target=admin_user.wizcard,
-                action_object=rel12)
+                action_object=rel21)
 
         create_template.delay(wizcard.pk)
 
