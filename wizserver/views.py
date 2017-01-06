@@ -1621,6 +1621,7 @@ class ParseMsgAndDispatch(object):
                     else:
                         # set it to accepted. We'll send a notif
                         rel21.set_context(cctx2)
+                        conn_status = verbs.WIZREQ_T[0]
                         rel21.accept()
                 else:
                     # create and accept implicitly wizcard2->wizcard1
@@ -1629,12 +1630,13 @@ class ParseMsgAndDispatch(object):
                                                    verbs.ACCEPTED,
                                                    cctx=cctx2
                                                    )
+                    conn_status = verbs.WIZREQ_T_HALF[0]
 
                 # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
                 # let server push this via notif 1.
                 if from_notify:
                     notify.send(r_user, recipient=self.user,
-                                verb=verbs.WIZREQ_T_HALF[0],
+                                verb=conn_status,
                                 target=r_wizcard,
                                 action_object=rel21)
 
