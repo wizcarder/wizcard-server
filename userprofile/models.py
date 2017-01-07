@@ -207,7 +207,6 @@ class UserProfile(models.Model):
         self.future_user = True
         self.save()
 
-
     def is_ios(self):
         return bool(self.device_type == self.IOS)
 
