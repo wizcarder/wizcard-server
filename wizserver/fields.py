@@ -1,4 +1,4 @@
-contact_container_fields = ['company', 'title', 'phone', 'start', 'end', 'f_bizCardUrl']
+contact_container_fields = ['company', 'title', 'phone', 'f_bizCardUrl']
 contact_container_keymap = {
         'f_bizCardUrl': 'get_fbizcard_url'
         }
@@ -17,12 +17,13 @@ wizcard_fields_micro = ['wizcard_id']
 
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name', \
                   'phone', 'email', 'thumbnailUrl', 'contact_container',
-                  'status','videoUrl', 'videoThumbnailUrl', 'extFields','smsurl']
+                  'status','videoUrl', 'videoThumbnailUrl', 'extFields','smsurl', 'admin']
 
 wizcard_fields_keymap = {
         'wizcard_id': 'id',
         'thumbnailUrl': 'get_thumbnail_url',
         'status': 'connected_status_string',
+        'admin': 'is_admin'
         }
 
 wizcard_fields_keymap_brief = {
@@ -60,14 +61,14 @@ wizcard_template_micro = {
 #use this for nearby
 wizcard_template_brief = {
     'fields': wizcard_fields,
-    'exclude': ['phone', 'email', 'status'],
+    'exclude': ['phone', 'email', 'status', 'admin'],
     'key_map' : wizcard_fields_keymap_brief
 }
 
 #use these for rolodex (half/full)
 wizcard_template_half = {
     'fields': wizcard_fields,
-    'exclude': ['phone', 'email'],
+    'exclude': ['phone', 'email', 'admin'],
     'key_map' : wizcard_fields_keymap_brief
 }
 

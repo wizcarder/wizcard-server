@@ -220,8 +220,9 @@ class Wizcard(models.Model):
         return serialize(self, **template)
 
     def serialize_wizconnections(self, template=fields.wizcard_template_full):
-        s1 = serialize(self.get_connections(), **template)
+        s1 = serialize(self.get_connections_with_admin(), **template)
         s2 = serialize(self.get_following_only(), **fields.wizcard_template_half)
+
         return s1+s2
 
     def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
@@ -235,13 +236,18 @@ class Wizcard(models.Model):
             return qs[0].company
         return None
 
-    def get_latest_contact_container(self):
+    # this is for a specific use only. Not really a generic method.
+    def get_latest_contact_container(self, show_bizcard=False):
+
         qs = self.contact_container.all()
         if qs.exists():
             cc = qs[0]
             out = dict()
             out['company'] = cc.company
             out['title'] = cc.title
+            if show_bizcard:
+                out['f_bizCardUrl'] = cc.get_fbizcard_url()
+
             #app needs single-element array with dict in it
             return [out]
 
@@ -249,6 +255,9 @@ class Wizcard(models.Model):
 
     def connected_status_string(self):
         return "connected"
+
+    def is_admin(self):
+        return self.user.profile.is_admin
     
     def save_smsurl(self,url):
         self.smsurl =  wizlib.shorten_url(url)
@@ -370,6 +379,16 @@ class Wizcard(models.Model):
             requests_from__to_wizcard=self
         )
 
+    #2 way connected with admin wizcard
+    def get_connections_with_admin(self):
+        return self.wizconnections_to.filter(
+            Q(user__profile__is_admin=True) |
+            Q(requests_to__status=verbs.ACCEPTED,
+              requests_from__status=verbs.ACCEPTED,
+              requests_from__to_wizcard=self
+              )
+        ).distinct()
+
     def get_pending_to(self):
         return self.get_connected_to(verbs.PENDING)
 
@@ -392,11 +411,12 @@ class Wizcard(models.Model):
                 requests_from__status=verbs.ACCEPTED,
                 requests_from__to_wizcard=self))
 
+    # note: this excludes admin wizcard
     def get_following_only(self):
         return self.get_connected_from(verbs.ACCEPTED).exclude(
             id__in=Wizcard.objects.filter(
-                requests_to__status=verbs.ACCEPTED,
-                requests_to__from_wizcard=self))
+                Q(requests_to__status=verbs.ACCEPTED,
+                requests_to__from_wizcard=self)| Q(user__profile__is_admin=True)))
 
 
 class ContactContainer(models.Model):
