@@ -235,14 +235,18 @@ class Wizcard(models.Model):
             return qs[0].company
         return None
 
-    def get_latest_contact_container(self):
+    # this is for a specific use only. Not really a generic method.
+    def get_latest_contact_container(self, show_bizcard=False):
+
         qs = self.contact_container.all()
         if qs.exists():
             cc = qs[0]
             out = dict()
             out['company'] = cc.company
             out['title'] = cc.title
-            out['f_bizCardUrl'] = cc.get_fbizcard_url()
+            if show_bizcard:
+                out['f_bizCardUrl'] = cc.get_fbizcard_url()
+
             #app needs single-element array with dict in it
             return [out]
 
@@ -250,6 +254,9 @@ class Wizcard(models.Model):
 
     def connected_status_string(self):
         return "connected"
+
+    def is_admin(self):
+        return self.user.profile.is_admin
     
     def save_smsurl(self,url):
         self.smsurl =  wizlib.shorten_url(url)
