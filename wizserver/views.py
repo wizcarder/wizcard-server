@@ -1802,8 +1802,8 @@ class ParseMsgAndDispatch(object):
         full = self.sender.get('full', False)
 
         # get common connections between the 2
-        s1 = set(wizcard1.get_following())
-        s2 = set(wizcard2.get_following())
+        s1 = set(wizcard1.get_following_no_admin())
+        s2 = set(wizcard2.get_following_no_admin())
 
         common = list(s1 & s2)
         count = len(common)

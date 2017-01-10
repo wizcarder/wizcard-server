@@ -418,6 +418,11 @@ class Wizcard(models.Model):
                 Q(requests_to__status=verbs.ACCEPTED,
                 requests_to__from_wizcard=self)| Q(user__profile__is_admin=True)))
 
+    def get_following_no_admin(self):
+        return self.get_connected_from(verbs.ACCEPTED).exclude(
+            id__in=Wizcard.objects.filter(Q(user__profile__is_admin=True)))
+
+
 
 class ContactContainer(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
