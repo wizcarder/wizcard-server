@@ -1583,7 +1583,6 @@ class ParseMsgAndDispatch(object):
                     # wizcard->r_wizcard exists previously ?
                     if rel12.status == verbs.ACCEPTED or rel12.status == verbs.PENDING:
                         to_notify = False
-                        pass
                     else:
                         # set it to pending. We'll send a notif
                         rel12.reset()
@@ -2463,7 +2462,6 @@ class ParseMsgAndDispatch(object):
             elif 'f_bizCardUrl' in c:
                 t_row.card_url = c['f_bizCardUrl']
                 t_row.save()
-
 
         if flood:
             #AA:TODO: we also must notify the owner of the update
