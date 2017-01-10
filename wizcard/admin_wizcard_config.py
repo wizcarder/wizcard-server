@@ -2,7 +2,8 @@ __author__ = 'aammundi'
 
 THUMBNAIL_IMAGE_PATH = "test/bizcard.jpeg"
 VIDEO_URL = "https://youtu.be/QujpdmsXAb4"
-BIZCARD_IMAGE_PATH = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/wizcard_admin/bizcard.jpeg"
+#BIZCARD_IMAGE_PATH = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/wizcard_admin/bizcard.jpeg"
+BIZCARD_IMAGE_PATH = "test/bizcard.jpeg"
 
 ext_fields = {
     'Facebook': "https://www.facebook.com/getwizcard/#",
