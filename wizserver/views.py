@@ -1615,9 +1615,14 @@ class ParseMsgAndDispatch(object):
                     if rel21.status == verbs.ACCEPTED:
                         from_notify = False
                     else:
+                        # Handles both deleted and again trying to connect
+                        if rel21.status == verbs.DELETED:
+                            conn_status = verbs.WIZREQ_T_HALF[0]
+                        else:
+                            # Handles 2 invites going out simultaneously like both pressing invite to connect
+                            conn_status = verbs.WIZREQ_T[0]
                         # set it to accepted. We'll send a notif
                         rel21.set_context(cctx2)
-                        conn_status = verbs.WIZREQ_T[0]
                         rel21.accept()
                 else:
                     # create and accept implicitly wizcard2->wizcard1
