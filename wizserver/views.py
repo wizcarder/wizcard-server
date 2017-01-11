@@ -1614,7 +1614,6 @@ class ParseMsgAndDispatch(object):
                 if rel21:
                     if rel21.status == verbs.ACCEPTED:
                         from_notify = False
-                        pass
                     else:
                         # set it to accepted. We'll send a notif
                         rel21.set_context(cctx2)

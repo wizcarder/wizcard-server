@@ -23,7 +23,7 @@ class Command(BaseCommand):
         # create a Wizcard and attach to admin user
         wizcard, created = Wizcard.objects.get_or_create(
             user=admin_user,
-            defaults = admin_wizcard_config.w
+            defaults=admin_wizcard_config.w
         )
 
         if not created:
