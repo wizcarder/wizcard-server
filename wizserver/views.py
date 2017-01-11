@@ -983,7 +983,7 @@ class ParseMsgAndDispatch(object):
             wizcard.thumbnailImage.save(upfile.name, upfile)
             modify = True
 
-        if 'videoUrl' in self.sender and self.sender['videoUrl']:
+        if 'videoUrl' in self.sender:
             wizcard.videoUrl = self.sender['videoUrl']
             modify = True
 
