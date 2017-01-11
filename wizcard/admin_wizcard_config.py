@@ -13,7 +13,8 @@ ext_fields = {
     'Facebook': "https://www.facebook.com/getwizcard/#",
     'Twitter': 'https://twitter.com/wizcarder',
     'LinkedIn': 'https://www.linkedin.com/in/wizcard-administrator-2a866696',
-    'Web': 'http://www.getwizcard.com'
+    'Web': 'http://www.getwizcard.com',
+    'about_me': "Hi. I need more material"
 }
 
 w = {
