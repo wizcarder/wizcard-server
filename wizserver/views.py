@@ -1615,9 +1615,12 @@ class ParseMsgAndDispatch(object):
                     if rel21.status == verbs.ACCEPTED:
                         from_notify = False
                     else:
-                        # Handles both deleted and again trying to connect
+                        # Handles one side deleted or both deleted and again trying to connect
                         if rel21.status == verbs.DELETED:
-                            conn_status = verbs.WIZREQ_T_HALF[0]
+                            if rel12.status == verbs.ACCEPTED:
+                                conn_status = verbs.WIZREQ_T[0]
+                            else:
+                                conn_status = verbs.WIZREQ_T_HALF[0]
                         else:
                             # Handles 2 invites going out simultaneously like both pressing invite to connect
                             conn_status = verbs.WIZREQ_T[0]
