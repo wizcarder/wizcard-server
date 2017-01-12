@@ -64,11 +64,7 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        try:
-            pdispatch.dispatch()
-        except:
-            client.captureException()
-            pdispatch.response.error_response(err.INTERNAL_ERROR)
+        pdispatch.dispatch()
 
         #send response
         return pdispatch.response.respond()
@@ -1733,9 +1729,13 @@ class ParseMsgAndDispatch(object):
 
                     elif rel21.status == verbs.DECLINED or \
                                     rel21.status == verbs.DELETED:
+                        # This is to handle cases where its deleted but invite sent again through SMS or email
+                        if rel12.status == verbs.PENDING:
+                            conn_status = verbs.WIZREQ_T_HALF[0]
+                        else:
                         # if declined/deleted, follower-d case, full card can be added
-                        rel21.set_context(cctx2)
-                        rel21.accept()
+                            rel21.set_context(cctx2)
+                            rel21.accept()
 
                         notify.send(wizcard.user, recipient=self.user,
                                     verb=verbs.WIZREQ_T[0],
@@ -2115,6 +2115,7 @@ class ParseMsgAndDispatch(object):
         #Do ocr stuff
         ocr = OCR()
         result = ocr.process(path)
+        pdb.set_trace()
         if result.has_key('errno'):
             self.response.error_response(result)
             logging.error(result['str'])
