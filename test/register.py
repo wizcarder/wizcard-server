@@ -5,16 +5,16 @@
 # Standard imports
 import httplib
 import sys
-import json
 import pdb
 import messages
 from notifications import NotifParser
 import random
 import string
-import pprint
 proj_path="."
 sys.path.append(proj_path)
 from wizcard import settings
+import libtest
+from libtest import send_request, handle_response
 
 
 TEST_IMAGE=False
@@ -82,39 +82,22 @@ server_url = "localhost"
 #server_port = 80
 server_port = 8000
 
-test_image_path = "test/photo.JPG"
-ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
 # Open the connection to Wiz server
 conn = httplib.HTTPConnection(server_url, server_port)
 
 #send edit_cards for each
 if TEST_IMAGE:
-    f = open(test_image_path, 'rb')
+    f = open(libtest.test_image_path, 'rb')
     cc_out = f.read().encode('base64')
 else:
     cc_out = None
 
 if OCR_FLAG:
-    f = open(ocr_image_path, 'rb')
+    f = open(libtest.ocr_image_path, 'rb')
     ocr_out = f.read().encode('base64')
 else:
     ocr_out = None
 
-
-def send_request(conn, req):
-    print("Sending ", req['header']['msgType'])
-    pprint.pprint(req)
-    jreq = json.dumps(req)
-    conn.request("POST", "", jreq)
-
-def handle_response(conn, msg_type):
-    res = conn.getresponse()
-    print res.status, res.reason
-    objs = res.read()
-    objs = json.loads( objs )
-    print "received respone for Message: ", msg_type
-    print json.dumps(objs, sort_keys = True, indent = 2)
-    return objs
 
 reqmsg = messages.phone_check_req
 reqmsg['header']['deviceID'] = DEVICE_ID1
@@ -158,7 +141,7 @@ reqmsg['sender']['responseMode'] = 'sms'
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 # this one should be an error
-objs = handle_response(conn, reqmsg['header']['msgType'])
+objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
 
 reqmsg = messages.phone_check_resp
 reqmsg['header']['deviceID'] = DEVICE_ID1
@@ -510,7 +493,7 @@ reqmsg['receiver']['receiverType'] = "sms"
 reqmsg['receiver']['receiverIDs'] = [messages.SELF_PHONE]
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
 
 # Self invite + some other number - Shouldnt  throw an error and silently pass
 reqmsg = messages.send_asset_to_xyz
@@ -1079,9 +1062,8 @@ reqmsg['sender']['wizUserID'] = wuid1
 reqmsg['sender']['videoUrl'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
 #clean all rolodexes
-
 
 
 
