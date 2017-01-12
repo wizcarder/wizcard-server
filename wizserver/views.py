@@ -1734,14 +1734,17 @@ class ParseMsgAndDispatch(object):
                                     rel21.status == verbs.DELETED:
                         # This is to handle cases where its deleted but invite sent again through SMS or email
                         if rel12.status == verbs.PENDING:
+                            rel21.status = verbs.ACCEPTED
+                            rel21.save()
                             conn_status = verbs.WIZREQ_T_HALF[0]
                         else:
                         # if declined/deleted, follower-d case, full card can be added
                             rel21.set_context(cctx2)
                             rel21.accept()
+                            conn_status = verbs.WIZREQ_T[0]
 
                         notify.send(wizcard.user, recipient=self.user,
-                                    verb=verbs.WIZREQ_T[0],
+                                    verb=conn_status,
                                     target=wizcard,
                                     action_object=rel21)
                     else:
