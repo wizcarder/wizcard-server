@@ -2192,7 +2192,7 @@ class ParseMsgAndDispatch(object):
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
                 location_str = ""
             cctx = ConnectionContext(
-		asset_obj = deadcard,
+                asset_obj = deadcard,
                 location=location_str
             )
             deadcard.set_context(cctx)
@@ -2224,7 +2224,6 @@ class ParseMsgAndDispatch(object):
                 deadcard.title = cc_e['title']
             if cc_e.has_key('web'):
                 deadcard.web = cc_e['web']
-
 
         if inviteother:
             receiver_type = "email"
