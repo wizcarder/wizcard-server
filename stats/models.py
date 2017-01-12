@@ -76,14 +76,14 @@ class StatsMgr(models.Manager):
 
     def inc_ocr_dead(self, user_stats, global_stats):
         user_stats.ocr_dead += 1
-        global_stats += 1
+        global_stats.ocr_dead += 1
 
         user_stats.save()
         global_stats.save()
 
     def inc_ocr_dead_edit(self, user_stats, global_stats):
         user_stats.ocr_dead_edit += 1
-        global_stats += 1
+        global_stats.ocr_dead_edit += 1
 
         user_stats.save()
         global_stats.save()
