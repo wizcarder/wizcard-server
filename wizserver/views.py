@@ -64,8 +64,11 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        pdispatch.dispatch()
-
+        try:
+            pdispatch.dispatch()
+        except:
+            client.captureException()
+            pdispatch.response.error_response(err.INTERNAL_ERROR)
         #send response
         return pdispatch.response.respond()
 
@@ -2115,7 +2118,6 @@ class ParseMsgAndDispatch(object):
         #Do ocr stuff
         ocr = OCR()
         result = ocr.process(path)
-        pdb.set_trace()
         if result.has_key('errno'):
             self.response.error_response(result)
             logging.error(result['str'])
