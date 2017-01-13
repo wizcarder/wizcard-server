@@ -43,7 +43,7 @@ elif RUNENV == 'test':
             'NAME': 'wizcard',
             'USER': 'wizuser',
             'PASSWORD': 'gowizcard',
-            'HOST': 'wizcard-prod-in.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+            'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
         }
     }
 elif RUNENV == 'stage':
