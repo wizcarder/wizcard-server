@@ -85,8 +85,9 @@ class LocationMgr(models.Model):
     def delete_from_tree(self):
         tsc = TreeStateClient()
         val = tsc.tree_delete(
-			key=wizlib.modified_key(self.key, self.pk),
-			tree_type=self.tree_type)
+            key=wizlib.modified_key(self.key, self.pk),
+            tree_type=self.tree_type)
+
         logger.debug('deleted from tree: [{%s}.{%s}]', self.tree_type, self.key)
         return val
 

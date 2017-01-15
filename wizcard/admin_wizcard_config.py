@@ -14,7 +14,7 @@ ext_fields = {
     'Twitter': 'https://twitter.com/wizcarder',
     'LinkedIn': 'https://www.linkedin.com/in/wizcard-administrator-2a866696',
     'Web': 'http://www.getwizcard.com',
-    'about_me': "Hi. I need more material"
+    'about_me': "I believe when people meet, they should be able to exchange more that just a piece of Dead paper. They should be able to announce their persona - What I call WizCard. An “Alive” digital expression of ‘who you are’.  I help WizCarders like you Discover, exchange and connect with “Things” around you. I hope to get better as I grow up. I also hope you will help spread the Green Word. Happy WizCarding."
 }
 
 w = {
