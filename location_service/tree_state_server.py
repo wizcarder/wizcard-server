@@ -86,7 +86,11 @@ class TreeServer(RabbitServer):
         args = json.loads(body)
         fn = args.pop('fn')
         rpc = args.pop('rpc', False)
-        response = self.call_handles[fn](**args)
+        try:
+            response = self.call_handles[fn](**args)
+        except:
+            pass
+            # TODO: send it to sentry
 
 
         if rpc:
