@@ -88,18 +88,17 @@ class TreeServer(RabbitServer):
         rpc = args.pop('rpc', False)
         try:
             response = self.call_handles[fn](**args)
+
+            if rpc:
+                logger.info('Received RPC:%s type %s, response: %s', rpc, fn, response)
+                ch.basic_publish(exchange="",
+                             routing_key=props.reply_to,
+                             properties=pika.BasicProperties(correlation_id = \
+                                                             props.correlation_id),
+                             body=json.dumps(response))
         except:
             pass
-            # TODO: send it to sentry
-
-
-        if rpc:
-            logger.info('Received RPC:%s type %s, response: %s', rpc, fn, response)
-            ch.basic_publish(exchange="",
-                         routing_key=props.reply_to,
-                         properties=pika.BasicProperties(correlation_id = \
-                                                         props.correlation_id),
-                         body=json.dumps(response))
+            # TODO: Need to raise to sentry
 
         self.acknowledge_message(basic_deliver.delivery_tag)
 
