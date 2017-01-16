@@ -10,6 +10,7 @@ from base.db import WizcardDB
 from rabbit_service.server import RabbitServer
 from wizcard import settings
 from rabbit_service.rconfig import TREE_SERVER_CONFIG
+from raven.contrib.django.raven_compat.models import client
 import pika
 
 import json
@@ -227,4 +228,7 @@ def main():
             ts.stop()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except:
+        client.captureException()
