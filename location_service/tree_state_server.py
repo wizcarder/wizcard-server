@@ -98,8 +98,7 @@ class TreeServer(RabbitServer):
                                                              props.correlation_id),
                              body=json.dumps(response))
         except:
-            pass
-            # TODO: Need to raise to sentry
+            client.captureException()
 
         self.acknowledge_message(basic_deliver.delivery_tag)
 
