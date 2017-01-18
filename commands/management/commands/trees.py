@@ -13,7 +13,7 @@ class Command(BaseCommand):
         parser.add_argument('type', nargs='+', type=str)
 
     def handle(self, *args, **options):
-        tree_type=options['tree_type'] if 'type' in options else None
+        tree_type=options['type'] if 'type' in options else None
 
         tsc = TreeStateClient()
         tsc.print_trees(tree_type=tree_type)

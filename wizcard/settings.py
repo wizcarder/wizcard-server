@@ -7,7 +7,7 @@ from wizcard import instances
 RUNENV = os.getenv('WIZRUNENV', 'dev')
 
 APP_MAJOR = 1
-APP_MINOR = 8
+APP_MINOR = 9
 
 DEBUG = False
 if RUNENV != 'prod':

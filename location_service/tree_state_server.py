@@ -10,6 +10,7 @@ from base.db import WizcardDB
 from rabbit_service.server import RabbitServer
 from wizcard import settings
 from rabbit_service.rconfig import TREE_SERVER_CONFIG
+from raven.contrib.django.raven_compat.models import client
 import pika
 
 import json
@@ -86,16 +87,18 @@ class TreeServer(RabbitServer):
         args = json.loads(body)
         fn = args.pop('fn')
         rpc = args.pop('rpc', False)
-        response = self.call_handles[fn](**args)
+        try:
+            response = self.call_handles[fn](**args)
 
-
-        if rpc:
-            logger.info('Received RPC:%s type %s, response: %s', rpc, fn, response)
-            ch.basic_publish(exchange="",
-                         routing_key=props.reply_to,
-                         properties=pika.BasicProperties(correlation_id = \
-                                                         props.correlation_id),
-                         body=json.dumps(response))
+            if rpc:
+                logger.info('Received RPC:%s type %s, response: %s', rpc, fn, response)
+                ch.basic_publish(exchange="",
+                             routing_key=props.reply_to,
+                             properties=pika.BasicProperties(correlation_id = \
+                                                             props.correlation_id),
+                             body=json.dumps(response))
+        except:
+            client.captureException()
 
         self.acknowledge_message(basic_deliver.delivery_tag)
 
@@ -227,4 +230,7 @@ def main():
             ts.stop()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except:
+        client.captureException()
