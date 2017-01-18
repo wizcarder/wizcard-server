@@ -12,6 +12,7 @@ from wizserver import verbs
 from location_service.tree_state_client import TreeStateClient
 
 logger = logging.getLogger(__name__)
+NEARBY_THRESHOLD = 15
 
 
 class LocationMgrManager(models.Manager):
@@ -38,9 +39,14 @@ class LocationMgrManager(models.Manager):
 
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
-            heapq.heappush(h, (l.distance_from(lat, lng), l.object_id))
+            distance = int(l.distance_from(lat,lng) / 1000)
+            if distance < NEARBY_THRESHOLD:
+                heapq.heappush(h, (distance, l.object_id))
 
         h_result = heapq.nsmallest(n, h)
+        count = 0
+        if h_result:
+            count = len(h_result)
         return [r[1] for r in h_result], count
 
 class LocationMgr(models.Model):
