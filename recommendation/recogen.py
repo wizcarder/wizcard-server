@@ -106,7 +106,7 @@ class RecoModel(object):
             logger.info("Updated score for " + self.recotarget.username + " " + str(finalscore))
             recuser.save()
         except:
-            logger.error("Exception in get_or_Create: content_type=%s, reco_object_id = %s, recuser = %d, recnew = %d" % (ContentType.objects.get(model=rectype), str(object_id), recuser.id, recnew.id))
+            logger.error("Exception in get_or_Create: content_type=%s, reco_object_id = %s" % (ContentType.objects.get(model=rectype), str(object_id)))
         return newreco
 
 
