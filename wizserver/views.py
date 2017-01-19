@@ -746,8 +746,8 @@ class ParseMsgAndDispatch(object):
                 if 'deadcards' in s:
                     self.response.add_data("deadcards", s["deadcards"])
 
-        self.userprofile.activated = True
-        self.userprofile.do_sync = False
+                self.userprofile.activated = True
+            self.userprofile.do_sync = False
         self.userprofile.save()
 
         return self.response
