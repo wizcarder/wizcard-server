@@ -733,6 +733,7 @@ class ParseMsgAndDispatch(object):
             s = self.userprofile.do_resync()
             if 'wizcard' in s:
                 self.response.add_data("wizcard", s['wizcard'])
+                self.response.add_data("wizcard", s['wizcard'])
                 if 'wizconnections' in s:
                     self.response.add_data("rolodex", s['wizconnections'])
                 if 'context' in s:
@@ -2100,6 +2101,8 @@ class ParseMsgAndDispatch(object):
         except ObjectDoesNotExist:
             #this is the expected case
             wizcard = Wizcard(user=self.user)
+            self.userprofile.activated = True
+            self.userprofile.save()
             wizcard.save()
 
         c = ContactContainer.objects.create(wizcard=wizcard)
