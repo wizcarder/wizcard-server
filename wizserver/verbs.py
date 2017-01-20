@@ -279,8 +279,8 @@ gcm_notification_dictionary = {
         'body': '{0.first_name} {0.last_name} has an updated wizcard',
     },
     WIZCARD_RECO_READY[0]: {
-        'title' : 'New Recommendations Ready',
-        'body': 'You have New Recommendations ready',
+        'title' : 'Wizcard - New Recommendations waiting for you',
+        'body': 'Wizcard - New Recommendations waiting for you ',
     }
 
 }
