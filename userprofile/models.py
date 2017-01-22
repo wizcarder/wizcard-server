@@ -314,6 +314,7 @@ class FutureUser(models.Model):
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     objects = FutureUserManager()
 

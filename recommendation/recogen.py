@@ -54,7 +54,7 @@ ALLRECO = 2
 
 # Interval between running recommendations fully
 
-MIN_RECOS_FOR_PUSH_NOTIF = 0
+MIN_RECOS_FOR_PUSH_NOTIF = 3
 
 
 
@@ -85,25 +85,28 @@ class RecoModel(object):
 
     def putReco(self, rectype, score, object_id):
         newreco = 0
-        recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
+        try:
+            recnew, created = Recommendation.objects.get_or_create(reco_content_type=ContentType.objects.get(model=rectype),
                                                                reco_object_id=object_id)
 
-        recuser, ucreated = UserRecommendation.objects.get_or_create(user=self.recotarget, reco=recnew)
+            recuser, ucreated = UserRecommendation.objects.get_or_create(user=self.recotarget, reco=recnew)
 
-        if ucreated:
-            recuser.useraction = 3
-            recuser.save()
-            newreco = 1
+            if ucreated:
+                recuser.useraction = 3
+                recuser.save()
+                newreco = 1
 
-        recmeta, mcreated = RecommenderMeta.objects.get_or_create(recomodel=self.recomodel, userrecommend=recuser)
-        recmeta.modelscore = score
-        recmeta.save()
+            recmeta, mcreated = RecommenderMeta.objects.get_or_create(recomodel=self.recomodel, userrecommend=recuser)
+            recmeta.modelscore = score
+            recmeta.save()
         
         #Update scores across all recommendations for this UserRecommendation object
 
-        finalscore = recuser.updateScore()
-        logger.info("Updated score for " + self.recotarget.username + " " + str(finalscore))
-        recuser.save()
+            finalscore = recuser.updateScore()
+            logger.info("Updated score for " + self.recotarget.username + " " + str(finalscore))
+            recuser.save()
+        except:
+            logger.error("Exception in get_or_Create: content_type=%s, reco_object_id = %s" % (ContentType.objects.get(model=rectype), str(object_id)))
         return newreco
 
 
@@ -301,7 +304,7 @@ class RecoRunner(RabbitServer):
         newreco += self.run_wizreco(tuser)
         self.updateRecoTime(tuser)
         self.updateRecoCount(tuser,newreco)
-        if newreco > MIN_RECOS_FOR_PUSH_NOTIF:
+        if newreco >= MIN_RECOS_FOR_PUSH_NOTIF:
             notify.send(tuser, recipient=tuser,
                     verb=verbs.WIZCARD_RECO_READY[0],
                     target=tuser.wizcard,onlypush=True)
