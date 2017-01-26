@@ -297,11 +297,11 @@ class Wizcard(models.Model):
         return None
 
     def wizconnection_count(self):
-        return self.wizconnections.count()
+        return self.get_connections().count()
     wizconnection_count.short_description = _(u'Cards count')
 
     def wizconnection_summary(self, count=7):
-        wizconnection_list = self.wizconnections.all().select_related(depth=1)[:count]
+        wizconnection_list = self.get_connections().all().select_related()[:count]
         return u'[%s%s]' % (u', '.join(unicode(f.user) for f in wizconnection_list),
                             u', ...' if self.wizconnection_count() > count else u'')
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
