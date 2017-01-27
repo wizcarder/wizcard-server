@@ -22,50 +22,99 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-if RUNENV == 'dev':
-    DATABASES = {
-        'default': {
-            #'ENGINE': 'django.db.backends.mysql',
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'wizcard-dev',
-            'USER': 'kappu',
-            'PASSWORD': '',
-            'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
-             'PORT': '5432',
-            # 'CONN_MAX_AGE' : 60,
+WIZCARD_SETTINGS = {
+    # env: setting
+    'dev': {
+        'databases': {
+            'default': {
+                #'ENGINE': 'django.db.backends.mysql',
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard-dev',
+                'USER': 'kappu',
+                'PASSWORD': '',
+                'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+                 'PORT': '5432',
+                # 'CONN_MAX_AGE' : 60,
+            }
+        },
+        'caches': {
+            'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'default-cache'
+            }
+        },
+        'raven_config': {
+            'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
         }
+    },
+    'test': {
+        'databases': {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard',
+                'USER': 'wizuser',
+                'PASSWORD': 'gowizcard',
+                'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+            }
+        },
+        'caches': {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+                'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
+            }
+        },
+        'raven_config': {
+            'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
+        }
+    },
+    'stage': {
+        'default': {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard-prod',
+                'USER': 'wizuser',
+                'PASSWORD': 'gowizcard',
+                'HOST': 'wizcard-prod-clone.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+            }
+        },
+        'caches': {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+                'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
+            }
+        },
+        'raven_config': {
+            'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
+        }
+    },
+    'prod': {
+        'databases': {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard-prod',
+                'USER': 'wizuser',
+                'PASSWORD': 'gowizcard',
+                'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+            }
+        },
+        'caches': {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+                'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
+            }
+        },
+        'raven_config': {
+            'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@sentry.io/87350'
+        }
+    }
+}
 
-    }
-elif RUNENV == 'test':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'wizcard',
-            'USER': 'wizuser',
-            'PASSWORD': 'gowizcard',
-            'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
-        }
-    }
-elif RUNENV == 'stage':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'wizcard-prod',
-            'USER': 'wizuser',
-            'PASSWORD': 'gowizcard',
-            'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
-        }
-    }
-elif RUNENV == 'prod':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'wizcard-prod',
-            'USER': 'wizuser',
-            'PASSWORD': 'gowizcard',
-            'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
-        }
-    }
+DATABASES = WIZCARD_SETTINGS[RUNENV]['databases']
+CACHES = WIZCARD_SETTINGS[RUNENV]['caches']
+
+# RAVEN config for Sentry
+RAVEN_CONFIG = WIZCARD_SETTINGS[RUNENV]['raven_config']
+
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -131,7 +180,7 @@ SECRET_KEY = 'lj*=)*k$_^rx3bs+22=*og)d=eh)(jdc4df!q5=b!%&amp;0kskuad'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+#   'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -144,29 +193,6 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
-
-# Setup caching per Django docs. In actuality, you'd probably use memcached instead of local memory.
-if RUNENV == 'dev':
-    CACHES = {
-     'default': {
-         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-         'LOCATION': 'default-cache'
-     }
-    }
-elif RUNENV == 'test':
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
-        }
-    }
-elif RUNENV == 'prod':
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
-        }
-    }
 
 
 DEFAULT_MAX_LOOKUP_RESULTS = 20
@@ -241,7 +267,6 @@ PHONE_CHECK_MESSAGE = {
         'to':None,
         'text':""
     }
-
 
 #number of per user notifs we want to process per get
 NOTIF_BATCH_SIZE = 10
@@ -423,11 +448,11 @@ LOGGING = {
         },
     },
     'loggers': {
-	    'django': {
-	        'level':'DEBUG',
-	        'handlers': ['timed-log-file'],
-	        'propagate': False,
-	    },
+        'django': {
+            'level':'DEBUG',
+            'handlers': ['timed-log-file'],
+            'propagate': False,
+        },
         #AA TODO: Need to figure this out. Sentry logging still not working
         'raven': {
             'level': 'ERROR',
@@ -441,7 +466,7 @@ LOGGING = {
         },
         'wizserver': {
             'level': 'DEBUG',
-	        'handlers': ['console', 'watched-log-file'],
+            'handlers': ['console', 'watched-log-file'],
             'propagate': False,
         },
 
@@ -450,29 +475,13 @@ LOGGING = {
 
 APP_ID = 'com.beta.wizcard'
 PYAPNS_CONFIG = {
-  'HOST': 'http://localhost:7077/',
-  'TIMEOUT': 1,                    # OPTIONAL, host timeout in seconds
-  'INITIAL': [                      # OPTIONAL, see below
-    #('com.beta.wizcard', open('./certs/wizcard_ios_apns_dev.pem').read(), 'sandbox'),
+    'HOST': 'http://localhost:7077/',
+    'TIMEOUT': 1,                    # OPTIONAL, host timeout in seconds
+    'INITIAL': [                      # OPTIONAL, see below
+    #  ('com.beta.wizcard', open('./certs/wizcard_ios_apns_dev.pem').read(), 'sandbox'),
     ('com.beta.wizcard', open('./certs/wizcard_ios_apns_production.pem').read(), 'production'),
   ]
 }
-
-# RAVEN config for Sentry
-if RUNENV == "prod":
-    RAVEN_CONFIG = {
-    #for new AWS prod
-        'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@sentry.io/87350'
-    }
-elif RUNENV == "stage" :
-    RAVEN_CONFIG = {
-        'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
-    }
-elif RUNENV == "test":
-    RAVEN_CONFIG = {
-		'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
-	}
-
 
 GCM_API_KEY = 'AIzaSyAz_uc7MiPtC_JK1ZjurpsdxxDlfPAy4-c'
 SHORTEN_API_KEY = 'AIzaSyBiw4HSRUb8VlR5oY0bLuRPTjT2G-fW8qo'
@@ -485,8 +494,7 @@ TEMPLATE_DIRS = (
             os.path.join(SETTINGS_PATH, 'templates'),
             )
 
-#RECOMMENDATION SETTINGS
-
+# RECOMMENDATION SETTINGS
 # In minutes - Interval to check for recommendation for trigger and full
 FULL_RECO_GEN_INTERVAL = 5
 
