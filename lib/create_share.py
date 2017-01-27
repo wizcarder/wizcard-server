@@ -26,7 +26,16 @@ def create_template(wizcard):
     image_url = wizcard.get_thumbnail_url()
     if image_url:
         response = requests.get(image_url)
-        thumbimg = Image.open(StringIO(response.content))
+        thumbimg = Image.open(StringIO.StringIO(response.content))
+        wid, hei = thumbimg.size
+    #    if  wid != 80:
+        thumbimg = thumbimg.resize((90, 90), Image.ANTIALIAS)
+        size = (90, 90)
+        mask = Image.new('L', size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0) + size, fill=255)
+        thumbimg = ImageOps.fit(thumbimg, mask.size, centering=(0.5, 0.5))
+        thumbimg.putalpha(mask)
 
 #    data = {"name" : wizcard.first_name + " " + wizcard.last_name, "company": wizcard.get_latest_company(), "title" : wizcard.get_latest_title(), "email" : wizcard.email, "phone" : wizcard.phone}
     data = {"name" : smart_str(wizcard.first_name) + " " + smart_str(wizcard.last_name), "company": smart_str(wizcard.get_latest_company()), "title" : smart_str(wizcard.get_latest_title()), "email" : smart_str(wizcard.email), "phone" : smart_str(wizcard.phone)}
@@ -47,7 +56,7 @@ def create_template(wizcard):
     im_bg = Image.new(mode='RGBA', size=im_sz, color=(255, 255, 255, 230))
     im_bg.paste(im, (0, 0), 0)
     if image_url:
-        im_bg.paste(thumbimg, (144, 160), 255)
+        im_bg.paste(thumbimg, (101, 160), 0)
 
     draw = ImageDraw.Draw(im_bg)
 
