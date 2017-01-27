@@ -13,6 +13,7 @@ from wizcard import settings
 from PIL import Image,ImageFont, ImageDraw
 from lib.ses import Email
 import vobject
+import requests
 import pdb
 now = timezone.now
 
@@ -23,8 +24,9 @@ def create_template(wizcard):
     resource = storage.open(settings.EMAIL_TEMPLATE)
 
     image_url = wizcard.get_thumbnail_url()
-    response = requests.get(image_url)
-    thumbimg = Image.open(StringIO(response.content))
+    if image_url:
+        response = requests.get(image_url)
+        thumbimg = Image.open(StringIO(response.content))
 
 #    data = {"name" : wizcard.first_name + " " + wizcard.last_name, "company": wizcard.get_latest_company(), "title" : wizcard.get_latest_title(), "email" : wizcard.email, "phone" : wizcard.phone}
     data = {"name" : smart_str(wizcard.first_name) + " " + smart_str(wizcard.last_name), "company": smart_str(wizcard.get_latest_company()), "title" : smart_str(wizcard.get_latest_title()), "email" : smart_str(wizcard.email), "phone" : smart_str(wizcard.phone)}
@@ -44,7 +46,8 @@ def create_template(wizcard):
     im_sz = im.size
     im_bg = Image.new(mode='RGBA', size=im_sz, color=(255, 255, 255, 230))
     im_bg.paste(im, (0, 0), 0)
-    im_bg.paste(thumbimg, (144, 160), 255)
+    if image_url:
+        im_bg.paste(thumbimg, (144, 160), 255)
 
     draw = ImageDraw.Draw(im_bg)
 
