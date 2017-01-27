@@ -206,6 +206,7 @@ class Wizcard(models.Model):
     emailTemplate = WizcardQueuedFileField(upload_to="invites",
             storage=WizcardQueuedS3BotoStorage(delayed=False))
     smsurl = URLField(blank=True)
+    vcard = models.TextField(blank=True)
 
     objects = WizcardManager()
 
@@ -266,6 +267,7 @@ class Wizcard(models.Model):
     def get_smsurl(self):
         return self.smsurl
 
+
     def followed_status_string(self):
         return "followed"
 
@@ -279,6 +281,11 @@ class Wizcard(models.Model):
         self.emailTemplate.save(obj.name, obj)
         self.save_smsurl(self.get_email_template_url())
 
+    def save_vcard(self,vobj):
+        self.vcard = vobj
+        self.save()
+
+
     def get_name(self):
         return self.first_name + " " + self.last_name
 
@@ -289,6 +296,10 @@ class Wizcard(models.Model):
     @property
     def get_extFields(self):
         return self.extFields
+
+    @property
+    def get_vcard(self):
+        return self.vcard
 
     def get_latest_title(self):
         qs = self.contact_container.all()

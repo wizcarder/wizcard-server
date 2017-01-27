@@ -59,3 +59,4 @@ phonenumbers
 boto3
 pyshorteners
 ffprobe
+vobject

@@ -6,7 +6,8 @@ from virtual_table.models import VirtualTable
 from userprofile.models import UserProfile
 from base.cctx import NotifContext
 from django.http import HttpResponse
-from wizcard.celery import client
+#from wizcard.celery import client
+from raven.contrib.django.raven_compat.models import client
 import logging
 import fields
 import json

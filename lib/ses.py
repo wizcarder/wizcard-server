@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+#from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMessage
 from django.template  import Template,Context
 from django.template.loader import render_to_string
 import pdb
@@ -24,17 +25,21 @@ class Email(object):
     def text(self, emailtemplate, context):
         self._text = self._render(emailtemplate, context)
 
-    def send(self, from_addr=None, fail_silently=False):
+    def send(self, from_addr=None, fail_silently=False,attach=None):
         if isinstance(self.to, basestring):
             self.to = [self.to]
         if not from_addr:
             from_addr = getattr(settings, 'EMAIL_FROM_ADDR')
-        msg = EmailMultiAlternatives(
+        msg = EmailMessage(
                 self.subject,
-                self._text,
+                self._html,
                 from_addr,
                 self.to
                 )
-        if self._html:
-            msg.attach_alternative(self._html, 'text/html')
+        msg.content_subtype = 'html'
+
+        #msg.attach_alternative(self._html, 'text/html')
+        if attach:
+            msg.attach(attach['name'],attach['data'], attach['mime'])
+
         msg.send(fail_silently)

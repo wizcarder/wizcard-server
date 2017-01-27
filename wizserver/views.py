@@ -33,7 +33,7 @@ from userprofile.models import UserProfile
 from userprofile.models import AddressBook, AB_Candidate_Emails, AB_Candidate_Phones, AB_Candidate_Names, AB_User
 from userprofile.models import FutureUser
 from lib import wizlib, noembed
-from lib.email_invite import create_template, sendmail
+from lib.create_share import create_template, sendmail, create_vcard
 from wizcard import err
 from dead_cards.models import DeadCards
 from wizserver import fields
@@ -64,11 +64,11 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        try:
-            pdispatch.dispatch()
-        except:
-            client.captureException()
-            pdispatch.response.error_response(err.INTERNAL_ERROR)
+        #try:
+        pdispatch.dispatch()
+        #except:
+        #    client.captureException()
+        #    pdispatch.response.error_response(err.INTERNAL_ERROR)
         #send response
         return pdispatch.response.respond()
 
@@ -1081,7 +1081,10 @@ class ParseMsgAndDispatch(object):
                 target=admin_user.wizcard,
                 action_object=rel21)
 
-        create_template.delay(wizcard.pk)
+        create_template.delay(wizcard)
+        vcard = create_vcard(wizcard)
+        if vcard:
+            wizcard.save_vcard(vcard)
 
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response
@@ -1805,14 +1808,24 @@ class ParseMsgAndDispatch(object):
     def GetCommonConnections(self):
         MAX_L1_LIST_VIEW = 3
 
+        common_conns = cache.get()
+
         try:
             wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
             wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            cache_key = str(wizcard1.id) + ":" + str(wizcard2.id)
+            common_s = cache.get(cache_key)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
         full = self.sender.get('full', False)
+
+        if common_conns:
+            self.response.add_data("total", common_s)
+            return self.response
+
+        # If no cache hit then do the complex stuff:)
 
         # get common connections between the 2
         s1 = set(wizcard1.get_following_no_admin())
@@ -1823,6 +1836,7 @@ class ParseMsgAndDispatch(object):
         split = None if count < MAX_L1_LIST_VIEW or full else MAX_L1_LIST_VIEW
         if count:
             common_s = Wizcard.objects.serialize(common[:split], fields.wizcard_template_brief)
+            cache.set(cache_key,common_s)
             self.response.add_data("wizcards", common_s)
         self.response.add_data("total", count)
 
@@ -2101,6 +2115,8 @@ class ParseMsgAndDispatch(object):
         except ObjectDoesNotExist:
             #this is the expected case
             wizcard = Wizcard(user=self.user)
+            #AR: Temporary Fix, ideally we should be sending only the OCR response without creating
+            # Wizcard. Want to be sure about the implications
             self.userprofile.activated = True
             self.userprofile.save()
             wizcard.save()
