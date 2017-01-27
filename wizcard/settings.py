@@ -68,13 +68,13 @@ WIZCARD_SETTINGS = {
         }
     },
     'stage': {
-        'default': {
+        'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
                 'NAME': 'wizcard-prod',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-clone.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
             }
         },
         'caches': {
