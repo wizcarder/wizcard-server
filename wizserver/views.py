@@ -1581,11 +1581,16 @@ class ParseMsgAndDispatch(object):
                         asset_obj=wizcard,
                         connection_mode=receiver_type,
                         location=location_str)
+                rel21 = r_wizcard.get_relationship(wizcard)
+                conn_status = verbs.WIZREQ_U[0]
 
                 if rel12:
                     # wizcard->r_wizcard exists previously ?
                     if rel12.status == verbs.ACCEPTED or rel12.status == verbs.PENDING:
-                        to_notify = False
+                        if rel21 and rel21.status == verbs.PENDING:
+                            conn_status = verbs.WIZREQ_T[0]
+                        else:
+                            to_notify = False
                     else:
                         # set it to pending. We'll send a notif
                         rel12.reset()
@@ -1601,11 +1606,11 @@ class ParseMsgAndDispatch(object):
                     notify.send(
                         self.user, recipient=r_user,
                         verb=verbs.WIZREQ_T[0] if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T] else
-                        verbs.WIZREQ_U[0],
+                        conn_status,
                         target=wizcard,
                         action_object=rel12)
 
-                rel21 = r_wizcard.get_relationship(wizcard)
+
                 #Context should always have the from_wizcard and for the time being sender's location - Still debating
                 cctx2 = ConnectionContext(
                     asset_obj=r_wizcard,
