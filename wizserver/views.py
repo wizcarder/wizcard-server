@@ -1813,24 +1813,15 @@ class ParseMsgAndDispatch(object):
     def GetCommonConnections(self):
         MAX_L1_LIST_VIEW = 3
 
-        common_conns = cache.get()
 
         try:
             wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
             wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-            cache_key = str(wizcard1.id) + ":" + str(wizcard2.id)
-            common_s = cache.get(cache_key)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
         full = self.sender.get('full', False)
-
-        if common_conns:
-            self.response.add_data("total", common_s)
-            return self.response
-
-        # If no cache hit then do the complex stuff:)
 
         # get common connections between the 2
         s1 = set(wizcard1.get_following_no_admin())
@@ -1841,7 +1832,6 @@ class ParseMsgAndDispatch(object):
         split = None if count < MAX_L1_LIST_VIEW or full else MAX_L1_LIST_VIEW
         if count:
             common_s = Wizcard.objects.serialize(common[:split], fields.wizcard_template_brief)
-            cache.set(cache_key,common_s)
             self.response.add_data("wizcards", common_s)
         self.response.add_data("total", count)
 
