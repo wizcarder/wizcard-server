@@ -60,15 +60,15 @@ logger = logging.getLogger(__name__)
 class WizRequestHandler(View):
     def post(self, request, *args, **kwargs):
         self.request = request
-        #logger.debug(request)
+        logger.debug(request)
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        #try:
-        pdispatch.dispatch()
-        #except:
-        #    client.captureException()
-        #    pdispatch.response.error_response(err.INTERNAL_ERROR)
+        try:
+            pdispatch.dispatch()
+        except:
+            client.captureException()
+            pdispatch.response.error_response(err.INTERNAL_ERROR)
         #send response
         return pdispatch.response.respond()
 
