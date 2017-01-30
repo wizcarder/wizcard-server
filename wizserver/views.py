@@ -2335,7 +2335,7 @@ class ParseMsgAndDispatch(object):
         wizcard = self.user.wizcard
 
         if not wizcard.emailTemplate:
-            create_template.delay(wizcard.pk)
+            create_template.delay(wizcard)
 
         email = wizcard.emailTemplate.remote_url()
         self.response.add_data("emailTemplate", email)
