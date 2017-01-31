@@ -10,7 +10,7 @@ from django.template import Template,Context
 from django.utils.encoding import smart_str, smart_unicode
 from wizcardship.models import WizcardManager, Wizcard
 from wizcard import settings
-from PIL import Image,ImageFont, ImageDraw
+from PIL import Image,ImageFont, ImageDraw, ImageOps
 from lib.ses import Email
 import vobject
 import requests
@@ -71,7 +71,6 @@ def create_template(wizcard):
     im_bg.save(im_io, format='png')
     im_bg.close()
     im.close()
-    thumbimg.close()
     im_io.seek(0)
 
     sharefile = SimpleUploadedFile("%s-%s.png" % \
@@ -124,7 +123,7 @@ def sendmail(from_wizcard,to,template):
         subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Use WizCard and Connect"
 
     if not emailurl:
-        create_template(from_wizcard.id)
+        create_template(from_wizcard)
         emailurl = from_wizcard.emailTemplate.remote_url()
 
     email = Email(to=to, subject=subject)

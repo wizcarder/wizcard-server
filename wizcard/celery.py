@@ -16,7 +16,7 @@ wizcard_app = Celery('wizcard')
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
 wizcard_app.config_from_object('celeryconfig')
-wizcard_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS + ("lib.ocr", "lib.email_invite"))
+wizcard_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS + ("lib.ocr", "lib.create_share"))
 
 
 #if hasattr(settings, 'RAVEN_CONFIG'):
