@@ -39,7 +39,7 @@ class LocationMgrManager(models.Manager):
 
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
-            distance = int(l.distance_from(lat,lng) / 1000)
+            distance = int(l.distance_from(lat,lng) / 10000)
             if distance < NEARBY_THRESHOLD:
                 heapq.heappush(h, (distance, l.object_id))
 
