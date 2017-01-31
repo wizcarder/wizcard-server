@@ -1045,9 +1045,12 @@ class ParseMsgAndDispatch(object):
             wizcard.save()
             wizcard.flood()
 
-        if created:
+        # Check for admin user connection and create it
+        admin_user = UserProfile.objects.get_admin_user()
+        admin_conn = wizcard.get_relationship(admin_user.wizcard)
+
+        if not admin_conn:
             # connect implicitly with admin wizcard
-            admin_user = UserProfile.objects.get_admin_user()
 
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
