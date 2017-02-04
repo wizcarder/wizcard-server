@@ -162,7 +162,7 @@ def send_wizcard(from_wizcard, to, template=None):
     if sender_video:
         extfields['sender_vide'] = sender_video
 
-    subject = "%s has invited you to Connect on WizCard" % extfields['sender_name
+    subject = "%s has invited you to Connect on WizCard" % extfields['sender_name']
     if template == 'emailscan':
         subject = extfields['sender_name'] + " has scanned your Business Card"
         extfields['sender_phone'] = '***********'
