@@ -138,3 +138,43 @@ def sendmail(from_wizcard,to,template):
         attach_data = {'data':from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
 
     email.send(attach=attach_data)
+
+@shared_task
+def send_wizcard(from_wizcard, to, template=None):
+
+
+    html = "emailwizcard.html"
+
+    extfields = from_wizcard.get_extFields
+    if not extfields:
+        extfields = {}
+
+    sender_image = from_wizcard.get_thumbnail_url()
+    if sender_image:
+        extfields['sender_image'] = sender_image
+
+    extfields['sender_name'] = from_wizcard.get_name()
+    extfields['sender_org'] = from_wizcard.get_latest_company()
+    extfields['sender_title'] = from_wizcard.get_latest_title()
+    extfields['sender_phone'] = from_wizcard.phone
+    extfields['sender_email'] = from_wizcard.email
+    sender_video = from_wizcard.get_videoUrl
+    if sender_video:
+        extfields['sender_vide'] = sender_video
+
+    subject = "%s has invited you to Connect on WizCard" % extfields['sender_name
+    if template == 'emailscan':
+        subject = extfields['sender_name'] + " has scanned your Business Card"
+        extfields['sender_phone'] = '***********'
+        extfields['sender_email'] = '*****@*****.***'
+
+    elif template == 'emailscaninvite':
+        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect"
+
+    ']
+
+    email = Email(to=to, subject=subject)
+    ctx = Context(extfields)
+    email.html(html,ctx)
+    email.send()
+
