@@ -202,9 +202,6 @@ class Wizcard(models.Model):
     videoUrl = URLField(blank=True)
     videoThumbnailUrl = URLField(blank=True)
     extFields = PickledObjectField(default={}, blank=True)
-    #email template
-    emailTemplate = WizcardQueuedFileField(upload_to="invites",
-            storage=WizcardQueuedS3BotoStorage(delayed=False))
     smsurl = URLField(blank=True)
     vcard = models.TextField(blank=True)
 
@@ -273,13 +270,6 @@ class Wizcard(models.Model):
 
     def get_thumbnail_url(self):
         return self.thumbnailImage.remote_url()
-
-    def get_email_template_url(self):
-        return self.emailTemplate.remote_url()
-
-    def save_email_template(self, obj):
-        self.emailTemplate.save(obj.name, obj)
-        self.save_smsurl(self.get_email_template_url())
 
     def save_vcard(self,vobj):
         self.vcard = vobj
