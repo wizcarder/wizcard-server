@@ -169,9 +169,7 @@ def send_wizcard(from_wizcard, to, template=None):
         extfields['sender_email'] = '*****@*****.***'
 
     elif template == 'emailscaninvite':
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect"
-
-    ']
+        subject = extfields['sender_name'] + " has scanned your Card and Invited you to Connect"
 
     email = Email(to=to, subject=subject)
     ctx = Context(extfields)

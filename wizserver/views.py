@@ -2253,7 +2253,7 @@ class ParseMsgAndDispatch(object):
             receivers = [deadcard.email]
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
-                send_wizcard.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
+                #send_wizcard.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
                 deadcard.invited = True
             else:
                 self.response.error_response(err.NO_RECEIVER)
