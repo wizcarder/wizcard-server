@@ -1,9 +1,9 @@
 from django.contrib import admin
-from email_and_push_infra.models import EmailAndPush
+from models import EmailAndPush
 
 # Register your models here.
 
-class EmailAndPushAdmin:
+class EmailAndPushAdmin(admin.ModelAdmin):
     pass
 
 admin.site.register(EmailAndPush, EmailAndPushAdmin)

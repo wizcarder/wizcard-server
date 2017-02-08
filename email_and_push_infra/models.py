@@ -1,16 +1,34 @@
+"""
+.. autoclass:: EmailAndPush
+    :members:
+"""
+
 from django.db import models
 from wizcardship.models import Wizcard
+from base.emailField import EmailField
 import datetime
 
 # Create your models here.
 
 
 class EmailAndPush(models.Model):
-    wizcard = models.OneToOneField(Wizcard, related_name='email_and_push')
-    onboarding_sent = models.BooleanField(default=False)
-    pending_invite_exists = models.BooleanField(default=False)
-    pending_invites_sent = models.DateField(default=datetime.date.today)
-    new_connection_exists = models.BooleanField(default=False)
-    new_connections_sent = models.DateField(default=datetime.date.today)
-    new_recommendations_available = models.BooleanField(default=False)
-    new_recommendations_sent = models.DateField(default=datetime.date.today)
+    NEWUSER = 1
+    INVITED = 2
+    SCANNED = 3
+    NEWRECOMMENDATION = 4
+    MISSINGU = 5
+    JOINUS = 6
+    DIGEST = 7
+    EVENTS = (
+        (NEWUSER, 'NEWUSER'),
+        (INVITED, 'INVITED'),
+        (SCANNED, 'SCANNED'),
+        (NEWRECOMMENDATION, 'RECOMMENDATION'),
+        (MISSINGU, 'MISSINGU'),
+        (JOINUS, 'JOINUS'),
+        (DIGEST, 'DIGEST')
+    )
+    wizcard = models.ForeignKey(Wizcard, related_name='email_and_push')
+    event = models.PositiveSmallIntegerField(choices=EVENTS)
+    to = EmailField(blank=True)
+    last_sent = models.DateTimeField(blank=True,null=True)

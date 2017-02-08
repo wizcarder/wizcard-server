@@ -1,6 +1,7 @@
 __author__ = 'aammundi'
 
-import signals
+from models import EmailAndPush
+from lib.create_share import send_wizcard
 import pdb
 
 
@@ -8,21 +9,38 @@ import pdb
 # there needs to be a call-in into the entry function from the handler table
 
 class HtmlGen:
-    def __init__(self, wizcard, trigger):
+    def __init__(self, wizcard, trigger, to):
         self.wizcard = wizcard
         self.trigger = trigger
+        self.to = to
 
         self.emailHandlers = {
             # Key: (email handler, Push required)
-            signals.TRIGGER_NEW_USER: (self.dummy_func, False),
-            signals.TRIGGER_CONNECTION_REQUEST: (self.dummy_func, False),
-            signals.TRIGGER_PENDING_INVITE: (self.dummy_func, False),
-            signals.TRIGGER_CONNECTION_ACCEPTED: (self.dummy_func, False),
-            signals.TRIGGER_RECOMMENDATION_AVAILABLE: (self.dummy_func, False),
+            EmailAndPush.NEWUSER: (self.welcome_user, False),
+            EmailAndPush.INVITED: (self.invite_user, False),
+            EmailAndPush.NEWRECOMMENDATION: (self.dummy_func, False),
+            EmailAndPush.SCANNED: (self.scan_user, False)
         }
 
     def run(self):
-        self.emailHandlers[self.trigger][0](self.wizcard)
+        self.emailHandlers[self.trigger][0](self.wizcard, self.to)
 
     def dummy_func(self, wizcard):
         print wizcard
+
+    def welcome_user(self, wizcard, to):
+        email_details = {"template" : "welcome.html", "subject": "Welcome %s to WizCard"}
+        send_wizcard(wizcard, to, email_details)
+
+    def invite_user(self, wizcard, to):
+        email_details = {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"}
+        send_wizcard(wizcard, to,  email_details)
+
+    def scan_user(self, wizcard, to):
+        email_details = {"template" : "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}
+        send_wizcard(wizcard, to, email_details, half_card = True)
+
+
+
+
+
