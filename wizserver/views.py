@@ -34,6 +34,8 @@ from userprofile.models import AddressBook, AB_Candidate_Emails, AB_Candidate_Ph
 from userprofile.models import FutureUser
 from lib import wizlib, noembed
 from lib.create_share import send_wizcard, create_vcard
+from email_and_push_infra.models import EmailAndPush
+from email_and_push_infra.signals import email_trigger
 from wizcard import err
 from dead_cards.models import DeadCards
 from wizserver import fields
@@ -1088,6 +1090,8 @@ class ParseMsgAndDispatch(object):
         vcard = create_vcard(wizcard)
         if vcard:
             wizcard.save_vcard(vcard)
+        if created:
+            email_trigger.send(trigger=EmailAndPush.NEWUSER, wizcard=self.user.wizcard, to_email=wizcard.email)
 
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response
@@ -1774,7 +1778,8 @@ class ParseMsgAndDispatch(object):
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    send_wizcard.delay(self.user.wizcard, r)
+                    email_trigger.send(trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, to_email=r)
+                    #send_wizcard.delay(self.user.wizcard, r)
 
             else:
                 FutureUser.objects.get_or_create(
@@ -1785,7 +1790,8 @@ class ParseMsgAndDispatch(object):
                         email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    send_wizcard.delay(self.user.wizcard, r)
+                    email_trigger.send(trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, to_email=r)
+                    #send_wizcard.delay(self.user.wizcard, r)
 
     def UserQuery(self):
         try:
@@ -2259,7 +2265,8 @@ class ParseMsgAndDispatch(object):
                 self.response.error_response(err.NO_RECEIVER)
         else:
             if deadcard.activated == False:
-                send_wizcard.delay(self.user.wizcard, deadcard.email, template="emailscan")
+                #send_wizcard.delay(self.user.wizcard, deadcard.email, template="emailscan")
+                email_trigger.send(trigger=EmailAndPush.SCANNED, wizcard=self.user.wizcard, to_email=deadcard.email)
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
