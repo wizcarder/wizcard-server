@@ -1091,7 +1091,7 @@ class ParseMsgAndDispatch(object):
         if vcard:
             wizcard.save_vcard(vcard)
         if created:
-            email_trigger.send(trigger=EmailAndPush.NEWUSER, wizcard=self.user.wizcard, to_email=wizcard.email)
+            email_trigger.send(self.user,trigger=EmailAndPush.NEWUSER, wizcard=self.user.wizcard, to_email=wizcard.email)
 
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response
@@ -1778,7 +1778,7 @@ class ParseMsgAndDispatch(object):
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_trigger.send(trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, to_email=r)
+                    email_trigger.send(self.user, trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, to_email=r)
                     #send_wizcard.delay(self.user.wizcard, r)
 
             else:
@@ -1790,7 +1790,7 @@ class ParseMsgAndDispatch(object):
                         email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_trigger.send(trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, to_email=r)
+                    email_trigger.send(self.user, trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, to_email=r)
                     #send_wizcard.delay(self.user.wizcard, r)
 
     def UserQuery(self):
@@ -2266,7 +2266,7 @@ class ParseMsgAndDispatch(object):
         else:
             if deadcard.activated == False:
                 #send_wizcard.delay(self.user.wizcard, deadcard.email, template="emailscan")
-                email_trigger.send(trigger=EmailAndPush.SCANNED, wizcard=self.user.wizcard, to_email=deadcard.email)
+                email_trigger.send(self.user, trigger=EmailAndPush.SCANNED, wizcard=self.user.wizcard, to_email=deadcard.email)
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
