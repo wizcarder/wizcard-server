@@ -1091,7 +1091,7 @@ class ParseMsgAndDispatch(object):
         if vcard:
             wizcard.save_vcard(vcard)
         if created:
-            email_trigger.send(trigger=EmailAndPush.NEWUSER, wizcard=self.user.wizcard, to_email=wizcard.email)
+            email_trigger.send(trigger=EmailAndPush.NEWUSER, wizcard=self.user.wizcard, target=wizcard)
 
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response
@@ -1603,12 +1603,12 @@ class ParseMsgAndDispatch(object):
                         rel12.reset()
                         rel12.set_context(cctx1)
                 else:
-                    #create wizcard1->wizcard2
+                    # create wizcard1->wizcard2
                     rel12 = Wizcard.objects.cardit(wizcard,
                                                    r_wizcard,
                                                    status=verbs.PENDING,
                                                    cctx=cctx1)
-                #Q notif for to_wizcard
+                # Q notif for to_wizcard
                 if to_notify:
                     notify.send(
                         self.user, recipient=r_user,
@@ -1617,8 +1617,7 @@ class ParseMsgAndDispatch(object):
                         target=wizcard,
                         action_object=rel12)
 
-
-                #Context should always have the from_wizcard and for the time being sender's location - Still debating
+                # Context should always have the from_wizcard and for the time being sender's location - Still debating
                 cctx2 = ConnectionContext(
                     asset_obj=r_wizcard,
                     connection_mode=receiver_type,
@@ -1695,16 +1694,14 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def do_future_user(self, obj, receiver_type, receivers):
-        numreceivers = len(receivers)
         for r in receivers:
             # for a typed out email/sms, the user may still be in wiz
             wizcard = UserProfile.objects.check_user_exists(receiver_type, r)
 
             if wizcard:
-                # If there are more 1 receiver, its ok to fail silently otherwise throw an error
-                if numreceivers == 1 and self.user.wizcard.id == wizcard.id:
-                    self.response.error_response(err.SELF_INVITE)
-                    return self.response
+                # self check
+                if self.user.wizcard.id == wizcard.id:
+                    continue
 
                 if ContentType.objects.get_for_model(obj) == \
                         ContentType.objects.get(model="wizcard"):
@@ -1718,7 +1715,7 @@ class ParseMsgAndDispatch(object):
                                                        wizcard,
                                                        status=verbs.PENDING,
                                                        cctx=cctx1)
-                        #Q notif for to_wizcard
+                        # Q notif for to_wizcard
                         notify.send(self.user, recipient=wizcard.user,
                                     verb=verbs.WIZREQ_U[0],
                                     target=obj,
@@ -1778,9 +1775,7 @@ class ParseMsgAndDispatch(object):
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_trigger.send(trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, to_email=r)
-                    #send_wizcard.delay(self.user.wizcard, r)
-
+                    email_trigger.send(trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, target=wizcard)
             else:
                 FutureUser.objects.get_or_create(
                         inviter=self.user,
@@ -1791,7 +1786,6 @@ class ParseMsgAndDispatch(object):
                 )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
                     email_trigger.send(trigger=EmailAndPush.INVITED, wizcard=self.user.wizcard, to_email=r)
-                    #send_wizcard.delay(self.user.wizcard, r)
 
     def UserQuery(self):
         try:
