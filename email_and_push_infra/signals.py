@@ -3,7 +3,7 @@ from email_and_push_infra.models import EmailAndPush
 from html_gen_methods import HtmlGen
 from django.utils import timezone
 
-email_trigger = Signal(providing_args=['wizcard', 'trigger', 'to_email'])
+email_trigger = Signal(providing_args=['wizcard', 'trigger', 'target', 'to_email'])
 
 # Event based Triggers
 TRIGGER_NEW_USER = 1
