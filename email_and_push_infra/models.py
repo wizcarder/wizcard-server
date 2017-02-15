@@ -30,5 +30,6 @@ class EmailAndPush(models.Model):
     )
     wizcard = models.ForeignKey(Wizcard, related_name='email_and_push')
     event = models.PositiveSmallIntegerField(choices=EVENTS)
+    target = models.ForeignKey(Wizcard, blank=True)
     to = EmailField(blank=True)
-    last_sent = models.DateTimeField(blank=True,null=True)
+    last_sent = models.DateTimeField(auto_now=True)

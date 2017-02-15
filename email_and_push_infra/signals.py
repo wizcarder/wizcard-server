@@ -16,18 +16,18 @@ TRIGGER_SCAN_CARD = 5
 TRIGGER_WEEKLY_DIGEST = 11
 
 
-
 def callback(sender, **kwargs):
     trigger = kwargs.pop('trigger', None)
     wizcard = kwargs.pop('wizcard')
-    to = kwargs.pop('to_email')
+    email = kwargs.pop('to_email', None)
+    target = kwargs.pop('target', None)
 
-    eap = EmailAndPush.objects.get_or_create(wizcard=wizcard, event=trigger, to=to)
 
-    html = HtmlGen(wizcard, trigger, to)
+    eap, created = EmailAndPush.objects.get_or_create(wizcard=wizcard, event=trigger, target=target, to=email)
+
+    html = HtmlGen(wizcard, trigger, target.email)
     html.run()
-    eap[0].last_sent = timezone.now()
-    eap[0].save()
+    eap.save()
 
 
 email_trigger.connect(callback, dispatch_uid='email_and_push_infra.models.EmailAndPush')
