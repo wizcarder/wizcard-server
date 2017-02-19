@@ -1,9 +1,10 @@
 from django.dispatch import Signal
 from email_and_push_infra.models import EmailAndPush
+from email_and_push_infra.models import EmailAndPushManager
 from html_gen_methods import HtmlGen
 from django.utils import timezone
 
-email_trigger = Signal(providing_args=['wizcard', 'trigger', 'to_email'])
+email_trigger = Signal(providing_args=['wizcard', 'trigger', 'target', 'to_email'])
 
 # Event based Triggers
 TRIGGER_NEW_USER = 1
@@ -16,18 +17,17 @@ TRIGGER_SCAN_CARD = 5
 TRIGGER_WEEKLY_DIGEST = 11
 
 
-
 def callback(sender, **kwargs):
     trigger = kwargs.pop('trigger', None)
     wizcard = kwargs.pop('wizcard')
-    to = kwargs.pop('to_email')
+    email = kwargs.pop('to_email', None)
+    target = kwargs.pop('target', None)
 
-    eap = EmailAndPush.objects.get_or_create(wizcard=wizcard, event=trigger, to=to)
+    eap = EmailAndPush.objects.pushEvent(wizcard=wizcard,event=trigger, to=email, target=target)
 
-    html = HtmlGen(wizcard, trigger, to)
+    html = HtmlGen(wizcard, trigger, eap.get_to)
     html.run()
-    eap[0].last_sent = timezone.now()
-    eap[0].save()
+    eap.updateEmailTime(timezone.now)
 
 
 email_trigger.connect(callback, dispatch_uid='email_and_push_infra.models.EmailAndPush')
