@@ -30,15 +30,15 @@ class HtmlGen:
 
     def welcome_user(self, wizcard, to):
         email_details = {"template" : "welcome.html", "subject": "Welcome %s to WizCard"}
-        send_wizcard(wizcard, to, email_details)
+        send_wizcard.delay(wizcard, to, email_details)
 
     def invite_user(self, wizcard, to):
         email_details = {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"}
-        send_wizcard(wizcard, to,  email_details)
+        send_wizcard.delay(wizcard, to,  email_details)
 
     def scan_user(self, wizcard, to):
         email_details = {"template" : "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}
-        send_wizcard(wizcard, to, email_details, half_card = True)
+        send_wizcard.delay(wizcard, to, email_details, half_card = True)
 
 
 
