@@ -1,6 +1,6 @@
 __author__ = 'aammundi'
 
-from models import EmailAndPush
+from models import EmailAndPush, EmailEvent
 from lib.create_share import send_wizcard
 import pdb
 
@@ -16,10 +16,10 @@ class HtmlGen:
 
         self.emailHandlers = {
             # Key: (email handler, Push required)
-            EmailAndPush.NEWUSER: (self.welcome_user, False),
-            EmailAndPush.INVITED: (self.invite_user, False),
-            EmailAndPush.NEWRECOMMENDATION: (self.dummy_func, False),
-            EmailAndPush.SCANNED: (self.scan_user, False)
+            EmailEvent.NEWUSER: (self.welcome_user, False),
+            EmailEvent.INVITED: (self.invite_user, False),
+            EmailEvent.NEWRECOMMENDATION: (self.dummy_func, False),
+            EmailEvent.SCANNED: (self.scan_user, False)
         }
 
     def run(self):

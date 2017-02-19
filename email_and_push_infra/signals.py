@@ -1,5 +1,6 @@
 from django.dispatch import Signal
 from email_and_push_infra.models import EmailAndPush
+from email_and_push_infra.models import EmailAndPushManager
 from html_gen_methods import HtmlGen
 from django.utils import timezone
 
@@ -22,12 +23,11 @@ def callback(sender, **kwargs):
     email = kwargs.pop('to_email', None)
     target = kwargs.pop('target', None)
 
+    eap = EmailAndPush.objects.pushEvent(wizcard=wizcard,event=trigger, to=email, target=target)
 
-    eap, created = EmailAndPush.objects.get_or_create(wizcard=wizcard, event=trigger, target=target, to=email)
-
-    html = HtmlGen(wizcard, trigger, target.email)
+    html = HtmlGen(wizcard, trigger, eap.get_to)
     html.run()
-    eap.save()
+    eap.updateEmailTime(timezone.now)
 
 
 email_trigger.connect(callback, dispatch_uid='email_and_push_infra.models.EmailAndPush')
