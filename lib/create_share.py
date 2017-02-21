@@ -171,6 +171,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
     ctx = Context(extfields)
     email.html(html,ctx)
     attach_data = None
+    vcard = from_wizcard.get_vcard
     if vcard:
         attach_name = "%s-%s.vcf" % (from_wizcard.first_name, from_wizcard.last_name)
         attach_data = {'data':from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
