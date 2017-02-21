@@ -140,12 +140,12 @@ def sendmail(from_wizcard,to,template):
     email.send(attach=attach_data)
 
 @shared_task
-def send_wizcard(from_wizcard, to, template=None):
-
-
-    html = "emailwizcard.html"
+def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
 
     extfields = from_wizcard.get_extFields
+    html = emaildetails['template']
+    subject = emaildetails['subject']
+
     if not extfields:
         extfields = {}
 
@@ -162,14 +162,10 @@ def send_wizcard(from_wizcard, to, template=None):
     if sender_video:
         extfields['sender_vide'] = sender_video
 
-    subject = "%s has invited you to Connect on WizCard" % extfields['sender_name']
-    if template == 'emailscan':
-        subject = extfields['sender_name'] + " has scanned your Business Card"
+    subject = subject % extfields['sender_name']
+    if half_card == True:
         extfields['sender_phone'] = '***********'
         extfields['sender_email'] = '*****@*****.***'
-
-    elif template == 'emailscaninvite':
-        subject = extfields['sender_name'] + " has scanned your Card and Invited you to Connect"
 
     email = Email(to=to, subject=subject)
     ctx = Context(extfields)

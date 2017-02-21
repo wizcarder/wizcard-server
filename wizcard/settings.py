@@ -27,10 +27,10 @@ WIZCARD_SETTINGS = {
     'dev': {
         'databases': {
             'default': {
-                #'ENGINE': 'django.db.backends.mysql',
-                'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-dev',
-                'USER': 'kappu',
+                'ENGINE': 'django.db.backends.mysql',
+                #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard',
+                'USER': 'root',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
                  'PORT': '5432',
@@ -314,7 +314,8 @@ INSTALLED_APPS = (
     'django_ses',
     'recommendation',
     'stats',
-    'commands'
+    'commands',
+    'email_and_push_infra'
 )
 
 #django-storage settings
