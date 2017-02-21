@@ -30,7 +30,7 @@ class HtmlGen:
 
     def welcome_user(self, wizcard, to):
         email_details = {"template" : "welcome.html", "subject": "Welcome %s to WizCard"}
-        send_wizcard.delay(wizcard, to, email_details)
+        send_wizcard.delay(wizcard, to, email_details, half_card=True)
 
     def invite_user(self, wizcard, to):
         email_details = {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"}
