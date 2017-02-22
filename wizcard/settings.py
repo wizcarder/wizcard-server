@@ -315,7 +315,10 @@ INSTALLED_APPS = (
     'recommendation',
     'stats',
     'commands',
-    'email_and_push_infra'
+    'email_and_push_infra',
+    'entity',
+    'taggit',
+    'genericm2m'
 )
 
 #django-storage settings

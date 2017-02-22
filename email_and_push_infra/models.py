@@ -66,8 +66,6 @@ class EmailAndPushManager(models.Manager):
         return eap
 
 
-
-
 class EmailAndPush(models.Model):
 
     wizcard = models.ForeignKey(Wizcard, related_name='email_and_push')
@@ -76,10 +74,9 @@ class EmailAndPush(models.Model):
     target_content_type = models.ForeignKey(ContentType, related_name="email_target", blank=True, null=True)
     target_object_id = models.PositiveIntegerField(null=True, blank=True)
     target = generic.GenericForeignKey('target_content_type', 'target_object_id')
-    last_sent = models.DateTimeField(blank=True,null=True)
+    last_sent = models.DateTimeField(blank=True, null=True)
 
     objects = EmailAndPushManager()
-
 
     @property
     def get_to(self):
@@ -87,8 +84,3 @@ class EmailAndPush(models.Model):
 
     def updateEmailTime(self, sent_time=timezone.now):
         self.last_sent = sent_time
-
-
-
-
-
