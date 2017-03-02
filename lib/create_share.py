@@ -178,3 +178,11 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
 
     email.send(attach=attach_data)
 
+
+def mass_email(to, id):
+
+    email = Email(to=to, subject="Announcing Wizcard")
+
+    ctx = Context({'id': id})
+    email.html('email_marketing2.html', ctx)
+    email.send()
