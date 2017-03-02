@@ -18,6 +18,7 @@ skip_count = int(sys.argv[1])
 limit = int(sys.argv[2])
 id = 0 
 file = "email_marketing.tsv"
+
 with open(file) as data_file:
 	for rec in data_file:
 		rec=rec.strip()
@@ -26,11 +27,17 @@ with open(file) as data_file:
 			id = id + 1
 			continue
 		mailid = "naukrilist_" + str(id)
-		mass_email(rec, mailid)
-		print "Sending mail to " + rec + " " + mailid 
-		id = id + 1
-		if id > limit:
-			break
+		try:
+			if id > limit:
+				break
+			#mass_email(rec, mailid)
+			print "Sending mail to " + rec + " " + mailid 
+			id = id + 1
+		except:
+    			print "Sending mail failed for " + rec + " " + mailid
+			id = id + 1
+			pass
+    
 
 
 
