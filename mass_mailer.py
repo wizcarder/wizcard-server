@@ -30,7 +30,7 @@ with open(file) as data_file:
 		try:
 			if id > limit:
 				break
-			#mass_email(rec, mailid)
+			mass_email(rec, mailid)
 			print "Sending mail to " + rec + " " + mailid 
 			id = id + 1
 		except:

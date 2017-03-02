@@ -181,7 +181,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
 
 def mass_email(to, id):
 
-    email = Email(to=to, subject="Announcing Wizcard")
+    email = Email(to=to, subject="Aren\'t paper business cards such a pain??")
 
     ctx = Context({'id': id})
     email.html('email_marketing2.html', ctx)
