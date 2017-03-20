@@ -5,6 +5,8 @@ from rest_framework.validators import ValidationError
 from userprofile.models import UserProfile
 from entity.models import Event
 from media_mgr.signals import media_create
+from location_mgr.signals import location
+from location_mgr.models import LocationMgr
 import pdb
 
 
@@ -37,22 +39,59 @@ class RelatedSerializerField(serializers.RelatedField):
         type = value.alias
         return 'id: %d, type: %s' % (obj_id, type)
 
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LocationMgr
+        fields = ('lat', 'lng')
+
+    # def get_queryset(self):
+    #     pdb.set_trace()
+    #     pass
+    #
+    # def to_internal_value(self, data):
+    #     lat = data.get('lat', None)
+    #     lng = data.get('lng', None)
+    #
+    #     # Perform the data validation.
+    #     if not lat:
+    #         raise ValidationError({
+    #             'lat': 'This field is required.'
+    #         })
+    #     if not lng:
+    #         raise ValidationError({
+    #             'lng': 'This field is required.'
+    #         })
+    #
+    #     return {
+    #         'lat': int(lat),
+    #         'lng': int(lng)
+    #     }
+    #
+    # def to_representation(self, value):
+    #     pdb.set_trace()
+    #     lat = value.lat
+    #     lng = value.lng
+    #     return 'lat: %d, lng: %s' % (lat, lng)
+
 
 class EventSerializer(serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=UserProfile.objects.all())
     related = RelatedSerializerField(many=True)
+    location = LocationSerializer()
 
     class Meta:
         model = Event
         depth = 1
-        fields = ('pk', 'entity_type', 'name', 'address', 'website', 'description', 'media', 'owners', 'related')
+        fields = ('pk', 'entity_type', 'name', 'address', 'website',
+                  'description', 'media', 'owners', 'related', 'location')
 
     def create(self, validated_data):
         media = validated_data.pop('media', None)
         tags = validated_data.pop('tags', None)
         owners = validated_data.pop('owners', None)
         sub_entities = validated_data.pop('related', None)
+        location = validated_data.pop('location', None)
 
         event = Event.objects.create(**validated_data)
         if media:
@@ -63,6 +102,8 @@ class EventSerializer(serializers.ModelSerializer):
         if sub_entities:
             for s in sub_entities:
                 event.add_subentity_by_id(**s)
+        if location:
+            event.create_or_update_location(location['lat'], location['lng'])
 
         return event
 
@@ -89,6 +130,10 @@ class EventSerializer(serializers.ModelSerializer):
             instance.related.all().delete()
             for s in sub_entities:
                 instance.add_subentity_by_id(**s)
+
+        location = validated_data.pop('location', None)
+        if location:
+            instance.create_or_update_location(location['lat'], location['lng'])
 
         instance.save()
         return instance

@@ -3,7 +3,6 @@ __author__ = 'aammundi'
 from django.conf.urls import url, include, patterns
 from entity.views import EventViewSet
 from rest_framework_nested import routers
-from media_mgr.views import MediaObjectsViewSet
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()

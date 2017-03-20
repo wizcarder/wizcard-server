@@ -22,8 +22,3 @@ class MediaObjectsViewSet(viewsets.ModelViewSet):
         serializer = MediaObjectsSerializer(queryset, many=True, data=request.data)
         return Response(serializer.data)
 
-    # def get_queryset(self):
-    #     pdb.set_trace()
-    #     return super(MediaObjectsViewSet, self).get_queryset().filter(
-    #         content_type=ContentType.objects.get_for_model(MediaObjects)
-    #     )

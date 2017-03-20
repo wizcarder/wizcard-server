@@ -5,8 +5,8 @@ sys.path.append(".")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
-#from base.db import WizcardDB
-from base.rds_db import WizcardDB
+from base.db import WizcardDB
+#from base.rds_db import WizcardDB
 from rabbit_service.server import RabbitServer
 from wizcard import settings
 from rabbit_service.rconfig import TREE_SERVER_CONFIG
@@ -40,11 +40,13 @@ class TreeServer(RabbitServer):
         self.ptree = trie()
         self.vtree = trie()
         self.wtree = trie()
+        self.etree = trie()
 
         self.location_tree_handles = {
             "PTREE" : self.ptree,
             "WTREE" : self.wtree,
-            "VTREE" : self.vtree
+            "VTREE" : self.vtree,
+            "ETREE" : self.etree
         }
 
         self.call_handles = {

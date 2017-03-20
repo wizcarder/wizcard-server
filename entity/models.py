@@ -7,6 +7,8 @@ from location_mgr.models import LocationMgr
 from userprofile.models import UserProfile
 from wizcardship.models import Wizcard
 from virtual_table.models import VirtualTable
+from django.core.exceptions import ObjectDoesNotExist
+from location_mgr.signals import location
 
 import pdb
 
@@ -95,9 +97,25 @@ class BaseEntity(models.Model):
 
     def add_owner(self, obj):
         self.owners.add(obj)
+        # AA:TODO: need to send owner a notif
 
     def remove_owner(self, obj):
         self.owners.remove(obj)
+        # AA:TODO: need to send owner a notif
+
+
+    def create_or_update_location(self, lat, lng):
+        try:
+            l = self.location.get()
+            updated = l.do_update(lat, lng)
+            # l.reset_timer()
+            return updated, l
+        except ObjectDoesNotExist:
+            # create
+            l_tuple = location.send(sender=self, lat=lat, lng=lng,
+                                    tree="ETREE")
+            #l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
+            return updated, l_tuple[0][1]
 
 
 class Event(BaseEntity):
