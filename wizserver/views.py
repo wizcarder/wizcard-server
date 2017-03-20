@@ -38,6 +38,7 @@ from email_and_push_infra.models import EmailAndPush, EmailEvent
 from email_and_push_infra.signals import email_trigger
 from wizcard import err
 from dead_cards.models import DeadCards
+from entity.models import BaseEntity, Event, Product, Business
 from wizserver import fields
 from django.utils import timezone
 import random
@@ -184,6 +185,14 @@ class ParseMsgAndDispatch(object):
             return False
 
     def validateWizWebMsg(self):
+        if ['header'] in self.msg:
+            if 'userID' in self.msg['header']:
+                try:
+                    self.userprofile = UserProfile.objects.get(userid=self.msg['header']['userID'])
+                    self.user = self.userprofile.user
+                except ObjectDoesNotExist:
+                    self.response.ignore()
+                    return False, self.response
         if self.msg.has_key('sender'):
             self.sender = self.msg['sender']
 
@@ -2336,14 +2345,56 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    def GetRecommendations(self):
 
+        size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
 
-    #################WizWeb Message handling########################
+        # AA: Comments: BIG Overarching comment...please get into the habit
+        # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.
+        # the right side of the editor will have some color if there are any
+        # PEP warnings/errors. Function name starting in uppercase is OK.
+
+        # AA:Comments: Expose this as a model API instead of a direct filter
+        # There will be more and more filtering/conditional checks/splicing
+        # etc as we go forward.
+        recos = UserRecommendation.objects.getRecommendations(recotarget=self.user, size=size)
+
+        if not recos:
+            uprofile = self.user.profile
+            if uprofile.reco_ready != 0:
+                uprofile.reco_ready = 0
+                uprofile.save()
+            genreco.send(self.user, recotarget=self.user.id)
+
+        self.response.add_data("recos", recos)
+        return self.response
+
+    def SetRecoAction(self):
+        recoid = self.sender['recoID'] if 'recoID' in self.sender else None
+        action = self.sender['action'] if 'action' in self.sender else None
+        if not recoid or not action:
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
+
+        recoptr = UserRecommendation.objects.get(id=recoid)
+        # AA: Comments: before below if can happen, an exception will occur
+        # from the get hence above has to be in try except ObjectNotFound with appropriate
+        # sentry log
+        if recoptr:
+            try:
+                recoptr.setAction(action)
+            except:
+                self.response.error_response(err.INVALID_RECOACTION)
+        else:
+            self.response.error_response(err.INVALID_RECOID)
+
+        return self.response
+
+    # WizWeb Message handling
     def WizWebUserQuery(self):
         if self.sender.has_key('username'):
             try:
                 self.user = User.objects.get(username=self.sender['username'])
-                self.wizcard = self.user.wizcard
                 self.response.add_data("userID", self.user.profile.userid)
             except:
                 pass
@@ -2392,14 +2443,14 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("result", out)
         return self.response
 
-
     def WizWebUserCreate(self):
         username = self.sender['username']
         first_name = self.sender['first_name']
         last_name = self.sender['last_name']
+        user_type = self.sender['user_type']
 
         if User.objects.filter(username=username).exists():
-            #wizweb should have sent user query
+            # wizweb should have sent user query
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
 
         self.user = User.objects.create(username=username,
@@ -2407,7 +2458,9 @@ class ParseMsgAndDispatch(object):
                                         last_name=last_name)
 
         self.user.profile.activated = False
+        self.user.profile.user_type = user_type
         self.user.profile.save()
+
         self.response.add_data("userID", self.user.profile.userid)
 
         return self.response
@@ -2504,50 +2557,65 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
 
-    def GetRecommendations(self):
+    # Entity message handling
+    def WizEntityEditOrCreate(self):
+        cls = BaseEntity.objects.get_entity_from_type(self.sender['type'])
 
-        size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
-
-        # AA: Comments: BIG Overarching comment...please get into the habit
-        # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.
-        # the right side of the editor will have some color if there are any
-        # PEP warnings/errors. Function name starting in uppercase is OK.
-
-        # AA:Comments: Expose this as a model API instead of a direct filter
-        # There will be more and more filtering/conditional checks/splicing
-        # etc as we go forward.
-        recos = UserRecommendation.objects.getRecommendations(recotarget=self.user, size=size)
-
-        if not recos:
-            uprofile = self.user.profile
-            if uprofile.reco_ready != 0:
-                uprofile.reco_ready = 0
-                uprofile.save()
-            genreco.send(self.user, recotarget=self.user.id)
-
-        self.response.add_data("recos", recos)
-        return self.response
-
-    def SetRecoAction(self):
-        recoid = self.sender['recoID'] if 'recoID' in self.sender else None
-        action = self.sender['action'] if 'action' in self.sender else None
-        if not recoid or not action:
-            self.response.error_response(err.INVALID_MESSAGE)
-            return self.response
-
-        recoptr = UserRecommendation.objects.get(id=recoid)
-        # AA: Comments: before below if can happen, an exception will occur
-        # from the get hence above has to be in try except ObjectNotFound with appropriate
-        # sentry log
-        if recoptr:
+        if 'id' in self.sender and self.sender['id']:
+            # update
             try:
-                recoptr.setAction(action)
+                entity = cls.objects.get(id=self.sender['id'])
             except:
-                self.response.error_response(err.INVALID_RECOACTION)
-        else:
-            self.response.error_response(err.INVALID_RECOID)
+                self.response.error_response(err.OBJECT_DOESNT_EXIST)
+                return self.response
 
+            entity.name = self.sender.get('name', entity.name)
+            entity.address = self.sender.get('address', entity.address)
+            entity.website = self.sender.get('website', entity.website)
+            entity.description = self.sender.get('description', entity.description)
+            entity.save()
+        else:
+            # create
+            entity = cls.objects.create(
+                name=self.sender.get('name', ""),
+                address = self.sender.get('address', ""),
+                website = self.sender.get('website', ""),
+                description = self.sender.get('description', "")
+            )
+
+        if 'media' in self.sender:
+            pass
+
+        if 'owners' in self.sender:
+            pass
+
+        self.response.add_data("id", entity.id)
         return self.response
+
+    def WizEntityDelete(self):
+        cls = BaseEntity.objects.get_entity_from_type(self.sender['type'])
+        cls.delete()
+        return self.response
+
+    def WizEntityActivate(self):
+        cls = BaseEntity.objects.get_entity_from_type(self.sender['type'])
+        cls.is_activated = True
+        cls.save()
+
+        self.response.add_data("id", cls.id)
+        return self.response
+
+    def WizEntitySubEntityCreate(self):
+        pass
+
+    def WizEntityGet(self):
+        pass
+
+    def WizEntitiesGet(self):
+        pass
+
+    def WizEntityMediaUpload(self):
+        pass
 
 wizrequest_handler = WizRequestHandler.as_view()
 #wizconnection_request = login_required(WizConnectionRequestView.as_view())

@@ -186,7 +186,7 @@ class Wizcard(models.Model):
                                             related_name='wizconnections_from')
 
     # back pointing to any super_entity
-    super_entities = RelatedObjectsDescriptor()
+    related = RelatedObjectsDescriptor()
 
     first_name = TruncatingCharField(max_length=40, blank=True)
     last_name = TruncatingCharField(max_length=40, blank=True)
