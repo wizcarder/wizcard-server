@@ -57,10 +57,11 @@ class LocationMgr(models.Model):
     key = models.CharField(null=True, max_length=100)
     tree_type = models.CharField(default="PTREE", max_length=10)
 
-    #GenericForeignKey to objects requiring locationMgr services
+    # GenericForeignKey to objects requiring locationMgr services
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
+
     objects = LocationMgrManager()
 
     def __repr__(self):
@@ -120,7 +121,7 @@ class LocationMgr(models.Model):
                 exclude_self=True,
                 modifier=self.pk)
 
-    #Database based timer implementation
+    # Database based timer implementation
     def start_timer(self, timeout):
         t = Periodic.objects.create(location=self,
                 timeout_value=timeout*60)

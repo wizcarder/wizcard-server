@@ -309,13 +309,18 @@ INSTALLED_APPS = (
     'periodic',
     'gunicorn',
     'raven.contrib.django.raven_compat',
+    'rest_framework',
     'meishi',
     'healthstatus',
     'django_ses',
     'recommendation',
     'stats',
     'commands',
-    'email_and_push_infra'
+    'email_and_push_infra',
+    'media_mgr',
+    'entity',
+    'taggit',
+    'genericm2m'
 )
 
 #django-storage settings

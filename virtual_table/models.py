@@ -20,25 +20,19 @@ from django.db import models
 from django.contrib.auth.models import User
 import pdb
 from django.db.models import Q
-from datetime import datetime
-from lib import wizlib
-from lib.pytrie import SortedStringTrie as trie
 from location_mgr.models import location, LocationMgr
 from wizcardship.models import Wizcard
-from django.contrib.contenttypes import generic
 from lib.preserialize.serialize import serialize
 from wizserver import fields, verbs
 from notifications.models import notify
 from base.cctx import ConnectionContext
 from base.char_trunc import TruncatingCharField
 from django.conf import settings
-from django.utils import timezone
+from django.contrib.contenttypes import generic
+from genericm2m.models import RelatedObjectsDescriptor
+
 
 class VirtualTableManager(models.Manager):
-    tag = None
-
-    def set_tag(self, tag):
-        self.tag = tag
 
     def lookup(self, cache_key, lat, lng, n, count_only=False):
         tables = None
@@ -111,7 +105,8 @@ class VirtualTable(models.Model):
     expired = models.BooleanField(default=False)
     users = models.ManyToManyField(User, through='Membership')
     location = generic.GenericRelation(LocationMgr)
-
+    # back pointing to any super_entity
+    super_entities = RelatedObjectsDescriptor()
     objects = VirtualTableManager()
 
     def __unicode__(self):
@@ -231,10 +226,6 @@ class VirtualTable(models.Model):
         self.numSitting -= 1
         self.save()
 
-    #some callables used by serializer
-    def get_tag(self):
-        return VirtualTable.objects.tag
-
     def time_remaining(self):
         if not self.expired:
             return self.location.get().timer.get().time_remaining()
@@ -245,7 +236,3 @@ class Membership(models.Model):
     modified = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User)
     table = models.ForeignKey(VirtualTable)
-
-
-    def save(self, *args, **kwargs):
-        super(Membership, self).save(*args, **kwargs)

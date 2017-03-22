@@ -166,9 +166,21 @@ class UserProfile(models.Model):
         (IOS, 'iPhone'),
         (ANDROID, 'Android'),
     )
+
+    # hacking up bitmaps this way
+    WIZCARD_USER = 100000
+    WIZWEB_USER = 010000
+    WIZWEB_ADMIN = 001000
+    WIZEVENT_USER = 000100
+    WIZPRODUCT_USER = 000010
+    WIZBUSINESS_USER = 000001
+
+    user_type = models.IntegerField(default=WIZCARD_USER)
+
     device_type = TruncatingCharField(max_length=10,
                                       choices=DEVICE_CHOICES,
                                       default=IOS)
+
     device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True, max_length=200)
 

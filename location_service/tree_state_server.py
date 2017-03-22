@@ -40,11 +40,13 @@ class TreeServer(RabbitServer):
         self.ptree = trie()
         self.vtree = trie()
         self.wtree = trie()
+        self.etree = trie()
 
         self.location_tree_handles = {
             "PTREE" : self.ptree,
             "WTREE" : self.wtree,
-            "VTREE" : self.vtree
+            "VTREE" : self.vtree,
+            "ETREE" : self.etree
         }
 
         self.call_handles = {
