@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     url(r'^healthstatus$', include('healthstatus.urls')),
     url(r'^admin/django-ses/', include('django_ses.urls')),
     url(r'^events/', include('entity.urls')),
+    url(r'^users/', include('userprofile.urls')),
     url('^schema/$', schema_view),
 
 
