@@ -2390,6 +2390,37 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    def EntityJoin(self):
+        id = self.sender.get('id')
+        type = self.sender.get('type')
+
+
+        return self.response()
+
+    def EntityLeave(self):
+        entity_id = self.sender.get('entity_id')
+        entity_type = self.sender.get('type')
+
+        return self.response()
+
+    def MyEntityDetails(self):
+        entity_type = self.sender.get('type')
+        entity_id = self.sender.get('entity_id')
+        detail = self.sender.get('detail')
+
+        try:
+            e, s = BaseEntity.get_entity_from_type(entity_type)
+            entity = e.objects.get(id=entity_id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response()
+
+        out = s(entity).data
+        self.response.add_data("entity", out)
+
+        return self.response()
+
+
     # WizWeb Message handling
     def WizWebUserQuery(self):
         if self.sender.has_key('username'):

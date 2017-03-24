@@ -14,25 +14,10 @@ import pdb
 
 # Create your models here.
 
-
-class BaseEntityManager(models.Manager):
-    def get_entity_from_type(self, type):
-        if type == BaseEntity.EVENT:
-            cls = Event
-        elif type == BaseEntity.PRODUCT:
-            cls = Product
-        elif type == BaseEntity.BUSINESS:
-            cls = Business
-
-        return cls
-
-
 class BaseEntity(models.Model):
 
     class Meta:
         abstract = True
-
-    objects = BaseEntityManager()
 
     EVENT = 'EVT'
     BUSINESS = 'BUS'
@@ -69,12 +54,35 @@ class BaseEntity(models.Model):
     # hashtags.
     tags = TaggableManager()
 
-    owners = models.ManyToManyField(UserProfile)
+    owners = models.ManyToManyField(
+        UserProfile,
+        related_name="owners_%(class)s_related"
+    )
+
+    users = models.ManyToManyField(
+        UserProfile,
+        related_name="users_%(class)s_related"
+    )
 
     # sub-entities. using django-generic-m2m package
     related = RelatedObjectsDescriptor()
 
     location = generic.GenericRelation(LocationMgr)
+
+    @classmethod
+    def get_entity_from_type(self, type):
+        from entity.serializers import EventSerializer, ProductSerializer, BusinessSerializer
+        if type == self.EVENT:
+            cls = Event
+            serializer = EventSerializer
+        elif type == self.PRODUCT:
+            cls = Product
+            serializer = ProductSerializer
+        elif type == self.BUSINESS:
+            cls = Business
+            serializer = BusinessSerializer
+
+        return cls, serializer
 
     def add_subentity_by_id(self, id, type):
         if type == self.SUB_ENTITY_COMMUNITY_WIZCARD or type == self.SUB_ENTITY_ENTITY_WIZCARD:
@@ -103,6 +111,11 @@ class BaseEntity(models.Model):
         self.owners.remove(obj)
         # AA:TODO: need to send owner a notif
 
+    def add_user(self, obj):
+        self.users.add(obj)
+
+    def remove_owner(self, obj):
+        self.users.remove(obj)
 
     def create_or_update_location(self, lat, lng):
         try:
@@ -111,6 +124,7 @@ class BaseEntity(models.Model):
             # l.reset_timer()
             return updated, l
         except ObjectDoesNotExist:
+            updated = False
             # create
             l_tuple = location.send(sender=self, lat=lat, lng=lng,
                                     tree="ETREE")
