@@ -52,6 +52,7 @@ from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, Recommendation, genreco
 from raven.contrib.django.raven_compat.models import client
 from wizserver.tasks import contacts_upload_task
+from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
 from django.core.files import File
@@ -2394,23 +2395,40 @@ class ParseMsgAndDispatch(object):
         id = self.sender.get('id')
         type = self.sender.get('type')
 
+        try:
+            e, s = BaseEntity.get_entity_from_type(type)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response()
+
+        UserEntity.user_join(self.userprofile, e)
 
         return self.response()
 
     def EntityLeave(self):
-        entity_id = self.sender.get('entity_id')
-        entity_type = self.sender.get('type')
+        id = self.sender.get('entity_id')
+        type = self.sender.get('type')
+
+        try:
+            e, s = BaseEntity.get_entity_from_type(type)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response()
+
+        UserEntity.user_leave(self.userprofile, e)
 
         return self.response()
 
     def MyEntityDetails(self):
-        entity_type = self.sender.get('type')
-        entity_id = self.sender.get('entity_id')
+        id = self.sender.get('entity_id')
+        type = self.sender.get('type')
         detail = self.sender.get('detail')
 
         try:
-            e, s = BaseEntity.get_entity_from_type(entity_type)
-            entity = e.objects.get(id=entity_id)
+            e, s = BaseEntity.get_entity_from_type(type)
+            entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response()

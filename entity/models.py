@@ -9,15 +9,15 @@ from wizcardship.models import Wizcard
 from virtual_table.models import VirtualTable
 from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
+from django.contrib.contenttypes.models import ContentType
+
 
 import pdb
 
 # Create your models here.
 
-class BaseEntity(models.Model):
 
-    class Meta:
-        abstract = True
+class BaseEntity(models.Model):
 
     EVENT = 'EVT'
     BUSINESS = 'BUS'
@@ -61,6 +61,7 @@ class BaseEntity(models.Model):
 
     users = models.ManyToManyField(
         UserProfile,
+        through='UserEntity',
         related_name="users_%(class)s_related"
     )
 
@@ -111,12 +112,6 @@ class BaseEntity(models.Model):
         self.owners.remove(obj)
         # AA:TODO: need to send owner a notif
 
-    def add_user(self, obj):
-        self.users.add(obj)
-
-    def remove_owner(self, obj):
-        self.users.remove(obj)
-
     def create_or_update_location(self, lat, lng):
         try:
             l = self.location.get()
@@ -130,6 +125,25 @@ class BaseEntity(models.Model):
                                     tree="ETREE")
             #l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
             return updated, l_tuple[0][1]
+
+
+# explicit through table since we will want to associate additional
+# fields as we go forward.
+# But this also means GFK since FK's are not allowed to point to Abstract Class
+class UserEntity(models.Model):
+    user = models.ForeignKey(UserProfile)
+    entity = models.ForeignKey(BaseEntity)
+
+    @classmethod
+    def user_join(self, user, entity_obj):
+        UserEntity.objects.create(
+            user=user,
+            entity=entity_obj
+        )
+
+    @classmethod
+    def user_leave(self, user, entity_obj):
+        user.userentity_set.get(entity=entity_obj).delete()
 
 
 class Event(BaseEntity):
