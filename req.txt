@@ -60,3 +60,6 @@ boto3
 pyshorteners
 ffprobe
 vobject
+djangorestframework
+django-generic-m2m
+django-taggit
