@@ -284,6 +284,10 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
+}
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -320,7 +324,8 @@ INSTALLED_APPS = (
     'media_mgr',
     'entity',
     'taggit',
-    'genericm2m'
+    'genericm2m',
+    'django_filters'
 )
 
 #django-storage settings

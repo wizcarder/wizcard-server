@@ -52,6 +52,7 @@ from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, Recommendation, genreco
 from raven.contrib.django.raven_compat.models import client
 from wizserver.tasks import contacts_upload_task
+from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
 from django.core.files import File
@@ -2390,6 +2391,54 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    def EntityJoin(self):
+        id = self.sender.get('id')
+        type = self.sender.get('type')
+
+        try:
+            e, s = BaseEntity.get_entity_from_type(type)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response()
+
+        UserEntity.user_join(self.userprofile, e)
+
+        return self.response()
+
+    def EntityLeave(self):
+        id = self.sender.get('entity_id')
+        type = self.sender.get('type')
+
+        try:
+            e, s = BaseEntity.get_entity_from_type(type)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response()
+
+        UserEntity.user_leave(self.userprofile, e)
+
+        return self.response()
+
+    def MyEntityDetails(self):
+        id = self.sender.get('entity_id')
+        type = self.sender.get('type')
+        detail = self.sender.get('detail')
+
+        try:
+            e, s = BaseEntity.get_entity_from_type(type)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response()
+
+        out = s(entity).data
+        self.response.add_data("entity", out)
+
+        return self.response()
+
+
     # WizWeb Message handling
     def WizWebUserQuery(self):
         if self.sender.has_key('username'):
@@ -2557,65 +2606,6 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
 
-    # Entity message handling
-    def WizEntityEditOrCreate(self):
-        cls = BaseEntity.objects.get_entity_from_type(self.sender['type'])
-
-        if 'id' in self.sender and self.sender['id']:
-            # update
-            try:
-                entity = cls.objects.get(id=self.sender['id'])
-            except:
-                self.response.error_response(err.OBJECT_DOESNT_EXIST)
-                return self.response
-
-            entity.name = self.sender.get('name', entity.name)
-            entity.address = self.sender.get('address', entity.address)
-            entity.website = self.sender.get('website', entity.website)
-            entity.description = self.sender.get('description', entity.description)
-            entity.save()
-        else:
-            # create
-            entity = cls.objects.create(
-                name=self.sender.get('name', ""),
-                address = self.sender.get('address', ""),
-                website = self.sender.get('website', ""),
-                description = self.sender.get('description', "")
-            )
-
-        if 'media' in self.sender:
-            pass
-
-        if 'owners' in self.sender:
-            pass
-
-        self.response.add_data("id", entity.id)
-        return self.response
-
-    def WizEntityDelete(self):
-        cls = BaseEntity.objects.get_entity_from_type(self.sender['type'])
-        cls.delete()
-        return self.response
-
-    def WizEntityActivate(self):
-        cls = BaseEntity.objects.get_entity_from_type(self.sender['type'])
-        cls.is_activated = True
-        cls.save()
-
-        self.response.add_data("id", cls.id)
-        return self.response
-
-    def WizEntitySubEntityCreate(self):
-        pass
-
-    def WizEntityGet(self):
-        pass
-
-    def WizEntitiesGet(self):
-        pass
-
-    def WizEntityMediaUpload(self):
-        pass
 
 wizrequest_handler = WizRequestHandler.as_view()
 #wizconnection_request = login_required(WizConnectionRequestView.as_view())

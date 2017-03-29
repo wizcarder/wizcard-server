@@ -9,30 +9,15 @@ from wizcardship.models import Wizcard
 from virtual_table.models import VirtualTable
 from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
+from django.contrib.contenttypes.models import ContentType
+
 
 import pdb
 
 # Create your models here.
 
 
-class BaseEntityManager(models.Manager):
-    def get_entity_from_type(self, type):
-        if type == BaseEntity.EVENT:
-            cls = Event
-        elif type == BaseEntity.PRODUCT:
-            cls = Product
-        elif type == BaseEntity.BUSINESS:
-            cls = Business
-
-        return cls
-
-
 class BaseEntity(models.Model):
-
-    class Meta:
-        abstract = True
-
-    objects = BaseEntityManager()
 
     EVENT = 'EVT'
     BUSINESS = 'BUS'
@@ -69,12 +54,36 @@ class BaseEntity(models.Model):
     # hashtags.
     tags = TaggableManager()
 
-    owners = models.ManyToManyField(UserProfile)
+    owners = models.ManyToManyField(
+        UserProfile,
+        related_name="owners_%(class)s_related"
+    )
+
+    users = models.ManyToManyField(
+        UserProfile,
+        through='UserEntity',
+        related_name="users_%(class)s_related"
+    )
 
     # sub-entities. using django-generic-m2m package
     related = RelatedObjectsDescriptor()
 
     location = generic.GenericRelation(LocationMgr)
+
+    @classmethod
+    def get_entity_from_type(self, type):
+        from entity.serializers import EventSerializer, ProductSerializer, BusinessSerializer
+        if type == self.EVENT:
+            cls = Event
+            serializer = EventSerializer
+        elif type == self.PRODUCT:
+            cls = Product
+            serializer = ProductSerializer
+        elif type == self.BUSINESS:
+            cls = Business
+            serializer = BusinessSerializer
+
+        return cls, serializer
 
     def add_subentity_by_id(self, id, type):
         if type == self.SUB_ENTITY_COMMUNITY_WIZCARD or type == self.SUB_ENTITY_ENTITY_WIZCARD:
@@ -103,7 +112,6 @@ class BaseEntity(models.Model):
         self.owners.remove(obj)
         # AA:TODO: need to send owner a notif
 
-
     def create_or_update_location(self, lat, lng):
         try:
             l = self.location.get()
@@ -111,11 +119,31 @@ class BaseEntity(models.Model):
             # l.reset_timer()
             return updated, l
         except ObjectDoesNotExist:
+            updated = False
             # create
             l_tuple = location.send(sender=self, lat=lat, lng=lng,
                                     tree="ETREE")
             #l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
             return updated, l_tuple[0][1]
+
+
+# explicit through table since we will want to associate additional
+# fields as we go forward.
+# But this also means GFK since FK's are not allowed to point to Abstract Class
+class UserEntity(models.Model):
+    user = models.ForeignKey(UserProfile)
+    entity = models.ForeignKey(BaseEntity)
+
+    @classmethod
+    def user_join(self, user, entity_obj):
+        UserEntity.objects.create(
+            user=user,
+            entity=entity_obj
+        )
+
+    @classmethod
+    def user_leave(self, user, entity_obj):
+        user.userentity_set.get(entity=entity_obj).delete()
 
 
 class Event(BaseEntity):

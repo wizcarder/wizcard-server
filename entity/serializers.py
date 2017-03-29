@@ -3,9 +3,8 @@ from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from rest_framework.validators import ValidationError
 from userprofile.models import UserProfile
-from entity.models import Event
+from entity.models import Event, Product, Business
 from media_mgr.signals import media_create
-from location_mgr.signals import location
 from location_mgr.models import LocationMgr
 import pdb
 
@@ -40,6 +39,7 @@ class RelatedSerializerField(serializers.RelatedField):
         return 'id: %d, type: %s' % (obj_id, type)
 
 class LocationSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = LocationMgr
         fields = ('lat', 'lng')
@@ -84,7 +84,8 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         depth = 1
         fields = ('pk', 'entity_type', 'name', 'address', 'website',
-                  'description', 'media', 'owners', 'related', 'location')
+                  'description', 'media', 'owners', 'related', 'location',
+                  'start', 'end')
 
     def create(self, validated_data):
         media = validated_data.pop('media', None)
@@ -138,3 +139,11 @@ class EventSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+
+class BusinessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Business
