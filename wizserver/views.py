@@ -2391,6 +2391,7 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    # Entity Api's for App
     def EntityJoin(self):
         id = self.sender.get('id')
         type = self.sender.get('type')

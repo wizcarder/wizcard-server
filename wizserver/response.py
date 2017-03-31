@@ -140,8 +140,6 @@ class NotifResponse(ResponseN):
 
             self.add_data_to_dict(out, "context", nctx.context)
 
-        if UserProfile.objects.is_admin_user(wizcard.user):
-            self.add_data_to_dict(out, "admin", 'True')
 
         self.add_data_and_seq_with_notif(out, notifType, notif.id)
 
