@@ -47,6 +47,8 @@ class BaseEntity(models.Model):
     address = models.CharField(max_length=80, blank=True)
     website = models.URLField()
     description = models.CharField(max_length=1000)
+    phone = TruncatingCharField(max_length=20, blank=True)
+    email = EmailField(blank=True)
 
     # media
     media = generic.GenericRelation(MediaObjects)
@@ -150,9 +152,7 @@ class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
 
-
 class Product(BaseEntity):
     pass
-
 class Business(BaseEntity):
     pass
