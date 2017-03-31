@@ -17,7 +17,7 @@ DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+     ('Wizard of WizCard', 'wizcarder@getwizcard.com'),
 )
 
 MANAGERS = ADMINS
@@ -27,10 +27,10 @@ WIZCARD_SETTINGS = {
     'dev': {
         'databases': {
             'default': {
-                'ENGINE': 'django.db.backends.mysql',
-                #'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard',
-                'USER': 'root',
+                #'ENGINE': 'django.db.backends.mysql',
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard-dev',
+                'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
                  'PORT': '5432',
@@ -257,7 +257,7 @@ NEXMO_OWN_NUMBER = '12184294228'
 NEXMO_SENDERID = 'WZCARD'
 
 EMAIL_TEMPLATE = '/invites/email_templatev4.png'
-EMAIL_FROM_ADDR='wizcarder@getwizcard.com'
+EMAIL_FROM_ADDR='WizCard Inc <wizcarder@getwizcard.com>'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',

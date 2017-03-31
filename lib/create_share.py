@@ -170,5 +170,19 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
     email = Email(to=to, subject=subject)
     ctx = Context(extfields)
     email.html(html,ctx)
-    email.send()
+    attach_data = None
+    vcard = from_wizcard.get_vcard
+    if half_card == False and vcard:
+        attach_name = "%s-%s.vcf" % (from_wizcard.first_name, from_wizcard.last_name)
+        attach_data = {'data':from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
 
+    email.send(attach=attach_data)
+
+
+def mass_email(to, id):
+
+    email = Email(to=to, subject="Aren\'t paper business cards such a pain??")
+
+    ctx = Context({'id': id})
+    email.html('email_marketing2.html', ctx)
+    email.send()
