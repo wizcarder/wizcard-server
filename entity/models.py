@@ -31,11 +31,6 @@ class BaseEntity(models.Model):
         (PRODUCT, 'Product'),
     )
 
-    SUB_ENTITY_ENTITY_WIZCARD = 'e_wizcard'
-    SUB_ENTITY_ENTITY_TABLE = 'e_table'
-    SUB_ENTITY_COMMUNITY_WIZCARD = 'c_wizcard'
-    SUB_ENTITY_COMMUNITY_TABLE = 'c_table'
-
     entity_type = models.CharField(
         max_length=3,
         choices=ENTITY_CHOICES,
@@ -89,18 +84,8 @@ class BaseEntity(models.Model):
 
         return cls, serializer
 
-    def add_subentity_by_id(self, id, type):
-        if type == self.SUB_ENTITY_COMMUNITY_WIZCARD or type == self.SUB_ENTITY_ENTITY_WIZCARD:
-            try:
-                obj = Wizcard.objects.get(id=id)
-            except:
-                return None
-        elif type == self.SUB_ENTITY_ENTITY_TABLE or type == self.SUB_ENTITY_COMMUNITY_TABLE:
-            try:
-                obj = VirtualTable.objects.get(id=id)
-            except:
-                return None
-        return self.related.connect(obj, alias=type)
+    def add_subentity(self, id, type):
+        pass
 
     def remove_sub_entity_of_type(self, id, type):
         self.related.filter(object_id=id, alias=type).delete()
@@ -151,10 +136,22 @@ class UserEntity(models.Model):
 
 
 class Event(BaseEntity):
+    SUB_ENTITY_PRODUCT = 'e_product'
+    SUB_ENTITY_TABLE = 'e_table'
+
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
 
+    def add_subentity(self, id, type):
+        if type == self.SUB_ENTITY_PRODUCT:
+            obj = Product.objects.get(id=id)
+        elif type == self.SUB_ENTITY_TABLE:
+            obj = VirtualTable.objects.get(id=id)
+
+        return self.related.connect(obj, alias=type)
+
 class Product(BaseEntity):
     pass
+
 class Business(BaseEntity):
     pass

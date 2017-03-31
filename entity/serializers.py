@@ -3,7 +3,7 @@ from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from rest_framework.validators import ValidationError
 from userprofile.models import UserProfile
-from entity.models import Event, Product, Business
+from entity.models import BaseEntity, Event, Product, Business
 from media_mgr.signals import media_create
 from location_mgr.models import LocationMgr
 import pdb
@@ -74,7 +74,7 @@ class LocationSerializer(serializers.ModelSerializer):
     #     return 'lat: %d, lng: %s' % (lat, lng)
 
 
-class EventSerializer(serializers.ModelSerializer):
+class EntitySerializer(serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=UserProfile.objects.all())
     related = RelatedSerializerField(many=True)
@@ -84,8 +84,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         depth = 1
         fields = ('pk', 'entity_type', 'name', 'address', 'website',
-                  'description', 'media', 'owners', 'related', 'location',
-                  'start', 'end')
+                  'description', 'media', 'owners', 'related', 'location')
 
     def create(self, validated_data):
         media = validated_data.pop('media', None)
@@ -93,20 +92,23 @@ class EventSerializer(serializers.ModelSerializer):
         owners = validated_data.pop('owners', None)
         sub_entities = validated_data.pop('related', None)
         location = validated_data.pop('location', None)
+        entity_type = validated_data.pop('entity_type')
 
-        event = Event.objects.create(**validated_data)
+        cls, ser = BaseEntity.get_entity_from_type(entity_type)
+        entity = cls.objects.create(**validated_data)
+
         if media:
-            media_create.send(sender=event, objs=media)
+            media_create.send(sender=entity, objs=media)
         if owners:
             for o in owners:
-                event.add_owner(o)
+                entity.add_owner(o)
         if sub_entities:
             for s in sub_entities:
-                event.add_subentity_by_id(**s)
+                entity.add_subentity(**s)
         if location:
-            event.create_or_update_location(location['lat'], location['lng'])
+            entity.create_or_update_location(location['lat'], location['lng'])
 
-        return event
+        return entity
 
     def update(self, instance, validated_data):
         instance.name = validated_data.pop('name', instance.name)
@@ -139,11 +141,21 @@ class EventSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class EventSerializer(EntitySerializer):
+    class Meta:
+        model = Event
+        fields = '__all__'
 
-class ProductSerializer(serializers.ModelSerializer):
+    start = serializers.DateTimeField()
+    end = serializers.DateTimeField()
+
+
+class ProductSerializer(EntitySerializer):
     class Meta:
         model = Product
+        fields = '__all__'
 
-class BusinessSerializer(serializers.ModelSerializer):
+class BusinessSerializer(EntitySerializer):
     class Meta:
         model = Business
+        fields = '__all__'

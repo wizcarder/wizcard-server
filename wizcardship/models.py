@@ -252,7 +252,7 @@ class Wizcard(models.Model):
         return "connected"
 
     def is_admin(self):
-        return self.user.profile.is_admin
+        return self.user.profile.is_admin_user()
     
     def save_smsurl(self,url):
         self.smsurl =  wizlib.shorten_url(url)

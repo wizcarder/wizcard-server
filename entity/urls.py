@@ -1,14 +1,18 @@
 __author__ = 'aammundi'
 
 from django.conf.urls import url, include, patterns
-from entity.views import EventViewSet
+from entity.views import BaseEntityViewSet, EventViewSet, ProductViewSet, BusinessViewSet
 from rest_framework_nested import routers
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'events', EventViewSet, base_name='events')
+router.register(r'events', BaseEntityViewSet, base_name='events')
+router.register(r'products', ProductViewSet, base_name='products')
+router.register(r'biz', BusinessViewSet, base_name='biz')
 
-events_router = routers.NestedSimpleRouter(router, r'events', lookup='event')
+
+
+#events_router = routers.NestedSimpleRouter(router, r'events', lookup='event')
 #events_router.register(r'media', MediaObjectsViewSet, base_name='event-media')
 #events_router.register(r'owners', EventOwnersViewSet, base_name='event-owners')
 #events_router.register(r'subentity', EventSubEntityViewSet, base_name='event-subentity')
@@ -17,7 +21,7 @@ events_router = routers.NestedSimpleRouter(router, r'events', lookup='event')
 urlpatterns = patterns(
     '',
     url(r'^', include(router.urls)),
-    url(r'^', include(events_router.urls)),
+    #url(r'^', include(events_router.urls)),
 )
 
 
