@@ -84,7 +84,7 @@ class EntitySerializer(serializers.ModelSerializer):
         model = Event
         depth = 1
         fields = ('pk', 'entity_type', 'name', 'address', 'website',
-                  'description', 'media', 'owners', 'related', 'location')
+                  'phone', 'email', 'description', 'media', 'owners', 'related', 'location')
 
     def create(self, validated_data):
         media = validated_data.pop('media', None)
