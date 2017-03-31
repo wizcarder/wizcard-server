@@ -28,19 +28,19 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk=None):
         queryset = BaseEntity.objects.get(id=pk)
-        serializer = BaseEntity(queryset)
+        serializer = EntitySerializer(queryset)
         return Response(serializer.data)
 
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
-        serializer = BaseEntity(inst, data=request.data, partial=partial)
+        serializer = EntitySerializer(inst, data=request.data, partial=partial)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
 
     def partial_update(self, request, pk=None):
         inst = self.get_object_or_404(pk)
-        serializer = BaseEntity(inst, data=request.data)
+        serializer = EntitySerializer(inst, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
