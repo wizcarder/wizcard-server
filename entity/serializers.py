@@ -84,7 +84,7 @@ class EntitySerializer(serializers.ModelSerializer):
         model = Event
         depth = 1
         fields = ('pk', 'entity_type', 'name', 'address', 'website',
-                  'description', 'media', 'owners', 'related', 'location')
+                  'phone', 'email', 'description', 'media', 'owners', 'related', 'location')
 
     def create(self, validated_data):
         media = validated_data.pop('media', None)
@@ -92,6 +92,8 @@ class EntitySerializer(serializers.ModelSerializer):
         owners = validated_data.pop('owners', None)
         sub_entities = validated_data.pop('related', None)
         location = validated_data.pop('location', None)
+        phone = validated_data.pop('phone', None)
+        email = validated_data.pop('email', None)
         entity_type = validated_data.pop('entity_type')
 
         cls, ser = BaseEntity.get_entity_from_type(entity_type)
@@ -114,6 +116,8 @@ class EntitySerializer(serializers.ModelSerializer):
         instance.name = validated_data.pop('name', instance.name)
         instance.address = validated_data.pop('address', instance.address)
         instance.website = validated_data.pop('website', instance.website)
+        instance.phone = validated_data.pop('phone', instance.phone)
+        instance.email = validated_data.pop('phone', instance.email)
         instance.description = validated_data.pop('description', instance.description)
 
         # handle related objects. It's a replace
