@@ -9,6 +9,8 @@ from wizcardship.models import Wizcard
 from virtual_table.models import VirtualTable
 from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
+from base.char_trunc import TruncatingCharField
+from base.emailField import EmailField
 from django.contrib.contenttypes.models import ContentType
 
 
