@@ -24,11 +24,13 @@ class BaseEntity(models.Model):
     EVENT = 'EVT'
     BUSINESS = 'BUS'
     PRODUCT = 'PRD'
+    SPEAKER = 'SPK'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
         (BUSINESS, 'Business'),
         (PRODUCT, 'Product'),
+        (SPEAKER, 'Speaker')
     )
 
     entity_type = models.CharField(
@@ -138,6 +140,7 @@ class UserEntity(models.Model):
 class Event(BaseEntity):
     SUB_ENTITY_PRODUCT = 'e_product'
     SUB_ENTITY_TABLE = 'e_table'
+    SUB_ENTITY_SPEAKER = 'e_speaker'
 
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
@@ -147,6 +150,8 @@ class Event(BaseEntity):
             obj = Product.objects.get(id=id)
         elif type == self.SUB_ENTITY_TABLE:
             obj = VirtualTable.objects.get(id=id)
+        elif type == self.SUB_ENTITY_SPEAKER:
+            obj = Speaker.objects.get(id=id)
 
         return self.related.connect(obj, alias=type)
 
@@ -154,4 +159,7 @@ class Product(BaseEntity):
     pass
 
 class Business(BaseEntity):
+    pass
+
+class Speaker(BaseEntity):
     pass
