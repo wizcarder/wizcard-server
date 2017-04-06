@@ -91,6 +91,7 @@ class EntitySerializer(serializers.ModelSerializer):
         owners = validated_data.pop('owners', None)
         sub_entities = validated_data.pop('related', None)
         location = validated_data.pop('location', None)
+
         #entity_type is a class member so not popping
         entity_type = validated_data['entity_type']
 

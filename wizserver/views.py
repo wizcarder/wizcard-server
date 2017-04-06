@@ -68,11 +68,11 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        try:
-            pdispatch.dispatch()
-        except:
-            client.captureException()
-            pdispatch.response.error_response(err.INTERNAL_ERROR)
+        #try:
+        pdispatch.dispatch()
+        #except:
+        #    client.captureException()
+        #    pdispatch.response.error_response(err.INTERNAL_ERROR)
         #send response
         return pdispatch.response.respond()
 
