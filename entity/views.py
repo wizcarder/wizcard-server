@@ -17,39 +17,12 @@ import pdb
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
 
-    def get_object_or_404(self, pk):
-        try:
-            return BaseEntity.objects.get(pk=pk)
-        except BaseEntity.DoesNotExist:
-            raise Http404
-
     queryset = BaseEntity.objects.all()
     serializer_class = EntitySerializer
-
-    def retrieve(self, request, pk=None):
-        queryset = BaseEntity.objects.get(id=pk)
-        serializer = EntitySerializer(queryset)
-        return Response(serializer.data)
-
-    def update(self, request, pk=None, partial=True):
-        inst = self.get_object_or_404(pk)
-        serializer = EntitySerializer(inst, data=request.data, partial=partial)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-
-    def partial_update(self, request, pk=None):
-        inst = self.get_object_or_404(pk)
-        serializer = EntitySerializer(inst, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-
 
 class EventViewSet(BaseEntityViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-
 
 class ProductViewSet(BaseEntityViewSet):
     queryset = Product.objects.all()
