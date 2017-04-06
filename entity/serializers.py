@@ -3,7 +3,7 @@ from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from rest_framework.validators import ValidationError
 from userprofile.models import UserProfile
-from entity.models import BaseEntity, Event, Product, Business
+from entity.models import BaseEntity, Event, Product, Business, Speaker
 from media_mgr.signals import media_create
 from location_mgr.models import LocationMgr
 import pdb
@@ -45,7 +45,6 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = ('lat', 'lng')
 
     # def get_queryset(self):
-    #     pdb.set_trace()
     #     pass
     #
     # def to_internal_value(self, data):
@@ -76,12 +75,12 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class EntitySerializer(serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True)
-    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=UserProfile.objects.all())
-    related = RelatedSerializerField(many=True)
-    location = LocationSerializer()
+    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=UserProfile.objects.all(), required=False)
+    related = RelatedSerializerField(many=True, required=False)
+    location = LocationSerializer(required=False,many=True)
 
     class Meta:
-        model = Event
+        model = BaseEntity
         depth = 1
         fields = ('pk', 'entity_type', 'name', 'address', 'website',
                   'phone', 'email', 'description', 'media', 'owners', 'related', 'location')
@@ -92,9 +91,8 @@ class EntitySerializer(serializers.ModelSerializer):
         owners = validated_data.pop('owners', None)
         sub_entities = validated_data.pop('related', None)
         location = validated_data.pop('location', None)
-        phone = validated_data.pop('phone', None)
-        email = validated_data.pop('email', None)
-        entity_type = validated_data.pop('entity_type')
+        #entity_type is a class member so not popping
+        entity_type = validated_data['entity_type']
 
         cls, ser = BaseEntity.get_entity_from_type(entity_type)
         entity = cls.objects.create(**validated_data)
@@ -116,8 +114,6 @@ class EntitySerializer(serializers.ModelSerializer):
         instance.name = validated_data.pop('name', instance.name)
         instance.address = validated_data.pop('address', instance.address)
         instance.website = validated_data.pop('website', instance.website)
-        instance.phone = validated_data.pop('phone', instance.phone)
-        instance.email = validated_data.pop('phone', instance.email)
         instance.description = validated_data.pop('description', instance.description)
 
         # handle related objects. It's a replace
@@ -153,7 +149,6 @@ class EventSerializer(EntitySerializer):
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
 
-
 class ProductSerializer(EntitySerializer):
     class Meta:
         model = Product
@@ -162,4 +157,9 @@ class ProductSerializer(EntitySerializer):
 class BusinessSerializer(EntitySerializer):
     class Meta:
         model = Business
+        fields = '__all__'
+
+class SpeakerSerializer(EntitySerializer):
+    class Meta:
+        model = Speaker
         fields = '__all__'
