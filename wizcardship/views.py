@@ -145,8 +145,8 @@ class WizcardViewSet(viewsets.ModelViewSet):
         except Wizcard.DoesNotExist:
             raise Http404
 
-
     serializer_class = WizcardSerializer
+    queryset = Wizcard.objects.all()
 
     def retrieve(self, request, pk=None):
         queryset = Wizcard.objects.get(id=pk)
