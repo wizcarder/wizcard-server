@@ -135,7 +135,7 @@ class EntitySerializer(serializers.ModelSerializer):
         if sub_entities:
             instance.related.all().delete()
             for s in sub_entities:
-                instance.add_subentity_by_id(**s)
+                instance.add_subentity(**s)
 
         location = validated_data.pop('location', None)
         if location:
