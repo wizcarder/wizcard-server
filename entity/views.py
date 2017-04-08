@@ -24,6 +24,23 @@ class EventViewSet(BaseEntityViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 
+    def get_object_or_404(self, pk):
+        try:
+            return Event.objects.get(pk=pk)
+        except Event.DoesNotExist:
+            raise Http404
+
+    def update(self, request, pk=None, partial=True):
+        inst = self.get_object_or_404(pk)
+        serializer = EventSerializer(inst, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+
+   
+
+
+
 class ProductViewSet(BaseEntityViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
