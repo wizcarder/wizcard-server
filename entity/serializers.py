@@ -38,46 +38,45 @@ class RelatedSerializerField(serializers.RelatedField):
         type = value.alias
         return 'id: %d, type: %s' % (obj_id, type)
 
-class LocationSerializer(serializers.ModelSerializer):
+class LocationSerializerField(serializers.RelatedField):
 
-    class Meta:
-        model = LocationMgr
-        fields = ('lat', 'lng')
+    def get_queryset(self):
+        pass
 
-    # def get_queryset(self):
-    #     pass
-    #
-    # def to_internal_value(self, data):
-    #     lat = data.get('lat', None)
-    #     lng = data.get('lng', None)
-    #
-    #     # Perform the data validation.
-    #     if not lat:
-    #         raise ValidationError({
-    #             'lat': 'This field is required.'
-    #         })
-    #     if not lng:
-    #         raise ValidationError({
-    #             'lng': 'This field is required.'
-    #         })
-    #
-    #     return {
-    #         'lat': int(lat),
-    #         'lng': int(lng)
-    #     }
-    #
-    # def to_representation(self, value):
-    #     pdb.set_trace()
-    #     lat = value.lat
-    #     lng = value.lng
-    #     return 'lat: %d, lng: %s' % (lat, lng)
+    def to_internal_value(self, data):
+        lat = data.get('lat', None)
+        lng = data.get('lng', None)
+
+          # Perform the data validation.
+        if not lat:
+            raise ValidationError({
+             'lat': 'This field is required.'
+            })
+        if not lng:
+            raise ValidationError({
+                 'lng': 'This field is required.'
+            })
+
+        return {
+             'lat': lat,
+             'lng': lng
+        }
+
+    def to_representation(self, value):
+
+         lat = value.get().lat
+         lng = value.get().lng
+         return {
+            'lat': lat,
+            'lng': lng
+         }
 
 
 class EntitySerializer(serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=UserProfile.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
-    location = LocationSerializer(required=False,many=True)
+    location = LocationSerializerField(required=False)
 
     class Meta:
         model = BaseEntity
@@ -108,6 +107,9 @@ class EntitySerializer(serializers.ModelSerializer):
                 entity.add_subentity(**s)
         if location:
             entity.create_or_update_location(location['lat'], location['lng'])
+
+        #Generate Tags
+        #entity.add_tags()
 
         return entity
 
