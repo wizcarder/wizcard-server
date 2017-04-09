@@ -2422,7 +2422,7 @@ class ParseMsgAndDispatch(object):
 
         return self.response()
 
-    def MyEntityDetails(self):
+    def EntityDetails(self):
         id = self.sender.get('entity_id')
         type = self.sender.get('type')
         detail = self.sender.get('detail')

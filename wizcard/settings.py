@@ -27,10 +27,10 @@ WIZCARD_SETTINGS = {
     'dev': {
         'databases': {
             'default': {
-                #'ENGINE': 'django.db.backends.mysql',
-                'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-dev',
-                'USER': 'kappu',
+                'ENGINE': 'django.db.backends.mysql',
+                #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard',
+                'USER': 'root',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
                  'PORT': '5432',
@@ -285,7 +285,13 @@ TEMPLATE_DIRS = (
 )
 
 REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # )
 }
 
 INSTALLED_APPS = (
@@ -325,7 +331,8 @@ INSTALLED_APPS = (
     'entity',
     'taggit',
     'genericm2m',
-    'django_filters'
+    'django_filters',
+    'rest_framework.authtoken'
 )
 
 #django-storage settings

@@ -16,7 +16,6 @@ import pdb
 
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
-
     queryset = BaseEntity.objects.all()
     serializer_class = EntitySerializer
 
@@ -36,9 +35,6 @@ class EventViewSet(BaseEntityViewSet):
         if serializer.is_valid():
             serializer.save()
         return Response(serializer.data)
-
-   
-
 
 
 class ProductViewSet(BaseEntityViewSet):

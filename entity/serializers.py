@@ -38,38 +38,21 @@ class RelatedSerializerField(serializers.RelatedField):
         type = value.alias
         return 'id: %d, type: %s' % (obj_id, type)
 
-class LocationSerializerField(serializers.RelatedField):
+class LocationSerializerField(serializers.ModelSerializer):
+    class Meta:
+        model = LocationMgr
+        fields = ('lat', 'lng')
 
     def get_queryset(self):
         pass
-
-    def to_internal_value(self, data):
-        lat = data.get('lat', None)
-        lng = data.get('lng', None)
-
-          # Perform the data validation.
-        if not lat:
-            raise ValidationError({
-             'lat': 'This field is required.'
-            })
-        if not lng:
-            raise ValidationError({
-                 'lng': 'This field is required.'
-            })
-
-        return {
-             'lat': lat,
-             'lng': lng
-        }
-
+    
     def to_representation(self, value):
-
-         lat = value.get().lat
-         lng = value.get().lng
-         return {
+        lat = value.get().lat
+        lng = value.get().lng
+        return {
             'lat': lat,
             'lng': lng
-         }
+        }
 
 
 class EntitySerializer(serializers.ModelSerializer):
@@ -90,8 +73,6 @@ class EntitySerializer(serializers.ModelSerializer):
         owners = validated_data.pop('owners', None)
         sub_entities = validated_data.pop('related', None)
         location = validated_data.pop('location', None)
-
-        #entity_type is a class member so not popping
         entity_type = validated_data['entity_type']
 
         cls, ser = BaseEntity.get_entity_from_type(entity_type)
@@ -143,6 +124,7 @@ class EntitySerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
 
 class EventSerializer(EntitySerializer):
     class Meta:
