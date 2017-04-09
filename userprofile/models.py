@@ -33,8 +33,18 @@ RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010,01,01))
 
 logger = logging.getLogger(__name__)
 
+# hacking up bitmaps this way
+BITMAP_BASE = 1
+WIZCARD_USER = BITMAP_BASE
+WIZWEB_USER = BITMAP_BASE << 1
+WIZWEB_ADMIN = BITMAP_BASE << 2
+WIZEVENT_USER = BITMAP_BASE << 3
+WIZPRODUCT_USER = BITMAP_BASE << 4
+WIZBUSINESS_USER = BITMAP_BASE << 5
+PORTAL_USER_INTERNAL = BITMAP_BASE << 6
 
 class UserProfileManager(models.Manager):
+
     def serialize_split(self, me, users):
         s = dict()
         template = fields.wizcard_template_brief
@@ -141,6 +151,9 @@ class UserProfileManager(models.Manager):
     def is_admin_user(self, user):
         return user.is_staff and user.is_superuser
 
+    def get_portal_user_internal(self):
+        return UserProfile.objects.get(user_type=PORTAL_USER_INTERNAL) \
+            if UserProfile.objects.filter(user_type=PORTAL_USER_INTERNAL).exists() else None
 
 class UserProfile(models.Model):
     # This field is required.
@@ -166,14 +179,6 @@ class UserProfile(models.Model):
         (IOS, 'iPhone'),
         (ANDROID, 'Android'),
     )
-
-    # hacking up bitmaps this way
-    WIZCARD_USER = 100000
-    WIZWEB_USER = 010000
-    WIZWEB_ADMIN = 001000
-    WIZEVENT_USER = 000100
-    WIZPRODUCT_USER = 000010
-    WIZBUSINESS_USER = 000001
 
     user_type = models.IntegerField(default=WIZCARD_USER)
 
@@ -217,6 +222,14 @@ class UserProfile(models.Model):
     def set_future(self):
         self.activated = False
         self.future_user = True
+        self.save()
+
+    def set_user_type(self, type):
+        self.type = type
+        self.save()
+
+    def add_user_type(self, type):
+        self.type = self.type & type
         self.save()
 
     def is_ios(self):
