@@ -175,9 +175,11 @@ class UserProfile(models.Model):
 
     IOS = 'ios'
     ANDROID = 'android'
+    BROWSER = 'Browser'
     DEVICE_CHOICES = (
         (IOS, 'iPhone'),
         (ANDROID, 'Android'),
+        (BROWSER, 'Browser')
     )
 
     user_type = models.IntegerField(default=WIZCARD_USER)
