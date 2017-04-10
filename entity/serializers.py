@@ -127,6 +127,7 @@ class EntitySerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(EntitySerializer):
+
     class Meta:
         model = Event
         fields = '__all__'
@@ -135,6 +136,7 @@ class EventSerializer(EntitySerializer):
     end = serializers.DateTimeField()
 
 class ProductSerializer(EntitySerializer):
+    media = MediaObjectsSerializer(many=True, required=False)
     class Meta:
         model = Product
         fields = '__all__'
