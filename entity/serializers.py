@@ -3,9 +3,11 @@ from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from rest_framework.validators import ValidationError
 from userprofile.models import UserProfile
-from entity.models import BaseEntity, Event, Product, Business, Speaker
+from entity.models import BaseEntity, Event, Product, Business 
 from media_mgr.signals import media_create
 from location_mgr.models import LocationMgr
+from speaker.models import Speaker
+from speaker.serializers import SpeakerSerializer
 import pdb
 
 
@@ -68,6 +70,7 @@ class EntitySerializer(serializers.ModelSerializer):
                   'phone', 'email', 'description', 'media', 'owners', 'related', 'location')
 
     def create(self, validated_data):
+        pdb.set_trace()
         media = validated_data.pop('media', None)
         tags = validated_data.pop('tags', None)
         owners = validated_data.pop('owners', None)
@@ -76,6 +79,7 @@ class EntitySerializer(serializers.ModelSerializer):
         entity_type = validated_data['entity_type']
 
         cls, ser = BaseEntity.get_entity_from_type(entity_type)
+
         entity = cls.objects.create(**validated_data)
 
         if media:
@@ -128,12 +132,42 @@ class EntitySerializer(serializers.ModelSerializer):
 
 class EventSerializer(EntitySerializer):
 
+   # class Meta(EntitySerializer.Meta):
+    start = serializers.DateTimeField()
+    end = serializers.DateTimeField()
+    speakers = SpeakerSerializer(many=True, required=False)
+
     class Meta:
         model = Event
         fields = '__all__'
 
-    start = serializers.DateTimeField()
-    end = serializers.DateTimeField()
+    def create(self, validated_data):
+        speakers = validated_data.pop('speakers', None)
+        serializer = EntitySerializer()
+        event = serializer.create(validated_data)
+
+        if speakers:
+            for s in speakers:
+                spkr = Speaker.objects.create(**s)
+                event.add_speaker(spkr)
+
+        return event
+
+    def update(self, instance, validated_data):
+        instance.start = validated_data.pop("start", instance.start)
+        instance.end = validated_data.pop("end", instance.end)
+        speakers = validated_data.pop('speakers', instance.speakers)
+
+        serializer = EntitySerializer()
+        instance = serializer.update(instance, validated_data)
+        if speakers:
+            instance.speakers.clear()
+            for s in speakers:
+                spkr = Speaker.objects.create(**s)
+                instance.add_speaker(spkr)
+
+        return instance
+
 
 class ProductSerializer(EntitySerializer):
     media = MediaObjectsSerializer(many=True, required=False)
@@ -144,9 +178,4 @@ class ProductSerializer(EntitySerializer):
 class BusinessSerializer(EntitySerializer):
     class Meta:
         model = Business
-        fields = '__all__'
-
-class SpeakerSerializer(EntitySerializer):
-    class Meta:
-        model = Speaker
         fields = '__all__'

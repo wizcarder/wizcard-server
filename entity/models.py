@@ -12,6 +12,7 @@ from location_mgr.signals import location
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
 from django.contrib.contenttypes.models import ContentType
+from speaker.models import Speaker
 
 
 import pdb
@@ -24,13 +25,12 @@ class BaseEntity(models.Model):
     EVENT = 'EVT'
     BUSINESS = 'BUS'
     PRODUCT = 'PRD'
-    SPEAKER = 'SPK'
+
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
         (BUSINESS, 'Business'),
         (PRODUCT, 'Product'),
-        (SPEAKER, 'Speaker')
     )
 
     entity_type = models.CharField(
@@ -118,6 +118,8 @@ class BaseEntity(models.Model):
             return updated, l_tuple[0][1]
 
 
+
+
 # explicit through table since we will want to associate additional
 # fields as we go forward.
 # But this also means GFK since FK's are not allowed to point to Abstract Class
@@ -140,20 +142,21 @@ class UserEntity(models.Model):
 class Event(BaseEntity):
     SUB_ENTITY_PRODUCT = 'e_product'
     SUB_ENTITY_TABLE = 'e_table'
-    SUB_ENTITY_SPEAKER = 'e_speaker'
 
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
+    speakers = models.ManyToManyField(Speaker)
 
     def add_subentity(self, id, type):
         if type == self.SUB_ENTITY_PRODUCT:
             obj = Product.objects.get(id=id)
         elif type == self.SUB_ENTITY_TABLE:
             obj = VirtualTable.objects.get(id=id)
-        elif type == self.SUB_ENTITY_SPEAKER:
-            obj = Speaker.objects.get(id=id)
 
         return self.related.connect(obj, alias=type)
+
+    def add_speaker(self, id):
+        self.speakers.add(id)
 
 class Product(BaseEntity):
     pass
@@ -161,5 +164,4 @@ class Product(BaseEntity):
 class Business(BaseEntity):
     pass
 
-class Speaker(BaseEntity):
-    pass
+
