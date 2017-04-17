@@ -21,7 +21,7 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
 class EventViewSet(BaseEntityViewSet):
     queryset = Event.objects.all()
-    serializer_class = EntitySerializer
+    serializer_class = EventSerializer
 
     def get_object_or_404(self, pk):
         try:
@@ -31,7 +31,7 @@ class EventViewSet(BaseEntityViewSet):
 
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
-        serializer = EntitySerializer(inst, data=request.data, partial=partial)
+        serializer = EventSerializer(inst, data=request.data, partial=partial)
         if serializer.is_valid():
             serializer.save()
         return Response(serializer.data)
