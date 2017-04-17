@@ -70,7 +70,6 @@ class EntitySerializer(serializers.ModelSerializer):
                   'phone', 'email', 'description', 'media', 'owners', 'related', 'location')
 
     def create(self, validated_data):
-        pdb.set_trace()
         media = validated_data.pop('media', None)
         tags = validated_data.pop('tags', None)
         owners = validated_data.pop('owners', None)
@@ -143,8 +142,7 @@ class EventSerializer(EntitySerializer):
 
     def create(self, validated_data):
         speakers = validated_data.pop('speakers', None)
-        serializer = EntitySerializer()
-        event = serializer.create(validated_data)
+        event = super(EventSerializer, self).create(validated_data)
 
         if speakers:
             for s in speakers:
@@ -157,9 +155,8 @@ class EventSerializer(EntitySerializer):
         instance.start = validated_data.pop("start", instance.start)
         instance.end = validated_data.pop("end", instance.end)
         speakers = validated_data.pop('speakers', instance.speakers)
-
-        serializer = EntitySerializer()
-        instance = serializer.update(instance, validated_data)
+        instance = super(EventSerializer,self).update(instance, validated_data)
+        
         if speakers:
             instance.speakers.clear()
             for s in speakers:
