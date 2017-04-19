@@ -156,7 +156,7 @@ class EventSerializer(EntitySerializer):
         instance.end = validated_data.pop("end", instance.end)
         speakers = validated_data.pop('speakers', instance.speakers)
         instance = super(EventSerializer,self).update(instance, validated_data)
-        
+
         if speakers:
             instance.speakers.clear()
             for s in speakers:

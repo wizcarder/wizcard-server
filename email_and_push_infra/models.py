@@ -14,8 +14,10 @@ from wizcardship.models import Wizcard
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from base.emailField import EmailField
+from entity.models import Event
 import datetime
 from django.utils import timezone
+import pdb
 
 # Create your models here.
 
@@ -27,6 +29,7 @@ class EmailEvent(models.Model):
     MISSINGU = 5
     JOINUS = 6
     DIGEST = 7
+    INVITE_EXHIBITOR = 8
     EVENTS = (
         (NEWUSER, 'NEWUSER'),
         (INVITED, 'INVITED'),
@@ -34,7 +37,8 @@ class EmailEvent(models.Model):
         (NEWRECOMMENDATION, 'RECOMMENDATION'),
         (MISSINGU, 'MISSINGU'),
         (JOINUS, 'JOINUS'),
-        (DIGEST, 'DIGEST')
+        (DIGEST, 'DIGEST'),
+        (INVITE_EXHIBITOR, 'INVITE_EXHIBITOR')
     )
     BUFFERED = 1
     INSTANT = 2
@@ -52,23 +56,26 @@ class EmailEvent(models.Model):
 
 class EmailAndPushManager(models.Manager):
 
-    def pushEvent(self, wizcard, event, to, target=None):
+    def pushEvent(self, sender, event, to, target=None):
         event = EmailEvent.objects.get(event=event)
+        sender_content_type = ContentType.objects.get_for_model(sender)
+
         if target:
             target_content_type = ContentType.objects.get_for_model(target)
             target_object_id = target.id
             to = target.email
-            eap, created = EmailAndPush.objects.get_or_create(wizcard=wizcard, event=event, to=to, target_content_type=target_content_type,
+            eap, created = EmailAndPush.objects.get_or_create(sender_content_type=sender_content_type, sender_object_id=sender.id, event=event, to=to, target_content_type=target_content_type,
                                                               target_object_id = target_object_id)
         else:
-            eap, created = EmailAndPush.objects.get_or_create(wizcard=wizcard, event=event, to=to)
+            eap, created = EmailAndPush.objects.get_or_create(sender_content_type=sender_content_type, sender_object_id = sender.id, event=event, to=to)
 
         return eap
 
 
 class EmailAndPush(models.Model):
-
-    wizcard = models.ForeignKey(Wizcard, related_name='email_and_push')
+    sender_content_type = models.ForeignKey(ContentType, related_name='email_and_push', default=15)
+    sender_object_id = models.PositiveIntegerField()
+    sender = generic.GenericForeignKey('sender_content_type', 'sender_object_id')
     event = models.ForeignKey(EmailEvent, related_name='email_event')
     to = EmailField(blank=True)
     target_content_type = models.ForeignKey(ContentType, related_name="email_target", blank=True, null=True)
@@ -84,3 +91,4 @@ class EmailAndPush(models.Model):
 
     def updateEmailTime(self, sent_time=timezone.now):
         self.last_sent = sent_time
+

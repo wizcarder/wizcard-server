@@ -9,6 +9,10 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from media_mgr.serializers import MediaObjectsSerializer
 from media_mgr.models import MediaObjects
 from django.http import Http404
+from rest_framework.decorators import detail_route
+from email_and_push_infra.models import EmailAndPush, EmailEvent
+from email_and_push_infra.signals import email_trigger
+from rest_framework import status
 import pdb
 
 
@@ -35,6 +39,17 @@ class EventViewSet(BaseEntityViewSet):
         if serializer.is_valid():
             serializer.save()
         return Response(serializer.data)
+
+    @detail_route(methods=['post'])
+    def invite_exhibitors(self, request, pk=None):
+        inst = self.get_object_or_404(pk)
+        emails = request.data
+        for email in emails:
+            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=email)
+        return Response("Exhibitors email added", status=status.HTTP_201_CREATED)
+
+
+
 
 
 class ProductViewSet(BaseEntityViewSet):

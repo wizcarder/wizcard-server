@@ -1101,7 +1101,7 @@ class ParseMsgAndDispatch(object):
         if vcard:
             wizcard.save_vcard(vcard)
         if created:
-            email_trigger.send(self.user, trigger=EmailEvent.NEWUSER, wizcard=self.user.wizcard, target=wizcard)
+            email_trigger.send(self.user, trigger=EmailEvent.NEWUSER, source=self.user.wizcard, target=wizcard)
 
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response
@@ -1785,7 +1785,7 @@ class ParseMsgAndDispatch(object):
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_trigger.send(self.user, trigger=EmailEvent.INVITED, wizcard=self.user.wizcard, target=wizcard)
+                    email_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=wizcard)
             else:
                 FutureUser.objects.get_or_create(
                         inviter=self.user,
@@ -1795,7 +1795,7 @@ class ParseMsgAndDispatch(object):
                         email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_trigger.send(self.user, trigger=EmailEvent.INVITED, wizcard=self.user.wizcard, to_email=r)
+                    email_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, to_email=r)
 
     def UserQuery(self):
         try:
@@ -2270,7 +2270,7 @@ class ParseMsgAndDispatch(object):
         else:
             if deadcard.activated == False:
                 #send_wizcard.delay(self.user.wizcard, deadcard.email, template="emailscan")
-                email_trigger.send(self.user, trigger=EmailEvent.SCANNED, wizcard=self.user.wizcard, to_email=deadcard.email)
+                email_trigger.send(self.user, trigger=EmailEvent.SCANNED, source=self.user.wizcard, to_email=deadcard.email)
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
