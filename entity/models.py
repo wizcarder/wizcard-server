@@ -12,7 +12,9 @@ from location_mgr.signals import location
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from speaker.models import Speaker
+from polymorphic.models import PolymorphicModel
 
 
 import pdb
@@ -20,12 +22,11 @@ import pdb
 # Create your models here.
 
 
-class BaseEntity(models.Model):
+class BaseEntity(PolymorphicModel):
 
     EVENT = 'EVT'
     BUSINESS = 'BUS'
     PRODUCT = 'PRD'
-
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -116,8 +117,6 @@ class BaseEntity(models.Model):
                                     tree="ETREE")
             #l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
             return updated, l_tuple[0][1]
-
-
 
 
 # explicit through table since we will want to associate additional
