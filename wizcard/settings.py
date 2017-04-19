@@ -289,9 +289,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    )
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # )
 }
 
 INSTALLED_APPS = (
@@ -332,7 +332,9 @@ INSTALLED_APPS = (
     'taggit',
     'genericm2m',
     'django_filters',
-    'rest_framework.authtoken'
+    'polymorphic',
+    'rest_framework.authtoken',
+    'speaker'
 )
 
 #django-storage settings

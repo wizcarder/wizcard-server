@@ -154,8 +154,8 @@ class EventSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         instance.start = validated_data.pop("start", instance.start)
         instance.end = validated_data.pop("end", instance.end)
-        speakers = validated_data.pop('speakers', instance.speakers)
-        instance = super(EventSerializer,self).update(instance, validated_data)
+        speakers = validated_data.pop('speakers', None)
+        instance = super(EventSerializer, self).update(instance, validated_data)
 
         if speakers:
             instance.speakers.clear()
@@ -168,6 +168,7 @@ class EventSerializer(EntitySerializer):
 
 class ProductSerializer(EntitySerializer):
     media = MediaObjectsSerializer(many=True, required=False)
+
     class Meta:
         model = Product
         fields = '__all__'
