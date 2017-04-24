@@ -9,7 +9,7 @@ import pdb
 
 class SpeakerSerializer(serializers.ModelSerializer):
 
-    userprofile = UserSerializer(required=False)
+    user = UserSerializer(required=False)
 
     class Meta:
         model = Speaker

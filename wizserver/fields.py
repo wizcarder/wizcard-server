@@ -118,20 +118,19 @@ user_query_full_template = {
 }
 
 nearby_table_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'numSitting', 'created',
+    'fields': ['id', 'name', 'secure', 'num_sitting', 'created',
                'timeout', 'timeRemaining', 'wizcards', 'creator'],
     'key_map': {'timeRemaining': 'time_remaining',
-                'created': 'a_created',
                 'wizcards': 'get_member_wizcards',
                 'creator': 'get_creator'}
 }
 
 table_template = {
-    'fields': ['id', 'tablename', 'secureTable', 'numSitting',
+    'fields': ['id', 'name', 'secure', 'num_sitting',
                'timeout', 'timeRemaining', 'wizcards', 'created',
                'creator_id', 'password'],
     'key_map': {
-        'created': 'a_created', 'timeRemaining': 'time_remaining',
+        'timeRemaining': 'time_remaining',
         'wizcards': 'get_member_wizcards'
     }
 }

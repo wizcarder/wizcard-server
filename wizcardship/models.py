@@ -36,8 +36,9 @@ from lib import wizlib
 from wizcard import err
 from wizserver import verbs
 from notifications.models import notify, Notification
-from django.db.models import ImageField,URLField
+from django.db.models import URLField
 from genericm2m.models import RelatedObjectsDescriptor
+from media_mgr.models import MediaObjects
 
 
 logger = logging.getLogger(__name__)
@@ -198,6 +199,10 @@ class Wizcard(models.Model):
             storage=WizcardQueuedS3BotoStorage(delayed=False), blank=True)
     videoUrl = URLField(blank=True)
     videoThumbnailUrl = URLField(blank=True)
+
+    # moving to media mgr
+    media = generic.GenericRelation(MediaObjects)
+
     extFields = PickledObjectField(default={}, blank=True)
     smsurl = URLField(blank=True)
     vcard = models.TextField(blank=True)

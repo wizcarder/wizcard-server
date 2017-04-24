@@ -26,6 +26,7 @@ class MediaObjects(models.Model):
     SUB_TYPE_LOGO = 'LGO'
     SUB_TYPE_SPONSORS_LOGO = 'SLG'
     SUB_TYPE_ROLLING = 'ROL'
+    SUB_TYPE_THUMBNAIL = 'THB'
 
     MEDIA_CHOICES = (
         (TYPE_IMAGE, 'Image'),
@@ -36,7 +37,8 @@ class MediaObjects(models.Model):
         (SUB_TYPE_BANNER, 'Banner'),
         (SUB_TYPE_LOGO, 'Logo'),
         (SUB_TYPE_SPONSORS_LOGO, 'Sponsor Logo'),
-        (SUB_TYPE_ROLLING, 'Rolling')
+        (SUB_TYPE_ROLLING, 'Rolling'),
+        (SUB_TYPE_THUMBNAIL, 'Thumbnail')
     )
 
     media_type = models.CharField(

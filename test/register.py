@@ -19,9 +19,11 @@ from libtest import send_request, handle_response
 
 TEST_IMAGE=False
 OCR_FLAG = False
-TEST_TABLE = False
+TEST_TABLE = True
 TEST_FLICK = False
 TEST_WIZWEB = False
+OEMBED = False
+
 APP_VERSION = str(settings.APP_MAJOR) + "." +  str(settings.APP_MINOR)
 
 USERNAME1 = messages.PHONE1+'@wizcard.com'
@@ -1035,42 +1037,40 @@ else:
     # expect nearby response
     m_nearby = objs['data']['m_nearby']
 
-reqmsg = messages.get_video_thumbnail_url
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['videoUrl'] = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/bizcards/test_video.mp4"
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+if OEMBED:
+    reqmsg = messages.get_video_thumbnail_url
+    reqmsg['header']['version'] = APP_VERSION
+    reqmsg['sender']['userID'] = uid1
+    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['sender']['videoUrl'] = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/bizcards/test_video.mp4"
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
 
-# this one will work with oembed
-reqmsg = messages.get_video_thumbnail_url
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['videoUrl'] = "https://youtu.be/kvjxoBG5euo"
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+    # this one will work with oembed
+    reqmsg = messages.get_video_thumbnail_url
+    reqmsg['header']['version'] = APP_VERSION
+    reqmsg['sender']['userID'] = uid1
+    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['sender']['videoUrl'] = "https://www.youtube.com/watch?v=QujpdmsXAb4&feature=youtu.be"
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
 
-# this one will return error
-reqmsg = messages.get_video_thumbnail_url
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['videoUrl'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
+    # this one will return error
+    reqmsg = messages.get_video_thumbnail_url
+    reqmsg['header']['version'] = APP_VERSION
+    reqmsg['sender']['userID'] = uid1
+    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['sender']['videoUrl'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
 #clean all rolodexes
-
 
 
 # Table Tests
 if TEST_TABLE:
-
-
 
     reqmsg = messages.table_create
     reqmsg['header']['version'] = APP_VERSION

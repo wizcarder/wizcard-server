@@ -26,7 +26,7 @@ from lib.preserialize import serialize
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
-from virtual_table.models import VirtualTable, Membership
+from entity.models import VirtualTable
 from meishi.models import Meishi
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
@@ -1957,7 +1957,7 @@ class ParseMsgAndDispatch(object):
 
     def TableCreate(self):
         tablename = self.sender['table_name']
-        secure = self.sender['secureTable']
+        secure = self.sender['secure_table']
         if self.sender.has_key('timeout'):
             timeout = self.sender['timeout'] if self.sender['timeout'] else settings.WIZCARD_DEFAULT_TABLE_LIFETIME
         else:
@@ -1968,19 +1968,16 @@ class ParseMsgAndDispatch(object):
         else:
             password = ""
 
-        a_created = self.sender['created']
-
-        table = VirtualTable.objects.create(tablename=tablename, secureTable=secure,
+        table = VirtualTable.objects.create(name=tablename, secure=secure,
                                             password=password, creator=self.user,
-                                            a_created = a_created, timeout=timeout)
+                                            timeout=timeout)
         table.inc_numsitting()
 
         #TODO: AA handle create failure and/or unique name enforcement
-        Membership.objects.get_or_create(user=self.user, table=table)
-        #AA:TODO move create to overridden create in VirtualTable
+        UserEntity.user_join(user=self.user, entity_obj=table)
 
         #update location in ptree
-        table.create_location(self.lat, self.lng)
+        table.create_or_update_location(self.lat, self.lng)
         l = table.location.get()
         l.start_timer(timeout)
         table.save()
@@ -2001,7 +1998,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.EXISTING_MEMBER)
             return self.response
 
-        if table.is_secure() and not skip_password:
+        if table.secure and not skip_password:
             password = self.sender['password']
         else:
             password = None
@@ -2024,7 +2021,6 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-
     def TableDestroy(self):
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
@@ -2038,7 +2034,6 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.NOT_AUTHORIZED)
 
         return self.response
-
 
     def TableEdit(self):
         try:
@@ -2068,8 +2063,8 @@ class ParseMsgAndDispatch(object):
             table.tablename = new_name
         if self.sender.has_key('timeout'):
             timeout = self.sender['timeout']*60
-            a_created = self.sender['created']
-            table.a_created = a_created
+            # a_created = self.sender['created']
+            # table.a_created = a_created
             table.location.get().reset_timer(timeout)
         table.save()
 

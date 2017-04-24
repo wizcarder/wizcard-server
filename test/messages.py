@@ -421,7 +421,7 @@ table_create = {
         "wizUserID" : "",
         "table_name" : "",
         "timeout": 1,
-        "secureTable" : "True",
+        "secure_table" : "True",
         "password" : "test",
         "created":str(datetime.now())
     },

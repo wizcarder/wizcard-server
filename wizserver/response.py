@@ -2,7 +2,7 @@
 import datetime
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import  Wizcard, WizcardFlick
-from virtual_table.models import VirtualTable
+from entity.models import VirtualTable
 from userprofile.models import UserProfile
 from base.cctx import NotifContext
 from django.http import HttpResponse
@@ -136,7 +136,7 @@ class NotifResponse(ResponseN):
             if cctx.asset_type == ContentType.objects.get(model="virtualtable").name:
                 #AA:TODO this lookup can be avoided by using the notify.send better
                 #ie, no need to send target as wizcard since it can be derived from sender,recipient
-                nctx.key_val('numSitting', VirtualTable.objects.get(id=cctx.asset_id).numSitting)
+                nctx.key_val('numSitting', VirtualTable.objects.get(id=cctx.asset_id).num_sitting)
 
             self.add_data_to_dict(out, "context", nctx.context)
 
@@ -192,7 +192,7 @@ class NotifResponse(ResponseN):
         if notif.target: #since there is a possibility that the table got destroyed in-between
             out = dict(
                 tableID=notif.target_object_id,
-                numSitting=notif.target.numSitting,
+                numSitting=notif.target.num_sitting,
                 wizcard=ws
             )
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_JOIN, notif.id)
@@ -207,7 +207,7 @@ class NotifResponse(ResponseN):
         if notif.target:
             out = dict(
                 tableID=notif.target_object_id,
-                numSitting=notif.target.numSitting,
+                numSitting=notif.target.num_sitting,
                 wizcard=ws
             )
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_LEAVE, notif.id)

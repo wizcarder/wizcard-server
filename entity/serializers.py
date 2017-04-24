@@ -2,12 +2,14 @@ __author__ = 'aammundi'
 from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from rest_framework.validators import ValidationError
-from userprofile.models import UserProfile
-from entity.models import BaseEntity, Event, Product, Business 
+from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity
+from django.contrib.auth.models import User
 from media_mgr.signals import media_create
 from location_mgr.models import LocationMgr
 from speaker.models import Speaker
 from speaker.serializers import SpeakerSerializer
+from location_mgr.serializers import LocationSerializerField
+
 import pdb
 
 
@@ -40,26 +42,9 @@ class RelatedSerializerField(serializers.RelatedField):
         type = value.alias
         return 'id: %d, type: %s' % (obj_id, type)
 
-class LocationSerializerField(serializers.ModelSerializer):
-    class Meta:
-        model = LocationMgr
-        fields = ('lat', 'lng')
-
-    def get_queryset(self):
-        pass
-    
-    def to_representation(self, value):
-        lat = value.get().lat
-        lng = value.get().lng
-        return {
-            'lat': lat,
-            'lng': lng
-        }
-
-
 class EntitySerializer(serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True)
-    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=UserProfile.objects.all(), required=False)
+    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
     location = LocationSerializerField(required=False)
 
@@ -131,7 +116,6 @@ class EntitySerializer(serializers.ModelSerializer):
 
 class EventSerializer(EntitySerializer):
 
-   # class Meta(EntitySerializer.Meta):
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
     speakers = SpeakerSerializer(many=True, required=False)
@@ -177,3 +161,27 @@ class BusinessSerializer(EntitySerializer):
     class Meta:
         model = Business
         fields = '__all__'
+
+class TableSerializer(serializers.ModelSerializer):
+    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
+    location = LocationSerializerField()
+
+    class Meta:
+        model = VirtualTable
+        fields = '__all__'
+
+    def create(self, validated_data):
+        users = validated_data.pop('users', None)
+        location = validated_data.pop('location', None)
+        owners = validated_data.pop('owners', None)
+
+        table = VirtualTable.objects.create(**validated_data)
+
+        for u in users:
+            UserEntity.user_join(u, table)
+
+        if location:
+            table.create_location(location.lat, location.lng)
+
+        return table

@@ -1,23 +1,16 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework import generics
-from entity.models import BaseEntity, Event, Product, Business
-from entity.serializers import EntitySerializer, EventSerializer, ProductSerializer, BusinessSerializer
-from rest_framework_extensions.mixins import NestedViewSetMixin
-from media_mgr.serializers import MediaObjectsSerializer
-from media_mgr.models import MediaObjects
+from entity.models import BaseEntity, Event, Product, Business, VirtualTable
+from entity.serializers import EntitySerializer, EventSerializer, ProductSerializer, BusinessSerializer, TableSerializer
 from django.http import Http404
 from rest_framework.decorators import detail_route
-from email_and_push_infra.models import EmailAndPush, EmailEvent
+from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from rest_framework import status
 import pdb
 
 
 # Create your views here.
-
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
     queryset = BaseEntity.objects.all()
@@ -49,9 +42,6 @@ class EventViewSet(BaseEntityViewSet):
         return Response("Exhibitors email added", status=status.HTTP_201_CREATED)
 
 
-
-
-
 class ProductViewSet(BaseEntityViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -60,3 +50,8 @@ class ProductViewSet(BaseEntityViewSet):
 class BusinessViewSet(BaseEntityViewSet):
     queryset = Business.objects.all()
     serializer_class = BusinessSerializer
+
+
+class TableViewSet(viewsets.ModelViewSet):
+    queryset = VirtualTable.objects.all()
+    serializer_class = TableSerializer

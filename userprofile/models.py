@@ -8,7 +8,7 @@ from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
-from virtual_table.models import VirtualTable
+from entity.models import VirtualTable
 from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
@@ -299,7 +299,7 @@ class UserProfile(models.Model):
             s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
 
         # tables
-        tables = VirtualTable.objects.user_tables(self.user)
+        tables = VirtualTable.objects.users_entities(self.user)
         if tables.count():
             # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(

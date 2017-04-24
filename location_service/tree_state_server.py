@@ -9,7 +9,8 @@ from base.db import WizcardDB
 #from base.rds_db import WizcardDB
 from rabbit_service.server import RabbitServer
 from wizcard import settings
-from rabbit_service.rconfig import TREE_SERVER_CONFIG
+from rabbit_service import rconfig
+from rabbit_service.rconfig import TREE_SERVER_CONFIG, TREES
 from raven.contrib.django.raven_compat.models import client
 import pika
 
@@ -43,10 +44,10 @@ class TreeServer(RabbitServer):
         self.etree = trie()
 
         self.location_tree_handles = {
-            "PTREE" : self.ptree,
-            "WTREE" : self.wtree,
-            "VTREE" : self.vtree,
-            "ETREE" : self.etree
+            TREES[rconfig.PTREE]: self.ptree,
+            TREES[rconfig.VTREE]: self.vtree,
+            TREES[rconfig.WTREE]: self.wtree,
+            TREES[rconfig.ETREE]: self.etree,
         }
 
         self.call_handles = {

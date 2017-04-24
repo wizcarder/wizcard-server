@@ -8,11 +8,10 @@ class Command(BaseCommand):
     args = '<tree_type>'
     help = 'Print Trees'
 
-
     def handle(self, *args, **options):
         tsc = TreeStateClient()
         if not args:
             print tsc.print_trees(tree_type=None)
         else:
-            for type in args:
-                print tsc.print_trees(tree_type=type)
+            for ttype in args:
+                print tsc.print_trees(tree_type=ttype)
