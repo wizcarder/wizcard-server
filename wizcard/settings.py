@@ -313,7 +313,6 @@ INSTALLED_APPS = (
     'wizserver',
     'wizcardship',
     'notifications',
-    'virtual_table',
     'location_mgr',
     'dead_cards',
     'periodic',
