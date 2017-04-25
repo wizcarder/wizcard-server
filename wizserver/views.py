@@ -56,6 +56,7 @@ from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
 from django.core.files import File
+from entity.serializers import EventSerializer
 
 now = timezone.now
 
@@ -2624,8 +2625,9 @@ class ParseMsgAndDispatch(object):
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        events_serialized = EventSerializer(events, many=True)
 
-        self.response.add_data("events", events.data)
+        self.response.add_data("events", events_serialized.data)
 
 
 
