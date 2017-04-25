@@ -142,5 +142,7 @@ class WizWebUserCreateSchema(colander.MappingSchema):
 
 class WizWebAddEditCardSchema(colander.MappingSchema):
     pass
+class GetEvents(colander.MappingSchema):
+    pass
 
 
