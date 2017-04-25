@@ -322,6 +322,7 @@ class Stats(models.Model):
     set_reco = models.IntegerField(blank=True, default=0)
     get_common_connections = models.IntegerField(blank=True, default=0)
     video_thumbnail = models.IntegerField(blank=True, default=0)
+    get_events = models.IntegerField(blank=True, default=0)
 
     objects = StatsMgr()
 

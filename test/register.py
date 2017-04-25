@@ -1764,3 +1764,12 @@ reqmsg['receiver']['wizCardID'] = e1_id
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.get_events
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['lat'] = messages.LAT1
+reqmsg['sender']['lng'] = messages.LNG1
+reqmsg['sender']['userID'] = uid1
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
