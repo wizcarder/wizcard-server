@@ -193,6 +193,20 @@ class EventManager(BaseEntityManager):
         else:
             return user.users_baseentity_related.all().instance_of(Event).exclude(expired=True)
 
+    def lookup(self, cache_key, lat, lng, n, count_only=False):
+        from entity.serializers import EventSerializer, ProductSerializer, BusinessSerializer, TableSerializer
+        flicked_cards = None
+        result, count =  LocationMgr.objects.lookup(
+            cache_key,
+            "ETREE",
+            lat,
+            lng,
+            n)
+        #convert result to query set result
+        if count and not count_only:
+            events = EventSerializer(Event.objects.filter(id__in=result), many=True)
+        return events, count
+
 
 class Event(BaseEntity):
     SUB_ENTITY_PRODUCT = 'e_product'

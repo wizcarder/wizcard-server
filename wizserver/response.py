@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from raven.contrib.django.raven_compat.models import client
 import logging
 import fields
-import json
+import simplejson as json
 import pdb
 from wizserver import verbs
 

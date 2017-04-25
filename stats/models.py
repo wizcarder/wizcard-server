@@ -270,6 +270,12 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
+    def inc_get_events(self, user_stats, global_stats):
+        user_stats.get_events += 1
+        global_stats.get_events += 1
+
+        user_stats.save()
+        global_stats.save()
 
 
 class Stats(models.Model):

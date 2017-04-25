@@ -543,6 +543,12 @@ class ParseMsgAndDispatch(object):
                     message_format.GetVideoThumbnailSchema,
                     self.GetVideoThumbnailUrl,
                     Stats.objects.inc_video_thumbnail
+                ),
+            verbs.MSG_GET_EVENTS:
+                (
+                    message_format.GetEvents,
+                    self.GetEvents,
+                    Stats.objects.inc_get_events
                 )
         }
         #update location since it may have changed
@@ -2601,6 +2607,26 @@ class ParseMsgAndDispatch(object):
 
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
+
+    def GetEvents(self):
+        if self.lat is None and self.lng is None:
+            try:
+                self.lat = self.userprofile.location.get().lat
+                self.lng = self.userprofile.location.get().lng
+            except:
+                # maybe location timedout. Shouldn't happen if messages from app
+                # are coming correctly...
+                logger.warning('No location information available')
+                return self.response
+
+        events, count = Event.objects.lookup(
+            self.user.pk,
+            self.lat,
+            self.lng,
+            settings.DEFAULT_MAX_LOOKUP_RESULTS)
+
+        self.response.add_data("events", events.data)
+
 
 
 wizrequest_handler = WizRequestHandler.as_view()
