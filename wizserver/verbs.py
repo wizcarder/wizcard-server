@@ -50,7 +50,10 @@ MSG_WIZWEB_QUERY_USER   = 47
 MSG_WIZWEB_QUERY_WIZCARD = 48
 MSG_WIZWEB_CREATE_USER  = 49
 MSG_WIZWEB_ADD_EDIT_CARD = 50
-MSG_GET_EVENTS = 51
+MSG_ENTITY_JOIN         = 51
+MSG_ENTITY_LEAVE        = 52
+MSG_ENTITY_DETAILS      = 53
+MSG_GET_EVENTS          = 54
 
 wizcardMsgTypes = {
     'login'                       : MSG_LOGIN,
@@ -102,6 +105,9 @@ wizcardMsgTypes = {
     'wizweb_query_wizcard'	      : MSG_WIZWEB_QUERY_WIZCARD,
     'wizweb_create_user'	      : MSG_WIZWEB_CREATE_USER,
     'wizweb_add_edit_card'	      : MSG_WIZWEB_ADD_EDIT_CARD,
+    'entity_join'                 : MSG_ENTITY_JOIN,
+    'entity_leave'                : MSG_ENTITY_LEAVE,
+    'entity_details'              : MSG_ENTITY_DETAILS,
     'get_events'                  : MSG_GET_EVENTS,
 }
 

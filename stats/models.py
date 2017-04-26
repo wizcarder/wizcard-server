@@ -270,9 +270,30 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
-    def inc_get_events(self, user_stats, global_stats):
+    def inc_events_get(self, user_stats, global_stats):
         user_stats.get_events += 1
         global_stats.get_events += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_join(self, user_stats, global_stats):
+        user_stats.entity_join += 1
+        global_stats.entity_join += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_leave(self, user_stats, global_stats):
+        user_stats.entity_leave += 1
+        global_stats.entity_leave += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_details(self, user_stats, global_stats):
+        user_stats.entity_details += 1
+        global_stats.entity_details += 1
 
         user_stats.save()
         global_stats.save()
@@ -322,6 +343,9 @@ class Stats(models.Model):
     set_reco = models.IntegerField(blank=True, default=0)
     get_common_connections = models.IntegerField(blank=True, default=0)
     video_thumbnail = models.IntegerField(blank=True, default=0)
+    entity_join = models.IntegerField(blank=True, default=0)
+    entity_leave = models.IntegerField(blank=True, default=0)
+    entity_details = models.IntegerField(blank=True, default=0)
     get_events = models.IntegerField(blank=True, default=0)
 
     objects = StatsMgr()

@@ -545,14 +545,33 @@ class ParseMsgAndDispatch(object):
                     self.GetVideoThumbnailUrl,
                     Stats.objects.inc_video_thumbnail
                 ),
+            verbs.MSG_ENTITY_JOIN:
+                (
+                    message_format.EntityJoinSchema,
+                    self.EntityJoin,
+                    Stats.objects.inc_entity_join
+                ),
+            verbs.MSG_ENTITY_LEAVE:
+                (
+                    message_format.EntityLeaveSchema,
+                    self.EntityLeave,
+                    Stats.objects.inc_entity_leave
+                ),
+            verbs.MSG_ENTITY_DETAILS:
+                (
+                    message_format.EntityDetailsSchema,
+                    self.EntityDetails,
+                    Stats.objects.inc_entity_details
+                ),
             verbs.MSG_GET_EVENTS:
                 (
-                    message_format.GetEvents,
-                    self.GetEvents,
-                    Stats.objects.inc_get_events
+                    message_format.EventsGetSchema,
+                    self.EventsGet,
+                    Stats.objects.inc_events_get
                 )
         }
-        #update location since it may have changed
+
+        # update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
             self.userprofile.create_or_update_location(
                 self.lat,
@@ -2441,6 +2460,26 @@ class ParseMsgAndDispatch(object):
 
         return self.response()
 
+    def EventsGet(self):
+        if self.lat is None and self.lng is None:
+            try:
+                self.lat = self.userprofile.location.get().lat
+                self.lng = self.userprofile.location.get().lng
+            except:
+                # maybe location timedout. Shouldn't happen if messages from app
+                # are coming correctly...
+                logger.warning('No location information available')
+                return self.response
+
+        events, count = Event.objects.lookup(
+            self.user.pk,
+            self.lat,
+            self.lng,
+            settings.DEFAULT_MAX_LOOKUP_RESULTS)
+
+        events_serialized = EventSerializer(events, many=True)
+
+        self.response.add_data("events", events_serialized.data)
 
     # WizWeb Message handling
     def WizWebUserQuery(self):
@@ -2608,27 +2647,6 @@ class ParseMsgAndDispatch(object):
 
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
-
-    def GetEvents(self):
-        if self.lat is None and self.lng is None:
-            try:
-                self.lat = self.userprofile.location.get().lat
-                self.lng = self.userprofile.location.get().lng
-            except:
-                # maybe location timedout. Shouldn't happen if messages from app
-                # are coming correctly...
-                logger.warning('No location information available')
-                return self.response
-
-        events, count = Event.objects.lookup(
-            self.user.pk,
-            self.lat,
-            self.lng,
-            settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        events_serialized = EventSerializer(events, many=True)
-
-        self.response.add_data("events", events_serialized.data)
-
 
 
 wizrequest_handler = WizRequestHandler.as_view()

@@ -524,10 +524,9 @@ class WizcardFlickManager(models.Manager):
     def set_tag(self, tag):
         self.tag = tag
 
-    def lookup(self, cache_key, lat, lng, n, count_only=False):
+    def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
         result, count =  LocationMgr.objects.lookup(
-            cache_key,
             "WTREE",
             lat,
             lng,

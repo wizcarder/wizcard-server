@@ -8,19 +8,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (['id', 'email'])
+        fields = ('id', 'username', 'email', 'first_name', 'last_name')
 
     def create(self, validated_data):
-        email = validated_data.get('email',None)
-        if email:
-            user, created = User.objects.get_or_create(username=email, email=email)
-            if created:
-                user.set_password(hashlib.sha1(email).hexdigest())
-                user.save()
-                user.profile.future_user = True
-                user.profile.save()
-            return user
-        else:
-            return Response
+        username = validated_data.get('username')
+        email = validated_data.get('email')
+
+        user, created = User.objects.get_or_create(username=username, defaults={'email': email})
+        if created:
+            user.set_password(hashlib.sha1(email).hexdigest())
+            user.save()
+        return user
 
 

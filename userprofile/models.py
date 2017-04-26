@@ -249,14 +249,14 @@ class UserProfile(models.Model):
                                     tree="PTREE")
             l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
 
-    def lookup(self, cache_key, n, count_only=False):
+    def lookup(self, n, count_only=False):
         users = None
         try:
             l = self.location.get()
         except ObjectDoesNotExist:
             return None, None
 
-        result, count = l.lookup(cache_key, n)
+        result, count = l.lookup(n)
         # convert result to query set result
         if count and not count_only:
             users = [UserProfile.objects.get(id=x).user for x in result if

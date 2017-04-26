@@ -34,16 +34,16 @@ class BaseEntityManager(PolymorphicManager):
             return rconfig.TREES[rconfig.VTREE]
         return rconfig.TREES[rconfig.ETREE]
 
-    def lookup(self, cache_key, lat, lng, n, etype, count_only=False):
+    def lookup(self, lat, lng, n, etype, count_only=False):
         ttype = self.get_location_tree_name(etype)
 
         tables = None
-        result, count = LocationMgr.objects.lookup(cache_key, ttype, lat, lng, n)
+        result, count = LocationMgr.objects.lookup(ttype, lat, lng, n)
 
         #convert result to query set result
         if count and not count_only:
-            tables = self.filter(id__in=result)
-        return tables, count
+            entities = self.filter(id__in=result)
+        return entities, count
 
     def users_entities(self, user, include_expired=False):
         if include_expired:
@@ -193,9 +193,8 @@ class EventManager(BaseEntityManager):
         else:
             return user.users_baseentity_related.all().instance_of(Event).exclude(expired=True)
 
-    def lookup(self, cache_key, lat, lng, n, count_only=False):
+    def lookup(self, lat, lng, n, count_only=False):
         return super(EventManager, self).lookup(
-            cache_key,
             lat,
             lng,
             n,
@@ -269,9 +268,8 @@ class Business(BaseEntity):
 
 class VirtualTableManager(BaseEntityManager):
 
-    def lookup(self, cache_key, lat, lng, n, count_only=False):
+    def lookup(self, lat, lng, n, count_only=False):
         return super(VirtualTableManager, self).lookup(
-            cache_key,
             lat,
             lng,
             n,

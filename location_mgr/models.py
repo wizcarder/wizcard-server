@@ -16,7 +16,7 @@ NEARBY_THRESHOLD = 15
 
 
 class LocationMgrManager(models.Manager):
-    def lookup(self, cache_key, tree_type, lat, lng, n,
+    def lookup(self, tree_type, lat, lng, n,
                exclude_self=False, modifier=None):
         tsc = TreeStateClient()
 
@@ -111,9 +111,8 @@ class LocationMgr(models.Model):
         self.delete_from_tree()
         super(LocationMgr, self).delete(*args, **kwargs)
 
-    def lookup(self, cache_key, n):
+    def lookup(self, n):
         return LocationMgr.objects.lookup(
-                cache_key,
                 self.tree_type,
                 self.lat,
                 self.lng,
@@ -128,7 +127,7 @@ class LocationMgr(models.Model):
         return t.start()
 
     def extend_timer(self, timeout):
-        #timeout is the timeout delta to extend by in mins
+        # timeout is the timeout delta to extend by in mins
         return self.timer.get().extend_timer(timeout*60)
 
     def reset_timer(self, timeout=None):
@@ -157,7 +156,7 @@ def location_create_handler(**kwargs):
         object_id=sender.pk)
 
     newlocation.save()
-    #update tree
+    # update tree
     newlocation.insert_in_tree()
     logger.debug("inserted key %s in tree %s", key, tree_type)
     return newlocation
@@ -173,7 +172,7 @@ def location_timeout_cb(l):
 
 def virtual_table_timeout_cb(l):
     l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[0])
-    
+
 def flicked_card_timeout(l):
     l.content_object.delete(type=verbs.WIZCARD_FLICK_TIMEOUT[0])
 
