@@ -7,9 +7,12 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wizcardship', '0015_auto_20161230_2316'),
-#        ('wizcardship', '0018_remove_wizcard_emailtemplate'),
+        ('wizcardship', '0021_merge'),
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='wizcard',
+            name='emailTemplate',
+        ),
     ]
