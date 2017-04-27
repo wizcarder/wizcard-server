@@ -915,7 +915,6 @@ class ParseMsgAndDispatch(object):
         #any wizcards dropped nearby
         #AA:TODO: Use come caching framework to cache these
         flicked_wizcards, count = WizcardFlick.objects.lookup(
-            self.user.pk,
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
@@ -924,7 +923,6 @@ class ParseMsgAndDispatch(object):
                                                      self.user, flicked_wizcards)
 
         users, count = self.userprofile.lookup(
-            self.user.pk,
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifUserLookup(
@@ -937,7 +935,6 @@ class ParseMsgAndDispatch(object):
             self.userprofile.reco_ready = 0
 
         tables, count = VirtualTable.objects.lookup(
-            self.user.pk,
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
@@ -2309,7 +2306,6 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("mID", m.pk)
 
         users, count = self.userprofile.lookup(
-            self.user.pk,
             settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
         if count:
             out = UserProfile.objects.serialize(
@@ -2340,7 +2336,6 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("m_result", out)
         else:
             users, count = self.userprofile.lookup(
-                self.user.pk,
                 settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
             if count:
                 out = UserProfile.objects.serialize(
@@ -2472,7 +2467,6 @@ class ParseMsgAndDispatch(object):
                 return self.response
 
         events, count = Event.objects.lookup(
-            self.user.pk,
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS)

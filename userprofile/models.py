@@ -261,6 +261,7 @@ class UserProfile(models.Model):
         if count and not count_only:
             users = [UserProfile.objects.get(id=x).user for x in result if
                      UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
+            count = len(users)
         return users, count
 
     def do_resync(self):

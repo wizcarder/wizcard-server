@@ -209,7 +209,7 @@ class Event(BaseEntity):
 
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
-    speakers = models.ManyToManyField(Speaker, related_name='events')
+    speakers = models.ManyToManyField(Speaker, related_name='events', through='SpeakerEvent')
 
     objects = EventManager()
 
@@ -224,8 +224,18 @@ class Event(BaseEntity):
 
         return self.related.connect(obj, alias=type)
 
-    def add_speaker(self, speaker_obj):
-        self.speakers.add(id)
+    def add_speaker(self, speaker_obj, description=None):
+        obj, created = SpeakerEvent.objects.get_or_create(event=self, speaker=speaker_obj, defaults={'description': description})
+        if not created and description:
+            obj.description = description
+            obj.save()
+
+        return obj
+
+class SpeakerEvent(models.Model):
+    speaker = models.ForeignKey(Speaker)
+    event = models.ForeignKey(Event)
+    description = models.CharField(max_length=1000)
 
 
 class ProductManager(BaseEntityManager):
