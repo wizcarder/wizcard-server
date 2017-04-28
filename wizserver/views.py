@@ -56,7 +56,7 @@ from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
 from django.core.files import File
-from entity.serializers import EventSerializer
+from entity.serializers import EventSerializer, TableSerializer
 
 now = timezone.now
 
@@ -1571,8 +1571,8 @@ class ParseMsgAndDispatch(object):
                 return self.response
             #creator can fwd private table, anyone (member) can fwd public
             #table
-            if not((table.is_secure() and table.creator == self.user) or
-                       ((not table.is_secure()) and table.is_member(self.user))):
+            if not((table.secure and table.creator == self.user) or
+                       ((not table.secure) and table.is_member(self.user))):
                 self.response.error_response(err.NOT_AUTHORIZED)
                 return self.response
 
@@ -1936,18 +1936,18 @@ class ParseMsgAndDispatch(object):
 
     def TableSummary(self):
         table = VirtualTable.objects.get(id=self.sender['tableID'])
-        if table.is_secure() and not table.is_member(self.user):
+        if table.secure and not table.is_member(self.user):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
-        out = table.serialize(fields.nearby_table_template)
-        self.response.add_data("Summary", out)
+        s = TableSerializer(table)
+        self.response.add_data("Summary", s.data)
         return self.response
 
     def TableDetails(self):
         #get the members
         table = VirtualTable.objects.get(id=self.sender['tableID'])
-        if table.is_secure() and not table.is_member(self.user):
+        if table.secure and not table.is_member(self.user):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
@@ -2075,20 +2075,16 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
-        if self.sender.has_key('oldName') and self.sender.has_key('newName'):
-            old_name = self.sender['oldName']
-            new_name = self.sender['newName']
+        name = self.sender.get('name', table.name)
+        table.name = name
 
-            if old_name != table.tablename:
-                self.response.error_response(err.NAME_ERROR)
-                return self.response
-
-            table.tablename = new_name
-        if self.sender.has_key('timeout'):
-            timeout = self.sender['timeout']*60
+        timeout = self.sender.get('timeout', None)
+        if timeout:
+            timeout_secs = timeout*60
             # a_created = self.sender['created']
             # table.a_created = a_created
-            table.location.get().reset_timer(timeout)
+            table.location.get().reset_timer(timeout_secs)
+
         table.save()
 
         self.response.add_data("tableID", table.pk)
