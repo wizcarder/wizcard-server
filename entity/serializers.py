@@ -2,12 +2,10 @@ __author__ = 'aammundi'
 from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from rest_framework.validators import ValidationError
-from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity
+from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, Speaker
 from django.contrib.auth.models import User
 from media_mgr.signals import media_create
 from location_mgr.models import LocationMgr
-from speaker.models import Speaker
-from speaker.serializers import SpeakerSerializer
 from location_mgr.serializers import LocationSerializerField
 
 import pdb
@@ -114,6 +112,14 @@ class EntitySerializer(serializers.ModelSerializer):
         return instance
 
 
+class SpeakerSerializer(serializers.ModelSerializer):
+
+    media = MediaObjectsSerializer(many=True, required=False)
+
+    class Meta:
+        model = Speaker
+        fields = "__all__"
+
 class EventSerializer(EntitySerializer):
 
     start = serializers.DateTimeField()
@@ -185,12 +191,3 @@ class TableSerializer(serializers.ModelSerializer):
             table.create_location(location.lat, location.lng)
 
         return table
-
-
-class SpeakerSerializer(serializers.ModelSerializer):
-
-    media = MediaObjectsSerializer(many=True, required=False)
-
-    class Meta:
-        model = Speaker
-        fields = "__all__"
