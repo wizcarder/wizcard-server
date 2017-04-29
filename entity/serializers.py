@@ -185,3 +185,12 @@ class TableSerializer(serializers.ModelSerializer):
             table.create_location(location.lat, location.lng)
 
         return table
+
+
+class SpeakerSerializer(serializers.ModelSerializer):
+
+    media = MediaObjectsSerializer(many=True, required=False)
+
+    class Meta:
+        model = Speaker
+        fields = "__all__"

@@ -1,7 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
-from entity.models import BaseEntity, Event, Product, Business, VirtualTable
-from entity.serializers import EntitySerializer, EventSerializer, ProductSerializer, BusinessSerializer, TableSerializer
+from entity.models import BaseEntity, Event, Product, Business, VirtualTable, Speaker
+from entity.serializers import EntitySerializer, EventSerializer, ProductSerializer, \
+    BusinessSerializer, TableSerializer, SpeakerSerializer
 from django.http import Http404
 from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
@@ -55,3 +56,8 @@ class BusinessViewSet(BaseEntityViewSet):
 class TableViewSet(viewsets.ModelViewSet):
     queryset = VirtualTable.objects.all()
     serializer_class = TableSerializer
+
+
+class SpeakerViewSet(viewsets.ModelViewSet):
+    queryset = Speaker.objects.all()
+    serializer_class = SpeakerSerializer
