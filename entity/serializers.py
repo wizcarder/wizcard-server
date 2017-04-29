@@ -111,20 +111,49 @@ class EntitySerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
+from django.db.models.fields import CharField
 class SpeakerSerializer(serializers.ModelSerializer):
 
     media = MediaObjectsSerializer(many=True, required=False)
+    ext_fields = serializers.DictField()
 
     class Meta:
         model = Speaker
         fields = "__all__"
+        read_only_fields = ('vcard',)
+
+    def create(self, validated_data):
+        media = validated_data.pop('media', None)
+
+        s = Speaker.objects.create(**validated_data)
+        if media:
+            media_create.send(sender=s, objs=media)
+
+        return s
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.pop("first_name", instance.first_name)
+        instance.last_name = validated_data.pop("last_name", instance.last_name)
+        instance.phone = validated_data.pop("phone", instance.phone)
+        instance.email = validated_data.pop("email", instance.email)
+        instance.org = validated_data.pop("org", instance.org)
+        instance.designation = validated_data.pop("designation", instance.designation)
+        instance.ext_fields = validated_data.pop("ext_fields", instance.ext_fields)
+        instance.description = validated_data.pop("description", instance.description)
+
+        media = validated_data.pop('media', None)
+        if media:
+            instance.media.all().delete()
+            media_create.send(sender=instance, objs=media)
+
+        instance.save()
+        return instance
 
 class EventSerializer(EntitySerializer):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
-    speakers = SpeakerSerializer(many=True, required=False)
+    speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
 
     class Meta:
         model = Event
@@ -134,10 +163,8 @@ class EventSerializer(EntitySerializer):
         speakers = validated_data.pop('speakers', None)
         event = super(EventSerializer, self).create(validated_data)
 
-        if speakers:
-            for s in speakers:
-                spkr = Speaker.objects.create(**s)
-                event.add_speaker(spkr)
+        for s in speakers:
+            event.add_speaker(s)
 
         return event
 
@@ -150,8 +177,7 @@ class EventSerializer(EntitySerializer):
         if speakers:
             instance.speakers.clear()
             for s in speakers:
-                spkr = Speaker.objects.create(**s)
-                instance.add_speaker(spkr)
+                instance.add_speaker(s)
 
         return instance
 

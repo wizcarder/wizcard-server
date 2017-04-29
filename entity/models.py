@@ -228,7 +228,7 @@ class Event(BaseEntity):
         obj, created = SpeakerEvent.objects.get_or_create(
             event=self,
             speaker=speaker_obj,
-            defaults={'description': description}
+            defaults={'description': speaker_obj.description}
         )
 
         if not created and description:
@@ -463,8 +463,8 @@ class Speaker(models.Model):
     email = EmailField(blank=True)
 
     vcard = models.TextField(blank=True)
-    org = models.CharField(max_length=100, default=None)
-    designation = models.CharField(max_length=100, default=None)
+    org = models.CharField(max_length=100, blank=True)
+    designation = models.CharField(max_length=100, blank=True)
 
     ext_fields = PickledObjectField(default={}, blank=True)
     media = generic.GenericRelation(MediaObjects)

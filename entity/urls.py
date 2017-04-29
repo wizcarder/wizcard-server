@@ -9,7 +9,7 @@ router.register(r'events', EventViewSet, base_name='events')
 router.register(r'products', ProductViewSet, base_name='products')
 router.register(r'biz', BusinessViewSet, base_name='biz')
 router.register(r'tables', TableViewSet)
-router.register(r'speaker', SpeakerViewSet, base_name='speaker')
+router.register(r'speakers', SpeakerViewSet, base_name='speaker')
 
 
 

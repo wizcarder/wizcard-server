@@ -61,3 +61,4 @@ class TableViewSet(viewsets.ModelViewSet):
 class SpeakerViewSet(viewsets.ModelViewSet):
     queryset = Speaker.objects.all()
     serializer_class = SpeakerSerializer
+
