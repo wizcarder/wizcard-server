@@ -1114,7 +1114,7 @@ if TEST_TABLE:
     reqmsg['sender']['password'] = "xxx"
     # Parse and dump the JSON response from server
     send_request(conn, reqmsg)
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
 
     print "Edit Table"
     reqmsg = messages.table_edit
@@ -1156,9 +1156,9 @@ if TEST_TABLE:
     print "sending table summary"
     reqmsg = messages.table_summary
     reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
-    reqmsg['sender']['tableID'] = tid_2
+    reqmsg['sender']['userID'] = uid2
+    reqmsg['sender']['wizUserID'] = wuid2
+    reqmsg['sender']['tableID'] = tid_1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -1167,8 +1167,8 @@ if TEST_TABLE:
     print "sending table details"
     reqmsg = messages.table_details
     reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
+    reqmsg['sender']['userID'] = uid2
+    reqmsg['sender']['wizUserID'] = wuid2
     reqmsg['sender']['tableID'] = tid_1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1183,7 +1183,7 @@ if TEST_TABLE:
     reqmsg['sender']['assetID'] = tid_1
     reqmsg['sender']['assetType'] = "table"
     reqmsg['receiver']['receiverType'] = "wiz_trusted"
-    reqmsg['receiver']['receiverIDs'] = [uid2, uid3]
+    reqmsg['receiver']['receiverIDs'] = [wuid2, wuid3]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msgType'])
@@ -1770,6 +1770,8 @@ reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['lat'] = messages.LAT1
 reqmsg['sender']['lng'] = messages.LNG1
 reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msgType'])

@@ -333,7 +333,6 @@ INSTALLED_APPS = (
     'django_filters',
     'polymorphic',
     'rest_framework.authtoken',
-    'speaker'
 )
 
 #django-storage settings

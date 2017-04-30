@@ -9,10 +9,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
-from speaker.models import Speaker
 from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
 from rabbit_service import rconfig
+from picklefield.fields import PickledObjectField
 import pdb
 from django.db.models import Q
 from wizcardship.models import Wizcard
@@ -164,7 +164,6 @@ class BaseEntity(PolymorphicModel):
             return updated, l_tuple[0][1]
 
 
-
 # explicit through table since we will want to associate additional
 # fields as we go forward.
 class UserEntity(models.Model):
@@ -209,7 +208,8 @@ class Event(BaseEntity):
 
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
-    speakers = models.ManyToManyField(Speaker, related_name='events', through='SpeakerEvent')
+
+    speakers = models.ManyToManyField('Speaker', related_name='events', through='SpeakerEvent')
 
     objects = EventManager()
 
@@ -225,17 +225,17 @@ class Event(BaseEntity):
         return self.related.connect(obj, alias=type)
 
     def add_speaker(self, speaker_obj, description=None):
-        obj, created = SpeakerEvent.objects.get_or_create(event=self, speaker=speaker_obj, defaults={'description': description})
+        obj, created = SpeakerEvent.objects.get_or_create(
+            event=self,
+            speaker=speaker_obj,
+            defaults={'description': speaker_obj.description}
+        )
+
         if not created and description:
             obj.description = description
             obj.save()
 
         return obj
-
-class SpeakerEvent(models.Model):
-    speaker = models.ForeignKey(Speaker)
-    event = models.ForeignKey(Event)
-    description = models.CharField(max_length=1000)
 
 
 class ProductManager(BaseEntityManager):
@@ -295,7 +295,7 @@ class VirtualTableManager(BaseEntityManager):
 
     #AA: TODO : get some max limit on this
     def query_tables(self, name):
-        tables = self.filter(Q(tablename__istartswith=name) &
+        tables = self.filter(Q(name__istartswith=name) &
                 Q(expired=False)) \
                 [0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
         return tables, tables.count()
@@ -454,3 +454,24 @@ class VirtualTable(BaseEntity):
         if not self.expired:
             return self.location.get().timer.get().time_remaining()
         return 0
+
+
+class Speaker(models.Model):
+    first_name = TruncatingCharField(max_length=40, blank=True)
+    last_name = TruncatingCharField(max_length=40, blank=True)
+    phone = TruncatingCharField(max_length=20, blank=True)
+    email = EmailField(blank=True)
+
+    vcard = models.TextField(blank=True)
+    org = models.CharField(max_length=100, blank=True)
+    designation = models.CharField(max_length=100, blank=True)
+
+    ext_fields = PickledObjectField(default={}, blank=True)
+    media = generic.GenericRelation(MediaObjects)
+    description = models.TextField(default="Not Available")
+
+
+class SpeakerEvent(models.Model):
+    speaker = models.ForeignKey(Speaker)
+    event = models.ForeignKey(Event)
+    description = models.CharField(max_length=1000)

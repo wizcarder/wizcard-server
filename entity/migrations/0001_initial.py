@@ -3,18 +3,14 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 import base.char_trunc
-from django.conf import settings
-import taggit.managers
 import base.emailField
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('taggit', '0002_auto_20150616_2121'),
-        ('contenttypes', '0002_remove_content_type_name'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('speaker', '__first__'),
     ]
 
     operations = [
@@ -41,6 +37,13 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='SpeakerEvent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('description', models.CharField(max_length=1000)),
+            ],
+        ),
+        migrations.CreateModel(
             name='UserEntity',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
@@ -64,7 +67,6 @@ class Migration(migrations.Migration):
                 ('baseentity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='entity.BaseEntity')),
                 ('start', models.DateTimeField(auto_now_add=True)),
                 ('end', models.DateTimeField(auto_now_add=True)),
-                ('speakers', models.ManyToManyField(related_name='events', to='speaker.Speaker')),
             ],
             options={
                 'abstract': False,
@@ -102,30 +104,5 @@ class Migration(migrations.Migration):
             model_name='userentity',
             name='user',
             field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AddField(
-            model_name='baseentity',
-            name='creator',
-            field=models.ForeignKey(related_name='created_baseentity_related', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AddField(
-            model_name='baseentity',
-            name='owners',
-            field=models.ManyToManyField(related_name='owners_baseentity_related', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AddField(
-            model_name='baseentity',
-            name='polymorphic_ctype',
-            field=models.ForeignKey(related_name='polymorphic_entity.baseentity_set+', editable=False, to='contenttypes.ContentType', null=True),
-        ),
-        migrations.AddField(
-            model_name='baseentity',
-            name='tags',
-            field=taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', help_text='A comma-separated list of tags.', verbose_name='Tags'),
-        ),
-        migrations.AddField(
-            model_name='baseentity',
-            name='users',
-            field=models.ManyToManyField(related_name='users_baseentity_related', through='entity.UserEntity', to=settings.AUTH_USER_MODEL),
         ),
     ]
