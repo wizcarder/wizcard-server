@@ -124,7 +124,6 @@ class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
         instance.save()
         return instance
 
-from django.db.models.fields import CharField
 class SpeakerSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         many = kwargs.pop('many', True)
@@ -201,6 +200,15 @@ class EventSerializer(EntitySerializer):
                 instance.add_speaker(s)
 
         return instance
+
+class EventSerializerExpanded(EventSerializer):
+    start = serializers.DateTimeField()
+    end = serializers.DateTimeField()
+    speakers = SpeakerSerializer(many=True)
+
+    class Meta:
+        model = Event
+        fields = '__all__'
 
 
 class ProductSerializer(EntitySerializer):
