@@ -21,6 +21,7 @@ from wizserver import fields, verbs
 from notifications.models import notify
 from base.cctx import ConnectionContext
 from django.conf import settings
+from taganomy.models import Taganomy
 
 
 import pdb
@@ -79,6 +80,7 @@ class BaseEntity(PolymorphicModel):
     timeout = models.IntegerField(default=30)
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
+    category = models.ForeignKey(Taganomy, default=10)
 
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=80, blank=True)
@@ -162,6 +164,14 @@ class BaseEntity(PolymorphicModel):
             l_tuple = location.send(sender=self, lat=lat, lng=lng,
                                     tree=BaseEntity.objects.get_location_tree_name(self.entity_type))
             return updated, l_tuple[0][1]
+
+    def add_tags(self, taglist):
+        self.tags.clear()
+        for tag in taglist:
+            self.tags.add(tag)
+
+    def get_tags(self, tags):
+        return self.tags.names()
 
 
 # explicit through table since we will want to associate additional

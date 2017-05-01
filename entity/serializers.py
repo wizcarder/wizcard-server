@@ -8,6 +8,8 @@ from media_mgr.signals import media_create
 from location_mgr.models import LocationMgr
 from location_mgr.serializers import LocationSerializerField
 import simplejson as json
+from taggit_serializer.serializers import (TagListSerializerField,
+                                           TaggitSerializer)
 
 import pdb
 
@@ -45,17 +47,19 @@ class RelatedSerializerField(serializers.RelatedField):
             serializer = TableSerializer(value.object)
         return serializer.data
 
-class EntitySerializer(serializers.ModelSerializer):
+class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True, required=False)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
     location = LocationSerializerField(required=False)
+    tags = TagListSerializerField(required=False)
 
     class Meta:
         model = BaseEntity
         depth = 1
-        fields = ('pk', 'entity_type', 'name', 'address', 'website',
+        fields = ('pk', 'entity_type', 'name', 'address', 'website', 'tags', 'category'
                   'phone', 'email', 'description', 'media', 'owners', 'related', 'location')
+        #fields = "__all__"
 
     def create(self, validated_data):
         media = validated_data.pop('media', None)
@@ -81,7 +85,8 @@ class EntitySerializer(serializers.ModelSerializer):
             entity.create_or_update_location(location['lat'], location['lng'])
 
         #Generate Tags
-        #entity.add_tags()
+        if tags:
+            entity.add_tags(tags)
 
         return entity
 
@@ -112,12 +117,18 @@ class EntitySerializer(serializers.ModelSerializer):
         location = validated_data.pop('location', None)
         if location:
             instance.create_or_update_location(location['lat'], location['lng'])
+        tags = validated_data.pop('tags', None)
+        if tags:
+            instance.add_tags(tags)
 
         instance.save()
         return instance
 
 from django.db.models.fields import CharField
 class SpeakerSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        many = kwargs.pop('many', True)
+        super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
 
     media = MediaObjectsSerializer(many=True, required=False)
     ext_fields = serializers.DictField()
@@ -154,10 +165,13 @@ class SpeakerSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+from entity.serializers import SpeakerSerializer
 class EventSerializer(EntitySerializer):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
+    #speakers = SpeakerSerializer(many=True)
     speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
 
     class Meta:
@@ -166,6 +180,7 @@ class EventSerializer(EntitySerializer):
 
     def create(self, validated_data):
         speakers = validated_data.pop('speakers', None)
+        pdb.set_trace()
         event = super(EventSerializer, self).create(validated_data)
 
         for s in speakers:
