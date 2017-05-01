@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from media_mgr.signals import media_create
 from location_mgr.models import LocationMgr
 from location_mgr.serializers import LocationSerializerField
+import simplejson as json
 
 import pdb
 
@@ -36,12 +37,16 @@ class RelatedSerializerField(serializers.RelatedField):
         }
 
     def to_representation(self, value):
-        obj_id = value.object.id
-        type = value.alias
-        return 'id: %d, type: %s' % (obj_id, type)
+        if isinstance(value.object, Product):
+            serializer = ProductSerializer(value.object)
+        elif isinstance(value.object, Business):
+            serializer = BusinessSerializer(value.object)
+        elif instance(value.object, VirtualTable):
+            serializer = TableSerializer(value.object)
+        return serializer.data
 
 class EntitySerializer(serializers.ModelSerializer):
-    media = MediaObjectsSerializer(many=True)
+    media = MediaObjectsSerializer(many=True, required=False)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
     location = LocationSerializerField(required=False)
@@ -171,6 +176,7 @@ class EventSerializer(EntitySerializer):
         instance.start = validated_data.pop("start", instance.start)
         instance.end = validated_data.pop("end", instance.end)
         speakers = validated_data.pop('speakers', None)
+
         instance = super(EventSerializer, self).update(instance, validated_data)
 
         if speakers:
