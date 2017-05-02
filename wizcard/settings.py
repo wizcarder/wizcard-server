@@ -333,6 +333,8 @@ INSTALLED_APPS = (
     'django_filters',
     'polymorphic',
     'rest_framework.authtoken',
+    'taganomy',
+    'taggit_serializer',
 )
 
 #django-storage settings
