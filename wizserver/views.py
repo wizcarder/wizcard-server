@@ -2471,7 +2471,7 @@ class ParseMsgAndDispatch(object):
         #if len(common) > settings.DEFAULT_MAX_LOOKUP_RESULTS:
         #     showevents = showevents[:settings.DEFAULT_MAX_LOOKUP_RESULTS]
 
-        events_serialized = EventSerializer(showevents, many=True, context={'user'=self.user, 'expanded'=False})
+        events_serialized = EventSerializer(showevents, many=True, context={'user':self.user, 'expanded':False})
 
         self.response.add_data("events", events_serialized.data)
 
