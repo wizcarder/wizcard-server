@@ -50,7 +50,7 @@ from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, Recommendation, genreco
-from raven.contrib.django.raven_compat.models import client
+#from raven.contrib.django.raven_compat.models import client
 from wizserver.tasks import contacts_upload_task
 from entity.models import UserEntity
 from stats.models import Stats
@@ -2462,12 +2462,16 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 return self.response
 
-        events, count = Event.objects.lookup(
-            self.lat,
-            self.lng,
-            settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        myevents = set(Event.objects.users_entities(self.user))
+        nearevents = set(Event.objects.lookup(
+                self.lat,
+                self.lng,
+              settings.DEFAULT_MAX_LOOKUP_RESULTS))
+        showevents = list(myevents | nearevents)
+        #if len(common) > settings.DEFAULT_MAX_LOOKUP_RESULTS:
+        #     showevents = showevents[:settings.DEFAULT_MAX_LOOKUP_RESULTS]
 
-        events_serialized = EventSerializer(events, many=True)
+        events_serialized = EventSerializer(showevents, many=True, context={'user'=self.user, 'expanded'=False})
 
         self.response.add_data("events", events_serialized.data)
 
