@@ -54,12 +54,26 @@ class UserCountField(serializers.RelatedField):
             expanded = self.context['expanded']
             attendees = value.all()
             try:
+                #OPTIMIZE - Too much performance hit for a not so useful UI element
                 wizcard = self.user.wizcard
-                connections = set(map(lambda x: x.user, wizcard.get_connections()))
+                connections_w = wizcard.get_connections()
+                connections_u = map(lambda x: x.user, connections_w)
                 friends = list(connections & set(attendees))
+
+                attendees_thumbnails = map(lambda x:, x.wizcard.get_thumbnail_url(),attendees)
+                valid_athumbnails = filter(lambda x:, x != '', attendees_thumbnails)
+                friends_thumbnails = map(lambda x: x.get_thumbnail_url(), connections_w)
+                valid_fthumbnails = filter(lambda x: x != '', friends_thumbnails)
+                if len(valid_athumbnails) > 3:
+                    valid_athumbnails = valid_athumbnails[:3]
+                if len(valid_fthumbnails) > 3:
+                    valid_fthumbnails = valid_fthumbnails[:3]
+
                 if not expanded:
                     return {"attendees": len(attendees),
-                             "friends": len(friends)
+                            "attendees_thumbnail" : valid_athumbnails,
+                            "friends": len(friends)
+                            "friends_thumbnail" : valid_fthumbnails
                             }
                 attend_data = map(lambda x: x.wizcard.serialize(), attendees)
                 return {"attendees": attend_data}
