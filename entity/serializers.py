@@ -47,18 +47,42 @@ class RelatedSerializerField(serializers.RelatedField):
             serializer = TableSerializer(value.object)
         return serializer.data
 
+class UserCountField(serializers.RelatedField):
+    def to_representation(self, value):
+        if self.context:
+            user = self.context['user']
+            expanded = self.context['expanded']
+            attendees = value.all()
+            try:
+                wizcard = self.user.wizcard
+                connections = set(map(lambda x: x.user, wizcard.get_connections()))
+                friends = list(connections & set(attendees))
+                if not expanded:
+                    return {"attendees": len(attendees),
+                             "friends": len(friends)
+                            }
+                attend_data = map(lambda x: x.wizcard.serialize(), attendees)
+                return {"attendees": attend_data}
+            except:
+                if not expanded:
+                    return {"attendees": len(attendees)}
+
+
+
+
 class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True, required=False)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
     location = LocationSerializerField(required=False)
     tags = TagListSerializerField(required=False)
+    users = UserCountField(required=False, read_only=True)
 
     class Meta:
         model = BaseEntity
         depth = 1
         fields = ('pk', 'entity_type', 'name', 'address', 'website', 'tags', 'category'
-                  'phone', 'email', 'description', 'media', 'owners', 'related', 'location')
+                  'phone', 'email', 'description', 'media', 'owners', 'related', 'location', 'users')
         #fields = "__all__"
 
     def create(self, validated_data):
