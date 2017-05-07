@@ -68,7 +68,7 @@ class UserCountField(serializers.RelatedField):
                         attend_data = member.wizcard.serialize()
                     isfriend = Wizcard.objects.are_wizconnections(wizcard, member.wizcard)
                     friends_count += 1
-                    member_data = {"attendee":attend_data, "isFriend" : isfriend]
+                    member_data = {"attendee":attend_data, "isFriend" : isfriend}
                     attendee_resp.append(member_data)
 
                 return {"friends": friends_count, "attendees": attendee_resp}
