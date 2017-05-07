@@ -53,11 +53,11 @@ class UserCountField(serializers.RelatedField):
         if self.context:
             if 'user' in self.context:
                 user = self.context['user']
+            expanded = False
             if 'expanded' in self.context:
                 expanded = self.context['expanded']
             attendees = value.all()
             try:
-
                 wizcard = user.wizcard
                 attendee_resp = []
                 friends_count = 0
