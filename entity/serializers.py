@@ -217,7 +217,6 @@ class EventSerializer(EntitySerializer):
 
     def create(self, validated_data):
         speakers = validated_data.pop('speakers', None)
-        pdb.set_trace()
         event = super(EventSerializer, self).create(validated_data)
 
         for s in speakers:
