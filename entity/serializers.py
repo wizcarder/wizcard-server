@@ -10,6 +10,7 @@ from location_mgr.serializers import LocationSerializerField
 import simplejson as json
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
+from wizcardship.models import Wizcard
 
 import pdb
 
@@ -54,32 +55,21 @@ class UserCountField(serializers.RelatedField):
             expanded = self.context['expanded']
             attendees = value.all()
             try:
-                #OPTIMIZE - Too much performance hit for a not so useful UI element
-                wizcard = self.user.wizcard
-                connections_w = wizcard.get_connections()
-                connections_u = map(lambda x: x.user, connections_w)
-                friends = list(connections & set(attendees))
 
-                attendees_thumbnails = map(lambda x:, x.wizcard.get_thumbnail_url(),attendees)
-                valid_athumbnails = filter(lambda x:, x != '', attendees_thumbnails)
-                friends_thumbnails = map(lambda x: x.get_thumbnail_url(), connections_w)
-                valid_fthumbnails = filter(lambda x: x != '', friends_thumbnails)
-                if len(valid_athumbnails) > 3:
-                    valid_athumbnails = valid_athumbnails[:3]
-                if len(valid_fthumbnails) > 3:
-                    valid_fthumbnails = valid_fthumbnails[:3]
+                wizcard = user.wizcard
+                attendee_resp = []
+                friends_count = 0
+                for member in attendees:
+                    attend_data = member.wizcard.serialize()
+                    isfriend = Wizcard.objects.are_wizconnections(wizcard, member.wizcard)
+                    friends_count += 1
+                    member_data = {"attendee":attend_data, "isfriend" : isfriend]
+                    attendee_resp.append(member_data)
 
-                if not expanded:
-                    return {"attendees": len(attendees),
-                            "attendees_thumbnail" : valid_athumbnails,
-                            "friends": len(friends)
-                            "friends_thumbnail" : valid_fthumbnails
-                            }
-                attend_data = map(lambda x: x.wizcard.serialize(), attendees)
-                return {"attendees": attend_data}
+                return {"friends": friends_count, "attendees": attendee_resp}
             except:
                 if not expanded:
-                    return {"attendees": len(attendees)}
+                    return {""attendees": len(attendees)}
 
 
 
