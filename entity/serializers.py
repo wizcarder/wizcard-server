@@ -69,10 +69,7 @@ class UserCountField(serializers.RelatedField):
                 return {"friends": friends_count, "attendees": attendee_resp}
             except:
                 if not expanded:
-                    return {""attendees": len(attendees)}
-
-
-
+                    return {"attendees": len(attendees)}
 
 class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True, required=False)
