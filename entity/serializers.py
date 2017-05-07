@@ -51,8 +51,10 @@ class RelatedSerializerField(serializers.RelatedField):
 class UserCountField(serializers.RelatedField):
     def to_representation(self, value):
         if self.context:
-            user = self.context['user']
-            expanded = self.context['expanded']
+            if 'user' in self.context:
+                user = self.context['user']
+            if 'expanded' in self.context:
+                expanded = self.context['expanded']
             attendees = value.all()
             try:
 
@@ -60,10 +62,13 @@ class UserCountField(serializers.RelatedField):
                 attendee_resp = []
                 friends_count = 0
                 for member in attendees:
-                    attend_data = member.wizcard.serialize()
+                    if not expanded:
+                        attend_data = member.wizcard.serialize(template=wizcard_template_thumbnail_only)
+                    else:
+                        attend_data = member.wizcard.serialize()
                     isfriend = Wizcard.objects.are_wizconnections(wizcard, member.wizcard)
                     friends_count += 1
-                    member_data = {"attendee":attend_data, "isfriend" : isfriend]
+                    member_data = {"attendee":attend_data, "isFriend" : isfriend]
                     attendee_resp.append(member_data)
 
                 return {"friends": friends_count, "attendees": attendee_resp}
