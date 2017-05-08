@@ -56,7 +56,7 @@ from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
 from django.core.files import File
-from entity.serializers import EventSerializer, TableSerializer
+from entity.serializers import EventSerializer, TableSerializer, EventSerializerExpanded
 
 now = timezone.now
 
@@ -2448,7 +2448,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        out = s(entity).data
+        out = s(entity, context={'user':self.user, 'expanded':True}).data
         self.response.add_data("entity", out)
 
         return self.response
