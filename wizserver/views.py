@@ -2441,6 +2441,8 @@ class ParseMsgAndDispatch(object):
 
         try:
             e, s = BaseEntity.get_entity_from_type(type)
+            if type == 'EVT':
+                s = EventSerializerExpanded
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
