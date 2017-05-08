@@ -234,9 +234,6 @@ class EventSerializer(EntitySerializer):
 
 class EventSerializerExpanded(EntitySerializer):
 
-    def __init__(self, *args, **kwargs):
-        super(EventSerializer, self).__init__(*args, **kwargs)
-
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
     speakers = SpeakerSerializer(many=True)
