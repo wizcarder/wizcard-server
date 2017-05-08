@@ -2405,7 +2405,7 @@ class ParseMsgAndDispatch(object):
 
     # Entity Api's for App
     def EntityJoin(self):
-        id = self.sender.get('id')
+        id = self.sender.get('entity_id')
         type = self.sender.get('type')
 
         try:
@@ -2466,7 +2466,7 @@ class ParseMsgAndDispatch(object):
         nearevents = set(Event.objects.lookup(
                 self.lat,
                 self.lng,
-              settings.DEFAULT_MAX_LOOKUP_RESULTS))
+              settings.DEFAULT_MAX_LOOKUP_RESULTS)[0])
         showevents = list(myevents | nearevents)
         #if len(common) > settings.DEFAULT_MAX_LOOKUP_RESULTS:
         #     showevents = showevents[:settings.DEFAULT_MAX_LOOKUP_RESULTS]
