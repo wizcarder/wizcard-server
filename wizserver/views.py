@@ -2437,18 +2437,16 @@ class ParseMsgAndDispatch(object):
     def EntityDetails(self):
         id = self.sender.get('entity_id')
         type = self.sender.get('type')
-        detail = self.sender.get('detail')
+        detail = True if self.sender.get('detail') else False
 
         try:
-            e, s = BaseEntity.get_entity_from_type(type)
-            if type == 'EVT':
-                s = EventSerializerExpanded
+            e, s = BaseEntity.get_entity_from_type(type, detail=detail)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        out = s(entity, context={'user':self.user, 'expanded':True}).data
+        out = s(entity, context={'user':self.user, 'expanded':detail}).data
         self.response.add_data("entity", out)
 
         return self.response
