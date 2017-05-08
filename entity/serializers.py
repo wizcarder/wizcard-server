@@ -11,6 +11,7 @@ import simplejson as json
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
 from wizcardship.models import Wizcard
+from wizserver import fields
 
 import pdb
 
@@ -63,7 +64,7 @@ class UserCountField(serializers.RelatedField):
                 friends_count = 0
                 for member in attendees:
                     if not expanded:
-                        attend_data = member.wizcard.serialize(template=wizcard_template_thumbnail_only)
+                        attend_data = member.wizcard.serialize(template=fields.wizcard_template_thumbnail_only)
                     else:
                         attend_data = member.wizcard.serialize()
                     isfriend = Wizcard.objects.are_wizconnections(wizcard, member.wizcard)
