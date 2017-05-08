@@ -2413,11 +2413,11 @@ class ParseMsgAndDispatch(object):
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response()
+            return self.response
 
-        UserEntity.user_join(self.userprofile, e)
+        UserEntity.user_join(self.user, entity)
 
-        return self.response()
+        return self.response
 
     def EntityLeave(self):
         id = self.sender.get('entity_id')
@@ -2428,11 +2428,11 @@ class ParseMsgAndDispatch(object):
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response()
+            return self.response
 
-        UserEntity.user_leave(self.userprofile, e)
+        UserEntity.user_leave(self.user, entity)
 
-        return self.response()
+        return self.response
 
     def EntityDetails(self):
         id = self.sender.get('entity_id')
@@ -2444,12 +2444,12 @@ class ParseMsgAndDispatch(object):
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response()
+            return self.response
 
         out = s(entity).data
         self.response.add_data("entity", out)
 
-        return self.response()
+        return self.response
 
     def EventsGet(self):
         if self.lat is None and self.lng is None:
