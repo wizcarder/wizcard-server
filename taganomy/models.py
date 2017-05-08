@@ -22,7 +22,16 @@ class TaganomyManager(models.Manager):
         cats = self.filter(tags__name__in=[tags])
         return cats
 
+    def get_default_category(self):
+        from userprofile.models import UserProfile
+        return Taganomy.objects.get(
+            category=Taganomy.CATEGORY_OTHERS,
+            editor=UserProfile.objects.get_admin_user()
+        )
+
 class Taganomy(models.Model):
+
+    CATEGORY_OTHERS = "others"
 
     category = models.CharField(max_length=100)
     tags = TaggableManager()

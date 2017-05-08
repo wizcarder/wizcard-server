@@ -7,13 +7,13 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('entity', '0004_baseentity_category'),
+        ('stats', '0003_auto_20170426_1539'),
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='baseentity',
-            name='category',
-            field=models.ForeignKey(to='taganomy.Taganomy'),
+        migrations.AddField(
+            model_name='stats',
+            name='entities_like',
+            field=models.IntegerField(default=0, blank=True),
         ),
     ]

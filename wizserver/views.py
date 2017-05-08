@@ -56,7 +56,9 @@ from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
 from django.core.files import File
-from entity.serializers import EventSerializer, TableSerializer, EventSerializerExpanded
+from entity.serializers import EventSerializer, TableSerializer, \
+    EventSerializerExpanded, EntityEngagementSerializer
+from entity.models import EntityUserStats
 
 now = timezone.now
 
@@ -568,6 +570,12 @@ class ParseMsgAndDispatch(object):
                     message_format.EventsGetSchema,
                     self.EventsGet,
                     Stats.objects.inc_events_get
+                ),
+            verbs.MSG_ENTITIES_LIKE:
+                (
+                    message_format.EntitiesLikeSchema,
+                    self.EntitiesLike,
+                    Stats.objects.inc_entities_like
                 )
         }
 
@@ -2437,7 +2445,7 @@ class ParseMsgAndDispatch(object):
     def EntityDetails(self):
         id = self.sender.get('entity_id')
         type = self.sender.get('type')
-        detail = True if self.sender.get('detail') else False
+        detail = self.sender.get('detail')
 
         try:
             e, s = BaseEntity.get_entity_from_type(type, detail=detail)
@@ -2446,12 +2454,14 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        out = s(entity, context={'user':self.user, 'expanded':detail}).data
-        self.response.add_data("entity", out)
+        out = s(entity, context={'user': self.user, 'expanded': detail}).data
+        self.response.add_data("result", out)
 
         return self.response
 
     def EventsGet(self):
+
+        do_location = True
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
@@ -2460,20 +2470,59 @@ class ParseMsgAndDispatch(object):
                 # maybe location timedout. Shouldn't happen if messages from app
                 # are coming correctly...
                 logger.warning('No location information available')
-                return self.response
+                do_location = False
 
-        myevents = set(Event.objects.users_entities(self.user))
-        nearevents  = set(Event.objects.lookup(
+        m_events = Event.objects.users_entities(self.user)
+        n_events = None
+
+        if do_location:
+            nearevents, count = Event.objects.lookup(
                 self.lat,
                 self.lng,
-              settings.DEFAULT_MAX_LOOKUP_RESULTS)[0])
-        showevents = list(myevents | nearevents)
-        #if len(common) > settings.DEFAULT_MAX_LOOKUP_RESULTS:
-        #     showevents = showevents[:settings.DEFAULT_MAX_LOOKUP_RESULTS]
+                settings.DEFAULT_MAX_LOOKUP_RESULTS
+            )
+            if count:
+                n_events = set(nearevents)
 
-        events_serialized = EventSerializer(showevents, many=True, context={'user':self.user, 'expanded':False})
+        if m_events and n_events:
+            showevents = list(set(m_events) | set(n_events))
+        elif m_events:
+            showevents = m_events
+        elif n_events:
+            showevents = n_events
+        else:
+            showevents = None
 
-        self.response.add_data("events", events_serialized.data)
+        if showevents:
+            events_serialized = EventSerializer(
+                showevents,
+                many=True,
+                context={'user':self.user, 'expanded':False}
+            )
+
+            self.response.add_data("result", events_serialized.data)
+
+        return self.response
+
+    def EntitiesLike(self):
+        # [{'entity_type': "", 'entity_id': "", 'like_level': ""}, ]
+
+        if 'likes' in self.sender:
+            ll = []
+            for item in self.sender['likes']:
+                try:
+                    e = BaseEntity.objects.get(id=item['entity_id'])
+                    level = item.get('like_level', EntityUserStats.MID_ENGAGEMENT_LEVEL)
+                    e.engagements.like(self.user, level)
+                    ll.append(e.engagements)
+                except:
+                    self.response.error_response(err.OBJECT_DOESNT_EXIST)
+
+            if len(ll):
+                ls = EntityEngagementSerializer(ll, many=True)
+                self.response.add_data('result', ls.data)
+
+        return self.response
 
     # WizWeb Message handling
     def WizWebUserQuery(self):

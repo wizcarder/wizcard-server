@@ -451,7 +451,6 @@ class ContactContainer(models.Model):
         else:
             return self.f_bizCardImage.remote_url()
 
-from picklefield.fields import PickledObjectField
 
 class WizConnectionRequest(models.Model):
     from_wizcard = models.ForeignKey(Wizcard, related_name="requests_from")

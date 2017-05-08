@@ -30,6 +30,10 @@ import pdb
 
 class BaseEntityManager(PolymorphicManager):
 
+    def create(self, *args, **kwargs):
+        category = kwargs.pop('category', Taganomy.objects.get_default_category())
+        return super(BaseEntityManager, self).create(*args, category=category, **kwargs)
+
     def get_location_tree_name(self, etype):
         if etype == BaseEntity.TABLE:
             return rconfig.TREES[rconfig.VTREE]
@@ -80,7 +84,7 @@ class BaseEntity(PolymorphicModel):
     timeout = models.IntegerField(default=30)
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
-    category = models.ForeignKey(Taganomy, default=10)
+    category = models.ForeignKey(Taganomy)
 
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=80, blank=True)
@@ -88,7 +92,7 @@ class BaseEntity(PolymorphicModel):
     description = models.CharField(max_length=1000)
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
-    extFields = PickledObjectField(default={}, blank=True)
+    #extFields = PickledObjectField(default={}, blank=True)
 
     # media
     media = generic.GenericRelation(MediaObjects)
@@ -107,6 +111,12 @@ class BaseEntity(PolymorphicModel):
         User,
         through='UserEntity',
         related_name="users_%(class)s_related"
+    )
+
+    engagements = models.OneToOneField(
+        "EntityEngagementStats",
+        null=True,
+        related_name="engagements_%(class)s_related"
     )
 
     # sub-entities. using django-generic-m2m package
@@ -206,6 +216,8 @@ class UserEntity(models.Model):
 
 
 class EventManager(BaseEntityManager):
+    def create(self, *args, **kwargs):
+        return super(EventManager, self).create(*args, entity_type=self.EVENT, **kwargs)
 
     def users_entities(self, user, include_expired=False):
         if include_expired:
@@ -213,12 +225,12 @@ class EventManager(BaseEntityManager):
         else:
             return user.users_baseentity_related.all().instance_of(Event).exclude(expired=True)
 
-    def lookup(self, lat, lng, n, count_only=False):
+    def lookup(self, lat, lng, n, etype=BaseEntity.EVENT, count_only=False):
         return super(EventManager, self).lookup(
             lat,
             lng,
             n,
-            BaseEntity.EVENT,
+            etype,
             count_only
         )
 
@@ -233,9 +245,6 @@ class Event(BaseEntity):
     speakers = models.ManyToManyField('Speaker', related_name='events', through='SpeakerEvent')
 
     objects = EventManager()
-
-    def create(self, *args, **kwargs):
-        return super(Event, self).create(*args, entity_type=self.EVENT, **kwargs)
 
     def add_subentity(self, id, type):
         if type == self.SUB_ENTITY_PRODUCT:
@@ -261,6 +270,9 @@ class Event(BaseEntity):
 
 class ProductManager(BaseEntityManager):
 
+    def create(self, *args, **kwargs):
+        return super(ProductManager, self).create(*args, entity_type=BaseEntity.PRODUCT, **kwargs)
+
     def users_entities(self, user, include_expired=False):
         if include_expired:
             return user.users_baseentity_related.all().instance_of(Product)
@@ -270,15 +282,15 @@ class ProductManager(BaseEntityManager):
 
 class Product(BaseEntity):
 
-    def create(self, *args, **kwargs):
-        return super(Event, self).create(*args, entity_type=self.PRODUCT, **kwargs)
-
     objects = ProductManager()
 
     pass
 
 
 class BusinessManager(BaseEntityManager):
+
+    def create(self, *args, **kwargs):
+        return super(BusinessManager, self).create(*args, entity_type=BaseEntity.BUSINESS, **kwargs)
 
     def users_entities(self, user, include_expired=False):
         if include_expired:
@@ -289,9 +301,6 @@ class BusinessManager(BaseEntityManager):
 
 class Business(BaseEntity):
 
-    def create(self, *args, **kwargs):
-        return super(Event, self).create(*args, entity_type=self.BUSINESS, **kwargs)
-
     objects = BusinessManager()
 
     pass
@@ -299,12 +308,15 @@ class Business(BaseEntity):
 
 class VirtualTableManager(BaseEntityManager):
 
-    def lookup(self, lat, lng, n, count_only=False):
+    def create(self, *args, **kwargs):
+        return super(VirtualTableManager, self).create(*args, entity_type=BaseEntity.TABLE, **kwargs)
+
+    def lookup(self, lat, lng, n, etype=BaseEntity.TABLE, count_only=False):
         return super(VirtualTableManager, self).lookup(
             lat,
             lng,
             n,
-            BaseEntity.TABLE,
+            etype,
             count_only
         )
 
@@ -365,9 +377,6 @@ class VirtualTable(BaseEntity):
 
     objects = VirtualTableManager()
 
-    def create(self, *args, **kwargs):
-        return super(Event, self).create(*args, entity_type=self.TABLE, **kwargs)
-
     def get_member_wizcards(self):
         members = map(lambda u: u.wizcard, self.users.all().exclude(id=self.creator.id))
         return serialize(members, **fields.wizcard_template_brief)
@@ -390,7 +399,7 @@ class VirtualTable(BaseEntity):
     def name(self):
         return self.tablename
 
-    def super_entities(self):
+    def get_super_entities(self):
         return self.super_entities.related_to()
 
     def is_member(self, user):
@@ -496,3 +505,59 @@ class SpeakerEvent(models.Model):
     speaker = models.ForeignKey(Speaker)
     event = models.ForeignKey(Event)
     description = models.CharField(max_length=1000)
+
+
+# Join Table.
+# this will contain per user level stat
+class EntityUserStats(models.Model):
+
+    MIN_ENGAGEMENT_LEVEL = 0
+    MAX_ENGAGEMENT_LEVEL = 10
+    MID_ENGAGEMENT_LEVEL = 5
+
+    user = models.ForeignKey(User)
+    stats = models.ForeignKey('EntityEngagementStats')
+
+    # thinking of a new way to show likes...on a scale of [1, 10]
+    # higher the number, deeper the color..maybe we can throb the
+    # heart also...:-)
+    like_level = models.IntegerField(default=MID_ENGAGEMENT_LEVEL)
+
+
+# the entity model will use this
+class EntityEngagementStats(models.Model):
+    like_count = models.IntegerField(default=0)
+    agg_like_level = models.FloatField(default=EntityUserStats.MIN_ENGAGEMENT_LEVEL)
+
+    users = models.ManyToManyField(
+        User,
+        through='EntityUserStats'
+    )
+
+    def like(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
+        stat, created = EntityUserStats.objects.get_or_create(
+            user=user,
+            stats=self,
+            defaults={
+                'like_level': level
+            }
+        )
+
+        if created:
+            self.like_count += 1
+
+        self.agg_like_level = ((self.agg_like_level*(self.like_count-1)) + level)/self.like_count
+
+        self.save()
+
+        return self.like_count, self.agg_like_level
+
+
+def create_engagement_stats(sender, instance, created, **kwargs):
+    e = EntityEngagementStats.objects.create()
+    instance.engagements = e
+    instance.save()
+
+
+from django.db.models.signals import post_save
+post_save.connect(create_engagement_stats, sender=BaseEntity)

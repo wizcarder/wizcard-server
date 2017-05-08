@@ -43,6 +43,13 @@ EMAIL3 = "wizcard1@gmail.com"
 EMAIL4 = "nothere@gmail.com"
 EMAIL5 = "amnothere@gmail.com"
 
+ENTITY_LIKE = {
+        "entity_id": "",
+        "entity_type": "",
+        "like_level": 5
+}
+
+LIKE_LEVELS = [1, 3, 5.5, 8, 10]
 
 USER1_AB = [
     {
@@ -773,6 +780,18 @@ get_events = {
         "deviceType": "android",
         "lat": LAT1,
         "lng": LNG1
+    },
+}
+
+entities_like = {
+    "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entities_like",
+    },
+    "sender" : {
+        "deviceType": "android",
     },
 }
 

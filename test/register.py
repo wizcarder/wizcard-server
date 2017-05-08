@@ -1769,6 +1769,39 @@ reqmsg = messages.get_events
 reqmsg['header']['version'] = APP_VERSION
 reqmsg['sender']['lat'] = messages.LAT1
 reqmsg['sender']['lng'] = messages.LNG1
+reqmsg['sender']['userID'] = uid3
+reqmsg['sender']['wizUserID'] = wuid3
+
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+entity_list = []
+if 'result' in objs['data']:
+    entity_list = [x['id'] for x in objs['data']['result']]
+
+
+reqmsg = messages.entities_like
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['userID'] = uid1
+reqmsg['sender']['wizUserID'] = wuid1
+
+likes = []
+for index, item in enumerate(entity_list):
+    d = messages.ENTITY_LIKE.copy()
+    d['entity_id'] = entity_list[index]
+    d['entity_type'] = "DONT_CARE"
+    d['like_level'] = messages.LIKE_LEVELS[index]
+    likes.append(d)
+reqmsg['sender']['likes'] = likes
+
+send_request(conn, reqmsg)
+# Parse and dump the JSON response from server
+objs = handle_response(conn, reqmsg['header']['msgType'])
+
+reqmsg = messages.get_events
+reqmsg['header']['version'] = APP_VERSION
+reqmsg['sender']['lat'] = messages.LAT1
+reqmsg['sender']['lng'] = messages.LNG1
 reqmsg['sender']['userID'] = uid1
 reqmsg['sender']['wizUserID'] = wuid1
 

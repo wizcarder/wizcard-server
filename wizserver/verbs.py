@@ -54,6 +54,8 @@ MSG_ENTITY_JOIN         = 51
 MSG_ENTITY_LEAVE        = 52
 MSG_ENTITY_DETAILS      = 53
 MSG_GET_EVENTS          = 54
+MSG_ENTITIES_LIKE       = 55
+
 
 wizcardMsgTypes = {
     'login'                       : MSG_LOGIN,
@@ -109,6 +111,7 @@ wizcardMsgTypes = {
     'entity_leave'                : MSG_ENTITY_LEAVE,
     'entity_details'              : MSG_ENTITY_DETAILS,
     'get_events'                  : MSG_GET_EVENTS,
+    'entities_like'               : MSG_ENTITIES_LIKE,
 }
 
 

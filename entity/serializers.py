@@ -3,6 +3,7 @@ from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from rest_framework.validators import ValidationError
 from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, Speaker
+from entity.models import EntityEngagementStats
 from django.contrib.auth.models import User
 from media_mgr.signals import media_create
 from location_mgr.models import LocationMgr
@@ -45,7 +46,7 @@ class RelatedSerializerField(serializers.RelatedField):
             serializer = ProductSerializer(value.object)
         elif isinstance(value.object, Business):
             serializer = BusinessSerializer(value.object)
-        elif instance(value.object, VirtualTable):
+        elif isinstance(value.object, VirtualTable):
             serializer = TableSerializer(value.object)
         return serializer.data
 
@@ -77,6 +78,16 @@ class UserCountField(serializers.RelatedField):
                 if not expanded:
                     return {"attendees": len(attendees)}
 
+
+class EntityEngagementSerializerField(serializers.Serializer):
+    class Meta:
+        model = EntityEngagementStats
+        fields = ('like_count', 'agg_like_level')
+
+    like_count = serializers.IntegerField(read_only=True)
+    agg_like_level = serializers.FloatField(read_only=True)
+
+
 class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True, required=False)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
@@ -85,13 +96,13 @@ class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField(required=False)
     users = UserCountField(required=False, read_only=True)
     extFields = serializers.DictField()
+    engagements = EntityEngagementSerializerField(read_only=True)
 
     class Meta:
         model = BaseEntity
         depth = 1
         fields = ('pk', 'entity_type', 'name', 'address', 'website', 'tags', 'category', 'extFields',
-                  'phone', 'email', 'description', 'media', 'owners', 'related', 'location', 'users')
-        #fields = "__all__"
+                  'engagements', 'phone', 'email', 'description', 'media', 'owners', 'related', 'location', 'users')
 
     def create(self, validated_data):
         media = validated_data.pop('media', None)
@@ -155,6 +166,13 @@ class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class EntityMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseEntity
+        fields = ('id', 'entity_type')
+
 
 class SpeakerSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
@@ -278,3 +296,11 @@ class TableSerializer(serializers.ModelSerializer):
             table.create_location(location.lat, location.lng)
 
         return table
+
+
+class EntityEngagementSerializer(EntityEngagementSerializerField):
+    class Meta(EntityEngagementSerializerField.Meta):
+        model = EntityEngagementStats
+        fields = ('like_count', 'agg_like_level', 'entity')
+
+    entity = EntityMiniSerializer(read_only=True, source='engagements_baseentity_related')

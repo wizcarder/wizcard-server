@@ -137,6 +137,8 @@ class EntityDetailsSchema(colander.MappingSchema):
     pass
 class EventsGetSchema(colander.MappingSchema):
     pass
+class EntitiesLikeSchema(colander.MappingSchema):
+    pass
 
 #wizweb
 class WizWebUserQuerySchema(colander.MappingSchema):

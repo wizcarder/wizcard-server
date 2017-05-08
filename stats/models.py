@@ -277,6 +277,13 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
+    def inc_entities_like(self, user_stats, global_stats):
+        user_stats.entities_like += 1
+        global_stats.entities_like += 1
+
+        user_stats.save()
+        global_stats.save()
+
     def inc_entity_join(self, user_stats, global_stats):
         user_stats.entity_join += 1
         global_stats.entity_join += 1
@@ -347,6 +354,7 @@ class Stats(models.Model):
     entity_leave = models.IntegerField(blank=True, default=0)
     entity_details = models.IntegerField(blank=True, default=0)
     get_events = models.IntegerField(blank=True, default=0)
+    entities_like = models.IntegerField(blank=True, default=0)
 
     objects = StatsMgr()
 
