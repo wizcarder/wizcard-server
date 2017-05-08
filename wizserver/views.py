@@ -2463,7 +2463,7 @@ class ParseMsgAndDispatch(object):
                 return self.response
 
         myevents = set(Event.objects.users_entities(self.user))
-        nearevents = set(Event.objects.lookup(
+        nearevents  = set(Event.objects.lookup(
                 self.lat,
                 self.lng,
               settings.DEFAULT_MAX_LOOKUP_RESULTS)[0])
