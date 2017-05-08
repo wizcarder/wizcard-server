@@ -84,11 +84,12 @@ class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
     location = LocationSerializerField(required=False)
     tags = TagListSerializerField(required=False)
     users = UserCountField(required=False, read_only=True)
+    extFields = serializers.DictField()
 
     class Meta:
         model = BaseEntity
         depth = 1
-        fields = ('pk', 'entity_type', 'name', 'address', 'website', 'tags', 'category'
+        fields = ('pk', 'entity_type', 'name', 'address', 'website', 'tags', 'category', 'extFields',
                   'phone', 'email', 'description', 'media', 'owners', 'related', 'location', 'users')
         #fields = "__all__"
 
@@ -161,7 +162,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
         super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
 
     media = MediaObjectsSerializer(many=True, required=False)
-    ext_fields = serializers.DictField()
+    extFields = serializers.DictField()
 
     class Meta:
         model = Speaker
@@ -184,7 +185,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
         instance.email = validated_data.pop("email", instance.email)
         instance.org = validated_data.pop("org", instance.org)
         instance.designation = validated_data.pop("designation", instance.designation)
-        instance.ext_fields = validated_data.pop("ext_fields", instance.ext_fields)
+        instance.extFields = validated_data.pop("extFields", instance.extFields)
         instance.description = validated_data.pop("description", instance.description)
 
         media = validated_data.pop('media', None)
@@ -231,7 +232,11 @@ class EventSerializer(EntitySerializer):
 
         return instance
 
-class EventSerializerExpanded(EventSerializer):
+class EventSerializerExpanded(EntitySerializer):
+
+    def __init__(self, *args, **kwargs):
+        super(EventSerializer, self).__init__(*args, **kwargs)
+
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
     speakers = SpeakerSerializer(many=True)

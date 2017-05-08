@@ -88,6 +88,7 @@ class BaseEntity(PolymorphicModel):
     description = models.CharField(max_length=1000)
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
+    extFields = PickledObjectField(default={}, blank=True)
 
     # media
     media = generic.GenericRelation(MediaObjects)
@@ -119,11 +120,13 @@ class BaseEntity(PolymorphicModel):
         return self.entity_type + '.' + self.name
 
     @classmethod
-    def get_entity_from_type(self, type):
-        from entity.serializers import EventSerializer, ProductSerializer, BusinessSerializer, TableSerializer
+    def get_entity_from_type(self, type, detail = False):
+        from entity.serializers import EventSerializer, ProductSerializer, BusinessSerializer, TableSerializer, EventSerializerExpanded
         if type == self.EVENT:
             cls = Event
             serializer = EventSerializer
+            if detail == True:
+                serializer = EventSerializerExpanded
         elif type == self.PRODUCT:
             cls = Product
             serializer = ProductSerializer
@@ -192,6 +195,14 @@ class UserEntity(models.Model):
     @classmethod
     def user_leave(self, user, entity_obj):
         user.userentity_set.get(entity=entity_obj.baseentity_ptr).delete()
+
+    @classmethod
+    def user_member(self, user, entity_obj):
+        try:
+            u = UserEntity.objects.get(user=user, entity=entity_obj)
+            return True
+        except:
+            return False
 
 
 class EventManager(BaseEntityManager):
@@ -476,7 +487,7 @@ class Speaker(models.Model):
     org = models.CharField(max_length=100, blank=True)
     designation = models.CharField(max_length=100, blank=True)
 
-    ext_fields = PickledObjectField(default={}, blank=True)
+    extFields = PickledObjectField(default={}, blank=True)
     media = generic.GenericRelation(MediaObjects)
     description = models.TextField(default="Not Available")
 
