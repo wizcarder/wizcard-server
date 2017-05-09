@@ -131,7 +131,7 @@ class BaseEntity(PolymorphicModel):
         return self.entity_type + '.' + self.name
 
     @classmethod
-    def get_entity_from_type(self, type, detail = False):
+    def get_entity_from_type(self, type, detail=False):
         from entity.serializers import EventSerializer, ProductSerializer, BusinessSerializer, TableSerializer, EventSerializerExpanded
         if type == self.EVENT:
             cls = Event

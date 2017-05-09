@@ -2445,7 +2445,7 @@ class ParseMsgAndDispatch(object):
     def EntityDetails(self):
         id = self.sender.get('entity_id')
         type = self.sender.get('type')
-        detail = self.sender.get('detail')
+        detail = self.sender.get('detail', True)
 
         try:
             e, s = BaseEntity.get_entity_from_type(type, detail=detail)
