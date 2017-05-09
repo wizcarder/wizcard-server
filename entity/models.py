@@ -93,7 +93,7 @@ class BaseEntity(PolymorphicModel):
     description = models.CharField(max_length=1000)
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
-    #extFields = PickledObjectField(default={}, blank=True)
+    extFields = PickledObjectField(default={}, blank=True)
 
     # media
     media = generic.GenericRelation(MediaObjects)
