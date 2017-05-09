@@ -84,7 +84,8 @@ class BaseEntity(PolymorphicModel):
     timeout = models.IntegerField(default=30)
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
-    category = models.ForeignKey(Taganomy)
+
+    category = models.ForeignKey(Taganomy, blank=True)
 
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=80, blank=True)
@@ -216,8 +217,6 @@ class UserEntity(models.Model):
 
 
 class EventManager(BaseEntityManager):
-    def create(self, *args, **kwargs):
-        return super(EventManager, self).create(*args, entity_type=self.EVENT, **kwargs)
 
     def users_entities(self, user, include_expired=False):
         if include_expired:
@@ -270,9 +269,6 @@ class Event(BaseEntity):
 
 class ProductManager(BaseEntityManager):
 
-    def create(self, *args, **kwargs):
-        return super(ProductManager, self).create(*args, entity_type=BaseEntity.PRODUCT, **kwargs)
-
     def users_entities(self, user, include_expired=False):
         if include_expired:
             return user.users_baseentity_related.all().instance_of(Product)
@@ -289,9 +285,6 @@ class Product(BaseEntity):
 
 class BusinessManager(BaseEntityManager):
 
-    def create(self, *args, **kwargs):
-        return super(BusinessManager, self).create(*args, entity_type=BaseEntity.BUSINESS, **kwargs)
-
     def users_entities(self, user, include_expired=False):
         if include_expired:
             return user.users_baseentity_related.all().instance_of(Business)
@@ -307,9 +300,6 @@ class Business(BaseEntity):
 
 
 class VirtualTableManager(BaseEntityManager):
-
-    def create(self, *args, **kwargs):
-        return super(VirtualTableManager, self).create(*args, entity_type=BaseEntity.TABLE, **kwargs)
 
     def lookup(self, lat, lng, n, etype=BaseEntity.TABLE, count_only=False):
         return super(VirtualTableManager, self).lookup(

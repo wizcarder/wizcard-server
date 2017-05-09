@@ -101,35 +101,37 @@ class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
     class Meta:
         model = BaseEntity
         depth = 1
-        fields = ('pk', 'entity_type', 'name', 'address', 'website', 'tags', 'category', 'extFields',
-                  'engagements', 'phone', 'email', 'description', 'media', 'owners', 'related', 'location', 'users')
+        fields = ('pk', 'name', 'address', 'website', 'tags', 'category', 'extFields',
+                  'engagements', 'phone', 'email', 'description', 'media', 'owners', 'related', 'location', 'users',)
+        read_only_fields = ('entity_type',)
 
-    def create(self, validated_data):
-        media = validated_data.pop('media', None)
-        tags = validated_data.pop('tags', None)
-        owners = validated_data.pop('owners', None)
-        sub_entities = validated_data.pop('related', None)
-        location = validated_data.pop('location', None)
-        entity_type = validated_data['entity_type']
+    def prepare(self, validated_data):
+        self.media = validated_data.pop('media', None)
+        self.tags = validated_data.pop('tags', None)
+        self.owners = validated_data.pop('owners', None)
+        self.sub_entities = validated_data.pop('related', None)
+        self.location = validated_data.pop('location', None)
+        self.users = validated_data.pop('users', None)
 
-        cls, ser = BaseEntity.get_entity_from_type(entity_type)
-
-        entity = cls.objects.create(**validated_data)
-
-        if media:
-            media_create.send(sender=entity, objs=media)
-        if owners:
-            for o in owners:
+    def post_create(self, entity):
+        if self.media:
+            media_create.send(sender=entity, objs=self.media)
+        if self.owners:
+            for o in self.owners:
                 entity.add_owner(o)
-        if sub_entities:
-            for s in sub_entities:
+        if self.sub_entities:
+            for s in self.sub_entities:
                 entity.add_subentity(**s)
-        if location:
-            entity.create_or_update_location(location['lat'], location['lng'])
+        if self.location:
+            entity.create_or_update_location(self.location['lat'], self.location['lng'])
 
-        #Generate Tags
-        if tags:
-            entity.add_tags(tags)
+        if self.users:
+            for u in self.users:
+                UserEntity.user_join(u, entity)
+
+        # Generate Tags
+        if self.tags:
+            entity.add_tags(self.tags)
 
         return entity
 
@@ -215,21 +217,21 @@ class SpeakerSerializer(serializers.ModelSerializer):
         return instance
 
 
-from entity.serializers import SpeakerSerializer
 class EventSerializer(EntitySerializer):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
-    #speakers = SpeakerSerializer(many=True)
     speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
 
     class Meta:
         model = Event
         fields = '__all__'
 
-    def create(self, validated_data):
+    def create(self, validated_data, **kwargs):
         speakers = validated_data.pop('speakers', None)
-        event = super(EventSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        event = Event.objects.create(entity_type=BaseEntity.EVENT, **validated_data)
+        self.post_create(event)
 
         for s in speakers:
             event.add_speaker(s)
@@ -268,32 +270,39 @@ class ProductSerializer(EntitySerializer):
         model = Product
         fields = '__all__'
 
+    def create(self, validated_data, **kwargs):
+        self.prepare(validated_data)
+        product = Product.objects.create(entity_type=BaseEntity.PRODUCT, **validated_data)
+        self.post_create(product)
+
+        return product
+
+
 class BusinessSerializer(EntitySerializer):
     class Meta:
         model = Business
         fields = '__all__'
 
-class TableSerializer(serializers.ModelSerializer):
+    def create(self, validated_data, **kwargs):
+        self.prepare(validated_data)
+        biz = Business.objects.create(entity_type=BaseEntity.BUSINESS, **validated_data)
+        self.post_create(biz)
+
+        return biz
+
+
+class TableSerializer(EntitySerializer):
     creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
-    users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
-    location = LocationSerializerField()
 
     class Meta:
         model = VirtualTable
         fields = '__all__'
 
     def create(self, validated_data):
-        users = validated_data.pop('users', None)
-        location = validated_data.pop('location', None)
-        owners = validated_data.pop('owners', None)
 
-        table = VirtualTable.objects.create(**validated_data)
-
-        for u in users:
-            UserEntity.user_join(u, table)
-
-        if location:
-            table.create_location(location.lat, location.lng)
+        self.prepare(validated_data)
+        table = VirtualTable.objects.create(entity_type=BaseEntity.TABLE, **validated_data)
+        self.post_create(table)
 
         return table
 
