@@ -95,7 +95,7 @@ class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
     location = LocationSerializerField(required=False)
     tags = TagListSerializerField(required=False)
     users = UserCountField(required=False, read_only=True)
-    extFields = serializers.DictField()
+    #extFields = serializers.DictField()
     engagements = EntityEngagementSerializerField(read_only=True)
 
     class Meta:
