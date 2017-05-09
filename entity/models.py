@@ -93,7 +93,7 @@ class BaseEntity(PolymorphicModel):
     description = models.CharField(max_length=1000)
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
-    extFields = PickledObjectField(default={}, blank=True)
+    extFields = PickledObjectField(default={"key": "value"}, blank=True)
 
     # media
     media = generic.GenericRelation(MediaObjects)
@@ -542,12 +542,17 @@ class EntityEngagementStats(models.Model):
 
         return self.like_count, self.agg_like_level
 
-
-def create_engagement_stats(sender, instance, created, **kwargs):
-    e = EntityEngagementStats.objects.create()
-    instance.engagements = e
-    instance.save()
-
-
+from django.dispatch import receiver
 from django.db.models.signals import post_save
-post_save.connect(create_engagement_stats, sender=BaseEntity)
+
+
+@receiver(post_save, sender=BaseEntity)
+@receiver(post_save, sender=Event)
+@receiver(post_save, sender=Product)
+@receiver(post_save, sender=Business)
+@receiver(post_save, sender=VirtualTable)
+def create_engagement_stats(sender, instance, created, **kwargs):
+    if created:
+        e = EntityEngagementStats.objects.create()
+        instance.engagements = e
+        instance.save()

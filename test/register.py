@@ -1768,6 +1768,8 @@ if TEST_WIZWEB:
     objs = handle_response(conn, reqmsg['header']['msgType'])
 
 if TEST_ENTITY:
+    pdb.set_trace()
+
     reqmsg = messages.get_events
     reqmsg['header']['version'] = APP_VERSION
     reqmsg['sender']['lat'] = messages.LAT1
@@ -1782,7 +1784,6 @@ if TEST_ENTITY:
     if 'result' in objs['data']:
         entity_list = [(x['id'], x['entity_type']) for x in objs['data']['result']]
 
-
     reqmsg = messages.entity_join
     reqmsg['header']['version'] = APP_VERSION
     reqmsg['sender']['userID'] = uid1
@@ -1790,6 +1791,9 @@ if TEST_ENTITY:
     reqmsg['sender']['entity_id'] = entity_list[0][0]
     reqmsg['sender']['entity_type'] = entity_list[0][1]
 
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
 
     reqmsg = messages.entities_like
     reqmsg['header']['version'] = APP_VERSION
@@ -1827,9 +1831,17 @@ if TEST_ENTITY:
     reqmsg['sender']['entity_id'] = entity_list[0][0]
     reqmsg['sender']['entity_type'] = entity_list[0][1]
 
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])
+
     reqmsg = messages.entity_details
     reqmsg['header']['version'] = APP_VERSION
     reqmsg['sender']['userID'] = uid1
     reqmsg['sender']['wizUserID'] = wuid1
     reqmsg['sender']['entity_id'] = entity_list[0][0]
     reqmsg['sender']['entity_type'] = entity_list[0][1]
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msgType'])

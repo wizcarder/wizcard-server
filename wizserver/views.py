@@ -2414,7 +2414,7 @@ class ParseMsgAndDispatch(object):
     # Entity Api's for App
     def EntityJoin(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('type')
+        type = self.sender.get('entity_type')
 
         try:
             e, s = BaseEntity.get_entity_from_type(type)
@@ -2424,12 +2424,13 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         UserEntity.user_join(self.user, entity)
+        self.response.add_data("count", entity.users.count())
 
         return self.response
 
     def EntityLeave(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('type')
+        type = self.sender.get('entity_type')
 
         try:
             e, s = BaseEntity.get_entity_from_type(type)
@@ -2439,12 +2440,13 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         UserEntity.user_leave(self.user, entity)
+        self.response.add_data("count", entity.users.count())
 
         return self.response
 
     def EntityDetails(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('type')
+        type = self.sender.get('entity_type')
         detail = self.sender.get('detail', True)
 
         try:
@@ -2506,7 +2508,6 @@ class ParseMsgAndDispatch(object):
 
     def EntitiesLike(self):
         # [{'entity_type': "", 'entity_id': "", 'like_level': ""}, ]
-
         if 'likes' in self.sender:
             ll = []
             for item in self.sender['likes']:
