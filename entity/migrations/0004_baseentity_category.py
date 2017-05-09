@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='baseentity',
             name='category',
-            field=models.ForeignKey(default=10, to='taganomy.Taganomy'),
+            field=models.ForeignKey(to='taganomy.Taganomy'),
         ),
     ]
