@@ -178,6 +178,10 @@ class WizcardManager(models.Manager):
         else:
             return verbs.OTHERS
 
+    def friends_in_wizcards(self, my_wizcard, wizcards):
+        return [x for x in wizcards if Wizcard.objects.is_wizcard_following(x, my_wizcard)]
+
+
 
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')

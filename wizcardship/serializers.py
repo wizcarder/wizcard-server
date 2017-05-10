@@ -3,23 +3,30 @@ from rest_framework import serializers
 from wizcardship.models import Wizcard
 from media_mgr.serializers import MediaObjectsSerializer
 
+class WizcardSerializerThumbnail(serializers.ModelSerializer):
+    class Meta:
+        model = Wizcard
+        fields = ('id', 'thumbnail',)
 
-class WizcardSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.URLField(source='get_thumbnail_url')
+
+
+class WizcardSerializerL1(WizcardSerializerThumbnail):
+    media = MediaObjectsSerializer(many=True)
+
+    class Meta(WizcardSerializerThumbnail.Meta):
+        model = Wizcard
+        l1_fields = ('first_name', 'last_name', 'phone', 'email', 'media', 'user')
+        fields = WizcardSerializerThumbnail.Meta.fields + l1_fields
+
+
+class WizcardSerializer(WizcardSerializerL1):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
-    extFields = serializers.SerializerMethodField()
-    media = MediaObjectsSerializer(many=True)
-
-    def get_extFields(self, obj):
-        return obj.get_extFields
+    extFields = serializers.DictField()
 
     class Meta:
         model = Wizcard
-        fields = ('pk', 'user', 'first_name', 'last_name', 'phone', 'email', 'extFields', 'media', 'smsurl', 'vcard')
+        l2_fields = ('extFields', 'smsurl', 'vcard')
+        fields = WizcardSerializerL1.Meta.fields + l2_fields
 
-class WizcardSerializerSummary(serializers.ModelSerializer):
-    media = MediaObjectsSerializer(many=True)
-
-    class Meta:
-        model = Wizcard
-        fields = ('pk', 'first_name', 'last_name', 'phone', 'email', 'media',)
 

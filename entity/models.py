@@ -187,6 +187,12 @@ class BaseEntity(PolymorphicModel):
     def get_tags(self, tags):
         return self.tags.names()
 
+    # get user's friends within the entity
+    def users_friends(self, user, limit=None):
+        entity_wizcards = map(lambda w: w.wizcard, self.users.all().order_by('?'))
+        entity_friends = [x for x in entity_wizcards if Wizcard.objects.is_wizcard_following(x, user.wizcard)]
+        return entity_friends[:limit]
+
 
 # explicit through table since we will want to associate additional
 # fields as we go forward.

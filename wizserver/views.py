@@ -2499,7 +2499,7 @@ class ParseMsgAndDispatch(object):
             events_serialized = EventSerializer(
                 showevents,
                 many=True,
-                context={'user':self.user, 'expanded':False}
+                context={'user':self.user, 'expanded': False}
             )
 
             self.response.add_data("result", events_serialized.data)

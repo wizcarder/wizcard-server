@@ -19,7 +19,7 @@ from libtest import send_request, handle_response
 
 TEST_IMAGE=False
 OCR_FLAG = False
-TEST_TABLE = False
+TEST_TABLE = True
 TEST_FLICK = False
 TEST_WIZWEB = False
 OEMBED = False
@@ -1768,7 +1768,6 @@ if TEST_WIZWEB:
     objs = handle_response(conn, reqmsg['header']['msgType'])
 
 if TEST_ENTITY:
-    pdb.set_trace()
 
     reqmsg = messages.get_events
     reqmsg['header']['version'] = APP_VERSION
@@ -1802,6 +1801,8 @@ if TEST_ENTITY:
 
     likes = []
     for index, item in enumerate(entity_list):
+        if index > 4:
+            break
         d = messages.ENTITY_LIKE.copy()
         d['entity_id'] = item[0]
         d['entity_type'] = item[1]

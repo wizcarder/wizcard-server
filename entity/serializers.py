@@ -6,13 +6,14 @@ from entity.models import BaseEntity, Event, Product, Business, VirtualTable, Us
 from entity.models import EntityEngagementStats
 from django.contrib.auth.models import User
 from media_mgr.signals import media_create
-from location_mgr.models import LocationMgr
 from location_mgr.serializers import LocationSerializerField
-import simplejson as json
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
+from wizcardship.serializers import WizcardSerializerThumbnail, WizcardSerializerL1
 from wizcardship.models import Wizcard
 from wizserver import fields
+from random import sample
+
 
 import pdb
 
@@ -50,34 +51,6 @@ class RelatedSerializerField(serializers.RelatedField):
             serializer = TableSerializer(value.object)
         return serializer.data
 
-class UserCountField(serializers.RelatedField):
-    def to_representation(self, value):
-        if self.context:
-            if 'user' in self.context:
-                user = self.context['user']
-            expanded = False
-            if 'expanded' in self.context:
-                expanded = self.context['expanded']
-            attendees = value.all()
-            try:
-                wizcard = user.wizcard
-                attendee_resp = []
-                friends_count = 0
-                for member in attendees:
-                    if not expanded:
-                        attend_data = member.wizcard.serialize(template=fields.wizcard_template_thumbnail_only)
-                    else:
-                        attend_data = member.wizcard.serialize()
-                    isfriend = Wizcard.objects.are_wizconnections(wizcard, member.wizcard)
-                    friends_count += 1
-                    member_data = {"attendee":attend_data, "isFriend" : isfriend}
-                    attendee_resp.append(member_data)
-
-                return {"friends": friends_count, "attendees": attendee_resp}
-            except:
-                if not expanded:
-                    return {"attendees": len(attendees)}
-
 
 class EntityEngagementSerializerField(serializers.Serializer):
     class Meta:
@@ -88,22 +61,85 @@ class EntityEngagementSerializerField(serializers.Serializer):
     agg_like_level = serializers.FloatField(read_only=True)
 
 
-class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
+class EntityMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseEntity
+        fields = ('id', 'entity_type')
+
+
+class EntitySerializerL1(EntityMiniSerializer):
     media = MediaObjectsSerializer(many=True, required=False)
+    location = LocationSerializerField(required=False)
+    users = serializers.SerializerMethodField(read_only=True)
+    friends = serializers.SerializerMethodField(read_only=True)
+    tags = TagListSerializerField(required=False)
+    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+
+    MAX_THUMBNAIL_UI_LIMIT = 4
+
+    class Meta(EntityMiniSerializer.Meta):
+        model = BaseEntity
+        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends', 'users', 'creator')
+        fields = EntityMiniSerializer.Meta.fields + my_fields
+
+    def get_users(self, obj):
+        count = obj.users.count()
+        if count <= self.MAX_THUMBNAIL_UI_LIMIT:
+            qs = obj.users.all()
+        else:
+            # lets make it interesting and give out different slices each time
+            rand_ids = sample(xrange(1, count), self.MAX_THUMBNAIL_UI_LIMIT)
+            qs = obj.users.filter(id__in=rand_ids)
+
+        wizcards = map(lambda u: u.wizcard, qs)
+
+        out = dict(
+            count=count,
+            data=WizcardSerializerThumbnail(wizcards, many=True).data
+        )
+        return out
+
+    def get_friends(self, obj):
+        user = self.context.get('user', None)
+        if user:
+            friends_wizcards = map(lambda u: u.wizcard, obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT))
+            out = dict(
+                count=len(friends_wizcards),
+                data=WizcardSerializerThumbnail(friends_wizcards, many=True).data
+            )
+            return out
+
+        return None
+
+
+class EntitySerializer(TaggitSerializer, EntitySerializerL1):
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
-    location = LocationSerializerField(required=False)
-    tags = TagListSerializerField(required=False)
-    users = UserCountField(required=False, read_only=True)
     extFields = serializers.DictField()
     engagements = EntityEngagementSerializerField(read_only=True)
 
-    class Meta:
+    class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
-        depth = 1
-        fields = ('pk', 'name', 'address', 'website', 'tags', 'category', 'extFields',
-                  'engagements', 'phone', 'email', 'description', 'media', 'owners', 'related', 'location', 'users',)
+        my_fields = ('website', 'category', 'extFields', 'engagements', 'phone',
+                     'email', 'description', 'owners', 'related', 'users',)
+        fields = EntitySerializerL1.Meta.fields + my_fields
+
         read_only_fields = ('entity_type',)
+
+    def get_users(self, obj):
+        count = obj.users.count()
+        wizcards = map(lambda u: u.wizcard, obj.users.all())
+
+        out = dict(
+            count=count,
+            data=WizcardSerializerL1(wizcards, many=True).data
+        )
+        return out
+
+    # TODO: Need to find a way to not have friends field in
+    # child class
+    def get_friends(self, obj):
+        return None
 
     def prepare(self, validated_data):
         self.media = validated_data.pop('media', None)
@@ -170,12 +206,6 @@ class EntitySerializer(TaggitSerializer, serializers.ModelSerializer):
         return instance
 
 
-class EntityMiniSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BaseEntity
-        fields = ('id', 'entity_type')
-
-
 class SpeakerSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         many = kwargs.pop('many', True)
@@ -225,7 +255,8 @@ class EventSerializer(EntitySerializer):
 
     class Meta:
         model = Event
-        fields = '__all__'
+        my_fields = ('start', 'end', 'speakers',)
+        fields = EntitySerializer.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
         speakers = validated_data.pop('speakers', None)
@@ -260,15 +291,14 @@ class EventSerializerExpanded(EntitySerializer):
 
     class Meta:
         model = Event
-        fields = '__all__'
-
+        my_fields = ('start', 'end', 'speakers',)
+        fields = EntitySerializer.Meta.fields + my_fields
 
 class ProductSerializer(EntitySerializer):
-    media = MediaObjectsSerializer(many=True, required=False)
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = EntitySerializer.Meta.fields
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
@@ -281,7 +311,7 @@ class ProductSerializer(EntitySerializer):
 class BusinessSerializer(EntitySerializer):
     class Meta:
         model = Business
-        fields = '__all__'
+        fields = EntitySerializer.Meta.fields
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
@@ -292,14 +322,12 @@ class BusinessSerializer(EntitySerializer):
 
 
 class TableSerializer(EntitySerializer):
-    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
 
     class Meta:
         model = VirtualTable
-        fields = '__all__'
+        fields = EntitySerializer.Meta.fields
 
     def create(self, validated_data):
-
         self.prepare(validated_data)
         table = VirtualTable.objects.create(entity_type=BaseEntity.TABLE, **validated_data)
         self.post_create(table)
@@ -308,8 +336,10 @@ class TableSerializer(EntitySerializer):
 
 
 class EntityEngagementSerializer(EntityEngagementSerializerField):
-    class Meta(EntityEngagementSerializerField.Meta):
+
+    class Meta:
         model = EntityEngagementStats
-        fields = ('like_count', 'agg_like_level', 'entity')
+        my_fields = ('entity',)
+        fields = EntityEngagementSerializerField.Meta.fields + my_fields
 
     entity = EntityMiniSerializer(read_only=True, source='engagements_baseentity_related')

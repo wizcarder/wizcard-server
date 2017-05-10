@@ -16,7 +16,7 @@ class LocationSerializerField(serializers.ModelSerializer):
     def to_representation(self, value):
         out = dict()
         if value.exists():
-            out['lat'] = value.get().lat
-            out['lng'] = value.get().lng
+            out['lat'] = float(value.get().lat)
+            out['lng'] = float(value.get().lng)
 
         return out
