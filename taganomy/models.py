@@ -31,7 +31,7 @@ class TaganomyManager(models.Manager):
 
 class Taganomy(models.Model):
 
-    CATEGORY_OTHERS = "others"
+    CATEGORY_OTHERS = "Others"
 
     category = models.CharField(max_length=100)
     tags = TaggableManager()
