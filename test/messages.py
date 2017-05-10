@@ -783,6 +783,21 @@ get_events = {
     },
 }
 
+entity_details = {
+    "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_details",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "lat": LAT1,
+        "lng": LNG1
+    },
+}
+
+
 entities_like = {
     "header" : {
         "deviceID" : "17b90b2e03dc7b38",
