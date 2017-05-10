@@ -25,6 +25,4 @@ class Migration(migrations.Migration):
                 ('tags', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],
         ),
-
-
     ]
