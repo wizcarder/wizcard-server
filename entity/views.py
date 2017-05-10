@@ -37,6 +37,8 @@ class EventViewSet(BaseEntityViewSet):
         serializer = EventSerializer(inst, data=request.data, partial=partial)
         if serializer.is_valid():
             serializer.save()
+        else:
+            raise Http404
         return Response(serializer.data)
 
     @detail_route(methods=['post'])
