@@ -56,8 +56,8 @@ from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
 from django.core.files import File
-from entity.serializers import EventSerializer, TableSerializer, \
-    EventSerializerExpanded, EntityEngagementSerializer
+from entity.serializers import EventSerializerL1, EventSerializerL2,TableSerializer, \
+    EventSerializerL2, EntityEngagementSerializer
 from entity.models import EntityUserStats
 
 now = timezone.now
@@ -1217,9 +1217,8 @@ class ParseMsgAndDispatch(object):
         if wizcard1.get_relationship(wizcard2).status != verbs.ACCEPTED:
             verb1 = verbs.WIZREQ_T_HALF[0]
             verb2 = None
-
         # Q notif to both sides.
-        notify.send(self.r_user,
+            notify.send(self.r_user,
                     recipient=self.user,
                     verb=verb1,
                     target=wizcard2,
@@ -2424,6 +2423,14 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         UserEntity.user_join(self.user, entity)
+        # Should this be here or as part of user_join code ?? Leaving it here given that most of the notifications are from here.
+        # Ideally we should centralize it local to the model that way notifications are decentralized and are closer to the action.
+        # Discuss with AA
+        if type == 'PRD':
+            notify.send(entity, recipient=self.user,
+                    verb = verbs.WIZCARD_CAMPAIGN_FOLLOW[0],
+                    target = self.user.wizcard, action_object=entity)
+
         self.response.add_data("count", entity.users.count())
 
         return self.response
@@ -2463,7 +2470,8 @@ class ParseMsgAndDispatch(object):
 
     def EventsGet(self):
 
-        do_location = True
+        do_location = self.sender.get('do_location', True)
+
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
@@ -2496,10 +2504,10 @@ class ParseMsgAndDispatch(object):
             showevents = None
 
         if showevents:
-            events_serialized = EventSerializer(
+            events_serialized = EventSerializerL1(
                 showevents,
                 many=True,
-                context={'user':self.user, 'expanded': False}
+                context={'user':self.user, 'expanded':False}
             )
 
             self.response.add_data("result", events_serialized.data)
