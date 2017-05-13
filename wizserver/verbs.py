@@ -134,6 +134,7 @@ NOTIF_WIZCARD_FORWARD           = 14
 NOTIF_TABLE_JOIN                = 15
 NOTIF_TABLE_LEAVE               = 16
 NOTIF_FOLLOW_EXPLICIT           = 17
+NOTIF_CAMPAIGN_FOLLOW           = 18
 
 # receiver types
 WIZCARD_CONNECT_U   = 1
@@ -195,6 +196,7 @@ WIZCARD_TABLE_JOIN = ('table join', 0)
 WIZCARD_TABLE_LEAVE = ('table leave', 0)
 WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1)
 WIZCARD_RECO_READY = ('new recommendations ready', 1)
+WIZCARD_CAMPAIGN_FOLLOW = ('follow campaign', 0)
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {

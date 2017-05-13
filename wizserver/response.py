@@ -13,6 +13,8 @@ import fields
 import simplejson as json
 import pdb
 from wizserver import verbs
+from entity.serializers import ProductSerializer
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +109,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
             verbs.WIZWEB_WIZCARD_UPDATE[0]      : self.notifWizWebWizcardUpdate,
+            verbs.WIZCARD_CAMPAIGN_FOLLOW[0]    : self.notifCampaignFollow
         }
         for notification in notifications:
             notifHandler[notification.verb](notification)
@@ -243,6 +246,20 @@ class NotifResponse(ResponseN):
 
         out = dict(sender=s_out, asset=a_out)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_INVITE, notif.id)
+        return self.response
+
+    def notifCampaignFollow(self, notif):
+        s_out = ProductSerializer(notif.action_object)
+        # Assumption for time being that user and product can overlap only in 1 event
+        event = notif.action_object.get_containers_filter(notif.recipient)[0]
+        nctx = NotifContext(
+            description= event.name,
+            asset_id= notif.action_object.id,
+            timestamp=timezone.now().strftime("%d. %B %Y"),
+        )
+        out = s_out.data
+        self.add_data_to_dict(out, "cctx", nctx.context)
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_CAMPAIGN_FOLLOW, notif.id)
         return self.response
 
     def notifWizcardForward(self, notif):
