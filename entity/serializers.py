@@ -1,6 +1,7 @@
 __author__ = 'aammundi'
 from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
+from media_mgr.models import MediaObjects
 from rest_framework.validators import ValidationError
 from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, Speaker
 from entity.models import EntityEngagementStats
@@ -68,7 +69,7 @@ class EntityMiniSerializer(serializers.ModelSerializer):
 
 
 class EntitySerializerL1(EntityMiniSerializer):
-    media = MediaObjectsSerializer(many=True, required=False)
+    media = serializers.SerializerMethodField(read_only=True)
     location = LocationSerializerField(required=False)
     users = serializers.SerializerMethodField(read_only=True)
     friends = serializers.SerializerMethodField(read_only=True)
@@ -83,13 +84,12 @@ class EntitySerializerL1(EntityMiniSerializer):
         fields = EntityMiniSerializer.Meta.fields + my_fields
 
     def get_users(self, obj):
-        count = obj.users.count()
-        if count <= self.MAX_THUMBNAIL_UI_LIMIT:
-            qs = obj.users.all()
-        else:
+        qs = obj.users.exclude(wizcard__isnull=True)
+        count = qs.count()
+        if qs.count() > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time
             rand_ids = sample(xrange(1, count), self.MAX_THUMBNAIL_UI_LIMIT)
-            qs = obj.users.filter(id__in=rand_ids)
+            qs = obj.users.filter(Q(id__in=rand_ids) & ~Q(wizcard__isnull=True))
 
         wizcards = map(lambda u: u.wizcard, qs)
 
@@ -97,6 +97,21 @@ class EntitySerializerL1(EntityMiniSerializer):
             count=count,
             data=WizcardSerializerThumbnail(wizcards, many=True).data
         )
+        return out
+
+    def get_media(self,obj):
+        if type(obj) == BaseEntity.get_entity_from_type(BaseEntity.EVENT)[0]:
+            qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_BANNER)
+        if type(obj) == BaseEntity.get_entity_from_type(BaseEntity.PRODUCT)[0]:
+            qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_LOGO)
+        else:
+            qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_THUMBNAIL)
+
+        out = {}
+        if qs:
+            # Need to confirm if it can be only one BNR per event/entity.
+            out = MediaObjectsSerializer(qs, many=True).data
+
         return out
 
     def get_friends(self, obj):
@@ -112,7 +127,8 @@ class EntitySerializerL1(EntityMiniSerializer):
         return None
 
 
-class EntitySerializer(TaggitSerializer, EntitySerializerL1):
+class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
+    media = MediaObjectsSerializer(many=True)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
     extFields = serializers.DictField()
@@ -120,7 +136,7 @@ class EntitySerializer(TaggitSerializer, EntitySerializerL1):
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
-        my_fields = ('website', 'category', 'extFields', 'engagements', 'phone',
+        my_fields = ('website', 'category', 'extFields', 'engagements', 'phone', 'media',
                      'email', 'description', 'owners', 'related', 'users',)
         fields = EntitySerializerL1.Meta.fields + my_fields
 
@@ -128,7 +144,7 @@ class EntitySerializer(TaggitSerializer, EntitySerializerL1):
 
     def get_users(self, obj):
         count = obj.users.count()
-        wizcards = map(lambda u: u.wizcard, obj.users.all())
+        wizcards = map(lambda u: u.wizcard, obj.users.exclude(wizcard__isnull=True))
 
         out = dict(
             count=count,
@@ -137,8 +153,19 @@ class EntitySerializer(TaggitSerializer, EntitySerializerL1):
         return out
 
     # TODO: Need to find a way to not have friends field in
-    # child class
+    # child class -
+    # AR: Friends field is needed to indicate if the user is already connected or not when they browse attendees or
+    # TODO: WE can have a field as part of the users which indicate whether a wizcard is a connection or not.
+
     def get_friends(self, obj):
+        user = self.context.get('user', None)
+        if user:
+            friends_wizcards = map(lambda u: u.wizcard, obj.users_friends(user))
+            out = dict(
+                count=len(friends_wizcards),
+                data=WizcardSerializerL1(friends_wizcards, many=True).data
+            )
+            return out
         return None
 
     def prepare(self, validated_data):
@@ -247,7 +274,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
         return instance
 
 
-class EventSerializer(EntitySerializer):
+class EventSerializerL1(EntitySerializerL1):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
@@ -256,11 +283,12 @@ class EventSerializer(EntitySerializer):
     class Meta:
         model = Event
         my_fields = ('start', 'end', 'speakers',)
-        fields = EntitySerializer.Meta.fields + my_fields
+        fields = EntitySerializerL1.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
         speakers = validated_data.pop('speakers', None)
         self.prepare(validated_data)
+
         event = Event.objects.create(entity_type=BaseEntity.EVENT, **validated_data)
         self.post_create(event)
 
@@ -283,7 +311,7 @@ class EventSerializer(EntitySerializer):
 
         return instance
 
-class EventSerializerExpanded(EntitySerializer):
+class EventSerializerL2(EntitySerializerL2):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
@@ -292,13 +320,13 @@ class EventSerializerExpanded(EntitySerializer):
     class Meta:
         model = Event
         my_fields = ('start', 'end', 'speakers',)
-        fields = EntitySerializer.Meta.fields + my_fields
+        fields = EntitySerializerL2.Meta.fields + my_fields
 
-class ProductSerializer(EntitySerializer):
+class ProductSerializer(EntitySerializerL2):
 
     class Meta:
         model = Product
-        fields = EntitySerializer.Meta.fields
+        fields = EntitySerializerL2.Meta.fields
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
@@ -308,10 +336,10 @@ class ProductSerializer(EntitySerializer):
         return product
 
 
-class BusinessSerializer(EntitySerializer):
+class BusinessSerializer(EntitySerializerL2):
     class Meta:
         model = Business
-        fields = EntitySerializer.Meta.fields
+        fields = EntitySerializerL2.Meta.fields
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
@@ -321,11 +349,11 @@ class BusinessSerializer(EntitySerializer):
         return biz
 
 
-class TableSerializer(EntitySerializer):
+class TableSerializer(EntitySerializerL2):
 
     class Meta:
         model = VirtualTable
-        fields = EntitySerializer.Meta.fields
+        fields = EntitySerializerL2.Meta.fields
 
     def create(self, validated_data):
         self.prepare(validated_data)

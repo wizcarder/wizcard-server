@@ -22,6 +22,7 @@ from notifications.models import notify
 from base.cctx import ConnectionContext
 from django.conf import settings
 from taganomy.models import Taganomy
+from notifications.signals import notify
 
 
 import pdb
@@ -132,12 +133,12 @@ class BaseEntity(PolymorphicModel):
 
     @classmethod
     def get_entity_from_type(self, type, detail=False):
-        from entity.serializers import EventSerializer, ProductSerializer, BusinessSerializer, TableSerializer, EventSerializerExpanded
+        from entity.serializers import EventSerializerL2, EventSerializerL1, ProductSerializer, BusinessSerializer, TableSerializer 
         if type == self.EVENT:
             cls = Event
-            serializer = EventSerializer
+            serializer = EventSerializerL1
             if detail == True:
-                serializer = EventSerializerExpanded
+                serializer = EventSerializerL2
         elif type == self.PRODUCT:
             cls = Product
             serializer = ProductSerializer
@@ -189,7 +190,7 @@ class BaseEntity(PolymorphicModel):
 
     # get user's friends within the entity
     def users_friends(self, user, limit=None):
-        entity_wizcards = map(lambda w: w.wizcard, self.users.all().order_by('?'))
+        entity_wizcards = map(lambda w: w.wizcard, self.users.exclude(wizcard__isnull=True).order_by('?'))
         entity_friends = [x for x in entity_wizcards if Wizcard.objects.is_wizcard_following(x, user.wizcard)]
         return entity_friends[:limit]
 
@@ -204,10 +205,11 @@ class UserEntity(models.Model):
 
     @classmethod
     def user_join(self, user, entity_obj):
-        return UserEntity.objects.get_or_create(
+        return  UserEntity.objects.get_or_create(
             user=user,
             entity=entity_obj.baseentity_ptr
         )
+        #notify.send()
 
     @classmethod
     def user_leave(self, user, entity_obj):
