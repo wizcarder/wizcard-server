@@ -74,6 +74,7 @@ class EntitySerializerL1(EntityMiniSerializer):
     location = LocationSerializerField(required=False)
     users = serializers.SerializerMethodField(read_only=True)
     friends = serializers.SerializerMethodField(read_only=True)
+    myentity = serializers.SerialzerMethodField(read_only=True)
     tags = TagListSerializerField(required=False)
     creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
 
@@ -127,6 +128,13 @@ class EntitySerializerL1(EntityMiniSerializer):
 
         return None
 
+    def get_myentity(self, obj):
+        user = self.context.get('user', None)
+        if user:
+            return UserEntity.user_member(user, obj)
+        return False
+
+
 
 class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     media = MediaObjectsSerializer(many=True)
@@ -138,7 +146,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
         my_fields = ('website', 'category', 'extFields', 'engagements', 'phone', 'media',
-                     'email', 'description', 'owners', 'related', 'users',)
+                     'email', 'description', 'owners', 'related', 'users', 'friends')
         fields = EntitySerializerL1.Meta.fields + my_fields
 
         read_only_fields = ('entity_type',)
@@ -161,7 +169,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     def get_friends(self, obj):
         user = self.context.get('user', None)
         if user:
-            friends_wizcards = obj.users_friends(user)
+            friends_wizcards = map(lambda u: u.wizcard, obj.users_friends(user))
             out = dict(
                 count=len(friends_wizcards),
                 data=WizcardSerializerL1(friends_wizcards, many=True).data
