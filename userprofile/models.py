@@ -9,6 +9,8 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
 from entity.models import VirtualTable
+from entity.models import Product
+from entity.serializers import ProductSerializer
 from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
@@ -318,6 +320,12 @@ class UserProfile(models.Model):
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
+
+        campaigns = Product.objects.users_entities(self.user)
+        if campaigns.count():
+            camp_data = ProductSerializer(campaigns, many=True).data
+            s['campaigns'] = camp_data
+
         Notification.objects.unacted(self.user).update(readed=False)
         return s
 

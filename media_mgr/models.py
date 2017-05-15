@@ -56,6 +56,7 @@ class MediaObjects(models.Model):
     # url of media element
     media_element = models.URLField(blank=True, default=None)
     media_iframe = models.URLField(blank=True)
+    media_videothumbnail = models.URLField(blank=True)
 
     # GenericForeignKey to objects requiring media objects
     content_type = models.ForeignKey(ContentType)
