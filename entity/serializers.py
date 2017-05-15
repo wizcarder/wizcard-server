@@ -2,6 +2,7 @@ __author__ = 'aammundi'
 from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from media_mgr.models import MediaObjects
+from django.db.models import Q
 from rest_framework.validators import ValidationError
 from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, Speaker
 from entity.models import EntityEngagementStats
@@ -117,7 +118,7 @@ class EntitySerializerL1(EntityMiniSerializer):
     def get_friends(self, obj):
         user = self.context.get('user', None)
         if user:
-            friends_wizcards = map(lambda u: u.wizcard, obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT))
+            friends_wizcards = obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT)
             out = dict(
                 count=len(friends_wizcards),
                 data=WizcardSerializerThumbnail(friends_wizcards, many=True).data
@@ -160,7 +161,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     def get_friends(self, obj):
         user = self.context.get('user', None)
         if user:
-            friends_wizcards = map(lambda u: u.wizcard, obj.users_friends(user))
+            friends_wizcards = obj.users_friends(user)
             out = dict(
                 count=len(friends_wizcards),
                 data=WizcardSerializerL1(friends_wizcards, many=True).data
