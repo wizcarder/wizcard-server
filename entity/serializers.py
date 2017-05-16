@@ -74,7 +74,7 @@ class EntitySerializerL1(EntityMiniSerializer):
     location = LocationSerializerField(required=False)
     users = serializers.SerializerMethodField(read_only=True)
     friends = serializers.SerializerMethodField(read_only=True)
-    myentity = serializers.SerialzerMethodField(read_only=True)
+    joined = serializers.SerializerMethodField(read_only=True)
     tags = TagListSerializerField(required=False)
     creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
 
@@ -82,7 +82,7 @@ class EntitySerializerL1(EntityMiniSerializer):
 
     class Meta(EntityMiniSerializer.Meta):
         model = BaseEntity
-        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends', 'users', 'creator')
+        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends', 'users', 'creator', 'joined')
         fields = EntityMiniSerializer.Meta.fields + my_fields
 
     def get_users(self, obj):
@@ -91,7 +91,7 @@ class EntitySerializerL1(EntityMiniSerializer):
         if qs.count() > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time
             rand_ids = sample(xrange(1, count), self.MAX_THUMBNAIL_UI_LIMIT)
-            qs = obj.users.filter(Q(id__in=rand_ids) & ~Q(wizcard__isnull=True))
+            qs = qs.filter(Q(id__in=rand_ids))
 
         wizcards = map(lambda u: u.wizcard, qs)
 
@@ -128,7 +128,7 @@ class EntitySerializerL1(EntityMiniSerializer):
 
         return None
 
-    def get_myentity(self, obj):
+    def get_joined(self, obj):
         user = self.context.get('user', None)
         if user:
             return UserEntity.user_member(user, obj)
@@ -169,7 +169,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     def get_friends(self, obj):
         user = self.context.get('user', None)
         if user:
-            friends_wizcards = map(lambda u: u.wizcard, obj.users_friends(user))
+            friends_wizcards = obj.users_friends(user)
             out = dict(
                 count=len(friends_wizcards),
                 data=WizcardSerializerL1(friends_wizcards, many=True).data
