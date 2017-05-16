@@ -188,6 +188,18 @@ class BaseEntity(PolymorphicModel):
     def get_tags(self, tags):
         return self.tags.names()
 
+    def get_containers(self, e_type=EVENT):
+        if self.related:
+            containers = self.related.related_to()
+            return map(lambda x: x.parent, containers)
+
+        return None
+
+    def get_containers_filter(self, user, e_type=EVENT):
+        container_type = BaseEntity.get_entity_from_type(e_type)[0]
+        user_entities = container_type.objects.users_entities(user)
+        return list(set(user_entities) & set(self.get_containers(e_type)))
+
     # get user's friends within the entity
     def users_friends(self, user, limit=None):
         entity_wizcards = map(lambda w: w.wizcard, self.users.exclude(wizcard__isnull=True).order_by('?'))
