@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-TEST_AWSHOSTS = ['ec2-35-154-226-141.ap-south-1.compute.amazonaws.com']
+TEST_AWSHOSTS = ['ec2-52-66-189-225.ap-south-1.compute.amazonaws.com']
 DEV_AWSHOSTS = ['localhost']
 #PROD_AWSHOSTS = ['ec2-35-154-15-196.ap-south-1.compute.amazonaws.com',
 #		'ec2-35-154-4-181.ap-south-1.compute.amazonaws.com']
@@ -62,9 +62,9 @@ RUNHOSTS = {'dev': {'LOCATIONSERVER': ['localhost'],
            'RABBITSERVER': ['localhost'],
            'RECOSERVER': ['172.31.9.38'],
            'WIZSERVER': ['172.31.9.38']},
- 'test': {'LOCATIONSERVER': ['172.31.2.49'],
-          'MEMCACHE': ['172.31.2.49:11211'],
-          'NGINX': ['172.31.2.49'],
+ 'test': {'LOCATIONSERVER': ['172.31.6.150'],
+          'MEMCACHE': ['172.31.6.150:11211'],
+          'NGINX': ['172.31.6.150'],
           'RABBITSERVER': ['localhost'],
-          'RECOSERVER': ['172.31.2.49'],
-          'WIZSERVER': ['172.31.2.49']}}
+          'RECOSERVER': ['172.31.6.150'],
+          'WIZSERVER': ['172.31.6.150']}}
