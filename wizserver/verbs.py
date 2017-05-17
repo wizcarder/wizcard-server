@@ -50,6 +50,12 @@ MSG_WIZWEB_QUERY_USER   = 47
 MSG_WIZWEB_QUERY_WIZCARD = 48
 MSG_WIZWEB_CREATE_USER  = 49
 MSG_WIZWEB_ADD_EDIT_CARD = 50
+MSG_ENTITY_JOIN         = 51
+MSG_ENTITY_LEAVE        = 52
+MSG_ENTITY_DETAILS      = 53
+MSG_GET_EVENTS          = 54
+MSG_ENTITIES_LIKE       = 55
+
 
 wizcardMsgTypes = {
     'login'                       : MSG_LOGIN,
@@ -101,6 +107,11 @@ wizcardMsgTypes = {
     'wizweb_query_wizcard'	      : MSG_WIZWEB_QUERY_WIZCARD,
     'wizweb_create_user'	      : MSG_WIZWEB_CREATE_USER,
     'wizweb_add_edit_card'	      : MSG_WIZWEB_ADD_EDIT_CARD,
+    'entity_join'                 : MSG_ENTITY_JOIN,
+    'entity_leave'                : MSG_ENTITY_LEAVE,
+    'entity_details'              : MSG_ENTITY_DETAILS,
+    'get_events'                  : MSG_GET_EVENTS,
+    'entities_like'               : MSG_ENTITIES_LIKE,
 }
 
 
@@ -123,6 +134,7 @@ NOTIF_WIZCARD_FORWARD           = 14
 NOTIF_TABLE_JOIN                = 15
 NOTIF_TABLE_LEAVE               = 16
 NOTIF_FOLLOW_EXPLICIT           = 17
+NOTIF_CAMPAIGN_FOLLOW           = 18
 
 # receiver types
 WIZCARD_CONNECT_U   = 1
@@ -184,6 +196,7 @@ WIZCARD_TABLE_JOIN = ('table join', 0)
 WIZCARD_TABLE_LEAVE = ('table leave', 0)
 WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1)
 WIZCARD_RECO_READY = ('new recommendations ready', 1)
+WIZCARD_CAMPAIGN_FOLLOW = ('follow campaign', 0)
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {

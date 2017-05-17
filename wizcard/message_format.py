@@ -129,6 +129,16 @@ class GetCommonConnectionsSchema(colander.MappingSchema):
     pass
 class GetVideoThumbnailSchema(colander.MappingSchema):
     pass
+class EntityJoinSchema(colander.MappingSchema):
+    pass
+class EntityLeaveSchema(colander.MappingSchema):
+    pass
+class EntityDetailsSchema(colander.MappingSchema):
+    pass
+class EventsGetSchema(colander.MappingSchema):
+    pass
+class EntitiesLikeSchema(colander.MappingSchema):
+    pass
 
 #wizweb
 class WizWebUserQuerySchema(colander.MappingSchema):

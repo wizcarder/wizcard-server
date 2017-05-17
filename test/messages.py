@@ -43,6 +43,13 @@ EMAIL3 = "wizcard1@gmail.com"
 EMAIL4 = "nothere@gmail.com"
 EMAIL5 = "amnothere@gmail.com"
 
+ENTITY_LIKE = {
+        "entity_id": "",
+        "entity_type": "",
+        "like_level": 5
+}
+
+LIKE_LEVELS = [1, 3, 5.5, 8, 10]
 
 USER1_AB = [
     {
@@ -421,7 +428,7 @@ table_create = {
         "wizUserID" : "",
         "table_name" : "",
         "timeout": 1,
-        "secureTable" : "True",
+        "secure_table" : "True",
         "password" : "test",
         "created":str(datetime.now())
     },
@@ -759,6 +766,90 @@ get_cards = {
         "deviceType": "android",
         "lat": LAT1,
         "lng": LNG1
+    },
+}
+
+get_events = {
+    "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "get_events",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "lat": LAT1,
+        "lng": LNG1
+    },
+}
+
+entity_details = {
+    "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_details",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "lat": LAT1,
+        "lng": LNG1
+    },
+}
+
+
+entities_like = {
+    "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entities_like",
+    },
+    "sender" : {
+        "deviceType": "android",
+    },
+}
+
+entity_join = {
+     "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_join",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+    }
+}
+
+entity_leave = {
+        "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_leave",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+    },
+}
+
+entity_details = {
+        "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_details",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+        "detail": True
     },
 }
 

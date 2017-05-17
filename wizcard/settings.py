@@ -51,7 +51,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard',
+                'NAME': 'wizcard-prod',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
                 'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
@@ -284,6 +284,16 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # )
+}
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -303,19 +313,28 @@ INSTALLED_APPS = (
     'wizserver',
     'wizcardship',
     'notifications',
-    'virtual_table',
     'location_mgr',
     'dead_cards',
     'periodic',
     'gunicorn',
     'raven.contrib.django.raven_compat',
+    'rest_framework',
     'meishi',
     'healthstatus',
     'django_ses',
     'recommendation',
     'stats',
     'commands',
-    'email_and_push_infra'
+    'email_and_push_infra',
+    'media_mgr',
+    'entity',
+    'taggit',
+    'genericm2m',
+    'django_filters',
+    'polymorphic',
+    'rest_framework.authtoken',
+    'taganomy',
+    'taggit_serializer',
 )
 
 #django-storage settings

@@ -26,7 +26,7 @@ from lib.preserialize import serialize
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
-from virtual_table.models import VirtualTable, Membership
+from entity.models import VirtualTable
 from meishi.models import Meishi
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
@@ -38,6 +38,7 @@ from email_and_push_infra.models import EmailAndPush, EmailEvent
 from email_and_push_infra.signals import email_trigger
 from wizcard import err
 from dead_cards.models import DeadCards
+from entity.models import BaseEntity, Event, Product, Business
 from wizserver import fields
 from django.utils import timezone
 import random
@@ -49,11 +50,15 @@ from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, Recommendation, genreco
-from raven.contrib.django.raven_compat.models import client
+#from raven.contrib.django.raven_compat.models import client
 from wizserver.tasks import contacts_upload_task
+from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
 from django.core.files import File
+from entity.serializers import EventSerializerL1, EventSerializerL2,TableSerializer, \
+    EventSerializerL2, EntityEngagementSerializer
+from entity.models import EntityUserStats
 
 now = timezone.now
 
@@ -66,11 +71,11 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        try:
-            pdispatch.dispatch()
-        except:
-            client.captureException()
-            pdispatch.response.error_response(err.INTERNAL_ERROR)
+        #try:
+        pdispatch.dispatch()
+        #except:
+        #    client.captureException()
+        #    pdispatch.response.error_response(err.INTERNAL_ERROR)
         #send response
         return pdispatch.response.respond()
 
@@ -184,6 +189,14 @@ class ParseMsgAndDispatch(object):
             return False
 
     def validateWizWebMsg(self):
+        if ['header'] in self.msg:
+            if 'userID' in self.msg['header']:
+                try:
+                    self.userprofile = UserProfile.objects.get(userid=self.msg['header']['userID'])
+                    self.user = self.userprofile.user
+                except ObjectDoesNotExist:
+                    self.response.ignore()
+                    return False, self.response
         if self.msg.has_key('sender'):
             self.sender = self.msg['sender']
 
@@ -533,9 +546,40 @@ class ParseMsgAndDispatch(object):
                     message_format.GetVideoThumbnailSchema,
                     self.GetVideoThumbnailUrl,
                     Stats.objects.inc_video_thumbnail
+                ),
+            verbs.MSG_ENTITY_JOIN:
+                (
+                    message_format.EntityJoinSchema,
+                    self.EntityJoin,
+                    Stats.objects.inc_entity_join
+                ),
+            verbs.MSG_ENTITY_LEAVE:
+                (
+                    message_format.EntityLeaveSchema,
+                    self.EntityLeave,
+                    Stats.objects.inc_entity_leave
+                ),
+            verbs.MSG_ENTITY_DETAILS:
+                (
+                    message_format.EntityDetailsSchema,
+                    self.EntityDetails,
+                    Stats.objects.inc_entity_details
+                ),
+            verbs.MSG_GET_EVENTS:
+                (
+                    message_format.EventsGetSchema,
+                    self.EventsGet,
+                    Stats.objects.inc_events_get
+                ),
+            verbs.MSG_ENTITIES_LIKE:
+                (
+                    message_format.EntitiesLikeSchema,
+                    self.EntitiesLike,
+                    Stats.objects.inc_entities_like
                 )
         }
-        #update location since it may have changed
+
+        # update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
             self.userprofile.create_or_update_location(
                 self.lat,
@@ -879,7 +923,6 @@ class ParseMsgAndDispatch(object):
         #any wizcards dropped nearby
         #AA:TODO: Use come caching framework to cache these
         flicked_wizcards, count = WizcardFlick.objects.lookup(
-            self.user.pk,
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
@@ -888,7 +931,6 @@ class ParseMsgAndDispatch(object):
                                                      self.user, flicked_wizcards)
 
         users, count = self.userprofile.lookup(
-            self.user.pk,
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifUserLookup(
@@ -901,7 +943,6 @@ class ParseMsgAndDispatch(object):
             self.userprofile.reco_ready = 0
 
         tables, count = VirtualTable.objects.lookup(
-            self.user.pk,
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
@@ -1091,7 +1132,7 @@ class ParseMsgAndDispatch(object):
         if vcard:
             wizcard.save_vcard(vcard)
         if created:
-            email_trigger.send(self.user, trigger=EmailEvent.NEWUSER, wizcard=self.user.wizcard, target=wizcard)
+            email_trigger.send(self.user, trigger=EmailEvent.NEWUSER, source=self.user.wizcard, target=wizcard)
 
         self.response.add_data("wizCardID", wizcard.pk)
         return self.response
@@ -1176,9 +1217,8 @@ class ParseMsgAndDispatch(object):
         if wizcard1.get_relationship(wizcard2).status != verbs.ACCEPTED:
             verb1 = verbs.WIZREQ_T_HALF[0]
             verb2 = None
-
         # Q notif to both sides.
-        notify.send(self.r_user,
+            notify.send(self.r_user,
                     recipient=self.user,
                     verb=verb1,
                     target=wizcard2,
@@ -1538,8 +1578,8 @@ class ParseMsgAndDispatch(object):
                 return self.response
             #creator can fwd private table, anyone (member) can fwd public
             #table
-            if not((table.is_secure() and table.creator == self.user) or
-                       ((not table.is_secure()) and table.is_member(self.user))):
+            if not((table.secure and table.creator == self.user) or
+                       ((not table.secure) and table.is_member(self.user))):
                 self.response.error_response(err.NOT_AUTHORIZED)
                 return self.response
 
@@ -1775,7 +1815,7 @@ class ParseMsgAndDispatch(object):
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_trigger.send(self.user, trigger=EmailEvent.INVITED, wizcard=self.user.wizcard, target=wizcard)
+                    email_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=wizcard)
             else:
                 FutureUser.objects.get_or_create(
                         inviter=self.user,
@@ -1785,7 +1825,7 @@ class ParseMsgAndDispatch(object):
                         email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_trigger.send(self.user, trigger=EmailEvent.INVITED, wizcard=self.user.wizcard, to_email=r)
+                    email_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, to_email=r)
 
     def UserQuery(self):
         try:
@@ -1903,18 +1943,18 @@ class ParseMsgAndDispatch(object):
 
     def TableSummary(self):
         table = VirtualTable.objects.get(id=self.sender['tableID'])
-        if table.is_secure() and not table.is_member(self.user):
+        if table.secure and not table.is_member(self.user):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
-        out = table.serialize(fields.nearby_table_template)
-        self.response.add_data("Summary", out)
+        s = TableSerializer(table)
+        self.response.add_data("Summary", s.data)
         return self.response
 
     def TableDetails(self):
         #get the members
         table = VirtualTable.objects.get(id=self.sender['tableID'])
-        if table.is_secure() and not table.is_member(self.user):
+        if table.secure and not table.is_member(self.user):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
@@ -1947,7 +1987,7 @@ class ParseMsgAndDispatch(object):
 
     def TableCreate(self):
         tablename = self.sender['table_name']
-        secure = self.sender['secureTable']
+        secure = self.sender['secure_table']
         if self.sender.has_key('timeout'):
             timeout = self.sender['timeout'] if self.sender['timeout'] else settings.WIZCARD_DEFAULT_TABLE_LIFETIME
         else:
@@ -1958,19 +1998,16 @@ class ParseMsgAndDispatch(object):
         else:
             password = ""
 
-        a_created = self.sender['created']
-
-        table = VirtualTable.objects.create(tablename=tablename, secureTable=secure,
+        table = VirtualTable.objects.create(name=tablename, secure=secure,
                                             password=password, creator=self.user,
-                                            a_created = a_created, timeout=timeout)
+                                            timeout=timeout)
         table.inc_numsitting()
 
         #TODO: AA handle create failure and/or unique name enforcement
-        Membership.objects.get_or_create(user=self.user, table=table)
-        #AA:TODO move create to overridden create in VirtualTable
+        UserEntity.user_join(user=self.user, entity_obj=table)
 
         #update location in ptree
-        table.create_location(self.lat, self.lng)
+        table.create_or_update_location(self.lat, self.lng)
         l = table.location.get()
         l.start_timer(timeout)
         table.save()
@@ -1991,7 +2028,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.EXISTING_MEMBER)
             return self.response
 
-        if table.is_secure() and not skip_password:
+        if table.secure and not skip_password:
             password = self.sender['password']
         else:
             password = None
@@ -2014,7 +2051,6 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-
     def TableDestroy(self):
         try:
             table = VirtualTable.objects.get(id=self.sender['tableID'])
@@ -2028,7 +2064,6 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.NOT_AUTHORIZED)
 
         return self.response
-
 
     def TableEdit(self):
         try:
@@ -2047,20 +2082,16 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
-        if self.sender.has_key('oldName') and self.sender.has_key('newName'):
-            old_name = self.sender['oldName']
-            new_name = self.sender['newName']
+        name = self.sender.get('name', table.name)
+        table.name = name
 
-            if old_name != table.tablename:
-                self.response.error_response(err.NAME_ERROR)
-                return self.response
+        timeout = self.sender.get('timeout', None)
+        if timeout:
+            timeout_secs = timeout*60
+            # a_created = self.sender['created']
+            # table.a_created = a_created
+            table.location.get().reset_timer(timeout_secs)
 
-            table.tablename = new_name
-        if self.sender.has_key('timeout'):
-            timeout = self.sender['timeout']*60
-            a_created = self.sender['created']
-            table.a_created = a_created
-            table.location.get().reset_timer(timeout)
         table.save()
 
         self.response.add_data("tableID", table.pk)
@@ -2260,7 +2291,7 @@ class ParseMsgAndDispatch(object):
         else:
             if deadcard.activated == False:
                 #send_wizcard.delay(self.user.wizcard, deadcard.email, template="emailscan")
-                email_trigger.send(self.user, trigger=EmailEvent.SCANNED, wizcard=self.user.wizcard, to_email=deadcard.email)
+                email_trigger.send(self.user, trigger=EmailEvent.SCANNED, source=self.user.wizcard, to_email=deadcard.email)
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
@@ -2278,7 +2309,6 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("mID", m.pk)
 
         users, count = self.userprofile.lookup(
-            self.user.pk,
             settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
         if count:
             out = UserProfile.objects.serialize(
@@ -2309,7 +2339,6 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("m_result", out)
         else:
             users, count = self.userprofile.lookup(
-                self.user.pk,
                 settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
             if count:
                 out = UserProfile.objects.serialize(
@@ -2336,14 +2365,179 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    def GetRecommendations(self):
 
+        size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
 
-    #################WizWeb Message handling########################
+        # AA: Comments: BIG Overarching comment...please get into the habit
+        # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.
+        # the right side of the editor will have some color if there are any
+        # PEP warnings/errors. Function name starting in uppercase is OK.
+
+        # AA:Comments: Expose this as a model API instead of a direct filter
+        # There will be more and more filtering/conditional checks/splicing
+        # etc as we go forward.
+        recos = UserRecommendation.objects.getRecommendations(recotarget=self.user, size=size)
+
+        if not recos:
+            uprofile = self.user.profile
+            if uprofile.reco_ready != 0:
+                uprofile.reco_ready = 0
+                uprofile.save()
+            genreco.send(self.user, recotarget=self.user.id)
+
+        self.response.add_data("recos", recos)
+        return self.response
+
+    def SetRecoAction(self):
+        recoid = self.sender['recoID'] if 'recoID' in self.sender else None
+        action = self.sender['action'] if 'action' in self.sender else None
+        if not recoid or not action:
+            self.response.error_response(err.INVALID_MESSAGE)
+            return self.response
+
+        recoptr = UserRecommendation.objects.get(id=recoid)
+        # AA: Comments: before below if can happen, an exception will occur
+        # from the get hence above has to be in try except ObjectNotFound with appropriate
+        # sentry log
+        if recoptr:
+            try:
+                recoptr.setAction(action)
+            except:
+                self.response.error_response(err.INVALID_RECOACTION)
+        else:
+            self.response.error_response(err.INVALID_RECOID)
+
+        return self.response
+
+    # Entity Api's for App
+    def EntityJoin(self):
+        id = self.sender.get('entity_id')
+        type = self.sender.get('entity_type')
+
+        try:
+            e, s = BaseEntity.get_entity_from_type(type)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        UserEntity.user_join(self.user, entity)
+        # Should this be here or as part of user_join code ?? Leaving it here given that most of the notifications are from here.
+        # Ideally we should centralize it local to the model that way notifications are decentralized and are closer to the action.
+        # Discuss with AA
+        if type == 'PRD':
+            notify.send(entity, recipient=self.user,
+                    verb = verbs.WIZCARD_CAMPAIGN_FOLLOW[0],
+                    target = self.user.wizcard, action_object=entity)
+
+        self.response.add_data("count", entity.users.count())
+
+        return self.response
+
+    def EntityLeave(self):
+        id = self.sender.get('entity_id')
+        type = self.sender.get('entity_type')
+
+        try:
+            e, s = BaseEntity.get_entity_from_type(type)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        UserEntity.user_leave(self.user, entity)
+        self.response.add_data("count", entity.users.count())
+
+        return self.response
+
+    def EntityDetails(self):
+        id = self.sender.get('entity_id')
+        type = self.sender.get('entity_type')
+        detail = self.sender.get('detail', True)
+
+        try:
+            e, s = BaseEntity.get_entity_from_type(type, detail=detail)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        out = s(entity, context={'user': self.user, 'expanded': detail}).data
+        self.response.add_data("result", out)
+
+        return self.response
+
+    def EventsGet(self):
+
+        do_location = self.sender.get('do_location', True)
+
+        if self.lat is None and self.lng is None:
+            try:
+                self.lat = self.userprofile.location.get().lat
+                self.lng = self.userprofile.location.get().lng
+            except:
+                # maybe location timedout. Shouldn't happen if messages from app
+                # are coming correctly...
+                logger.warning('No location information available')
+                do_location = False
+
+        m_events = Event.objects.users_entities(self.user)
+        n_events = None
+
+        if do_location:
+            nearevents, count = Event.objects.lookup(
+                self.lat,
+                self.lng,
+                settings.DEFAULT_MAX_LOOKUP_RESULTS
+            )
+            if count:
+                n_events = set(nearevents)
+
+        if m_events and n_events:
+            showevents = list(set(m_events) | set(n_events))
+        elif m_events:
+            showevents = m_events
+        elif n_events:
+            showevents = n_events
+        else:
+            showevents = None
+
+        if showevents:
+            events_serialized = EventSerializerL1(
+                showevents,
+                many=True,
+                context={'user':self.user, 'expanded':False}
+            )
+
+            self.response.add_data("result", events_serialized.data)
+
+        return self.response
+
+    def EntitiesLike(self):
+        # [{'entity_type': "", 'entity_id': "", 'like_level': ""}, ]
+        if 'likes' in self.sender:
+            ll = []
+            for item in self.sender['likes']:
+                try:
+                    e = BaseEntity.objects.get(id=item['entity_id'])
+                    level = item.get('like_level', EntityUserStats.MID_ENGAGEMENT_LEVEL)
+                    e.engagements.like(self.user, level)
+                    ll.append(e.engagements)
+                except:
+                    self.response.error_response(err.OBJECT_DOESNT_EXIST)
+
+            if len(ll):
+                ls = EntityEngagementSerializer(ll, many=True)
+                self.response.add_data('result', ls.data)
+
+        return self.response
+
+    # WizWeb Message handling
     def WizWebUserQuery(self):
         if self.sender.has_key('username'):
             try:
                 self.user = User.objects.get(username=self.sender['username'])
-                self.wizcard = self.user.wizcard
                 self.response.add_data("userID", self.user.profile.userid)
             except:
                 pass
@@ -2392,14 +2586,14 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("result", out)
         return self.response
 
-
     def WizWebUserCreate(self):
         username = self.sender['username']
         first_name = self.sender['first_name']
         last_name = self.sender['last_name']
+        user_type = self.sender['user_type']
 
         if User.objects.filter(username=username).exists():
-            #wizweb should have sent user query
+            # wizweb should have sent user query
             return self.response.error_response(err.VALIDITY_CHECK_FAILED)
 
         self.user = User.objects.create(username=username,
@@ -2407,7 +2601,9 @@ class ParseMsgAndDispatch(object):
                                         last_name=last_name)
 
         self.user.profile.activated = False
+        self.user.profile.user_type = user_type
         self.user.profile.save()
+
         self.response.add_data("userID", self.user.profile.userid)
 
         return self.response
@@ -2504,50 +2700,6 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("wizCardID", wizcard.id)
         return self.response
 
-    def GetRecommendations(self):
-
-        size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
-
-        # AA: Comments: BIG Overarching comment...please get into the habit
-        # of (x, y) as opposed to (x,y). Its easy to detect if you use PyCharm.
-        # the right side of the editor will have some color if there are any
-        # PEP warnings/errors. Function name starting in uppercase is OK.
-
-        # AA:Comments: Expose this as a model API instead of a direct filter
-        # There will be more and more filtering/conditional checks/splicing
-        # etc as we go forward.
-        recos = UserRecommendation.objects.getRecommendations(recotarget=self.user, size=size)
-
-        if not recos:
-            uprofile = self.user.profile
-            if uprofile.reco_ready != 0:
-                uprofile.reco_ready = 0
-                uprofile.save()
-            genreco.send(self.user, recotarget=self.user.id)
-
-        self.response.add_data("recos", recos)
-        return self.response
-
-    def SetRecoAction(self):
-        recoid = self.sender['recoID'] if 'recoID' in self.sender else None
-        action = self.sender['action'] if 'action' in self.sender else None
-        if not recoid or not action:
-            self.response.error_response(err.INVALID_MESSAGE)
-            return self.response
-
-        recoptr = UserRecommendation.objects.get(id=recoid)
-        # AA: Comments: before below if can happen, an exception will occur
-        # from the get hence above has to be in try except ObjectNotFound with appropriate
-        # sentry log
-        if recoptr:
-            try:
-                recoptr.setAction(action)
-            except:
-                self.response.error_response(err.INVALID_RECOACTION)
-        else:
-            self.response.error_response(err.INVALID_RECOID)
-
-        return self.response
 
 wizrequest_handler = WizRequestHandler.as_view()
 #wizconnection_request = login_required(WizConnectionRequestView.as_view())

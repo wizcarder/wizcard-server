@@ -18,18 +18,11 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 import signals
 import pdb
-from django.db.models import Q
-from django.core.files.base import ContentFile
 from lib.preserialize.serialize import serialize
 from wizserver import fields
-from lib.pytrie import SortedStringTrie as trie
 from django.contrib.contenttypes import generic
-from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
 from location_mgr.models import LocationMgr
-from django.http import HttpResponseBadRequest, Http404
-from django.core.files.storage import default_storage
-from django.core.files.storage import FileSystemStorage
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
 from base.char_trunc import TruncatingCharField
@@ -43,9 +36,10 @@ from lib import wizlib
 from wizcard import err
 from wizserver import verbs
 from notifications.models import notify, Notification
-from base.cctx import ConnectionContext
-from django.db.models import ImageField,URLField
-from django.utils import timezone
+from django.db.models import URLField
+from genericm2m.models import RelatedObjectsDescriptor
+from media_mgr.models import MediaObjects
+
 
 logger = logging.getLogger(__name__)
 
@@ -184,6 +178,10 @@ class WizcardManager(models.Manager):
         else:
             return verbs.OTHERS
 
+    def friends_in_wizcards(self, my_wizcard, wizcards):
+        return [x for x in wizcards if Wizcard.objects.is_wizcard_following(x, my_wizcard)]
+
+
 
 class Wizcard(models.Model):
     user = models.OneToOneField(User, related_name='wizcard')
@@ -191,6 +189,10 @@ class Wizcard(models.Model):
                                             through='WizConnectionRequest',
                                             symmetrical=False,
                                             related_name='wizconnections_from')
+
+    # back pointing to any super_entity
+    related = RelatedObjectsDescriptor()
+
     first_name = TruncatingCharField(max_length=40, blank=True)
     last_name = TruncatingCharField(max_length=40, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)
@@ -201,6 +203,10 @@ class Wizcard(models.Model):
             storage=WizcardQueuedS3BotoStorage(delayed=False), blank=True)
     videoUrl = URLField(blank=True)
     videoThumbnailUrl = URLField(blank=True)
+
+    # moving to media mgr
+    media = generic.GenericRelation(MediaObjects)
+
     extFields = PickledObjectField(default={}, blank=True)
     smsurl = URLField(blank=True)
     vcard = models.TextField(blank=True)
@@ -255,7 +261,8 @@ class Wizcard(models.Model):
         return "connected"
 
     def is_admin(self):
-        return self.user.profile.is_admin
+        from userprofile.models import UserProfile
+        return UserProfile.objects.is_admin_user(self.user)
     
     def save_smsurl(self,url):
         self.smsurl =  wizlib.shorten_url(url)
@@ -448,7 +455,6 @@ class ContactContainer(models.Model):
         else:
             return self.f_bizCardImage.remote_url()
 
-from picklefield.fields import PickledObjectField
 
 class WizConnectionRequest(models.Model):
     from_wizcard = models.ForeignKey(Wizcard, related_name="requests_from")
@@ -521,10 +527,9 @@ class WizcardFlickManager(models.Manager):
     def set_tag(self, tag):
         self.tag = tag
 
-    def lookup(self, cache_key, lat, lng, n, count_only=False):
+    def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
         result, count =  LocationMgr.objects.lookup(
-            cache_key,
             "WTREE",
             lat,
             lng,

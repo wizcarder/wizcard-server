@@ -8,7 +8,9 @@ from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
-from virtual_table.models import VirtualTable
+from entity.models import VirtualTable
+from entity.models import Product
+from entity.serializers import ProductSerializer
 from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
@@ -33,8 +35,18 @@ RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010,01,01))
 
 logger = logging.getLogger(__name__)
 
+# hacking up bitmaps this way
+BITMAP_BASE = 1
+WIZCARD_USER = BITMAP_BASE
+WIZWEB_USER = BITMAP_BASE << 1
+WIZWEB_ADMIN = BITMAP_BASE << 2
+WIZEVENT_USER = BITMAP_BASE << 3
+WIZPRODUCT_USER = BITMAP_BASE << 4
+WIZBUSINESS_USER = BITMAP_BASE << 5
+PORTAL_USER_INTERNAL = BITMAP_BASE << 6
 
 class UserProfileManager(models.Manager):
+
     def serialize_split(self, me, users):
         s = dict()
         template = fields.wizcard_template_brief
@@ -141,6 +153,9 @@ class UserProfileManager(models.Manager):
     def is_admin_user(self, user):
         return user.is_staff and user.is_superuser
 
+    def get_portal_user_internal(self):
+        return UserProfile.objects.get(user_type=PORTAL_USER_INTERNAL) \
+            if UserProfile.objects.filter(user_type=PORTAL_USER_INTERNAL).exists() else None
 
 class UserProfile(models.Model):
     # This field is required.
@@ -162,13 +177,19 @@ class UserProfile(models.Model):
 
     IOS = 'ios'
     ANDROID = 'android'
+    BROWSER = 'Browser'
     DEVICE_CHOICES = (
         (IOS, 'iPhone'),
         (ANDROID, 'Android'),
+        (BROWSER, 'Browser')
     )
+
+    user_type = models.IntegerField(default=WIZCARD_USER)
+
     device_type = TruncatingCharField(max_length=10,
                                       choices=DEVICE_CHOICES,
                                       default=IOS)
+
     device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True, max_length=200)
 
@@ -207,6 +228,14 @@ class UserProfile(models.Model):
         self.future_user = True
         self.save()
 
+    def set_user_type(self, type):
+        self.type = type
+        self.save()
+
+    def add_user_type(self, type):
+        self.type = self.type & type
+        self.save()
+
     def is_ios(self):
         return bool(self.device_type == self.IOS)
 
@@ -222,18 +251,19 @@ class UserProfile(models.Model):
                                     tree="PTREE")
             l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
 
-    def lookup(self, cache_key, n, count_only=False):
+    def lookup(self, n, count_only=False):
         users = None
         try:
             l = self.location.get()
         except ObjectDoesNotExist:
             return None, None
 
-        result, count = l.lookup(cache_key, n)
+        result, count = l.lookup(n)
         # convert result to query set result
         if count and not count_only:
             users = [UserProfile.objects.get(id=x).user for x in result if
                      UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
+            count = len(users)
         return users, count
 
     def do_resync(self):
@@ -272,7 +302,7 @@ class UserProfile(models.Model):
             s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
 
         # tables
-        tables = VirtualTable.objects.user_tables(self.user)
+        tables = VirtualTable.objects.users_entities(self.user)
         if tables.count():
             # serialize created and joined tables
             tbls = VirtualTable.objects.serialize_split(
@@ -290,6 +320,12 @@ class UserProfile(models.Model):
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
+
+        campaigns = Product.objects.users_entities(self.user)
+        if campaigns.count():
+            camp_data = ProductSerializer(campaigns, many=True).data
+            s['campaigns'] = camp_data
+
         Notification.objects.unacted(self.user).update(readed=False)
         return s
 

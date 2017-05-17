@@ -160,7 +160,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
     extfields['sender_email'] = from_wizcard.email
     sender_video = from_wizcard.get_videoUrl
     if sender_video:
-        extfields['sender_vide'] = sender_video
+        extfields['sender_video'] = sender_video
 
     subject = subject % extfields['sender_name']
     if half_card == True:
@@ -178,6 +178,18 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
 
     email.send(attach=attach_data)
 
+
+@shared_task
+def send_event(event, to, emaildetails):
+    email_dict = dict()
+    html = emaildetails['template']
+    email_dict['event_name'] = event.name
+    email_dict['event_url'] = "http://getwizcard.com/entity/event/%d/product" % event.id
+
+    ctx = Context(email_dict)
+    email = Email(to=to, subject = "Welcome to %s - Claim your product space" % event.name)
+    email.html(html, ctx)
+    email.send(from_addr=emaildetails['from_addr'])
 
 def mass_email(to, id):
 

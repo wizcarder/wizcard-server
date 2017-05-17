@@ -7,12 +7,12 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wizcardship', '0017_merge'),
+        ('media_mgr', '0002_mediaobjects_media_videothumbnail'),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='wizcard',
-            name='emailTemplate',
+            model_name='mediaobjects',
+            name='media_videothumbnail',
         ),
     ]

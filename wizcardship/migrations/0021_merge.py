@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('wizcardship', '0016_wizcard_vcard'),
-#        ('wizcardship', '0016_merge'),
+        ('wizcardship', '0020_merge'),
     ]
 
     operations = [
