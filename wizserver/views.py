@@ -152,8 +152,8 @@ class ParseMsgAndDispatch(object):
 
         #AA:TODO - Move to header
         if self.msg_has_location():
-            self.lat = self.sender['lat']
-            self.lng = self.sender['lng']
+            self.lat = float(self.sender['lat'])
+            self.lng = float(self.sender['lng'])
             logger.debug('User %s @lat, lng: {%s, %s}',
                          self.user.first_name+" "+self.user.last_name, self.lat, self.lng)
 
