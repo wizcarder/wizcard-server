@@ -88,7 +88,7 @@ class TreeServer(RabbitServer):
         logger.info('Received message # %s from %s: %s',
                      basic_deliver.delivery_tag, props.app_id, body)
         args = json.loads(body)
-        fn = args.pop('fn')
+        fn = args.pop('fn', None)
         rpc = args.pop('rpc', False)
         try:
             response = self.call_handles[fn](**args)
@@ -102,6 +102,7 @@ class TreeServer(RabbitServer):
                              body=json.dumps(response))
         except:
             client.captureException()
+            pass
 
         self.acknowledge_message(basic_deliver.delivery_tag)
 
