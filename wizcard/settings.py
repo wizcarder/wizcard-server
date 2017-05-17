@@ -27,10 +27,10 @@ WIZCARD_SETTINGS = {
     'dev': {
         'databases': {
             'default': {
-                'ENGINE': 'django.db.backends.mysql',
-                #'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard',
-                'USER': 'root',
+                #'ENGINE': 'django.db.backends.mysql',
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard-dev',
+                'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
                  'PORT': '5432',
@@ -51,7 +51,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-test',
+                'NAME': 'wizcard-prod',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
                 'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
