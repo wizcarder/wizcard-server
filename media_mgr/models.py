@@ -19,6 +19,9 @@ class MediaObjects(models.Model):
 
     objects = MediaObjectsManager
 
+    def __repr__(self):
+        return str(self.id) + "." + self.media_type + "." + self.media_sub_type
+
     TYPE_IMAGE = 'IMG'
     TYPE_VIDEO = 'VID'
 
