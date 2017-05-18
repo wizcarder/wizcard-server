@@ -92,7 +92,7 @@ class EntitySerializerL1(EntityMiniSerializer):
         thumb_count = qs.count()
         if thumb_count > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time
-            rand_ids = sample(xrange(1, thumb_count()), self.MAX_THUMBNAIL_UI_LIMIT)
+            rand_ids = sample(xrange(1, thumb_count), self.MAX_THUMBNAIL_UI_LIMIT)
             qs = [qs[x] for x in rand_ids]
 
         wizcards = map(lambda u: u.wizcard, qs)
