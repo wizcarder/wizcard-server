@@ -88,9 +88,11 @@ class EntitySerializerL1(EntityMiniSerializer):
     def get_users(self, obj):
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
-        if qs.count() > self.MAX_THUMBNAIL_UI_LIMIT:
+        qs = qs.exclude(wizcard__thumbnailImage='')
+        thumb_count = qs.count()
+        if thumb_count > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time
-            rand_ids = sample(xrange(1, count), self.MAX_THUMBNAIL_UI_LIMIT)
+            rand_ids = sample(xrange(1, thumb_count), self.MAX_THUMBNAIL_UI_LIMIT)
             qs = [qs[x] for x in rand_ids]
 
         wizcards = map(lambda u: u.wizcard, qs)
@@ -104,7 +106,7 @@ class EntitySerializerL1(EntityMiniSerializer):
     def get_media(self,obj):
         if type(obj) == BaseEntity.get_entity_from_type(BaseEntity.EVENT)[0]:
             qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_BANNER)
-        if type(obj) == BaseEntity.get_entity_from_type(BaseEntity.PRODUCT)[0]:
+        elif type(obj) == BaseEntity.get_entity_from_type(BaseEntity.PRODUCT)[0]:
             qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_LOGO)
         else:
             qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_THUMBNAIL)

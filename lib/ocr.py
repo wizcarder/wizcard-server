@@ -1,6 +1,7 @@
 from Abbyy.AbbyyOnlineSdk import *
 from celery import shared_task
 from wizcard import err
+from celery import exceptions
 import pdb
 
 class OCR:
@@ -14,7 +15,10 @@ class OCR:
         res = run_ocr.delay(runproc, **args)
         try:
             ocr_result = res.get(timeout=20)
-        except:
+        except exceptions.TimeoutError:
+            self.result.update(err.LIB_OCR_CELERY_TIMEOUT)
+            return self.result
+        finally:
             self.result.update(err.LIB_OCR_ERROR)
             return self.result
 
