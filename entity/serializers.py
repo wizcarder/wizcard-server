@@ -135,7 +135,6 @@ class EntitySerializerL1(EntityMiniSerializer):
         return False
 
 
-
 class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     media = MediaObjectsSerializer(many=True)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
@@ -243,9 +242,9 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
 
 class SpeakerSerializer(serializers.ModelSerializer):
-    def __init__(self, *args, **kwargs):
-        many = kwargs.pop('many', True)
-        super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     many = kwargs.pop('many', True)
+    #     super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
 
     media = MediaObjectsSerializer(many=True, required=False)
     extFields = serializers.DictField()
@@ -283,7 +282,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
         return instance
 
 
-class EventSerializerL1(EntitySerializerL1):
+class EventSerializerL1(EntitySerializerL2):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
@@ -292,7 +291,7 @@ class EventSerializerL1(EntitySerializerL1):
     class Meta:
         model = Event
         my_fields = ('start', 'end', 'speakers',)
-        fields = EntitySerializerL1.Meta.fields + my_fields
+        fields = EntitySerializerL2.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
         speakers = validated_data.pop('speakers', None)
@@ -311,7 +310,7 @@ class EventSerializerL1(EntitySerializerL1):
         instance.end = validated_data.pop("end", instance.end)
         speakers = validated_data.pop('speakers', None)
 
-        instance = super(EventSerializer, self).update(instance, validated_data)
+        instance = super(EventSerializerL1, self).update(instance, validated_data)
 
         if speakers:
             instance.speakers.clear()
@@ -324,7 +323,7 @@ class EventSerializerL2(EntitySerializerL2):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
-    speakers = SpeakerSerializer(many=True)
+    speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
 
     class Meta:
         model = Event
