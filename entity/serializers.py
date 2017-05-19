@@ -2,7 +2,6 @@ __author__ = 'aammundi'
 from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from media_mgr.models import MediaObjects
-from django.db.models import Q
 from rest_framework.validators import ValidationError
 from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, Speaker
 from entity.models import EntityEngagementStats
@@ -54,7 +53,7 @@ class RelatedSerializerField(serializers.RelatedField):
         return serializer.data
 
 
-class EntityEngagementSerializerField(serializers.Serializer):
+class EntityEngagementSerializer(serializers.Serializer):
     class Meta:
         model = EntityEngagementStats
         fields = ('like_count', 'agg_like_level')
@@ -62,15 +61,15 @@ class EntityEngagementSerializerField(serializers.Serializer):
     like_count = serializers.IntegerField(read_only=True)
     agg_like_level = serializers.FloatField(read_only=True)
 
-
-class EntityMiniSerializer(serializers.ModelSerializer):
+# these shouldn't be directly used.
+class EntitySerializerL0(serializers.ModelSerializer):
     class Meta:
         model = BaseEntity
         fields = ('id', 'entity_type')
 
-
-class EntitySerializerL1(EntityMiniSerializer):
-    media = serializers.SerializerMethodField(read_only=True)
+# these shouldn't be directly used.
+class EntitySerializerL1(EntitySerializerL0):
+    media = MediaObjectsSerializer(many=True)
     location = LocationSerializerField(required=False)
     users = serializers.SerializerMethodField(read_only=True)
     friends = serializers.SerializerMethodField(read_only=True)
@@ -80,10 +79,10 @@ class EntitySerializerL1(EntityMiniSerializer):
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
-    class Meta(EntityMiniSerializer.Meta):
+    class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends', 'users', 'creator', 'joined')
-        fields = EntityMiniSerializer.Meta.fields + my_fields
+        fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_users(self, obj):
         qs = obj.users.exclude(wizcard__isnull=True)
@@ -101,21 +100,6 @@ class EntitySerializerL1(EntityMiniSerializer):
             count=count,
             data=WizcardSerializerThumbnail(wizcards, many=True).data
         )
-        return out
-
-    def get_media(self,obj):
-        if type(obj) == BaseEntity.get_entity_from_type(BaseEntity.EVENT)[0]:
-            qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_BANNER)
-        elif type(obj) == BaseEntity.get_entity_from_type(BaseEntity.PRODUCT)[0]:
-            qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_LOGO)
-        else:
-            qs = obj.media.filter(media_sub_type = MediaObjects.SUB_TYPE_THUMBNAIL)
-
-        out = {}
-        if qs:
-            # Need to confirm if it can be only one BNR per event/entity.
-            out = MediaObjectsSerializer(qs, many=True).data
-
         return out
 
     def get_friends(self, obj):
@@ -137,12 +121,13 @@ class EntitySerializerL1(EntityMiniSerializer):
         return False
 
 
+# these shouldn't be directly used.
 class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     media = MediaObjectsSerializer(many=True)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
     extFields = serializers.DictField()
-    engagements = EntityEngagementSerializerField(read_only=True)
+    engagements = EntityEngagementSerializer(read_only=True)
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
@@ -162,11 +147,6 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         )
         return out
 
-    # TODO: Need to find a way to not have friends field in
-    # child class -
-    # AR: Friends field is needed to indicate if the user is already connected or not when they browse attendees or
-    # TODO: WE can have a field as part of the users which indicate whether a wizcard is a connection or not.
-
     def get_friends(self, obj):
         user = self.context.get('user', None)
         if user:
@@ -177,6 +157,13 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
             )
             return out
         return None
+
+    # this is not really used in this class. It's used in sub-classes
+    def get_media(self, obj):
+        return MediaObjectsSerializer(
+            obj.media.all(),
+            many=True
+        ).data
 
     def prepare(self, validated_data):
         self.media = validated_data.pop('media', None)
@@ -283,9 +270,8 @@ class SpeakerSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-class EventSerializerL1(EntitySerializerL2):
-
+# this is used by portal REST API
+class EventSerializer(EntitySerializerL2):
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
     speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
@@ -312,7 +298,7 @@ class EventSerializerL1(EntitySerializerL2):
         instance.end = validated_data.pop("end", instance.end)
         speakers = validated_data.pop('speakers', None)
 
-        instance = super(EventSerializerL1, self).update(instance, validated_data)
+        instance = super(EventSerializer, self).update(instance, validated_data)
 
         if speakers:
             instance.speakers.clear()
@@ -321,10 +307,26 @@ class EventSerializerL1(EntitySerializerL2):
 
         return instance
 
-class EventSerializerL2(EntitySerializerL2):
 
+# these are used by App.
+class EventSerializerL1(EntitySerializerL1):
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
+    media = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Event
+        my_fields = ('start', 'end', 'speakers',)
+        fields = EntitySerializerL1.Meta.fields + my_fields
+
+    def get_media(self, obj):
+        return MediaObjectsSerializer(
+            obj.media.filter(media_sub_type=MediaObjects.SUB_TYPE_BANNER),
+            many=True
+        ).data
+
+# these are used by App.
+class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
     speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
 
     class Meta:
@@ -332,6 +334,13 @@ class EventSerializerL2(EntitySerializerL2):
         my_fields = ('start', 'end', 'speakers',)
         fields = EntitySerializerL2.Meta.fields + my_fields
 
+    def get_media(self, obj):
+        return MediaObjectsSerializer(
+            obj.media.all(),
+            many=True
+        ).data
+
+# this is used by portal REST API
 class ProductSerializer(EntitySerializerL2):
 
     class Meta:
@@ -346,6 +355,7 @@ class ProductSerializer(EntitySerializerL2):
         return product
 
 
+# this is used by portal REST API
 class BusinessSerializer(EntitySerializerL2):
     class Meta:
         model = Business
@@ -358,7 +368,7 @@ class BusinessSerializer(EntitySerializerL2):
 
         return biz
 
-
+# this is used by portal REST API
 class TableSerializer(EntitySerializerL2):
 
     class Meta:
@@ -373,11 +383,11 @@ class TableSerializer(EntitySerializerL2):
         return table
 
 
-class EntityEngagementSerializer(EntityEngagementSerializerField):
+class EntityEngagementSerializer(EntityEngagementSerializer):
 
     class Meta:
         model = EntityEngagementStats
         my_fields = ('entity',)
-        fields = EntityEngagementSerializerField.Meta.fields + my_fields
+        fields = EntityEngagementSerializer.Meta.fields + my_fields
 
-    entity = EntityMiniSerializer(read_only=True, source='engagements_baseentity_related')
+    entity = EntitySerializerL0(read_only=True, source='engagements_baseentity_related')
