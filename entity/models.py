@@ -544,6 +544,18 @@ class EntityEngagementStats(models.Model):
         through='EntityUserStats'
     )
 
+    def has_liked(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
+        try:
+            like = EntityUserStats.objects.get(
+                user = user,
+                stats = self,
+                like_level__gte = level
+            )
+            return True
+        except:
+            return False
+
+
     def like(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
         stat, created = EntityUserStats.objects.get_or_create(
             user=user,

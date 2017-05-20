@@ -76,12 +76,13 @@ class EntitySerializerL1(EntitySerializerL0):
     joined = serializers.SerializerMethodField(read_only=True)
     tags = TagListSerializerField(required=False)
     creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    liked = serializers.SerializerMethodField(read_only=True)
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
-        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends', 'users', 'creator', 'joined')
+        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends', 'users', 'creator', 'joined', 'liked')
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_users(self, obj):
@@ -119,6 +120,11 @@ class EntitySerializerL1(EntitySerializerL0):
         if user:
             return UserEntity.user_member(user, obj)
         return False
+
+    def get_liked(self, obj):
+        user = self.context.get('user', None)
+        if user:
+            return obj.engagements.has_liked(user)
 
 
 # these shouldn't be directly used.
@@ -383,7 +389,7 @@ class TableSerializer(EntitySerializerL2):
         return table
 
 
-class EntityEngagementSerializer(EntityEngagementSerializer):
+class EntityEngagementSerializerL1(EntityEngagementSerializer):
 
     class Meta:
         model = EntityEngagementStats
