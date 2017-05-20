@@ -124,7 +124,7 @@ class EntitySerializerL1(EntitySerializerL0):
     def get_liked(self, obj):
         user = self.context.get('user', None)
         if user:
-            return obj.engagements.has_liked(user)
+            return obj.engagements.user_liked(user)
 
 
 # these shouldn't be directly used.
@@ -316,8 +316,8 @@ class EventSerializer(EntitySerializerL2):
 
 # these are used by App.
 class EventSerializerL1(EntitySerializerL1):
-    start = serializers.DateTimeField()
-    end = serializers.DateTimeField()
+    start = serializers.DateTimeField(read_only=True)
+    end = serializers.DateTimeField(read_only=True)
     media = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
