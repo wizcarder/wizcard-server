@@ -2472,6 +2472,7 @@ class ParseMsgAndDispatch(object):
 
         do_location = self.sender.get('do_location', True)
 
+        '''
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
@@ -2502,15 +2503,19 @@ class ParseMsgAndDispatch(object):
             showevents = n_events
         else:
             showevents = None
+    '''
+        # TEMPORARY SOLUTION TO RETURN ALL EVENTS - NEED TO CHANGE
+
+        showevents = Event.objects.all()
 
         if showevents:
             events_serialized = EventSerializerL1(
                 showevents,
                 many=True,
                 context={'user': self.user, 'expanded': False}
-            )
+            ).data
 
-            self.response.add_data("result", events_serialized.data)
+            self.response.add_data("result", events_serialized)
 
         return self.response
 
