@@ -2533,7 +2533,7 @@ class ParseMsgAndDispatch(object):
                     self.response.error_response(err.OBJECT_DOESNT_EXIST)
 
             if len(ll):
-                ls = EntityEngagementSerializer(ll, many=True)
+                ls = EntityEngagementSerializer(ll, many=True, context={'like_lelevel':level})
                 self.response.add_data('result', ls.data)
 
         return self.response

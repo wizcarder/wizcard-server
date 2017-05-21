@@ -566,8 +566,9 @@ class EntityEngagementStats(models.Model):
 
         if created:
             self.like_count += 1
-
-        self.agg_like_level = ((self.agg_like_level*(self.like_count-1)) + level)/self.like_count
+            self.agg_like_level = ((self.agg_like_level * (self.like_count - 1)) + level) / self.like_count
+        else:
+            self.agg_like_level = ((self.agg_like_level * self.like_count) - self.user_liked(user) + level) / self.like_count
 
         self.save()
 

@@ -60,6 +60,11 @@ class EntityEngagementSerializer(serializers.Serializer):
 
     like_count = serializers.IntegerField(read_only=True)
     agg_like_level = serializers.FloatField(read_only=True)
+    like_level = serializers.SerializerMethodField(read_only=True)
+
+    def get_like_level(self, obj):
+        like_level = self.context.get('like_level', 0)
+        return like_level
 
 # these shouldn't be directly used.
 class EntitySerializerL0(serializers.ModelSerializer):
