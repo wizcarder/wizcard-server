@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from entity.models import BaseEntity, Event, Product, Business, VirtualTable, Speaker
-from entity.serializers import EntitySerializerL1, EntitySerializerL2, EventSerializerL1, EventSerializerL2 ,ProductSerializer, \
+from entity.serializers import EntitySerializerL2, EventSerializer, EventSerializerL2 ,ProductSerializer, \
     BusinessSerializer, TableSerializer, SpeakerSerializer
 from django.http import Http404
 from rest_framework.decorators import detail_route
@@ -19,12 +19,12 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
 class EventViewSet(BaseEntityViewSet):
     queryset = Event.objects.all()
-    serializer_class = EventSerializerL2
+    serializer_class = EventSerializer
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return EventSerializerL2
-        return EventSerializerL1
+        return EventSerializer
 
     def get_object_or_404(self, pk):
         try:

@@ -101,7 +101,6 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
-
     def inc_edit_card_video(self, user_stats, global_stats):
         user_stats.edit_card_video += 1
         global_stats.edit_card_video += 1
@@ -277,6 +276,27 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
+    def inc_entity_create(self, user_stats, global_stats):
+        user_stats.entity_create += 1
+        global_stats.entity_create += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_destroy(self, user_stats, global_stats):
+        user_stats.entity_destroy += 1
+        global_stats.entity_destroy += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_edit(self, user_stats, global_stats):
+        user_stats.entity_edit += 1
+        global_stats.entity_edit += 1
+
+        user_stats.save()
+        global_stats.save()
+
     def inc_entities_like(self, user_stats, global_stats):
         user_stats.entities_like += 1
         global_stats.entities_like += 1
@@ -294,6 +314,27 @@ class StatsMgr(models.Manager):
     def inc_entity_leave(self, user_stats, global_stats):
         user_stats.entity_leave += 1
         global_stats.entity_leave += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_query(self, user_stats, global_stats):
+        user_stats.entity_query += 1
+        global_stats.entity_query += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_my_entities(self, user_stats, global_stats):
+        user_stats.my_entities += 1
+        global_stats.my_entities += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_summary(self, user_stats, global_stats):
+        user_stats.entity_summary += 1
+        global_stats.entity_summary += 1
 
         user_stats.save()
         global_stats.save()
@@ -350,8 +391,14 @@ class Stats(models.Model):
     set_reco = models.IntegerField(blank=True, default=0)
     get_common_connections = models.IntegerField(blank=True, default=0)
     video_thumbnail = models.IntegerField(blank=True, default=0)
+    entity_create = models.IntegerField(blank=True, default=0)
+    entity_destroy = models.IntegerField(blank=True, default=0)
+    entity_edit = models.IntegerField(blank=True, default=0)
     entity_join = models.IntegerField(blank=True, default=0)
     entity_leave = models.IntegerField(blank=True, default=0)
+    entity_query = models.IntegerField(blank=True, default=0)
+    my_entities = models.IntegerField(blank=True, default=0)
+    entity_summary = models.IntegerField(blank=True, default=0)
     entity_details = models.IntegerField(blank=True, default=0)
     get_events = models.IntegerField(blank=True, default=0)
     entities_like = models.IntegerField(blank=True, default=0)

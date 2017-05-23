@@ -187,7 +187,7 @@ class TreeServer(RabbitServer):
 
     def lookup_closest_n(self, tree, key, n):
         #lookup using top half of key
-        result = None
+        result = []
         count = 0
         left = 0
         right = len(key)

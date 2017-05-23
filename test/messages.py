@@ -1,8 +1,14 @@
 
 #TODO: Probably should keep the message definition separate and read the
 # data into it from a text/db file
+import sys
+proj_path="."
+sys.path.append(proj_path)
 
 from datetime import datetime
+from wizcard import settings
+
+APP_VERSION = str(settings.APP_MAJOR) + "." +  str(settings.APP_MINOR)
 
 LAT1 = 37.885938
 LNG1 = -122.506419
@@ -36,12 +42,14 @@ OCR_USERNAME = OCR_PHONE+'@wizcard.com'
 
 SELF_PHONE = "+" + NEXMO_PHONE1
 
-
 EMAIL1 = "aammundi@gmail.com"
 EMAIL2 = "amsaha@gmail.com"
 EMAIL3 = "wizcard1@gmail.com"
 EMAIL4 = "nothere@gmail.com"
 EMAIL5 = "amnothere@gmail.com"
+
+ENTITY_TABLE = 'TBL'
+ENTITY_PRODUCT = 'PRD'
 
 ENTITY_LIKE = {
         "entity_id": "",
@@ -324,7 +332,33 @@ contact_container = {
     "card_url": ""
 }
 
-
+edit_card = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "edit_card",
+    },
+    "sender" : {
+        #maybe should have a separate data file for lat, lng and read with some
+        #random index from there
+        "address_city" : "San Francisco Bay Area",
+        "address_state" : "CA",
+        "address_street1" : "1914 N Marthilda Ave",
+        "address_zip" : 94087,
+        "email" : "aammundi@gmail.com",
+        "first_name" : "Anand",
+        "last_name" : "Ammundi",
+        "imageWasEdited" : "0",
+        "location" : "San Francisco Bay Area",
+        "phone1" : PHONE1,
+        "userID" : "",
+        "deviceType": "android",
+        #wizUserID should be the userID got from response of above register message
+        "wizUserID" : "",
+        "contact_container": [contact_container]
+    },
+}
 
 edit_card1 = {
     "header" : {
@@ -413,27 +447,6 @@ edit_card3 = {
 }
 
 
-table_create = {
-    "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "create_table",
-    },
-    "sender" : {
-        "lat" : 37.785838,
-        "lng" : -122.406419,
-        "deviceType": "android",
-        "userID" : "",
-        "wizUserID" : "",
-        "table_name" : "",
-        "timeout": 1,
-        "secure_table" : "True",
-        "password" : "test",
-        "created":str(datetime.now())
-    },
-}
-
 send_asset_to_xyz= {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
@@ -494,27 +507,70 @@ send_to_future_contacts = {
     }
 }
 
-table_join = {
+
+
+
+entity_create = {
+    "header" : {
+        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_create",
+    },
+    "sender" : {
+        "lat" : 37.785838,
+        "lng" : -122.406419,
+        "userID" : "",
+        "wizUserID" : "",
+        "name" : "",
+        "timeout": 1,
+        "secure": "False",
+        "entity_type": ENTITY_TABLE,
+    },
+}
+
+entity_join = {
     "header" : {
         "deviceID" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f02460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "join_table",
+        "msgType" : "entity_join",
     },
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
         "tableID": "",
-        "password" : "test"
+        "password" : "test",
+        "entity_type": ENTITY_TABLE,
+        "entity_id": ""
+
     },
 }
 
-table_edit = {
+
+entity_leave = {
+    "header" : {
+        "deviceID" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f02460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_join",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+        "tableID": "",
+        "password" : "test",
+        "entity_type": ENTITY_TABLE,
+        "entity_id": ""
+    },
+}
+
+entity_edit = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "table_edit",
+        "msgType" : "entity_edit",
     },
     "sender" : {
         "lat" : 37.785838,
@@ -522,57 +578,109 @@ table_edit = {
         "deviceType": "android",
         "userID" : "",
         "wizUserID" : "",
-        "tableID": "",
-        "table_name" : "",
-        "oldName":"",
-        "newName":"",
+        "entity_type": ENTITY_TABLE,
+        "entity_id": "",
+        "name" : "",
         "timeout":5,
         "created":str(datetime.now())
     },
 }
 
-table_query = {
+entity_query = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "query_tables",
+        "msgType" : "entity_query",
     },
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
-    },
-    "receiver" : {
-        "name": "",
-    },
-}
-
-table_summary = {
-    "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "table_summary",
-    },
-    "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
-        "tableID": ""
+        "query_str": ""
     }
 }
 
-table_details = {
+entity_summary = {
     "header" : {
         "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "table_details",
+        "msgType" : "entity_summary",
     },
     "sender" : {
         "userID" : "",
         "wizUserID" : "",
-        "tableID": ""
+        "entity_id": "",
+        "detail": False
     }
+}
+
+get_events = {
+    "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "get_events",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "lat": LAT1,
+        "lng": LNG1
+    },
+}
+
+entities_like = {
+    "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entities_like",
+    },
+    "sender" : {
+        "deviceType": "android",
+    },
+}
+
+entity_join = {
+     "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_join",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+    }
+}
+
+entity_leave = {
+        "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_leave",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+    },
+}
+
+my_entities = {
+        "header" : {
+        "deviceID" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "my_entities",
+    },
+    "sender" : {
+        "deviceType": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+    },
 }
 
 card_flick = {
@@ -754,7 +862,6 @@ my_flicks = {
     }
 }
 
-
 get_cards = {
     "header" : {
         "deviceID" : "17b90b2e03dc7b38",
@@ -766,90 +873,6 @@ get_cards = {
         "deviceType": "android",
         "lat": LAT1,
         "lng": LNG1
-    },
-}
-
-get_events = {
-    "header" : {
-        "deviceID" : "17b90b2e03dc7b38",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "get_events",
-    },
-    "sender" : {
-        "deviceType": "android",
-        "lat": LAT1,
-        "lng": LNG1
-    },
-}
-
-entity_details = {
-    "header" : {
-        "deviceID" : "17b90b2e03dc7b38",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "entity_details",
-    },
-    "sender" : {
-        "deviceType": "android",
-        "lat": LAT1,
-        "lng": LNG1
-    },
-}
-
-
-entities_like = {
-    "header" : {
-        "deviceID" : "17b90b2e03dc7b38",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "entities_like",
-    },
-    "sender" : {
-        "deviceType": "android",
-    },
-}
-
-entity_join = {
-     "header" : {
-        "deviceID" : "17b90b2e03dc7b38",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "entity_join",
-    },
-    "sender" : {
-        "deviceType": "android",
-        "entity_id" : "",
-        "entity_type" : "",
-    }
-}
-
-entity_leave = {
-        "header" : {
-        "deviceID" : "17b90b2e03dc7b38",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "entity_leave",
-    },
-    "sender" : {
-        "deviceType": "android",
-        "entity_id" : "",
-        "entity_type" : "",
-    },
-}
-
-entity_details = {
-        "header" : {
-        "deviceID" : "17b90b2e03dc7b38",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "entity_details",
-    },
-    "sender" : {
-        "deviceType": "android",
-        "entity_id" : "",
-        "entity_type" : "",
-        "detail": True
     },
 }
 

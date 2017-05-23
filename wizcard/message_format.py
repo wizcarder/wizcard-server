@@ -85,26 +85,6 @@ class UserQuerySchema(colander.MappingSchema):
     pass
 class WizcardGetDetailSchema(colander.MappingSchema):
     pass
-class TableQuerySchema(colander.MappingSchema):
-    pass
-class TableMyTablesSchema(colander.MappingSchema):
-    pass
-class TableSummarySchema(colander.MappingSchema):
-    pass
-class TableDetailsSchema(colander.MappingSchema):
-    pass
-class TableCreateSchema(colander.MappingSchema):
-    pass
-class TableJoinSchema(colander.MappingSchema):
-    pass
-class TableJoinByInviteSchema(colander.MappingSchema):
-    pass
-class TableLeaveSchema(colander.MappingSchema):
-    pass
-class TableDestroySchema(colander.MappingSchema):
-    pass
-class TableEditSchema(colander.MappingSchema):
-    pass
 class SettingsSchema(colander.MappingSchema):
     pass
 class OcrRequestSelfSchema(colander.MappingSchema):
@@ -129,9 +109,23 @@ class GetCommonConnectionsSchema(colander.MappingSchema):
     pass
 class GetVideoThumbnailSchema(colander.MappingSchema):
     pass
+
+
+class EntityCreateSchema(colander.MappingSchema):
+    pass
+class EntityDestroySchema(colander.MappingSchema):
+    pass
+class EntityEditSchema(colander.MappingSchema):
+    pass
 class EntityJoinSchema(colander.MappingSchema):
     pass
+class TableJoinByInviteSchema(colander.MappingSchema):
+    pass
 class EntityLeaveSchema(colander.MappingSchema):
+    pass
+class EntityQuerySchema(colander.MappingSchema):
+    pass
+class MyEntitiesSchema(colander.MappingSchema):
     pass
 class EntityDetailsSchema(colander.MappingSchema):
     pass

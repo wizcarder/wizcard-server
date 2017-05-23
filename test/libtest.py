@@ -6,8 +6,10 @@ import pdb
 from wizcard import settings
 
 ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
-test_image_path = "test/photo.JPG"
-ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
+#test_image_path = "test/photo.JPG"
+#ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
+test_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
+
 
 
 APP_VERSION = str(settings.APP_MAJOR) + "." +  str(settings.APP_MINOR)

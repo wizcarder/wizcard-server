@@ -34,8 +34,8 @@ class NotifParser:
             verbs.NOTIF_WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard,
             verbs.NOTIF_TABLE_INVITE    :       self.table_invite,
             verbs.NOTIF_WIZCARD_FORWARD :       self.wizcard_forward,
-            verbs.NOTIF_TABLE_JOIN :            self.table_join,
-            verbs.NOTIF_TABLE_LEAVE :           self.table_leave,
+            verbs.NOTIF_ENTITY_JOIN :           self.table_join,
+            verbs.NOTIF_ENTITY_LEAVE :          self.table_leave,
         }
 
         if self.count:

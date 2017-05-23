@@ -13,7 +13,7 @@ import fields
 import simplejson as json
 import pdb
 from wizserver import verbs
-from entity.serializers import ProductSerializer
+from entity.serializers import ProductSerializer, EntitySerializerL0
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -100,8 +100,8 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_DELETE[0]	            : self.notifRevokedWizcard,
             verbs.WIZCARD_TABLE_TIMEOUT[0]      : self.notifDestroyedTable,
             verbs.WIZCARD_TABLE_DESTROY[0]      : self.notifDestroyedTable,
-            verbs.WIZCARD_TABLE_JOIN[0]         : self.notifJoinTable,
-            verbs.WIZCARD_TABLE_LEAVE[0]        : self.notifLeaveTable,
+            verbs.WIZCARD_ENTITY_JOIN[0]         : self.notifJoinEntity,
+            verbs.WIZCARD_ENTITY_LEAVE[0]        : self.notifLeaveEntity,
             verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
             verbs.WIZCARD_UPDATE_HALF[0]        : self.notifWizcardUpdateH,
             verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
@@ -109,7 +109,6 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
             verbs.WIZWEB_WIZCARD_UPDATE[0]      : self.notifWizWebWizcardUpdate,
-            verbs.WIZCARD_CAMPAIGN_FOLLOW[0]    : self.notifCampaignFollow
         }
         for notification in notifications:
             notifHandler[notification.verb](notification)
@@ -137,12 +136,11 @@ class NotifResponse(ResponseN):
             )
 
             if cctx.asset_type == ContentType.objects.get(model="virtualtable").name:
-                #AA:TODO this lookup can be avoided by using the notify.send better
-                #ie, no need to send target as wizcard since it can be derived from sender,recipient
-                nctx.key_val('numSitting', VirtualTable.objects.get(id=cctx.asset_id).num_sitting)
+                entity = VirtualTable.objects.get(id=cctx.asset_id)
+                entity_s = EntitySerializerL0(entity).data
+                nctx.key_val('entity', entity_s)
 
             self.add_data_to_dict(out, "context", nctx.context)
-
 
         self.add_data_and_seq_with_notif(out, notifType, notif.id)
 
@@ -188,32 +186,32 @@ class NotifResponse(ResponseN):
         logger.debug('%s', self.response)
         return self.response
 
-    def notifJoinTable(self, notif):
+    def notifJoinEntity(self, notif):
         wizcard=notif.actor.wizcard
         ws = wizcard.serialize(fields.wizcard_template_thumbnail_only)
 
-        if notif.target: #since there is a possibility that the table got destroyed in-between
+        if notif.target:  # since there is a possibility that the entity got destroyed in-between
+            s = EntitySerializerL0(notif.target).data
             out = dict(
-                tableID=notif.target_object_id,
-                numSitting=notif.target.num_sitting,
+                entity=s,
                 wizcard=ws
             )
-            self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_JOIN, notif.id)
+            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_JOIN, notif.id)
             logger.debug('%s', self.response)
 
         return self.response
 
-    def notifLeaveTable(self, notif):
+    def notifLeaveEntity(self, notif):
         wizcard=notif.actor.wizcard
         ws = wizcard.serialize(fields.wizcard_template_thumbnail_only)
 
         if notif.target:
+            s = EntitySerializerL0(notif.target).data
             out = dict(
-                tableID=notif.target_object_id,
-                numSitting=notif.target.num_sitting,
+                entity=s,
                 wizcard=ws
             )
-            self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_LEAVE, notif.id)
+            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_LEAVE, notif.id)
             logger.debug('%s', self.response)
         return self.response
 
@@ -246,20 +244,6 @@ class NotifResponse(ResponseN):
 
         out = dict(sender=s_out, asset=a_out)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_INVITE, notif.id)
-        return self.response
-
-    def notifCampaignFollow(self, notif):
-        s_out = ProductSerializer(notif.action_object)
-        # Assumption for time being that user and product can overlap only in 1 event
-        event = notif.action_object.get_containers_filter(notif.recipient)[0]
-        nctx = NotifContext(
-            description= event.name,
-            asset_id= notif.action_object.id,
-            timestamp=timezone.now().strftime("%d. %B %Y"),
-        )
-        out = s_out.data
-        self.add_data_to_dict(out, "cctx", nctx.context)
-        self.add_data_and_seq_with_notif(out, verbs.NOTIF_CAMPAIGN_FOLLOW, notif.id)
         return self.response
 
     def notifWizcardForward(self, notif):

@@ -17,44 +17,42 @@ MSG_ROLODEX_EDIT        = 13
 MSG_ARCHIVED_CARDS      = 14
 MSG_CARD_DETAILS        = 15
 MSG_QUERY_USER          = 16
-MSG_CREATE_TABLE        = 17
-MSG_JOIN_TABLE          = 18
-MSG_LEAVE_TABLE         = 19
-MSG_DESTROY_TABLE       = 20
-MSG_TABLE_EDIT          = 21
-MSG_TABLE_SUMMARY       = 22
-MSG_TABLE_DETAILS       = 23
-MSG_TABLE_QUERY         = 24
-MSG_MY_TABLES           = 25
-MSG_SETTINGS            = 26
-MSG_OCR_SELF            = 27
-MSG_OCR_DEAD_CARD       = 28
-MSG_OCR_EDIT            = 29
-MSG_EMAIL_TEMPLATE      = 30
-MSG_GET_RECOMMENDATION  = 31
-MSG_SET_RECO_ACTION     = 32
-MSG_GET_COMMON_CONNECTIONS = 33
-MSG_GET_VIDEO_THUMBNAIL = 34
-MSG_MEISHI_START        = 35
-MSG_MEISHI_FIND         = 36
-MSG_MEISHI_END          = 37
-MSG_FLICK               = 38
-MSG_FLICK_ACCEPT        = 39
-MSG_FLICK_ACCEPT_CONNECT = 40
-MSG_FLICK_QUERY         = 41
-MSG_MY_FLICKS           = 42
-MSG_FLICK_WITHDRAW      = 44
-MSG_FLICK_EDIT          = 45
-MSG_FLICK_PICKS         = 46
-MSG_WIZWEB_QUERY_USER   = 47
-MSG_WIZWEB_QUERY_WIZCARD = 48
-MSG_WIZWEB_CREATE_USER  = 49
-MSG_WIZWEB_ADD_EDIT_CARD = 50
-MSG_ENTITY_JOIN         = 51
-MSG_ENTITY_LEAVE        = 52
-MSG_ENTITY_DETAILS      = 53
-MSG_GET_EVENTS          = 54
-MSG_ENTITIES_LIKE       = 55
+MSG_ENTITY_CREATE       = 17
+MSG_ENTITY_DESTROY      = 18
+MSG_ENTITY_EDIT         = 19
+MSG_ENTITY_JOIN         = 20
+MSG_ENTITY_LEAVE        = 21
+MSG_ENTITY_SUMMARY      = 22
+MSG_ENTITY_DETAILS      = 23
+MSG_ENTITY_QUERY        = 24
+MSG_MY_ENTITIES         = 25
+MSG_GET_EVENTS          = 26
+MSG_ENTITIES_LIKE       = 27
+MSG_SETTINGS            = 28
+MSG_OCR_SELF            = 29
+MSG_OCR_DEAD_CARD       = 30
+MSG_OCR_EDIT            = 31
+MSG_EMAIL_TEMPLATE      = 32
+MSG_GET_RECOMMENDATION  = 33
+MSG_SET_RECO_ACTION     = 34
+MSG_GET_COMMON_CONNECTIONS = 35
+MSG_GET_VIDEO_THUMBNAIL = 36
+MSG_MEISHI_START        = 37
+MSG_MEISHI_FIND         = 38
+MSG_MEISHI_END          = 39
+MSG_FLICK               = 40
+MSG_FLICK_ACCEPT        = 41
+MSG_FLICK_ACCEPT_CONNECT = 42
+MSG_FLICK_QUERY         = 43
+MSG_MY_FLICKS           = 44
+MSG_FLICK_WITHDRAW      = 45
+MSG_FLICK_EDIT          = 46
+MSG_FLICK_PICKS         = 47
+MSG_WIZWEB_QUERY_USER   = 48
+MSG_WIZWEB_QUERY_WIZCARD = 49
+MSG_WIZWEB_CREATE_USER  = 50
+MSG_WIZWEB_ADD_EDIT_CARD = 51
+
 
 
 wizcardMsgTypes = {
@@ -81,16 +79,18 @@ wizcardMsgTypes = {
     'flick_pickers'               : MSG_FLICK_PICKS,
     'send_asset_to_xyz'           : MSG_SEND_ASSET_XYZ,
     'send_query_user'             : MSG_QUERY_USER,
+    'entity_create'               : MSG_ENTITY_CREATE,
+    'entity_destroy'              : MSG_ENTITY_DESTROY,
+    'entity_edit'                 : MSG_ENTITY_EDIT,
+    'entity_join'                 : MSG_ENTITY_JOIN,
+    'entity_leave'                : MSG_ENTITY_LEAVE,
+    'entity_summary'              : MSG_ENTITY_SUMMARY,
+    'entity_details'              : MSG_ENTITY_DETAILS,
+    'entity_query'                : MSG_ENTITY_QUERY,
+    'my_entities'                 : MSG_MY_ENTITIES,
+    'get_events'                  : MSG_GET_EVENTS,
+    'entities_like'               : MSG_ENTITIES_LIKE,
     'get_card_details'            : MSG_CARD_DETAILS,
-    'query_tables'                : MSG_TABLE_QUERY,
-    'my_tables'                   : MSG_MY_TABLES,
-    'table_summary'               : MSG_TABLE_SUMMARY,
-    'table_details'               : MSG_TABLE_DETAILS,
-    'create_table'                : MSG_CREATE_TABLE,
-    'join_table'                  : MSG_JOIN_TABLE,
-    'leave_table'                 : MSG_LEAVE_TABLE,
-    'destroy_table'               : MSG_DESTROY_TABLE,
-    'table_edit'                  : MSG_TABLE_EDIT,
     'settings'                    : MSG_SETTINGS,
     'ocr_req_self'                : MSG_OCR_SELF,
     'ocr_req_dead_card'           : MSG_OCR_DEAD_CARD,
@@ -107,11 +107,6 @@ wizcardMsgTypes = {
     'wizweb_query_wizcard'	      : MSG_WIZWEB_QUERY_WIZCARD,
     'wizweb_create_user'	      : MSG_WIZWEB_CREATE_USER,
     'wizweb_add_edit_card'	      : MSG_WIZWEB_ADD_EDIT_CARD,
-    'entity_join'                 : MSG_ENTITY_JOIN,
-    'entity_leave'                : MSG_ENTITY_LEAVE,
-    'entity_details'              : MSG_ENTITY_DETAILS,
-    'get_events'                  : MSG_GET_EVENTS,
-    'entities_like'               : MSG_ENTITIES_LIKE,
 }
 
 
@@ -131,10 +126,9 @@ NOTIF_WITHDRAW_REQUEST          = 11
 NOTIF_WIZWEB_UPDATE_WIZCARD     = 12
 NOTIF_TABLE_INVITE              = 13
 NOTIF_WIZCARD_FORWARD           = 14
-NOTIF_TABLE_JOIN                = 15
-NOTIF_TABLE_LEAVE               = 16
+NOTIF_ENTITY_JOIN                = 15
+NOTIF_ENTITY_LEAVE               = 16
 NOTIF_FOLLOW_EXPLICIT           = 17
-NOTIF_CAMPAIGN_FOLLOW           = 18
 
 # receiver types
 WIZCARD_CONNECT_U   = 1
@@ -192,11 +186,11 @@ WIZCARD_FLICK_TIMEOUT = ('flick timeout', 1)
 WIZCARD_FLICK_PICK = ('flick pick', 1)
 WIZCARD_TABLE_INVITE = ('table invite', 1)
 WIZCARD_FORWARD = ('wizcard forward', 1)
-WIZCARD_TABLE_JOIN = ('table join', 0)
-WIZCARD_TABLE_LEAVE = ('table leave', 0)
+WIZCARD_ENTITY_JOIN = ('entity join', 0)
+WIZCARD_ENTITY_LEAVE = ('entity leave', 0)
 WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1)
 WIZCARD_RECO_READY = ('new recommendations ready', 1)
-WIZCARD_CAMPAIGN_FOLLOW = ('follow campaign', 0)
+
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {

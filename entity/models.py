@@ -23,8 +23,6 @@ from base.cctx import ConnectionContext
 from django.conf import settings
 from taganomy.models import Taganomy
 from notifications.signals import notify
-
-
 import pdb
 
 # Create your models here.
@@ -43,7 +41,7 @@ class BaseEntityManager(PolymorphicManager):
     def lookup(self, lat, lng, n, etype, count_only=False):
         ttype = self.get_location_tree_name(etype)
 
-        entities = None
+        entities = []
         result, count = LocationMgr.objects.lookup(ttype, lat, lng, n)
 
         #convert result to query set result
@@ -51,12 +49,21 @@ class BaseEntityManager(PolymorphicManager):
             entities = self.filter(id__in=result)
         return entities, count
 
-    def users_entities(self, user, include_expired=False):
+    def users_entities(self, user, entity_type=None, include_expired=False):
+        cls, ser = BaseEntity.entity_cls_ser_from_type(type=entity_type)
         if include_expired:
-            return user.users_baseentity_related.all()
+            return user.users_baseentity_related.all().instance_of(cls)
         else:
-            return user.users_baseentity_related.exclude(expired=True)
+            return user.users_baseentity_related.all().instance_of(cls).exclude(expired=True)
 
+    def query(self, query_str):
+        # check names
+        q1 = Q(name__istartswith=query_str)
+        q2 = Q(tags__name__istartswith=query_str)
+        #
+        entities = self.filter(q1 | q2)[0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
+
+        return entities, entities.count()
 
 class BaseEntity(PolymorphicModel):
 
@@ -72,6 +79,9 @@ class BaseEntity(PolymorphicModel):
         (TABLE, 'Table'),
     )
 
+    SUB_ENTITY_PRODUCT = 'e_product'
+    SUB_ENTITY_TABLE = 'e_table'
+
     entity_type = models.CharField(
         max_length=3,
         choices=ENTITY_CHOICES,
@@ -82,6 +92,8 @@ class BaseEntity(PolymorphicModel):
     modified = models.DateTimeField(auto_now=True)
 
     secure = models.BooleanField(default=False)
+    password = TruncatingCharField(max_length=40, blank=True)
+
     timeout = models.IntegerField(default=30)
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
@@ -115,6 +127,8 @@ class BaseEntity(PolymorphicModel):
         related_name="users_%(class)s_related"
     )
 
+    num_users = models.IntegerField(default=1)
+
     engagements = models.OneToOneField(
         "EntityEngagementStats",
         null=True,
@@ -132,8 +146,9 @@ class BaseEntity(PolymorphicModel):
         return self.entity_type + '.' + self.name
 
     @classmethod
-    def get_entity_from_type(self, type, detail=False):
-        from entity.serializers import EventSerializerL2, EventSerializerL1, ProductSerializer, BusinessSerializer, TableSerializer 
+    def entity_cls_ser_from_type(self, type=None, detail=False):
+        from entity.serializers import EventSerializerL2, EventSerializerL1, \
+            ProductSerializer, BusinessSerializer, TableSerializer, EntitySerializerL2
         if type == self.EVENT:
             cls = Event
             serializer = EventSerializerL1
@@ -148,11 +163,27 @@ class BaseEntity(PolymorphicModel):
         elif type == self.TABLE:
             cls = VirtualTable
             serializer = TableSerializer
+        else:
+            cls = BaseEntity
+            serializer = EntitySerializerL2
 
         return cls, serializer
 
+    def entity_cls_from_subentity_type(self, type):
+        if type == self.SUB_ENTITY_PRODUCT:
+            cls = Product
+        elif type == self.SUB_ENTITY_TABLE:
+            cls = VirtualTable
+        else:
+            cls = BaseEntity
+
+        return cls
+
     def add_subentity(self, id, type):
-        pass
+        cls = self.entity_cls_from_subentity_type(type)
+        obj = cls.objects.get(id=id)
+
+        return self.related.connect(obj, alias=type)
 
     def remove_sub_entity_of_type(self, id, type):
         self.related.filter(object_id=id, alias=type).delete()
@@ -188,17 +219,8 @@ class BaseEntity(PolymorphicModel):
     def get_tags(self, tags):
         return self.tags.names()
 
-    def get_containers(self, e_type=EVENT):
-        if self.related:
-            containers = self.related.related_to()
-            return map(lambda x: x.parent, containers)
-
-        return None
-
-    def get_containers_filter(self, user, e_type=EVENT):
-        container_type = BaseEntity.get_entity_from_type(e_type)[0]
-        user_entities = container_type.objects.users_entities(user)
-        return list(set(user_entities) & set(self.get_containers(e_type)))
+    def get_parent_entities(self ):
+        return self.related.related_to().generic_objects()
 
     # get user's friends within the entity
     def users_friends(self, user, limit=None):
@@ -206,6 +228,36 @@ class BaseEntity(PolymorphicModel):
         entity_friends = [x for x in entity_wizcards if Wizcard.objects.is_wizcard_following(x, user.wizcard)]
         return entity_friends[:limit]
 
+    def join(self, user):
+        e, created = UserEntity.user_join(user=user, base_entity_obj=self)
+        if created:
+            self.num_users += 1
+            self.save()
+
+        return self
+
+    def is_joined(self, user):
+        return bool(self.users.filter(id=user.id).exists())
+
+    def leave(self, user):
+        UserEntity.user_leave(user, self)
+        self.num_users -= 1
+        self.save()
+
+        return self
+
+    def notify_all_users(self, sender, verb, entity, exclude=True):
+        #send notif to all members, just like join
+        qs = self.users.exclude(id=sender.pk) if exclude else self.users.all()
+        for u in qs:
+            notify.send(
+                sender,
+                recipient=u,
+                verb=verb,
+                target=entity
+            )
+
+        return
 
 # explicit through table since we will want to associate additional
 # fields as we go forward.
@@ -216,19 +268,18 @@ class UserEntity(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     @classmethod
-    def user_join(self, user, entity_obj):
+    def user_join(cls, user, base_entity_obj):
         return  UserEntity.objects.get_or_create(
             user=user,
-            entity=entity_obj.baseentity_ptr
+            entity=base_entity_obj
         )
-        #notify.send()
 
     @classmethod
-    def user_leave(self, user, entity_obj):
-        user.userentity_set.get(entity=entity_obj.baseentity_ptr).delete()
+    def user_leave(self, user, base_entity_obj):
+        user.userentity_set.get(entity=base_entity_obj).delete()
 
     @classmethod
-    def user_member(self, user, entity_obj):
+    def user_member(cls, user, entity_obj):
         try:
             u = UserEntity.objects.get(user=user, entity=entity_obj)
             return True
@@ -237,13 +288,6 @@ class UserEntity(models.Model):
 
 
 class EventManager(BaseEntityManager):
-
-    def users_entities(self, user, include_expired=False):
-        if include_expired:
-            return user.users_baseentity_related.all().instance_of(Event)
-        else:
-            return user.users_baseentity_related.all().instance_of(Event).exclude(expired=True)
-
     def lookup(self, lat, lng, n, etype=BaseEntity.EVENT, count_only=False):
         return super(EventManager, self).lookup(
             lat,
@@ -255,23 +299,12 @@ class EventManager(BaseEntityManager):
 
 
 class Event(BaseEntity):
-    SUB_ENTITY_PRODUCT = 'e_product'
-    SUB_ENTITY_TABLE = 'e_table'
-
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
 
     speakers = models.ManyToManyField('Speaker', related_name='events', through='SpeakerEvent')
 
     objects = EventManager()
-
-    def add_subentity(self, id, type):
-        if type == self.SUB_ENTITY_PRODUCT:
-            obj = Product.objects.get(id=id)
-        elif type == self.SUB_ENTITY_TABLE:
-            obj = VirtualTable.objects.get(id=id)
-
-        return self.related.connect(obj, alias=type)
 
     def add_speaker(self, speaker_obj, description=None):
         obj, created = SpeakerEvent.objects.get_or_create(
@@ -286,30 +319,56 @@ class Event(BaseEntity):
 
         return obj
 
+    def join(self, user):
+        super(Event, self).join(user)
+
+        # do any event specific stuff here
+        return
+
+    def leave(self, user):
+        super(Event, self).leave(user)
+
+        return
+
 
 class ProductManager(BaseEntityManager):
-
-    def users_entities(self, user, include_expired=False):
-        if include_expired:
-            return user.users_baseentity_related.all().instance_of(Product)
-        else:
-            return user.users_baseentity_related.all().instance_of(Product).exclude(expired=True)
+    pass
 
 
 class Product(BaseEntity):
 
     objects = ProductManager()
 
-    pass
+    # this is a follow
+    def join(self, user):
+        super(Product, self).join(user)
+
+        self.notify_all_users(
+            user,
+            verbs.WIZCARD_ENTITY_JOIN[0],
+            self,
+        )
+
+        return
+
+    # this is an un-follow. Will happen when product is either
+    # deleted from rolodex or if there is a button on the campaign
+    # to un-follow
+    def leave(self, user):
+        super(Product, self).leave(user)
+
+        #send notif to all members, just like join
+        self.notify_all_users(
+            user,
+            verbs.WIZCARD_ENTITY_LEAVE[0],
+            self,
+        )
+
+        return
 
 
 class BusinessManager(BaseEntityManager):
-
-    def users_entities(self, user, include_expired=False):
-        if include_expired:
-            return user.users_baseentity_related.all().instance_of(Business)
-        else:
-            return user.users_baseentity_related.all().instance_of(Business).exclude(expired=True)
+    pass
 
 
 class Business(BaseEntity):
@@ -329,19 +388,6 @@ class VirtualTableManager(BaseEntityManager):
             etype,
             count_only
         )
-
-    def users_entities(self, user, include_expired=False):
-        if include_expired:
-            return user.users_baseentity_related.all().instance_of(VirtualTable)
-        else:
-            return user.users_baseentity_related.all().instance_of(VirtualTable).exclude(expired=True)
-
-    #AA: TODO : get some max limit on this
-    def query_tables(self, name):
-        tables = self.filter(Q(name__istartswith=name) &
-                Q(expired=False)) \
-                [0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
-        return tables, tables.count()
 
     def serialize(self, tables, template):
         return serialize(tables, **template)
@@ -368,7 +414,7 @@ class VirtualTableManager(BaseEntityManager):
         for t in tables:
             if t.is_creator(user):
                 created.append(t)
-            elif t.is_member(user):
+            elif t.is_joined(user):
                 joined.append(t)
             elif Wizcard.objects.are_wizconnections(
                     user.wizcard,
@@ -380,12 +426,28 @@ class VirtualTableManager(BaseEntityManager):
 
 
 class VirtualTable(BaseEntity):
-    num_sitting = models.IntegerField(default=0, blank=True)
-    password = TruncatingCharField(max_length=40, blank=True)
-    # back pointer to any super_entity
-    super_entities = RelatedObjectsDescriptor()
 
     objects = VirtualTableManager()
+
+    def join(self, user):
+        super(VirtualTable, self).join(user)
+
+        self.notify_all_users(
+            user,
+            verbs.WIZCARD_ENTITY_JOIN[0],
+            self,
+        )
+        return
+
+    def leave(self, user):
+        super(VirtualTable, self).leave(user)
+
+        self.notify_all_users(
+            user,
+            verbs.WIZCARD_ENTITY_LEAVE[0],
+            self,
+        )
+        return
 
     def get_member_wizcards(self):
         members = map(lambda u: u.wizcard, self.users.all().exclude(id=self.creator.id))
@@ -406,15 +468,6 @@ class VirtualTable(BaseEntity):
 
         return self
 
-    def name(self):
-        return self.tablename
-
-    def get_super_entities(self):
-        return self.super_entities.related_to()
-
-    def is_member(self, user):
-        return bool(self.users.filter(id=user.id).exists())
-
     def is_creator(self, user):
         return bool(self.creator == user)
 
@@ -428,36 +481,11 @@ class VirtualTable(BaseEntity):
 		        return self
             self.inc_numsitting()
 
-            #send notif to all existing joinees, to update table counts
-            for u in self.users.exclude(id=user.id):
-                notify.send(
-                    user,
-                    recipient=u,
-                    verb=verbs.WIZCARD_TABLE_JOIN[0],
-                    target=self
-                )
-
             self.table_exchange(user)
         else:
             return None
         return self
 
-    def leave_table(self, user):
-        try:
-            user.membership_set.get(table=self).delete()
-            self.dec_numsitting()
-        except:
-            pass
-        #send notif to all members, just like join
-        for u in self.users.exclude(id=user.id):
-            notify.send(
-                user,
-                recipient=u,
-                verb=verbs.WIZCARD_TABLE_LEAVE[0],
-                target=self
-            )
-
-        return self
 
     def delete(self, *args, **kwargs):
         #notify members of deletion (including self)
@@ -478,17 +506,6 @@ class VirtualTable(BaseEntity):
         else:
             self.users.clear()
             super(VirtualTable, self).delete(*args, **kwargs)
-
-    def distance_from(self, lat, lng):
-        return 0
-
-    def inc_numsitting(self):
-        self.num_sitting += 1
-        self.save()
-
-    def dec_numsitting(self):
-        self.num_sitting -= 1
-        self.save()
 
     def time_remaining(self):
         if not self.expired:
@@ -553,7 +570,6 @@ class EntityEngagementStats(models.Model):
             return user_like.like_level
         except:
             return 0
-
 
     def like(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
         stat, created = EntityUserStats.objects.get_or_create(

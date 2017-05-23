@@ -139,21 +139,24 @@ class ParseMsgAndDispatch(object):
         self.sender = sender
         if not self.msg_is_initial():
             try:
-                self.user = User.objects.get(id=sender['wizUserID'])
+                wizuser_id = self.sender.pop('wizUserID')
+                user_id = self.sender.pop('userID')
+
+                self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
                 self.user_stats, created = Stats.objects.get_or_create(user=self.user)
             except:
-                logger.error('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
+                logger.error('Failed User wizUserID %s, userID %s', wizuser_id, user_id)
                 return False
 
-            if self.userprofile.userid != self.sender['userID']:
-                logger.error('Failed User wizUserID %s, userID %s', sender['wizUserID'], sender['userID'])
+            if self.userprofile.userid != user_id:
+                logger.error('Failed User wizUserID %s, userID %s', wizuser_id, user_id)
                 return False
 
         #AA:TODO - Move to header
         if self.msg_has_location():
-            self.lat = float(self.sender['lat'])
-            self.lng = float(self.sender['lng'])
+            self.lat = float(self.sender.pop('lat'))
+            self.lng = float(self.sender.pop('lng'))
             logger.debug('User %s @lat, lng: {%s, %s}',
                          self.user.first_name+" "+self.user.last_name, self.lat, self.lng)
 
@@ -421,60 +424,6 @@ class ParseMsgAndDispatch(object):
                     self.WizcardGetDetail,
                     Stats.objects.inc_card_details,
                 ),
-            verbs.MSG_TABLE_QUERY:
-                (
-                    message_format.TableQuerySchema,
-                    self.TableQuery,
-                    None,
-                ),
-            verbs.MSG_MY_TABLES:
-                (
-                    message_format.TableMyTablesSchema,
-                    self.TableMyTables,
-                    None
-                ),
-            verbs.MSG_TABLE_SUMMARY:
-                (
-                    message_format.TableSummarySchema,
-                    self.TableSummary,
-                    None,
-                ),
-            verbs.MSG_TABLE_DETAILS:
-                (
-                    message_format.TableDetailsSchema,
-                    self.TableDetails,
-                    None,
-                ),
-            verbs.MSG_CREATE_TABLE:
-                (
-                    message_format.TableCreateSchema,
-                    self.TableCreate,
-                    None,
-                ),
-            verbs.MSG_JOIN_TABLE:
-                (
-                    message_format.TableJoinSchema,
-                    self.TableJoin,
-                    None,
-                ),
-            verbs.MSG_LEAVE_TABLE:
-                (
-                    message_format.TableLeaveSchema,
-                    self.TableLeave,
-                    None
-                ),
-            verbs.MSG_DESTROY_TABLE:
-                (
-                    message_format.TableDestroySchema,
-                    self.TableDestroy,
-                    None,
-                ),
-            verbs.MSG_TABLE_EDIT:
-                (
-                    message_format.TableEditSchema,
-                    self.TableEdit,
-                    None
-                ),
             verbs.MSG_SETTINGS:
                 (
                     message_format.SettingsSchema,
@@ -547,6 +496,25 @@ class ParseMsgAndDispatch(object):
                     self.GetVideoThumbnailUrl,
                     Stats.objects.inc_video_thumbnail
                 ),
+            verbs.MSG_ENTITY_CREATE:
+                (
+                    message_format.EntityCreateSchema,
+                    self.EntityCreate,
+                    Stats.objects.inc_entity_create,
+                ),
+
+            verbs.MSG_ENTITY_DESTROY:
+                (
+                    message_format.EntityDestroySchema,
+                    self.EntityDestroy,
+                    Stats.objects.inc_entity_destroy,
+                ),
+            verbs.MSG_ENTITY_EDIT:
+                (
+                    message_format.EntityEditSchema,
+                    self.EntityEdit,
+                    Stats.objects.inc_entity_edit,
+                ),
             verbs.MSG_ENTITY_JOIN:
                 (
                     message_format.EntityJoinSchema,
@@ -558,6 +526,24 @@ class ParseMsgAndDispatch(object):
                     message_format.EntityLeaveSchema,
                     self.EntityLeave,
                     Stats.objects.inc_entity_leave
+                ),
+            verbs.MSG_ENTITY_QUERY:
+                (
+                    message_format.EntityQuerySchema,
+                    self.EntityQuery,
+                    Stats.objects.inc_entity_query
+                ),
+            verbs.MSG_MY_ENTITIES:
+                (
+                    message_format.MyEntitiesSchema,
+                    self.MyEntities,
+                    Stats.objects.inc_my_entities
+                ),
+            verbs.MSG_ENTITY_SUMMARY:
+                (
+                    message_format.EntityDetailsSchema,
+                    self.EntityDetails,
+                    Stats.objects.inc_entity_summary
                 ),
             verbs.MSG_ENTITY_DETAILS:
                 (
@@ -1579,7 +1565,7 @@ class ParseMsgAndDispatch(object):
             #creator can fwd private table, anyone (member) can fwd public
             #table
             if not((table.secure and table.creator == self.user) or
-                       ((not table.secure) and table.is_member(self.user))):
+                       ((not table.secure) and table.is_joined(self.user))):
                 self.response.error_response(err.NOT_AUTHORIZED)
                 return self.response
 
@@ -1915,59 +1901,6 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("videoThumbnailUrl", videoThumbnailUrl)
         return self.response
 
-    def TableQuery(self):
-        if not self.receiver.has_key('name'):
-            self.securityException()
-            self.response.ignore()
-            return self.response
-
-        result, count = VirtualTable.objects.query_tables(self.receiver['name'])
-
-        if count:
-            tables_s = VirtualTable.objects.serialize_split(result,
-                                                            self.user,
-                                                            fields.nearby_table_template)
-            self.response.add_data("queryResult", tables_s)
-        self.response.add_data("count", count)
-
-        return self.response
-
-    def TableMyTables(self):
-        tables = self.user.tables.exclude(expired=True)
-        count = tables.count()
-        if count:
-            tables_s = VirtualTable.objects.serialize(tables, fields.table_template)
-            self.response.add_data("queryResult", tables_s)
-        self.response.add_data("count", count)
-        return self.response
-
-    def TableSummary(self):
-        table = VirtualTable.objects.get(id=self.sender['tableID'])
-        if table.secure and not table.is_member(self.user):
-            self.response.error_response(err.NOT_AUTHORIZED)
-            return self.response
-
-        s = TableSerializer(table)
-        self.response.add_data("Summary", s.data)
-        return self.response
-
-    def TableDetails(self):
-        #get the members
-        table = VirtualTable.objects.get(id=self.sender['tableID'])
-        if table.secure and not table.is_member(self.user):
-            self.response.error_response(err.NOT_AUTHORIZED)
-            return self.response
-
-        members = table.users.all()
-        count = members.count()
-        if count:
-            out = UserProfile.objects.serialize_split(self.user, members)
-            self.response.add_data("Members", out)
-            self.response.add_data("Count", count)
-            self.response.add_data("CreatorID", table.creator.id)
-
-        return self.response
-
     def WizcardGetDetail(self):
         try:
             wizcard = Wizcard.objects.get(id=self.receiver['wizCardID'])
@@ -1983,118 +1916,6 @@ class ParseMsgAndDispatch(object):
 
         out = Wizcard.objects.serialize(wizcard, template)
         self.response.add_data("Details", out)
-        return self.response
-
-    def TableCreate(self):
-        tablename = self.sender['table_name']
-        secure = self.sender['secure_table']
-        if self.sender.has_key('timeout'):
-            timeout = self.sender['timeout'] if self.sender['timeout'] else settings.WIZCARD_DEFAULT_TABLE_LIFETIME
-        else:
-            timeout = settings.WIZCARD_DEFAULT_TABLE_LIFETIME
-
-        if secure:
-            password = self.sender['password']
-        else:
-            password = ""
-
-        table = VirtualTable.objects.create(name=tablename, secure=secure,
-                                            password=password, creator=self.user,
-                                            timeout=timeout)
-        table.inc_numsitting()
-
-        #TODO: AA handle create failure and/or unique name enforcement
-        UserEntity.user_join(user=self.user, entity_obj=table)
-
-        #update location in ptree
-        table.create_or_update_location(self.lat, self.lng)
-        l = table.location.get()
-        l.start_timer(timeout)
-        table.save()
-        self.response.add_data("tableID", table.pk)
-        return self.response
-
-    def TableJoinByInvite(self):
-        return self.TableJoin(skip_password=True)
-
-    def TableJoin(self, skip_password=False):
-        try:
-            table = VirtualTable.objects.get(id=self.sender['tableID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response
-
-        if self.user is table.creator:
-            self.response.error_response(err.EXISTING_MEMBER)
-            return self.response
-
-        if table.secure and not skip_password:
-            password = self.sender['password']
-        else:
-            password = None
-
-        joined = table.join_table_and_exchange(self.user, password, skip_password)
-
-        if joined is None:
-            self.response.error_response(err.AUTHENTICATION_FAILED)
-        else:
-            self.response.add_data("tableID", joined.pk)
-        return self.response
-
-    def TableLeave(self):
-        try:
-            table = VirtualTable.objects.get(id=self.sender['tableID'])
-            leave = table.leave_table(self.user)
-            self.response.add_data("tableID", leave.pk)
-        except:
-            pass
-
-        return self.response
-
-    def TableDestroy(self):
-        try:
-            table = VirtualTable.objects.get(id=self.sender['tableID'])
-        except ObjectDoesNotExist:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response
-
-        if table.creator == self.user:
-            table.delete(type=verbs.WIZCARD_TABLE_DESTROY[0])
-        else:
-            self.response.error_response(err.NOT_AUTHORIZED)
-
-        return self.response
-
-    def TableEdit(self):
-        try:
-            table_id = self.sender['tableID']
-        except KeyError:
-            self.securityException()
-            self.response.ignore()
-            return self.response
-        try:
-            table = VirtualTable.objects.get(id=table_id)
-        except ObjectDoesNotExist:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response
-
-        if table.creator != self.user:
-            self.response.error_response(err.NOT_AUTHORIZED)
-            return self.response
-
-        name = self.sender.get('name', table.name)
-        table.name = name
-
-        timeout = self.sender.get('timeout', None)
-        if timeout:
-            timeout_secs = timeout*60
-            # a_created = self.sender['created']
-            # table.a_created = a_created
-            table.location.get().reset_timer(timeout_secs)
-
-        table.save()
-
-        self.response.add_data("tableID", table.pk)
         return self.response
 
     def Settings(self):
@@ -2301,10 +2122,8 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def MeishiStart(self):
-        lat = self.sender['lat']
-        lng = self.sender['lng']
         wizcard = self.user.wizcard
-        m = Meishi.objects.create(lat=lat, lng=lng, wizcard=wizcard)
+        m = Meishi.objects.create(lat=self.lat, lng=self.lng, wizcard=wizcard)
 
         self.response.add_data("mID", m.pk)
 
@@ -2411,27 +2230,48 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     # Entity Api's for App
+
+    def EntityCreate(self):
+        e, s = BaseEntity.entity_cls_ser_from_type(type=self.sender.get('entity_type'))
+        entity = e.objects.create(creator=self.user, **self.sender)
+
+        updated, l = entity.create_or_update_location(self.lat, self.lng)
+        l.start_timer(entity.timeout)
+
+        out = s(entity, context={'user': self.user}).data
+
+        self.response.add_data("data", out)
+        return self.response
+
+    def EntityDestroy(self):
+        try:
+            table = VirtualTable.objects.get(id=self.sender['tableID'])
+        except ObjectDoesNotExist:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        if table.creator == self.user:
+            table.delete(type=verbs.WIZCARD_TABLE_DESTROY[0])
+        else:
+            self.response.error_response(err.NOT_AUTHORIZED)
+
+        return self.response
+
     def EntityJoin(self):
         id = self.sender.get('entity_id')
         type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.get_entity_from_type(type)
+            e, s = BaseEntity.entity_cls_ser_from_type(type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        UserEntity.user_join(self.user, entity)
-        # Should this be here or as part of user_join code ?? Leaving it here given that most of the notifications are from here.
-        # Ideally we should centralize it local to the model that way notifications are decentralized and are closer to the action.
-        # Discuss with AA
-        if type == 'PRD':
-            notify.send(entity, recipient=self.user,
-                    verb = verbs.WIZCARD_CAMPAIGN_FOLLOW[0],
-                    target = self.user.wizcard, action_object=entity)
+        entity.join(self.user)
 
-        self.response.add_data("count", entity.users.count())
+        out = s(entity, context={'user': self.user}).data
+        self.response.add_data("data", out)
 
         return self.response
 
@@ -2440,39 +2280,51 @@ class ParseMsgAndDispatch(object):
         type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.get_entity_from_type(type)
+            e, s = BaseEntity.entity_cls_ser_from_type(type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        UserEntity.user_leave(self.user, entity)
-        self.response.add_data("count", entity.users.count())
+        entity.leave(self.user)
+
+        out = s(entity, context={'user': self.user}).data
+        self.response.add_data("data", out)
 
         return self.response
 
-    def EntityDetails(self):
+    def EntityEdit(self):
+
         id = self.sender.get('entity_id')
         type = self.sender.get('entity_type')
-        detail = self.sender.get('detail', True)
 
         try:
-            e, s = BaseEntity.get_entity_from_type(type, detail=detail)
+            e, s = BaseEntity.entity_cls_ser_from_type(type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        out = s(entity, context={'user': self.user, 'expanded': detail}).data
-        self.response.add_data("result", out)
+        if entity.creator != self.user:
+            self.response.error_response(err.NOT_AUTHORIZED)
+            return self.response
+
+        entity.name = self.sender.get('name', entity.name)
+
+        if 'timeout' in self.sender:
+            entity.timeout = self.sender['timeout']
+            timeout_secs = entity.timeout*60
+            entity.location.get().reset_timer(timeout_secs)
+
+        entity.save()
+
+        out = s(entity, context={'user': self.user}).data
+        self.response.add_data("data", out)
 
         return self.response
 
     def EventsGet(self):
-
-        do_location = self.sender.get('do_location', True)
-
-        '''
+        do_location = True
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.userprofile.location.get().lat
@@ -2483,34 +2335,22 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        m_events = Event.objects.users_entities(self.user)
-        n_events = None
+        m_events = Event.objects.users_entities(self.user, BaseEntity.EVENT)
+        n_events, count = Event.objects.lookup(
+            self.lat,
+            self.lng,
+            settings.DEFAULT_MAX_LOOKUP_RESULTS
+        ) if do_location else []
 
-        if do_location:
-            nearevents, count = Event.objects.lookup(
-                self.lat,
-                self.lng,
-                settings.DEFAULT_MAX_LOOKUP_RESULTS
-            )
-            if count:
-                n_events = set(nearevents)
+        # temp for now
+        if not count:
+            n_events = Event.objects.all()
 
-        if m_events and n_events:
-            showevents = list(set(m_events) | set(n_events))
-        elif m_events:
-            showevents = m_events
-        elif n_events:
-            showevents = n_events
-        else:
-            showevents = None
-    '''
-        # TEMPORARY SOLUTION TO RETURN ALL EVENTS - NEED TO CHANGE
+        events = list(set(m_events) | set(n_events))
 
-        showevents = Event.objects.all()
-
-        if showevents:
+        if events:
             events_serialized = EventSerializerL1(
-                showevents,
+                events,
                 many=True,
                 context={'user': self.user, 'expanded': False}
             ).data
@@ -2533,10 +2373,65 @@ class ParseMsgAndDispatch(object):
                     self.response.error_response(err.OBJECT_DOESNT_EXIST)
 
             if len(ll):
-                ls = EntityEngagementSerializer(ll, many=True, context={'like_lelevel':level})
+                ls = EntityEngagementSerializer(ll, many=True, context={'like_lelevel': level})
                 self.response.add_data('result', ls.data)
 
         return self.response
+
+    def EntityQuery(self):
+        query_str = self.sender['query_str']
+        entity_type = self.sender.get('entity_type', None)
+
+        e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
+
+        result, count = e.objects.query(query_str)
+
+        if count:
+            out = s(result, many=True).data
+            self.response.add_data("data", out)
+
+        self.response.add_data("count", count)
+
+        return self.response
+
+    def MyEntities(self):
+        entity_type = self.sender.get('entity_type', None)
+        cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
+
+        entities = cls.objects.users_entities(self.user).instance_of(cls)
+
+        out = s(entities, many=True).data
+        count = entities.count()
+
+        if count:
+            self.response.add_data("data", out.data)
+        self.response.add_data("count", count)
+        return self.response
+
+    def EntityDetails(self):
+        id = self.sender.get('entity_id')
+        type = self.sender.get('entity_type')
+        detail = self.sender.get('detail', True)
+
+        try:
+            e, s = BaseEntity.entity_cls_ser_from_type(type, detail=detail)
+            entity = e.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        if entity.secure and not entity.is_joined(self.user):
+            self.response.error_response(err.NOT_AUTHORIZED)
+            return self.response
+
+        out = s(entity, context={'user': self.user}).data
+        self.response.add_data("data", out)
+
+        return self.response
+
+    def TableJoinByInvite(self):
+        return self.EntityJoin()
+
 
     # WizWeb Message handling
     def WizWebUserQuery(self):

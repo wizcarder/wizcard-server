@@ -45,11 +45,11 @@ class RelatedSerializerField(serializers.RelatedField):
 
     def to_representation(self, value):
         if isinstance(value.object, Product):
-            serializer = ProductSerializer(value.object)
+            serializer = ProductSerializer(value.object, context=self.context)
         elif isinstance(value.object, Business):
-            serializer = BusinessSerializer(value.object)
+            serializer = BusinessSerializer(value.object, context=self.context)
         elif isinstance(value.object, VirtualTable):
-            serializer = TableSerializer(value.object)
+            serializer = TableSerializer(value.object, context=self.context)
         return serializer.data
 
 
@@ -70,7 +70,7 @@ class EntityEngagementSerializer(serializers.Serializer):
 class EntitySerializerL0(serializers.ModelSerializer):
     class Meta:
         model = BaseEntity
-        fields = ('id', 'entity_type')
+        fields = ('id', 'entity_type', 'num_users')
 
 # these shouldn't be directly used.
 class EntitySerializerL1(EntitySerializerL0):
@@ -123,7 +123,8 @@ class EntitySerializerL1(EntitySerializerL0):
     def get_joined(self, obj):
         user = self.context.get('user', None)
         if user:
-            return UserEntity.user_member(user, obj)
+            return obj.is_joined(self.context.get('user'))
+
         return False
 
     def get_liked(self, obj):

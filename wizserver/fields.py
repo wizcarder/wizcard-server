@@ -118,7 +118,7 @@ user_query_full_template = {
 }
 
 nearby_table_template = {
-    'fields': ['id', 'name', 'secure', 'num_sitting', 'created',
+    'fields': ['id', 'name', 'secure', 'num_users', 'created',
                'timeout', 'timeRemaining', 'wizcards', 'creator'],
     'key_map': {'timeRemaining': 'time_remaining',
                 'wizcards': 'get_member_wizcards',
@@ -126,7 +126,7 @@ nearby_table_template = {
 }
 
 table_template = {
-    'fields': ['id', 'name', 'secure', 'num_sitting',
+    'fields': ['id', 'name', 'secure', 'num_users',
                'timeout', 'timeRemaining', 'wizcards', 'created',
                'creator_id', 'password'],
     'key_map': {
