@@ -4,24 +4,26 @@ from wizcardship.models import Wizcard
 from media_mgr.serializers import MediaObjectsSerializer
 
 class WizcardSerializerThumbnail(serializers.ModelSerializer):
+    thumbnail = serializers.URLField(source='get_thumbnail_url')
+    wizcard_id = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
+
     class Meta:
         model = Wizcard
-        fields = ('id', 'thumbnail',)
+        fields = ('wizcard_id', 'thumbnail',)
 
-    thumbnail = serializers.URLField(source='get_thumbnail_url')
 
 
 class WizcardSerializerL1(WizcardSerializerThumbnail):
     media = MediaObjectsSerializer(many=True)
+    user_id = serializers.PrimaryKeyRelatedField(read_only=True, source='user')
 
     class Meta(WizcardSerializerThumbnail.Meta):
         model = Wizcard
-        l1_fields = ('first_name', 'last_name', 'phone', 'email', 'media', 'user')
+        l1_fields = ('first_name', 'last_name', 'phone', 'email', 'media', 'user_id')
         fields = WizcardSerializerThumbnail.Meta.fields + l1_fields
 
 
 class WizcardSerializer(WizcardSerializerL1):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
     extFields = serializers.DictField()
 
     class Meta:
