@@ -2343,7 +2343,7 @@ class ParseMsgAndDispatch(object):
         ) if do_location else []
 
         # temp for now
-        if not count:
+        if count <= 2:
             n_events = Event.objects.all()
 
         events = list(set(m_events) | set(n_events))
