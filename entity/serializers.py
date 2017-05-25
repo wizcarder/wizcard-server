@@ -129,7 +129,7 @@ class EntitySerializerL1(EntitySerializerL0):
 
     def get_liked(self, obj):
         user = self.context.get('user', None)
-        if user:
+        if user and obj.engagements:
             return obj.engagements.user_liked(user)
 
 
