@@ -339,7 +339,7 @@ class EventSerializerL1(EntitySerializerL1):
 
 # these are used by App.
 class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
-    speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
+    speakers = SpeakerSerializer(many=True)
 
     class Meta:
         model = Event
