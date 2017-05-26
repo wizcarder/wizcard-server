@@ -12,7 +12,7 @@ from wizserver import verbs
 from location_service.tree_state_client import TreeStateClient
 
 logger = logging.getLogger(__name__)
-NEARBY_THRESHOLD = 15
+NEARBY_THRESHOLD = 15000
 
 
 class LocationMgrManager(models.Manager):

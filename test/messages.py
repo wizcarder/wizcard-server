@@ -615,6 +615,21 @@ entity_summary = {
     }
 }
 
+entity_details = {
+    "header" : {
+        "deviceID" : "47561E8D-47E6-4DA8-B66B-1F031A1FAC56",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msgType" : "entity_details",
+    },
+    "sender" : {
+        "userID" : "",
+        "wizUserID" : "",
+        "entity_id": "",
+        "detail": True
+    }
+}
+
 get_events = {
     "header" : {
         "deviceID" : "17b90b2e03dc7b38",
