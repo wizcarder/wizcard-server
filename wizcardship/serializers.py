@@ -31,7 +31,6 @@ class WizcardSerializerL1(WizcardSerializerThumbnail):
     user_id = serializers.PrimaryKeyRelatedField(read_only=True, source='user.id')
     contact_container = ContactContainerSerializerL0(many=True, read_only=True)
     media = MediaObjectsSerializer(many=True)
-    user_id = serializers.PrimaryKeyRelatedField(read_only=True, source='user')
     status = serializers.SerializerMethodField(read_only=True)
 
     class Meta(WizcardSerializerThumbnail.Meta):
