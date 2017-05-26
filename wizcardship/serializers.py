@@ -17,12 +17,12 @@ class ContactContainerSerializerL1(ContactContainerSerializerL0):
 
 
 class WizcardSerializerThumbnail(serializers.ModelSerializer):
-    thumbnail = serializers.URLField(source='get_thumbnail_url')
+    thumbnail_url = serializers.URLField(source='get_thumbnail_url')
     wizcard_id = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
 
     class Meta:
         model = Wizcard
-        fields = ('wizcard_id', 'thumbnail',)
+        fields = ('wizcard_id', 'thumbnail_url',)
 
 
 class WizcardSerializerL1(WizcardSerializerThumbnail):
