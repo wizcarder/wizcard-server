@@ -106,7 +106,7 @@ class BaseEntity(PolymorphicModel):
     description = models.CharField(max_length=1000)
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
-    extFields = PickledObjectField(default={"key": "value"}, blank=True)
+    ext_fields = PickledObjectField(default={"key": "value"}, blank=True)
 
     # media
     media = generic.GenericRelation(MediaObjects)
@@ -523,7 +523,7 @@ class Speaker(models.Model):
     org = models.CharField(max_length=100, blank=True)
     designation = models.CharField(max_length=100, blank=True)
 
-    extFields = PickledObjectField(default={}, blank=True)
+    ext_fields = PickledObjectField(default={}, blank=True)
     media = generic.GenericRelation(MediaObjects)
     description = models.TextField(default="Not Available")
 
