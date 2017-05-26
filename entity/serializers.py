@@ -152,10 +152,11 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     def get_users(self, obj):
         count = obj.users.count()
         wizcards = map(lambda u: u.wizcard, obj.users.exclude(wizcard__isnull=True))
+        user = self.context.get('user', None)
 
         out = dict(
             count=count,
-            data=WizcardSerializerL1(wizcards, many=True).data
+            data=WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
         )
         return out
 
