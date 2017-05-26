@@ -1,6 +1,6 @@
-contact_container_fields = ['company', 'title', 'phone', 'f_bizCardUrl']
+contact_container_fields = ['company', 'title', 'phone', 'f_bizcard_url']
 contact_container_keymap = {
-    'f_bizCardUrl': 'get_fbizcard_url'
+    'f_bizcard_url': 'get_fbizcard_url'
 }
 
 contact_container_template = {
@@ -8,26 +8,26 @@ contact_container_template = {
     'key_map': contact_container_keymap
 }
 
-wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnailUrl']
+wizcard_fields_thumbnail_only = ['wizcard_id', 'user_id', 'thumbnail_url']
 
-wizcard_fields_mini = ['wizcard_id', 'user_id', 'thumbnailUrl', 'first_name', 'last_name']
+wizcard_fields_mini = ['wizcard_id', 'user_id', 'thumbnail_url', 'first_name', 'last_name']
 
 wizcard_fields_micro = ['wizcard_id']
 
 wizcard_fields = ['wizcard_id', 'user_id', 'first_name', 'last_name',
-                  'phone', 'email', 'thumbnailUrl', 'contact_container',
-                  'status', 'videoUrl', 'videoThumbnailUrl', 'extFields', 'smsurl', 'admin']
+                  'phone', 'email', 'thumbnail_url', 'contact_container',
+                  'status', 'video_url', 'video_thumbnail_url', 'ext_fields', 'sms_url', 'admin']
 
 wizcard_fields_keymap = {
     'wizcard_id': 'id',
-    'thumbnailUrl': 'get_thumbnail_url',
+    'thumbnail_url': 'get_thumbnail_url',
     'status': 'connected_status_string',
     'admin': 'is_admin'
 }
 
 wizcard_fields_keymap_brief = {
     'wizcard_id': 'id',
-    'thumbnailUrl': 'get_thumbnail_url',
+    'thumbnail_url': 'get_thumbnail_url',
     'contact_container': 'get_latest_contact_container',
     'status': 'followed_status_string'
 }
@@ -119,20 +119,16 @@ user_query_full_template = {
 
 nearby_table_template = {
     'fields': ['id', 'name', 'secure', 'num_users', 'created',
-               'timeout', 'timeRemaining', 'wizcards', 'creator'],
-    'key_map': {'timeRemaining': 'time_remaining',
-                'wizcards': 'get_member_wizcards',
+               'timeout', 'time_remaining', 'wizcards', 'creator'],
+    'key_map': { 'wizcards': 'get_member_wizcards',
                 'creator': 'get_creator'}
 }
 
 table_template = {
     'fields': ['id', 'name', 'secure', 'num_users',
-               'timeout', 'timeRemaining', 'wizcards', 'created',
+               'timeout', 'time_remaining', 'wizcards', 'created',
                'creator_id', 'password'],
-    'key_map': {
-        'timeRemaining': 'time_remaining',
-        'wizcards': 'get_member_wizcards'
-    }
+    'key_map': { 'wizcards': 'get_member_wizcards' }
 }
 
 dead_cards_wizcard_template = {

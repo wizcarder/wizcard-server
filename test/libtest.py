@@ -16,7 +16,7 @@ APP_VERSION = str(settings.APP_MAJOR) + "." +  str(settings.APP_MINOR)
 
 
 def send_request(conn, req):
-    print("Sending ", req['header']['msgType'])
+    print("Sending ", req['header']['msg_type'])
     pprint.pprint(req)
     jreq = json.dumps(req)
     conn.request("POST", "", jreq)
