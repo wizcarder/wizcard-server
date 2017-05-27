@@ -135,7 +135,7 @@ phone_check_req = {
     },
     "sender" : {
         "username" : "",
-        "responseMode" : "",
+        "response_mode" : "",
         "target" : "",
         "test_mode": True
     },

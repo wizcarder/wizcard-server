@@ -589,7 +589,7 @@ class ParseMsgAndDispatch(object):
     def PhoneCheckRequest(self):
         device_id = self.header['device_id']
         username = self.sender['username']
-        response_mode = self.sender['responseMode']
+        response_mode = self.sender['response_mode']
         response_target = self.sender['target']
 
         #AA_TODO: security check for checkMode type

@@ -109,7 +109,7 @@ if not SKIP_BASIC:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = USERNAME1
     reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -121,7 +121,7 @@ if not SKIP_BASIC:
     reqmsg['header']['hash'] = HASH1
     reqmsg['sender']['username'] = USERNAME1
     reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -131,7 +131,7 @@ if not SKIP_BASIC:
     reqmsg['header']['hash'] = HASH1
     reqmsg['sender']['username'] = USERNAME1
     reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -141,7 +141,7 @@ if not SKIP_BASIC:
     reqmsg['header']['hash'] = HASH1
     reqmsg['sender']['username'] = USERNAME1
     reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     # this one should be an error
@@ -164,7 +164,7 @@ if not SKIP_BASIC:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = USERNAME2
     reqmsg['sender']['target'] = messages.PHONE2
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -190,7 +190,7 @@ if not SKIP_BASIC:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = USERNAME3
     reqmsg['sender']['target'] = messages.PHONE3
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -519,7 +519,7 @@ if not SKIP_BASIC:
     reqmsg['header']['hash'] = HASH2
     reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
     reqmsg['sender']['target'] = messages.FUTURE_PHONE1
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -544,7 +544,7 @@ if not SKIP_BASIC:
     reqmsg['header']['hash'] = HASH2
     reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
     reqmsg['sender']['target'] = messages.FUTURE_PHONE2
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1046,7 +1046,7 @@ if not SKIP_BASIC:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
     reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1079,7 +1079,7 @@ if not SKIP_BASIC:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
     reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1112,7 +1112,7 @@ if not SKIP_BASIC:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
     reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1589,7 +1589,7 @@ if OCR_FLAG:
     reqmsg['header']['hash'] = HASH3
     reqmsg['sender']['username'] = messages.OCR_USERNAME
     reqmsg['sender']['target'] = messages.OCR_PHONE
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
