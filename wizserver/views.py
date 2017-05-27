@@ -110,9 +110,9 @@ class ParseMsgAndDispatch(object):
         if not status:
             return response
 
-        return self.headerProcess()
+        return self.header_process()
 
-    def securityException(self):
+    def security_exception(self):
         #AA TODO
         return None
 
@@ -125,9 +125,9 @@ class ParseMsgAndDispatch(object):
     def msg_is_from_wizweb(self):
         return self.device_id == settings.WIZWEB_DEVICE_ID
 
-    def validateHeader(self):
+    def validate_header(self):
         #hashed passwd check
-        #username, userID, wizUserID, deviceID
+        #username, userID, wizuser_id, device_id
         #is_authenticated check
         if self.msg_type not in verbs.wizcardMsgTypes:
             return False
@@ -135,22 +135,22 @@ class ParseMsgAndDispatch(object):
         self.msg_id = verbs.wizcardMsgTypes[self.msg_type]
         return True
 
-    def validateSender(self, sender):
+    def validate_sender(self, sender):
         self.sender = sender
         if not self.msg_is_initial():
             try:
-                wizuser_id = self.sender.pop('wizUserID')
-                user_id = self.sender.pop('userID')
+                wizuser_id = self.sender.pop('wizuser_id')
+                user_id = self.sender.pop('user_id')
 
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
                 self.user_stats, created = Stats.objects.get_or_create(user=self.user)
             except:
-                logger.error('Failed User wizUserID %s, userID %s', wizuser_id, user_id)
+                logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
 
             if self.userprofile.userid != user_id:
-                logger.error('Failed User wizUserID %s, userID %s', wizuser_id, user_id)
+                logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
 
         #AA:TODO - Move to header
@@ -162,7 +162,7 @@ class ParseMsgAndDispatch(object):
 
         return True
 
-    def validateAppVersion(self):
+    def validate_app_version(self):
         if 'version' in self.msg['header']:
             appversion = self.msg['header']['version']
             versions = re.match('(\d+)\.(\d+)\.?(\d+)?', appversion)
@@ -191,11 +191,11 @@ class ParseMsgAndDispatch(object):
             logger.error('Client not sending App Version - Something Fishy')
             return False
 
-    def validateWizWebMsg(self):
+    def validate_wizweb_msg(self):
         if ['header'] in self.msg:
-            if 'userID' in self.msg['header']:
+            if 'user_id' in self.msg['header']:
                 try:
-                    self.userprofile = UserProfile.objects.get(userid=self.msg['header']['userID'])
+                    self.userprofile = UserProfile.objects.get(userid=self.msg['header']['user_id'])
                     self.user = self.userprofile.user
                 except ObjectDoesNotExist:
                     self.response.ignore()
@@ -213,28 +213,28 @@ class ParseMsgAndDispatch(object):
             self.response.ignore()
             return False, self.response
 
-        self.msg_type = self.header['msgType']
-        self.device_id = self.header['deviceID']
+        self.msg_type = self.header['msg_type']
+        self.device_id = self.header['device_id']
 
         if self.msg_is_from_wizweb():
-            return self.validateWizWebMsg()
+            return self.validate_wizweb_msg()
 
         logger.debug('received message %s', self.msg_type)
         logger.debug('%s', self)
 
-        if not self.validateHeader():
-            self.securityException()
+        if not self.validate_header():
+            self.security_exception()
             self.response.ignore()
             logger.warning('user failed header security check on msg {%s}', \
                            self.msg_type)
             return False, self.response
 
-        if not self.validateAppVersion():
+        if not self.validate_app_version():
             self.response.error_response(err.VERSION_UPGRADE)
             return False, self.response
 
-        if self.msg.has_key('sender') and not self.validateSender(self.msg['sender']):
-            self.securityException()
+        if self.msg.has_key('sender') and not self.validate_sender(self.msg['sender']):
+            self.security_exception()
             self.response.ignore()
             logger.warning('user failed sender security check on msg {%s}', \
                            self.msg_type)
@@ -248,7 +248,7 @@ class ParseMsgAndDispatch(object):
 
         return True, self.response
 
-    def headerProcess(self):
+    def header_process(self):
 
         VALIDATOR = 0
         HANDLER = 1
@@ -259,19 +259,19 @@ class ParseMsgAndDispatch(object):
             verbs.MSG_WIZWEB_QUERY_USER:
                 (
                     message_format.WizWebUserQuerySchema,
-                    self.WizWebUserQuery,
+                    self.wizweb_user_query,
                     None
                 ),
             verbs.MSG_WIZWEB_QUERY_WIZCARD:
                 (
                     message_format.WizWebWizcardQuerySchema,
-                    self.WizWebWizcardQuery,
+                    self.wizweb_wizcard_query,
                     None
                 ),
             verbs.MSG_WIZWEB_CREATE_USER:
                 (
                     message_format.WizWebUserCreateSchema,
-                    self.WizWebUserCreate,
+                    self.wizweb_user_create,
                     None
                 ),
             verbs.MSG_WIZWEB_ADD_EDIT_CARD:
@@ -578,18 +578,18 @@ class ParseMsgAndDispatch(object):
         if msgTypesValidatorsAndHandlers[self.msg_id][STATS]:
             msgTypesValidatorsAndHandlers[self.msg_id][STATS](self.user_stats, self.global_stats)
 
-        self.headerPostProcess()
+        self.header_post_process()
         return response
 
-    def headerPostProcess(self):
+    def header_post_process(self):
         #make the user as alive
         if not (self.msg_is_initial() or self.msg_is_from_wizweb()):
             self.userprofile.online()
 
     def PhoneCheckRequest(self):
-        device_id = self.header['deviceID']
+        device_id = self.header['device_id']
         username = self.sender['username']
-        response_mode = self.sender['responseMode']
+        response_mode = self.sender['response_mode']
         response_target = self.sender['target']
 
         #AA_TODO: security check for checkMode type
@@ -658,8 +658,8 @@ class ParseMsgAndDispatch(object):
 
     def PhoneCheckResponse(self):
         username = self.sender['username']
-        device_id = self.header['deviceID']
-        challenge_response = self.sender['responseKey']
+        device_id = self.header['device_id']
+        challenge_response = self.sender['response_key']
 
         if not (username and challenge_response):
             self.response.error_response( \
@@ -701,11 +701,11 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
-        #response is valid. create user here and send back userID
+        #response is valid. create user here and send back user_id
         user, created = User.objects.get_or_create(username=username)
 
         if created:
-            #AA TODO: Generate hash from deviceID and user.pk
+            #AA TODO: Generate hash from device_id and user.pk
             #and maybe phone number
             password = UserProfile.objects.gen_password(user.pk, device_id)
             user.set_password(password)
@@ -713,7 +713,7 @@ class ParseMsgAndDispatch(object):
             user.save()
         else:
             if device_id != user.profile.device_id:
-                #device_id is part of password, reset password to reflect new deviceID
+                #device_id is part of password, reset password to reflect new device_id
                 password = UserProfile.objects.gen_password(user.pk,
                                                             device_id)
                 user.set_password(password)
@@ -730,7 +730,7 @@ class ParseMsgAndDispatch(object):
 
         user.profile.save()
 
-        self.response.add_data("userID", user.profile.userid)
+        self.response.add_data("user_id", user.profile.userid)
         return self.response
 
     def Login(self):
@@ -744,9 +744,9 @@ class ParseMsgAndDispatch(object):
                 self.response.error_response(err.AUTHENTICATION_FAILED)
                 return self.response
 
-            self.response.add_data("wizUserID", self.user.pk)
+            self.response.add_data("wizuser_id", self.user.pk)
         except:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
 
         return self.response
@@ -754,7 +754,7 @@ class ParseMsgAndDispatch(object):
     def Register(self):
         #fill in device details
         try:
-            self.userprofile.device_type = self.sender['deviceType']
+            self.userprofile.device_type = self.sender['device_type']
         except:
             pass
 
@@ -820,7 +820,7 @@ class ParseMsgAndDispatch(object):
 
                 d = dict()
                 d['phoneNum'] = phone_number
-                d['wizUserID'] = wizcard.user_id
+                d['wizuser_id'] = wizcard.user_id
                 if Wizcard.objects.are_wizconnections(
                         self.user.wizcard,
                         wizcard):
@@ -846,7 +846,7 @@ class ParseMsgAndDispatch(object):
             if wizcard:
                 d = dict()
                 d['email'] = email
-                d['wizUserID'] = wizcard.user_id
+                d['wizuser_id'] = wizcard.user_id
                 if Wizcard.objects.are_wizconnections(
                         self.user.wizcard,
                         wizcard):
@@ -877,13 +877,13 @@ class ParseMsgAndDispatch(object):
         if not self.userprofile.activated:
             return self.response
 
-        if self.sender.has_key('recoActions'):
+        if self.sender.has_key('reco_actions'):
 
-            recoactions = self.sender['recoActions']
+            recoactions = self.sender['reco_actions']
 
             for rectuple in recoactions:
 
-                recid = rectuple['recoID']
+                recid = rectuple['reco_id']
                 recaction = rectuple['action']
                 try:
                     reco_object = UserRecommendation.objects.get(id=recid)
@@ -946,7 +946,7 @@ class ParseMsgAndDispatch(object):
     def RolodexEdit(self):
         wizcard1 = self.user.wizcard
         try:
-            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizcard_id'])
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -1120,7 +1120,7 @@ class ParseMsgAndDispatch(object):
         if created:
             email_trigger.send(self.user, trigger=EmailEvent.NEWUSER, source=self.user.wizcard, target=wizcard)
 
-        self.response.add_data("wizCardID", wizcard.pk)
+        self.response.add_data("wizcard_id", wizcard.pk)
         return self.response
 
     # Set both sides to accept. There should already be wizcard1(me)->wizcard2(him) in ACCEPT
@@ -1138,15 +1138,15 @@ class ParseMsgAndDispatch(object):
             #AA TODO: Change to wizcardID
 
             try:
-                wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
-                self.r_user = User.objects.get(id=self.receiver['wizUserID'])
+                wizcard2 = Wizcard.objects.get(id=self.receiver['wizcard_id'])
+                self.r_user = User.objects.get(id=self.receiver['wizuser_id'])
             except:
-                self.r_user = User.objects.get(id=self.receiver['wizUserID'])
+                self.r_user = User.objects.get(id=self.receiver['wizuser_id'])
                 wizcard2 = self.r_user.wizcard
 
         except KeyError:
-            self.securityException()
-            self.securityException()
+            self.security_exception()
+            self.security_exception()
             self.response.ignore()
             return self.response
         except ObjectDoesNotExist:
@@ -1168,7 +1168,7 @@ class ParseMsgAndDispatch(object):
             status.append(
                 dict(
                     status=Wizcard.objects.get_connection_status(wizcard1, wizcard2),
-                    wizCardID=wizcard2.id)
+                    wizcard_id=wizcard2.id)
             )
             self.response.add_data("status", status)
             return self.response
@@ -1220,7 +1220,7 @@ class ParseMsgAndDispatch(object):
 
         status.append(
             dict(status=Wizcard.objects.get_connection_status(wizcard1, wizcard2),
-                 wizCardID=wizcard2.id)
+                 wizcard_id=wizcard2.id)
         )
         self.response.add_data("status", status)
         genreco.send(self.user, recotarget=self.user.id)
@@ -1229,9 +1229,9 @@ class ParseMsgAndDispatch(object):
     def WizConnectionRequestDecline(self):
         try:
             wizcard1 = self.user.wizcard
-            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizcard_id'])
         except KeyError:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
         except:
@@ -1258,11 +1258,11 @@ class ParseMsgAndDispatch(object):
     def WizcardRolodexDelete(self):
         try:
             wizcard1 = self.user.wizcard
-            wizcards = self.receiver['wizCardIDs']
+            wizcards = self.receiver['wizcard_ids']
 
             for w in wizcards:
                 try:
-                    w_id = w.get("wizCardID")
+                    w_id = w.get("wizcard_id")
                     dead_card = w.get("dead_card")
                 except:
                     self.response.error_response(err.INVALID_MESSAGE)
@@ -1302,7 +1302,7 @@ class ParseMsgAndDispatch(object):
                                     verb=verbs.WIZCARD_REVOKE[0],
                                     target=wizcard1)
         except KeyError:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
 
         return self.response
@@ -1423,7 +1423,7 @@ class ParseMsgAndDispatch(object):
                             action_object=rel1)
             return self.response
         except KeyError:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
         except:
@@ -1431,7 +1431,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
     def WizcardMyFlicks(self):
-        self.wizcard = Wizcard.objects.get(id=self.sender['wizCardID'])
+        self.wizcard = Wizcard.objects.get(id=self.sender['wizcard_id'])
         my_flicked_cards = self.wizcard.flicked_cards.exclude(expired=True)
 
         count = my_flicked_cards.count()
@@ -1448,7 +1448,7 @@ class ParseMsgAndDispatch(object):
         try:
             self.flicked_card = WizcardFlick.objects.get(id=self.sender['flickCardID'])
         except KeyError:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
         except:
@@ -1464,7 +1464,7 @@ class ParseMsgAndDispatch(object):
             timeout = self.sender['timeout'] * 60
             a_created = self.sender['created']
         except KeyError:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
         try:
@@ -1482,7 +1482,7 @@ class ParseMsgAndDispatch(object):
 
     def WizcardFlickQuery(self):
         if not self.receiver.has_key('name'):
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
 
@@ -1501,7 +1501,7 @@ class ParseMsgAndDispatch(object):
         try:
             flick_id = self.sender['flickCardID']
         except KeyError:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
 
@@ -1512,7 +1512,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if flicked_card.wizcard.user != self.user:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
 
@@ -1531,12 +1531,12 @@ class ParseMsgAndDispatch(object):
     #receiver types. Includes future handling as part of this
     def WizcardSendAssetToXYZ(self):
         try:
-            asset_type = self.sender['assetType']
-            sender_id = self.sender['assetID']
-            receiver_type = self.receiver['receiverType']
-            receivers = self.receiver['receiverIDs']
+            asset_type = self.sender['asset_type']
+            sender_id = self.sender['asset_id']
+            receiver_type = self.receiver['receiver_type']
+            receivers = self.receiver['receiver_ids']
         except:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
 
@@ -1548,7 +1548,7 @@ class ParseMsgAndDispatch(object):
                 return self.response
 
             if self.user.wizcard.id != wizcard.id:
-                self.securityException()
+                self.security_exception()
                 self.response.ignore()
                 return self.response
 
@@ -1574,7 +1574,7 @@ class ParseMsgAndDispatch(object):
                 receiver_type,
                 receivers)
         else:
-            self.securityException()
+            self.security_exception()
             self.response.ignore()
             return self.response
 
@@ -1687,7 +1687,7 @@ class ParseMsgAndDispatch(object):
                 count += 1
                 status.append(dict(
                     status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
-                    wizCardID=r_wizcard.id)
+                    wizcard_id=r_wizcard.id)
                 )
             self.response.add_data("count", count)
             self.response.add_data("status", status)
@@ -1700,7 +1700,7 @@ class ParseMsgAndDispatch(object):
     def WizcardSendTableToXYZ(self, table, receiver_type, receivers):
         #AA TODO: move the 'wiz_xyz' strings into verbs file
         if receiver_type in ['wiz_untrusted', 'wiz_trusted']:
-            #receiverIDs has wizUserIDs
+            #receiver_ids has wizuser_ids
             for _id in receivers:
                 r_user = User.objects.get(id=_id)
                 cctx = ConnectionContext(
@@ -1844,8 +1844,8 @@ class ParseMsgAndDispatch(object):
 
 
         try:
-            wizcard1 = Wizcard.objects.get(id=self.sender['wizCardID'])
-            wizcard2 = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            wizcard1 = Wizcard.objects.get(id=self.sender['wizcard_id'])
+            wizcard2 = Wizcard.objects.get(id=self.receiver['wizcard_id'])
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -1867,16 +1867,16 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def GetVideoThumbnailUrl(self):
-        videoUrl = self.sender['videoUrl']
+        video_url = self.sender['video_url']
 
         try:
-            resp = noembed.embed(videoUrl)
-            videoThumbnailUrl = resp.thumbnail_url
+            resp = noembed.embed(video_url)
+            video_thumbnail_url = resp.thumbnail_url
         except:
             # Try with ffmpeg
             VIDEO_SEEK_SECONDS = 5
             OUTFILE_PATH = "/tmp/"
-            videoUrl = self.sender['videoUrl']
+            video_url = self.sender['video_url']
             rand_val = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
 
             filename = "thumbnail_video-%s.%s.jpg" % (rand_val, now().strftime ("%Y-%m-%d %H:%M"))
@@ -1884,7 +1884,7 @@ class ParseMsgAndDispatch(object):
 
             c = Converter()
             try:
-                c.thumbnail(videoUrl, VIDEO_SEEK_SECONDS, outfile, size='160:120')
+                c.thumbnail(video_url, VIDEO_SEEK_SECONDS, outfile, size='160:120')
             except:
                 self.response.error_response(err.EMBED_FAILED)
                 return self.response
@@ -1893,17 +1893,17 @@ class ParseMsgAndDispatch(object):
             remote_path = '/thumbnails/' + filename
 
             try:
-                videoThumbnailUrl = wizlib.uploadtoS3(outfile, remote_dir=remote_path)
+                video_thumbnail_url = wizlib.uploadtoS3(outfile, remote_dir=remote_path)
             except:
                 self.response.error_response(err.EMBED_FAILED)
                 return self.response
 
-        self.response.add_data("videoThumbnailUrl", videoThumbnailUrl)
+        self.response.add_data("video_thumbnail_url", video_thumbnail_url)
         return self.response
 
     def WizcardGetDetail(self):
         try:
-            wizcard = Wizcard.objects.get(id=self.receiver['wizCardID'])
+            wizcard = Wizcard.objects.get(id=self.receiver['wizcard_id'])
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -1973,16 +1973,16 @@ class ParseMsgAndDispatch(object):
 
         c = ContactContainer.objects.create(wizcard=wizcard)
 
-        if self.sender.has_key('f_ocrCardImage'):
-            b64image = bytes(self.sender['f_ocrCardImage'])
+        if self.sender.has_key('f_ocr_card_image'):
+            b64image = bytes(self.sender['f_ocr_card_image'])
             rawimage = b64image.decode('base64')
             #AA:TODO maybe time to put this in lib
             upfile = SimpleUploadedFile("%s-%s.jpg" % \
                                         (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                                         rawimage, "image/jpeg")
 
-            c.f_bizCardImage.save(upfile.name, upfile)
-            path = c.f_bizCardImage.local_path()
+            c.f_bizcard_image.save(upfile.name, upfile)
+            path = c.f_bizcard_image.local_path()
         else:
             self.response.ignore()
             return self.response
@@ -2031,8 +2031,8 @@ class ParseMsgAndDispatch(object):
 
         d = DeadCards.objects.create(user=self.user)
 
-        if self.sender.has_key('f_ocrCardImage'):
-            b64image = bytes(self.sender['f_ocrCardImage'])
+        if self.sender.has_key('f_ocr_card_image'):
+            b64image = bytes(self.sender['f_ocr_card_image'])
             rawimage = b64image.decode('base64')
         else:
             self.response.ignore()
@@ -2047,11 +2047,11 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def OcrDeadCardEdit(self):
-        if not self.sender.has_key('deadCardID'):
+        if not self.sender.has_key('dead_card_id'):
             self.response.error_response(err.INVALID_MESSAGE)
             return self.response
         try:
-            deadcard = DeadCards.objects.get(id=self.sender['deadCardID'])
+            deadcard = DeadCards.objects.get(id=self.sender['dead_card_id'])
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -2151,7 +2151,7 @@ class ParseMsgAndDispatch(object):
             Wizcard.objects.exchange(m.wizcard, m_res.wizcard, cctx)
             #AA:Comments: can send a smaller serilized output
             #wizcard_template_full is not required. All the app needs is
-            #wizcard_id, f_bizCardUrl
+            #wizcard_id, f_bizcard_url
             out = Wizcard.objects.serialize(
                 m_res.wizcard,
                 template = fields.wizcard_template_brief)
@@ -2209,7 +2209,7 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def SetRecoAction(self):
-        recoid = self.sender['recoID'] if 'recoID' in self.sender else None
+        recoid = self.sender['reco_id'] if 'reco_id' in self.sender else None
         action = self.sender['action'] if 'action' in self.sender else None
         if not recoid or not action:
             self.response.error_response(err.INVALID_MESSAGE)
@@ -2245,7 +2245,7 @@ class ParseMsgAndDispatch(object):
 
     def EntityDestroy(self):
         try:
-            table = VirtualTable.objects.get(id=self.sender['tableID'])
+            table = VirtualTable.objects.get(id=self.sender['table_id'])
         except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -2373,7 +2373,7 @@ class ParseMsgAndDispatch(object):
                     self.response.error_response(err.OBJECT_DOESNT_EXIST)
 
             if len(ll):
-                ls = EntityEngagementSerializer(ll, many=True, context={'like_lelevel': level})
+                ls = EntityEngagementSerializer(ll, many=True, context={'like_level': level})
                 self.response.add_data('result', ls.data)
 
         return self.response
@@ -2434,18 +2434,18 @@ class ParseMsgAndDispatch(object):
 
 
     # WizWeb Message handling
-    def WizWebUserQuery(self):
+    def wizweb_user_query(self):
         if self.sender.has_key('username'):
             try:
                 self.user = User.objects.get(username=self.sender['username'])
-                self.response.add_data("userID", self.user.profile.userid)
+                self.response.add_data("user_id", self.user.profile.userid)
             except:
                 pass
         elif self.sender.has_key('email'):
             try:
                 self.wizcard = Wizcard.objects.get(email=self.sender['email'])
                 self.user = self.wizcard.user
-                self.response.add_data("userID", self.user.profile.userid)
+                self.response.add_data("user_id", self.user.profile.userid)
             except:
                 pass
         else:
@@ -2454,10 +2454,10 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-    def WizWebWizcardQuery(self):
-        userID = self.sender.get('userID', None)
+    def wizweb_wizcard_query(self):
+        user_id = self.sender.get('user_id', None)
 
-        if not userID:
+        if not user_id:
             self.response.error_response(err.INVALID_MESSAGE)
             return self.response
 
@@ -2478,7 +2478,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.INVALID_MESSAGE)
             return self.response
 
-        if self.user.profile.userid != userID:
+        if self.user.profile.userid != user_id:
             self.response.error_response(err.INVALID_MESSAGE)
             return self.response
 
@@ -2486,7 +2486,7 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("result", out)
         return self.response
 
-    def WizWebUserCreate(self):
+    def wizweb_user_create(self):
         username = self.sender['username']
         first_name = self.sender['first_name']
         last_name = self.sender['last_name']
@@ -2504,7 +2504,7 @@ class ParseMsgAndDispatch(object):
         self.user.profile.user_type = user_type
         self.user.profile.save()
 
-        self.response.add_data("userID", self.user.profile.userid)
+        self.response.add_data("user_id", self.user.profile.userid)
 
         return self.response
 
@@ -2514,7 +2514,7 @@ class ParseMsgAndDispatch(object):
 
         flood = False
         username = self.sender['username']
-        userID = self.sender['userID']
+        user_id = self.sender['user_id']
         mode = self.sender.get('mode', EDIT_LATEST)
 
         try:
@@ -2523,7 +2523,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.USER_DOESNT_EXIST)
             return self.response
 
-        if self.user.profile.userid != userID:
+        if self.user.profile.userid != user_id:
             self.response.error_response(err.VALIDITY_CHECK_FAILED)
             return self.response
 
@@ -2531,7 +2531,7 @@ class ParseMsgAndDispatch(object):
             first_name = self.sender['first_name']
             last_name = self.sender['last_name']
             phone = self.sender['phone']
-            media_url = self.sender.get('mediaUrl', None)
+            media_url = self.sender.get('media_url', None)
             contact_container = self.sender['contact_container']
         except:
             self.response.error_response(err.INVALID_MESSAGE)
@@ -2574,9 +2574,9 @@ class ParseMsgAndDispatch(object):
                                      end=c.get('end', "Current"))
             t_row.save()
 
-            if 'f_bizCardImage' in c and c['f_bizCardImage']:
+            if 'f_bizcard_image' in c and c['f_bizcard_image']:
                 try:
-                    rawimage = bytes(c['f_bizCardImage'])
+                    rawimage = bytes(c['f_bizcard_image'])
                     #AA:TODO: better file name
                     upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % \
                                                 (wizcard.pk, t_row.pk, \
@@ -2585,8 +2585,8 @@ class ParseMsgAndDispatch(object):
                     t_row.f_bizCardImage.save(upfile.name, upfile)
                 except:
                     pass
-            elif 'f_bizCardUrl' in c:
-                t_row.card_url = c['f_bizCardUrl']
+            elif 'f_bizcard_url' in c:
+                t_row.card_url = c['f_bizcard_url']
                 t_row.save()
 
         if flood:
@@ -2597,7 +2597,7 @@ class ParseMsgAndDispatch(object):
 
             wizcard.flood()
 
-        self.response.add_data("wizCardID", wizcard.id)
+        self.response.add_data("wizcard_id", wizcard.id)
         return self.response
 
 

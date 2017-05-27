@@ -57,8 +57,8 @@ class Command(BaseCommand):
         wizcard.thumbnailImage.save(upfile.name, upfile)
 
         # video thumbnail url
-        resp = noembed.embed(wizcard.videoUrl)
-        wizcard.videoThumbnailUrl = resp.thumbnail_url
+        resp = noembed.embed(wizcard.video_url)
+        wizcard.video_thumbnail_url = resp.thumbnail_url
 
         wizcard.save()
 
