@@ -131,6 +131,9 @@ class EntitySerializerL1(EntitySerializerL0):
         user = self.context.get('user', None)
         if user and obj.engagements:
             return obj.engagements.user_liked(user)
+        else:
+            return 0
+
 
 
 # these shouldn't be directly used.
