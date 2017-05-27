@@ -93,7 +93,7 @@ class EntitySerializerL1(EntitySerializerL0):
     def get_users(self, obj):
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
-        qs = qs.exclude(wizcard__thumbnailImage='')
+        qs = qs.exclude(wizcard__thumbnail_image='')
         thumb_count = qs.count()
         if thumb_count > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time

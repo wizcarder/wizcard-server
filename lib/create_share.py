@@ -142,7 +142,7 @@ def sendmail(from_wizcard,to,template):
 @shared_task
 def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
 
-    extfields = from_wizcard.get_extFields
+    extfields = from_wizcard.get_ext_fields
     html = emaildetails['template']
     subject = emaildetails['subject']
 
@@ -158,7 +158,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
     extfields['sender_title'] = from_wizcard.get_latest_title()
     extfields['sender_phone'] = from_wizcard.phone
     extfields['sender_email'] = from_wizcard.email
-    sender_video = from_wizcard.get_videoUrl
+    sender_video = from_wizcard.get_video_url
     if sender_video:
         extfields['sender_video'] = sender_video
 
