@@ -217,7 +217,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid1 = objs['data']['wiz_user_id']
+    wuid1 = objs['data']['wizuser_id']
 
     reqmsg['sender']['username'] = USERNAME2
     reqmsg['sender']['user_id'] = uid2
@@ -225,7 +225,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid2 = objs['data']['wiz_user_id']
+    wuid2 = objs['data']['wizuser_id']
 
     reqmsg['sender']['username'] = USERNAME3
     reqmsg['sender']['user_id'] = uid3
@@ -233,7 +233,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid3 = objs['data']['wiz_user_id']
+    wuid3 = objs['data']['wizuser_id']
 
     #send register
 
@@ -241,7 +241,7 @@ if not SKIP_BASIC:
     reqmsg = messages.register1
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id']=uid1
-    reqmsg['sender']['wiz_user_id']=wuid1
+    reqmsg['sender']['wizuser_id']=wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -249,7 +249,7 @@ if not SKIP_BASIC:
     reqmsg = messages.register2
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id']=uid2
-    reqmsg['sender']['wiz_user_id']=wuid2
+    reqmsg['sender']['wizuser_id']=wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -257,7 +257,7 @@ if not SKIP_BASIC:
     reqmsg = messages.register3
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id']=uid3
-    reqmsg['sender']['wiz_user_id']=wuid3
+    reqmsg['sender']['wizuser_id']=wuid3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -266,7 +266,7 @@ if not SKIP_BASIC:
     reqmsg = messages.edit_card1
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     contacts = reqmsg['sender']['contact_container']
     #populate file
     for c in contacts:
@@ -279,7 +279,7 @@ if not SKIP_BASIC:
     reqmsg = messages.edit_card2
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     contacts = reqmsg['sender']['contact_container']
     #populate file
     for c in contacts:
@@ -292,7 +292,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_email_template
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     #send_request(conn, reqmsg)
     #objs = handle_response(conn, reqmsg['header']['msg_type'])
     #email = objs['data']['emailTemplate']
@@ -301,7 +301,7 @@ if not SKIP_BASIC:
     reqmsg = messages.edit_card3
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     contacts = reqmsg['sender']['contact_container']
     #populate file
     for c in contacts:
@@ -318,7 +318,7 @@ if not SKIP_BASIC:
     reqmsg['sender']['lat'] = messages.LAT1
     reqmsg['sender']['lng'] = messages.LNG1
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -327,7 +327,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -337,7 +337,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -347,7 +347,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -358,7 +358,7 @@ if not SKIP_BASIC:
     reqmsg = messages.contacts_upload
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
     reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
     reqmsg['receiver']['ab_list'] = messages.USER1_AB
@@ -370,7 +370,7 @@ if not SKIP_BASIC:
     reqmsg = messages.contacts_upload
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
     reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
     reqmsg['receiver'].update(messages.ab_list_ananda_1)
@@ -382,7 +382,7 @@ if not SKIP_BASIC:
     reqmsg = messages.contacts_upload
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['receiver']['prefix'] = INTERNATIONAL_PREFIX
     reqmsg['receiver'].update(messages.ab_list_baskar_1)
     send_request(conn, reqmsg)
@@ -393,7 +393,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_recommendations
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['size'] = 5
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -402,7 +402,7 @@ if not SKIP_BASIC:
     reqmsg = messages.contacts_upload
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
     reqmsg['receiver'].update(messages.ab_list_anandr_1)
     send_request(conn, reqmsg)
@@ -413,7 +413,7 @@ if not SKIP_BASIC:
     reqmsg = messages.card_details
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_id'] = e1_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -422,7 +422,7 @@ if not SKIP_BASIC:
     reqmsg = messages.card_details
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['receiver']['wizcard_id'] = e2_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -431,7 +431,7 @@ if not SKIP_BASIC:
     reqmsg = messages.card_details
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['receiver']['wizcard_id'] = e3_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -442,12 +442,12 @@ if not SKIP_BASIC:
 
     #assetToXYZ tests
     #asset types: wizcard, entity
-    #receiver_type: phone, email, wiz_user_id
+    #receiver_type: phone, email, wizuser_id
     #u1 -> u2, u3 via wiz
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
@@ -464,7 +464,7 @@ if not SKIP_BASIC:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "sms"
@@ -476,7 +476,7 @@ if not SKIP_BASIC:
     #u2 -> future u1, u2 via email
     reqmsg['sender']['user_id'] = uid2
     reqmsg['sender']['asset_type'] = "wizcard"
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['asset_id'] = e2_id
     reqmsg['receiver']['receiver_type'] = "email"
     reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_EMAIL1, messages.FUTURE_EMAIL2]
@@ -489,7 +489,7 @@ if not SKIP_BASIC:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "sms"
@@ -502,7 +502,7 @@ if not SKIP_BASIC:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "sms"
@@ -571,7 +571,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    fwuid1 = objs['data']['wiz_user_id']
+    fwuid1 = objs['data']['wizuser_id']
 
     reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
     reqmsg['sender']['user_id'] = fuid2
@@ -579,13 +579,13 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    fwuid2 = objs['data']['wiz_user_id']
+    fwuid2 = objs['data']['wizuser_id']
 
     print "registering future user 1 and 2"
     reqmsg = messages.register1
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id']=fuid1
-    reqmsg['sender']['wiz_user_id']=fwuid1
+    reqmsg['sender']['wizuser_id']=fwuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -593,7 +593,7 @@ if not SKIP_BASIC:
     reqmsg = messages.register2
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id']=fuid2
-    reqmsg['sender']['wiz_user_id']=fwuid2
+    reqmsg['sender']['wizuser_id']=fwuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -602,7 +602,7 @@ if not SKIP_BASIC:
     reqmsg = messages.edit_card1
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = fuid1
-    reqmsg['sender']['wiz_user_id'] = fwuid1
+    reqmsg['sender']['wizuser_id'] = fwuid1
     reqmsg['sender']['email'] = messages.FUTURE_EMAIL1
     reqmsg['sender']['phone1'] = messages.FUTURE_PHONE1
     send_request(conn, reqmsg)
@@ -613,7 +613,7 @@ if not SKIP_BASIC:
     reqmsg = messages.edit_card1
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = fuid2
-    reqmsg['sender']['wiz_user_id'] = fwuid2
+    reqmsg['sender']['wizuser_id'] = fwuid2
     reqmsg['sender']['email'] = messages.FUTURE_EMAIL2
     reqmsg['sender']['phone1'] = messages.FUTURE_PHONE2
     send_request(conn, reqmsg)
@@ -631,7 +631,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -641,7 +641,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -652,7 +652,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -663,7 +663,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = fuid1
-    reqmsg['sender']['wiz_user_id'] = fwuid1
+    reqmsg['sender']['wizuser_id'] = fwuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -673,7 +673,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = fuid2
-    reqmsg['sender']['wiz_user_id'] = fwuid2
+    reqmsg['sender']['wizuser_id'] = fwuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -690,8 +690,8 @@ if not SKIP_BASIC:
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
-    reqmsg['receiver']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['receiver']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -705,7 +705,7 @@ if not SKIP_BASIC:
     reqmsg = messages.decline_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['receiver']['wizcard_id'] = e1_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -720,8 +720,8 @@ if not SKIP_BASIC:
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = fuid1
-    reqmsg['sender']['wiz_user_id'] = fwuid1
-    reqmsg['receiver']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = fwuid1
+    reqmsg['receiver']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -735,7 +735,7 @@ if not SKIP_BASIC:
     reqmsg = messages.decline_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = fuid2
-    reqmsg['sender']['wiz_user_id'] = fwuid2
+    reqmsg['sender']['wizuser_id'] = fwuid2
     reqmsg['receiver']['wizcard_id'] = e1_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -750,7 +750,7 @@ if not SKIP_BASIC:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -765,9 +765,9 @@ if not SKIP_BASIC:
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['flag'] = "reaccept"
-    reqmsg['receiver']['wiz_user_id'] = wuid2
+    reqmsg['receiver']['wizuser_id'] = wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -781,9 +781,9 @@ if not SKIP_BASIC:
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['flag'] = "reaccept"
-    reqmsg['receiver']['wiz_user_id'] = wuid1
+    reqmsg['receiver']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -798,9 +798,9 @@ if not SKIP_BASIC:
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['flag'] = "reaccept"
-    reqmsg['receiver']['wiz_user_id'] = wuid1
+    reqmsg['receiver']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -810,7 +810,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_common_connections
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['wizcard_id'] = e2_id
     reqmsg['sender']['more'] = False
     reqmsg['receiver']['wizcard_id'] = e3_id
@@ -821,7 +821,7 @@ if not SKIP_BASIC:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -836,9 +836,9 @@ if not SKIP_BASIC:
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['flag'] = "unarchive"
-    reqmsg['receiver']['wiz_user_id'] = wuid2
+    reqmsg['receiver']['wizuser_id'] = wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -852,7 +852,7 @@ if not SKIP_BASIC:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -867,7 +867,7 @@ if not SKIP_BASIC:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
@@ -885,7 +885,7 @@ if not SKIP_BASIC:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e1_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -900,7 +900,7 @@ if not SKIP_BASIC:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "sms"
@@ -918,7 +918,7 @@ if not SKIP_BASIC:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [fe2_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -934,7 +934,7 @@ if not SKIP_BASIC:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "sms"
@@ -952,8 +952,8 @@ if not SKIP_BASIC:
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = fuid2
-    reqmsg['sender']['wiz_user_id'] = fwuid2
-    reqmsg['receiver']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = fwuid2
+    reqmsg['receiver']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -968,7 +968,7 @@ if not SKIP_BASIC:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id, e3_id, fe1_id, fe2_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -984,7 +984,7 @@ if not SKIP_BASIC:
     reqmsg = messages.edit_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_id'] = wuid3
     reqmsg['receiver']['notes']['note'] = "test one test two"
     reqmsg['receiver']['notes']['last_saved'] = "1st Jan 2016"
@@ -997,7 +997,7 @@ if not SKIP_BASIC:
     reqmsg = messages.user_query
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['receiver']['name'] = FIRSTNAME_Q
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1007,7 +1007,7 @@ if not SKIP_BASIC:
     reqmsg = messages.archived_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1016,7 +1016,7 @@ if not SKIP_BASIC:
     reqmsg = messages.meishi_start
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['wizcard_id'] = e1_id
     reqmsg['sender']['lat'] = messages.LAT1
     reqmsg['sender']['lng'] = messages.LNG1
@@ -1028,7 +1028,7 @@ if not SKIP_BASIC:
     reqmsg = messages.meishi_find
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['mID'] = mei_id2
     send_request(conn, reqmsg)
     objs = handle_response(conn,reqmsg['header']['msg_type'])
@@ -1071,7 +1071,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid1 = objs['data']['wiz_user_id']
+    wuid1 = objs['data']['wizuser_id']
 
     reqmsg = messages.phone_check_req
     reqmsg['header']['device_id'] = DEVICE_ID2
@@ -1104,7 +1104,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid2 = objs['data']['wiz_user_id']
+    wuid2 = objs['data']['wizuser_id']
 
     reqmsg = messages.phone_check_req
     reqmsg['header']['device_id'] = DEVICE_ID3
@@ -1137,12 +1137,12 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid3 = objs['data']['wiz_user_id']
+    wuid3 = objs['data']['wizuser_id']
 
     reqmsg = messages.register1
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id']=uid1
-    reqmsg['sender']['wiz_user_id']=wuid1
+    reqmsg['sender']['wizuser_id']=wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1150,7 +1150,7 @@ if not SKIP_BASIC:
     reqmsg = messages.register2
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id']=uid2
-    reqmsg['sender']['wiz_user_id']=wuid2
+    reqmsg['sender']['wizuser_id']=wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1158,7 +1158,7 @@ if not SKIP_BASIC:
     reqmsg = messages.register3
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id']=uid3
-    reqmsg['sender']['wiz_user_id']=wuid3
+    reqmsg['sender']['wizuser_id']=wuid3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1166,7 +1166,7 @@ if not SKIP_BASIC:
     reqmsg = messages.rolodex_edit_card1
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     contacts = reqmsg['sender']['contact_container']
     #populate file
     for c in contacts:
@@ -1179,7 +1179,7 @@ if not SKIP_BASIC:
     reqmsg = messages.rolodex_edit_card2
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     contacts = reqmsg['sender']['contact_container']
     #populate file
     for c in contacts:
@@ -1192,7 +1192,7 @@ if not SKIP_BASIC:
     reqmsg = messages.rolodex_edit_card3
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     contacts = reqmsg['sender']['contact_container']
     #populate file
     for c in contacts:
@@ -1205,7 +1205,7 @@ if not SKIP_BASIC:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
@@ -1218,7 +1218,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1228,7 +1228,7 @@ if not SKIP_BASIC:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id, e3_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1239,8 +1239,8 @@ if not SKIP_BASIC:
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
-    reqmsg['receiver']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['receiver']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1250,7 +1250,7 @@ if not SKIP_BASIC:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
@@ -1263,7 +1263,7 @@ if not SKIP_BASIC:
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1271,7 +1271,7 @@ if not SKIP_BASIC:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e3_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1281,7 +1281,7 @@ if not SKIP_BASIC:
     reqmsg = messages.decline_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['receiver']['wizcard_id'] = e1_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1291,7 +1291,7 @@ if OEMBED:
     reqmsg = messages.get_video_thumbnail_url
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['videoUrl'] = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/bizcards/test_video.mp4"
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1301,7 +1301,7 @@ if OEMBED:
     reqmsg = messages.get_video_thumbnail_url
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['videoUrl'] = "https://www.youtube.com/watch?v=QujpdmsXAb4&feature=youtu.be"
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1311,7 +1311,7 @@ if OEMBED:
     reqmsg = messages.get_video_thumbnail_url
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['videoUrl'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1324,7 +1324,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_create
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['name'] = TABLE1NAME
     reqmsg['sender']['timeout'] = 1
     send_request(conn, reqmsg)
@@ -1335,7 +1335,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_create
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['name'] = TABLE2NAME
     reqmsg['sender']['timeout'] = 5
     send_request(conn, reqmsg)
@@ -1350,7 +1350,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_join
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = 'TBL'
 
@@ -1362,7 +1362,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_join
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = 'TBL'
     reqmsg['sender']['password'] = "xxx"
@@ -1374,7 +1374,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_edit
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = 'TBL'
     reqmsg['sender']['name'] = TABLE1NAME_NEW
@@ -1387,7 +1387,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_create
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['name'] = TABLE3NAME
     reqmsg['sender']['entity_type'] = 'TBL'
     reqmsg['sender']['timeout'] = 5
@@ -1401,7 +1401,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_query
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['query_str'] = TABLENAME_Q
     reqmsg['sender']['entity_type'] = 'TBL'
 
@@ -1414,7 +1414,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_summary
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = 'TBL'
 
@@ -1427,7 +1427,7 @@ if TEST_TABLE:
     reqmsg = messages.entity_summary
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['detail'] = True
     reqmsg['sender']['entity_type'] = 'TBL'
@@ -1440,7 +1440,7 @@ if TEST_TABLE:
     reqmsg = messages.my_entities
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = None
 
@@ -1452,7 +1452,7 @@ if TEST_TABLE:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['asset_id'] = tid_1
     reqmsg['sender']['asset_type'] = "table"
     reqmsg['receiver']['receiver_type'] = "email"
@@ -1465,7 +1465,7 @@ if TEST_TABLE:
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['asset_id'] = tid_2
     reqmsg['sender']['asset_type'] = "table"
     reqmsg['receiver']['receiver_type'] = "sms"
@@ -1480,7 +1480,7 @@ if TEST_FLICK:
     reqmsg = messages.card_flick
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1490,7 +1490,7 @@ if TEST_FLICK:
     reqmsg = messages.card_flick
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wiz_user_id'] = wuid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1500,7 +1500,7 @@ if TEST_FLICK:
     reqmsg = messages.card_flick
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     print "re-flicking card from close-by location", reqmsg['sender']['user_id']
     reqmsg['sender']['lng'] += 0.000001
     reqmsg['sender']['lat'] += 0.000001
@@ -1517,7 +1517,7 @@ if TEST_FLICK:
     reqmsg = messages.card_flick_edit
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['flickCardID'] = cf1_id
     reqmsg['sender']['timeout'] = 1
     send_request(conn, reqmsg)
@@ -1527,7 +1527,7 @@ if TEST_FLICK:
     reqmsg = messages.card_flick
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['timeout'] = 3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1537,7 +1537,7 @@ if TEST_FLICK:
     reqmsg = messages.card_flick_accept
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['flickCardIDs'] = [cf3_id]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1546,7 +1546,7 @@ if TEST_FLICK:
     reqmsg = messages.flick_pickers
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['flickCardID'] = cf3_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1555,7 +1555,7 @@ if TEST_FLICK:
     reqmsg = messages.my_flicks
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['wizcard_id'] = e1_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1564,7 +1564,7 @@ if TEST_FLICK:
     reqmsg = messages.my_flicks
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['wizcard_id'] = e3_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1574,7 +1574,7 @@ if TEST_FLICK:
     reqmsg = messages.card_flick_query
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['receiver']['name'] = FIRSTNAME_Q
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1615,12 +1615,12 @@ if OCR_FLAG:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    ocr_wuid = objs['data']['wiz_user_id']
+    ocr_wuid = objs['data']['wizuser_id']
 
     reqmsg = messages.ocr_req_self
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = ocr_uid
-    reqmsg['sender']['wiz_user_id'] = ocr_wuid
+    reqmsg['sender']['wizuser_id'] = ocr_wuid
     reqmsg['sender']['f_ocr_card_image'] = ocr_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1630,7 +1630,7 @@ if OCR_FLAG:
     reqmsg = messages.edit_card2
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = ocr_uid
-    reqmsg['sender']['wiz_user_id'] = ocr_wuid
+    reqmsg['sender']['wizuser_id'] = ocr_wuid
     contacts = contact_container
     #populate file
     for c in contacts:
@@ -1643,7 +1643,7 @@ if OCR_FLAG:
     reqmsg = messages.ocr_dead_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['wizcard_id'] = e1_id
     reqmsg['sender']['f_ocr_card_image'] = ocr_out
     send_request(conn, reqmsg)
@@ -1654,7 +1654,7 @@ if OCR_FLAG:
     reqmsg = messages.ocr_dead_card_edit
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['dead_card_id'] = dc1_id
     reqmsg['sender']['inviteother'] = 0
     reqmsg['sender']['contact_container'][0]['email'] = 'anandramani98@gmail.com'
@@ -1665,7 +1665,7 @@ if OCR_FLAG:
     reqmsg = messages.ocr_dead_card_edit
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['dead_card_id'] = dc1_id
     reqmsg['sender']['notes']['note'] = "Test Dead Card notes"
     reqmsg['sender']['notes']['last_saved'] = "1st Jan 2016"
@@ -1676,7 +1676,7 @@ if OCR_FLAG:
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wiz_user_id'] = wuid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card": True}, [dc1_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1781,7 +1781,7 @@ if TEST_ENTITY:
     reqmsg['sender']['lat'] = messages.LAT1
     reqmsg['sender']['lng'] = messages.LNG1
     reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wiz_user_id'] = wuid3
+    reqmsg['sender']['wizuser_id'] = wuid3
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1794,7 +1794,7 @@ if TEST_ENTITY:
         reqmsg = messages.entity_join
         reqmsg['header']['version'] = messages.APP_VERSION
         reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wiz_user_id'] = wuid1
+        reqmsg['sender']['wizuser_id'] = wuid1
         reqmsg['sender']['entity_id'] = entity_list[0][0]
         reqmsg['sender']['entity_type'] = entity_list[0][1]
 
@@ -1805,7 +1805,7 @@ if TEST_ENTITY:
         reqmsg = messages.entities_like
         reqmsg['header']['version'] = messages.APP_VERSION
         reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wiz_user_id'] = wuid1
+        reqmsg['sender']['wizuser_id'] = wuid1
 
         likes = []
         for index, item in enumerate(entity_list):
@@ -1827,7 +1827,7 @@ if TEST_ENTITY:
         reqmsg['sender']['lat'] = messages.LAT1
         reqmsg['sender']['lng'] = messages.LNG1
         reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wiz_user_id'] = wuid1
+        reqmsg['sender']['wizuser_id'] = wuid1
 
         send_request(conn, reqmsg)
         # Parse and dump the JSON response from server
@@ -1836,7 +1836,7 @@ if TEST_ENTITY:
         reqmsg = messages.entity_leave
         reqmsg['header']['version'] = messages.APP_VERSION
         reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wiz_user_id'] = wuid1
+        reqmsg['sender']['wizuser_id'] = wuid1
         reqmsg['sender']['entity_id'] = entity_list[0][0]
         reqmsg['sender']['entity_type'] = entity_list[0][1]
 
@@ -1847,7 +1847,7 @@ if TEST_ENTITY:
         reqmsg = messages.entity_summary
         reqmsg['header']['version'] = messages.APP_VERSION
         reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wiz_user_id'] = wuid1
+        reqmsg['sender']['wizuser_id'] = wuid1
         reqmsg['sender']['entity_id'] = entity_list[0][0]
         reqmsg['sender']['entity_type'] = entity_list[0][1]
         reqmsg['sender']['detail'] = True

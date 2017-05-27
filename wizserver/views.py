@@ -127,7 +127,7 @@ class ParseMsgAndDispatch(object):
 
     def validate_header(self):
         #hashed passwd check
-        #username, userID, wiz_user_id, device_id
+        #username, userID, wizuser_id, device_id
         #is_authenticated check
         if self.msg_type not in verbs.wizcardMsgTypes:
             return False
@@ -139,18 +139,18 @@ class ParseMsgAndDispatch(object):
         self.sender = sender
         if not self.msg_is_initial():
             try:
-                wizuser_id = self.sender.pop('wiz_user_id')
+                wizuser_id = self.sender.pop('wizuser_id')
                 user_id = self.sender.pop('user_id')
 
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
                 self.user_stats, created = Stats.objects.get_or_create(user=self.user)
             except:
-                logger.error('Failed User wiz_user_id %s, user_id %s', wizuser_id, user_id)
+                logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
 
             if self.userprofile.userid != user_id:
-                logger.error('Failed User wiz_user_id %s, user_id %s', wizuser_id, user_id)
+                logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
 
         #AA:TODO - Move to header
@@ -744,7 +744,7 @@ class ParseMsgAndDispatch(object):
                 self.response.error_response(err.AUTHENTICATION_FAILED)
                 return self.response
 
-            self.response.add_data("wiz_user_id", self.user.pk)
+            self.response.add_data("wizuser_id", self.user.pk)
         except:
             self.security_exception()
             self.response.ignore()
@@ -820,7 +820,7 @@ class ParseMsgAndDispatch(object):
 
                 d = dict()
                 d['phoneNum'] = phone_number
-                d['wiz_user_id'] = wizcard.user_id
+                d['wizuser_id'] = wizcard.user_id
                 if Wizcard.objects.are_wizconnections(
                         self.user.wizcard,
                         wizcard):
@@ -846,7 +846,7 @@ class ParseMsgAndDispatch(object):
             if wizcard:
                 d = dict()
                 d['email'] = email
-                d['wiz_user_id'] = wizcard.user_id
+                d['wizuser_id'] = wizcard.user_id
                 if Wizcard.objects.are_wizconnections(
                         self.user.wizcard,
                         wizcard):
@@ -1139,9 +1139,9 @@ class ParseMsgAndDispatch(object):
 
             try:
                 wizcard2 = Wizcard.objects.get(id=self.receiver['wizcard_id'])
-                self.r_user = User.objects.get(id=self.receiver['wiz_user_id'])
+                self.r_user = User.objects.get(id=self.receiver['wizuser_id'])
             except:
-                self.r_user = User.objects.get(id=self.receiver['wiz_user_id'])
+                self.r_user = User.objects.get(id=self.receiver['wizuser_id'])
                 wizcard2 = self.r_user.wizcard
 
         except KeyError:
@@ -1700,7 +1700,7 @@ class ParseMsgAndDispatch(object):
     def WizcardSendTableToXYZ(self, table, receiver_type, receivers):
         #AA TODO: move the 'wiz_xyz' strings into verbs file
         if receiver_type in ['wiz_untrusted', 'wiz_trusted']:
-            #receiverIDs has wiz_user_ids
+            #receiver_ids has wizuser_ids
             for _id in receivers:
                 r_user = User.objects.get(id=_id)
                 cctx = ConnectionContext(

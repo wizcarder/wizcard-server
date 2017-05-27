@@ -202,7 +202,7 @@ register1 = {
         "lng" : -122.406416,
         "device_type": "android",
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
@@ -221,7 +221,7 @@ register2 = {
         "lng" : -122.406418,
         "device_type": "android",
         "user_id" : "",
-        "wiz_user_id" : ""
+        "wizuser_id" : ""
     },
 }
 
@@ -240,7 +240,7 @@ register3 = {
         "lng" : -122.406419,
         "device_type": "android",
         "user_id" : "",
-        "wiz_user_id" : ""
+        "wizuser_id" : ""
     },
 }
 ocr_register = {
@@ -258,7 +258,7 @@ ocr_register = {
         "lng" : -122.406419,
         "device_type": "android",
         "user_id" : "",
-        "wiz_user_id" : ""
+        "wizuser_id" : ""
     },
 }
 
@@ -275,7 +275,7 @@ location = {
         "lat" : "",
         "lng" : "",
         "user_id" : "",
-        "wiz_user_id" : ""
+        "wizuser_id" : ""
     },
 }
 
@@ -290,7 +290,7 @@ contacts_verify = {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "verify_phones" : "",
@@ -311,7 +311,7 @@ contacts_upload = {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "prefix" : "",
@@ -354,8 +354,8 @@ edit_card = {
         "phone1" : PHONE1,
         "user_id" : "",
         "device_type": "android",
-        #wiz_user_id should be the user_id got from response of above register message
-        "wiz_user_id" : "",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
         "contact_container": [contact_container]
     },
 }
@@ -382,8 +382,8 @@ edit_card1 = {
         "phone1" : PHONE1,
         "user_id" : "USER1",
         "device_type": "android",
-        #wiz_user_id should be the user_id got from response of above register message
-        "wiz_user_id" : "",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -410,8 +410,8 @@ edit_card2 = {
         "location" : "San Francisco Bay Area",
         "phone1" : OCR_PHONE,
         "user_id" : "USER2",
-        #wiz_user_id should be the user_id got from response of above register message
-        "wiz_user_id" : "",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -440,8 +440,8 @@ edit_card3 = {
         "user_id" : "USER3",
 	    "ext_fields" : {'linkedin': 'http://www.linkedin.com/testli','facebook': 'http://www.facebook.com/testfb', 'www': 'http://www.website.com/testww'},
 	    "video_url" : "http://www.youtube.com/zaHgTRo",
-        #wiz_user_id should be the user_id got from response of above register message
-        "wiz_user_id" : "",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -464,7 +464,7 @@ send_asset_to_xyz= {
         #receiver type can be wiz_untrusted, wiz_trusted, wiz_trusted_check
         #for in-network. email, sms for non-wiz network (future handliing)
         "receiver_type" : "",
-        #receiver id's can be phone, email, wiz_user_id
+        #receiver id's can be phone, email, wizuser_id
         "receiver_ids" : []
     }
 }
@@ -478,7 +478,7 @@ send_to_user = {
         "msg_type" : "send_card_to_user",
     },
     "receiver" : {
-        "wiz_user_ids" : []
+        "wizuser_ids" : []
     }
 }
 
@@ -491,7 +491,7 @@ send_to_contacts = {
         "msg_type" : "send_card_to_contacts",
     },
     "receiver" : {
-        "wiz_user_ids" : []
+        "wizuser_ids" : []
     }
 }
 
@@ -521,7 +521,7 @@ entity_create = {
         "lat" : 37.785838,
         "lng" : -122.406419,
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "name" : "",
         "timeout": 1,
         "secure": "False",
@@ -538,7 +538,7 @@ entity_join = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "table_id": "",
         "password" : "test",
         "entity_type": ENTITY_TABLE,
@@ -557,7 +557,7 @@ entity_leave = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "table_id": "",
         "password" : "test",
         "entity_type": ENTITY_TABLE,
@@ -577,7 +577,7 @@ entity_edit = {
         "lng" : -122.406419,
         "device_type": "android",
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "entity_type": ENTITY_TABLE,
         "entity_id": "",
         "name" : "",
@@ -595,7 +595,7 @@ entity_query = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "query_str": ""
     }
 }
@@ -609,7 +609,7 @@ entity_summary = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "entity_id": "",
         "detail": False
     }
@@ -624,7 +624,7 @@ entity_details = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "entity_id": "",
         "detail": True
     }
@@ -707,7 +707,7 @@ card_flick = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "lat" : 37.785834,
         "lng" : -122.406415,
         "timeout": 1,
@@ -726,7 +726,7 @@ card_flick_accept = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "flickCardIDs" : "",
@@ -741,14 +741,14 @@ accept_connection_request = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "reaccept" : False,
         # this is dummy...the right thing to do is to get the
         # correct notif_id from the get_cards and pass it back in here
         "notif_id": 1
     },
     "receiver" : {
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     }
 }
 
@@ -761,7 +761,7 @@ decline_connection_request = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "notif_id": 1
 
     },
@@ -779,7 +779,7 @@ flick_pickers = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "flickCardIDs" : "",
     },
 }
@@ -793,7 +793,7 @@ card_flick_edit = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "flickCardID": "",
         "timeout":"",
         "created":str(datetime.now())
@@ -809,7 +809,7 @@ user_query = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "name": "",
@@ -825,7 +825,7 @@ get_common_connections = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "wizcard_id": "",
         "full": True
     },
@@ -843,7 +843,7 @@ archived_cards = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
@@ -856,7 +856,7 @@ card_flick_query = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "name": "",
@@ -872,7 +872,7 @@ my_flicks = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "wizcard_id" : ""
     }
 }
@@ -900,7 +900,7 @@ delete_rolodex_card = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : ""
+        "wizuser_id" : ""
     },
     "receiver" : {
         "wizcard_ids" : ""
@@ -916,7 +916,7 @@ edit_rolodex_card = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : ""
+        "wizuser_id" : ""
     },
     "receiver" : {
         "wizcard_id" : "",
@@ -936,7 +936,7 @@ card_details = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "wizcard_id" : "",
@@ -952,7 +952,7 @@ ocr_req_self = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
@@ -965,7 +965,7 @@ ocr_dead_card = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
@@ -978,7 +978,7 @@ ocr_dead_card_edit = {
     },
     "sender" : {
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "dead_card_id": "",
         "inviteother" : 0,
         "contact_container": [contact_container],
@@ -1107,8 +1107,8 @@ rolodex_edit_card1 = {
         "location" : "Bangalore",
         "phone1" : OCR_PHONE,
         "user_id" : "USER2",
-        #wiz_user_id should be the user_id got from response of above register message
-        "wiz_user_id" : "",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
 	"contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -1133,8 +1133,8 @@ rolodex_edit_card2 = {
 	"location" : "Bangalore",
 	"phone1" : OCR_PHONE,
 	"user_id" : "USER2",
-	#wiz_user_id should be the user_id got from response of above register message
-	"wiz_user_id" : "",
+	#wizuser_id should be the user_id got from response of above register message
+	"wizuser_id" : "",
 	"contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -1161,8 +1161,8 @@ rolodex_edit_card3 = {
 	"location" : "Mohali",
 	"phone1" : OCR_PHONE,
 	"user_id" : "USER2",
-	#wiz_user_id should be the user_id got from response of above register message
-	"wiz_user_id" : "",
+	#wizuser_id should be the user_id got from response of above register message
+	"wizuser_id" : "",
 	"contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -1178,7 +1178,7 @@ get_video_thumbnail_url = {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
         "video_url": ""
     },
 }
@@ -1194,7 +1194,7 @@ get_recommendations = {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
         "user_id" : "",
-        "wiz_user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
