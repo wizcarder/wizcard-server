@@ -199,16 +199,16 @@ class Wizcard(models.Model):
     email = EmailField(blank=True)
 
     #media objects
-    thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
+    thumbnail_image = WizcardQueuedFileField(upload_to="thumbnails",
             storage=WizcardQueuedS3BotoStorage(delayed=False), blank=True)
-    videoUrl = URLField(blank=True)
-    videoThumbnailUrl = URLField(blank=True)
+    video_url = URLField(blank=True)
+    video_thumbnail_url = URLField(blank=True)
 
     # moving to media mgr
     media = generic.GenericRelation(MediaObjects)
 
-    extFields = PickledObjectField(default={}, blank=True)
-    smsurl = URLField(blank=True)
+    ext_fields = PickledObjectField(default={}, blank=True)
+    sms_url = URLField(blank=True)
     vcard = models.TextField(blank=True)
 
     objects = WizcardManager()
@@ -250,7 +250,7 @@ class Wizcard(models.Model):
             out['company'] = cc.company
             out['title'] = cc.title
             if show_bizcard:
-                out['f_bizCardUrl'] = cc.get_fbizcard_url()
+                out['f_bizcard_url'] = cc.get_fbizcard_url()
 
             #app needs single-element array with dict in it
             return [out]
@@ -264,19 +264,19 @@ class Wizcard(models.Model):
         from userprofile.models import UserProfile
         return UserProfile.objects.is_admin_user(self.user)
     
-    def save_smsurl(self,url):
-        self.smsurl =  wizlib.shorten_url(url)
+    def save_sms_url(self,url):
+        self.sms_url =  wizlib.shorten_url(url)
         self.save()
 
-    def get_smsurl(self):
-        return self.smsurl
+    def get_sms_url(self):
+        return self.sms_url
 
 
     def followed_status_string(self):
         return "followed"
 
     def get_thumbnail_url(self):
-        return self.thumbnailImage.remote_url()
+        return self.thumbnail_image.remote_url()
 
     def save_vcard(self,vobj):
         self.vcard = vobj
@@ -287,12 +287,12 @@ class Wizcard(models.Model):
         return self.first_name + " " + self.last_name
 
     @property
-    def get_videoUrl(self):
-        return self.videoUrl
+    def get_video_url(self):
+        return self.video_url
 
     @property
-    def get_extFields(self):
-        return self.extFields
+    def get_ext_fields(self):
+        return self.ext_fields
 
     @property
     def get_vcard(self):
@@ -439,7 +439,7 @@ class ContactContainer(models.Model):
     start = TruncatingCharField(max_length=30, blank=True)
     end = TruncatingCharField(max_length=30, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)
-    f_bizCardImage = WizcardQueuedFileField(upload_to="bizcards",
+    f_bizcard_image = WizcardQueuedFileField(upload_to="bizcards",
                                             storage=WizcardQueuedS3BotoStorage(delayed=False))
     card_url = models.URLField(blank=True)
 
@@ -453,7 +453,7 @@ class ContactContainer(models.Model):
         if self.card_url != "":
             return self.card_url
         else:
-            return self.f_bizCardImage.remote_url()
+            return self.f_bizcard_image.remote_url()
 
 
 class WizConnectionRequest(models.Model):

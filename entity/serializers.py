@@ -138,12 +138,12 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     media = MediaObjectsSerializer(many=True)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
-    extFields = serializers.DictField()
+    ext_fields = serializers.DictField()
     engagements = EntityEngagementSerializer(read_only=True)
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
-        my_fields = ('website', 'category', 'extFields', 'engagements', 'phone', 'media',
+        my_fields = ('website', 'category', 'ext_fields', 'engagements', 'phone', 'media',
                      'email', 'description', 'owners', 'related', 'users', 'friends')
         fields = EntitySerializerL1.Meta.fields + my_fields
 
@@ -249,7 +249,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
     #     super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
 
     media = MediaObjectsSerializer(many=True, required=False)
-    extFields = serializers.DictField()
+    ext_fields = serializers.DictField()
 
     class Meta:
         model = Speaker
@@ -272,7 +272,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
         instance.email = validated_data.pop("email", instance.email)
         instance.org = validated_data.pop("org", instance.org)
         instance.designation = validated_data.pop("designation", instance.designation)
-        instance.extFields = validated_data.pop("extFields", instance.extFields)
+        instance.ext_fields = validated_data.pop("ext_fields", instance.ext_fields)
         instance.description = validated_data.pop("description", instance.description)
 
         media = validated_data.pop('media', None)

@@ -48,23 +48,23 @@ class WizcardSerializerL1(WizcardSerializerThumbnail):
 
 
 class WizcardSerializerL2(WizcardSerializerL1):
-    extFields = serializers.DictField()
-    videoUrl = serializers.URLField(read_only=True, source='get_videoUrl')
-    videoThumbnailUrl = serializers.URLField(read_only=True)
+    ext_fields = serializers.DictField()
+    video_url = serializers.URLField(read_only=True, source='get_video_url')
+    video_thumbnail_url = serializers.URLField(read_only=True)
 
     class Meta(WizcardSerializerL1.Meta):
         model = Wizcard
-        l2_fields = ('extFields', 'videoUrl', 'videoThumbnailUrl', 'vcard', 'smsurl')
+        l2_fields = ('ext_fields', 'video_url', 'video_thumbnail_url', 'vcard', 'sms_url')
         fields = WizcardSerializerL1.Meta.fields + l2_fields
     
 
 # not used by App
 class WizcardSerializer(WizcardSerializerL1):
-    extFields = serializers.DictField()
+    ext_fields = serializers.DictField()
 
     class Meta:
         model = Wizcard
-        l2_fields = ('extFields', 'smsurl', 'vcard')
+        l2_fields = ('extFields', 'sms_url', 'vcard')
         fields = WizcardSerializerL1.Meta.fields + l2_fields
 
 

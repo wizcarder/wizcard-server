@@ -29,7 +29,7 @@ class DeadCards(models.Model):
     title = TruncatingCharField(max_length=200, blank=True)
     web = TruncatingCharField(max_length=200, blank=True)
     invited = models.BooleanField(default=False)
-    f_bizCardImage = WizcardQueuedFileField(upload_to="deadcards",
+    f_bizcard_image = WizcardQueuedFileField(upload_to="deadcards",
                                             storage=WizcardQueuedS3BotoStorage(delayed=False))
     activated = models.BooleanField(default=False)
     cctx = PickledObjectField(blank=True)
@@ -50,7 +50,7 @@ class DeadCards(models.Model):
 
     def recognize(self):
         ocr = OCR()
-        result = ocr.process(self.f_bizCardImage.local_path())
+        result = ocr.process(self.f_bizcard_image.local_path())
 
         self.first_name = result.get('first_name', "")
         self.last_name = result.get('last_name', "")
@@ -69,11 +69,11 @@ class DeadCards(models.Model):
         cc['company'] = self.company
         cc['title'] = self.title
         cc['web'] = self.web
-        cc['f_bizCardUrl'] = self.deadcard_url()
+        cc['card_url'] = self.deadcard_url()
         return cc
 
     def deadcard_url(self):
-        return self.f_bizCardImage.remote_url()
+        return self.f_bizcard_image.remote_url()
 
     def created_on(self):
         return self.created.strftime("%d %B %Y")
