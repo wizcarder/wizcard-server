@@ -54,7 +54,7 @@ class Command(BaseCommand):
         upfile = SimpleUploadedFile("%s-%s.jpg" %
                                     (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                                     rawimage, "image/jpeg")
-        wizcard.thumbnailImage.save(upfile.name, upfile)
+        wizcard.thumbnail_image.save(upfile.name, upfile)
 
         # video thumbnail url
         resp = noembed.embed(wizcard.video_url)

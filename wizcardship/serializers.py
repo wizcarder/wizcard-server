@@ -64,7 +64,7 @@ class WizcardSerializer(WizcardSerializerL1):
 
     class Meta:
         model = Wizcard
-        l2_fields = ('extFields', 'sms_url', 'vcard')
+        l2_fields = ('ext_fields', 'sms_url', 'vcard')
         fields = WizcardSerializerL1.Meta.fields + l2_fields
 
 

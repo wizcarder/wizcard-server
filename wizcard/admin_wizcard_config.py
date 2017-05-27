@@ -27,8 +27,8 @@ w = {
     'last_name': "WizCard",
     'email': "admin@getwizcard.com",
     'phone': "+14084641727",
-    'videoUrl': VIDEO_URL,
-    'extFields': ext_fields
+    'video_url': VIDEO_URL,
+    'ext_fields': ext_fields
 }
 
 cc = {

@@ -1292,7 +1292,7 @@ if OEMBED:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
     reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['sender']['videoUrl'] = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/bizcards/test_video.mp4"
+    reqmsg['sender']['video_url'] = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/bizcards/test_video.mp4"
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1302,7 +1302,7 @@ if OEMBED:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
     reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['sender']['videoUrl'] = "https://www.youtube.com/watch?v=QujpdmsXAb4&feature=youtu.be"
+    reqmsg['sender']['video_url'] = "https://www.youtube.com/watch?v=QujpdmsXAb4&feature=youtu.be"
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1312,7 +1312,7 @@ if OEMBED:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
     reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['sender']['videoUrl'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
+    reqmsg['sender']['video_url'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
