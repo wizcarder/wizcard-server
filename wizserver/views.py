@@ -1002,26 +1002,26 @@ class ParseMsgAndDispatch(object):
                 wizcard.email = email
                 modify = True
 
-        if 'thumbnailImage' in self.sender and \
-                self.sender['thumbnailImage']:
-            b64image = bytes(self.sender['thumbnailImage'])
+        if 'thumbnail_image' in self.sender and \
+                self.sender['thumbnail_image']:
+            b64image = bytes(self.sender['thumbnail_image'])
             rawimage = b64image.decode('base64')
             upfile = SimpleUploadedFile("%s-%s.jpg" % \
                                         (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                                         rawimage, "image/jpeg")
-            wizcard.thumbnailImage.save(upfile.name, upfile)
+            wizcard.thumbnail_image.save(upfile.name, upfile)
             modify = True
 
-        if 'videoUrl' in self.sender:
-            wizcard.videoUrl = self.sender['videoUrl']
+        if 'video_url' in self.sender:
+            wizcard.video_url = self.sender['video_url']
             modify = True
 
-        if 'videoThumbnailUrl' in self.sender:
-            wizcard.videoThumbnailUrl = self.sender['videoThumbnailUrl']
+        if 'video_thumbnail_url' in self.sender:
+            wizcard.video_thumbnail_url = self.sender['video_thumbnail_url']
             modify = True
 
-        if 'extFields' in self.sender and self.sender['extFields']:
-            wizcard.extFields = self.sender['extFields'].copy()
+        if 'ext_fields' in self.sender and self.sender['ext_fields']:
+            wizcard.ext_fields = self.sender['ext_fields'].copy()
             modify = True
 
         if 'contact_container' in self.sender:
@@ -1040,17 +1040,17 @@ class ParseMsgAndDispatch(object):
                     cc.phone = contactItem['phone']
 
                 cc.save()
-                if 'f_bizCardImage' in contactItem and contactItem['f_bizCardImage']:
+                if 'f_bizcard_image' in contactItem and contactItem['f_bizcard_image']:
                     #AA:TODO: Remove try
                     try:
-                        b64image = bytes(contactItem['f_bizCardImage'])
+                        b64image = bytes(contactItem['f_bizcard_image'])
                         rawimage = b64image.decode('base64')
                         #AA:TODO: better file name
                         upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % \
                                                     (wizcard.pk, cc.pk, now().strftime \
                                                         ("%Y-%m-%d %H:%M")), rawimage, \
                                                     "image/jpeg")
-                        cc.f_bizCardImage.save(upfile.name, upfile)
+                        cc.f_bizcard_image.save(upfile.name, upfile)
                     except:
                         pass
 
@@ -2041,7 +2041,7 @@ class ParseMsgAndDispatch(object):
         upfile = SimpleUploadedFile("%s-%s.jpg" % \
                                     (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
                                     rawimage, "image/jpeg")
-        d.f_bizCardImage.save(upfile.name, upfile)
+        d.f_bizcard_image.save(upfile.name, upfile)
         d.recognize()
         self.response.add_data("response", d.serialize())
         return self.response
@@ -2582,7 +2582,7 @@ class ParseMsgAndDispatch(object):
                                                 (wizcard.pk, t_row.pk, \
                                                  now().strftime("%Y-%m-%d %H:%M")), rawimage, \
                                                 "image/jpeg")
-                    t_row.f_bizCardImage.save(upfile.name, upfile)
+                    t_row.f_bizcard_image.save(upfile.name, upfile)
                 except:
                     pass
             elif 'f_bizcard_url' in c:
