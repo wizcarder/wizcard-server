@@ -148,7 +148,8 @@ class BaseEntity(PolymorphicModel):
     @classmethod
     def entity_cls_ser_from_type(self, type=None, detail=False):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
-            ProductSerializer, BusinessSerializer, TableSerializer, EntitySerializerL2
+            ProductSerializer, BusinessSerializer, TableSerializer, EntitySerializerL2, \
+            ProductSerializerL1, ProductSerializerL2
         if type == self.EVENT:
             cls = Event
             serializer = EventSerializerL1
@@ -156,7 +157,10 @@ class BaseEntity(PolymorphicModel):
                 serializer = EventSerializerL2
         elif type == self.PRODUCT:
             cls = Product
-            serializer = ProductSerializer
+            if detail == True:
+                serializer = ProductSerializerL1
+            else:
+                serializer = ProductSerializerL2
         elif type == self.BUSINESS:
             cls = Business
             serializer = BusinessSerializer
@@ -594,7 +598,6 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 
-@receiver(post_save, sender=BaseEntity)
 @receiver(post_save, sender=Event)
 @receiver(post_save, sender=Product)
 @receiver(post_save, sender=Business)
