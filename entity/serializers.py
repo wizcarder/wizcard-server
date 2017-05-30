@@ -11,8 +11,7 @@ from location_mgr.serializers import LocationSerializerField
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
 from wizcardship.serializers import WizcardSerializerThumbnail, WizcardSerializerL1
-from wizcardship.models import Wizcard
-from wizserver import fields
+from django.utils import timezone
 from random import sample
 
 
@@ -355,6 +354,29 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
             obj.media.all(),
             many=True
         ).data
+
+    def get_users(self, obj):
+        count = 0
+        data = []
+
+        out = dict(count=count, data=data)
+
+        user = self.context.get('user')
+        ue, is_member = UserEntity.user_member(user, obj)
+
+        if not is_member:
+            return out
+
+        users = obj.get_users_after(ue.last_accessed)
+        ue.last_accessed_at(timezone.now())
+
+        wizcards = [x.wizcard for x in users if hasattr(x, 'wizcard')]
+        count = len(wizcards)
+
+        out['count'] = count
+        out['data'] = WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
+
+        return out
 
 # this is used by App
 class ProductSerializerL1(EntitySerializerL1):
