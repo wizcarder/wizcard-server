@@ -11,8 +11,7 @@ from location_mgr.serializers import LocationSerializerField
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
 from wizcardship.serializers import WizcardSerializerThumbnail, WizcardSerializerL1
-from wizcardship.models import Wizcard
-from wizserver import fields
+from django.utils import timezone
 from random import sample
 
 
@@ -87,7 +86,8 @@ class EntitySerializerL1(EntitySerializerL0):
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
-        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends', 'users', 'creator', 'joined', 'liked')
+        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
+                     'users', 'creator', 'joined', 'liked', 'description')
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_users(self, obj):
@@ -129,11 +129,13 @@ class EntitySerializerL1(EntitySerializerL0):
 
     def get_liked(self, obj):
         user = self.context.get('user', None)
-        if user and obj.engagements:
+        if user:
             return obj.engagements.user_liked(user)
         else:
             return 0
 
+
+        return 0
 
 
 # these shouldn't be directly used.
@@ -355,6 +357,55 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
             obj.media.all(),
             many=True
         ).data
+
+    def get_users(self, obj):
+        count = 0
+        data = []
+
+        out = dict(count=count, data=data)
+
+        user = self.context.get('user')
+        ue, is_member = UserEntity.user_member(user, obj)
+
+        if not is_member:
+            return out
+
+        users = obj.get_users_after(ue.last_accessed)
+        ue.last_accessed_at(timezone.now())
+
+        wizcards = [x.wizcard for x in users if hasattr(x, 'wizcard')]
+        count = len(wizcards)
+
+        out['count'] = count
+        out['data'] = WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
+
+        return out
+
+# this is used by App
+class ProductSerializerL1(EntitySerializerL1):
+
+    class Meta:
+        model = Product
+        fields = EntitySerializerL0.Meta.fields + ('media', 'name', 'address', 'tags',
+                                                   'joined', 'liked', 'description',)
+
+    def get_users(self, obj):
+        count = obj.users.count()
+
+        out = dict(
+            count=count,
+        )
+        return out
+
+
+# this is used by portal REST API
+class ProductSerializerL2(EntitySerializerL2):
+
+    class Meta:
+        model = Product
+        fields = EntitySerializerL0.Meta.fields + ('media', 'name', 'address', 'tags',
+                                                   'joined', 'liked', 'description',)
+
 
 # this is used by portal REST API
 class ProductSerializer(EntitySerializerL2):

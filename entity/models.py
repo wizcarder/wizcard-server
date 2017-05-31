@@ -23,6 +23,8 @@ from base.cctx import ConnectionContext
 from django.conf import settings
 from taganomy.models import Taganomy
 from notifications.signals import notify
+from datetime import datetime
+
 import pdb
 
 # Create your models here.
@@ -148,7 +150,8 @@ class BaseEntity(PolymorphicModel):
     @classmethod
     def entity_cls_ser_from_type(self, type=None, detail=False):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
-            ProductSerializer, BusinessSerializer, TableSerializer, EntitySerializerL2
+            ProductSerializer, BusinessSerializer, TableSerializer, EntitySerializerL2, \
+            ProductSerializerL1, ProductSerializerL2
         if type == self.EVENT:
             cls = Event
             serializer = EventSerializerL1
@@ -156,7 +159,10 @@ class BaseEntity(PolymorphicModel):
                 serializer = EventSerializerL2
         elif type == self.PRODUCT:
             cls = Product
-            serializer = ProductSerializer
+            if detail == True:
+                serializer = ProductSerializerL1
+            else:
+                serializer = ProductSerializerL2
         elif type == self.BUSINESS:
             cls = Business
             serializer = BusinessSerializer
@@ -224,7 +230,7 @@ class BaseEntity(PolymorphicModel):
 
     # get user's friends within the entity
     def users_friends(self, user, limit=None):
-        entity_wizcards = map(lambda w: w.wizcard, self.users.exclude(wizcard__isnull=True).order_by('?'))
+        entity_wizcards = [w.wizcard for w in self.users.all().order_by('?') if hasattr(w, 'wizcard')]
         entity_friends = [x for x in entity_wizcards if Wizcard.objects.is_wizcard_following(x, user.wizcard)]
         return entity_friends[:limit]
 
@@ -246,6 +252,12 @@ class BaseEntity(PolymorphicModel):
 
         return self
 
+    def get_users_after(self, timestamp):
+        ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
+        users = map(lambda u: u.user, ue)
+
+        return users
+
     def notify_all_users(self, sender, verb, entity, exclude=True):
         #send notif to all members, just like join
         qs = self.users.exclude(id=sender.pk) if exclude else self.users.all()
@@ -264,6 +276,7 @@ class BaseEntity(PolymorphicModel):
 class UserEntity(models.Model):
     user = models.ForeignKey(User)
     entity = models.ForeignKey(BaseEntity)
+    last_accessed = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -282,9 +295,13 @@ class UserEntity(models.Model):
     def user_member(cls, user, entity_obj):
         try:
             u = UserEntity.objects.get(user=user, entity=entity_obj)
-            return True
+            return u, True
         except:
-            return False
+            return None, False
+
+    def last_accessed_at(self, timestamp):
+        self.last_accessed = timestamp
+        self.save()
 
 
 class EventManager(BaseEntityManager):
@@ -594,7 +611,6 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 
-@receiver(post_save, sender=BaseEntity)
 @receiver(post_save, sender=Event)
 @receiver(post_save, sender=Product)
 @receiver(post_save, sender=Business)
