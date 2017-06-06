@@ -80,15 +80,15 @@ class EntitySerializerL1(EntitySerializerL0):
     joined = serializers.SerializerMethodField(read_only=True)
     tags = TagListSerializerField(required=False)
     creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
-    liked = serializers.SerializerMethodField(read_only=True)
+    like = serializers.SerializerMethodField(read_only=True)
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
-        fields = ('id', 'entity_type', 'num_users',
-                  'media', 'name', 'address', 'tags', 'location', 'friends',
-                  'users', 'creator', 'joined', 'liked', 'description')
+        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
+                     'users', 'creator', 'joined', 'like', 'description')
+        fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_users(self, obj):
         qs = obj.users.exclude(wizcard__isnull=True)
@@ -121,8 +121,9 @@ class EntitySerializerL1(EntitySerializerL0):
     def get_joined(self, obj):
         return obj.is_joined(self.context.get('user'))
 
-    def get_liked(self, obj):
-        return obj.engagements.user_liked(self.context.get('user'))
+    def get_like(self, obj):
+        liked, level = obj.engagements.user_liked(self.context.get('user'))
+        return dict(liked=liked, like_level=level)
 
 
 # these shouldn't be directly used.
@@ -135,12 +136,9 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
-        fields = ('id', 'entity_type', 'num_users',
-                  'media', 'name', 'address', 'tags', 'location',
-                  'users', 'creator', 'joined', 'liked', 'description',
-                  'website', 'category', 'ext_fields', 'engagements', 'phone',
-                  'email', 'description', 'owners', 'related', 'users')
-
+        my_fields = ('website', 'category', 'ext_fields', 'engagements', 'phone',
+                     'email', 'description', 'owners', 'related', 'users')
+        fields = EntitySerializerL1.Meta.fields + my_fields
         read_only_fields = ('entity_type',)
 
     def get_users(self, obj):
@@ -153,6 +151,10 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
             data=WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
         )
         return out
+
+    # no need to send friends at L2. removing it from the fields list seems convoluted
+    def get_friends(self, obj):
+        return None
 
     # def get_friends(self, obj):
     #     user = self.context.get('user')
@@ -374,8 +376,9 @@ class ProductSerializerL1(EntitySerializerL1):
 
     class Meta:
         model = Product
-        fields = EntitySerializerL0.Meta.fields + ('media', 'name', 'address', 'tags',
-                                                   'joined', 'liked', 'description',)
+        my_fields = ('media', 'name', 'address', 'tags', 'joined', 'like', 'description',)
+        # using L0 fields since not all L1 base class fields are needed
+        fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_users(self, obj):
         count = obj.users.count()
@@ -386,13 +389,13 @@ class ProductSerializerL1(EntitySerializerL1):
         return out
 
 
-# this is used by portal REST API
+# this is used by App
 class ProductSerializerL2(EntitySerializerL2):
 
     class Meta:
         model = Product
-        fields = EntitySerializerL0.Meta.fields + ('media', 'name', 'address', 'tags',
-                                                   'joined', 'liked', 'description',)
+        my_fields = ('media', 'name', 'address', 'tags', 'joined', 'like', 'description',)
+        fields = EntitySerializerL0.Meta.fields + my_fields
 
 
 # this is used by portal REST API
