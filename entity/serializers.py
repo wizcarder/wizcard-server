@@ -280,6 +280,13 @@ class SpeakerSerializer(serializers.ModelSerializer):
 
 # this is used by portal REST API
 class EventSerializer(EntitySerializerL2):
+    def __init__(self, *args, **kwargs):
+        remove_fields = ['joined']
+        super(EventSerializer, self).__init__(*args, **kwargs)
+        
+        for field_name in remove_fields:
+            self.fields.pop(field_name)
+
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
     speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
@@ -373,7 +380,6 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
 
 # this is used by App
 class ProductSerializerL1(EntitySerializerL1):
-
     class Meta:
         model = Product
         my_fields = ('media', 'name', 'address', 'tags', 'joined', 'like', 'description',)
@@ -400,6 +406,12 @@ class ProductSerializerL2(EntitySerializerL2):
 
 # this is used by portal REST API
 class ProductSerializer(EntitySerializerL2):
+    def __init__(self, *args, **kwargs):
+        remove_fields = ['joined']
+        super(ProductSerializer, self).__init__(*args, **kwargs)
+
+        for field_name in remove_fields:
+            self.fields.pop(field_name)
 
     class Meta:
         model = Product
@@ -428,6 +440,13 @@ class BusinessSerializer(EntitySerializerL2):
 
 # this is used by portal REST API
 class TableSerializer(EntitySerializerL2):
+    def __init__(self, *args, **kwargs):
+        remove_fields = ['joined']
+        super(TableSerializer, self).__init__(*args, **kwargs)
+
+        for field_name in remove_fields:
+            self.fields.pop(field_name)
+
     class Meta:
         model = VirtualTable
         fields = EntitySerializerL2.Meta.fields
