@@ -145,6 +145,9 @@ class ParseMsgAndDispatch(object):
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
                 self.user_stats, created = Stats.objects.get_or_create(user=self.user)
+
+                # used often by serializer. might as well put it here
+                self.user_context = {'context': {'user': self.user}}
             except:
                 logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
@@ -878,11 +881,8 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if self.sender.has_key('reco_actions'):
-
             recoactions = self.sender['reco_actions']
-
             for rectuple in recoactions:
-
                 recid = rectuple['reco_id']
                 recaction = rectuple['action']
                 try:
@@ -908,13 +908,13 @@ class ParseMsgAndDispatch(object):
 
         #any wizcards dropped nearby
         #AA:TODO: Use come caching framework to cache these
-        flicked_wizcards, count = WizcardFlick.objects.lookup(
-            self.lat,
-            self.lng,
-            settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count:
-            notifResponse.notifFlickedWizcardsLookup(count,
-                                                     self.user, flicked_wizcards)
+        # flicked_wizcards, count = WizcardFlick.objects.lookup(
+        #     self.lat,
+        #     self.lng,
+        #     settings.DEFAULT_MAX_LOOKUP_RESULTS)
+        # if count:
+        #     notifResponse.notifFlickedWizcardsLookup(count,
+        #                                              self.user, flicked_wizcards)
 
         users, count = self.userprofile.lookup(
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
@@ -2238,7 +2238,7 @@ class ParseMsgAndDispatch(object):
         updated, l = entity.create_or_update_location(self.lat, self.lng)
         l.start_timer(entity.timeout)
 
-        out = s(entity, context={'user': self.user}).data
+        out = s(entity, **self.user_context).data
 
         self.response.add_data("data", out)
         return self.response
@@ -2270,7 +2270,7 @@ class ParseMsgAndDispatch(object):
 
         entity.join(self.user)
 
-        out = s(entity, context={'user': self.user}).data
+        out = s(entity, **self.user_context).data
         self.response.add_data("data", out)
 
         return self.response
@@ -2288,7 +2288,7 @@ class ParseMsgAndDispatch(object):
 
         entity.leave(self.user)
 
-        out = s(entity, context={'user': self.user}).data
+        out = s(entity, **self.user_context).data
         self.response.add_data("data", out)
 
         return self.response
@@ -2318,7 +2318,7 @@ class ParseMsgAndDispatch(object):
 
         entity.save()
 
-        out = s(entity, context={'user': self.user}).data
+        out = s(entity, **self.user_context).data
         self.response.add_data("data", out)
 
         return self.response
@@ -2335,7 +2335,7 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        m_events = Event.objects.users_entities(self.user, BaseEntity.EVENT)
+        m_events = Event.objects.users_entities(self.user)
         n_events, count = Event.objects.lookup(
             self.lat,
             self.lng,
@@ -2380,14 +2380,14 @@ class ParseMsgAndDispatch(object):
 
     def EntityQuery(self):
         query_str = self.sender['query_str']
-        entity_type = self.sender.get('entity_type', None)
+        entity_type = self.sender.get('entity_type')
 
         e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
         result, count = e.objects.query(query_str)
 
         if count:
-            out = s(result, many=True).data
+            out = s(result, many=True, **self.user_context).data
             self.response.add_data("data", out)
 
         self.response.add_data("count", count)
@@ -2395,16 +2395,16 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def MyEntities(self):
-        entity_type = self.sender.get('entity_type', None)
+        entity_type = self.sender.get('entity_type')
         cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
-        entities = cls.objects.users_entities(self.user).instance_of(cls)
+        entities = cls.objects.users_entities(self.user)
 
-        out = s(entities, many=True).data
+        out = s(entities, many=True, **self.user_context).data
         count = entities.count()
 
         if count:
-            self.response.add_data("data", out.data)
+            self.response.add_data("data", out)
         self.response.add_data("count", count)
         return self.response
 
@@ -2424,7 +2424,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
-        out = s(entity, context={'user': self.user}).data
+        out = s(entity, **self.user_context).data
         self.response.add_data("data", out)
 
         return self.response

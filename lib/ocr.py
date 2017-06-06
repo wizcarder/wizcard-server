@@ -14,11 +14,11 @@ class OCR:
         args = {'file':_file, "lang":"English", "format":"xml"}
         res = run_ocr.delay(runproc, **args)
         try:
-            ocr_result = res.get(timeout=20)
+            ocr_result = res.get(timeout=25)
         except exceptions.TimeoutError:
             self.result.update(err.LIB_OCR_CELERY_TIMEOUT)
             return self.result
-        finally:
+        except:
             self.result.update(err.LIB_OCR_ERROR)
             return self.result
 
