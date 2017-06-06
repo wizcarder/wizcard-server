@@ -86,9 +86,9 @@ class EntitySerializerL1(EntitySerializerL0):
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
-        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
-                     'users', 'creator', 'joined', 'liked', 'description')
-        fields = EntitySerializerL0.Meta.fields + my_fields
+        fields = ('id', 'entity_type', 'num_users',
+                  'media', 'name', 'address', 'tags', 'location', 'friends',
+                  'users', 'creator', 'joined', 'liked', 'description')
 
     def get_users(self, obj):
         qs = obj.users.exclude(wizcard__isnull=True)
@@ -110,29 +110,19 @@ class EntitySerializerL1(EntitySerializerL0):
 
     def get_friends(self, obj):
         user = self.context.get('user', None)
-        if user:
-            friends_wizcards = obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT)
-            out = dict(
-                count=len(friends_wizcards),
-                data=WizcardSerializerThumbnail(friends_wizcards, many=True).data
-            )
-            return out
 
-        return None
+        friends_wizcards = obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT)
+        out = dict(
+            count=len(friends_wizcards),
+            data=WizcardSerializerThumbnail(friends_wizcards, many=True).data
+        )
+        return out
 
     def get_joined(self, obj):
-        user = self.context.get('user', None)
-        if user:
-            return obj.is_joined(self.context.get('user'))
-
-        return False
+        return obj.is_joined(self.context.get('user'))
 
     def get_liked(self, obj):
-        user = self.context.get('user', None)
-        if user:
-            return obj.engagements.user_liked(user)
-
-        return 0
+        return obj.engagements.user_liked(self.context.get('user'))
 
 
 # these shouldn't be directly used.
@@ -145,9 +135,11 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
-        my_fields = ('website', 'category', 'ext_fields', 'engagements', 'phone', 'media',
-                     'email', 'description', 'owners', 'related', 'users', 'friends')
-        fields = EntitySerializerL1.Meta.fields + my_fields
+        fields = ('id', 'entity_type', 'num_users',
+                  'media', 'name', 'address', 'tags', 'location',
+                  'users', 'creator', 'joined', 'liked', 'description',
+                  'website', 'category', 'ext_fields', 'engagements', 'phone',
+                  'email', 'description', 'owners', 'related', 'users')
 
         read_only_fields = ('entity_type',)
 
@@ -162,16 +154,15 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         )
         return out
 
-    def get_friends(self, obj):
-        user = self.context.get('user', None)
-        if user:
-            friends_wizcards = obj.users_friends(user)
-            out = dict(
-                count=len(friends_wizcards),
-                data=WizcardSerializerL1(friends_wizcards, many=True).data
-            )
-            return out
-        return None
+    # def get_friends(self, obj):
+    #     user = self.context.get('user')
+    #
+    #     friends_wizcards = obj.users_friends(user)
+    #     out = dict(
+    #         count=len(friends_wizcards),
+    #         data=WizcardSerializerL1(friends_wizcards, many=True).data
+    #     )
+    #     return out
 
     # this is not really used in this class. It's used in sub-classes
     def get_media(self, obj):
@@ -434,7 +425,6 @@ class BusinessSerializer(EntitySerializerL2):
 
 # this is used by portal REST API
 class TableSerializer(EntitySerializerL2):
-
     class Meta:
         model = VirtualTable
         fields = EntitySerializerL2.Meta.fields
@@ -448,7 +438,6 @@ class TableSerializer(EntitySerializerL2):
 
 
 class EntityEngagementSerializerL1(EntityEngagementSerializer):
-
     class Meta:
         model = EntityEngagementStats
         my_fields = ('entity',)

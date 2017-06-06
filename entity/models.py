@@ -232,6 +232,7 @@ class BaseEntity(PolymorphicModel):
     def users_friends(self, user, limit=None):
         entity_wizcards = [w.wizcard for w in self.users.all().order_by('?') if hasattr(w, 'wizcard')]
         entity_friends = [x for x in entity_wizcards if Wizcard.objects.is_wizcard_following(x, user.wizcard)]
+
         return entity_friends[:limit]
 
     def join(self, user):
@@ -314,6 +315,12 @@ class EventManager(BaseEntityManager):
             count_only
         )
 
+    def users_entities(self, user, include_expired=False):
+        return super(EventManager, self).users_entities(
+            user,
+            entity_type=BaseEntity.EVENT,
+            include_expired=include_expired
+        )
 
 class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
@@ -349,8 +356,12 @@ class Event(BaseEntity):
 
 
 class ProductManager(BaseEntityManager):
-    pass
-
+    def users_entities(self, user, include_expired=False):
+        return super(ProductManager, self).users_entities(
+            user,
+            entity_type=BaseEntity.PRODUCT,
+            include_expired=include_expired
+        )
 
 class Product(BaseEntity):
 
@@ -385,8 +396,12 @@ class Product(BaseEntity):
 
 
 class BusinessManager(BaseEntityManager):
-    pass
-
+    def users_entities(self, user, include_expired=False):
+        return super(BusinessManager, self).users_entities(
+            user,
+            entity_type=BaseEntity.BUSINESS,
+            include_expired=include_expired
+        )
 
 class Business(BaseEntity):
 
@@ -396,6 +411,12 @@ class Business(BaseEntity):
 
 
 class VirtualTableManager(BaseEntityManager):
+    def users_entities(self, user, include_expired=False):
+        return super(VirtualTableManager, self).users_entities(
+            user,
+            entity_type=BaseEntity.TABLE,
+            include_expired=include_expired
+        )
 
     def lookup(self, lat, lng, n, etype=BaseEntity.TABLE, count_only=False):
         return super(VirtualTableManager, self).lookup(
@@ -503,7 +524,6 @@ class VirtualTable(BaseEntity):
             return None
         return self
 
-
     def delete(self, *args, **kwargs):
         #notify members of deletion (including self)
         verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
@@ -581,12 +601,12 @@ class EntityEngagementStats(models.Model):
     def user_liked(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
         try:
             user_like = EntityUserStats.objects.get(
-                user = user,
-                stats = self,
+                user=user,
+                stats=self,
             )
-            return user_like.like_level
+            return True, user_like.like_level
         except:
-            return 0
+            return False, 0
 
     def like(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
         stat, created = EntityUserStats.objects.get_or_create(
@@ -601,7 +621,9 @@ class EntityEngagementStats(models.Model):
             self.like_count += 1
             self.agg_like_level = ((self.agg_like_level * (self.like_count - 1)) + level) / self.like_count
         else:
-            self.agg_like_level = ((self.agg_like_level * self.like_count) - self.user_liked(user) + level) / self.like_count
+            self.agg_like_level = ((self.agg_like_level * self.like_count) - stat.like_level + level) / self.like_count
+            stat.like_level = level
+            stat.save()
 
         self.save()
 

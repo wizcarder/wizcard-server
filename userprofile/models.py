@@ -323,7 +323,7 @@ class UserProfile(models.Model):
 
         campaigns = Product.objects.users_entities(self.user)
         if campaigns.count():
-            camp_data = ProductSerializer(campaigns, many=True).data
+            camp_data = ProductSerializer(campaigns, many=True, context={'user':self.user}).data
             s['campaigns'] = camp_data
 
         Notification.objects.unacted(self.user).update(readed=False)

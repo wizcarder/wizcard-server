@@ -5,9 +5,19 @@ import hashlib
 import pdb
 
 
-class UserSerializer(serializers.ModelSerializer):
-
+class UserSerializerL0(serializers.ModelSerializer):
     class Meta:
+        model = User
+        fields = ('user_id', 'email', 'first_name', 'last_name')
+
+    user_id = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
+    email = serializers.PrimaryKeyRelatedField(source='wizcard.email', read_only=True)
+
+
+# used by portal
+class UserSerializer(UserSerializerL0):
+
+    class Meta(UserSerializerL0.Meta):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name')
 
