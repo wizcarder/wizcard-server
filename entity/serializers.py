@@ -289,7 +289,7 @@ class EventSerializer(EntitySerializerL2):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
-    speakers = serializers.PrimaryKeyRelatedField(many=True, queryset=Speaker.objects.all())
+    speakers = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Speaker.objects.all())
 
     class Meta:
         model = Event
@@ -297,7 +297,7 @@ class EventSerializer(EntitySerializerL2):
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
-        speakers = validated_data.pop('speakers', None)
+        speakers = validated_data.pop('speakers', [])
         self.prepare(validated_data)
 
         event = Event.objects.create(entity_type=BaseEntity.EVENT, **validated_data)
@@ -311,7 +311,7 @@ class EventSerializer(EntitySerializerL2):
     def update(self, instance, validated_data):
         instance.start = validated_data.pop("start", instance.start)
         instance.end = validated_data.pop("end", instance.end)
-        speakers = validated_data.pop('speakers', None)
+        speakers = validated_data.pop('speakers', [])
 
         instance = super(EventSerializer, self).update(instance, validated_data)
 
