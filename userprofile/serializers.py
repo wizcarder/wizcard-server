@@ -11,7 +11,7 @@ class UserSerializerL0(serializers.ModelSerializer):
         fields = ('user_id', 'email', 'first_name', 'last_name')
 
     user_id = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
-    email = serializers.PrimaryKeyRelatedField(source='wizcard.email', read_only=True)
+    email = serializers.EmailField(source='wizcard.email', read_only=True)
 
 
 # used by portal
@@ -20,6 +20,9 @@ class UserSerializer(UserSerializerL0):
     class Meta(UserSerializerL0.Meta):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name')
+
+    email = serializers.EmailField()
+
 
     def create(self, validated_data):
         username = validated_data.get('username')
