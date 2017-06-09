@@ -10,7 +10,8 @@ from media_mgr.signals import media_create
 from location_mgr.serializers import LocationSerializerField
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
-from wizcardship.serializers import WizcardSerializerThumbnail, WizcardSerializerL1
+from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
+from wizcardship.models import Wizcard
 from django.utils import timezone
 from random import sample
 
@@ -73,7 +74,7 @@ class EntitySerializerL0(serializers.ModelSerializer):
 
 # these shouldn't be directly used.
 class EntitySerializerL1(EntitySerializerL0):
-    media = MediaObjectsSerializer(many=True)
+    media = serializers.SerializerMethodField(read_only=True)
     location = LocationSerializerField(required=False)
     users = serializers.SerializerMethodField(read_only=True)
     friends = serializers.SerializerMethodField(read_only=True)
@@ -87,8 +88,11 @@ class EntitySerializerL1(EntitySerializerL0):
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
-                     'users', 'creator', 'joined', 'like', 'description')
+                     'secure', 'users', 'creator', 'joined', 'like', 'description')
         fields = EntitySerializerL0.Meta.fields + my_fields
+
+    def get_media(self, obj):
+        return ""
 
     def get_users(self, obj):
         qs = obj.users.exclude(wizcard__isnull=True)
@@ -104,17 +108,17 @@ class EntitySerializerL1(EntitySerializerL0):
 
         out = dict(
             count=count,
-            data=WizcardSerializerThumbnail(wizcards, many=True).data
+            data=WizcardSerializerL0(wizcards, many=True).data
         )
         return out
 
     def get_friends(self, obj):
-        user = self.context.get('user', None)
+        user = self.context.get('user')
 
         friends_wizcards = obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT)
         out = dict(
             count=len(friends_wizcards),
-            data=WizcardSerializerThumbnail(friends_wizcards, many=True).data
+            data=WizcardSerializerL0(friends_wizcards, many=True).data
         )
         return out
 
@@ -128,10 +132,10 @@ class EntitySerializerL1(EntitySerializerL0):
 
 # these shouldn't be directly used.
 class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
-    media = MediaObjectsSerializer(many=True)
+    media = MediaObjectsSerializer(many=True, required=False)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(many=True, required=False)
-    ext_fields = serializers.DictField()
+    ext_fields = serializers.DictField(required=False)
     engagements = EntityEngagementSerializer(read_only=True)
 
     class Meta(EntitySerializerL1.Meta):
@@ -154,7 +158,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
     # no need to send friends at L2. removing it from the fields list seems convoluted
     def get_friends(self, obj):
-        return None
+        return ""
 
     # def get_friends(self, obj):
     #     user = self.context.get('user')
@@ -165,13 +169,6 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     #         data=WizcardSerializerL1(friends_wizcards, many=True).data
     #     )
     #     return out
-
-    # this is not really used in this class. It's used in sub-classes
-    def get_media(self, obj):
-        return MediaObjectsSerializer(
-            obj.media.all(),
-            many=True
-        ).data
 
     def prepare(self, validated_data):
         self.media = validated_data.pop('media', None)
@@ -244,7 +241,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
     #     super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
 
     media = MediaObjectsSerializer(many=True, required=False)
-    ext_fields = serializers.DictField()
+    ext_fields = serializers.DictField(required=False)
 
     class Meta:
         model = Speaker
@@ -327,7 +324,6 @@ class EventSerializer(EntitySerializerL2):
 class EventSerializerL1(EntitySerializerL1):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
-    media = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Event
@@ -341,19 +337,16 @@ class EventSerializerL1(EntitySerializerL1):
         ).data
 
 # these are used by App.
-class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
+class EventSerializerL2(EntitySerializerL2):
+    start = serializers.DateTimeField(read_only=True)
+    end = serializers.DateTimeField(read_only=True)
+    # overriding as a method field
     speakers = SpeakerSerializer(many=True)
 
     class Meta:
         model = Event
         my_fields = ('start', 'end', 'speakers',)
         fields = EntitySerializerL2.Meta.fields + my_fields
-
-    def get_media(self, obj):
-        return MediaObjectsSerializer(
-            obj.media.all(),
-            many=True
-        ).data
 
     def get_users(self, obj):
         count = 0
@@ -385,6 +378,12 @@ class ProductSerializerL1(EntitySerializerL1):
         my_fields = ('media', 'name', 'address', 'tags', 'joined', 'like', 'description',)
         # using L0 fields since not all L1 base class fields are needed
         fields = EntitySerializerL0.Meta.fields + my_fields
+
+    def get_media(self, obj):
+        return MediaObjectsSerializer(
+            obj.media.filter(media_sub_type=MediaObjects.SUB_TYPE_LOGO),
+            many=True
+        ).data
 
     def get_users(self, obj):
         count = obj.users.count()
@@ -437,6 +436,47 @@ class BusinessSerializer(EntitySerializerL2):
         self.post_create(biz)
 
         return biz
+
+
+class TableSerializerL1(EntitySerializerL1):
+    time_remaining = serializers.SerializerMethodField(read_only=True)
+    creator = WizcardSerializerL1(read_only=True, source='creator.wizcard')
+    status = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = VirtualTable
+        my_fields = ('created', 'timeout', 'time_remaining', 'creator', 'status',)
+        fields = EntitySerializerL1.Meta.fields + my_fields
+
+    def get_media(self, obj):
+        return MediaObjectsSerializer(
+            obj.media.filter(media_sub_type=MediaObjects.SUB_TYPE_THUMBNAIL),
+            many=True
+        ).data
+
+    def get_time_remaining(self, obj):
+        if not obj.expired:
+            return obj.location.get().timer.get().time_remaining()
+        return 0
+
+    def get_status(self, obj):
+        user = self.context.get('user')
+
+        if obj.is_creator(user):
+            status = "creator"
+        elif obj.is_joined(user):
+            status = "joined"
+        elif Wizcard.objects.are_wizconnections(user.wizcard, obj.creator.wizcard):
+            status = "connected"
+        else:
+            status = "others"
+
+        return status
+
+class TableSerializerL2(EntitySerializerL2):
+    class Meta:
+        model = VirtualTable
+        fields = EntitySerializerL2.Meta.fields
 
 # this is used by portal REST API
 class TableSerializer(EntitySerializerL2):

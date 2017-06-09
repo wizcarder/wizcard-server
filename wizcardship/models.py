@@ -159,6 +159,10 @@ class WizcardManager(models.Manager):
 
         return result, len(result)
 
+    def get_admin_wizcard(self):
+        return User.objects.filter(is_staff=True, is_superuser=True)[0] \
+            if User.objects.filter(is_staff=True, is_superuser=True).exists() else None
+
     def get_connection_status(self, wizcard1, wizcard2):
         if wizcard1 == wizcard2:
             return verbs.OWN
@@ -220,19 +224,29 @@ class Wizcard(models.Model):
     def __unicode__(self):
         return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
 
-    def serialize(self, template=fields.wizcard_template_full):
-        return serialize(self, **template)
+    def serialize_wizconnections(self):
+        out = []
+        # doing import here to avoid circular import. This does affect performance
+        # (eventhough django caches re-imports). Still, doing it here since this
+        # method is called only in the resync path
+        from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
+        admin = self.get_admin_wizcard()
+        out.append(WizcardSerializerL2(admin, many=True, context={'status': verbs.ADMIN}).data)
 
-    def serialize_wizconnections(self, template=fields.wizcard_template_full):
-        s1 = serialize(self.get_connections_with_admin(), **template)
-        s2 = serialize(self.get_following_only(), **fields.wizcard_template_half)
+        connected = self.get_connections_without_admin()
+        if connected:
+            out.append(WizcardSerializerL2(connected, many=True, context={'status': verbs.CONNECTED}).data)
 
-        return s1+s2
+        following = self.get_following_only()
+        if following:
+            out.append(WizcardSerializerL1(following, many=True, context={'status': verbs.FOLLOWED}).data)
 
-    def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
-        return serialize(
-            self.flicked_cards.exclude(expired=True),
-            **template)
+        return out
+    #
+    # def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
+    #     return serialize(
+    #         self.flicked_cards.exclude(expired=True),
+    #         **template)
 
     def get_latest_company(self):
         qs = self.contact_container.all()
@@ -271,17 +285,16 @@ class Wizcard(models.Model):
     def get_sms_url(self):
         return self.sms_url
 
-
-    def followed_status_string(self):
-        return "followed"
-
     def get_thumbnail_url(self):
-        return self.thumbnail_image.remote_url()
+        url = self.thumbnail_image.remote_url()
+        if url:
+            return url
+
+        return ""
 
     def save_vcard(self,vobj):
         self.vcard = vobj
         self.save()
-
 
     def get_name(self):
         return self.first_name + " " + self.last_name
@@ -387,24 +400,27 @@ class Wizcard(models.Model):
             requests_from__to_wizcard=self
         )
 
-    #2 way connected with admin wizcard
-    def get_connections_with_admin(self):
+    #2 way connected + admin wizcard
+    def get_connections_without_admin(self):
         return self.wizconnections_to.filter(
-            Q(user__profile__is_admin=True) |
+            Q(user__profile__is_admin=False) |
             Q(requests_to__status=verbs.ACCEPTED,
               requests_from__status=verbs.ACCEPTED,
               requests_from__to_wizcard=self
               )
         ).distinct()
 
-    def get_pending_to(self):
-        return self.get_connected_to(verbs.PENDING)
+    def get_admin_wizcard(self):
+        # ofcourse, optimal way is to simply look up via UserProfile, or
+        # even cache the admin wizcard. importing UserProfile here is causing
+        # circular import issue
+        return self.wizconnections_to.filter(Q(user__profile__is_admin=True))
 
     def get_pending_from(self):
         return self.get_connected_from(verbs.PENDING)
 
-    #those having my card (=my flood list)
-    #wrapper around get_connected_to
+    # those having my card (=my flood list)
+    # wrapper around get_connected_to
     def get_followers(self):
         return self.get_connected_to(verbs.ACCEPTED)
 
@@ -539,37 +555,37 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def serialize(self, flicked_wizcards,
-                  template=fields.flicked_wizcard_template):
-        return serialize(flicked_wizcards, **template)
-
-    def serialize_split(self, my_wizcard, flicked_wizcards):
-        s = None
-        own, connected, others = self.split_wizcard_flick(my_wizcard,
-                                                          flicked_wizcards)
-
-        s = dict()
-        if own:
-            s['own'] = self.serialize(own)
-        if connected:
-            s['connected'] = self.serialize(connected)
-        if others:
-            s['others'] = self.serialize(others)
-
-        return s
-
-    def split_wizcard_flick(self, mine, flicked_wizcards):
-        own = []
-        connected = []
-        others = []
-        for w in flicked_wizcards:
-            if w.wizcard == mine:
-                own.append(w)
-            elif Wizcard.objects.are_wizconnections(w.wizcard, mine):
-                connected.append(w)
-            else: others.append(w)
-
-        return own, connected, others
+    # def serialize(self, flicked_wizcards,
+    #               template=fields.flicked_wizcard_template):
+    #     return serialize(flicked_wizcards, **template)
+    #
+    # def serialize_split(self, my_wizcard, flicked_wizcards):
+    #     s = None
+    #     own, connected, others = self.split_wizcard_flick(my_wizcard,
+    #                                                       flicked_wizcards)
+    #
+    #     s = dict()
+    #     if own:
+    #         s['own'] = self.serialize(own)
+    #     if connected:
+    #         s['connected'] = self.serialize(connected)
+    #     if others:
+    #         s['others'] = self.serialize(others)
+    #
+    #     return s
+    #
+    # def split_wizcard_flick(self, mine, flicked_wizcards):
+    #     own = []
+    #     connected = []
+    #     others = []
+    #     for w in flicked_wizcards:
+    #         if w.wizcard == mine:
+    #             own.append(w)
+    #         elif Wizcard.objects.are_wizconnections(w.wizcard, mine):
+    #             connected.append(w)
+    #         else: others.append(w)
+    #
+    #     return own, connected, others
 
     def query_flicks(self, name, phone, email):
         #name can be first name, last name or even combined

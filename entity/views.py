@@ -21,11 +21,6 @@ class EventViewSet(BaseEntityViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return EventSerializerL2
-        return EventSerializer
-
     def get_object_or_404(self, pk):
         try:
             return Event.objects.get(pk=pk)
@@ -34,7 +29,7 @@ class EventViewSet(BaseEntityViewSet):
 
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
-        serializer = EventSerializerL2(inst, data=request.data, partial=partial)
+        serializer = EventSerializer(inst, data=request.data, partial=partial)
         if serializer.is_valid():
             serializer.save()
         else:

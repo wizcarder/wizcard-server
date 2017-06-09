@@ -22,7 +22,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from lib.ocr import OCR
-from lib.preserialize import serialize
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
@@ -30,7 +29,6 @@ from entity.models import VirtualTable
 from meishi.models import Meishi
 from response import Response, NotifResponse
 from userprofile.models import UserProfile
-from userprofile.models import AddressBook, AB_Candidate_Emails, AB_Candidate_Phones, AB_Candidate_Names, AB_User
 from userprofile.models import FutureUser
 from lib import wizlib, noembed
 from lib.create_share import send_wizcard, create_vcard
@@ -58,6 +56,8 @@ from converter import Converter
 from django.core.files import File
 from entity.serializers import EventSerializerL1, EventSerializerL2,TableSerializer, \
     EventSerializerL2, EntityEngagementSerializer
+from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
+from userprofile.serializers import UserSerializerL0
 from entity.models import EntityUserStats
 
 now = timezone.now
@@ -831,8 +831,8 @@ class ParseMsgAndDispatch(object):
                 else:
                     d['tag'] = "other"
 
-                wc = Wizcard.objects.serialize(wizcard,
-                                               template=fields.wizcard_template_brief)
+                wc = WizcardSerializerL1(wizcard, many=True, **self.user_context)
+
                 d['wizcard'] = wc
 
                 phone_count += 1
@@ -859,8 +859,7 @@ class ParseMsgAndDispatch(object):
                 else:
                     d['tag'] = "other"
 
-                wc = Wizcard.objects.serialize(wizcard,
-                                               template=fields.wizcard_template_brief)
+                wc = WizcardSerializerL1(wizcard, many=True, **self.user_context)
                 d['wizcard'] = wc
 
                 email_count += 1
@@ -1308,14 +1307,16 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def WizcardRolodexArchivedCards(self):
+        out = ""
         try:
             wizcard = self.user.wizcard
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        a_wc = wizcard.get_deleted()
-        self.response.add_data("wizcards", Wizcard.objects.serialize(a_wc, fields.wizcard_template_full))
+        w = wizcard.get_deleted()
+        self.response.add_data("wizcards", WizcardSerializerL2(out, many=True, **self.user_context).data)
+
         return self.response
 
     def WizcardFlick(self):
@@ -1435,10 +1436,10 @@ class ParseMsgAndDispatch(object):
         my_flicked_cards = self.wizcard.flicked_cards.exclude(expired=True)
 
         count = my_flicked_cards.count()
+
+        # AA: TODO
         if count:
-            flicks_s = WizcardFlick.objects.serialize(
-                my_flicked_cards,
-                fields.my_flicked_wizcard_template)
+            flicks_s = WizcardSerializerL2(my_flicked_cards, many=True, **self.user_context)
             self.response.add_data("queryResult", flicks_s)
         self.response.add_data("count", count)
 
@@ -1828,20 +1829,16 @@ class ParseMsgAndDispatch(object):
             email = None
 
         result, count = Wizcard.objects.query_users(self.user, name, phone, email)
-        #send back to app for selection
 
         if count:
-            users_s = UserProfile.objects.serialize_split(
-                self.user,
-                map(lambda x: x.user, result))
-            self.response.add_data("queryResult", users_s)
+            out = WizcardSerializerL1(result, many=True, **self.user_context).data
+            self.response.add_data("queryResult", out)
         self.response.add_data("count", count)
 
         return self.response
 
     def GetCommonConnections(self):
         MAX_L1_LIST_VIEW = 3
-
 
         try:
             wizcard1 = Wizcard.objects.get(id=self.sender['wizcard_id'])
@@ -1860,7 +1857,7 @@ class ParseMsgAndDispatch(object):
         count = len(common)
         split = None if count < MAX_L1_LIST_VIEW or full else MAX_L1_LIST_VIEW
         if count:
-            common_s = Wizcard.objects.serialize(common[:split], fields.wizcard_template_brief)
+            common_s = WizcardSerializerL1(common[:split], many=True, **self.user_context).data
             self.response.add_data("wizcards", common_s)
         self.response.add_data("total", count)
 
@@ -1909,12 +1906,9 @@ class ParseMsgAndDispatch(object):
             return self.response
         r_userprofile = wizcard.user.profile
 
-        if r_userprofile.is_profile_private:
-            template = fields.wizcard_template_brief
-        else:
-            template = fields.wizcard_template_full
+        s = WizcardSerializerL1 if r_userprofile.is_profile_private else WizcardSerializerL2
+        out = WizcardSerializerL2(wizcard).data
 
-        out = Wizcard.objects.serialize(wizcard, template)
         self.response.add_data("Details", out)
         return self.response
 
@@ -2130,9 +2124,7 @@ class ParseMsgAndDispatch(object):
         users, count = self.userprofile.lookup(
             settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
         if count:
-            out = UserProfile.objects.serialize(
-                users,
-                fields.wizcard_template_brief)
+            out = UserSerializerL0(users, many=True).data
             self.response.add_data("m_nearby", out)
 
         return self.response
@@ -2149,20 +2141,13 @@ class ParseMsgAndDispatch(object):
         if m_res:
             cctx = ConnectionContext(asset_obj=m)
             Wizcard.objects.exchange(m.wizcard, m_res.wizcard, cctx)
-            #AA:Comments: can send a smaller serilized output
-            #wizcard_template_full is not required. All the app needs is
-            #wizcard_id, f_bizcard_url
-            out = Wizcard.objects.serialize(
-                m_res.wizcard,
-                template = fields.wizcard_template_brief)
+            out = WizcardSerializerL1(m_res.wizcard).data
             self.response.add_data("m_result", out)
         else:
             users, count = self.userprofile.lookup(
                 settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
             if count:
-                out = UserProfile.objects.serialize(
-                    users,
-                    fields.wizcard_template_brief)
+                out = UserSerializerL0(users, many=True).data
                 self.response.add_data("m_nearby", out)
 
         return self.response

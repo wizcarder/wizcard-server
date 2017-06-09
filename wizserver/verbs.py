@@ -126,8 +126,8 @@ NOTIF_WITHDRAW_REQUEST          = 11
 NOTIF_WIZWEB_UPDATE_WIZCARD     = 12
 NOTIF_TABLE_INVITE              = 13
 NOTIF_WIZCARD_FORWARD           = 14
-NOTIF_ENTITY_JOIN                = 15
-NOTIF_ENTITY_LEAVE               = 16
+NOTIF_ENTITY_JOIN               = 15
+NOTIF_ENTITY_LEAVE              = 16
 NOTIF_FOLLOW_EXPLICIT           = 17
 
 # receiver types
@@ -162,6 +162,7 @@ RELATIONSHIP_STATUSES = (
 )
 
 # tags
+ADMIN = "admin"
 OWN = "own"
 CONNECTED = "connected"
 FOLLOWER = "follower"
