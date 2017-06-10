@@ -150,7 +150,7 @@ class BaseEntity(PolymorphicModel):
     @classmethod
     def entity_cls_ser_from_type(self, type=None, detail=False):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
-            ProductSerializer, BusinessSerializer, TableSerializer, EntitySerializerL2, \
+            BusinessSerializer, TableSerializerL1, TableSerializerL2, EntitySerializerL2, \
             ProductSerializerL1, ProductSerializerL2
         if type == self.EVENT:
             cls = Event
@@ -168,7 +168,10 @@ class BaseEntity(PolymorphicModel):
             serializer = BusinessSerializer
         elif type == self.TABLE:
             cls = VirtualTable
-            serializer = TableSerializer
+            if detail == True:
+                serializer = TableSerializerL2
+            else:
+                serializer = TableSerializerL1
         else:
             cls = BaseEntity
             serializer = EntitySerializerL2
@@ -494,13 +497,6 @@ class VirtualTable(BaseEntity):
             self,
         )
         return
-
-    def get_member_wizcards(self):
-        members = map(lambda u: u.wizcard, self.users.all().exclude(id=self.creator.id))
-        return serialize(members, **fields.wizcard_template_brief)
-
-    def get_creator(self):
-        return serialize(self.creator.wizcard, **fields.wizcard_template_brief)
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)

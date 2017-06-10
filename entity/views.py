@@ -43,8 +43,6 @@ class EventViewSet(BaseEntityViewSet):
 
     def get_queryset(self):
         queryset = Event.objects.all()
-
-        pdb.set_trace()
         uid = self.request.query_params.get('user', None)
         user = User.objects.get(id=uid)
         if user is not None:
@@ -54,7 +52,7 @@ class EventViewSet(BaseEntityViewSet):
 
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
-        serializer = EventSerializerL2(inst, data=request.data, partial=partial)
+        serializer = EventSerializer(inst, data=request.data, partial=partial)
         if serializer.is_valid():
             serializer.save()
         else:

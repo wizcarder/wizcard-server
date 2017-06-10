@@ -14,6 +14,8 @@ import simplejson as json
 import pdb
 from wizserver import verbs
 from entity.serializers import ProductSerializer, EntitySerializerL0
+from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1, WizcardSerializerL2
+from entity.serializers import TableSerializerL1
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -94,7 +96,6 @@ class NotifResponse(ResponseN):
             verbs.WIZREQ_T[0]  	                : self.notifWizConnectionT,
             verbs.WIZREQ_T_HALF[0]              : self.notifWizConnectionH,
             verbs.WIZREQ_F[0]                   : self.notifWizConnectionF,
-            verbs.WIZCARD_ACCEPT[0]             : self.notifAcceptedWizcard,
             verbs.WIZCARD_REVOKE[0]	            : self.notifRevokedWizcard,
             verbs.WIZCARD_WITHDRAW_REQUEST[0]   : self.notifWithdrawRequest,
             verbs.WIZCARD_DELETE[0]	            : self.notifRevokedWizcard,
@@ -115,10 +116,14 @@ class NotifResponse(ResponseN):
 
     def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
-        template = fields.wizcard_template_half if half else fields.wizcard_template_full
+        if half:
+            s = WizcardSerializerL1
+            status = verbs.FOLLOWED
+        else:
+            s = WizcardSerializerL2
+            status = verbs.CONNECTED
 
-        out = Wizcard.objects.serialize(wizcard,
-                template=template)
+        out = s(wizcard, context={'status': status}).data
 
         if notif.action_object and notif.action_object.cctx != '':
             cctx = notif.action_object.cctx
@@ -161,11 +166,6 @@ class NotifResponse(ResponseN):
     def notifWizConnectionF(self, notif):
         return self.notifWizcard(notif, verbs.NOTIF_FOLLOW_EXPLICIT)
 
-    def notifAcceptedWizcard(self, notif):
-        out = dict(wizCardID=notif.target_object_id)
-        self.add_data_and_seq_with_notif(out, verbs.NOTIF_WIZCARD_ACCEPT, notif.id)
-        return self.response
-
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
         #AA:TODO we're using user id, but could actually used wizcardID
@@ -188,7 +188,7 @@ class NotifResponse(ResponseN):
 
     def notifJoinEntity(self, notif):
         wizcard=notif.actor.wizcard
-        ws = wizcard.serialize(fields.wizcard_template_thumbnail_only)
+        ws = WizcardSerializerL0(wizcard, context={'user': notif.recipient}).data
 
         if notif.target:  # since there is a possibility that the entity got destroyed in-between
             s = EntitySerializerL0(notif.target).data
@@ -203,7 +203,7 @@ class NotifResponse(ResponseN):
 
     def notifLeaveEntity(self, notif):
         wizcard=notif.actor.wizcard
-        ws = wizcard.serialize(fields.wizcard_template_thumbnail_only)
+        ws = WizcardSerializerL0(wizcard)
 
         if notif.target:
             s = EntitySerializerL0(notif.target).data
@@ -237,10 +237,8 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifWizcardTableInvite(self, notif):
-        s_out = Wizcard.objects.serialize(notif.actor.wizcard,
-                                          template=fields.wizcard_template_brief)
-        a_out = VirtualTable.objects.serialize(notif.target,
-                                               template=fields.nearby_table_template)
+        s_out = WizcardSerializerL1(notif.actor.wizcard, context={'user': notif.recipient}).data
+        a_out = TableSerializerL1(notif.target, context={'user': notif.recipient}).data
 
         out = dict(sender=s_out, asset=a_out)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_INVITE, notif.id)
@@ -259,19 +257,14 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifUserLookup(self, count, me, users):
-        out = None
-        if users:
-            out = UserProfile.objects.serialize_split(me, users)
-            self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_USERS)
+        wizcards = map(lambda u: u.wizcard, users)
+        out = WizcardSerializerL1(wizcards, many=True, context={'user': me}).data
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_USERS)
+
         return self.response
 
     def notifTableLookup(self, count, user, tables):
-        out = None
-        if tables:
-            out = VirtualTable.objects.serialize_split(
-                tables,
-                user,
-                fields.nearby_table_template
-            )
-            self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_TABLES)
+        out = TableSerializerL1(tables, many=True, context={'user': user}).data
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_TABLES)
+
         return self.response

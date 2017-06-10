@@ -10,7 +10,8 @@ from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
 from entity.models import VirtualTable
 from entity.models import Product
-from entity.serializers import ProductSerializer
+from entity.serializers import ProductSerializer, TableSerializerL1, TableSerializerL2
+from wizcardship.serializers import WizcardSerializerL2
 from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
@@ -46,74 +47,6 @@ WIZBUSINESS_USER = BITMAP_BASE << 5
 PORTAL_USER_INTERNAL = BITMAP_BASE << 6
 
 class UserProfileManager(models.Manager):
-
-    def serialize_split(self, me, users):
-        s = dict()
-        template = fields.wizcard_template_brief
-
-        ret = self.split_users(me, users)
-        if ret.has_key('own'):
-            s['own'] = UserProfile.objects.serialize(ret['own'], template)
-        if ret.has_key('connected'):
-            s['connected'] = UserProfile.objects.serialize(ret['connected'], template)
-        # lets remove follower for now. The *assumption* is that follower is represented on
-        # the me.app as a notif anyway. Since they are on the same screen, it's redundant.
-        # if ret.has_key('follower'):
-        #    s['follower'] = UserProfile.objects.serialize(ret['follower'], template)
-        if ret.has_key('follower-d'):
-            s['follower-d'] = UserProfile.objects.serialize(ret['follower-d'], template)
-        if ret.has_key('followed'):
-            s['followed'] = UserProfile.objects.serialize(ret['followed'], template)
-        if ret.has_key('others'):
-            s['others'] = UserProfile.objects.serialize(ret['others'], template)
-
-        return s
-
-    def split_users(self, me, users):
-        own = []
-        connected = []
-        follower = []
-        follower_d = []
-        followed = []
-        others = []
-
-        ret = dict()
-
-        for user in users:
-            connection_status = Wizcard.objects.get_connection_status(me.wizcard, user.wizcard)
-            if connection_status == verbs.OWN:
-                own.append(user)
-            elif connection_status == verbs.CONNECTED:
-                # 2-way connected
-                connected.append(user)
-            elif connection_status == verbs.FOLLOWER:
-                follower.append(user)
-            elif connection_status == verbs.FOLLOWER_D:
-                follower_d.append(user)
-            elif connection_status == verbs.FOLLOWED:
-                followed.append(user)
-            else:
-                others.append(user)
-
-        if len(own):
-            ret[verbs.OWN] = own
-        if len(connected):
-            ret[verbs.CONNECTED] = connected
-        if len(follower):
-            ret[verbs.FOLLOWER] = follower
-        if len(follower_d):
-            ret[verbs.FOLLOWER_D] = follower_d
-        if len(followed):
-            ret[verbs.FOLLOWED] = followed
-        if len(others):
-            ret[verbs.OTHERS] = others
-
-        return ret
-
-    def serialize(self, users, template):
-        wizcards = map(lambda u: u.wizcard, users)
-        return serialize(wizcards, **template)
-
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         userid = ''.join(random.choice(chars) for x in range(size))
         try:
@@ -276,12 +209,12 @@ class UserProfile(models.Model):
         except ObjectDoesNotExist:
             return s
 
-        s['wizcard'] = wizcard.serialize(fields.wizcard_template_full)
-        # flicks (put  before wizconnections since wizconnection could refer to flicks)
+        s['wizcard'] = WizcardSerializerL2(wizcard, context={'user': self.user}).data
 
-        if wizcard.flicked_cards.count():
-            wf = wizcard.serialize_wizcardflicks()
-            s['wizcard_flicks'] = wf
+        # # flicks (put  before wizconnections since wizconnection could refer to flicks)
+        # if wizcard.flicked_cards.count():
+        #     wf = wizcard.serialize_wizcardflicks()
+        #     s['wizcard_flicks'] = wf
 
         # wizconnections
         if wizcard.wizconnections_from.count():
@@ -299,16 +232,13 @@ class UserProfile(models.Model):
                 notes=x.cctx.notes,
                 timestamp=x.created.strftime("%d %B %Y")).context, conn)
 
-            s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
+            s['context'] = serialize(cctx)
 
         # tables
         tables = VirtualTable.objects.users_entities(self.user)
         if tables.count():
             # serialize created and joined tables
-            tbls = VirtualTable.objects.serialize_split(
-                tables,
-                self.user,
-                fields.table_template)
+            tbls = TableSerializerL1(tables, many=True, context={'user': self.user}).data
             s['tables'] = tbls
 
         # dead card
