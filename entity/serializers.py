@@ -235,7 +235,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         return instance
 
 class EventComponentSerializer(serializers.ModelSerializer):
-    media = MediaObjectsSerializer(many=True)
+    media = MediaObjectsSerializer(many=True, required=False)
     caption = serializers.CharField(required=False)
 
 
@@ -252,13 +252,23 @@ class EventComponentSerializer(serializers.ModelSerializer):
             media_create.send(sender=component, objs=self.media)
 
         return component
+    def update(self, instance, validated_data):
+        instance.caption = validated_data.pop('caption', instance.caption)
+
+        # handle related objects. It's a replace
+        media = validated_data.pop('media', None)
+        if media:
+            instance.media.all().delete()
+            media_create.send(sender=instance, objs=media)
+        instance.save()
+        return instance
+
 
 
 class SpeakerSerializer(EventComponentSerializer):
     # def __init__(self, *args, **kwargs):
     #     many = kwargs.pop('many', True)
     #     super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
-    media = MediaObjectsSerializer(many=True, required=False)
     ext_fields = serializers.DictField(required=False)
 
     class Meta:

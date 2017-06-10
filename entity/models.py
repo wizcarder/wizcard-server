@@ -566,6 +566,7 @@ class Speaker(EventComponent):
     org = models.CharField(max_length=100, blank=True)
     designation = models.CharField(max_length=100, blank=True)
     ext_fields = PickledObjectField(default={}, blank=True)
+    description = models.TextField(blank=True)
 
 class SpeakerEvent(models.Model):
     speaker = models.ForeignKey(Speaker)

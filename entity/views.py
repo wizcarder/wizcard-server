@@ -26,14 +26,15 @@ class EventViewSet(BaseEntityViewSet):
         user = self.request.query_params.get('user', None)
         if self.request.method == 'GET' and user is not None:
             return EventSerializerL2
-
         return EventSerializer
 
     def get_serializer_context(self):
         uid = self.request.query_params.get('user', None)
-        user = User.objects.get(id=uid)
-        if user is not None:
+        if uid is not None:
+            user = User.objects.get(id=uid)
             return {'user': user}
+        else:
+            return {}
 
     def get_object_or_404(self, pk):
         try:
@@ -44,8 +45,8 @@ class EventViewSet(BaseEntityViewSet):
     def get_queryset(self):
         queryset = Event.objects.all()
         uid = self.request.query_params.get('user', None)
-        user = User.objects.get(id=uid)
-        if user is not None:
+        if uid is not None:
+            user = User.objects.get(id=uid)
             queryset = queryset.filter(creator=user)
         return queryset
 
