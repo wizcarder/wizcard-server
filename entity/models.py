@@ -327,6 +327,7 @@ class Event(BaseEntity):
     end = models.DateTimeField(auto_now_add=True)
 
     speakers = models.ManyToManyField('Speaker', related_name='events', through='SpeakerEvent')
+    sponsors = models.ManyToManyField('Sponsor', related_name='events', through='SponsorEvent')
 
     objects = EventManager()
 
@@ -341,6 +342,13 @@ class Event(BaseEntity):
             obj.description = description
             obj.save()
 
+        return obj
+
+    def add_sponsor(self, sponsor_obj):
+        obj, created = SponsorEvent.objects.get_or_create(
+            event=self,
+            sponsor=sponsor_obj
+        )
         return obj
 
     def join(self, user):
@@ -549,26 +557,34 @@ class VirtualTable(BaseEntity):
             return self.location.get().timer.get().time_remaining()
         return 0
 
+class EventComponent(models.Model):
+    caption = models.CharField(max_length=50, default='Not Available')
+    media = generic.GenericRelation(MediaObjects)
 
-class Speaker(models.Model):
+class Speaker(EventComponent):
     first_name = TruncatingCharField(max_length=40, blank=True)
     last_name = TruncatingCharField(max_length=40, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
-
     vcard = models.TextField(blank=True)
     org = models.CharField(max_length=100, blank=True)
     designation = models.CharField(max_length=100, blank=True)
-
     ext_fields = PickledObjectField(default={}, blank=True)
-    media = generic.GenericRelation(MediaObjects)
-    description = models.TextField(default="Not Available")
-
 
 class SpeakerEvent(models.Model):
     speaker = models.ForeignKey(Speaker)
     event = models.ForeignKey(Event)
     description = models.CharField(max_length=1000)
+
+class Sponsor(EventComponent):
+    name = TruncatingCharField(max_length=50, blank=True)
+
+class SponsorEvent(models.Model):
+    sponsor = models.ForeignKey(Sponsor)
+    event = models.ForeignKey(Event)
+    campaign = models.ForeignKey(Product, null=True, blank=True)
+
+
 
 
 # Join Table.

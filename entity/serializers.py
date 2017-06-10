@@ -3,7 +3,7 @@ from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from media_mgr.models import MediaObjects
 from rest_framework.validators import ValidationError
-from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, Speaker
+from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, Speaker, EventComponent, Sponsor
 from entity.models import EntityEngagementStats
 from django.contrib.auth.models import User
 from media_mgr.signals import media_create
@@ -237,13 +237,30 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         instance.save()
         return instance
 
+class EventComponentSerializer(serializers.ModelSerializer):
+    media = MediaObjectsSerializer(many=True)
+    caption = serializers.CharField(required=False)
 
-class SpeakerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EventComponent
+        fields = "__all__"
+
+    def prepare(self, validated_data):
+        self.media = validated_data.pop('media', None)
+
+
+    def post_create(self, component):
+        if self.media:
+            media_create.send(sender=component, objs=self.media)
+
+        return component
+
+
+class SpeakerSerializer(EventComponentSerializer):
     # def __init__(self, *args, **kwargs):
     #     many = kwargs.pop('many', True)
     #     super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
-
-    media = MediaObjectsSerializer(many=True, required=False)
     ext_fields = serializers.DictField()
 
     class Meta:
@@ -252,11 +269,10 @@ class SpeakerSerializer(serializers.ModelSerializer):
         read_only_fields = ('vcard',)
 
     def create(self, validated_data):
-        media = validated_data.pop('media', None)
+        self.prepare(validated_data)
 
         s = Speaker.objects.create(**validated_data)
-        if media:
-            media_create.send(sender=s, objs=media)
+        self.post_create(s)
 
         return s
 
@@ -269,13 +285,29 @@ class SpeakerSerializer(serializers.ModelSerializer):
         instance.designation = validated_data.pop("designation", instance.designation)
         instance.ext_fields = validated_data.pop("ext_fields", instance.ext_fields)
         instance.description = validated_data.pop("description", instance.description)
-
-        media = validated_data.pop('media', None)
-        if media:
-            instance.media.all().delete()
-            media_create.send(sender=instance, objs=media)
-
         instance.save()
+
+        instance = super(SpeakerSerializer, self).update(instance, validated_data)
+        return instance
+
+class SponsorSerializer(EventComponentSerializer):
+
+
+    class Meta:
+        model = Sponsor
+        fields = "__all__"
+
+
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        s = Sponsor.objects.create(**validated_data)
+        self.post_create(s)
+        return s
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.pop("name", instance.name)
+        instance.save()
+        instance = super(SponsorSerializer, self).update(instance, validated_data)
         return instance
 
 # this is used by portal REST API
@@ -290,14 +322,16 @@ class EventSerializer(EntitySerializerL2):
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
     speakers = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Speaker.objects.all())
+    sponsors = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Sponsor.objects.all())
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers',)
+        my_fields = ('start', 'end', 'speakers', 'sponsors')
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
         speakers = validated_data.pop('speakers', [])
+        sponsors = validated_data.pop('sponsors', [])
         self.prepare(validated_data)
 
         event = Event.objects.create(entity_type=BaseEntity.EVENT, **validated_data)
@@ -306,12 +340,16 @@ class EventSerializer(EntitySerializerL2):
         for s in speakers:
             event.add_speaker(s)
 
+        for s in sponsors:
+            event.add_sponsor(s)
+
         return event
 
     def update(self, instance, validated_data):
         instance.start = validated_data.pop("start", instance.start)
         instance.end = validated_data.pop("end", instance.end)
         speakers = validated_data.pop('speakers', [])
+        sponsors = validated_data.pop('sponsors', [])
 
         instance = super(EventSerializer, self).update(instance, validated_data)
 
@@ -319,6 +357,11 @@ class EventSerializer(EntitySerializerL2):
             instance.speakers.clear()
             for s in speakers:
                 instance.add_speaker(s)
+
+        if sponsors:
+            instance.sponsors.clear()
+            for s in sponsors:
+                instance.add_sponsor(s)
 
         return instance
 
@@ -342,11 +385,13 @@ class EventSerializerL1(EntitySerializerL1):
 
 # these are used by App.
 class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
-    speakers = SpeakerSerializer(many=True)
+
+    speakers = SpeakerSerializer(required=False, many=True)
+    sponsors = SponsorSerializer(many=True, required=False)
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers',)
+        my_fields = ('start', 'end', 'speakers', 'sponsors')
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def get_media(self, obj):
