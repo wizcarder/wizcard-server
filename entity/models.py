@@ -581,6 +581,10 @@ class SponsorEvent(models.Model):
     event = models.ForeignKey(Event)
     campaign = models.ForeignKey(Product, null=True, blank=True)
 
+    def add_campaign(self, campaign):
+        self.campaign = campaign
+        self.save()
+
 
 
 
