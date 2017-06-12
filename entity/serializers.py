@@ -52,6 +52,16 @@ class RelatedSerializerField(serializers.RelatedField):
             serializer = TableSerializer(value.object, context=self.context)
         return serializer.data
 
+# this is used in the app path since related needs 'joined'
+class RelatedSerializerFieldL2(RelatedSerializerField):
+    def to_representation(self, value):
+        if isinstance(value.object, Product):
+            serializer = ProductSerializerL2(value.object, context=self.context)
+        elif isinstance(value.object, Business):
+            serializer = BusinessSerializer(value.object, context=self.context)
+        elif isinstance(value.object, VirtualTable):
+            serializer = TableSerializerL2(value.object, context=self.context)
+        return serializer.data
 
 class EntityEngagementSerializer(serializers.Serializer):
     class Meta:
@@ -134,7 +144,7 @@ class EntitySerializerL1(EntitySerializerL0):
 class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     media = MediaObjectsSerializer(many=True, required=False)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
-    related = RelatedSerializerField(many=True, required=False)
+    related = RelatedSerializerFieldL2(many=True, required=False)
     ext_fields = serializers.DictField(required=False)
     engagements = EntityEngagementSerializer(read_only=True)
 
@@ -234,6 +244,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         instance.save()
         return instance
 
+
 class EventComponentSerializer(serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True, required=False)
     caption = serializers.CharField(required=False)
@@ -246,12 +257,12 @@ class EventComponentSerializer(serializers.ModelSerializer):
     def prepare(self, validated_data):
         self.media = validated_data.pop('media', None)
 
-
     def post_create(self, component):
         if self.media:
             media_create.send(sender=component, objs=self.media)
 
         return component
+
     def update(self, instance, validated_data):
         instance.caption = validated_data.pop('caption', instance.caption)
 
@@ -262,7 +273,6 @@ class EventComponentSerializer(serializers.ModelSerializer):
             media_create.send(sender=instance, objs=media)
         instance.save()
         return instance
-
 
 
 class SpeakerSerializer(EventComponentSerializer):
@@ -299,12 +309,9 @@ class SpeakerSerializer(EventComponentSerializer):
         return instance
 
 class SponsorSerializer(EventComponentSerializer):
-
-
     class Meta:
         model = Sponsor
         fields = "__all__"
-
 
     def create(self, validated_data):
         self.prepare(validated_data)
@@ -317,6 +324,7 @@ class SponsorSerializer(EventComponentSerializer):
         instance.save()
         instance = super(SponsorSerializer, self).update(instance, validated_data)
         return instance
+
 
 # this is used by portal REST API
 class EventSerializer(EntitySerializerL2):
@@ -392,9 +400,6 @@ class EventSerializerL1(EntitySerializerL1):
 
 # these are used by App.
 class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
-
-    start = serializers.DateTimeField(read_only=True)
-    end = serializers.DateTimeField(read_only=True)
     # overriding as a method field
     speakers = SpeakerSerializer(required=False, many=True)
     sponsors = SponsorSerializer(many=True, required=False)
