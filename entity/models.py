@@ -621,7 +621,9 @@ class EntityEngagementStats(models.Model):
                 user=user,
                 stats=self,
             )
-            return True, user_like.like_level
+            like_level = user_like.like_level
+            liked = True if like_level else False
+            return liked, user_like.like_level
         except:
             return False, 0
 
