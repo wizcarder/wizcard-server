@@ -1203,7 +1203,7 @@ class ParseMsgAndDispatch(object):
             verb1 = verbs.WIZREQ_T_HALF[0]
             verb2 = None
         # Q notif to both sides.
-            notify.send(self.r_user,
+        notify.send(self.r_user,
                     recipient=self.user,
                     verb=verb1,
                     target=wizcard2,
