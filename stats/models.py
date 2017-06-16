@@ -409,7 +409,7 @@ class Stats(models.Model):
 def create_user_stats(sender, instance, created, **kwargs):
     if created:
         user_stats = Stats(user=instance)
-        if UserProfile.objects.is_admin_user(instance):
+        if instance.profile.is_admin:
             user_stats.is_global = True
         user_stats.save()
 

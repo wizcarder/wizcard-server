@@ -1145,7 +1145,6 @@ class ParseMsgAndDispatch(object):
 
         except KeyError:
             self.security_exception()
-            self.security_exception()
             self.response.ignore()
             return self.response
         except ObjectDoesNotExist:

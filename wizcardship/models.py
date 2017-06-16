@@ -164,6 +164,8 @@ class WizcardManager(models.Manager):
             if User.objects.filter(is_staff=True, is_superuser=True).exists() else None
 
     def get_connection_status(self, wizcard1, wizcard2):
+        if wizcard2.is_admin_wizcard():
+            return verbs.ADMIN
         if wizcard1 == wizcard2:
             return verbs.OWN
         elif Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
@@ -274,9 +276,8 @@ class Wizcard(models.Model):
     def connected_status_string(self):
         return "connected"
 
-    def is_admin(self):
-        from userprofile.models import UserProfile
-        return UserProfile.objects.is_admin_user(self.user)
+    def is_admin_wizcard(self):
+        return self.user.profile.is_admin
     
     def save_sms_url(self,url):
         self.sms_url =  wizlib.shorten_url(url)

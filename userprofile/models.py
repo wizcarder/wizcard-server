@@ -80,8 +80,15 @@ class UserProfileManager(models.Manager):
         return phone_num + settings.WIZCARD_FUTURE_USERNAME_EXTENSION
 
     def get_admin_user(self):
-        return User.objects.filter(is_staff=True, is_superuser=True)[0] \
-            if User.objects.filter(is_staff=True, is_superuser=True).exists() else None
+        admin = UserProfile.objects.filter(is_admin=True)[0].user if \
+            UserProfile.objects.filter(is_admin=True).exists() else None
+        # should not happen. failsafe just in case
+        if not admin:
+            admin = User.objects.filter(is_staff=True, is_superuser=True)[0]
+            admin.profile.is_admin = True
+            admin.profile.save()
+
+        return admin
 
     def is_admin_user(self, user):
         return user.is_staff and user.is_superuser
