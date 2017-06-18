@@ -252,7 +252,6 @@ class ParseMsgAndDispatch(object):
         return True, self.response
 
     def header_process(self):
-
         VALIDATOR = 0
         HANDLER = 1
         STATS = 2
@@ -560,11 +559,11 @@ class ParseMsgAndDispatch(object):
                     self.EventsGet,
                     Stats.objects.inc_events_get
                 ),
-            verbs.MSG_ENTITIES_LIKE:
+            verbs.MSG_ENTITIES_ENGAGE:
                 (
-                    message_format.EntitiesLikeSchema,
-                    self.EntitiesLike,
-                    Stats.objects.inc_entities_like
+                    message_format.EntitiesEngageSchema,
+                    self.EntitiesEngage,
+                    Stats.objects.inc_entities_engage
                 )
         }
 
@@ -2343,22 +2342,58 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-    def EntitiesLike(self):
-        # [{'entity_type': "", 'entity_id': "", 'like_level': ""}, ]
+    def EntitiesEngage(self):
+        s = set()
+        # {"likes": [{'entity_type': "", 'entity_id': "", 'like_level': ""}, "views": [], "follows": []}
         if 'likes' in self.sender:
-            ll = []
+            _l = []
             for item in self.sender['likes']:
                 try:
                     e = BaseEntity.objects.get(id=item['entity_id'])
                     level = item.get('like_level', EntityUserStats.MID_ENGAGEMENT_LEVEL)
                     e.engagements.like(self.user, level)
-                    ll.append(e.engagements)
+                    _l.append(e.engagements)
                 except:
                     self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            if len(_l):
+                s = s.union(_l)
+        if 'views' in self.sender:
+            _v = []
+            for item in self.sender['views']:
+                try:
+                    e = BaseEntity.objects.get(id=item['entity_id'])
+                    e.engagements.viewed(self.user)
+                    _v.append(e.engagements)
+                except:
+                    self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            if len(_v):
+                s = s.union(_v)
+        if 'follows' in self.sender:
+            _f = []
+            for item in self.sender['follows']:
+                try:
+                    e = BaseEntity.objects.get(id=item['entity_id'])
+                    e.engagements.follow(self.user)
+                    _f.append(e.engagements)
+                except:
+                    self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            if len(_f):
+                s = s.union(_f)
+        if 'unfollows' in self.sender:
+            _uf = []
+            for item in self.sender['unfollows']:
+                try:
+                    e = BaseEntity.objects.get(id=item['entity_id'])
+                    e.engagements.unfollow(self.user)
+                    _uf.append(e.engagements)
+                except:
+                    self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            if len(_uf):
+                s = s.union(_uf)
 
-            if len(ll):
-                ls = EntityEngagementSerializer(ll, many=True, context={'like_level': level})
-                self.response.add_data('result', ls.data)
+        out_list = list(s)
+        ls = EntityEngagementSerializer(out_list, many=True, **self.user_context)
+        self.response.add_data('result', ls.data)
 
         return self.response
 

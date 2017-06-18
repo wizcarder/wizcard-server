@@ -50,7 +50,6 @@ class EventViewSet(BaseEntityViewSet):
             queryset = queryset.filter(creator=user)
         return queryset
 
-
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
         serializer = EventSerializer(inst, data=request.data, partial=partial)
@@ -58,7 +57,7 @@ class EventViewSet(BaseEntityViewSet):
             serializer.save()
         else:
             raise Http404
-        return Response(serializer.data)
+        return Response(serializer.validated_data)
 
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):

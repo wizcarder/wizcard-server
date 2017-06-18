@@ -27,7 +27,7 @@ MSG_ENTITY_DETAILS      = 23
 MSG_ENTITY_QUERY        = 24
 MSG_MY_ENTITIES         = 25
 MSG_GET_EVENTS          = 26
-MSG_ENTITIES_LIKE       = 27
+MSG_ENTITIES_ENGAGE     = 28
 MSG_SETTINGS            = 28
 MSG_OCR_SELF            = 29
 MSG_OCR_DEAD_CARD       = 30
@@ -89,7 +89,7 @@ wizcardMsgTypes = {
     'entity_query'                : MSG_ENTITY_QUERY,
     'my_entities'                 : MSG_MY_ENTITIES,
     'get_events'                  : MSG_GET_EVENTS,
-    'entities_like'               : MSG_ENTITIES_LIKE,
+    'entities_like'               : MSG_ENTITIES_ENGAGE,
     'get_card_details'            : MSG_CARD_DETAILS,
     'settings'                    : MSG_SETTINGS,
     'ocr_req_self'                : MSG_OCR_SELF,

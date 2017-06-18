@@ -586,8 +586,6 @@ class SponsorEvent(models.Model):
         self.save()
 
 
-
-
 # Join Table.
 # this will contain per user level stat
 class EntityUserStats(models.Model):
@@ -603,11 +601,16 @@ class EntityUserStats(models.Model):
     # higher the number, deeper the color..maybe we can throb the
     # heart also...:-)
     like_level = models.IntegerField(default=MID_ENGAGEMENT_LEVEL)
+    following = models.BooleanField(default=False)
+    viewed = models.BooleanField(default=False)
 
 
 # the entity model will use this
 class EntityEngagementStats(models.Model):
     like_count = models.IntegerField(default=0)
+    views = models.IntegerField(default=0)
+    follows = models.IntegerField(default=0)
+    unfollows = models.IntegerField(default=0)
     agg_like_level = models.FloatField(default=EntityUserStats.MIN_ENGAGEMENT_LEVEL)
 
     users = models.ManyToManyField(
@@ -647,6 +650,48 @@ class EntityEngagementStats(models.Model):
         self.save()
 
         return self.like_count, self.agg_like_level
+
+    def viewed(self, user):
+        EntityUserStats.objects.get_or_create(
+            user=user,
+            stats=self,
+            defaults={
+                'viewed': True
+            }
+        )
+
+        self.views += 1
+        self.save()
+
+        return self.views
+
+    def follow(self, user):
+        EntityUserStats.objects.get_or_create(
+            user=user,
+            stats=self,
+            defaults={
+                'following': True
+            }
+        )
+
+        self.follows += 1
+        self.save()
+
+        return self.follows
+
+    def unfollow(self, user):
+        stat = EntityUserStats.objects.get(
+            user=user,
+            stats=self
+        )
+        stat.following = False
+        stat.save()
+
+        self.unfollows += 1
+        self.save()
+
+        return self.unfollows
+
 
 from django.dispatch import receiver
 from django.db.models.signals import post_save

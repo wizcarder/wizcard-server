@@ -4,7 +4,7 @@ from media_mgr.serializers import MediaObjectsSerializer
 from media_mgr.models import MediaObjects
 from rest_framework.validators import ValidationError
 from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, Speaker, EventComponent, Sponsor
-from entity.models import EntityEngagementStats
+from entity.models import EntityEngagementStats, EntityUserStats
 from django.contrib.auth.models import User
 from media_mgr.signals import media_create
 from location_mgr.serializers import LocationSerializerField
@@ -66,15 +66,17 @@ class RelatedSerializerFieldL2(RelatedSerializerField):
 class EntityEngagementSerializer(serializers.Serializer):
     class Meta:
         model = EntityEngagementStats
-        fields = ('like_count', 'agg_like_level')
+        fields = ('like_count', 'agg_like_level', 'views', 'follows', 'unfollows')
 
-    like_count = serializers.IntegerField(read_only=True)
-    agg_like_level = serializers.FloatField(read_only=True)
     like_level = serializers.SerializerMethodField(read_only=True)
 
     def get_like_level(self, obj):
-        like_level = self.context.get('like_level', 0)
-        return like_level
+        user = self.context.get('user')
+        if EntityUserStats.objects.filter(user=user, stats=obj).exists():
+            user_stat = EntityUserStats.objects.get(user=user, stats=obj)
+            return user_stat.like_level
+
+        return EntityUserStats.MIN_ENGAGEMENT_LEVEL
 
 # these shouldn't be directly used.
 class EntitySerializerL0(serializers.ModelSerializer):
@@ -92,13 +94,14 @@ class EntitySerializerL1(EntitySerializerL0):
     tags = TagListSerializerField(required=False)
     creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
     like = serializers.SerializerMethodField(read_only=True)
+    engagements = EntityEngagementSerializer(read_only=True)
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
-                     'secure', 'users', 'creator', 'joined', 'like', 'description')
+                     'secure', 'users', 'creator', 'joined', 'like', 'engagements', 'description')
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_media(self, obj):
@@ -146,11 +149,10 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerFieldL2(many=True, required=False)
     ext_fields = serializers.DictField(required=False)
-    engagements = EntityEngagementSerializer(read_only=True)
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
-        my_fields = ('website', 'category', 'ext_fields', 'engagements', 'phone',
+        my_fields = ('website', 'category', 'ext_fields', 'phone',
                      'email', 'description', 'owners', 'related', 'users')
         fields = EntitySerializerL1.Meta.fields + my_fields
         read_only_fields = ('entity_type',)
@@ -249,7 +251,6 @@ class EventComponentSerializer(serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True, required=False)
     caption = serializers.CharField(required=False)
 
-
     class Meta:
         model = EventComponent
         fields = "__all__"
@@ -329,7 +330,7 @@ class SponsorSerializer(EventComponentSerializer):
 # this is used by portal REST API
 class EventSerializer(EntitySerializerL2):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['joined']
+        remove_fields = ['joined', 'engagements']
         super(EventSerializer, self).__init__(*args, **kwargs)
         
         for field_name in remove_fields:
