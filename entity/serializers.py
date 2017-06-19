@@ -330,14 +330,17 @@ class SponsorSerializer(EventComponentSerializer):
 # this is used by portal REST API
 class EventSerializer(EntitySerializerL2):
     def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
         remove_fields = ['joined', 'engagements']
+
         super(EventSerializer, self).__init__(*args, **kwargs)
-        
+
         for field_name in remove_fields:
             self.fields.pop(field_name)
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
+    related = RelatedSerializerField(many=True, required=False)
     speakers = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Speaker.objects.all())
     sponsors = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Sponsor.objects.all())
 
