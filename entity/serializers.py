@@ -217,6 +217,8 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         instance.address = validated_data.pop('address', instance.address)
         instance.website = validated_data.pop('website', instance.website)
         instance.description = validated_data.pop('description', instance.description)
+        instance.phone = validated_data.pop('phone', instance.phone)
+        instance.email = validated_data.pop('email', instance.email)
 
         # handle related objects. It's a replace
         media = validated_data.pop('media', None)
