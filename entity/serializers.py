@@ -217,6 +217,8 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         instance.address = validated_data.pop('address', instance.address)
         instance.website = validated_data.pop('website', instance.website)
         instance.description = validated_data.pop('description', instance.description)
+        instance.phone = validated_data.pop('phone', instance.phone)
+        instance.email = validated_data.pop('email', instance.email)
 
         # handle related objects. It's a replace
         media = validated_data.pop('media', None)
@@ -330,14 +332,17 @@ class SponsorSerializer(EventComponentSerializer):
 # this is used by portal REST API
 class EventSerializer(EntitySerializerL2):
     def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
         remove_fields = ['joined', 'engagements']
+
         super(EventSerializer, self).__init__(*args, **kwargs)
-        
+
         for field_name in remove_fields:
             self.fields.pop(field_name)
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
+    related = RelatedSerializerField(many=True, required=False)
     speakers = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Speaker.objects.all())
     sponsors = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Sponsor.objects.all())
 
@@ -401,7 +406,6 @@ class EventSerializerL1(EntitySerializerL1):
 
 # these are used by App.
 class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
-    # overriding as a method field
     speakers = SpeakerSerializer(required=False, many=True)
     sponsors = SponsorSerializer(many=True, required=False)
 

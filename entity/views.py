@@ -71,7 +71,7 @@ class EventViewSet(BaseEntityViewSet):
             serializer.save()
         else:
             raise Http404
-        return Response(serializer.validated_data)
+        return Response(serializer.data)
 
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):

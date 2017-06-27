@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from lib.preserialize.serialize import serialize
 from lib import wizlib
+from polymorphic.models import PolymorphicModel
+from polymorphic.manager import PolymorphicManager
 from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
@@ -32,19 +34,27 @@ import logging
 import pdb
 
 RECO_DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
-RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010,01,01))
+RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010, 01, 01))
 
 logger = logging.getLogger(__name__)
 
-# hacking up bitmaps this way
-BITMAP_BASE = 1
-WIZCARD_USER = BITMAP_BASE
-WIZWEB_USER = BITMAP_BASE << 1
-WIZWEB_ADMIN = BITMAP_BASE << 2
-WIZEVENT_USER = BITMAP_BASE << 3
-WIZPRODUCT_USER = BITMAP_BASE << 4
-WIZBUSINESS_USER = BITMAP_BASE << 5
-PORTAL_USER_INTERNAL = BITMAP_BASE << 6
+
+
+class AppUserSettings(models.Model):
+    is_profile_private = models.BooleanField(default=False)
+    is_wifi_data = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=True)
+    dnd = models.BooleanField(default=False)
+    block_unsolicited = models.BooleanField(default=False)
+
+
+class WebOrganizerUserSettings(models.Model):
+    pass
+
+
+class WebExhibitorUserSettings(models.Model):
+    pass
+
 
 class UserProfileManager(models.Manager):
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
@@ -94,49 +104,107 @@ class UserProfileManager(models.Manager):
         return user.is_staff and user.is_superuser
 
     def get_portal_user_internal(self):
-        return UserProfile.objects.get(user_type=PORTAL_USER_INTERNAL) \
-            if UserProfile.objects.filter(user_type=PORTAL_USER_INTERNAL).exists() else None
+        return UserProfile.objects.get(user_type=UserProfile.PORTAL_USER_INTERNAL) \
+            if UserProfile.objects.filter(user_type=UserProfile.PORTAL_USER_INTERNAL).exists() else None
+
 
 class UserProfile(models.Model):
-    # This field is required.
+    # hacking up bitmaps this way
+    BITMAP_BASE = 1
+    APP_USER = BITMAP_BASE
+    WEB_ORGANIZER_USER = BITMAP_BASE << 1
+    WEB_EXHIBITOR_USER = BITMAP_BASE << 2
+    PORTAL_USER_INTERNAL = BITMAP_BASE << 6
+
+    user_type = models.IntegerField(default=BITMAP_BASE)
     user = models.OneToOneField(User, related_name='profile')
-    is_admin = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
     # this is the internal userid
     userid = TruncatingCharField(max_length=100)
-    future_user = models.BooleanField(default=False, blank=False)
-    location = generic.GenericRelation(LocationMgr)
-    do_sync = models.BooleanField(default=False)
-    is_profile_private = models.BooleanField(default=False)
-    is_wifi_data = models.BooleanField(default=False)
-    is_visible = models.BooleanField(default=True)
-    dnd = models.BooleanField(default=False)
-    block_unsolicited = models.BooleanField(default=False)
-    reco_generated_at = models.DateTimeField(default=RECO_DEFAULT_TIME)
-    reco_ready = models.PositiveIntegerField(default=0)
 
+    objects = UserProfileManager()
+
+    def create_user_type(self, user_type):
+        self.user_type = user_type
+
+        # create the associated user personalities
+        if self.user_type == self.APP_USER:
+            if hasattr(self, 'app_user'):
+                raise AssertionError
+            AppUser.objects.create(
+                profile=self,
+                settings=AppUserSettings.objects.create()
+            )
+        elif self.user_type == self.WEB_ORGANIZER_USER:
+            if hasattr(self, 'organizer_user'):
+                raise AssertionError
+            WebOrganizerUser.objects.create(
+                profile=self,
+                settings=WebOrganizerUserSettings.objects.create()
+            )
+        elif self.user_type == self.WEB_EXHIBITOR_USER:
+            if hasattr(self, 'exhibitor_user'):
+                raise AssertionError
+            WebExhibitorUser.objects.create(
+                profile=self,
+                settings=WebExhibitorUserSettings.objects.create()
+            )
+
+        self.save()
+
+    def add_user_type(self, user_type):
+        self.user_type &= user_type
+
+        if self.user_type == self.APP_USER:
+            if hasattr(self, 'app_user'):
+                raise AssertionError
+            AppUser.objects.create(
+                profile=self,
+                settings=AppUserSettings.objects.create()
+            )
+        elif self.user_type == self.WEB_ORGANIZER_USER:
+            if hasattr(self, 'organizer_user'):
+                raise AssertionError
+            WebOrganizerUser.objects.create(
+                profile=self,
+                settings = WebOrganizerUserSettings.objects.create()
+            )
+        elif self.user_type == self.WEB_EXHIBITOR_USER:
+            if hasattr(self, 'exhibitor_user'):
+                raise AssertionError
+            WebExhibitorUser.objects.create(
+                profile=self,
+                settings=WebExhibitorUserSettings.objects.create()
+            )
+
+        self.save()
+
+
+class AppUser(models.Model):
+    UNINITIALIZED = 'unknown'
     IOS = 'ios'
     ANDROID = 'android'
-    BROWSER = 'Browser'
+
     DEVICE_CHOICES = (
         (IOS, 'iPhone'),
         (ANDROID, 'Android'),
-        (BROWSER, 'Browser')
     )
 
-    user_type = models.IntegerField(default=WIZCARD_USER)
-
-    device_type = TruncatingCharField(max_length=10,
-                                      choices=DEVICE_CHOICES,
-                                      default=IOS)
-
+    location = generic.GenericRelation(LocationMgr)
+    do_sync = models.BooleanField(default=False)
     device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True, max_length=200)
+    profile = models.OneToOneField(UserProfile, related_name='app_user')
+    settings = models.OneToOneField(AppUserSettings, related_name='app_user')
+    device_type = TruncatingCharField(max_length=10, choices=DEVICE_CHOICES, default=UNINITIALIZED)
+    reco_generated_at = models.DateTimeField(default=RECO_DEFAULT_TIME)
+    reco_ready = models.PositiveIntegerField(default=0)
 
     objects = UserProfileManager()
 
     def online_key(self):
-        return self.userid
+        return self.profile.userid
 
     def online(self):
         cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(),
@@ -149,9 +217,9 @@ class UserProfile(models.Model):
         now = timezone.now()
         ls = cache.get(settings.USER_ONLINE_PREFIX % self.online_key())
         if bool(ls):
-            return (True, (now - ls))
+            return True, (now - ls)
         else:
-            return (False, None)
+            return False, None
 
     def is_online(self):
         on, ls = self.last_seen()
@@ -159,22 +227,6 @@ class UserProfile(models.Model):
         if on and (ls < delta):
             return True
         return False
-
-    def is_future(self):
-        return self.future_user
-
-    def set_future(self):
-        self.activated = False
-        self.future_user = True
-        self.save()
-
-    def set_user_type(self, type):
-        self.type = type
-        self.save()
-
-    def add_user_type(self, type):
-        self.type = self.type & type
-        self.save()
 
     def is_ios(self):
         return bool(self.device_type == self.IOS)
@@ -202,7 +254,7 @@ class UserProfile(models.Model):
         # convert result to query set result
         if count and not count_only:
             users = [UserProfile.objects.get(id=x).user for x in result if
-                     UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
+                     UserProfile.objects.filter(id=x, activated=True, app_user__settings__is_visible=True).exists()]
             count = len(users)
         return users, count
 
@@ -212,11 +264,11 @@ class UserProfile(models.Model):
 
         # wizcard
         try:
-            wizcard = self.user.wizcard
+            wizcard = self.profile.user.wizcard
         except ObjectDoesNotExist:
             return s
 
-        s['wizcard'] = WizcardSerializerL2(wizcard, context={'user': self.user}).data
+        s['wizcard'] = WizcardSerializerL2(wizcard, context={'user': self.profile.user}).data
 
         # # flicks (put  before wizconnections since wizconnection could refer to flicks)
         # if wizcard.flicked_cards.count():
@@ -242,14 +294,14 @@ class UserProfile(models.Model):
             s['context'] = serialize(cctx)
 
         # tables
-        tables = VirtualTable.objects.users_entities(self.user)
+        tables = VirtualTable.objects.users_entities(self.profile.user)
         if tables.count():
             # serialize created and joined tables
-            tbls = TableSerializerL1(tables, many=True, context={'user': self.user}).data
+            tbls = TableSerializerL1(tables, many=True, context={'user': self.profile.user}).data
             s['tables'] = tbls
 
         # dead card
-        deadcards = self.user.dead_cards.filter(activated=True)
+        deadcards = self.profile.user.dead_cards.filter(activated=True)
         if deadcards.count():
             dc = DeadCards.objects.serialize(deadcards)
             s['deadcards'] = dc
@@ -258,14 +310,23 @@ class UserProfile(models.Model):
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
 
-        campaigns = Product.objects.users_entities(self.user)
+        campaigns = Product.objects.users_entities(self.profile.user)
         if campaigns.count():
-            camp_data = ProductSerializer(campaigns, many=True, context={'user':self.user}).data
+            camp_data = ProductSerializer(campaigns, many=True, context={'user': self.profile.user}).data
             s['campaigns'] = camp_data
 
-        Notification.objects.unacted(self.user).update(readed=False)
+        Notification.objects.unacted(self.profile.user).update(readed=False)
         return s
 
+class WebOrganizerUser(models.Model):
+    profile = models.OneToOneField(UserProfile, related_name='organizer_user')
+    settings = models.OneToOneField(WebOrganizerUserSettings, related_name='organizer_user')
+    pass
+
+class WebExhibitorUser(models.Model):
+    profile = models.OneToOneField(UserProfile, related_name='exhibitor_user')
+    settings = models.OneToOneField(WebExhibitorUserSettings, related_name='exhibitor_user')
+    pass
 
 class FutureUserManager(models.Manager):
     def check_future_user(self, email=None, phone=None):
@@ -336,7 +397,6 @@ class FutureUser(models.Model):
                         verb=verbs.WIZCARD_TABLE_INVITE[0],
                         target=self.content_object)
 
-
 # Model for Address-Book Support. Standard M2M-through
 MIN_MATCHES_FOR_PHONE_DECISION = 3
 MIN_MATCHES_FOR_EMAIL_DECISION = 3
@@ -361,7 +421,7 @@ class AddressBook(models.Model):
     users = models.ManyToManyField(User, through='AB_User')
 
     def __repr__(self):
-        return self.first_name + " " + self.last_name + " " + (self.email) + " " + self.phone
+        return self.first_name + " " + self.last_name + " " + self.email + " " + self.phone
 
     def serialize(self, template=fields.addressbook_template):
         return serialize(self, **template)
@@ -503,4 +563,4 @@ def create_user_profile(sender, instance, created, **kwargs):
         profile.save()
 
 
-post_save.connect(create_user_profile, sender=User)
+post_save.connect(create_user_profile, sender=User, dispatch_uid="users-profilecreation-signal")

@@ -134,7 +134,7 @@ class WizcardManager(models.Manager):
                         verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
                         target=wizcard1)
 
-    def query_users(self, userID, name, phone, email):
+    def query_users(self, user_id, name, phone, email):
         #name can be first name, last name or even combined
         #any of the arguments may be null
         qlist = []
@@ -155,7 +155,8 @@ class WizcardManager(models.Manager):
             email_result = Q(email=email.lower())
             qlist.append(email_result)
 
-        result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=userID).exclude(user__profile__is_visible=False)
+        result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=user_id).\
+            exclude(user__profile__app_user__settings__is_visible=False)
 
         return result, len(result)
 

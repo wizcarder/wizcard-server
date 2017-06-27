@@ -27,9 +27,69 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4,\n      5\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4,\n      5\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "user type 1 (AppUser) create",
+			"request": {
+				"url": "http://localhost:8000/users/users/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"app user\",\n    \"email\": \"app_user@getwizcard.com\",\n    \"user_type\": \"1\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "User Type 2 (Organizer) create",
+			"request": {
+				"url": "http://localhost:8000/users/users/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"organizer_user\",\n    \"email\": \"organizer@getwizcard.com\",\n    \"user_type\": \"2\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "User Type 4 (Exhibitor) create",
+			"request": {
+				"url": "http://localhost:8000/users/users/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"exhibitor_user\",\n    \"email\": \"exhibitor@getwizcard.com\",\n    \"user_type\": \"4\"\n}"
+				},
+				"description": ""
 			},
 			"response": []
 		},
@@ -76,7 +136,7 @@
 		{
 			"name": "Basic Entity Update (PUT)",
 			"request": {
-				"url": "http://localhost:8000/entity/events/1",
+				"url": "http://localhost:8000/entity/events/10",
 				"method": "PUT",
 				"header": [
 					{
@@ -87,7 +147,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    \t{\n    \t\t\"id\": 2, \"type\": \"e_product\"\n    \t},\n    \t{\n    \t\t\"id\": 3, \"type\": \"e_product\"\n    \t}\n\t],\n\t\"users\": [3, 4]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    \t{\n    \t\t\"id\": 30, \"type\": \"e_product\"\n    \t},\n    \t{\n    \t\t\"id\": 31, \"type\": \"e_product\"\n    \t}\n\t],\n\t\"users\": [3, 4]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -255,7 +315,7 @@
 		{
 			"name": "Entity Update with Speakers",
 			"request": {
-				"url": "http://localhost:8000/entity/events/6",
+				"url": "http://localhost:8000/entity/events/10",
 				"method": "PUT",
 				"header": [
 					{
@@ -315,6 +375,17 @@
 					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4,\n      5\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Table Create"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/users/users/",
+			"request": {
+				"url": "http://localhost:8000/users/users/",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
 			},
 			"response": []
 		}
