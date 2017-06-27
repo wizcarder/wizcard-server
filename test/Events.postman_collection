@@ -34,6 +34,66 @@
 			"response": []
 		},
 		{
+			"name": "user type 1 (AppUser) create",
+			"request": {
+				"url": "http://localhost:8000/users/users/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"app user\",\n    \"email\": \"app_user@getwizcard.com\",\n    \"user_type\": \"1\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "User Type 2 (Organizer) create",
+			"request": {
+				"url": "http://localhost:8000/users/users/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"organizer_user\",\n    \"email\": \"organizer@getwizcard.com\",\n    \"user_type\": \"2\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "User Type 4 (Exhibitor) create",
+			"request": {
+				"url": "http://localhost:8000/users/users/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"exhibitor_user\",\n    \"email\": \"exhibitor@getwizcard.com\",\n    \"user_type\": \"4\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "Basic Product Create 1",
 			"request": {
 				"url": "http://localhost:8000/entity/products/",
@@ -315,26 +375,6 @@
 					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4,\n      5\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Table Create"
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:8000/users/users/",
-			"request": {
-				"url": "http://localhost:8000/users/users/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"username\": \"anand.ammund\",\n    \"email\": \"anand.ammund@getwizcard.com\",\n    \"user_type\": \"1\"\n}"
-				},
-				"description": ""
 			},
 			"response": []
 		},

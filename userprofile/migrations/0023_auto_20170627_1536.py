@@ -117,7 +117,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='weborganizeruser',
             name='settings',
-            field=models.OneToOneField(related_name='organizer_settings', to='userprofile.WebOrganizerUserSettings'),
+            field=models.OneToOneField(related_name='organizer_user', to='userprofile.WebOrganizerUserSettings'),
         ),
         migrations.AddField(
             model_name='webexhibitoruser',
@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='webexhibitoruser',
             name='settings',
-            field=models.OneToOneField(related_name='exhibitor_settings', to='userprofile.WebOrganizerUserSettings'),
+            field=models.OneToOneField(related_name='exhibitor_user', to='userprofile.WebExhibitorUserSettings'),
         ),
         migrations.AddField(
             model_name='appuser',

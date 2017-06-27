@@ -146,7 +146,7 @@ class UserProfile(models.Model):
         elif self.user_type == self.WEB_EXHIBITOR_USER:
             if hasattr(self, 'exhibitor_user'):
                 raise AssertionError
-            WebExhibitorUser.objecs.create(
+            WebExhibitorUser.objects.create(
                 profile=self,
                 settings=WebExhibitorUserSettings.objects.create()
             )
@@ -173,7 +173,7 @@ class UserProfile(models.Model):
         elif self.user_type == self.WEB_EXHIBITOR_USER:
             if hasattr(self, 'exhibitor_user'):
                 raise AssertionError
-            WebExhibitorUser.objecs.create(
+            WebExhibitorUser.objects.create(
                 profile=self,
                 settings=WebExhibitorUserSettings.objects.create()
             )
@@ -320,12 +320,12 @@ class AppUser(models.Model):
 
 class WebOrganizerUser(models.Model):
     profile = models.OneToOneField(UserProfile, related_name='organizer_user')
-    settings = models.OneToOneField(WebOrganizerUserSettings, related_name='organizer_settings')
+    settings = models.OneToOneField(WebOrganizerUserSettings, related_name='organizer_user')
     pass
 
 class WebExhibitorUser(models.Model):
     profile = models.OneToOneField(UserProfile, related_name='exhibitor_user')
-    settings = models.OneToOneField(WebOrganizerUserSettings, related_name='exhibitor_settings')
+    settings = models.OneToOneField(WebExhibitorUserSettings, related_name='exhibitor_user')
     pass
 
 class FutureUserManager(models.Manager):
