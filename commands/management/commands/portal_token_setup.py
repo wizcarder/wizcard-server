@@ -5,8 +5,6 @@ from userprofile.models import UserProfile
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-from userprofile.models import PORTAL_USER_INTERNAL
-
 
 
 now = timezone.now
@@ -32,6 +30,6 @@ class Command(BaseCommand):
             username = raw_input('Enter username: ')
             password = raw_input('Enter Password')
             u = User.objects.create(username=username, password=password)
-            u.profile.set_user_type(PORTAL_USER_INTERNAL)
+            u.profile.create_user_type(UserProfile.PORTAL_USER_INTERNAL)
             t = Token.objects.create(user=u)
             self.stdout.write('created Token: "%s"' % t)

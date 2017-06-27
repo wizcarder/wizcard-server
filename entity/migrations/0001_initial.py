@@ -27,6 +27,7 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
                 ('secure', models.BooleanField(default=False)),
+                ('password', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
                 ('timeout', models.IntegerField(default=30)),
                 ('expired', models.BooleanField(default=False)),
                 ('is_activated', models.BooleanField(default=False)),
@@ -36,7 +37,8 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(max_length=1000)),
                 ('phone', base.char_trunc.TruncatingCharField(max_length=20, blank=True)),
                 ('email', base.emailField.EmailField(max_length=254, blank=True)),
-                ('extFields', picklefield.fields.PickledObjectField(default={}, editable=False, blank=True)),
+                ('ext_fields', picklefield.fields.PickledObjectField(default={b'key': b'value'}, editable=False, blank=True)),
+                ('num_users', models.IntegerField(default=1)),
             ],
             options={
                 'abstract': False,
@@ -47,6 +49,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('like_count', models.IntegerField(default=0)),
+                ('views', models.IntegerField(default=0)),
+                ('follows', models.IntegerField(default=0)),
+                ('unfollows', models.IntegerField(default=0)),
                 ('agg_like_level', models.FloatField(default=0)),
             ],
         ),
@@ -55,23 +60,17 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('like_level', models.IntegerField(default=5)),
+                ('following', models.BooleanField(default=False)),
+                ('viewed', models.BooleanField(default=False)),
                 ('stats', models.ForeignKey(to='entity.EntityEngagementStats')),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
-            name='Speaker',
+            name='EventComponent',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('first_name', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
-                ('last_name', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
-                ('phone', base.char_trunc.TruncatingCharField(max_length=20, blank=True)),
-                ('email', base.emailField.EmailField(max_length=254, blank=True)),
-                ('vcard', models.TextField(blank=True)),
-                ('org', models.CharField(max_length=100, blank=True)),
-                ('designation', models.CharField(max_length=100, blank=True)),
-                ('extFields', picklefield.fields.PickledObjectField(default={}, editable=False, blank=True)),
-                ('description', models.TextField(default=b'Not Available')),
+                ('caption', models.CharField(default=b'Not Available', max_length=50)),
             ],
         ),
         migrations.CreateModel(
@@ -79,13 +78,19 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('description', models.CharField(max_length=1000)),
-                ('speaker', models.ForeignKey(to='entity.Speaker')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='SponsorEvent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
             ],
         ),
         migrations.CreateModel(
             name='UserEntity',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('last_accessed', models.DateTimeField(auto_now=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
             ],
@@ -123,11 +128,33 @@ class Migration(migrations.Migration):
             bases=('entity.baseentity',),
         ),
         migrations.CreateModel(
+            name='Speaker',
+            fields=[
+                ('eventcomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='entity.EventComponent')),
+                ('first_name', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
+                ('last_name', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
+                ('phone', base.char_trunc.TruncatingCharField(max_length=20, blank=True)),
+                ('email', base.emailField.EmailField(max_length=254, blank=True)),
+                ('vcard', models.TextField(blank=True)),
+                ('org', models.CharField(max_length=100, blank=True)),
+                ('designation', models.CharField(max_length=100, blank=True)),
+                ('ext_fields', picklefield.fields.PickledObjectField(default={}, editable=False, blank=True)),
+                ('description', models.TextField(blank=True)),
+            ],
+            bases=('entity.eventcomponent',),
+        ),
+        migrations.CreateModel(
+            name='Sponsor',
+            fields=[
+                ('eventcomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='entity.EventComponent')),
+                ('name', base.char_trunc.TruncatingCharField(max_length=50, blank=True)),
+            ],
+            bases=('entity.eventcomponent',),
+        ),
+        migrations.CreateModel(
             name='VirtualTable',
             fields=[
                 ('baseentity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='entity.BaseEntity')),
-                ('num_sitting', models.IntegerField(default=0, blank=True)),
-                ('password', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
             ],
             options={
                 'abstract': False,
@@ -185,13 +212,38 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(related_name='users_baseentity_related', through='entity.UserEntity', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
+            model_name='sponsorevent',
+            name='campaign',
+            field=models.ForeignKey(blank=True, to='entity.Product', null=True),
+        ),
+        migrations.AddField(
+            model_name='sponsorevent',
+            name='event',
+            field=models.ForeignKey(to='entity.Event'),
+        ),
+        migrations.AddField(
+            model_name='sponsorevent',
+            name='sponsor',
+            field=models.ForeignKey(to='entity.Sponsor'),
+        ),
+        migrations.AddField(
             model_name='speakerevent',
             name='event',
             field=models.ForeignKey(to='entity.Event'),
         ),
         migrations.AddField(
+            model_name='speakerevent',
+            name='speaker',
+            field=models.ForeignKey(to='entity.Speaker'),
+        ),
+        migrations.AddField(
             model_name='event',
             name='speakers',
             field=models.ManyToManyField(related_name='events', through='entity.SpeakerEvent', to='entity.Speaker'),
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='sponsors',
+            field=models.ManyToManyField(related_name='events', through='entity.SponsorEvent', to='entity.Sponsor'),
         ),
     ]

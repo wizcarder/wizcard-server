@@ -406,7 +406,6 @@ class EventSerializerL1(EntitySerializerL1):
 
 # these are used by App.
 class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
-    # overriding as a method field
     speakers = SpeakerSerializer(required=False, many=True)
     sponsors = SponsorSerializer(many=True, required=False)
 

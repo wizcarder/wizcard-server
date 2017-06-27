@@ -144,6 +144,8 @@ class ParseMsgAndDispatch(object):
 
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
+                self.app_userprofile = self.user.profile.app_user
+                self.app_settings = self.app_userprofile.settings
                 self.user_stats, created = Stats.objects.get_or_create(user=self.user)
 
                 # used often by serializer. might as well put it here
@@ -569,7 +571,7 @@ class ParseMsgAndDispatch(object):
 
         # update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial():
-            self.userprofile.create_or_update_location(
+            self.app_userprofile.create_or_update_location(
                 self.lat,
                 self.lng)
 
@@ -586,7 +588,7 @@ class ParseMsgAndDispatch(object):
     def header_post_process(self):
         #make the user as alive
         if not (self.msg_is_initial() or self.msg_is_from_wizweb()):
-            self.userprofile.online()
+            self.app_userprofile.online()
 
     def PhoneCheckRequest(self):
         device_id = self.header['device_id']
@@ -711,21 +713,25 @@ class ParseMsgAndDispatch(object):
             #and maybe phone number
             password = UserProfile.objects.gen_password(user.pk, device_id)
             user.set_password(password)
-            #generate internal userid
             user.save()
+            user.profile.create_user_type(UserProfile.APP_USER)
         else:
-            if device_id != user.profile.device_id:
+            if device_id != user.profile.app_user.device_id:
                 #device_id is part of password, reset password to reflect new device_id
-                password = UserProfile.objects.gen_password(user.pk,
-                                                            device_id)
+                password = UserProfile.objects.gen_password(user.pk, device_id)
                 user.set_password(password)
                 user.save()
 
             # mark for sync if profile is activated
             if user.profile.activated:
-                user.profile.do_sync = True
+                user.profile.app_user.do_sync = True
 
-        user.profile.device_id = device_id
+            # this happens only during testing. shouldn't happen otherwise
+            if not hasattr(user.profile, 'app_user'):
+                user.profile.add_user_type(UserProfile.APP_USER)
+
+        user.profile.app_user.device_id = device_id
+        user.profile.app_user.save()
 
         #all done. #clear cache
         cache.delete_many([k_user, k_device_id, k_rand, k_retry])
@@ -756,15 +762,15 @@ class ParseMsgAndDispatch(object):
     def Register(self):
         #fill in device details
         try:
-            self.userprofile.device_type = self.sender['device_type']
+            self.app_userprofile.device_type = self.sender['device_type']
         except:
             pass
 
-        self.userprofile.reg_token = self.sender['reg_token']
+        self.app_userprofile.reg_token = self.sender['reg_token']
 
-        if self.userprofile.do_sync:
+        if self.app_userprofile.do_sync:
             #sync all syncables
-            s = self.userprofile.do_resync()
+            s = self.app_userprofile.do_resync()
             if 'wizcard' in s:
                 self.response.add_data("wizcard", s['wizcard'])
                 self.response.add_data("wizcard", s['wizcard'])
@@ -782,14 +788,14 @@ class ParseMsgAndDispatch(object):
                     self.response.add_data("deadcards", s["deadcards"])
 
                 self.userprofile.activated = True
-            self.userprofile.do_sync = False
+            self.app_userprofile.do_sync = False
         self.userprofile.save()
 
         return self.response
 
     def LocationUpdate(self):
         #update location in ptree
-        self.userprofile.create_or_update_location(self.lat, self.lng)
+        self.app_userprofile.create_or_update_location(self.lat, self.lng)
         return self.response
 
     def ContactsUpload(self):
@@ -914,7 +920,7 @@ class ParseMsgAndDispatch(object):
         #     notifResponse.notifFlickedWizcardsLookup(count,
         #                                              self.user, flicked_wizcards)
 
-        users, count = self.userprofile.lookup(
+        users, count = self.app_userprofile.lookup(
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifUserLookup(
@@ -922,9 +928,9 @@ class ParseMsgAndDispatch(object):
                 self.user,
                 users)
 
-        reco_count = self.userprofile.reco_ready
+        reco_count = self.app_userprofile.reco_ready
         if reco_count:
-            self.userprofile.reco_ready = 0
+            self.app_userprofile.reco_ready = 0
 
         tables, count = VirtualTable.objects.lookup(
             self.lat,
@@ -936,7 +942,7 @@ class ParseMsgAndDispatch(object):
         Notification.objects.mark_specific_as_read(notifications)
 
         #tickle the timer to keep it going and update the location if required
-        self.userprofile.create_or_update_location(self.lat, self.lng)
+        self.app_userprofile.create_or_update_location(self.lat, self.lng)
 
         self.response = notifResponse
         return self.response
@@ -1081,8 +1087,8 @@ class ParseMsgAndDispatch(object):
 
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
-                    self.userprofile.location.get().lat,
-                    self.userprofile.location.get().lng
+                    self.app_userprofile.location.get().lat,
+                    self.app_userprofile.location.get().lng
                 )
             except:
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
@@ -1174,8 +1180,8 @@ class ParseMsgAndDispatch(object):
             # add-to-rolodex case. Happens when user had previously declined/deleted this guy
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
-                    self.userprofile.location.get().lat,
-                    self.userprofile.location.get().lng
+                    self.app_userprofile.location.get().lat,
+                    self.app_userprofile.location.get().lng
                 )
             except:
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
@@ -1330,8 +1336,8 @@ class ParseMsgAndDispatch(object):
 
         if self.lat is None and self.lng is None:
             try:
-                self.lat = self.userprofile.location.get().lat
-                self.lng = self.userprofile.location.get().lng
+                self.lat = self.app_userprofile.location.get().lat
+                self.lng = self.app_userprofile.location.get().lng
             except:
                 #should not happen since app is expected to send a register or something
                 #everytime it wakes up...however, network issues can cause app to go offline
@@ -1590,8 +1596,8 @@ class ParseMsgAndDispatch(object):
             # senders location (which should be same as receivers too)
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
-                    self.userprofile.location.get().lat,
-                    self.userprofile.location.get().lng
+                    self.app_userprofile.location.get().lat,
+                    self.app_userprofile.location.get().lng
                 )
             except:
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
@@ -1902,9 +1908,8 @@ class ParseMsgAndDispatch(object):
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
-        r_userprofile = wizcard.user.profile
 
-        s = WizcardSerializerL1 if r_userprofile.is_profile_private else WizcardSerializerL2
+        s = WizcardSerializerL1 if self.app_settings.is_profile_private else WizcardSerializerL2
         out = WizcardSerializerL2(wizcard).data
 
         self.response.add_data("Details", out)
@@ -1912,41 +1917,42 @@ class ParseMsgAndDispatch(object):
 
     def Settings(self):
         modify = False
+        s_obj = self.app_settings
 
         if 'media' in self.sender:
             if self.sender['media'].has_key('wifiOnly'):
                 wifi_data = self.sender['media']['wifiOnly']
-                if self.userprofile.is_wifi_data != wifi_data:
-                    self.userprofile.is_wifi_data = wifi_data
+                if s_obj.is_wifi_data != wifi_data:
+                    s_obj.is_wifi_data = wifi_data
                     modify = True
 
         if 'privacy' in self.sender:
             if 'invisible' in self.sender['privacy']:
                 visible = not(self.sender['privacy']['invisible'])
-                if self.userprofile.is_visible != visible:
-                    self.userprofile.is_visible = visible
+                if s_obj.is_visible != visible:
+                    s_obj.is_visible = visible
                     modify = True
 
             if 'dnd' in self.sender['privacy']:
                 dnd = self.sender['privacy']['dnd']
-                if self.userprofile.dnd != dnd:
-                    self.userprofile.dnd = dnd
+                if s_obj.dnd != dnd:
+                    s_obj.dnd = dnd
                     modify = True
 
             if 'block_unknown_req' in self.sender['privacy']:
                 block_unsolicited = self.sender['privacy']['dnd']
-                if self.userprofile.block_unsolicited != block_unsolicited:
-                    self.userprofile.block_unsolicited = block_unsolicited
+                if s_obj.block_unsolicited != block_unsolicited:
+                    s_obj.block_unsolicited = block_unsolicited
                     modify = True
 
             if self.sender['privacy'].has_key('publicTimeline'):
                 profile_private = not(self.sender['privacy']['publicTimeline'])
-                if self.userprofile.is_profile_private != profile_private:
-                    self.userprofile.is_profile_private = profile_private
+                if s_obj.is_profile_private != profile_private:
+                    s_obj.is_profile_private = profile_private
                     modify = True
 
         if modify:
-            self.userprofile.save()
+            s_obj.save()
 
         return self.response
 
@@ -2051,8 +2057,8 @@ class ParseMsgAndDispatch(object):
         if not deadcard.activated:
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
-                    self.userprofile.location.get().lat,
-                    self.userprofile.location.get().lng
+                    self.app_userprofile.location.get().lat,
+                    self.app_userprofile.location.get().lng
                 )
 
             except:
@@ -2119,7 +2125,7 @@ class ParseMsgAndDispatch(object):
 
         self.response.add_data("mID", m.pk)
 
-        users, count = self.userprofile.lookup(
+        users, count = self.app_userprofile.lookup(
             settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
         if count:
             out = UserSerializerL0(users, many=True).data
@@ -2142,7 +2148,7 @@ class ParseMsgAndDispatch(object):
             out = WizcardSerializerL1(m_res.wizcard).data
             self.response.add_data("m_result", out)
         else:
-            users, count = self.userprofile.lookup(
+            users, count = self.app_userprofile.lookup(
                 settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
             if count:
                 out = UserSerializerL0(users, many=True).data
@@ -2182,10 +2188,9 @@ class ParseMsgAndDispatch(object):
         recos = UserRecommendation.objects.getRecommendations(recotarget=self.user, size=size)
 
         if not recos:
-            uprofile = self.user.profile
-            if uprofile.reco_ready != 0:
-                uprofile.reco_ready = 0
-                uprofile.save()
+            if self.app_userprofile.reco_ready != 0:
+                self.app_userprofile.reco_ready = 0
+                self.app_userprofile.save()
             genreco.send(self.user, recotarget=self.user.id)
 
         self.response.add_data("recos", recos)
@@ -2310,8 +2315,8 @@ class ParseMsgAndDispatch(object):
         do_location = True
         if self.lat is None and self.lng is None:
             try:
-                self.lat = self.userprofile.location.get().lat
-                self.lng = self.userprofile.location.get().lng
+                self.lat = self.app_userprofile.location.get().lat
+                self.lng = self.app_userprofile.location.get().lng
             except:
                 # maybe location timedout. Shouldn't happen if messages from app
                 # are coming correctly...
