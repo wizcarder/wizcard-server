@@ -18,6 +18,24 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
     queryset = BaseEntity.objects.all()
     serializer_class = EntitySerializerL2
 
+    def get_queryset(self):
+        if isinstance(self, BaseEntityViewSet):
+            queryset = BaseEntity.objects.all()
+        uid = self.request.query_params.get('user', None)
+        if uid is not None:
+            user = User.objects.get(id=uid)
+            queryset = queryset.filter(creator=user)
+        return queryset
+
+    def get_serializer_context(self):
+        uid = self.request.query_params.get('user', None)
+        if uid is not None:
+            user = User.objects.get(id=uid)
+            return {'user': user}
+        else:
+            return {}
+
+
 class EventViewSet(BaseEntityViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
@@ -44,11 +62,7 @@ class EventViewSet(BaseEntityViewSet):
 
     def get_queryset(self):
         queryset = Event.objects.all()
-        uid = self.request.query_params.get('user', None)
-        if uid is not None:
-            user = User.objects.get(id=uid)
-            queryset = queryset.filter(creator=user)
-        return queryset
+        super(EventViewSet, self).get_queryset()
 
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
@@ -72,23 +86,59 @@ class ProductViewSet(BaseEntityViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        super(ProductViewSet, self).get_queryset()
+
 
 class BusinessViewSet(BaseEntityViewSet):
     queryset = Business.objects.all()
     serializer_class = BusinessSerializer
 
+    def get_queryset(self):
+        queryset = Business.objects.all()
+        super(BusinessViewSet, self).get_queryset()
 
-class TableViewSet(viewsets.ModelViewSet):
+
+class TableViewSet(BaseEntityViewSet):
     queryset = VirtualTable.objects.all()
     serializer_class = TableSerializer
 
+    def get_queryset(self):
+        queryset = VirtualTable.objects.all()
+        super(TableViewSet, self).get_queryset()
 
 class SpeakerViewSet(viewsets.ModelViewSet):
     queryset = Speaker.objects.all()
     serializer_class = SpeakerSerializer
 
+    def get_queryset(self):
+        queryset = Speaker.objects.all()
+        super(SpeakerViewSet, self).get_queryset()
+
+    def get_serializer_context(self):
+        uid = self.request.query_params.get('user', None)
+        if uid is not None:
+            user = User.objects.get(id=uid)
+            return {'user': user}
+        else:
+            return {}
+
+
 class SponsorViewSet(viewsets.ModelViewSet):
     queryset = Sponsor.objects.all()
     serializer_class = SponsorSerializer
+
+    def get_queryset(self):
+        queryset = Sponsor.objects.all()
+        super(SponsorViewSet, self).get_queryset()
+
+    def get_serializer_context(self):
+        uid = self.request.query_params.get('user', None)
+        if uid is not None:
+            user = User.objects.get(id=uid)
+            return {'user': user}
+        else:
+            return {}
 
 

@@ -184,6 +184,7 @@ def send_event(event, to, emaildetails):
     email_dict = dict()
     html = emaildetails['template']
     email_dict['event_name'] = event.name
+    email_dict['banner'] = event.get_banner()
     email_dict['event_url'] = "http://getwizcard.com/entity/event/%d/product" % event.id
 
     ctx = Context(email_dict)

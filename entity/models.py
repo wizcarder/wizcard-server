@@ -275,6 +275,12 @@ class BaseEntity(PolymorphicModel):
 
         return
 
+    def get_banner(self):
+        media_row = self.media.filter(media_sub_type='BNR')[0]
+        #if media_element is null better to have a place holder but what event will not have a image (Bad event)!!!
+        return media_row.media_element
+
+
 # explicit through table since we will want to associate additional
 # fields as we go forward.
 class UserEntity(models.Model):
