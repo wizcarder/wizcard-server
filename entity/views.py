@@ -77,8 +77,8 @@ class EventViewSet(BaseEntityViewSet):
     def invite_exhibitors(self, request, pk=None):
         inst = self.get_object_or_404(pk)
         emails = request.data
-        for email in emails:
-            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=email)
+        for recp in emails['email']:
+            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
         return Response("Exhibitors email added", status=status.HTTP_201_CREATED)
 
 
