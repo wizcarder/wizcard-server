@@ -95,3 +95,6 @@ wcwidth==0.1.7
 zope.interface==4.1.2
 django_filters
 django-taggit_serializer
+django-allauth==0.32.0
+django-categories==1.5.3
+django-rest-auth==0.9.1
