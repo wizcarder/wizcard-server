@@ -5,6 +5,50 @@ from rest_framework.validators import ValidationError
 import hashlib
 import pdb
 
+from allauth.account import app_settings as allauth_settings
+from allauth.utils import email_address_exists
+from allauth.account.adapter import get_adapter
+from allauth.account.utils import setup_user_email
+from rest_auth.registration.serializers import RegisterSerializer
+import pdb
+
+class UserRegisterSerializer(RegisterSerializer):
+    first_name = serializers.CharField(required=True, write_only=True)
+    last_name = serializers.CharField(required=True, write_only=True)
+    user_type = serializers.IntegerField(source='profile.user_type')
+
+    def get_cleaned_data(self):
+        return {
+            'first_name': self.validated_data.get('first_name', ''),
+            'last_name': self.validated_data.get('last_name', ''),
+            'password1': self.validated_data.get('password1', ''),
+            'email': self.validated_data.get('email', ''),
+            'user_type': self.validated_data.get('profile')['user_type']
+        }
+
+
+    def save(self, request):
+        adapter = get_adapter()
+        user = adapter.new_user(request)
+        pdb.set_trace()
+        self.cleaned_data = self.get_cleaned_data()
+        user_type = self.cleaned_data.pop('user_type')
+        if user_type not in [
+            UserProfile.APP_USER,
+            UserProfile.WEB_ORGANIZER_USER,
+            UserProfile.WEB_EXHIBITOR_USER,
+            UserProfile.PORTAL_USER_INTERNAL
+        ]:
+            raise ValidationError({
+                'user_type': 'invalid field value'
+            })
+        adapter.save_user(request, user, self)
+        setup_user_email(request, user, [])
+        user.save()
+        profile = user.profile.create_user_type(int(user_type))
+        return user
+
+
 
 class UserSerializerL0(serializers.ModelSerializer):
     class Meta:

@@ -257,7 +257,9 @@ class BaseEntity(PolymorphicModel):
         return self
 
     def get_users_after(self, timestamp):
-        ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
+        # AA: REVERT ME. Temp for app testing
+        ue = UserEntity.objects.filter(entity=self)
+        #ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
         users = map(lambda u: u.user, ue)
 
         return users

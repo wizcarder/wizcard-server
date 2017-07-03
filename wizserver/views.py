@@ -1117,7 +1117,6 @@ class ParseMsgAndDispatch(object):
                 target=admin_user.wizcard,
                 action_object=rel21)
 
-        #create_template.delay(wizcard)
         vcard = create_vcard(wizcard)
         if vcard:
             wizcard.save_vcard(vcard)
@@ -2162,16 +2161,6 @@ class ParseMsgAndDispatch(object):
         #too much
         return self.response
 
-    def GetEmailTemplate(self):
-        wizcard = self.user.wizcard
-
-        #if not wizcard.emailTemplate:
-        #    create_template.delay(wizcard)
-
-        #email = wizcard.emailTemplate.remote_url()
-        #self.response.add_data("emailTemplate", email)
-
-        return self.response
 
     def GetRecommendations(self):
 

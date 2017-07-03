@@ -466,7 +466,7 @@ class ProductSerializerL2(EntitySerializerL2):
     class Meta:
         model = Product
         my_fields = ('media', 'name', 'address', 'tags', 'joined', 'like', 'description',)
-        fields = EntitySerializerL1.Meta.fields + my_fields
+        fields = EntitySerializerL2.Meta.fields + my_fields
 
 
 # this is used by portal REST API
