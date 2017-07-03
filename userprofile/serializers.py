@@ -30,7 +30,6 @@ class UserRegisterSerializer(RegisterSerializer):
     def save(self, request):
         adapter = get_adapter()
         user = adapter.new_user(request)
-        pdb.set_trace()
         self.cleaned_data = self.get_cleaned_data()
         user_type = self.cleaned_data.pop('user_type')
         if user_type not in [

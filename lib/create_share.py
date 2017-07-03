@@ -92,7 +92,8 @@ def send_event(event, to, emaildetails):
     ctx = Context(email_dict)
     email = Email(to=to, subject = "Welcome to %s - Claim your product space" % event.name)
     email.html(html, ctx)
-    email.send(from_addr=emaildetails['from_addr'])
+    email.send()
+#    email.send(from_addr=emaildetails['from_addr'])
 
 def mass_email(to, id):
 

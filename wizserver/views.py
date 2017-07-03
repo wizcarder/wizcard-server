@@ -470,12 +470,6 @@ class ParseMsgAndDispatch(object):
                     self.MeishiEnd,
                     None
                 ),
-            verbs.MSG_EMAIL_TEMPLATE:
-                (
-                    message_format.GetEmailTemplateSchema,
-                    self.GetEmailTemplate,
-                    Stats.objects.inc_email_template,
-                ),
             verbs.MSG_GET_RECOMMENDATION:
                 (
                     message_format.GetRecommendationsSchema,
