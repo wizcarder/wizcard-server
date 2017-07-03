@@ -3,30 +3,30 @@ from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from wizcardship.models import Wizcard, ContactContainer
 
-class ContactContainerSerializerL0(serializers.ModelSerializer):
+class ContactContainerSerializerL1(serializers.ModelSerializer):
     class Meta:
         model = ContactContainer
         fields = ('id', 'title', 'company',)
 
 
-class ContactContainerSerializerL1(ContactContainerSerializerL0):
-    f_card_url = serializers.URLField(source='get_fbizcard_url')
+class ContactContainerSerializerL2(ContactContainerSerializerL1):
+    media = MediaObjectsSerializer(many=True)
 
     class Meta:
         model = ContactContainer
-        my_fields = ('phone', 'f_card_url',)
-        fields = ContactContainerSerializerL0.Meta.fields + my_fields
+        my_fields = ('phone', 'media',)
+        fields = ContactContainerSerializerL1.Meta.fields + my_fields
 
 
 class WizcardSerializerL0(serializers.ModelSerializer):
     wizcard_id = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
     wizuser_id = serializers.PrimaryKeyRelatedField(source='user.pk', read_only=True)
-    thumbnail_url = serializers.URLField(source='get_thumbnail_url')
+    media = MediaObjectsSerializer(many=True)
     status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Wizcard
-        fields = ('wizcard_id', 'wizuser_id', 'thumbnail_url', 'status')
+        fields = ('wizcard_id', 'wizuser_id', 'media', 'status')
 
     def get_status(self, obj):
         user = self.context.get('user', None)
@@ -45,19 +45,21 @@ class WizcardSerializerL1(WizcardSerializerL0):
         my_fields = ('first_name', 'last_name', 'contact_container',)
         fields = WizcardSerializerL0.Meta.fields + my_fields
 
-    contact_container = ContactContainerSerializerL1(many=True, read_only=True)
+    contact_container = ContactContainerSerializerL2(many=True, read_only=True)
 
 
 class WizcardSerializerL2(WizcardSerializerL1):
-    media = MediaObjectsSerializer(many=True)
-    ext_fields = serializers.DictField(source='get_ext_fields')
-    video_url = serializers.URLField(read_only=True, source='get_video_url')
+    ext_fields = serializers.DictField()
+    #video_url = serializers.URLField(read_only=True, source='get_video_url')
 
     class Meta(WizcardSerializerL1.Meta):
         model = Wizcard
-        my_fields = ('phone', 'email', 'media', 'ext_fields', 'video_url',
-                     'video_thumbnail_url', 'vcard', 'sms_url',)
+        my_fields = ('phone', 'email', 'ext_fields',
+                     'vcard', 'sms_url',)
         fields = WizcardSerializerL1.Meta.fields + my_fields
+
+    contact_container = ContactContainerSerializerL2(many=True, read_only=True)
+
 
 
 # not used by App

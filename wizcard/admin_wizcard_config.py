@@ -2,12 +2,12 @@ __author__ = 'aammundi'
 
 THUMBNAIL_IMAGE_PATH = "test/bizcard.jpeg"
 VIDEO_URL = "https://youtu.be/QujpdmsXAb4"
-#BIZCARD_IMAGE_PATH = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/wizcard_admin/bizcard.jpeg"
+BIZCARD_IMAGE_PATH = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/wizcard_admin/bizcard.jpeg"
 ADMIN_ASSETS_PATH="assets/admin_wizcard/"
 BIZCARD_FILE = "bizcard.jpeg"
 THUMBNAIL_FILE = "TN1.jpeg"
-BIZCARD_IMAGE_PATH = ADMIN_ASSETS_PATH+BIZCARD_FILE
-THUMBNAIL_IMAGE_PATH = ADMIN_ASSETS_PATH+THUMBNAIL_FILE
+#BIZCARD_IMAGE_PATH = ADMIN_ASSETS_PATH+BIZCARD_FILE
+#THUMBNAIL_IMAGE_PATH = ADMIN_ASSETS_PATH+THUMBNAIL_FILE
 
 ext_fields = {
     'Facebook': "https://www.facebook.com/getwizcard/#",
@@ -27,9 +27,32 @@ w = {
     'last_name': "WizCard",
     'email': "admin@getwizcard.com",
     'phone': "+14084641727",
-    'video_url': VIDEO_URL,
     'ext_fields': ext_fields
 }
+
+wizcard_media = [
+      {
+        "media_element": VIDEO_URL,
+        "media_iframe": "http://www.eventone.com",
+        "media_type": "VID",
+        "media_sub_type": "ROL"
+      },
+      {
+        "media_element": "http://www.eventone.com",
+        "media_iframe": "",
+        "media_type": "IMG",
+        "media_sub_type": "THB"
+      },
+]
+
+cc_media = [
+      {
+        "media_element": BIZCARD_IMAGE_PATH,
+        "media_iframe": "",
+        "media_type": "IMG",
+        "media_sub_type": "FBZ"
+      },
+]
 
 cc = {
     'company': "WizCard Inc",

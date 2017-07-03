@@ -3,6 +3,7 @@ import heapq
 from wizcardship.models import Wizcard
 from notifications.models import Notification
 from lib import wizlib
+import datetime
 from datetime import timedelta
 from django.core.cache import cache
 import pdb

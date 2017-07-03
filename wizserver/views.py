@@ -18,12 +18,11 @@ import logging
 import re
 from django.views.generic import View
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from lib.ocr import OCR
 from django.contrib.contenttypes.models import ContentType
-from wizcardship.models import WizConnectionRequest, Wizcard, ContactContainer, WizcardFlick
+from wizcardship.models import  Wizcard, DeadCard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
 from entity.models import VirtualTable
 from meishi.models import Meishi
@@ -31,12 +30,11 @@ from response import Response, NotifResponse
 from userprofile.models import UserProfile
 from userprofile.models import FutureUser
 from lib import wizlib, noembed
-from lib.create_share import send_wizcard, create_vcard
-from email_and_push_infra.models import EmailAndPush, EmailEvent
+from lib.create_share import create_vcard
+from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from wizcard import err
-from dead_cards.models import DeadCards
-from entity.models import BaseEntity, Event, Product, Business
+from entity.models import BaseEntity, Event
 from wizserver import fields
 from django.utils import timezone
 import random
@@ -47,18 +45,18 @@ import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from recommendation.models import UserRecommendation, Recommendation, genreco
-#from raven.contrib.django.raven_compat.models import client
+from recommendation.models import UserRecommendation, genreco
 from wizserver.tasks import contacts_upload_task
-from entity.models import UserEntity
 from stats.models import Stats
 from converter import Converter
-from django.core.files import File
 from entity.serializers import EventSerializerL1, EventSerializerL2,TableSerializer, \
     EventSerializerL2, EntityEngagementSerializer
 from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
 from userprofile.serializers import UserSerializerL0
 from entity.models import EntityUserStats
+from media_mgr.models import MediaObjects
+from media_mgr.signals import media_create
+
 
 now = timezone.now
 
@@ -121,6 +119,9 @@ class ParseMsgAndDispatch(object):
 
     def msg_is_initial(self):
         return self.msg_type in ['phone_check_req', 'phone_check_rsp', 'login']
+
+    def msg_has_rawimage(self):
+        return self.msg_type in ['ocr_req_self', 'ocr_req_dead_card']
 
     def msg_is_from_wizweb(self):
         return self.device_id == settings.WIZWEB_DEVICE_ID
@@ -225,7 +226,8 @@ class ParseMsgAndDispatch(object):
             return self.validate_wizweb_msg()
 
         logger.debug('received message %s', self.msg_type)
-        logger.debug('%s', self)
+        if not self.msg_has_rawimage():
+            logger.debug('%s', self)
 
         if not self.validate_header():
             self.security_exception()
@@ -965,10 +967,12 @@ class ParseMsgAndDispatch(object):
 
         wizcard, created = Wizcard.objects.get_or_create(user=self.user)
         if created:
-            ContactContainer.objects.create(wizcard=wizcard)
+            cc = ContactContainer.objects.create(wizcard=wizcard)
             # set activated to true.
             self.userprofile.activated = True
             userprofile_modify = True
+        else:
+            cc = wizcard.contact_container.all()[0]
 
         #AA:TODO: Change app to call this phone as well
         if 'phone' in self.sender or 'phone1' in self.sender:
@@ -1000,33 +1004,17 @@ class ParseMsgAndDispatch(object):
                 wizcard.email = email
                 modify = True
 
-        if 'thumbnail_image' in self.sender and \
-                self.sender['thumbnail_image']:
-            b64image = bytes(self.sender['thumbnail_image'])
-            rawimage = b64image.decode('base64')
-            upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                                        (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                                        rawimage, "image/jpeg")
-            wizcard.thumbnail_image.save(upfile.name, upfile)
-            modify = True
-
-        if 'video_url' in self.sender:
-            wizcard.video_url = self.sender['video_url']
-            modify = True
-
-        if 'video_thumbnail_url' in self.sender:
-            wizcard.video_thumbnail_url = self.sender['video_thumbnail_url']
-            modify = True
-
         if 'ext_fields' in self.sender and self.sender['ext_fields']:
             wizcard.ext_fields = self.sender['ext_fields'].copy()
             modify = True
 
+        if 'media' in self.sender:
+            # delete any existing media
+            wizcard.media.all().delete()
+            media_create.send(sender=wizcard, objs=self.sender['media'])
+
         if 'contact_container' in self.sender:
             contact_container_list = self.sender['contact_container']
-
-            cc = wizcard.contact_container.all()[0]
-
             modify = True
 
             for count, contactItem in enumerate(contact_container_list):
@@ -1037,20 +1025,11 @@ class ParseMsgAndDispatch(object):
                 if 'phone' in contactItem:
                     cc.phone = contactItem['phone']
 
+                cc.media.all().delete()
+                if 'media' in contactItem:
+                    media_create.send(sender=cc, objs=contactItem['media'])
+
                 cc.save()
-                if 'f_bizcard_image' in contactItem and contactItem['f_bizcard_image']:
-                    #AA:TODO: Remove try
-                    try:
-                        b64image = bytes(contactItem['f_bizcard_image'])
-                        rawimage = b64image.decode('base64')
-                        #AA:TODO: better file name
-                        upfile = SimpleUploadedFile("%s-f_bc.%s.%s.jpg" % \
-                                                    (wizcard.pk, cc.pk, now().strftime \
-                                                        ("%Y-%m-%d %H:%M")), rawimage, \
-                                                    "image/jpeg")
-                        cc.f_bizcard_image.save(upfile.name, upfile)
-                    except:
-                        pass
 
         # check if futureUser states exist for this phone or email
         # check if futureUser states exist for this phone or email
@@ -1266,7 +1245,7 @@ class ParseMsgAndDispatch(object):
 
                 if dead_card:
                     try:
-                        wizcard2 = DeadCards.objects.get(id=w_id)
+                        wizcard2 = DeadCard.objects.get(id=w_id)
                     except:
                         self.response.error_response(err.OBJECT_DOESNT_EXIST)
                         return self.response
@@ -1955,32 +1934,30 @@ class ParseMsgAndDispatch(object):
             wizcard = self.user.wizcard
         except ObjectDoesNotExist:
             #this is the expected case
-            wizcard = Wizcard(user=self.user)
+            wizcard = Wizcard.objects.create(user=self.user)
             #AR: Temporary Fix, ideally we should be sending only the OCR response without creating
             # Wizcard. Want to be sure about the implications
-            self.userprofile.activated = True
-            self.userprofile.save()
-            wizcard.save()
+
+            # AA: not sure about this fix. userprofile will get activated when edit_card comes
+            # self.userprofile.activated = True
+            #self.userprofile.save()
 
         c = ContactContainer.objects.create(wizcard=wizcard)
 
-        if self.sender.has_key('f_ocr_card_image'):
-            b64image = bytes(self.sender['f_ocr_card_image'])
-            rawimage = b64image.decode('base64')
-            #AA:TODO maybe time to put this in lib
-            upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                                        (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                                        rawimage, "image/jpeg")
+        m = MediaObjects.objects.create(
+            media_element="",
+            media_type=MediaObjects.TYPE_IMAGE,
+            media_sub_type=MediaObjects.SUB_TYPE_F_BIZCARD,
+            content_type=ContentType.objects.get_for_model(c),
+            object_id=c.id
+        )
+        local_path, remote_path = m.upload_s3(bytes(self.sender['f_ocr_card_image']))
+        m.remote_path = remote_path
+        m.save()
 
-            c.f_bizcard_image.save(upfile.name, upfile)
-            path = c.f_bizcard_image.local_path()
-        else:
-            self.response.ignore()
-            return self.response
-
-        #Do ocr stuff
+        # Do ocr stuff
         ocr = OCR()
-        result = ocr.process(path)
+        result = ocr.process(local_path)
         if result.has_key('errno'):
             self.response.error_response(result)
             logging.error(result['str'])
@@ -2004,45 +1981,37 @@ class ParseMsgAndDispatch(object):
             c.company = result.get('company')
         if result.has_key('phone') and result.get('phone'):
             c.phone = result.get('phone')
-        c.end="current"
+
         c.save()
 
-        wc = wizcard.serialize()
+        wc = WizcardSerializerL2(wizcard).data
 
         self.response.add_data("ocr_result", wc)
         logger.debug('sending OCR scan results %s', self.response)
         return self.response
 
     def OcrReqDeadCard(self):
-        try:
-            wizcard = self.user.wizcard
-        except ObjectDoesNotExist:
-            self.response.error_response(err.CRITICAL_ERROR)
-            return self.response
+        d = DeadCard.objects.create(user=self.user)
+        m = MediaObjects.objects.create(
+            media_element="",
+            media_type=MediaObjects.TYPE_IMAGE,
+            media_sub_type=MediaObjects.SUB_TYPE_D_BIZCARD,
+            content_type=ContentType.objects.get_for_model(d),
+            object_id=d.id
+        )
+        local_path, remote_path = m.upload_s3(bytes(self.sender['f_ocr_card_image']))
+        m.media_element = remote_path
+        m.save()
 
-        d = DeadCards.objects.create(user=self.user)
+        d.recognize(local_path)
+        dc = WizcardSerializerL2(d).data
 
-        if self.sender.has_key('f_ocr_card_image'):
-            b64image = bytes(self.sender['f_ocr_card_image'])
-            rawimage = b64image.decode('base64')
-        else:
-            self.response.ignore()
-            return self.response
-
-        upfile = SimpleUploadedFile("%s-%s.jpg" % \
-                                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                                    rawimage, "image/jpeg")
-        d.f_bizcard_image.save(upfile.name, upfile)
-        d.recognize()
-        self.response.add_data("response", d.serialize())
+        self.response.add_data("response", dc)
         return self.response
 
     def OcrDeadCardEdit(self):
-        if not self.sender.has_key('dead_card_id'):
-            self.response.error_response(err.INVALID_MESSAGE)
-            return self.response
         try:
-            deadcard = DeadCards.objects.get(id=self.sender['dead_card_id'])
+            deadcard = DeadCard.objects.get(id=self.sender['dead_card_id'])
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -2057,6 +2026,7 @@ class ParseMsgAndDispatch(object):
             except:
                 logging.error("couldn't get location for user [%s]", self.userprofile.userid)
                 location_str = ""
+
             cctx = ConnectionContext(
                 asset_obj = deadcard,
                 location=location_str
@@ -2072,26 +2042,29 @@ class ParseMsgAndDispatch(object):
             deadcard.first_name = self.sender['first_name']
         if self.sender.has_key('last_name'):
             deadcard.last_name = self.sender['last_name']
-        inviteother = self.sender.get('inviteother', False)
         if self.sender.has_key('phone'):
             deadcard.phone = self.sender['phone']
 
         cc = self.sender.get('contact_container', None)
         if cc:
             cc_e = cc[0]
+            d_cc = deadcard.contact_container.all()[0]
 
             if cc_e.has_key('phone'):
-                deadcard.phone = cc_e['phone']
+                d_cc.phone = cc_e['phone']
             if cc_e.has_key('email'):
-                deadcard.email = cc_e['email']
+                d_cc.email = cc_e['email']
             if cc_e.has_key('company'):
-                deadcard.company = cc_e['company']
+                d_cc.company = cc_e['company']
             if cc_e.has_key('title'):
-                deadcard.title = cc_e['title']
+                d_cc.title = cc_e['title']
             if cc_e.has_key('web'):
-                deadcard.web = cc_e['web']
+                d_cc.web = cc_e['web']
 
-        if inviteother:
+            d_cc.save()
+
+        invite_other = self.sender.get('inviteother', False)
+        if invite_other:
             receiver_type = "email"
             receivers = [deadcard.email]
             if receivers:

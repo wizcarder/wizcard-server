@@ -17,7 +17,8 @@ APP_VERSION = str(settings.APP_MAJOR) + "." +  str(settings.APP_MINOR)
 
 def send_request(conn, req):
     print("Sending ", req['header']['msg_type'])
-    pprint.pprint(req)
+    if not req['header']['msg_type'] in ['ocr_req_self', 'ocr_req_dead_card']:
+        pprint.pprint(req)
     jreq = json.dumps(req)
     conn.request("POST", "", jreq)
 

@@ -7,13 +7,14 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dead_cards', '0004_deadcards_activated'),
+        ('wizcardship', '0001_initial'),
+        ('meishi', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='deadcards',
-            name='invited',
-            field=models.BooleanField(default=False),
+            model_name='meishi',
+            name='wizcard',
+            field=models.ForeignKey(related_name='meishis', to='wizcardship.Wizcard'),
         ),
     ]

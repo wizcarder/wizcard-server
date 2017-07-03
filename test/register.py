@@ -17,8 +17,8 @@ import libtest
 from libtest import send_request, handle_response
 
 
-TEST_IMAGE=False
-OCR_FLAG = False
+TEST_IMAGE=True
+OCR_FLAG = True
 TEST_TABLE = True
 TEST_FLICK = False
 TEST_WIZWEB = False
@@ -88,12 +88,6 @@ server_port = 8000
 # Open the connection to Wiz server
 conn = httplib.HTTPConnection(server_url, server_port)
 
-#send edit_cards for each
-if TEST_IMAGE:
-    f = open(libtest.test_image_path, 'rb')
-    cc_out = f.read().encode('base64')
-else:
-    cc_out = None
 
 if OCR_FLAG:
     f = open(libtest.ocr_image_path, 'rb')
@@ -268,9 +262,6 @@ if not SKIP_BASIC:
     reqmsg['sender']['user_id'] = uid1
     reqmsg['sender']['wizuser_id'] = wuid1
     contacts = reqmsg['sender']['contact_container']
-    #populate file
-    for c in contacts:
-        c['f_bizCardImage'] = cc_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -281,9 +272,6 @@ if not SKIP_BASIC:
     reqmsg['sender']['user_id'] = uid2
     reqmsg['sender']['wizuser_id'] = wuid2
     contacts = reqmsg['sender']['contact_container']
-    #populate file
-    for c in contacts:
-        c['f_bizCardImage'] = cc_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -303,10 +291,6 @@ if not SKIP_BASIC:
     reqmsg['sender']['user_id'] = uid3
     reqmsg['sender']['wizuser_id'] = wuid3
     contacts = reqmsg['sender']['contact_container']
-    #populate file
-    for c in contacts:
-        c['f_bizCardImage'] = cc_out
-        #c['b_bizCardImage'] = out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1168,9 +1152,7 @@ if not SKIP_BASIC:
     reqmsg['sender']['user_id'] = uid1
     reqmsg['sender']['wizuser_id'] = wuid1
     contacts = reqmsg['sender']['contact_container']
-    #populate file
-    for c in contacts:
-        c['f_bizCardImage'] = cc_out
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1181,9 +1163,7 @@ if not SKIP_BASIC:
     reqmsg['sender']['user_id'] = uid2
     reqmsg['sender']['wizuser_id'] = wuid2
     contacts = reqmsg['sender']['contact_container']
-    #populate file
-    for c in contacts:
-        c['f_bizCardImage'] = cc_out
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1194,9 +1174,7 @@ if not SKIP_BASIC:
     reqmsg['sender']['user_id'] = uid3
     reqmsg['sender']['wizuser_id'] = wuid3
     contacts = reqmsg['sender']['contact_container']
-    #populate file
-    for c in contacts:
-        c['f_bizCardImage'] = cc_out
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1234,7 +1212,6 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-
     # uid2 accept uid1
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1244,7 +1221,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-
 
     # recreate 1<->3 to test decline path
     reqmsg = messages.send_asset_to_xyz
@@ -1342,7 +1318,6 @@ if TEST_TABLE:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     tid_2 = objs['data']['data']['id']
-
 
     #join created entity
     print "Joining Table"
@@ -1624,21 +1599,9 @@ if OCR_FLAG:
     reqmsg['sender']['f_ocr_card_image'] = ocr_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
-    contact_container = objs['data']['ocr_result']['contact_container']
-
-    reqmsg = messages.edit_card2
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = ocr_uid
-    reqmsg['sender']['wizuser_id'] = ocr_wuid
-    contacts = contact_container
-    #populate file
-    for c in contacts:
-        c['f_bizcard_image'] = cc_out
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
-    ocr_wizcard_id = objs['data']['wizcard_id']
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
+    if not objs['result']['Error']:
+        contact_container = objs['data']['ocr_result']['contact_container']
 
     reqmsg = messages.ocr_dead_card
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1648,30 +1611,22 @@ if OCR_FLAG:
     reqmsg['sender']['f_ocr_card_image'] = ocr_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
-    dc1_id = objs['data']['response']['id']
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
+    if not objs['result']['Error']:
+        dc1_id = objs['data']['response']['wizcard_id']
 
-    reqmsg = messages.ocr_dead_card_edit
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['sender']['dead_card_id'] = dc1_id
-    reqmsg['sender']['inviteother'] = 0
-    reqmsg['sender']['contact_container'][0]['email'] = 'anandramani98@gmail.com'
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
-
-    reqmsg = messages.ocr_dead_card_edit
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['sender']['dead_card_id'] = dc1_id
-    reqmsg['sender']['notes']['note'] = "Test Dead Card notes"
-    reqmsg['sender']['notes']['last_saved'] = "1st Jan 2016"
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+        reqmsg = messages.ocr_dead_card_edit
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
+        reqmsg['sender']['dead_card_id'] = dc1_id
+        reqmsg['sender']['inviteother'] = 0
+        reqmsg['sender']['contact_container'][0]['email'] = 'anandramani98@gmail.com'
+        reqmsg['sender']['notes']['note'] = "Test Dead Card notes"
+        reqmsg['sender']['notes']['last_saved'] = "1st Jan 2016"
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1694,14 +1649,12 @@ if TEST_WIZWEB:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-
     print "wizweb query non-existing user"
     reqmsg['sender']['username'] = "does not exist"
     print "wizweb message query_user ", reqmsg['sender']['username']
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-
 
     #query wizcard
     print "wizweb query existing wizcard"

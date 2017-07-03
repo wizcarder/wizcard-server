@@ -41,7 +41,7 @@ class HtmlGen:
         send_wizcard.delay(wizcard, to,  email_details)
 
     def scan_user(self, sender, to):
-        wizcard = sender.get()
+        wizcard = sender
         email_details = {"template" : "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}
         send_wizcard.delay(wizcard, to, email_details, half_card = True)
 

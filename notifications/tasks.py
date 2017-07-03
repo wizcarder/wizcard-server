@@ -24,7 +24,7 @@ def pushNotificationToApp(
 
     sender = User.objects.get(id=sender_id)
     receiver_p = User.objects.get(id=receiver_id).profile
-    if receiver_p.dnd:
+    if receiver_p.profile.app_user.settings.dnd:
         return
 
     action_object = None

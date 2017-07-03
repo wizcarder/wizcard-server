@@ -2,14 +2,16 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import base.custom_storage
-import base.custom_field
+import base.char_trunc
 from django.conf import settings
+import base.emailField
+import picklefield.fields
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('contenttypes', '0002_remove_content_type_name'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -18,13 +20,11 @@ class Migration(migrations.Migration):
             name='ContactContainer',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('company', models.CharField(max_length=40, blank=True)),
-                ('title', models.CharField(max_length=200, blank=True)),
-                ('start', models.CharField(max_length=30, blank=True)),
-                ('end', models.CharField(max_length=30, blank=True)),
-                ('phone', models.CharField(max_length=20, blank=True)),
-                ('f_bizCardImage', base.custom_field.WizcardQueuedFileField(storage=base.custom_storage.WizcardQueuedS3BotoStorage(delayed=False), upload_to=b'bizcards')),
-                ('card_url', models.URLField(blank=True)),
+                ('company', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
+                ('title', base.char_trunc.TruncatingCharField(max_length=200, blank=True)),
+                ('start', base.char_trunc.TruncatingCharField(max_length=30, blank=True)),
+                ('end', base.char_trunc.TruncatingCharField(max_length=30, blank=True)),
+                ('phone', base.char_trunc.TruncatingCharField(max_length=20, blank=True)),
             ],
             options={
                 'ordering': ['id'],
@@ -43,20 +43,21 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Wizcard',
+            name='WizcardBase',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('first_name', models.CharField(max_length=40, blank=True)),
-                ('last_name', models.CharField(max_length=40, blank=True)),
-                ('phone', models.CharField(max_length=20, blank=True)),
-                ('email', models.EmailField(max_length=254, blank=True)),
-                ('thumbnailImage', base.custom_field.WizcardQueuedFileField(storage=base.custom_storage.WizcardQueuedS3BotoStorage(delayed=False), upload_to=b'thumbnails')),
-                ('user', models.OneToOneField(related_name='wizcard', to=settings.AUTH_USER_MODEL)),
-                ('wizconnections', models.ManyToManyField(related_name='wizconnections_rel_+', to='wizcardship.Wizcard', blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+                ('first_name', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
+                ('last_name', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
+                ('phone', base.char_trunc.TruncatingCharField(max_length=20, blank=True)),
+                ('email', base.emailField.EmailField(max_length=254, blank=True)),
+                ('ext_fields', picklefield.fields.PickledObjectField(default={}, editable=False, blank=True)),
+                ('sms_url', models.URLField(blank=True)),
+                ('vcard', models.TextField(blank=True)),
             ],
             options={
-                'verbose_name': 'wizcard',
-                'verbose_name_plural': 'wizcards',
+                'abstract': False,
             },
         ),
         migrations.CreateModel(
@@ -64,35 +65,87 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('a_created', models.CharField(max_length=40, blank=True)),
+                ('a_created', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
                 ('timeout', models.IntegerField(default=30)),
                 ('lat', models.FloatField(default=None, null=True)),
                 ('lng', models.FloatField(default=None, null=True)),
                 ('expired', models.BooleanField(default=False)),
-                ('reverse_geo_name', models.CharField(default=None, max_length=100)),
-                ('flick_pickers', models.ManyToManyField(to='wizcardship.Wizcard')),
-                ('wizcard', models.ForeignKey(related_name='flicked_cards', to='wizcardship.Wizcard')),
+                ('reverse_geo_name', base.char_trunc.TruncatingCharField(default=None, max_length=100)),
             ],
         ),
         migrations.CreateModel(
             name='WizConnectionRequest',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('message', models.CharField(max_length=200, blank=True)),
+                ('cctx', picklefield.fields.PickledObjectField(editable=False, blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('accepted', models.BooleanField(default=False)),
-                ('from_wizcard', models.ForeignKey(related_name='invitations_from', to='wizcardship.Wizcard')),
-                ('to_wizcard', models.ForeignKey(related_name='invitations_to', to='wizcardship.Wizcard')),
+                ('status', models.IntegerField(default=1, choices=[(1, b'Pending'), (2, b'Accepted'), (3, b'Declined'), (4, b'Deleted'), (5, b'Blocked')])),
             ],
             options={
                 'verbose_name': 'wizconnection request',
                 'verbose_name_plural': 'wizconnection requests',
             },
         ),
+        migrations.CreateModel(
+            name='DeadCard',
+            fields=[
+                ('wizcardbase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='wizcardship.WizcardBase')),
+                ('invited', models.BooleanField(default=False)),
+                ('activated', models.BooleanField(default=False)),
+                ('cctx', picklefield.fields.PickledObjectField(editable=False, blank=True)),
+                ('user', models.ForeignKey(related_name='dead_cards', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('wizcardship.wizcardbase',),
+        ),
+        migrations.CreateModel(
+            name='Wizcard',
+            fields=[
+                ('wizcardbase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='wizcardship.WizcardBase')),
+                ('user', models.OneToOneField(related_name='wizcard', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'verbose_name': 'wizcard',
+                'verbose_name_plural': 'wizcards',
+            },
+            bases=('wizcardship.wizcardbase',),
+        ),
+        migrations.AddField(
+            model_name='wizcardbase',
+            name='polymorphic_ctype',
+            field=models.ForeignKey(related_name='polymorphic_wizcardship.wizcardbase_set+', editable=False, to='contenttypes.ContentType', null=True),
+        ),
         migrations.AddField(
             model_name='contactcontainer',
             name='wizcard',
-            field=models.ForeignKey(related_name='contact_container', to='wizcardship.Wizcard'),
+            field=models.ForeignKey(related_name='contact_container', to='wizcardship.WizcardBase'),
+        ),
+        migrations.AddField(
+            model_name='wizconnectionrequest',
+            name='from_wizcard',
+            field=models.ForeignKey(related_name='requests_from', to='wizcardship.Wizcard'),
+        ),
+        migrations.AddField(
+            model_name='wizconnectionrequest',
+            name='to_wizcard',
+            field=models.ForeignKey(related_name='requests_to', to='wizcardship.Wizcard'),
+        ),
+        migrations.AddField(
+            model_name='wizcardflick',
+            name='flick_pickers',
+            field=models.ManyToManyField(to='wizcardship.Wizcard'),
+        ),
+        migrations.AddField(
+            model_name='wizcardflick',
+            name='wizcard',
+            field=models.ForeignKey(related_name='flicked_cards', to='wizcardship.Wizcard'),
+        ),
+        migrations.AddField(
+            model_name='wizcard',
+            name='wizconnections_to',
+            field=models.ManyToManyField(related_name='wizconnections_from', through='wizcardship.WizConnectionRequest', to='wizcardship.Wizcard'),
         ),
         migrations.AlterUniqueTogether(
             name='wizconnectionrequest',

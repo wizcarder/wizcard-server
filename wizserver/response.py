@@ -169,13 +169,13 @@ class NotifResponse(ResponseN):
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
         #AA:TODO we're using user id, but could actually used wizcardID
-        out = dict(user_id=notif.actor_object_id)
+        out = dict(wizuser_id=notif.actor_object_id)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_DELETE_IMPLICIT, notif.id)
         return self.response
 
     def notifWithdrawRequest(self, notif):
         #this is a notif to the app B when app A withdraws it's connection request
-        out = dict(user_id=notif.actor_object_id)
+        out = dict(wizuser_id=notif.actor_object_id)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_WITHDRAW_REQUEST, notif.id)
         logger.debug('%s', self.response)
         return self.response

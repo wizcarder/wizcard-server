@@ -126,6 +126,32 @@ USER2_AB = [
         'email': [FUTURE_EMAIL1]
     }
 ]
+VIDEO_URL = "https://youtu.be/QujpdmsXAb4"
+BIZCARD_IMAGE_PATH = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/wizcard_admin/bizcard.jpeg"
+
+wizcard_media = [
+      {
+        "media_element": VIDEO_URL,
+        "media_iframe": "http://www.eventone.com",
+        "media_type": "VID",
+        "media_sub_type": "ROL"
+      },
+      {
+        "media_element": "http://www.eventone.com",
+        "media_iframe": "",
+        "media_type": "IMG",
+        "media_sub_type": "THB"
+      },
+]
+
+cc_media = [
+      {
+        "media_element": BIZCARD_IMAGE_PATH,
+        "media_iframe": "",
+        "media_type": "IMG",
+        "media_sub_type": "FBZ"
+      },
+]
 
 phone_check_req = {
     "header" : {
@@ -299,7 +325,6 @@ contacts_verify = {
 
 }
 
-
 contacts_upload = {
     "header" : {
         "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
@@ -324,12 +349,10 @@ contacts_upload = {
 contact_container = {
     "company": "Wizcard Inc",
     "title" : "CEO",
-    "f_bizCardImage" : "",
-    "r_bizCardImage" : "",
     "start" : "xxx",
     "end" : "current",
     "phone": "12345678",
-    "card_url": ""
+    "media": cc_media
 }
 
 edit_card = {
@@ -342,20 +365,19 @@ edit_card = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "address_city" : "San Francisco Bay Area",
-        "address_state" : "CA",
-        "address_street1" : "1914 N Marthilda Ave",
-        "address_zip" : 94087,
-        "email" : "aammundi@gmail.com",
-        "first_name" : "Anand",
-        "last_name" : "Ammundi",
-        "imageWasEdited" : "0",
-        "location" : "San Francisco Bay Area",
-        "phone1" : PHONE1,
-        "user_id" : "",
+        "address_city": "San Francisco Bay Area",
+        "address_state": "CA",
+        "address_street1": "1914 N Marthilda Ave",
+        "address_zip": 94087,
+        "email": "aammundi@gmail.com",
+        "first_name": "Anand",
+        "last_name": "Ammundi",
+        "phone1": PHONE1,
+        "user_id": "",
         "device_type": "android",
         #wizuser_id should be the user_id got from response of above register message
-        "wizuser_id" : "",
+        "wizuser_id": "",
+        "media": wizcard_media,
         "contact_container": [contact_container]
     },
 }
@@ -384,6 +406,7 @@ edit_card1 = {
         "device_type": "android",
         #wizuser_id should be the user_id got from response of above register message
         "wizuser_id" : "",
+        "media": wizcard_media,
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -412,6 +435,7 @@ edit_card2 = {
         "user_id" : "USER2",
         #wizuser_id should be the user_id got from response of above register message
         "wizuser_id" : "",
+        "media": wizcard_media,
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -434,7 +458,6 @@ edit_card3 = {
         "email" : "wizard1@gmail.com",
         "first_name" : "Wizard",
         "last_name" : "One",
-        "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
         "phone1" : PHONE3,
         "user_id" : "USER3",
@@ -442,6 +465,7 @@ edit_card3 = {
 	    "video_url" : "http://www.youtube.com/zaHgTRo",
         #wizuser_id should be the user_id got from response of above register message
         "wizuser_id" : "",
+        "media": wizcard_media,
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -1109,7 +1133,7 @@ rolodex_edit_card1 = {
         "user_id" : "USER2",
         #wizuser_id should be the user_id got from response of above register message
         "wizuser_id" : "",
-	"contact_container" : [contact_container, contact_container, contact_container]
+	    "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 rolodex_edit_card2 = {

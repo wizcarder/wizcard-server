@@ -14,7 +14,6 @@ from entity.models import VirtualTable
 from entity.models import Product
 from entity.serializers import ProductSerializer, TableSerializerL1, TableSerializerL2
 from wizcardship.serializers import WizcardSerializerL2
-from dead_cards.models import DeadCards
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
 from notifications.models import Notification
@@ -303,19 +302,19 @@ class AppUser(models.Model):
         # dead card
         deadcards = self.profile.user.dead_cards.filter(activated=True)
         if deadcards.count():
-            dc = DeadCards.objects.serialize(deadcards)
+            dc = WizcardSerializerL2(deadcards).data
             s['deadcards'] = dc
-
-        # notifications. This is done by simply setting readed=False for
-        # those user.notifs which have acted=False
-        # This way, these notifs will be sent natively via get_cards
 
         campaigns = Product.objects.users_entities(self.profile.user)
         if campaigns.count():
             camp_data = ProductSerializer(campaigns, many=True, context={'user': self.profile.user}).data
             s['campaigns'] = camp_data
 
+        # notifications. This is done by simply setting readed=False for
+        # those user.notifs which have acted=False
+        # This way, these notifs will be sent natively via get_cards
         Notification.objects.unacted(self.profile.user).update(readed=False)
+
         return s
 
 class WebOrganizerUser(models.Model):

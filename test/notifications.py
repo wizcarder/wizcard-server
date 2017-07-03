@@ -52,17 +52,17 @@ class NotifParser:
                 break
 
     def accept_implicit(self, data):
-        print "received accept implicit from", data['user_id']
+        print "received accept implicit from", data['wizuser_id']
         pass
 
     def accept_explicit(self, data):
-        print "received accept explicit from", data['user_id']
+        print "received accept explicit from", data['wizuser_id']
         #rsp = messages.add_notification_card
         #rsp['receiver']['wizUserID'] = data['wizUserID']
         pass
 
     def delete_implicit(self, data):
-        print "received delete implicit from", data['user_id']
+        print "received delete implicit from", data['wizuser_id']
         pass
 
     def table_timeout(self, data):

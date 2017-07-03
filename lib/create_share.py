@@ -34,9 +34,9 @@ def create_vcard(wizcard):
     v.add('title')
     v.title.value = wizcard.get_latest_title()
     tnurl = wizcard.get_thumbnail_url()
-    if tnurl:
+    for url  in tnurl:
         v.add('photo')
-        v.photo.value = tnurl
+        v.photo.value = url
         v.photo.type_param='jpeg'
 
     return v.serialize()

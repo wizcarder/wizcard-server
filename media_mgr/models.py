@@ -2,23 +2,32 @@ from django.db import models
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from media_mgr.signals import media_create
+from base.custom_storage import WizcardQueuedS3BotoStorage
+from base.custom_field import WizcardQueuedFileField
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
+
+now = timezone.now
+
 import pdb
 
 # Create your models here.
 
-class MediaObjectsManager(models.Manager):
+def get_s3_bucket(instance, filename):
+    if instance.media_sub_type == MediaObjects.SUB_TYPE_F_BIZCARD:
+        return "deadcards"
+    elif instance.media_sub_type == MediaObjects.SUB_TYPE_THUMBNAIL:
+        return "thumbnails"
+    else:
+        return "bizcards"
 
-    def get_media_of_type(self, type):
-        return MediaObjects.objects.filter(media_type=type)
-
-    def get_media_of_subtype(self, subtype):
-        return MediaObjects.objects.filter(media_sub_type=subtype)
+class MediaObjectsQuerySet(models.QuerySet):
+    def delete(self):
+        # TODO: delete s3 assets
+        super(MediaObjectsQuerySet, self).delete()
 
 
 class MediaObjects(models.Model):
-
-    objects = MediaObjectsManager
-
     def __repr__(self):
         return str(self.id) + "." + self.media_type + "." + self.media_sub_type
 
@@ -30,6 +39,9 @@ class MediaObjects(models.Model):
     SUB_TYPE_SPONSORS_LOGO = 'SLG'
     SUB_TYPE_ROLLING = 'ROL'
     SUB_TYPE_THUMBNAIL = 'THB'
+    SUB_TYPE_F_BIZCARD = 'FBZ'
+    SUB_TYPE_D_BIZCARD = 'DBZ'
+    SUB_TYPE_PROFILE_VIDEO = 'PVD'
 
     MEDIA_CHOICES = (
         (TYPE_IMAGE, 'Image'),
@@ -41,7 +53,10 @@ class MediaObjects(models.Model):
         (SUB_TYPE_LOGO, 'Logo'),
         (SUB_TYPE_SPONSORS_LOGO, 'Sponsor Logo'),
         (SUB_TYPE_ROLLING, 'Rolling'),
-        (SUB_TYPE_THUMBNAIL, 'Thumbnail')
+        (SUB_TYPE_THUMBNAIL, 'Thumbnail'),
+        (SUB_TYPE_F_BIZCARD, 'Business Card Front'),
+        (SUB_TYPE_D_BIZCARD, 'Dead Business Card'),
+        (SUB_TYPE_PROFILE_VIDEO, 'Profile Video')
     )
 
     media_type = models.CharField(
@@ -55,6 +70,12 @@ class MediaObjects(models.Model):
         choices=MEDIA_SUBTYPE_CHOICES,
         default=SUB_TYPE_ROLLING
     )
+    # s3 upload file field. Used for scanned cards
+    upload_file = WizcardQueuedFileField(
+        storage=WizcardQueuedS3BotoStorage(delayed=False),
+        upload_to=get_s3_bucket,
+        blank=True
+    )
 
     # url of media element
     media_element = models.URLField(blank=True, default=None)
@@ -64,6 +85,18 @@ class MediaObjects(models.Model):
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
+
+    objects = MediaObjectsQuerySet.as_manager()
+
+    def upload_s3(self, b64image):
+        raw_image = b64image.decode('base64')
+        upfile = SimpleUploadedFile("%s-%s.jpg" % \
+                                        (self.media_sub_type, now().strftime("%Y-%m-%d %H:%M")),
+                                        raw_image, "image/jpeg")
+        self.upload_file.save(upfile.name, upfile)
+        self.media_element = self.upload_file.remote_url()
+
+        return self.upload_file.local_path(), self.upload_file.remote_url()
 
 
 def media_create_handler(**kwargs):

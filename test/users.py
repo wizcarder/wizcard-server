@@ -2,6 +2,7 @@ from __future__ import division
 
 import random
 import messages
+import libtest
 from libtest import send_request, handle_response
 import httplib
 import pdb
@@ -105,12 +106,8 @@ class User(object):
         self.reqmsg = messages.edit_card.copy()
         self.reqmsg['header'].update(self.msg_hdr['header'])
 
-        self.reqmsg['sender']['userID'] = self.uid
-        self.reqmsg['sender']['wizUserID'] = self.wuid
-
-        contacts = self.reqmsg['sender']['contact_container']
-        for c in contacts:
-            c['f_bizCardImage'] = self.get_fbizcard_image()
+        self.reqmsg['sender']['user_id'] = self.uid
+        self.reqmsg['sender']['wizuser_id'] = self.wuid
 
         send_request(self.conn, self.reqmsg)
         objs = handle_response(self.conn, self.reqmsg['header']['msgType'])
@@ -122,11 +119,11 @@ class User(object):
         self.reqmsg = messages.get_cards.copy()
         self.reqmsg['header'].update(self.msg_hdr['header'])
 
-        self.reqmsg['sender']['userID'] = self.uid
-        self.reqmsg['sender']['wizUserID'] = self.wuid
+        self.reqmsg['sender']['user_id'] = self.uid
+        self.reqmsg['sender']['wizuser_id'] = self.wuid
 
         send_request(self.conn, self.reqmsg)
-        objs = handle_response(self.conn, self.reqmsg['header']['msgType'])
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
 
     def onboard_user(self):
         self.otp_check()
