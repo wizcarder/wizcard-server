@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from userprofile.models import UserProfile
 from rest_framework.validators import ValidationError
 import hashlib
-import pdb
 
 from allauth.account import app_settings as allauth_settings
 from allauth.utils import email_address_exists
@@ -13,8 +12,8 @@ from rest_auth.registration.serializers import RegisterSerializer
 import pdb
 
 class UserRegisterSerializer(RegisterSerializer):
-    first_name = serializers.CharField(required=True, write_only=True)
-    last_name = serializers.CharField(required=True, write_only=True)
+    first_name = serializers.CharField(required=False, write_only=True)
+    last_name = serializers.CharField(required=False, write_only=True)
     user_type = serializers.IntegerField(source='profile.user_type')
 
     def get_cleaned_data(self):
