@@ -134,17 +134,3 @@ class EventsGetSchema(colander.MappingSchema):
 class EntitiesEngageSchema(colander.MappingSchema):
     pass
 
-#wizweb
-class WizWebUserQuerySchema(colander.MappingSchema):
-    pass
-
-class WizWebWizcardQuerySchema(colander.MappingSchema):
-    pass
-
-class WizWebUserCreateSchema(colander.MappingSchema):
-    pass
-
-class WizWebAddEditCardSchema(colander.MappingSchema):
-    pass
-
-

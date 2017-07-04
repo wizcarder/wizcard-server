@@ -111,6 +111,3 @@ class NotifParser:
     def wizcard_forward(self, data):
         print "received wizcard forward ", data
         pass
-
-    def wizweb_update_wizcard(self, data):
-        pass

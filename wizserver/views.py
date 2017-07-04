@@ -194,20 +194,6 @@ class ParseMsgAndDispatch(object):
             logger.error('Client not sending App Version - Something Fishy')
             return False
 
-    def validate_wizweb_msg(self):
-        if ['header'] in self.msg:
-            if 'user_id' in self.msg['header']:
-                try:
-                    self.userprofile = UserProfile.objects.get(userid=self.msg['header']['user_id'])
-                    self.user = self.userprofile.user
-                except ObjectDoesNotExist:
-                    self.response.ignore()
-                    return False, self.response
-        if self.msg.has_key('sender'):
-            self.sender = self.msg['sender']
-
-        return True, self.response
-
     def validate(self):
         try:
             #self.header = message_format.CommonHeaderSchema().deserialize(self.msg['header'])
@@ -755,7 +741,7 @@ class ParseMsgAndDispatch(object):
 
                 self.userprofile.activated = True
             self.app_userprofile.do_sync = False
-        self.userprofile.save()
+        self.app_userprofile.save()
 
         return self.response
 
@@ -2063,6 +2049,7 @@ class ParseMsgAndDispatch(object):
 
         users, count = self.app_userprofile.lookup(
             settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
+
         if count:
             out = UserSerializerL0(users, many=True).data
             self.response.add_data("m_nearby", out)
