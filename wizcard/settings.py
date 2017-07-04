@@ -314,7 +314,6 @@ INSTALLED_APPS = (
     'wizcardship',
     'notifications',
     'location_mgr',
-    'dead_cards',
     'periodic',
     'gunicorn',
     'raven.contrib.django.raven_compat',
@@ -351,7 +350,7 @@ AWS_BUCKET_ENV = "-" + RUNENV
 AWS_QUERYSTRING_AUTH = False
 #Expiry set to 100 years
 AWS_QUERYSTRING_EXPIRE = 3153600000
-AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV
+AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV 
 S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 EMAIL_DEFAULT_IMAGE = S3_URL +  "/invites/email_info.png"
 DEFAULT_VIDEO_THUMBNAIL = AWS_STORAGE_BUCKET_NAME+ "/thumbnails/no-video-uploaded.gif"
@@ -375,9 +374,9 @@ DEFAULT_FROM_EMAIL='admin@getwizcard.com'
 #ACCOUNT_EMAIL_VERIFICATION='mandatory'
 ACCOUNT_EMAIL_REQUIRED=True
 #ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USERNAME_REQUIRED = True
 
-ACCOUNT_AUTHENTICATION_METHOD='email'
+#ACCOUNT_AUTHENTICATION_METHOD='email'
 #LOGIN_REDIRECT_URL = "http://www.getwizcard.com"
 
 REST_AUTH_REGISTER_SERIALIZERS = {
