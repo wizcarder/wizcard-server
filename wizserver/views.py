@@ -219,9 +219,6 @@ class ParseMsgAndDispatch(object):
         self.msg_type = self.header['msg_type']
         self.device_id = self.header['device_id']
 
-        if self.msg_is_from_wizweb():
-            return self.validate_wizweb_msg()
-
         logger.debug('received message %s', self.msg_type)
         if not self.msg_has_rawimage():
             logger.debug('%s', self)
@@ -556,7 +553,7 @@ class ParseMsgAndDispatch(object):
 
     def header_post_process(self):
         #make the user as alive
-        if not (self.msg_is_initial() or self.msg_is_from_wizweb()):
+        if not self.msg_is_initial():
             self.app_userprofile.online()
 
     def PhoneCheckRequest(self):
