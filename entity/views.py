@@ -62,7 +62,7 @@ class EventViewSet(BaseEntityViewSet):
 
     def get_queryset(self):
         queryset = Event.objects.all()
-        super(EventViewSet, self).get_queryset()
+        return super(EventViewSet, self).get_queryset()
 
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
@@ -114,7 +114,7 @@ class SpeakerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Speaker.objects.all()
-        super(SpeakerViewSet, self).get_queryset()
+        return super(SpeakerViewSet, self).get_queryset()
 
     def get_serializer_context(self):
         uid = self.request.query_params.get('user', None)
@@ -131,7 +131,7 @@ class SponsorViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Sponsor.objects.all()
-        super(SponsorViewSet, self).get_queryset()
+        return super(SponsorViewSet, self).get_queryset()
 
     def get_serializer_context(self):
         uid = self.request.query_params.get('user', None)
