@@ -3,13 +3,17 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from lib.preserialize.serialize import serialize
 from lib import wizlib
+from polymorphic.models import PolymorphicModel
+from polymorphic.manager import PolymorphicManager
 from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
-from virtual_table.models import VirtualTable
-from dead_cards.models import DeadCards
+from entity.models import VirtualTable
+from entity.models import Product
+from entity.serializers import ProductSerializer, TableSerializerL1, TableSerializerL2
+from wizcardship.serializers import WizcardSerializerL2
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
 from notifications.models import Notification
@@ -29,79 +33,29 @@ import logging
 import pdb
 
 RECO_DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
-RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010,01,01))
+RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010, 01, 01))
 
 logger = logging.getLogger(__name__)
 
 
+
+class AppUserSettings(models.Model):
+    is_profile_private = models.BooleanField(default=False)
+    is_wifi_data = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=True)
+    dnd = models.BooleanField(default=False)
+    block_unsolicited = models.BooleanField(default=False)
+
+
+class WebOrganizerUserSettings(models.Model):
+    pass
+
+
+class WebExhibitorUserSettings(models.Model):
+    pass
+
+
 class UserProfileManager(models.Manager):
-    def serialize_split(self, me, users):
-        s = dict()
-        template = fields.wizcard_template_brief
-
-        ret = self.split_users(me, users)
-        if ret.has_key('own'):
-            s['own'] = UserProfile.objects.serialize(ret['own'], template)
-        if ret.has_key('connected'):
-            s['connected'] = UserProfile.objects.serialize(ret['connected'], template)
-        # lets remove follower for now. The *assumption* is that follower is represented on
-        # the me.app as a notif anyway. Since they are on the same screen, it's redundant.
-        # if ret.has_key('follower'):
-        #    s['follower'] = UserProfile.objects.serialize(ret['follower'], template)
-        if ret.has_key('follower-d'):
-            s['follower-d'] = UserProfile.objects.serialize(ret['follower-d'], template)
-        if ret.has_key('followed'):
-            s['followed'] = UserProfile.objects.serialize(ret['followed'], template)
-        if ret.has_key('others'):
-            s['others'] = UserProfile.objects.serialize(ret['others'], template)
-
-        return s
-
-    def split_users(self, me, users):
-        own = []
-        connected = []
-        follower = []
-        follower_d = []
-        followed = []
-        others = []
-
-        ret = dict()
-
-        for user in users:
-            connection_status = Wizcard.objects.get_connection_status(me.wizcard, user.wizcard)
-            if connection_status == verbs.OWN:
-                own.append(user)
-            elif connection_status == verbs.CONNECTED:
-                # 2-way connected
-                connected.append(user)
-            elif connection_status == verbs.FOLLOWER:
-                follower.append(user)
-            elif connection_status == verbs.FOLLOWER_D:
-                follower_d.append(user)
-            elif connection_status == verbs.FOLLOWED:
-                followed.append(user)
-            else:
-                others.append(user)
-
-        if len(own):
-            ret[verbs.OWN] = own
-        if len(connected):
-            ret[verbs.CONNECTED] = connected
-        if len(follower):
-            ret[verbs.FOLLOWER] = follower
-        if len(follower_d):
-            ret[verbs.FOLLOWER_D] = follower_d
-        if len(followed):
-            ret[verbs.FOLLOWED] = followed
-        if len(others):
-            ret[verbs.OTHERS] = others
-
-        return ret
-
-    def serialize(self, users, template):
-        wizcards = map(lambda u: u.wizcard, users)
-        return serialize(wizcards, **template)
-
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         userid = ''.join(random.choice(chars) for x in range(size))
         try:
@@ -135,47 +89,121 @@ class UserProfileManager(models.Manager):
         return phone_num + settings.WIZCARD_FUTURE_USERNAME_EXTENSION
 
     def get_admin_user(self):
-        return User.objects.filter(is_staff=True, is_superuser=True)[0] \
-            if User.objects.filter(is_staff=True, is_superuser=True).exists() else None
+        admin = UserProfile.objects.filter(is_admin=True)[0].user if \
+            UserProfile.objects.filter(is_admin=True).exists() else None
+        # should not happen. failsafe just in case
+        if not admin:
+            admin = User.objects.filter(is_staff=True, is_superuser=True)[0]
+            admin.profile.is_admin = True
+            admin.profile.save()
+
+        return admin
 
     def is_admin_user(self, user):
         return user.is_staff and user.is_superuser
 
+    def get_portal_user_internal(self):
+        return UserProfile.objects.get(user_type=UserProfile.PORTAL_USER_INTERNAL) \
+            if UserProfile.objects.filter(user_type=UserProfile.PORTAL_USER_INTERNAL).exists() else None
+
 
 class UserProfile(models.Model):
-    # This field is required.
+    # hacking up bitmaps this way
+    BITMAP_BASE = 1
+    APP_USER = BITMAP_BASE
+    WEB_ORGANIZER_USER = BITMAP_BASE << 1
+    WEB_EXHIBITOR_USER = BITMAP_BASE << 2
+    PORTAL_USER_INTERNAL = BITMAP_BASE << 6
+
+    user_type = models.IntegerField(default=BITMAP_BASE)
     user = models.OneToOneField(User, related_name='profile')
-    is_admin = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
     # this is the internal userid
     userid = TruncatingCharField(max_length=100)
-    future_user = models.BooleanField(default=False, blank=False)
-    location = generic.GenericRelation(LocationMgr)
-    do_sync = models.BooleanField(default=False)
-    is_profile_private = models.BooleanField(default=False)
-    is_wifi_data = models.BooleanField(default=False)
-    is_visible = models.BooleanField(default=True)
-    dnd = models.BooleanField(default=False)
-    block_unsolicited = models.BooleanField(default=False)
-    reco_generated_at = models.DateTimeField(default=RECO_DEFAULT_TIME)
-    reco_ready = models.PositiveIntegerField(default=0)
 
+    objects = UserProfileManager()
+
+    def create_user_type(self, user_type):
+        self.user_type = user_type
+
+        # create the associated user personalities
+        if self.user_type == self.APP_USER:
+            if hasattr(self, 'app_user'):
+                raise AssertionError
+            AppUser.objects.create(
+                profile=self,
+                settings=AppUserSettings.objects.create()
+            )
+        elif self.user_type == self.WEB_ORGANIZER_USER:
+            if hasattr(self, 'organizer_user'):
+                raise AssertionError
+            WebOrganizerUser.objects.create(
+                profile=self,
+                settings=WebOrganizerUserSettings.objects.create()
+            )
+        elif self.user_type == self.WEB_EXHIBITOR_USER:
+            if hasattr(self, 'exhibitor_user'):
+                raise AssertionError
+            WebExhibitorUser.objects.create(
+                profile=self,
+                settings=WebExhibitorUserSettings.objects.create()
+            )
+
+        self.save()
+
+    def add_user_type(self, user_type):
+        self.user_type &= user_type
+
+        if self.user_type == self.APP_USER:
+            if hasattr(self, 'app_user'):
+                raise AssertionError
+            AppUser.objects.create(
+                profile=self,
+                settings=AppUserSettings.objects.create()
+            )
+        elif self.user_type == self.WEB_ORGANIZER_USER:
+            if hasattr(self, 'organizer_user'):
+                raise AssertionError
+            WebOrganizerUser.objects.create(
+                profile=self,
+                settings = WebOrganizerUserSettings.objects.create()
+            )
+        elif self.user_type == self.WEB_EXHIBITOR_USER:
+            if hasattr(self, 'exhibitor_user'):
+                raise AssertionError
+            WebExhibitorUser.objects.create(
+                profile=self,
+                settings=WebExhibitorUserSettings.objects.create()
+            )
+
+        self.save()
+
+
+class AppUser(models.Model):
+    UNINITIALIZED = 'unknown'
     IOS = 'ios'
     ANDROID = 'android'
+
     DEVICE_CHOICES = (
         (IOS, 'iPhone'),
         (ANDROID, 'Android'),
     )
-    device_type = TruncatingCharField(max_length=10,
-                                      choices=DEVICE_CHOICES,
-                                      default=IOS)
+
+    location = generic.GenericRelation(LocationMgr)
+    do_sync = models.BooleanField(default=False)
     device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True, max_length=200)
+    profile = models.OneToOneField(UserProfile, related_name='app_user')
+    settings = models.OneToOneField(AppUserSettings, related_name='app_user')
+    device_type = TruncatingCharField(max_length=10, choices=DEVICE_CHOICES, default=UNINITIALIZED)
+    reco_generated_at = models.DateTimeField(default=RECO_DEFAULT_TIME)
+    reco_ready = models.PositiveIntegerField(default=0)
 
     objects = UserProfileManager()
 
     def online_key(self):
-        return self.userid
+        return self.profile.userid
 
     def online(self):
         cache.set(settings.USER_ONLINE_PREFIX % self.online_key(), timezone.now(),
@@ -188,9 +216,9 @@ class UserProfile(models.Model):
         now = timezone.now()
         ls = cache.get(settings.USER_ONLINE_PREFIX % self.online_key())
         if bool(ls):
-            return (True, (now - ls))
+            return True, (now - ls)
         else:
-            return (False, None)
+            return False, None
 
     def is_online(self):
         on, ls = self.last_seen()
@@ -198,14 +226,6 @@ class UserProfile(models.Model):
         if on and (ls < delta):
             return True
         return False
-
-    def is_future(self):
-        return self.future_user
-
-    def set_future(self):
-        self.activated = False
-        self.future_user = True
-        self.save()
 
     def is_ios(self):
         return bool(self.device_type == self.IOS)
@@ -222,18 +242,19 @@ class UserProfile(models.Model):
                                     tree="PTREE")
             l_tuple[0][1].start_timer(settings.USER_ACTIVE_TIMEOUT)
 
-    def lookup(self, cache_key, n, count_only=False):
+    def lookup(self, n, count_only=False):
         users = None
         try:
             l = self.location.get()
         except ObjectDoesNotExist:
             return None, None
 
-        result, count = l.lookup(cache_key, n)
+        result, count = l.lookup(n)
         # convert result to query set result
         if count and not count_only:
             users = [UserProfile.objects.get(id=x).user for x in result if
-                     UserProfile.objects.filter(id=x, activated=True, is_visible=True).exists()]
+                     UserProfile.objects.filter(id=x, activated=True, app_user__settings__is_visible=True).exists()]
+            count = len(users)
         return users, count
 
     def do_resync(self):
@@ -242,16 +263,16 @@ class UserProfile(models.Model):
 
         # wizcard
         try:
-            wizcard = self.user.wizcard
+            wizcard = self.profile.user.wizcard
         except ObjectDoesNotExist:
             return s
 
-        s['wizcard'] = wizcard.serialize(fields.wizcard_template_full)
-        # flicks (put  before wizconnections since wizconnection could refer to flicks)
+        s['wizcard'] = WizcardSerializerL2(wizcard, context={'user': self.profile.user}).data
 
-        if wizcard.flicked_cards.count():
-            wf = wizcard.serialize_wizcardflicks()
-            s['wizcard_flicks'] = wf
+        # # flicks (put  before wizconnections since wizconnection could refer to flicks)
+        # if wizcard.flicked_cards.count():
+        #     wf = wizcard.serialize_wizcardflicks()
+        #     s['wizcard_flicks'] = wf
 
         # wizconnections
         if wizcard.wizconnections_from.count():
@@ -269,30 +290,42 @@ class UserProfile(models.Model):
                 notes=x.cctx.notes,
                 timestamp=x.created.strftime("%d %B %Y")).context, conn)
 
-            s['context'] = serialize(cctx, **fields.cctx_wizcard_template)
+            s['context'] = serialize(cctx)
 
         # tables
-        tables = VirtualTable.objects.user_tables(self.user)
+        tables = VirtualTable.objects.users_entities(self.profile.user)
         if tables.count():
             # serialize created and joined tables
-            tbls = VirtualTable.objects.serialize_split(
-                tables,
-                self.user,
-                fields.table_template)
+            tbls = TableSerializerL1(tables, many=True, context={'user': self.profile.user}).data
             s['tables'] = tbls
 
         # dead card
-        deadcards = self.user.dead_cards.filter(activated=True)
+        deadcards = self.profile.user.dead_cards.filter(activated=True)
         if deadcards.count():
-            dc = DeadCards.objects.serialize(deadcards)
+            dc = WizcardSerializerL2(deadcards).data
             s['deadcards'] = dc
+
+        campaigns = Product.objects.users_entities(self.profile.user)
+        if campaigns.count():
+            camp_data = ProductSerializer(campaigns, many=True, context={'user': self.profile.user}).data
+            s['campaigns'] = camp_data
 
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
-        Notification.objects.unacted(self.user).update(readed=False)
+        Notification.objects.unacted(self.profile.user).update(readed=False)
+
         return s
 
+class WebOrganizerUser(models.Model):
+    profile = models.OneToOneField(UserProfile, related_name='organizer_user')
+    settings = models.OneToOneField(WebOrganizerUserSettings, related_name='organizer_user')
+    pass
+
+class WebExhibitorUser(models.Model):
+    profile = models.OneToOneField(UserProfile, related_name='exhibitor_user')
+    settings = models.OneToOneField(WebExhibitorUserSettings, related_name='exhibitor_user')
+    pass
 
 class FutureUserManager(models.Manager):
     def check_future_user(self, email=None, phone=None):
@@ -363,7 +396,6 @@ class FutureUser(models.Model):
                         verb=verbs.WIZCARD_TABLE_INVITE[0],
                         target=self.content_object)
 
-
 # Model for Address-Book Support. Standard M2M-through
 MIN_MATCHES_FOR_PHONE_DECISION = 3
 MIN_MATCHES_FOR_EMAIL_DECISION = 3
@@ -388,7 +420,7 @@ class AddressBook(models.Model):
     users = models.ManyToManyField(User, through='AB_User')
 
     def __repr__(self):
-        return self.first_name + " " + self.last_name + " " + (self.email) + " " + self.phone
+        return self.first_name + " " + self.last_name + " " + self.email + " " + self.phone
 
     def serialize(self, template=fields.addressbook_template):
         return serialize(self, **template)
@@ -530,4 +562,4 @@ def create_user_profile(sender, instance, created, **kwargs):
         profile.save()
 
 
-post_save.connect(create_user_profile, sender=User)
+post_save.connect(create_user_profile, sender=User, dispatch_uid="users-profilecreation-signal")

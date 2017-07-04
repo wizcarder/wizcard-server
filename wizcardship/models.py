@@ -18,18 +18,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 import signals
 import pdb
-from django.db.models import Q
-from django.core.files.base import ContentFile
-from lib.preserialize.serialize import serialize
-from wizserver import fields
-from lib.pytrie import SortedStringTrie as trie
 from django.contrib.contenttypes import generic
-from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
 from location_mgr.models import LocationMgr
-from django.http import HttpResponseBadRequest, Http404
-from django.core.files.storage import default_storage
-from django.core.files.storage import FileSystemStorage
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
 from base.char_trunc import TruncatingCharField
@@ -43,17 +34,19 @@ from lib import wizlib
 from wizcard import err
 from wizserver import verbs
 from notifications.models import notify, Notification
+from django.db.models import URLField
+from genericm2m.models import RelatedObjectsDescriptor
+from media_mgr.models import MediaObjects
+from polymorphic.models import PolymorphicModel
+from polymorphic.manager import PolymorphicManager
 from base.cctx import ConnectionContext
-from django.db.models import ImageField,URLField
-from django.utils import timezone
+from lib.ocr import OCR
+
 
 logger = logging.getLogger(__name__)
 
 
-class WizcardManager(models.Manager):
-    def serialize(self, wizcards, template):
-        return serialize(wizcards, **template)
-
+class WizcardManager(PolymorphicManager):
     def except_wizcard(self, except_user):
         qs = Wizcard.objects.filter(~Q(user=except_user))
         return qs
@@ -140,7 +133,7 @@ class WizcardManager(models.Manager):
                         verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
                         target=wizcard1)
 
-    def query_users(self, userID, name, phone, email):
+    def query_users(self, exclude_user, name, phone, email):
         #name can be first name, last name or even combined
         #any of the arguments may be null
         qlist = []
@@ -161,11 +154,18 @@ class WizcardManager(models.Manager):
             email_result = Q(email=email.lower())
             qlist.append(email_result)
 
-        result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=userID).exclude(user__profile__is_visible=False)
+        result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=exclude_user.id).\
+            exclude(user__profile__app_user__settings__is_visible=False)
 
         return result, len(result)
 
+    def get_admin_wizcard(self):
+        return User.objects.filter(is_staff=True, is_superuser=True)[0] \
+            if User.objects.filter(is_staff=True, is_superuser=True).exists() else None
+
     def get_connection_status(self, wizcard1, wizcard2):
+        if wizcard2.is_admin_wizcard():
+            return verbs.ADMIN
         if wizcard1 == wizcard2:
             return verbs.OWN
         elif Wizcard.objects.are_wizconnections(wizcard1, wizcard2):
@@ -184,49 +184,39 @@ class WizcardManager(models.Manager):
         else:
             return verbs.OTHERS
 
+    def friends_in_wizcards(self, my_wizcard, wizcards):
+        return [x for x in wizcards if Wizcard.objects.is_wizcard_following(x, my_wizcard)]
 
-class Wizcard(models.Model):
-    user = models.OneToOneField(User, related_name='wizcard')
-    wizconnections_to = models.ManyToManyField('self',
-                                            through='WizConnectionRequest',
-                                            symmetrical=False,
-                                            related_name='wizconnections_from')
+class WizcardBase(PolymorphicModel):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
     first_name = TruncatingCharField(max_length=40, blank=True)
     last_name = TruncatingCharField(max_length=40, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
-
-    #media objects
-    thumbnailImage = WizcardQueuedFileField(upload_to="thumbnails",
-            storage=WizcardQueuedS3BotoStorage(delayed=False), blank=True)
-    videoUrl = URLField(blank=True)
-    videoThumbnailUrl = URLField(blank=True)
-    extFields = PickledObjectField(default={}, blank=True)
-    smsurl = URLField(blank=True)
+    media = generic.GenericRelation(MediaObjects)
+    ext_fields = PickledObjectField(default={}, blank=True)
+    sms_url = URLField(blank=True)
     vcard = models.TextField(blank=True)
 
-    objects = WizcardManager()
+    def serialize_wizconnections(self):
+        out = []
+        # doing import here to avoid circular import. This does affect performance
+        # (eventhough django caches re-imports). Still, doing it here since this
+        # method is called only in the resync path
+        from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
+        admin = self.get_admin_wizcard()
+        out.append(WizcardSerializerL2(admin, many=True, context={'status': verbs.ADMIN}).data)
 
-    class Meta:
-        verbose_name = _(u'wizcard')
-        verbose_name_plural = _(u'wizcards')
+        connected = self.get_connections_without_admin()
+        if connected:
+            out.append(WizcardSerializerL2(connected, many=True, context={'status': verbs.CONNECTED}).data)
 
-    def __unicode__(self):
-        return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
+        following = self.get_following_only()
+        if following:
+            out.append(WizcardSerializerL1(following, many=True, context={'status': verbs.FOLLOWED}).data)
 
-    def serialize(self, template=fields.wizcard_template_full):
-        return serialize(self, **template)
-
-    def serialize_wizconnections(self, template=fields.wizcard_template_full):
-        s1 = serialize(self.get_connections_with_admin(), **template)
-        s2 = serialize(self.get_following_only(), **fields.wizcard_template_half)
-
-        return s1+s2
-
-    def serialize_wizcardflicks(self, template=fields.my_flicked_wizcard_template):
-        return serialize(
-            self.flicked_cards.exclude(expired=True),
-            **template)
+        return out
 
     def get_latest_company(self):
         qs = self.contact_container.all()
@@ -234,58 +224,41 @@ class Wizcard(models.Model):
             return qs[0].company
         return None
 
-    # this is for a specific use only. Not really a generic method.
-    def get_latest_contact_container(self, show_bizcard=False):
-
-        qs = self.contact_container.all()
-        if qs.exists():
-            cc = qs[0]
-            out = dict()
-            out['company'] = cc.company
-            out['title'] = cc.title
-            if show_bizcard:
-                out['f_bizCardUrl'] = cc.get_fbizcard_url()
-
-            #app needs single-element array with dict in it
-            return [out]
-
-        return None
-
-    def connected_status_string(self):
-        return "connected"
-
-    def is_admin(self):
+    def is_admin_wizcard(self):
         return self.user.profile.is_admin
-    
-    def save_smsurl(self,url):
-        self.smsurl =  wizlib.shorten_url(url)
+
+    def save_sms_url(self,url):
+        self.sms_url = wizlib.shorten_url(url)
         self.save()
 
-    def get_smsurl(self):
-        return self.smsurl
-
-
-    def followed_status_string(self):
-        return "followed"
+    def get_sms_url(self):
+        return self.sms_url
 
     def get_thumbnail_url(self):
-        return self.thumbnailImage.remote_url()
+        if self.media.filter(media_sub_type=MediaObjects.SUB_TYPE_THUMBNAIL).exists():
+            return self.media.filter(
+                media_sub_type=MediaObjects.SUB_TYPE_THUMBNAIL
+            ).values_list('media_element', flat=True)
+
+        return ""
 
     def save_vcard(self,vobj):
         self.vcard = vobj
         self.save()
 
-
     def get_name(self):
         return self.first_name + " " + self.last_name
 
     @property
-    def get_videoUrl(self):
-        return self.videoUrl
+    def get_video_url(self):
+        if self.media.filter(media_type=MediaObjects.TYPE_VIDEO).exists():
+            return self.media.filter(media_type=MediaObjects.TYPE_VIDEO).values_list('media_element', 'media_iframe')
+
+        return ""
 
     @property
-    def get_extFields(self):
-        return self.extFields
+    def get_ext_fields(self):
+        return self.ext_fields
 
     @property
     def get_vcard(self):
@@ -297,14 +270,32 @@ class Wizcard(models.Model):
             return qs[0].title
         return None
 
+class Wizcard(WizcardBase):
+    user = models.OneToOneField(User, related_name='wizcard')
+    wizconnections_to = models.ManyToManyField('self',
+                                            through='WizConnectionRequest',
+                                            symmetrical=False,
+                                            related_name='wizconnections_from')
+
+    objects = WizcardManager()
+
+    class Meta:
+        verbose_name = _(u'wizcard')
+        verbose_name_plural = _(u'wizcards')
+
+    def __unicode__(self):
+        return _(u'%(user)s\'s wizcard') % {'user': unicode(self.user)}
+
     def wizconnection_count(self):
         return self.get_connections().count()
+
     wizconnection_count.short_description = _(u'Cards count')
 
     def wizconnection_summary(self, count=7):
         wizconnection_list = self.get_connections().all().select_related()[:count]
         return u'[%s%s]' % (u', '.join(unicode(f.user) for f in wizconnection_list),
                             u', ...' if self.wizconnection_count() > count else u'')
+
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
 
     def flood(self):
@@ -380,24 +371,27 @@ class Wizcard(models.Model):
             requests_from__to_wizcard=self
         )
 
-    #2 way connected with admin wizcard
-    def get_connections_with_admin(self):
+    #2 way connected + admin wizcard
+    def get_connections_without_admin(self):
         return self.wizconnections_to.filter(
-            Q(user__profile__is_admin=True) |
+            Q(user__profile__is_admin=False) |
             Q(requests_to__status=verbs.ACCEPTED,
               requests_from__status=verbs.ACCEPTED,
               requests_from__to_wizcard=self
               )
         ).distinct()
 
-    def get_pending_to(self):
-        return self.get_connected_to(verbs.PENDING)
+    def get_admin_wizcard(self):
+        # ofcourse, optimal way is to simply look up via UserProfile, or
+        # even cache the admin wizcard. importing UserProfile here is causing
+        # circular import issue
+        return self.wizconnections_to.filter(Q(user__profile__is_admin=True))
 
     def get_pending_from(self):
         return self.get_connected_from(verbs.PENDING)
 
-    #those having my card (=my flood list)
-    #wrapper around get_connected_to
+    # those having my card (=my flood list)
+    # wrapper around get_connected_to
     def get_followers(self):
         return self.get_connected_to(verbs.ACCEPTED)
 
@@ -423,32 +417,67 @@ class Wizcard(models.Model):
         return self.get_connected_from(verbs.ACCEPTED).exclude(
             id__in=Wizcard.objects.filter(Q(user__profile__is_admin=True)))
 
+class DeadCard(WizcardBase):
+    user = models.ForeignKey(User, related_name="dead_cards")
+    invited = models.BooleanField(default=False)
+    activated = models.BooleanField(default=False)
+    cctx = PickledObjectField(blank=True)
+
+    def __unicode__(self):
+        return _(u'%(user)s\'s deadcard') % {'user': unicode(self.user)}
+
+    def delete(self, *args, **kwargs):
+        # incomplete...need to take care of storage cleanup and/or, not deleting
+        # but setting a flag instead
+        super(DeadCard, self).delete(*args, **kwargs)
+
+    def recognize(self, path):
+        ocr = OCR()
+        result = ocr.process(path)
+
+        self.first_name = result.get('first_name', "")
+        self.last_name = result.get('last_name', "")
+        self.phone = result.get('phone', "")
+        self.email = result.get('email', "")
+        self.ext_fields = dict(web=result.get('web', ""))
+
+        ContactContainer.objects.create(
+            company=result.get('company', ""),
+            title=result.get('job', ""),
+            wizcard=self
+        )
+        self.save()
+
+    def set_context(self, cctx):
+        self.cctx = cctx
+        self.save()
+
+    def get_context(self):
+        return self.cctx
 
 
 class ContactContainer(models.Model):
-    wizcard = models.ForeignKey(Wizcard, related_name="contact_container")
+    wizcard = models.ForeignKey(WizcardBase, related_name="contact_container")
     company = TruncatingCharField(max_length=40, blank=True)
     title = TruncatingCharField(max_length=200, blank=True)
     start = TruncatingCharField(max_length=30, blank=True)
     end = TruncatingCharField(max_length=30, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)
-    f_bizCardImage = WizcardQueuedFileField(upload_to="bizcards",
-                                            storage=WizcardQueuedS3BotoStorage(delayed=False))
-    card_url = models.URLField(blank=True)
+    media = generic.GenericRelation(MediaObjects)
 
     def __unicode__(self):
-        return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)}
+        return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % \
+               {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)}
 
     class Meta:
         ordering = ['id']
 
     def get_fbizcard_url(self):
-        if self.card_url != "":
-            return self.card_url
-        else:
-            return self.f_bizCardImage.remote_url()
+        if self.media.filter(media_sub_type=MediaObjects.SUB_TYPE_F_BIZCARD).exists():
+            return self.media.filter(media_sub_type=MediaObjects.SUB_TYPE_F_BIZCARD).values_list('media_element')
 
-from picklefield.fields import PickledObjectField
+        return ""
+
 
 class WizConnectionRequest(models.Model):
     from_wizcard = models.ForeignKey(Wizcard, related_name="requests_from")
@@ -521,10 +550,9 @@ class WizcardFlickManager(models.Manager):
     def set_tag(self, tag):
         self.tag = tag
 
-    def lookup(self, cache_key, lat, lng, n, count_only=False):
+    def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
         result, count =  LocationMgr.objects.lookup(
-            cache_key,
             "WTREE",
             lat,
             lng,
@@ -534,37 +562,37 @@ class WizcardFlickManager(models.Manager):
             flicked_cards = map(lambda m: self.get(id=m), result)
         return flicked_cards, count
 
-    def serialize(self, flicked_wizcards,
-                  template=fields.flicked_wizcard_template):
-        return serialize(flicked_wizcards, **template)
-
-    def serialize_split(self, my_wizcard, flicked_wizcards):
-        s = None
-        own, connected, others = self.split_wizcard_flick(my_wizcard,
-                                                          flicked_wizcards)
-
-        s = dict()
-        if own:
-            s['own'] = self.serialize(own)
-        if connected:
-            s['connected'] = self.serialize(connected)
-        if others:
-            s['others'] = self.serialize(others)
-
-        return s
-
-    def split_wizcard_flick(self, mine, flicked_wizcards):
-        own = []
-        connected = []
-        others = []
-        for w in flicked_wizcards:
-            if w.wizcard == mine:
-                own.append(w)
-            elif Wizcard.objects.are_wizconnections(w.wizcard, mine):
-                connected.append(w)
-            else: others.append(w)
-
-        return own, connected, others
+    # def serialize(self, flicked_wizcards,
+    #               template=fields.flicked_wizcard_template):
+    #     return serialize(flicked_wizcards, **template)
+    #
+    # def serialize_split(self, my_wizcard, flicked_wizcards):
+    #     s = None
+    #     own, connected, others = self.split_wizcard_flick(my_wizcard,
+    #                                                       flicked_wizcards)
+    #
+    #     s = dict()
+    #     if own:
+    #         s['own'] = self.serialize(own)
+    #     if connected:
+    #         s['connected'] = self.serialize(connected)
+    #     if others:
+    #         s['others'] = self.serialize(others)
+    #
+    #     return s
+    #
+    # def split_wizcard_flick(self, mine, flicked_wizcards):
+    #     own = []
+    #     connected = []
+    #     others = []
+    #     for w in flicked_wizcards:
+    #         if w.wizcard == mine:
+    #             own.append(w)
+    #         elif Wizcard.objects.are_wizconnections(w.wizcard, mine):
+    #             connected.append(w)
+    #         else: others.append(w)
+    #
+    #     return own, connected, others
 
     def query_flicks(self, name, phone, email):
         #name can be first name, last name or even combined

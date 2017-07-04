@@ -12,11 +12,11 @@ from wizserver import verbs
 from location_service.tree_state_client import TreeStateClient
 
 logger = logging.getLogger(__name__)
-NEARBY_THRESHOLD = 15
+NEARBY_THRESHOLD = 15000
 
 
 class LocationMgrManager(models.Manager):
-    def lookup(self, cache_key, tree_type, lat, lng, n,
+    def lookup(self, tree_type, lat, lng, n,
                exclude_self=False, modifier=None):
         tsc = TreeStateClient()
 
@@ -57,10 +57,11 @@ class LocationMgr(models.Model):
     key = models.CharField(null=True, max_length=100)
     tree_type = models.CharField(default="PTREE", max_length=10)
 
-    #GenericForeignKey to objects requiring locationMgr services
+    # GenericForeignKey to objects requiring locationMgr services
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
+
     objects = LocationMgrManager()
 
     def __repr__(self):
@@ -110,9 +111,8 @@ class LocationMgr(models.Model):
         self.delete_from_tree()
         super(LocationMgr, self).delete(*args, **kwargs)
 
-    def lookup(self, cache_key, n):
+    def lookup(self, n):
         return LocationMgr.objects.lookup(
-                cache_key,
                 self.tree_type,
                 self.lat,
                 self.lng,
@@ -120,14 +120,14 @@ class LocationMgr(models.Model):
                 exclude_self=True,
                 modifier=self.pk)
 
-    #Database based timer implementation
+    # Database based timer implementation
     def start_timer(self, timeout):
         t = Periodic.objects.create(location=self,
                 timeout_value=timeout*60)
         return t.start()
 
     def extend_timer(self, timeout):
-        #timeout is the timeout delta to extend by in mins
+        # timeout is the timeout delta to extend by in mins
         return self.timer.get().extend_timer(timeout*60)
 
     def reset_timer(self, timeout=None):
@@ -156,7 +156,7 @@ def location_create_handler(**kwargs):
         object_id=sender.pk)
 
     newlocation.save()
-    #update tree
+    # update tree
     newlocation.insert_in_tree()
     logger.debug("inserted key %s in tree %s", key, tree_type)
     return newlocation
@@ -172,7 +172,7 @@ def location_timeout_cb(l):
 
 def virtual_table_timeout_cb(l):
     l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[0])
-    
+
 def flicked_card_timeout(l):
     l.content_object.delete(type=verbs.WIZCARD_FLICK_TIMEOUT[0])
 
@@ -180,7 +180,7 @@ def timeout_callback_execute(e):
     timeout_callback = {
         ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb,
         ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : flicked_card_timeout,
-        ContentType.objects.get(app_label="virtual_table", model="virtualtable").id : virtual_table_timeout_cb,
+        ContentType.objects.get(app_label="entity", model="virtualtable").id : virtual_table_timeout_cb,
         }
     timeout_callback[e.content_type.id](e)
 

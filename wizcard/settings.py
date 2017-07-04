@@ -51,7 +51,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard',
+                'NAME': 'wizcard-prod',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
                 'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
@@ -71,10 +71,10 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-prod',
+                'NAME': 'wizcard-stage',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
             }
         },
         'caches': {
@@ -284,6 +284,16 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+#        'rest_framework.authentication.TokenAuthentication',
+    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # )
+}
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -303,19 +313,32 @@ INSTALLED_APPS = (
     'wizserver',
     'wizcardship',
     'notifications',
-    'virtual_table',
     'location_mgr',
-    'dead_cards',
     'periodic',
     'gunicorn',
     'raven.contrib.django.raven_compat',
+    'rest_framework',
     'meishi',
     'healthstatus',
     'django_ses',
     'recommendation',
     'stats',
     'commands',
-    'email_and_push_infra'
+    'email_and_push_infra',
+    'media_mgr',
+    'entity',
+    'taggit',
+    'genericm2m',
+    'django_filters',
+    'polymorphic',
+    'rest_framework.authtoken',
+    'taganomy',
+    'taggit_serializer',
+    'rest_auth',
+    'rest_auth.registration',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 )
 
 #django-storage settings
@@ -327,7 +350,7 @@ AWS_BUCKET_ENV = "-" + RUNENV
 AWS_QUERYSTRING_AUTH = False
 #Expiry set to 100 years
 AWS_QUERYSTRING_EXPIRE = 3153600000
-AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV
+AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV 
 S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 EMAIL_DEFAULT_IMAGE = S3_URL +  "/invites/email_info.png"
 DEFAULT_VIDEO_THUMBNAIL = AWS_STORAGE_BUCKET_NAME+ "/thumbnails/no-video-uploaded.gif"
@@ -343,9 +366,22 @@ SES_SMTP_PASS = 'AgHl9hZWrbH51ur6WorLxNJ7ETxb8fmqHg2OUbkVDKrv'
 AWS_SES_REGION_NAME = 'us-east-1'
 AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
 EMAIL_BACKEND='django_ses.SESBackend'
-AWS_RETURN_PATH='wizcarder@gmail.com'
+#AWS_RETURN_PATH='wizcarder@gmail.com'
+AWS_RETURN_PATH='admin@getwizcard.com'
+SES_RETURN_PATH='admin@getwizcard.com'
+EMAIL_FROM_ADDR='WizCard Inc <admin@getwizcard.com>'
+DEFAULT_FROM_EMAIL='admin@getwizcard.com'
+#ACCOUNT_EMAIL_VERIFICATION='mandatory'
+ACCOUNT_EMAIL_REQUIRED=True
+#ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = True
 
+#ACCOUNT_AUTHENTICATION_METHOD='email'
+#LOGIN_REDIRECT_URL = "http://www.getwizcard.com"
 
+REST_AUTH_REGISTER_SERIALIZERS = {
+        'REGISTER_SERIALIZER': 'userprofile.serializers.UserRegisterSerializer',
+}
 
 AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
@@ -504,3 +540,25 @@ GET_RECO_SIZE = 10
 
 #Periodic RECO_GEN_INTERVAL
 PERIODIC_RECO_GEN_INTERVAL = 1
+
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+AUTHENTICATION_BACKENDS = (
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+

@@ -31,11 +31,10 @@ class NotifParser:
             verbs.NOTIF_FLICK_TIMEOUT   :       self.flick_timeout,
             verbs.NOTIF_FLICK_PICK      :       self.flick_pick,
             verbs.NOTIF_WITHDRAW_REQUEST   :    self.withdraw_request,
-            verbs.NOTIF_WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard,
             verbs.NOTIF_TABLE_INVITE    :       self.table_invite,
             verbs.NOTIF_WIZCARD_FORWARD :       self.wizcard_forward,
-            verbs.NOTIF_TABLE_JOIN :            self.table_join,
-            verbs.NOTIF_TABLE_LEAVE :           self.table_leave,
+            verbs.NOTIF_ENTITY_JOIN :           self.table_join,
+            verbs.NOTIF_ENTITY_LEAVE :          self.table_leave,
         }
 
         if self.count:
@@ -52,17 +51,17 @@ class NotifParser:
                 break
 
     def accept_implicit(self, data):
-        print "received accept implicit from", data['user_id']
+        print "received accept implicit from", data['wizuser_id']
         pass
 
     def accept_explicit(self, data):
-        print "received accept explicit from", data['user_id']
+        print "received accept explicit from", data['wizuser_id']
         #rsp = messages.add_notification_card
         #rsp['receiver']['wizUserID'] = data['wizUserID']
         pass
 
     def delete_implicit(self, data):
-        print "received delete implicit from", data['user_id']
+        print "received delete implicit from", data['wizuser_id']
         pass
 
     def table_timeout(self, data):

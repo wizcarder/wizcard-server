@@ -46,6 +46,18 @@ RECO_TRIGGER_ROUTING_KEY = 'reco_trigger_key'
 RECO_PERIODIC_Q_NAME = 'reco_periodicq'
 RECO_PERIODIC_ROUTING_KEY = 'reco_periodic_key'
 
+PTREE = 1
+WTREE = 2
+VTREE = 3
+ETREE = 4
+
+TREES = {
+    PTREE: "PTREE",
+    WTREE: "WTREE",
+    VTREE: "VTREE",
+    ETREE: "ETREE",
+}
+
 TREE_SERVER_CONFIG = {
     'virtual_host': TREE_VHOST,
     'url' : AMPQ_TREE_URL,

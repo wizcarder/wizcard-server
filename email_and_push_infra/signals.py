@@ -4,7 +4,7 @@ from email_and_push_infra.models import EmailAndPushManager
 from html_gen_methods import HtmlGen
 from django.utils import timezone
 
-email_trigger = Signal(providing_args=['wizcard', 'trigger', 'target', 'to_email'])
+email_trigger = Signal(providing_args=['source', 'trigger', 'target', 'to_email'])
 
 # Event based Triggers
 TRIGGER_NEW_USER = 1
@@ -19,13 +19,13 @@ TRIGGER_WEEKLY_DIGEST = 11
 
 def callback(sender, **kwargs):
     trigger = kwargs.pop('trigger', None)
-    wizcard = kwargs.pop('wizcard')
+    sender = kwargs.pop('source')
     email = kwargs.pop('to_email', None)
     target = kwargs.pop('target', None)
 
-    eap = EmailAndPush.objects.pushEvent(wizcard=wizcard,event=trigger, to=email, target=target)
+    eap = EmailAndPush.objects.pushEvent(sender=sender,event=trigger, to=email, target=target)
 
-    html = HtmlGen(wizcard, trigger, eap.get_to)
+    html = HtmlGen(sender, trigger, eap.get_to)
     html.run()
     eap.updateEmailTime(timezone.now)
 

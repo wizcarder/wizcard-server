@@ -9,7 +9,8 @@ from base.db import WizcardDB
 #from base.rds_db import WizcardDB
 from rabbit_service.server import RabbitServer
 from wizcard import settings
-from rabbit_service.rconfig import TREE_SERVER_CONFIG
+from rabbit_service import rconfig
+from rabbit_service.rconfig import TREE_SERVER_CONFIG, TREES
 from raven.contrib.django.raven_compat.models import client
 import pika
 
@@ -40,11 +41,13 @@ class TreeServer(RabbitServer):
         self.ptree = trie()
         self.vtree = trie()
         self.wtree = trie()
+        self.etree = trie()
 
         self.location_tree_handles = {
-            "PTREE" : self.ptree,
-            "WTREE" : self.wtree,
-            "VTREE" : self.vtree
+            TREES[rconfig.PTREE]: self.ptree,
+            TREES[rconfig.VTREE]: self.vtree,
+            TREES[rconfig.WTREE]: self.wtree,
+            TREES[rconfig.ETREE]: self.etree,
         }
 
         self.call_handles = {
@@ -85,7 +88,7 @@ class TreeServer(RabbitServer):
         logger.info('Received message # %s from %s: %s',
                      basic_deliver.delivery_tag, props.app_id, body)
         args = json.loads(body)
-        fn = args.pop('fn')
+        fn = args.pop('fn', None)
         rpc = args.pop('rpc', False)
         try:
             response = self.call_handles[fn](**args)
@@ -99,6 +102,7 @@ class TreeServer(RabbitServer):
                              body=json.dumps(response))
         except:
             client.captureException()
+            pass
 
         self.acknowledge_message(basic_deliver.delivery_tag)
 
@@ -183,7 +187,7 @@ class TreeServer(RabbitServer):
 
     def lookup_closest_n(self, tree, key, n):
         #lookup using top half of key
-        result = None
+        result = []
         count = 0
         left = 0
         right = len(key)
