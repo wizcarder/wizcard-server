@@ -109,7 +109,6 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
-            verbs.WIZWEB_WIZCARD_UPDATE[0]      : self.notifWizWebWizcardUpdate,
         }
         for notification in notifications:
             notifHandler[notification.verb](notification)
@@ -220,9 +219,6 @@ class NotifResponse(ResponseN):
 
     def notifWizcardUpdateH(self, notif):
         return self.notifWizcard(notif, verbs.NOTIF_UPDATE_WIZCARD, half=True)
-
-    def notifWizWebWizcardUpdate(self, notif):
-        return self.notifWizcard(notif, verbs.NOTIF_WIZWEB_UPDATE_WIZCARD)
 
     def notifWizcardFlickTimeout(self, notif):
         out = dict(flickCardID=notif.target_object_id)

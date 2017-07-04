@@ -48,11 +48,6 @@ MSG_MY_FLICKS           = 44
 MSG_FLICK_WITHDRAW      = 45
 MSG_FLICK_EDIT          = 46
 MSG_FLICK_PICKS         = 47
-MSG_WIZWEB_QUERY_USER   = 48
-MSG_WIZWEB_QUERY_WIZCARD = 49
-MSG_WIZWEB_CREATE_USER  = 50
-MSG_WIZWEB_ADD_EDIT_CARD = 51
-
 
 
 wizcardMsgTypes = {
@@ -103,10 +98,6 @@ wizcardMsgTypes = {
     'set_reco_action'             : MSG_SET_RECO_ACTION,
     'get_common_connections'      : MSG_GET_COMMON_CONNECTIONS,
     'get_video_thumbnail'         : MSG_GET_VIDEO_THUMBNAIL,
-    'wizweb_query_user'           : MSG_WIZWEB_QUERY_USER,
-    'wizweb_query_wizcard'	      : MSG_WIZWEB_QUERY_WIZCARD,
-    'wizweb_create_user'	      : MSG_WIZWEB_CREATE_USER,
-    'wizweb_add_edit_card'	      : MSG_WIZWEB_ADD_EDIT_CARD,
 }
 
 
@@ -123,7 +114,6 @@ NOTIF_NEARBY_TABLES             = 8
 NOTIF_FLICK_TIMEOUT             = 9
 NOTIF_FLICK_PICK                = 10
 NOTIF_WITHDRAW_REQUEST          = 11
-NOTIF_WIZWEB_UPDATE_WIZCARD     = 12
 NOTIF_TABLE_INVITE              = 13
 NOTIF_WIZCARD_FORWARD           = 14
 NOTIF_ENTITY_JOIN               = 15
@@ -189,7 +179,6 @@ WIZCARD_TABLE_INVITE = ('table invite', 1)
 WIZCARD_FORWARD = ('wizcard forward', 1)
 WIZCARD_ENTITY_JOIN = ('entity join', 0)
 WIZCARD_ENTITY_LEAVE = ('entity leave', 0)
-WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1)
 WIZCARD_RECO_READY = ('new recommendations ready', 1)
 
 
@@ -245,11 +234,6 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'alert': '{0.first_name} {0.last_name} picked up your flicked wizcard',
-    },
-    WIZWEB_WIZCARD_UPDATE[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'your wizcard was updated',
     },
     WIZCARD_RECO_READY[0]: {
         'sound': 'flynn.caf',

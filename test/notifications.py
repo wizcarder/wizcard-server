@@ -31,7 +31,6 @@ class NotifParser:
             verbs.NOTIF_FLICK_TIMEOUT   :       self.flick_timeout,
             verbs.NOTIF_FLICK_PICK      :       self.flick_pick,
             verbs.NOTIF_WITHDRAW_REQUEST   :    self.withdraw_request,
-            verbs.NOTIF_WIZWEB_UPDATE_WIZCARD : self.wizweb_update_wizcard,
             verbs.NOTIF_TABLE_INVITE    :       self.table_invite,
             verbs.NOTIF_WIZCARD_FORWARD :       self.wizcard_forward,
             verbs.NOTIF_ENTITY_JOIN :           self.table_join,

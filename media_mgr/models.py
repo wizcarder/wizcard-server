@@ -29,7 +29,7 @@ class MediaObjectsQuerySet(models.QuerySet):
 
 class MediaObjects(models.Model):
     def __repr__(self):
-        return str(self.id) + "." + self.media_type + "." + self.media_sub_type
+        return str(self.id) + "." + str(self.media_type) + "." + str(self.media_sub_type)
 
     TYPE_IMAGE = 'IMG'
     TYPE_VIDEO = 'VID'

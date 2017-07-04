@@ -110,15 +110,15 @@ class EntitySerializerL1(EntitySerializerL0):
     def get_users(self, obj):
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
-        # AA TODO
-        #qs = qs.exclude(wizcard__thumbnail_image='')
-        thumb_count = qs.count()
+
+        qs_thumbnail = qs.filter(wizcard__media__media_sub_type=MediaObjects.SUB_TYPE_THUMBNAIL)
+        thumb_count = qs_thumbnail.count()
         if thumb_count > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time
             rand_ids = sample(xrange(1, thumb_count), self.MAX_THUMBNAIL_UI_LIMIT)
-            qs = [qs[x] for x in rand_ids]
+            qs_thumbnail = [qs_thumbnail[x] for x in rand_ids]
 
-        wizcards = map(lambda u: u.wizcard, qs)
+        wizcards = map(lambda u: u.wizcard, qs_thumbnail)
 
         out = dict(
             count=count,
