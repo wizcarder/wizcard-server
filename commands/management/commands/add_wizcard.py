@@ -19,6 +19,9 @@ class Command(BaseCommand):
         if not admin_user:
             CommandError("please configure an admin user")
 
+        admin_user.first_name = admin_wizcard_config.u['first_name']
+        admin_user.last_name = admin_wizcard_config.u['last_name']
+
         # create a Wizcard and attach to admin user
         wizcard, created = Wizcard.objects.get_or_create(
             user=admin_user,

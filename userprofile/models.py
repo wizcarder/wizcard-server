@@ -25,6 +25,7 @@ from django.db.models import Q
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
+import uuid
 import string
 import random
 import pytz
@@ -56,15 +57,6 @@ class WebExhibitorUserSettings(models.Model):
 
 
 class UserProfileManager(models.Manager):
-    def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
-        userid = ''.join(random.choice(chars) for x in range(size))
-        try:
-            User.objects.get(username=userid)
-            userid = self.id_generator()
-        except ObjectDoesNotExist:
-            pass
-        return userid
-
     def gen_password(self, id1, id2, id3=None):
         return id2
 
@@ -115,12 +107,12 @@ class UserProfile(models.Model):
     WEB_EXHIBITOR_USER = BITMAP_BASE << 2
     PORTAL_USER_INTERNAL = BITMAP_BASE << 6
 
+    # this is the internal userid
+    userid = models.UUIDField(default=uuid.uuid4, editable=False)
     user_type = models.IntegerField(default=BITMAP_BASE)
     user = models.OneToOneField(User, related_name='profile')
     activated = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
-    # this is the internal userid
-    userid = TruncatingCharField(max_length=100)
 
     objects = UserProfileManager()
 
@@ -252,8 +244,8 @@ class AppUser(models.Model):
         result, count = l.lookup(n)
         # convert result to query set result
         if count and not count_only:
-            users = [UserProfile.objects.get(id=x).user for x in result if
-                     UserProfile.objects.filter(id=x, activated=True, app_user__settings__is_visible=True).exists()]
+            users = [AppUser.objects.get(id=x).profile.user for x in result if
+                     AppUser.objects.filter(id=x, profile__activated=True, settings__is_visible=True).exists()]
             count = len(users)
         return users, count
 
@@ -558,7 +550,6 @@ def create_user_profile(sender, instance, created, **kwargs):
         profile = UserProfile(user=instance)
         if UserProfile.objects.is_admin_user(instance):
             profile.is_admin = True
-        profile.userid = UserProfile.objects.id_generator()
         profile.save()
 
 

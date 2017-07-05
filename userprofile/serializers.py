@@ -25,7 +25,6 @@ class UserRegisterSerializer(RegisterSerializer):
             'user_type': self.validated_data.get('profile')['user_type']
         }
 
-
     def save(self, request):
         adapter = get_adapter()
         user = adapter.new_user(request)

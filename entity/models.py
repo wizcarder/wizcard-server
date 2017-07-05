@@ -7,12 +7,9 @@ from location_mgr.models import LocationMgr
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
-from base.char_trunc import TruncatingCharField
-from base.emailField import EmailField
 from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
 from rabbit_service import rconfig
-from picklefield.fields import PickledObjectField
 import pdb
 from django.db.models import Q
 from wizcardship.models import Wizcard
@@ -23,6 +20,8 @@ from base.cctx import ConnectionContext
 from django.conf import settings
 from taganomy.models import Taganomy
 from notifications.signals import notify
+from base.char_trunc import TruncatingCharField
+from base.mixins import Base411_Mixin
 from datetime import datetime
 
 import pdb
@@ -67,7 +66,7 @@ class BaseEntityManager(PolymorphicManager):
 
         return entities, entities.count()
 
-class BaseEntity(PolymorphicModel):
+class BaseEntity(PolymorphicModel, Base411_Mixin):
 
     EVENT = 'EVT'
     BUSINESS = 'BUS'
@@ -89,9 +88,7 @@ class BaseEntity(PolymorphicModel):
         choices=ENTITY_CHOICES,
         default=EVENT
     )
-
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=100, blank=True)
 
     secure = models.BooleanField(default=False)
     password = TruncatingCharField(max_length=40, blank=True)
@@ -101,15 +98,6 @@ class BaseEntity(PolymorphicModel):
     is_activated = models.BooleanField(default=False)
 
     category = models.ForeignKey(Taganomy, blank=True)
-
-    name = models.CharField(max_length=100)
-    address = models.CharField(max_length=80, blank=True)
-    website = models.URLField()
-    description = models.CharField(max_length=1000)
-    phone = TruncatingCharField(max_length=20, blank=True)
-    email = EmailField(blank=True)
-    ext_fields = PickledObjectField(default={"key": "value"}, blank=True)
-
     # media
     media = generic.GenericRelation(MediaObjects)
 
@@ -565,16 +553,10 @@ class EventComponent(models.Model):
     caption = models.CharField(max_length=50, default='Not Available')
     media = generic.GenericRelation(MediaObjects)
 
-class Speaker(EventComponent):
-    first_name = TruncatingCharField(max_length=40, blank=True)
-    last_name = TruncatingCharField(max_length=40, blank=True)
-    phone = TruncatingCharField(max_length=20, blank=True)
-    email = EmailField(blank=True)
+class Speaker(EventComponent, Base411_Mixin):
     vcard = models.TextField(blank=True)
     org = models.CharField(max_length=100, blank=True)
     designation = models.CharField(max_length=100, blank=True)
-    ext_fields = PickledObjectField(default={}, blank=True)
-    description = models.TextField(blank=True)
 
 class SpeakerEvent(models.Model):
     speaker = models.ForeignKey(Speaker)

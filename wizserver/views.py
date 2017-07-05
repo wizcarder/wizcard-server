@@ -152,7 +152,7 @@ class ParseMsgAndDispatch(object):
                 logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
 
-            if self.userprofile.userid != user_id:
+            if str(self.userprofile.userid) != user_id:
                 logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
 
@@ -690,7 +690,7 @@ class ParseMsgAndDispatch(object):
 
         user.profile.save()
 
-        self.response.add_data("user_id", user.profile.userid)
+        self.response.add_data("user_id", str(user.profile.userid))
         return self.response
 
     def Login(self):
@@ -940,16 +940,14 @@ class ParseMsgAndDispatch(object):
 
         if 'first_name' in self.sender:
             first_name = self.sender['first_name']
-            if wizcard.first_name != first_name:
-                wizcard.first_name = first_name
+            if self.user.first_name != first_name:
                 self.user.first_name = self.sender['first_name']
                 modify = True
                 user_modify = True
 
         if 'last_name' in self.sender:
             last_name = self.sender['last_name']
-            if wizcard.last_name != last_name:
-                wizcard.last_name = last_name
+            if self.user.last_name != last_name:
                 self.user.last_name = self.sender['last_name']
                 modify = True
                 user_modify = True
@@ -1920,10 +1918,8 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if result.has_key('first_name') and result.get('first_name'):
-            wizcard.first_name = result.get('first_name')
             self.user.first_name = wizcard.first_name
         if result.has_key('last_name') and result.get('last_name'):
-            wizcard.last_name = result.get('last_name')
             self.user.last_name = wizcard.last_name
         if result.has_key('email') and result.get('email'):
             wizcard.email = result.get('email')
