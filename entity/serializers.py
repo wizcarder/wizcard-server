@@ -92,20 +92,21 @@ class EntitySerializerL1(EntitySerializerL0):
     friends = serializers.SerializerMethodField(read_only=True)
     joined = serializers.SerializerMethodField(read_only=True)
     tags = TagListSerializerField(required=False)
-    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
     like = serializers.SerializerMethodField(read_only=True)
     engagements = EntityEngagementSerializer(read_only=True)
+    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False) 
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
-                     'secure', 'users', 'creator', 'joined', 'like', 'engagements', 'description')
+                     'secure', 'users', 'joined', 'like', 'creator','engagements', 'description')
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_media(self, obj):
         return ""
+
 
     def get_users(self, obj):
         qs = obj.users.exclude(wizcard__isnull=True)
@@ -191,6 +192,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         self.location = validated_data.pop('location', None)
         self.users = validated_data.pop('users', None)
 
+
     def post_create(self, entity):
         if self.media:
             media_create.send(sender=entity, objs=self.media)
@@ -253,6 +255,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 class EventComponentSerializer(serializers.ModelSerializer):
     media = MediaObjectsSerializer(many=True, required=False)
     caption = serializers.CharField(required=False)
+    creator = serializers.PrimaryKeyRelatedField(required=False, queryset=EventComponent.objects.all())
 
     class Meta:
         model = EventComponent

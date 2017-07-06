@@ -561,9 +561,61 @@ class VirtualTable(BaseEntity):
             return self.location.get().timer.get().time_remaining()
         return 0
 
-class EventComponent(models.Model):
+class EventComponentManager(PolymorphicManager):
+
+    def create(self, *args, **kwargs):
+         return super(EventComponentManager, self).create(*args, **kwargs)
+
+    def users_components(self, user, component_type=None):
+        cls, ser = EventComponent.component_cls_ser_from_type(type=component_type)
+        return user.created_eventcomponent_related.all().instance_of(cls)
+
+
+class EventComponent(PolymorphicModel):
+
+    SPEAKER = 'SPK'
+    SPONSOR = 'SPN'
+
+    COMPONENT_CHOICES = (
+        (SPEAKER, 'Speaker'),
+        (SPONSOR, 'Sponsor'),
+    )
+
+    component_type = models.CharField(
+        max_length=3,
+        choices=COMPONENT_CHOICES,
+        default=SPEAKER
+    )
     caption = models.CharField(max_length=50, default='Not Available')
     media = generic.GenericRelation(MediaObjects)
+    creator = models.ForeignKey(User, related_name='created_%(class)s_related')
+
+    objects = EventComponentManager()
+
+    def __unicode__(self):
+        return self.component_type + '.' + self.caption
+
+    @classmethod
+    def component_cls_ser_from_type(self, type=None):
+        from entity.serializers import EventComponentSerializer, SpeakerSerializer, SponsorSerializer
+
+        if type == self.SPEAKER:
+            cls = Speaker
+            serializer = SpeakerSerializer
+        elif type == self.SPONSOR:
+            cls = Sponsor
+            serializer = SponsorSerializ
+        else:
+            cls = EventComponent
+            serializer = EventComponentSerializer
+
+        return cls, serializer
+
+class SpeakerManager(EventComponentManager):
+
+    def users_components(self, user):
+        return super(SpeakerManager, self).users_components(user, component_type=EventComponent.SPEAKER)
+
 
 class Speaker(EventComponent):
     first_name = TruncatingCharField(max_length=40, blank=True)
@@ -576,13 +628,25 @@ class Speaker(EventComponent):
     ext_fields = PickledObjectField(default={}, blank=True)
     description = models.TextField(blank=True)
 
+    objects = SpeakerManager()
+
+
+
 class SpeakerEvent(models.Model):
     speaker = models.ForeignKey(Speaker)
     event = models.ForeignKey(Event)
     description = models.CharField(max_length=1000)
 
+
+class SponsorManager(EventComponentManager):
+    def users_components(self, user):
+        return super(SponsorManager, self).users_components(user, component_type=EventComponent.SPONSOR)
+
+
 class Sponsor(EventComponent):
     name = TruncatingCharField(max_length=50, blank=True)
+
+    objects = SponsorManager()
 
 class SponsorEvent(models.Model):
     sponsor = models.ForeignKey(Sponsor)
