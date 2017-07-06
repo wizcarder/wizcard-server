@@ -152,7 +152,7 @@ class ParseMsgAndDispatch(object):
                 logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
 
-            if self.userprofile.userid != user_id:
+            if str(self.userprofile.userid) != user_id:
                 logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
 
@@ -193,20 +193,6 @@ class ParseMsgAndDispatch(object):
         else:
             logger.error('Client not sending App Version - Something Fishy')
             return False
-
-    def validate_wizweb_msg(self):
-        if ['header'] in self.msg:
-            if 'user_id' in self.msg['header']:
-                try:
-                    self.userprofile = UserProfile.objects.get(userid=self.msg['header']['user_id'])
-                    self.user = self.userprofile.user
-                except ObjectDoesNotExist:
-                    self.response.ignore()
-                    return False, self.response
-        if self.msg.has_key('sender'):
-            self.sender = self.msg['sender']
-
-        return True, self.response
 
     def validate(self):
         try:
@@ -704,7 +690,7 @@ class ParseMsgAndDispatch(object):
 
         user.profile.save()
 
-        self.response.add_data("user_id", user.profile.userid)
+        self.response.add_data("user_id", str(user.profile.userid))
         return self.response
 
     def Login(self):
@@ -755,7 +741,7 @@ class ParseMsgAndDispatch(object):
 
                 self.userprofile.activated = True
             self.app_userprofile.do_sync = False
-        self.userprofile.save()
+        self.app_userprofile.save()
 
         return self.response
 
@@ -954,16 +940,14 @@ class ParseMsgAndDispatch(object):
 
         if 'first_name' in self.sender:
             first_name = self.sender['first_name']
-            if wizcard.first_name != first_name:
-                wizcard.first_name = first_name
+            if self.user.first_name != first_name:
                 self.user.first_name = self.sender['first_name']
                 modify = True
                 user_modify = True
 
         if 'last_name' in self.sender:
             last_name = self.sender['last_name']
-            if wizcard.last_name != last_name:
-                wizcard.last_name = last_name
+            if self.user.last_name != last_name:
                 self.user.last_name = self.sender['last_name']
                 modify = True
                 user_modify = True
@@ -1934,10 +1918,8 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if result.has_key('first_name') and result.get('first_name'):
-            wizcard.first_name = result.get('first_name')
             self.user.first_name = wizcard.first_name
         if result.has_key('last_name') and result.get('last_name'):
-            wizcard.last_name = result.get('last_name')
             self.user.last_name = wizcard.last_name
         if result.has_key('email') and result.get('email'):
             wizcard.email = result.get('email')
@@ -2063,6 +2045,7 @@ class ParseMsgAndDispatch(object):
 
         users, count = self.app_userprofile.lookup(
             settings.DEFAULT_MAX_MEISHI_LOOKUP_RESULTS)
+
         if count:
             out = UserSerializerL0(users, many=True).data
             self.response.add_data("m_nearby", out)

@@ -21,7 +21,7 @@ now = timezone.now
 def create_vcard(wizcard):
     v = vobject.vCard()
     v.add('n')
-    v.n.value = vobject.vcard.Name(family=wizcard.last_name, given=wizcard.first_name)
+    v.n.value = vobject.vcard.Name(family=wizcard.user.last_name, given=wizcard.user.first_name)
     v.add('fn')
     v.fn.value = wizcard.get_name()
     v.add('email')
@@ -75,7 +75,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
     attach_data = None
     vcard = from_wizcard.get_vcard
     if half_card == False and vcard:
-        attach_name = "%s-%s.vcf" % (from_wizcard.first_name, from_wizcard.last_name)
+        attach_name = "%s-%s.vcf" % (from_wizcard.user.first_name, from_wizcard.user.last_name)
         attach_data = {'data':from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
 
     email.send(attach=attach_data)
