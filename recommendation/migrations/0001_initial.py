@@ -18,9 +18,15 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('reco_object_id', models.PositiveIntegerField()),
-                ('score', models.DecimalField(max_digits=5, decimal_places=2)),
-                ('recomodel', models.IntegerField(choices=[(0, b'AB_RECO'), (1, b'WIZCONNECTIONS_RECO')])),
                 ('reco_content_type', models.ForeignKey(related_name='reco', to='contenttypes.ContentType')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='RecommenderMeta',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('modelscore', models.DecimalField(default=0, max_digits=5, decimal_places=2)),
+                ('recomodel', models.IntegerField(choices=[(0, b'AB_RECO'), (1, b'WIZCONNECTIONS_RECO')])),
             ],
         ),
         migrations.CreateModel(
@@ -29,9 +35,16 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('useraction', models.PositiveSmallIntegerField(default=3, choices=[(0, b'VIEWED'), (1, b'ACTED'), (2, b'DISMISSED'), (3, b'NEW')])),
-                ('reco', models.ForeignKey(to='recommendation.Recommendation')),
+                ('score', models.DecimalField(default=0, max_digits=5, decimal_places=2)),
+                ('lastaction_time', models.DateTimeField(auto_now=True)),
+                ('reco', models.ForeignKey(related_name='user_recos', to='recommendation.Recommendation')),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
+        ),
+        migrations.AddField(
+            model_name='recommendermeta',
+            name='userrecommend',
+            field=models.ForeignKey(related_name='reco_meta', to='recommendation.UserRecommendation'),
         ),
         migrations.AddField(
             model_name='recommendation',

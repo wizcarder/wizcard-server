@@ -19,7 +19,7 @@ import re
 from django.views.generic import View
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
 from lib.ocr import OCR
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import  Wizcard, DeadCard, ContactContainer, WizcardFlick
@@ -1846,8 +1846,8 @@ class ParseMsgAndDispatch(object):
         s_obj = self.app_settings
 
         if 'media' in self.sender:
-            if self.sender['media'].has_key('wifiOnly'):
-                wifi_data = self.sender['media']['wifiOnly']
+            if self.sender['media'].has_key('wifi_only'):
+                wifi_data = self.sender['media']['wifi_only']
                 if s_obj.is_wifi_data != wifi_data:
                     s_obj.is_wifi_data = wifi_data
                     modify = True
@@ -1871,8 +1871,8 @@ class ParseMsgAndDispatch(object):
                     s_obj.block_unsolicited = block_unsolicited
                     modify = True
 
-            if self.sender['privacy'].has_key('publicTimeline'):
-                profile_private = not(self.sender['privacy']['publicTimeline'])
+            if self.sender['privacy'].has_key('public_timeline'):
+                profile_private = not(self.sender['privacy']['public_timeline'])
                 if s_obj.is_profile_private != profile_private:
                     s_obj.is_profile_private = profile_private
                     modify = True

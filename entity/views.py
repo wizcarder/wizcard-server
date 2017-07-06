@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
-from entity.models import BaseEntity, Event, Product, EventComponent, Business, VirtualTable, Speaker, Sponsor
+from entity.models import BaseEntity, Event, Product, Business, VirtualTable
 from entity.serializers import EntitySerializerL2, EventSerializer, EventSerializerL2 ,ProductSerializer, \
-    BusinessSerializer, TableSerializer, SpeakerSerializer, SponsorSerializer, EventComponentSerializer
+    BusinessSerializer, TableSerializer
 from django.http import Http404
 from django.contrib.auth.models import User
 from rest_framework.decorators import detail_route
@@ -26,6 +26,7 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        pdb.set_trace()
         instance = serializer.save(creator=self.request.user)
         instance.join(self.request.user)
 
@@ -113,58 +114,5 @@ class TableViewSet(BaseEntityViewSet):
         #queryset = VirtualTable.objects.all()
         #super(TableViewSet, self).get_queryset()
 
-
-class EventComponentViewSet(viewsets.ModelViewSet):
-    queryset = EventComponent.objects.all()
-    serializer_class = EventComponentSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = EventComponent.objects.users_components(user)
-        return queryset
-
-
-    def perform_create(self, serializer):
-        serializer.save(creator=self.request.user)
-
-class SpeakerViewSet(EventComponentViewSet):
-    queryset = Speaker.objects.all()
-    serializer_class = SpeakerSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = Speaker.objects.users_components(user)
-        return queryset
-        #queryset = Speaker.objects.all()
-        #return super(SpeakerViewSet, self).get_queryset()
-'''
-    def get_serializer_context(self):
-        user = 
-        uid = self.request.query_params.get('user', None)
-        if uid is not None:
-            user = User.objects.get(id=uid)
-            return {'user': user}
-        else:
-            return {}
-'''
-
-
-class SponsorViewSet(viewsets.ModelViewSet):
-    queryset = Sponsor.objects.all()
-    serializer_class = SponsorSerializer
-
-    def get_queryset(self):
-        queryset = Sponsor.objects.all()
-        return super(SponsorViewSet, self).get_queryset()
-
-'''
-    def get_serializer_context(self):
-        uid = self.request.query_params.get('user', None)
-        if uid is not None:
-            user = User.objects.get(id=uid)
-            return {'user': user}
-        else:
-            return {}
-'''
 
 

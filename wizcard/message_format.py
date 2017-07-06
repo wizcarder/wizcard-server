@@ -31,8 +31,6 @@ class PhoneCheckRequestSchema(colander.MappingSchema):
     pass
 class PhoneCheckResponseSchema(colander.MappingSchema):
     pass
-class RegisterSchema(colander.MappingSchema):
-    pass
 class LocationUpdateSchema(colander.MappingSchema):
     pass
 class ContactsVerifySchema(colander.MappingSchema):

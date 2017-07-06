@@ -327,6 +327,7 @@ INSTALLED_APPS = (
     'email_and_push_infra',
     'media_mgr',
     'entity',
+    'entity_components',
     'taggit',
     'genericm2m',
     'django_filters',

@@ -57,6 +57,15 @@ class WebExhibitorUserSettings(models.Model):
 
 
 class UserProfileManager(models.Manager):
+    def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
+        userid = ''.join(random.choice(chars) for x in range(size))
+        try:
+            User.objects.get(username=userid)
+            userid = self.id_generator()
+        except ObjectDoesNotExist:
+            pass
+        return userid
+
     def gen_password(self, id1, id2, id3=None):
         return id2
 
@@ -244,8 +253,8 @@ class AppUser(models.Model):
         result, count = l.lookup(n)
         # convert result to query set result
         if count and not count_only:
-            users = [AppUser.objects.get(id=x).profile.user for x in result if
-                     AppUser.objects.filter(id=x, profile__activated=True, settings__is_visible=True).exists()]
+            users = [UserProfile.objects.get(id=x).user for x in result if
+                     UserProfile.objects.filter(id=x, activated=True, app_user__settings__is_visible=True).exists()]
             count = len(users)
         return users, count
 
@@ -297,16 +306,16 @@ class AppUser(models.Model):
             dc = WizcardSerializerL2(deadcards).data
             s['deadcards'] = dc
 
+        # notifications. This is done by simply setting readed=False for
+        # those user.notifs which have acted=False
+        # This way, these notifs will be sent natively via get_cards
+
         campaigns = Product.objects.users_entities(self.profile.user)
         if campaigns.count():
             camp_data = ProductSerializer(campaigns, many=True, context={'user': self.profile.user}).data
             s['campaigns'] = camp_data
 
-        # notifications. This is done by simply setting readed=False for
-        # those user.notifs which have acted=False
-        # This way, these notifs will be sent natively via get_cards
         Notification.objects.unacted(self.profile.user).update(readed=False)
-
         return s
 
 class WebOrganizerUser(models.Model):

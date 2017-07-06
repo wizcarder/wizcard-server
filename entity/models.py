@@ -15,14 +15,13 @@ from django.db.models import Q
 from wizcardship.models import Wizcard
 from lib.preserialize.serialize import serialize
 from wizserver import fields, verbs
-from notifications.models import notify
 from base.cctx import ConnectionContext
 from django.conf import settings
 from taganomy.models import Taganomy
 from notifications.signals import notify
 from base.char_trunc import TruncatingCharField
-from base.mixins import Base411_Mixin
-from datetime import datetime
+from base.mixins import Base414Mixin
+from entity_components.models import Speaker, Sponsor, SpeakerEvent, SponsorEvent
 
 import pdb
 
@@ -66,7 +65,7 @@ class BaseEntityManager(PolymorphicManager):
 
         return entities, entities.count()
 
-class BaseEntity(PolymorphicModel, Base411_Mixin):
+class BaseEntity(PolymorphicModel, Base414Mixin):
 
     EVENT = 'EVT'
     BUSINESS = 'BUS'
@@ -88,7 +87,6 @@ class BaseEntity(PolymorphicModel, Base411_Mixin):
         choices=ENTITY_CHOICES,
         default=EVENT
     )
-    name = models.CharField(max_length=100, blank=True)
 
     secure = models.BooleanField(default=False)
     password = TruncatingCharField(max_length=40, blank=True)
@@ -314,10 +312,10 @@ class EventManager(BaseEntityManager):
             count_only
         )
 
-    def users_entities(self, user, include_expired=False):
+    def users_entities(self, user, entity_type=BaseEntity.EVENT, include_expired=False):
         return super(EventManager, self).users_entities(
             user,
-            entity_type=BaseEntity.EVENT,
+            entity_type=entity_type,
             include_expired=include_expired
         )
 
@@ -325,8 +323,8 @@ class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
 
-    speakers = models.ManyToManyField('Speaker', related_name='events', through='SpeakerEvent')
-    sponsors = models.ManyToManyField('Sponsor', related_name='events', through='SponsorEvent')
+    speakers = models.ManyToManyField(Speaker, related_name='events', through=SpeakerEvent)
+    sponsors = models.ManyToManyField(Sponsor, related_name='events', through=SponsorEvent)
 
     objects = EventManager()
 
@@ -363,10 +361,10 @@ class Event(BaseEntity):
 
 
 class ProductManager(BaseEntityManager):
-    def users_entities(self, user, include_expired=False):
+    def users_entities(self, user, entity_type=BaseEntity.PRODUCT, include_expired=False):
         return super(ProductManager, self).users_entities(
             user,
-            entity_type=BaseEntity.PRODUCT,
+            entity_type=entity_type,
             include_expired=include_expired
         )
 
@@ -403,10 +401,10 @@ class Product(BaseEntity):
 
 
 class BusinessManager(BaseEntityManager):
-    def users_entities(self, user, include_expired=False):
+    def users_entities(self, user, entity_type=BaseEntity.BUSINESS, include_expired=False):
         return super(BusinessManager, self).users_entities(
             user,
-            entity_type=BaseEntity.BUSINESS,
+            entity_type=entity_type,
             include_expired=include_expired
         )
 
@@ -418,10 +416,10 @@ class Business(BaseEntity):
 
 
 class VirtualTableManager(BaseEntityManager):
-    def users_entities(self, user, include_expired=False):
+    def users_entities(self, user, entity_type=BaseEntity.TABLE, include_expired=False):
         return super(VirtualTableManager, self).users_entities(
             user,
-            entity_type=BaseEntity.TABLE,
+            entity_type=entity_type,
             include_expired=include_expired
         )
 
@@ -548,96 +546,6 @@ class VirtualTable(BaseEntity):
         if not self.expired:
             return self.location.get().timer.get().time_remaining()
         return 0
-
-class EventComponentManager(PolymorphicManager):
-
-    def create(self, *args, **kwargs):
-         return super(EventComponentManager, self).create(*args, **kwargs)
-
-    def users_components(self, user, component_type=None):
-        cls, ser = EventComponent.component_cls_ser_from_type(type=component_type)
-        return user.created_eventcomponent_related.all().instance_of(cls)
-
-
-class EventComponent(PolymorphicModel):
-
-    SPEAKER = 'SPK'
-    SPONSOR = 'SPN'
-
-    COMPONENT_CHOICES = (
-        (SPEAKER, 'Speaker'),
-        (SPONSOR, 'Sponsor'),
-    )
-
-    component_type = models.CharField(
-        max_length=3,
-        choices=COMPONENT_CHOICES,
-        default=SPEAKER
-    )
-    caption = models.CharField(max_length=50, default='Not Available')
-    media = generic.GenericRelation(MediaObjects)
-    creator = models.ForeignKey(User, related_name='created_%(class)s_related')
-
-    objects = EventComponentManager()
-
-    def __unicode__(self):
-        return self.component_type + '.' + self.caption
-
-    @classmethod
-    def component_cls_ser_from_type(self, type=None):
-        from entity.serializers import EventComponentSerializer, SpeakerSerializer, SponsorSerializer
-
-        if type == self.SPEAKER:
-            cls = Speaker
-            serializer = SpeakerSerializer
-        elif type == self.SPONSOR:
-            cls = Sponsor
-            serializer = SponsorSerializ
-        else:
-            cls = EventComponent
-            serializer = EventComponentSerializer
-
-        return cls, serializer
-
-class SpeakerManager(EventComponentManager):
-
-    def users_components(self, user):
-        return super(SpeakerManager, self).users_components(user, component_type=EventComponent.SPEAKER)
-
-
-class Speaker(EventComponent, Base411_Mixin):
-    vcard = models.TextField(blank=True)
-    org = models.CharField(max_length=100, blank=True)
-    designation = models.CharField(max_length=100, blank=True)
-
-    objects = SpeakerManager()
-
-
-
-class SpeakerEvent(models.Model):
-    speaker = models.ForeignKey(Speaker)
-    event = models.ForeignKey(Event)
-    description = models.CharField(max_length=1000)
-
-
-class SponsorManager(EventComponentManager):
-    def users_components(self, user):
-        return super(SponsorManager, self).users_components(user, component_type=EventComponent.SPONSOR)
-
-
-class Sponsor(EventComponent):
-    name = TruncatingCharField(max_length=50, blank=True)
-
-    objects = SponsorManager()
-
-class SponsorEvent(models.Model):
-    sponsor = models.ForeignKey(Sponsor)
-    event = models.ForeignKey(Event)
-    campaign = models.ForeignKey(Product, null=True, blank=True)
-
-    def add_campaign(self, campaign):
-        self.campaign = campaign
-        self.save()
 
 
 # Join Table.

@@ -22,7 +22,7 @@ from django.contrib.contenttypes import generic
 from location_mgr.signals import location
 from location_mgr.models import LocationMgr
 from base.char_trunc import TruncatingCharField
-from base.mixins import Base411_Mixin
+from base.mixins import Base413Mixin
 from picklefield.fields import PickledObjectField
 from django.conf import settings
 import logging
@@ -185,7 +185,7 @@ class WizcardManager(PolymorphicManager):
     def friends_in_wizcards(self, my_wizcard, wizcards):
         return [x for x in wizcards if Wizcard.objects.is_wizcard_following(x, my_wizcard)]
 
-class WizcardBase(PolymorphicModel, Base411_Mixin):
+class WizcardBase(PolymorphicModel, Base413Mixin):
     media = generic.GenericRelation(MediaObjects)
     sms_url = URLField(blank=True)
     vcard = models.TextField(blank=True)
