@@ -23,11 +23,14 @@ ext_fields = {
 }
 
 w = {
-    'first_name': "Wizard Of",
-    'last_name': "WizCard",
     'email': "admin@getwizcard.com",
     'phone': "+14084641727",
     'ext_fields': ext_fields
+}
+
+u = {
+    'first_name': "Wizard Of",
+    'last_name': "WizCard",
 }
 
 wizcard_media = [

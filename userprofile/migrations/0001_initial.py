@@ -7,6 +7,7 @@ from django.utils.timezone import utc
 import datetime
 from django.conf import settings
 import base.emailField
+import uuid
 
 
 class Migration(migrations.Migration):
@@ -99,10 +100,10 @@ class Migration(migrations.Migration):
             name='UserProfile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('userid', models.UUIDField(default=uuid.uuid4, editable=False)),
                 ('user_type', models.IntegerField(default=1)),
                 ('activated', models.BooleanField(default=False)),
                 ('is_admin', models.BooleanField(default=False)),
-                ('userid', base.char_trunc.TruncatingCharField(max_length=100)),
                 ('user', models.OneToOneField(related_name='profile', to=settings.AUTH_USER_MODEL)),
             ],
         ),

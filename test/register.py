@@ -18,7 +18,7 @@ from libtest import send_request, handle_response
 
 
 TEST_IMAGE=True
-OCR_FLAG = True
+OCR_FLAG = False
 TEST_TABLE = True
 TEST_FLICK = False
 TEST_WIZWEB = False

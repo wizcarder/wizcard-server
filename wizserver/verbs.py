@@ -208,7 +208,7 @@ apns_notification_dictionary = {
     WIZCARD_TABLE_TIMEOUT[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': '{1.tablename} table has now expired',
+        'alert': '{1.name} table has now expired',
     },
     WIZCARD_TABLE_DESTROY[0]: {
         'sound': 'flynn.caf',
@@ -245,12 +245,10 @@ apns_notification_dictionary = {
 gcm_notification_dictionary = {
     WIZREQ_U[0]	: {
         'title':'Connection Request',
-        #AA:TODO: separate verb from push message
         'body': '{0.first_name} {0.last_name} would like to connect with you',
     },
     WIZREQ_F[0]	: {
         'title':'Follow Request',
-        #AA:TODO: separate verb from push message
         'body': '{0.first_name} {0.last_name} would like to follow you',
     },
     WIZREQ_T[0]	: {
@@ -261,7 +259,6 @@ gcm_notification_dictionary = {
         'title': 'Accepted',
         'body': '{0.first_name} {0.last_name} accepted your invitation',
     },
-
     WIZCARD_UPDATE[0]: {
         'title': 'Updated WizCard',
         'body': '{0.first_name} {0.last_name} has an updated wizcard',
@@ -273,7 +270,12 @@ gcm_notification_dictionary = {
     WIZCARD_RECO_READY[0]: {
         'title' : 'Wizcard - New Recommendations waiting for you',
         'body': 'Wizcard - New Recommendations waiting for you ',
-    }
+    },
+    WIZCARD_TABLE_TIMEOUT[0]: {
+        'title' : 'Wizcard - Table expired',
+        'badge': 0,
+        'body': '{1.name} table has now expired',
+    },
 
 }
 

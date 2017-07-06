@@ -21,10 +21,8 @@ import pdb
 from django.contrib.contenttypes import generic
 from location_mgr.signals import location
 from location_mgr.models import LocationMgr
-from base.custom_storage import WizcardQueuedS3BotoStorage
-from base.custom_field import WizcardQueuedFileField
 from base.char_trunc import TruncatingCharField
-from base.emailField import EmailField
+from base.mixins import Base411_Mixin
 from picklefield.fields import PickledObjectField
 from django.conf import settings
 import logging
@@ -141,7 +139,7 @@ class WizcardManager(PolymorphicManager):
         if name:
             split = name.split()
             for n in split:
-                name_result = (Q(first_name__istartswith=n) | Q(last_name__istartswith=n))
+                name_result = (Q(user__first_name__istartswith=n) | Q(user__last_name__istartswith=n))
                 qlist.append(name_result)
 
         #phone
@@ -187,15 +185,8 @@ class WizcardManager(PolymorphicManager):
     def friends_in_wizcards(self, my_wizcard, wizcards):
         return [x for x in wizcards if Wizcard.objects.is_wizcard_following(x, my_wizcard)]
 
-class WizcardBase(PolymorphicModel):
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    first_name = TruncatingCharField(max_length=40, blank=True)
-    last_name = TruncatingCharField(max_length=40, blank=True)
-    phone = TruncatingCharField(max_length=20, blank=True)
-    email = EmailField(blank=True)
+class WizcardBase(PolymorphicModel, Base411_Mixin):
     media = generic.GenericRelation(MediaObjects)
-    ext_fields = PickledObjectField(default={}, blank=True)
     sms_url = URLField(blank=True)
     vcard = models.TextField(blank=True)
 
@@ -247,7 +238,7 @@ class WizcardBase(PolymorphicModel):
         self.save()
 
     def get_name(self):
-        return self.first_name + " " + self.last_name
+        return self.user.first_name + " " + self.user.last_name
 
     @property
     def get_video_url(self):

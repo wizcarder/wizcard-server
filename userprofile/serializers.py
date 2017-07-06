@@ -21,10 +21,10 @@ class UserRegisterSerializer(RegisterSerializer):
             'first_name': self.validated_data.get('first_name', ''),
             'last_name': self.validated_data.get('last_name', ''),
             'password1': self.validated_data.get('password1', ''),
+            'username': self.validated_data.get('username', ''),
             'email': self.validated_data.get('email', ''),
             'user_type': self.validated_data.get('profile')['user_type']
         }
-
 
     def save(self, request):
         adapter = get_adapter()

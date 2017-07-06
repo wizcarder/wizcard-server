@@ -178,7 +178,7 @@ def flicked_card_timeout(l):
 
 def timeout_callback_execute(e):
     timeout_callback = {
-        ContentType.objects.get(app_label="userprofile", model="userprofile").id    : location_timeout_cb,
+        ContentType.objects.get(app_label="userprofile", model="appuser").id    : location_timeout_cb,
         ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : flicked_card_timeout,
         ContentType.objects.get(app_label="entity", model="virtualtable").id : virtual_table_timeout_cb,
         }

@@ -45,6 +45,9 @@ class WizcardSerializerL1(WizcardSerializerL0):
         my_fields = ('first_name', 'last_name', 'contact_container',)
         fields = WizcardSerializerL0.Meta.fields + my_fields
 
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+
     contact_container = ContactContainerSerializerL2(many=True, read_only=True)
 
 
@@ -59,7 +62,6 @@ class WizcardSerializerL2(WizcardSerializerL1):
         fields = WizcardSerializerL1.Meta.fields + my_fields
 
     contact_container = ContactContainerSerializerL2(many=True, read_only=True)
-
 
 
 # not used by App

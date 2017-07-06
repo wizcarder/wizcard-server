@@ -24,7 +24,7 @@ def create_template(wizcard_id):
     wizcard = Wizcard.objects.get(id=wizcard_id)
 
 #    data = {"name" : wizcard.first_name + " " + wizcard.last_name, "company": wizcard.get_latest_company(), "title" : wizcard.get_latest_title(), "email" : wizcard.email, "phone" : wizcard.phone}
-    data = {"name" : smart_str(wizcard.first_name) + " " + smart_str(wizcard.last_name), "company": smart_str(wizcard.get_latest_company()), "title" : smart_str(wizcard.get_latest_title()), "email" : smart_str(wizcard.email), "phone" : smart_str(wizcard.phone)}
+    data = {"name" : smart_str(wizcard.user.first_name) + " " + smart_str(wizcard.user.last_name), "company": smart_str(wizcard.get_latest_company()), "title" : smart_str(wizcard.get_latest_title()), "email" : smart_str(wizcard.email), "phone" : smart_str(wizcard.phone)}
     data["invite_name"] = data["name"]
 
 #    position = {'email': '490,462', 'title': '380,388', 'phone': '198,464', 'name':'378,315', 'company' : '381, 371'}
@@ -64,22 +64,22 @@ def create_template(wizcard_id):
     wizcard.save_email_template(sharefile)
 
 @shared_task
-def sendmail(from_wizcard,to,template):
+def sendmail(from_wizcard, to, template):
     html = 'emailinvite.html'
     emailurl = from_wizcard.emailTemplate.remote_url()
 
     if template == 'emailscan':
         html = 'emailinfo.html'
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Business Card"
+        subject = from_wizcard.user.first_name + " " + from_wizcard.user.last_name + " has scanned your Business Card"
         emailurl = settings.EMAIL_DEFAULT_IMAGE
     elif template == 'emailscaninvite':
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has scanned your Card and Invited you to Connect"
+        subject = from_wizcard.user.first_name + " " + from_wizcard.user.last_name + " has scanned your Card and Invited you to Connect"
 
     elif template == 'emailinfo':
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Connect on WizCard"
+        subject = from_wizcard.user.first_name + " " + from_wizcard.user.last_name + " has invited you to Connect on WizCard"
 
     else:
-        subject = from_wizcard.first_name + " " + from_wizcard.last_name + " has invited you to Use WizCard and Connect"
+        subject = from_wizcard.user.first_name + " " + from_wizcard.user.last_name + " has invited you to Use WizCard and Connect"
 
     if not emailurl:
         create_template(from_wizcard.id)
