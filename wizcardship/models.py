@@ -39,6 +39,7 @@ from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
 from base.cctx import ConnectionContext
 from lib.ocr import OCR
+from base.mixins import CompanyTitleMixin
 
 
 logger = logging.getLogger(__name__)
@@ -188,7 +189,6 @@ class WizcardManager(PolymorphicManager):
 class WizcardBase(PolymorphicModel, Base413Mixin):
     media = generic.GenericRelation(MediaObjects)
     sms_url = URLField(blank=True)
-    vcard = models.TextField(blank=True)
 
     def serialize_wizconnections(self):
         out = []
@@ -447,10 +447,8 @@ class DeadCard(WizcardBase):
         return self.cctx
 
 
-class ContactContainer(models.Model):
+class ContactContainer(CompanyTitleMixin):
     wizcard = models.ForeignKey(WizcardBase, related_name="contact_container")
-    company = TruncatingCharField(max_length=40, blank=True)
-    title = TruncatingCharField(max_length=200, blank=True)
     start = TruncatingCharField(max_length=30, blank=True)
     end = TruncatingCharField(max_length=30, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)

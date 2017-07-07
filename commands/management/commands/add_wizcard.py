@@ -21,6 +21,7 @@ class Command(BaseCommand):
 
         admin_user.first_name = admin_wizcard_config.u['first_name']
         admin_user.last_name = admin_wizcard_config.u['last_name']
+        admin_user.save()
 
         # create a Wizcard and attach to admin user
         wizcard, created = Wizcard.objects.get_or_create(
