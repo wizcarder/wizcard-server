@@ -2,14 +2,13 @@ __author__ = 'aammundi'
 
 from rest_framework import serializers
 from entity_components.models import Speaker, Sponsor
-from media_mgr.serializers import MediaObjectsSerializer
-
+from media_mgr.models import MediaObjects
 
 class SpeakerSerializer(serializers.Serializer):
     # def __init__(self, *args, **kwargs):
     #     many = kwargs.pop('many', True)
     #     super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
-    media = serializers.PrimaryKeyRelatedField(many=True, required=False)
+    media = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=MediaObjects.objects.all())
     caption = serializers.CharField(required=False)
     ext_fields = serializers.DictField(required=False)
 
@@ -37,7 +36,7 @@ class SponsorSerializer(serializers.Serializer):
         model = Sponsor
         fields = "__all__"
 
-    media = serializers.PrimaryKeyRelatedField(many=True, required=False)
+    media = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=MediaObjects.objects.all())
 
     def create(self, validated_data):
         self.prepare(validated_data)

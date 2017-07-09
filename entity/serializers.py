@@ -96,7 +96,7 @@ class EntitySerializerL1(EntitySerializerL0):
     tags = TagListSerializerField(required=False)
     like = serializers.SerializerMethodField(read_only=True)
     engagements = EntityEngagementSerializer(read_only=True)
-    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False) 
+    creator = serializers.SerializerMethodField(read_only=True)
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
@@ -105,6 +105,9 @@ class EntitySerializerL1(EntitySerializerL0):
         my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
                      'secure', 'users', 'joined', 'like', 'creator','engagements', 'description')
         fields = EntitySerializerL0.Meta.fields + my_fields
+
+    def get_creator(self, obj):
+        return WizcardSerializerL1(obj.get_creator().wizcard).data
 
     def get_media(self, obj):
         return ""
@@ -428,12 +431,11 @@ class BusinessSerializer(EntitySerializerL2):
 
 class TableSerializerL1(EntitySerializerL1):
     time_remaining = serializers.SerializerMethodField(read_only=True)
-    creator = WizcardSerializerL1(read_only=True, source='creator.wizcard')
     status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = VirtualTable
-        my_fields = ('created', 'timeout', 'time_remaining', 'creator', 'status',)
+        my_fields = ('created', 'timeout', 'time_remaining', 'status',)
         fields = EntitySerializerL1.Meta.fields + my_fields
 
     def get_media(self, obj):
@@ -454,7 +456,7 @@ class TableSerializerL1(EntitySerializerL1):
             status = "creator"
         elif obj.is_joined(user):
             status = "joined"
-        elif Wizcard.objects.are_wizconnections(user.wizcard, obj.creator.wizcard):
+        elif Wizcard.objects.are_wizconnections(user.wizcard, obj.get_creator().wizcard):
             status = "connected"
         else:
             status = "others"

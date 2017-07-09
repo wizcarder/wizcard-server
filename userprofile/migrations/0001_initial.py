@@ -7,6 +7,7 @@ from django.utils.timezone import utc
 import datetime
 from django.conf import settings
 import base.emailField
+import uuid
 
 
 class Migration(migrations.Migration):
@@ -61,18 +62,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='AppUser',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('do_sync', models.BooleanField(default=False)),
-                ('device_id', base.char_trunc.TruncatingCharField(max_length=100)),
-                ('reg_token', models.CharField(max_length=200, db_index=True)),
-                ('device_type', base.char_trunc.TruncatingCharField(default=b'unknown', max_length=10, choices=[(b'ios', b'iPhone'), (b'android', b'Android')])),
-                ('reco_generated_at', models.DateTimeField(default=datetime.datetime(2009, 12, 31, 18, 30, tzinfo=utc))),
-                ('reco_ready', models.PositiveIntegerField(default=0)),
-            ],
-        ),
-        migrations.CreateModel(
             name='AppUserSettings',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
@@ -82,6 +71,15 @@ class Migration(migrations.Migration):
                 ('dnd', models.BooleanField(default=False)),
                 ('block_unsolicited', models.BooleanField(default=False)),
             ],
+        ),
+        migrations.CreateModel(
+            name='BaseUser',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+            ],
+            options={
+                'abstract': False,
+            },
         ),
         migrations.CreateModel(
             name='FutureUser',
@@ -99,18 +97,11 @@ class Migration(migrations.Migration):
             name='UserProfile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('userid', models.UUIDField(default=uuid.uuid4, editable=False)),
                 ('user_type', models.IntegerField(default=1)),
                 ('activated', models.BooleanField(default=False)),
                 ('is_admin', models.BooleanField(default=False)),
-                ('userid', base.char_trunc.TruncatingCharField(max_length=100)),
                 ('user', models.OneToOneField(related_name='profile', to=settings.AUTH_USER_MODEL)),
-            ],
-        ),
-        migrations.CreateModel(
-            name='WebExhibitorUser',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('profile', models.OneToOneField(related_name='exhibitor_user', to='userprofile.UserProfile')),
             ],
         ),
         migrations.CreateModel(
@@ -120,37 +111,59 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='WebOrganizerUser',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('profile', models.OneToOneField(related_name='organizer_user', to='userprofile.UserProfile')),
-            ],
-        ),
-        migrations.CreateModel(
             name='WebOrganizerUserSettings',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
             ],
         ),
-        migrations.AddField(
-            model_name='weborganizeruser',
-            name='settings',
-            field=models.OneToOneField(related_name='organizer_user', to='userprofile.WebOrganizerUserSettings'),
+        migrations.CreateModel(
+            name='AppUser',
+            fields=[
+                ('baseuser_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='userprofile.BaseUser')),
+                ('do_sync', models.BooleanField(default=False)),
+                ('device_id', base.char_trunc.TruncatingCharField(max_length=100)),
+                ('reg_token', models.CharField(max_length=200, db_index=True)),
+                ('device_type', base.char_trunc.TruncatingCharField(default=b'unknown', max_length=10, choices=[(b'ios', b'iPhone'), (b'android', b'Android')])),
+                ('reco_generated_at', models.DateTimeField(default=datetime.datetime(2009, 12, 31, 18, 30, tzinfo=utc))),
+                ('reco_ready', models.PositiveIntegerField(default=0)),
+                ('settings', models.OneToOneField(related_name='base_user', to='userprofile.AppUserSettings')),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('userprofile.baseuser',),
+        ),
+        migrations.CreateModel(
+            name='WebExhibitorUser',
+            fields=[
+                ('baseuser_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='userprofile.BaseUser')),
+                ('settings', models.OneToOneField(related_name='base_user', to='userprofile.WebExhibitorUserSettings')),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('userprofile.baseuser',),
+        ),
+        migrations.CreateModel(
+            name='WebOrganizerUser',
+            fields=[
+                ('baseuser_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='userprofile.BaseUser')),
+                ('settings', models.OneToOneField(related_name='base_user', to='userprofile.WebOrganizerUserSettings')),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('userprofile.baseuser',),
         ),
         migrations.AddField(
-            model_name='webexhibitoruser',
-            name='settings',
-            field=models.OneToOneField(related_name='exhibitor_user', to='userprofile.WebExhibitorUserSettings'),
+            model_name='baseuser',
+            name='polymorphic_ctype',
+            field=models.ForeignKey(related_name='polymorphic_userprofile.baseuser_set+', editable=False, to='contenttypes.ContentType', null=True),
         ),
         migrations.AddField(
-            model_name='appuser',
+            model_name='baseuser',
             name='profile',
-            field=models.OneToOneField(related_name='app_user', to='userprofile.UserProfile'),
-        ),
-        migrations.AddField(
-            model_name='appuser',
-            name='settings',
-            field=models.OneToOneField(related_name='app_user', to='userprofile.AppUserSettings'),
+            field=models.ForeignKey(related_name='baseuser', to='userprofile.UserProfile'),
         ),
         migrations.AddField(
             model_name='ab_user',

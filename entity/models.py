@@ -14,20 +14,19 @@ import pdb
 from django.db.models import Q
 from wizcardship.models import Wizcard
 from lib.preserialize.serialize import serialize
-from wizserver import fields, verbs
+from wizserver import verbs
 from base.cctx import ConnectionContext
 from django.conf import settings
 from taganomy.models import Taganomy
 from notifications.signals import notify
 from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
-from entity_components.models import Speaker, Sponsor, SpeakerEvent, SponsorEvent
 
 import pdb
 
 # Create your models here.
 
-class BaseEntityManager(PolymorphicManager):
+class BaseEntityManager(models.Manager):
 
     def create(self, *args, **kwargs):
         category = kwargs.pop('category', Taganomy.objects.get_default_category())
@@ -65,7 +64,36 @@ class BaseEntityManager(PolymorphicManager):
 
         return entities, entities.count()
 
-class BaseEntity(PolymorphicModel, Base414Mixin):
+
+# everything inherits from this.
+class BaseEntityComponent(PolymorphicModel):
+    owners = models.ManyToManyField(
+        'userprofile.BaseUser',
+        through='BaseEntityComponentsBaseUser',
+        related_name="owners_%(class)s_related"
+    )
+
+    @classmethod
+    def create(cls, e, owner, is_creator, **kwargs):
+        obj = e.objects.create(**kwargs)
+
+        # add owner
+        BaseEntityComponentsBaseUser.objects.create(
+            base_entity=obj,
+            base_user=owner,
+            is_creator=is_creator
+        )
+
+        return obj
+
+
+class BaseEntityComponentsBaseUser(models.Model):
+    base_entity = models.ForeignKey(BaseEntityComponent)
+    base_user = models.ForeignKey('userprofile.BaseUser')
+    is_creator = models.BooleanField(default=True)
+
+
+class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     EVENT = 'EVT'
     BUSINESS = 'BUS'
@@ -101,13 +129,6 @@ class BaseEntity(PolymorphicModel, Base414Mixin):
 
     # hashtags.
     tags = TaggableManager()
-
-    creator = models.ForeignKey(User, related_name='created_%(class)s_related')
-
-    owners = models.ManyToManyField(
-        User,
-        related_name="owners_%(class)s_related"
-    )
 
     users = models.ManyToManyField(
         User,
@@ -185,6 +206,18 @@ class BaseEntity(PolymorphicModel, Base414Mixin):
 
     def get_sub_entities_of_type(self, type):
         return self.related.filter(alias=type).generic_objects()
+
+    def get_creator(self):
+        return BaseEntityComponentsBaseUser.objects.filter(
+            base_entity=self,
+            is_creator=True
+        ).get().base_user.profile.user
+
+    def is_creator(self, user):
+        return bool(user == self.get_creator())
+
+    def is_owner(self, user):
+        return bool(self.owners.all() & user.profile.baseuser.all())
 
     def add_owner(self, obj):
         self.owners.add(obj)
@@ -323,30 +356,7 @@ class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
 
-    speakers = models.ManyToManyField(Speaker, related_name='events', through=SpeakerEvent)
-    sponsors = models.ManyToManyField(Sponsor, related_name='events', through=SponsorEvent)
-
     objects = EventManager()
-
-    def add_speaker(self, speaker_obj, description=None):
-        obj, created = SpeakerEvent.objects.get_or_create(
-            event=self,
-            speaker=speaker_obj,
-            defaults={'description': speaker_obj.description}
-        )
-
-        if not created and description:
-            obj.description = description
-            obj.save()
-
-        return obj
-
-    def add_sponsor(self, sponsor_obj):
-        obj, created = SponsorEvent.objects.get_or_create(
-            event=self,
-            sponsor=sponsor_obj
-        )
-        return obj
 
     def join(self, user):
         super(Event, self).join(user)
@@ -504,14 +514,11 @@ class VirtualTable(BaseEntity):
 
         return self
 
-    def is_creator(self, user):
-        return bool(self.creator == user)
-
     def join_table_and_exchange(self, user, password, skip_password=False):
         #check password
         if (not self.secure) or \
             (self.password == password) or skip_password:
-            m, created = UserEntity.user_join(user=user, entity_obj=self)
+            m, created = UserEntity.user_join(user=user, base_entity_obj=self)
             if not created:
                 #somehow already a member
 		        return self

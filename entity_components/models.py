@@ -4,26 +4,26 @@ from django.contrib.contenttypes import generic
 from media_mgr.models import MediaObjects
 from base.mixins import Base411Mixin, Base412Mixin, Base413Mixin, CompanyTitleMixin, \
     VcardMixin
-from userprofile.models import WebOrganizerUser
-
-# Create your models here.
+from entity.models import BaseEntityComponent
 
 
-class Speaker(Base412Mixin, CompanyTitleMixin, VcardMixin):
-    user = models.OneToOneField(WebOrganizerUser)
+# Create your models here
+
+class Speaker(BaseEntityComponent, Base412Mixin, CompanyTitleMixin, VcardMixin):
     media = generic.GenericRelation(MediaObjects)
 
 
-class Sponsor(Base413Mixin):
-    user = models.OneToOneField(WebOrganizerUser)
+class Sponsor(BaseEntityComponent, Base413Mixin):
     media = generic.GenericRelation(MediaObjects)
     caption = models.CharField(max_length=50, default='Not Available')
 
 
-class CoOwners(Base411Mixin):
-    user = models.OneToOneField(WebOrganizerUser)
-    is_creator = models.BooleanField(default=False)
+class CoOwners(BaseEntityComponent, Base411Mixin):
+    pass
 
 
-class AttendeeInvitee(Base411Mixin):
-    user = models.OneToOneField(WebOrganizerUser)
+class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
+    pass
+
+class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
+    pass

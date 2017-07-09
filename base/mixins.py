@@ -6,6 +6,8 @@ from base.emailField import EmailField
 from picklefield.fields import PickledObjectField
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from polymorphic.models import PolymorphicModel
+from polymorphic.manager import PolymorphicManager
 
 
 class VcardMixin(models.Model):
@@ -68,6 +70,3 @@ class OwnersRelationshipMixin(models.Model):
     def add_owner(self, obj):
         self. content_type = ContentType.objects.get_for_model(obj)
         self.object_id = obj.pk
-
-
-

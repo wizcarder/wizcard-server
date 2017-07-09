@@ -125,53 +125,44 @@ class UserProfile(models.Model):
 
     objects = UserProfileManager()
 
+    def app_user(self):
+        try:
+            return self.baseuser.all().instance_of(AppUser).get()
+        except:
+            return None
+
+    def organizer_user(self):
+        try:
+            return self.baseuser.all().instance_of(WebOrganizerUser).get()
+        except:
+            return None
+
+    def exhibitor_user(self):
+        try:
+            return self.baseuser.all().instance_of(WebExhibitorUser).get()
+        except:
+            return None
+
     def create_user_type(self, user_type):
-        self.user_type = user_type
+        self.user_type |= user_type
 
         # create the associated user personalities
         if self.user_type == self.APP_USER:
-            if hasattr(self, 'app_user'):
+            if self.app_user():
                 raise AssertionError
             AppUser.objects.create(
                 profile=self,
                 settings=AppUserSettings.objects.create()
             )
         elif self.user_type == self.WEB_ORGANIZER_USER:
-            if hasattr(self, 'organizer_user'):
+            if self.organizer_user():
                 raise AssertionError
             WebOrganizerUser.objects.create(
                 profile=self,
                 settings=WebOrganizerUserSettings.objects.create()
             )
         elif self.user_type == self.WEB_EXHIBITOR_USER:
-            if hasattr(self, 'exhibitor_user'):
-                raise AssertionError
-            WebExhibitorUser.objects.create(
-                profile=self,
-                settings=WebExhibitorUserSettings.objects.create()
-            )
-
-        self.save()
-
-    def add_user_type(self, user_type):
-        self.user_type &= user_type
-
-        if self.user_type == self.APP_USER:
-            if hasattr(self, 'app_user'):
-                raise AssertionError
-            AppUser.objects.create(
-                profile=self,
-                settings=AppUserSettings.objects.create()
-            )
-        elif self.user_type == self.WEB_ORGANIZER_USER:
-            if hasattr(self, 'organizer_user'):
-                raise AssertionError
-            WebOrganizerUser.objects.create(
-                profile=self,
-                settings = WebOrganizerUserSettings.objects.create()
-            )
-        elif self.user_type == self.WEB_EXHIBITOR_USER:
-            if hasattr(self, 'exhibitor_user'):
+            if self.exhibitor_user():
                 raise AssertionError
             WebExhibitorUser.objects.create(
                 profile=self,
@@ -181,7 +172,11 @@ class UserProfile(models.Model):
         self.save()
 
 
-class AppUser(models.Model):
+class BaseUser(PolymorphicModel):
+    profile = models.ForeignKey(UserProfile, related_name='%(class)s')
+
+
+class AppUser(BaseUser):
     UNINITIALIZED = 'unknown'
     IOS = 'ios'
     ANDROID = 'android'
@@ -195,11 +190,10 @@ class AppUser(models.Model):
     do_sync = models.BooleanField(default=False)
     device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True, max_length=200)
-    profile = models.OneToOneField(UserProfile, related_name='app_user')
-    settings = models.OneToOneField(AppUserSettings, related_name='app_user')
     device_type = TruncatingCharField(max_length=10, choices=DEVICE_CHOICES, default=UNINITIALIZED)
     reco_generated_at = models.DateTimeField(default=RECO_DEFAULT_TIME)
     reco_ready = models.PositiveIntegerField(default=0)
+    settings = models.OneToOneField(AppUserSettings, related_name='base_user')
 
     objects = UserProfileManager()
 
@@ -254,7 +248,11 @@ class AppUser(models.Model):
         # convert result to query set result
         if count and not count_only:
             users = [UserProfile.objects.get(id=x).user for x in result if
-                     UserProfile.objects.filter(id=x, activated=True, app_user__settings__is_visible=True).exists()]
+                     UserProfile.objects.filter(
+                         id=x,
+                         activated=True,
+                         baseuser__appuser__settings__is_visible=True
+                     ).exists()]
             count = len(users)
         return users, count
 
@@ -318,15 +316,13 @@ class AppUser(models.Model):
         Notification.objects.unacted(self.profile.user).update(readed=False)
         return s
 
-class WebOrganizerUser(models.Model):
-    profile = models.OneToOneField(UserProfile, related_name='organizer_user')
-    settings = models.OneToOneField(WebOrganizerUserSettings, related_name='organizer_user')
-    pass
+class WebOrganizerUser(BaseUser):
+    settings = models.OneToOneField(WebOrganizerUserSettings, related_name='base_user')
 
-class WebExhibitorUser(models.Model):
-    profile = models.OneToOneField(UserProfile, related_name='exhibitor_user')
-    settings = models.OneToOneField(WebExhibitorUserSettings, related_name='exhibitor_user')
-    pass
+
+class WebExhibitorUser(BaseUser):
+    settings = models.OneToOneField(WebExhibitorUserSettings, related_name='base_user')
+
 
 class FutureUserManager(models.Manager):
     def check_future_user(self, email=None, phone=None):

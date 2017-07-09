@@ -25,9 +25,9 @@ def pushNotificationToApp(
 
     sender = User.objects.get(id=sender_id)
     receiver_p = User.objects.get(id=receiver_id).profile
-    app_user = receiver_p.app_user
+    app_user = receiver_p.app_user()
 
-    apns_dict = verbs.apns_notification_dictionary[verb] if app_user.is_ios() else \
+    apns_dict = verbs.apns_notification_dictionary[verb] if app_user().is_ios() else \
         verbs.gcm_notification_dictionary[verb]
 
     if app_user.settings.dnd:
@@ -42,7 +42,6 @@ def pushNotificationToApp(
     if target_object_id:
         target_object = \
                 t_content_type.get_object_for_this_type(pk=target_object_id)
-
 
     apns = ApnsMsg(
         sender,

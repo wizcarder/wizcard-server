@@ -154,7 +154,7 @@ class WizcardManager(PolymorphicManager):
             qlist.append(email_result)
 
         result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=exclude_user.id).\
-            exclude(user__profile__app_user__settings__is_visible=False)
+            exclude(user__profile__baseuser__appuser__settings__is_visible=False)
 
         return result, len(result)
 

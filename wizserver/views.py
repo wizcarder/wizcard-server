@@ -54,6 +54,7 @@ from entity.serializers import EventSerializerL1, EventSerializerL2,TableSeriali
 from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
 from userprofile.serializers import UserSerializerL0
 from entity.models import EntityUserStats
+from entity.models import BaseEntityComponent
 from media_mgr.models import MediaObjects
 from media_mgr.signals import media_create
 
@@ -142,7 +143,7 @@ class ParseMsgAndDispatch(object):
 
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
-                self.app_userprofile = self.user.profile.app_user
+                self.app_userprofile = self.user.profile.app_user()
                 self.app_settings = self.app_userprofile.settings
                 self.user_stats, created = Stats.objects.get_or_create(user=self.user)
 
@@ -618,8 +619,7 @@ class ParseMsgAndDispatch(object):
         challenge_response = self.sender['response_key']
 
         if not (username and challenge_response):
-            self.response.error_response( \
-                err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+            self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
         k_user = (settings.PHONE_CHECK_USER_KEY % username)
@@ -657,7 +657,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
-        #response is valid. create user here and send back user_id
+        # response is valid. create user here and send back user_id
         user, created = User.objects.get_or_create(username=username)
 
         if created:
@@ -668,7 +668,7 @@ class ParseMsgAndDispatch(object):
             user.save()
             user.profile.create_user_type(UserProfile.APP_USER)
         else:
-            if device_id != user.profile.app_user.device_id:
+            if device_id != user.profile.app_user().device_id:
                 #device_id is part of password, reset password to reflect new device_id
                 password = UserProfile.objects.gen_password(user.pk, device_id)
                 user.set_password(password)
@@ -676,16 +676,12 @@ class ParseMsgAndDispatch(object):
 
             # mark for sync if profile is activated
             if user.profile.activated:
-                user.profile.app_user.do_sync = True
+                user.profile.app_user().do_sync = True
 
-            # this happens only during testing. shouldn't happen otherwise
-            if not hasattr(user.profile, 'app_user'):
-                user.profile.add_user_type(UserProfile.APP_USER)
+        user.profile.app_user().device_id = device_id
+        user.profile.app_user().save()
 
-        user.profile.app_user.device_id = device_id
-        user.profile.app_user.save()
-
-        #all done. #clear cache
+        # all done. clear cache
         cache.delete_many([k_user, k_device_id, k_rand, k_retry])
 
         user.profile.save()
@@ -1495,7 +1491,7 @@ class ParseMsgAndDispatch(object):
                 return self.response
             #creator can fwd private table, anyone (member) can fwd public
             #table
-            if not((table.secure and table.creator == self.user) or
+            if not((table.secure and table.get_creator() == self.user) or
                        ((not table.secure) and table.is_joined(self.user))):
                 self.response.error_response(err.NOT_AUTHORIZED)
                 return self.response
@@ -2127,10 +2123,9 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     # Entity Api's for App
-
     def EntityCreate(self):
         e, s = BaseEntity.entity_cls_ser_from_type(type=self.sender.get('entity_type'))
-        entity = e.objects.create(creator=self.user, **self.sender)
+        entity = BaseEntityComponent.create(e, owner=self.app_userprofile, is_creator=True, **self.sender)
 
         updated, l = entity.create_or_update_location(self.lat, self.lng)
         l.start_timer(entity.timeout)
@@ -2202,7 +2197,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        if entity.creator != self.user:
+        if entity.get_creator() != self.user:
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
