@@ -4,20 +4,18 @@ from media_mgr.serializers import MediaObjectsSerializer
 from media_mgr.models import MediaObjects
 from rest_framework.validators import ValidationError
 from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, BaseEntityComponent
-from entity_components.models import Speaker, Sponsor
-from entity_components.serializers import SpeakerSerializer, SponsorSerializer
 from entity.models import EntityEngagementStats, EntityUserStats
 from django.contrib.auth.models import User
 from media_mgr.signals import media_create
 from location_mgr.serializers import LocationSerializerField
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
+from entity_components.serializers import SpeakerSerializer, SponsorSerializer
+from entity_components.models import Speaker, Sponsor
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
 from django.utils import timezone
 from random import sample
-
-
 import pdb
 
 
@@ -65,6 +63,13 @@ class RelatedSerializerFieldL2(RelatedSerializerField):
             serializer = TableSerializerL2(value.object, context=self.context)
         return serializer.data
 
+
+class RelatedEntitiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseEntityComponent
+        fields = '__all__'
+
+
 class EntityEngagementSerializer(serializers.Serializer):
     class Meta:
         model = EntityEngagementStats
@@ -107,7 +112,7 @@ class EntitySerializerL1(EntitySerializerL0):
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_creator(self, obj):
-        return WizcardSerializerL1(obj.get_creator().wizcard).data
+        return ""
 
     def get_media(self, obj):
         return ""
@@ -154,12 +159,17 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     media = MediaObjectsSerializer(many=True, required=False)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerFieldL2(many=True, required=False)
+    related_entities = serializers.PrimaryKeyRelatedField(
+        many=True,
+        required=False,
+        queryset=BaseEntityComponent.objects.all()
+    )
     ext_fields = serializers.DictField(required=False)
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
         my_fields = ('website', 'category', 'ext_fields', 'phone',
-                     'email', 'description', 'owners', 'related', 'users')
+                     'email', 'description', 'owners', 'related', 'related_entities', 'users')
         fields = EntitySerializerL1.Meta.fields + my_fields
         read_only_fields = ('entity_type',)
 
@@ -182,6 +192,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         self.tags = validated_data.pop('tags', None)
         self.owners = validated_data.pop('owners', None)
         self.sub_entities = validated_data.pop('related', None)
+        self.related_entities = validated_data.pop('related_entities', None)
         self.location = validated_data.pop('location', None)
         self.users = validated_data.pop('users', None)
         self.creator = validated_data.pop('creator')
@@ -192,9 +203,14 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
         if self.owners:
             BaseEntityComponent.add_owners(entity, self.owners)
+
         if self.sub_entities:
             for s in self.sub_entities:
                 entity.add_subentity(**s)
+
+        if self.related_entities:
+            entity.add_related(self.related_entities)
+
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])
 
@@ -247,7 +263,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 # this is used by portal REST API
 class EventSerializer(EntitySerializerL2):
     def __init__(self, *args, **kwargs):
-        fields = kwargs.pop('fields', None)
+        kwargs.pop('fields', None)
         remove_fields = ['joined', 'engagements']
 
         super(EventSerializer, self).__init__(*args, **kwargs)
@@ -258,7 +274,6 @@ class EventSerializer(EntitySerializerL2):
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
     related = RelatedSerializerField(many=True, required=False)
-    creator = serializers.HiddenField(default=None)
 
     class Meta:
         model = Event
@@ -267,7 +282,6 @@ class EventSerializer(EntitySerializerL2):
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
-
         event = Event.objects.create(entity_type=BaseEntity.EVENT, **validated_data)
         self.post_create(event)
 
@@ -408,6 +422,9 @@ class TableSerializerL1(EntitySerializerL1):
         if not obj.expired:
             return obj.location.get().timer.get().time_remaining()
         return 0
+
+    def get_creator(self, obj):
+        return WizcardSerializerL1(obj.get_creator().wizcard).data
 
     def get_status(self, obj):
         user = self.context.get('user')

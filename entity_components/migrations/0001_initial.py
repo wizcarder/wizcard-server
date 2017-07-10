@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
             bases=('entity.baseentitycomponent', models.Model),
         ),
         migrations.CreateModel(
-            name='CoOwners',
+            name='CoOwner',
             fields=[
                 ('baseentitycomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='entity.BaseEntityComponent')),
                 ('created', models.DateTimeField(auto_now_add=True)),

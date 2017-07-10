@@ -18,12 +18,13 @@ class Sponsor(BaseEntityComponent, Base413Mixin):
     caption = models.CharField(max_length=50, default='Not Available')
 
 
-class CoOwners(BaseEntityComponent, Base411Mixin):
+class CoOwner(BaseEntityComponent, Base411Mixin):
     pass
 
 
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
     pass
+
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
     pass

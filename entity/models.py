@@ -64,7 +64,8 @@ class BaseEntityManager(models.Manager):
         return entities, entities.count()
 
 
-# everything inherits from this.
+# everything inherits from this. This holds the relationship
+# end-points for owners and related_entity.
 class BaseEntityComponent(PolymorphicModel):
     owners = models.ManyToManyField(
         User,
@@ -72,13 +73,18 @@ class BaseEntityComponent(PolymorphicModel):
         related_name="owners_%(class)s_related"
     )
 
+    # Since all related_entities
+    # (defined in entity_components) inherit from here, they can be linked
+    # via a regular many2many
+    related_entities = models.ManyToManyField('self', blank=True)
+
     @classmethod
     def create(cls, e, owner, is_creator, **kwargs):
         obj = e.objects.create(**kwargs)
 
         # add owner
         BaseEntityComponentsUser.objects.create(
-            base_entity=obj,
+            base_entity_component=obj,
             user=owner,
             is_creator=is_creator
         )
@@ -88,7 +94,7 @@ class BaseEntityComponent(PolymorphicModel):
     @classmethod
     def add_creator(cls, obj, creator):
         BaseEntityComponentsUser.objects.create(
-            base_entity=obj,
+            base_entity_component=obj,
             user=creator,
             is_creator=True
         )
@@ -97,21 +103,25 @@ class BaseEntityComponent(PolymorphicModel):
     def add_owners(cls, obj, owners):
         for o in owners:
             BaseEntityComponentsUser.objects.create(
-                base_entity=obj,
+                base_entity_component=obj,
                 user=o,
                 is_creator=False
             )
 
-    def remove_owners(self, obj, owners):
+    @classmethod
+    def remove_owners(cls, obj, owners):
         for o in owners:
             BaseEntityComponentsUser.objects.filter(
-                base_entity=obj,
+                base_entity_component=obj,
                 user=o
             ).delete()
 
+    def add_related(self, obj_list):
+        self.related_entities.add(*obj_list)
+
 
 class BaseEntityComponentsUser(models.Model):
-    base_entity = models.ForeignKey(BaseEntityComponent)
+    base_entity_component = models.ForeignKey(BaseEntityComponent)
     user = models.ForeignKey(User)
     is_creator = models.BooleanField(default=True)
 
@@ -220,7 +230,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return c
 
     def add_subentity(self, id, entity_type):
-        pdb.set_trace()
         c = self.entity_cls_from_subentity_type(entity_type)
         obj = c.objects.get(id=id)
 
@@ -234,7 +243,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def get_creator(self):
         return BaseEntityComponentsUser.objects.filter(
-            base_entity=self,
+            base_entity_component=self,
             is_creator=True
         ).get().user.profile.user
 
@@ -310,8 +319,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 verb=verb,
                 target=entity
             )
-
-        return
 
     def get_banner(self):
         media_row = self.media.filter(media_sub_type='BNR')[0]
