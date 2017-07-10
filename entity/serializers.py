@@ -190,11 +190,8 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         # add creator. Should always be there
         BaseEntityComponent.add_creator(entity, self.creator)
 
-        if self.media:
-            media_create.send(sender=entity, objs=self.media)
         if self.owners:
-            for o in self.owners:
-                entity.add_owner(o)
+            BaseEntityComponent.add_owners(entity, self.owners)
         if self.sub_entities:
             for s in self.sub_entities:
                 entity.add_subentity(**s)
@@ -262,13 +259,10 @@ class EventSerializer(EntitySerializerL2):
     end = serializers.DateTimeField()
     related = RelatedSerializerField(many=True, required=False)
     creator = serializers.HiddenField(default=None)
-    media = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=MediaObjects.objects.all())
-    speakers = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Speaker.objects.all())
-    sponsors = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Sponsor.objects.all())
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers', 'sponsors')
+        my_fields = ('start', 'end',)
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
@@ -282,20 +276,8 @@ class EventSerializer(EntitySerializerL2):
     def update(self, instance, validated_data):
         instance.start = validated_data.pop("start", instance.start)
         instance.end = validated_data.pop("end", instance.end)
-        speakers = validated_data.pop('speakers', [])
-        sponsors = validated_data.pop('sponsors', [])
 
         instance = super(EventSerializer, self).update(instance, validated_data)
-
-        if speakers:
-            instance.speakers.clear()
-            for s in speakers:
-                instance.add_speaker(s)
-
-        if sponsors:
-            instance.sponsors.clear()
-            for s in sponsors:
-                instance.add_sponsor(s)
 
         return instance
 
@@ -318,12 +300,9 @@ class EventSerializerL1(EntitySerializerL1):
 
 # these are used by App.
 class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
-    speakers = SpeakerSerializer(required=False, many=True)
-    sponsors = SponsorSerializer(many=True, required=False)
-
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers', 'sponsors')
+        my_fields = ('start', 'end',)
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def get_users(self, obj):
@@ -353,15 +332,12 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
 class ProductSerializerL1(EntitySerializerL1):
     class Meta:
         model = Product
-        my_fields = ('media', 'name', 'address', 'tags', 'joined', 'like', 'description',)
+        my_fields = ('name', 'address', 'tags', 'joined', 'like', 'description',)
         # using L0 fields since not all L1 base class fields are needed
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_media(self, obj):
-        return MediaObjectsSerializer(
-            obj.media.filter(media_sub_type=MediaObjects.SUB_TYPE_LOGO),
-            many=True
-        ).data
+        return ""
 
     def get_users(self, obj):
         count = obj.users.count()
@@ -377,7 +353,7 @@ class ProductSerializerL2(EntitySerializerL2):
 
     class Meta:
         model = Product
-        my_fields = ('media', 'name', 'address', 'tags', 'joined', 'like', 'description',)
+        my_fields = ('name', 'address', 'tags', 'joined', 'like', 'description',)
         fields = EntitySerializerL2.Meta.fields + my_fields
 
 
@@ -426,10 +402,7 @@ class TableSerializerL1(EntitySerializerL1):
         fields = EntitySerializerL1.Meta.fields + my_fields
 
     def get_media(self, obj):
-        return MediaObjectsSerializer(
-            obj.media.filter(media_sub_type=MediaObjects.SUB_TYPE_THUMBNAIL),
-            many=True
-        ).data
+        return ""
 
     def get_time_remaining(self, obj):
         if not obj.expired:
