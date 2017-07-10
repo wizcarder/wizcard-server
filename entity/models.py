@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
 from polymorphic.models import PolymorphicModel
-from polymorphic.manager import PolymorphicManager
 from rabbit_service import rconfig
 import pdb
 from django.db.models import Q
@@ -21,8 +20,8 @@ from taganomy.models import Taganomy
 from notifications.signals import notify
 from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
-
 import pdb
+
 
 # Create your models here.
 
@@ -49,7 +48,7 @@ class BaseEntityManager(models.Manager):
         return entities, count
 
     def users_entities(self, user, entity_type=None, include_expired=False):
-        cls, ser = BaseEntity.entity_cls_ser_from_type(type=entity_type)
+        cls, ser = BaseEntity.entity_cls_ser_from_type(entity_type=entity_type)
         if include_expired:
             return user.users_baseentity_related.all().instance_of(cls)
         else:
@@ -68,8 +67,8 @@ class BaseEntityManager(models.Manager):
 # everything inherits from this.
 class BaseEntityComponent(PolymorphicModel):
     owners = models.ManyToManyField(
-        'userprofile.BaseUser',
-        through='BaseEntityComponentsBaseUser',
+        User,
+        through='BaseEntityComponentsUser',
         related_name="owners_%(class)s_related"
     )
 
@@ -78,18 +77,42 @@ class BaseEntityComponent(PolymorphicModel):
         obj = e.objects.create(**kwargs)
 
         # add owner
-        BaseEntityComponentsBaseUser.objects.create(
+        BaseEntityComponentsUser.objects.create(
             base_entity=obj,
-            base_user=owner,
+            user=owner,
             is_creator=is_creator
         )
 
         return obj
 
+    @classmethod
+    def add_creator(cls, obj, creator):
+        BaseEntityComponentsUser.objects.create(
+            base_entity=obj,
+            user=creator,
+            is_creator=True
+        )
 
-class BaseEntityComponentsBaseUser(models.Model):
+    @classmethod
+    def add_owners(cls, obj, owners):
+        for o in owners:
+            BaseEntityComponentsUser.objects.create(
+                base_entity=obj,
+                user=o,
+                is_creator=False
+            )
+
+    def remove_owners(self, obj, owners):
+        for o in owners:
+            BaseEntityComponentsUser.objects.filter(
+                base_entity=obj,
+                user=o
+            ).delete()
+
+
+class BaseEntityComponentsUser(models.Model):
     base_entity = models.ForeignKey(BaseEntityComponent)
-    base_user = models.ForeignKey('userprofile.BaseUser')
+    user = models.ForeignKey(User)
     is_creator = models.BooleanField(default=True)
 
 
@@ -155,77 +178,71 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return self.entity_type + '.' + self.name
 
     @classmethod
-    def entity_cls_ser_from_type(self, type=None, detail=False):
+    def entity_cls_ser_from_type(cls, entity_type=None, detail=False):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
             BusinessSerializer, TableSerializerL1, TableSerializerL2, EntitySerializerL2, \
             ProductSerializerL1, ProductSerializerL2
-        if type == self.EVENT:
-            cls = Event
-            serializer = EventSerializerL1
-            if detail == True:
-                serializer = EventSerializerL2
-        elif type == self.PRODUCT:
-            cls = Product
-            if detail == True:
-                serializer = ProductSerializerL1
+        if entity_type == cls.EVENT:
+            c = Event
+            s = EventSerializerL1
+            if detail:
+                s = EventSerializerL2
+        elif entity_type == cls.PRODUCT:
+            c = Product
+            if detail:
+                s = ProductSerializerL1
             else:
-                serializer = ProductSerializerL2
-        elif type == self.BUSINESS:
-            cls = Business
-            serializer = BusinessSerializer
-        elif type == self.TABLE:
-            cls = VirtualTable
-            if detail == True:
-                serializer = TableSerializerL2
+                s = ProductSerializerL2
+        elif entity_type == cls.BUSINESS:
+            c = Business
+            s = BusinessSerializer
+        elif entity_type == cls.TABLE:
+            c = VirtualTable
+            if detail:
+                s = TableSerializerL2
             else:
-                serializer = TableSerializerL1
+                s = TableSerializerL1
         else:
-            cls = BaseEntity
-            serializer = EntitySerializerL2
+            c = BaseEntity
+            s = EntitySerializerL2
 
-        return cls, serializer
+        return c, s
 
-    def entity_cls_from_subentity_type(self, type):
-        if type == self.SUB_ENTITY_PRODUCT:
-            cls = Product
-        elif type == self.SUB_ENTITY_TABLE:
-            cls = VirtualTable
+    @classmethod
+    def entity_cls_from_subentity_type(cls, entity_type):
+        if entity_type == cls.SUB_ENTITY_PRODUCT:
+            c = Product
+        elif type == cls.SUB_ENTITY_TABLE:
+            c = VirtualTable
         else:
-            cls = BaseEntity
+            c = BaseEntity
 
-        return cls
+        return c
 
-    def add_subentity(self, id, type):
-        cls = self.entity_cls_from_subentity_type(type)
-        obj = cls.objects.get(id=id)
+    def add_subentity(self, id, entity_type):
+        pdb.set_trace()
+        c = self.entity_cls_from_subentity_type(entity_type)
+        obj = c.objects.get(id=id)
 
         return self.related.connect(obj, alias=type)
 
-    def remove_sub_entity_of_type(self, id, type):
-        self.related.filter(object_id=id, alias=type).delete()
+    def remove_sub_entity_of_type(self, id, entity_type):
+        self.related.filter(object_id=id, alias=entity_type).delete()
 
-    def get_sub_entities_of_type(self, type):
-        return self.related.filter(alias=type).generic_objects()
+    def get_sub_entities_of_type(self, entity_type):
+        return self.related.filter(alias=entity_type).generic_objects()
 
     def get_creator(self):
-        return BaseEntityComponentsBaseUser.objects.filter(
+        return BaseEntityComponentsUser.objects.filter(
             base_entity=self,
             is_creator=True
-        ).get().base_user.profile.user
+        ).get().user.profile.user
 
     def is_creator(self, user):
         return bool(user == self.get_creator())
 
     def is_owner(self, user):
         return bool(self.owners.all() & user.profile.baseuser.all())
-
-    def add_owner(self, obj):
-        self.owners.add(obj)
-        # AA:TODO: need to send owner a notif
-
-    def remove_owner(self, obj):
-        self.owners.remove(obj)
-        # AA:TODO: need to send owner a notif
 
     def create_or_update_location(self, lat, lng):
         try:
@@ -400,7 +417,7 @@ class Product(BaseEntity):
     def leave(self, user):
         super(Product, self).leave(user)
 
-        #send notif to all members, just like join
+        # send notif to all members, just like join
         self.notify_all_users(
             user,
             verbs.WIZCARD_ENTITY_LEAVE[0],
@@ -471,7 +488,7 @@ class VirtualTableManager(BaseEntityManager):
                 joined.append(t)
             elif Wizcard.objects.are_wizconnections(
                     user.wizcard,
-                    t.creator.wizcard):
+                    t.get_creator().wizcard):
                 connected.append(t)
             else:
                 others.append(t)
@@ -535,7 +552,7 @@ class VirtualTable(BaseEntity):
         members = self.users.all()
         for member in members:
             notify.send(
-                self.creator,
+                self.get_creator(),
                 recipient=member,
                 verb=verb,
                 target=self)

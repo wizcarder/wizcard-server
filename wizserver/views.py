@@ -2124,8 +2124,8 @@ class ParseMsgAndDispatch(object):
 
     # Entity Api's for App
     def EntityCreate(self):
-        e, s = BaseEntity.entity_cls_ser_from_type(type=self.sender.get('entity_type'))
-        entity = BaseEntityComponent.create(e, owner=self.app_userprofile, is_creator=True, **self.sender)
+        e, s = BaseEntity.entity_cls_ser_from_type(entity_type=self.sender.get('entity_type'))
+        entity = BaseEntityComponent.create(e, owner=self.user, is_creator=True, **self.sender)
 
         updated, l = entity.create_or_update_location(self.lat, self.lng)
         l.start_timer(entity.timeout)
@@ -2142,7 +2142,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        if table.creator == self.user:
+        if table.get_creator() == self.user:
             table.delete(type=verbs.WIZCARD_TABLE_DESTROY[0])
         else:
             self.response.error_response(err.NOT_AUTHORIZED)
@@ -2151,10 +2151,10 @@ class ParseMsgAndDispatch(object):
 
     def EntityJoin(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(type)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -2169,10 +2169,10 @@ class ParseMsgAndDispatch(object):
 
     def EntityLeave(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(type)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -2186,12 +2186,11 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def EntityEdit(self):
-
         id = self.sender.get('entity_id')
-        type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(type)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -2338,11 +2337,11 @@ class ParseMsgAndDispatch(object):
 
     def EntityDetails(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type')
         detail = self.sender.get('detail', True)
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(type, detail=detail)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)

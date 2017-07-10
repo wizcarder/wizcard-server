@@ -3,7 +3,7 @@ from rest_framework import serializers
 from media_mgr.serializers import MediaObjectsSerializer
 from media_mgr.models import MediaObjects
 from rest_framework.validators import ValidationError
-from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity
+from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, BaseEntityComponent
 from entity_components.models import Speaker, Sponsor
 from entity_components.serializers import SpeakerSerializer, SponsorSerializer
 from entity.models import EntityEngagementStats, EntityUserStats
@@ -103,7 +103,7 @@ class EntitySerializerL1(EntitySerializerL0):
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
-                     'secure', 'users', 'joined', 'like', 'creator','engagements', 'description')
+                     'secure', 'users', 'joined', 'like', 'engagements', 'description')
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_creator(self, obj):
@@ -178,25 +178,18 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     def get_friends(self, obj):
         return ""
 
-    # def get_friends(self, obj):
-    #     user = self.context.get('user')
-    #
-    #     friends_wizcards = obj.users_friends(user)
-    #     out = dict(
-    #         count=len(friends_wizcards),
-    #         data=WizcardSerializerL1(friends_wizcards, many=True).data
-    #     )
-    #     return out
-
     def prepare(self, validated_data):
-        self.media = validated_data.pop('media', None)
         self.tags = validated_data.pop('tags', None)
         self.owners = validated_data.pop('owners', None)
         self.sub_entities = validated_data.pop('related', None)
         self.location = validated_data.pop('location', None)
         self.users = validated_data.pop('users', None)
+        self.creator = validated_data.pop('creator')
 
     def post_create(self, entity):
+        # add creator. Should always be there
+        BaseEntityComponent.add_creator(entity, self.creator)
+
         if self.media:
             media_create.send(sender=entity, objs=self.media)
         if self.owners:
@@ -268,6 +261,8 @@ class EventSerializer(EntitySerializerL2):
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
     related = RelatedSerializerField(many=True, required=False)
+    creator = serializers.HiddenField(default=None)
+    media = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=MediaObjects.objects.all())
     speakers = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Speaker.objects.all())
     sponsors = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Sponsor.objects.all())
 
@@ -277,18 +272,10 @@ class EventSerializer(EntitySerializerL2):
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
-        speakers = validated_data.pop('speakers', [])
-        sponsors = validated_data.pop('sponsors', [])
         self.prepare(validated_data)
 
         event = Event.objects.create(entity_type=BaseEntity.EVENT, **validated_data)
         self.post_create(event)
-
-        for s in speakers:
-            event.add_speaker(s)
-
-        for s in sponsors:
-            event.add_sponsor(s)
 
         return event
 
@@ -320,7 +307,7 @@ class EventSerializerL1(EntitySerializerL1):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers',)
+        my_fields = ('start', 'end',)
         fields = EntitySerializerL1.Meta.fields + my_fields
 
     def get_media(self, obj):

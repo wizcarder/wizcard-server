@@ -15,18 +15,12 @@ import pdb
 # Create your views here.
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
-    queryset = BaseEntity.objects.all()
-    serializer_class = EntitySerializerL2
-
     def get_queryset(self):
-        #if isinstance(self, BaseEntityViewSet):
-         #   queryset = BaseEntity.objects.all()
         user = self.request.user
         queryset = BaseEntity.objects.users_entities(user)
         return queryset
 
     def perform_create(self, serializer):
-        pdb.set_trace()
         instance = serializer.save(creator=self.request.user)
         instance.join(self.request.user)
 
@@ -34,9 +28,8 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         return {'user': self.request.user}
 
 
-
 class EventViewSet(BaseEntityViewSet):
-    queryset = Event.objects.all()
+    #queryset = Event.objects.all()
     serializer_class = EventSerializer
 
     def get_serializer_class(self):
@@ -44,7 +37,6 @@ class EventViewSet(BaseEntityViewSet):
         if self.request.method == 'GET' and user is not None:
             return EventSerializerL2
         return EventSerializer
-
 
     def get_object_or_404(self, pk):
         try:
@@ -56,10 +48,6 @@ class EventViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = Event.objects.users_entities(user)
         return queryset
-        #queryset = Event.objects.all()
-        #return super(EventViewSet, self).get_queryset()
-
-
 
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
@@ -87,8 +75,6 @@ class ProductViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = Product.objects.users_entities(user)
         return queryset
-        #queryset = Product.objects.all()
-        #super(ProductViewSet, self).get_queryset()
 
 
 class BusinessViewSet(BaseEntityViewSet):
