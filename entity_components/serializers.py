@@ -1,52 +1,90 @@
 __author__ = 'aammundi'
 
 from rest_framework import serializers
-from entity_components.models import Speaker, Sponsor
+from entity_components.models import Speaker, Sponsor, MediaEntities
+from media_mgr.serializers import MediaObjectsSerializer
 from media_mgr.models import MediaObjects
+from entity.models import BaseEntityComponent
 
-class SpeakerSerializer(serializers.ModelSerializer):
-    media = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=MediaObjects.objects.all())
+
+class BaseEntityComponentSerializer(serializers.ModelSerializer):
+    related_entities = serializers.PrimaryKeyRelatedField(many=True,
+                                                          required=False,
+                                                          queryset=BaseEntityComponent.objects.all())
     ext_fields = serializers.DictField(required=False)
 
     class Meta:
+        model = BaseEntityComponent
+        fields = '__all__'
+
+    def prepare(self, validated_data):
+        self.related_entities = validated_data.pop('related_entities')
+
+    def post_create(self, obj):
+        obj.add_related(self.related_entities)
+        return obj
+
+
+
+class SpeakerSerializerL1(BaseEntityComponentSerializer):
+    # def __init__(self, *args, **kwargs):
+    #     many = kwargs.pop('many', True)
+    #     super(SpeakerSerializer, self).__init__(many=many, *args, **kwargs)
+
+    class Meta:
         model = Speaker
-        fields = ('id', 'website', 'description', 'ext_fields', 'company', 'title', 'vcard', 'media',)
+        fields = '__all__'
         read_only_fields = ('vcard',)
 
-    def create(self, validated_data):
-        s = Speaker.objects.create(**validated_data)
-        return s
 
-    def update(self, instance, validated_data):
-        instance.first_name = validated_data.pop("first_name", instance.first_name)
-        instance.last_name = validated_data.pop("last_name", instance.last_name)
-        instance.phone = validated_data.pop("phone", instance.phone)
-        instance.email = validated_data.pop("email", instance.email)
-        instance.company = validated_data.pop("org", instance.company)
-        instance.title = validated_data.pop("title", instance.title)
-        instance.ext_fields = validated_data.pop("ext_fields", instance.ext_fields)
-        instance.description = validated_data.pop("description", instance.description)
-        instance.save()
 
-        instance = super(SpeakerSerializer, self).update(instance, validated_data)
-        return instance
+    def create(self, validated_data, **kwargs):
+        self.prepare(validated_data)
+        spkr = BaseEntityComponent.create(Speaker, owner=self.context.get('user'), is_creator=True, **validated_data)
+        self.post_create(spkr)
+        return spkr
 
-class SponsorSerializer(serializers.Serializer):
+
+
+class SpeakerSerializerL2(SpeakerSerializerL1):
+   # related_entities = RelatedEntitiesField()
+
+    class Meta:
+        model = Speaker
+        fields = '__all__'
+
+
+class SponsorSerializerL1(BaseEntityComponentSerializer):
     class Meta:
         model = Sponsor
         fields = "__all__"
-
-    media = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=MediaObjects.objects.all())
+        read_only_fields = ('vcard',)
 
     def create(self, validated_data):
         self.prepare(validated_data)
-        s = Sponsor.objects.create(**validated_data)
-        self.post_create(s)
-        return s
+        spn = BaseEntityComponent.create(Sponsor, owner=self.context.get('user'), is_creator=True, **validated_data)
+        self.post_create(spn)
+        return spn
 
-    def update(self, instance, validated_data):
-        instance.name = validated_data.pop("name", instance.name)
-        instance.save()
-        instance = super(SponsorSerializer, self).update(instance, validated_data)
-        return instance
+
+class SponsorSerializerL2(SponsorSerializerL1):
+    #media = MediaObjectsSerializer(many=True)
+
+    class Meta:
+        model = Sponsor
+        fields = '__all__'
+
+
+class MediaEntitiesSerializer(BaseEntityComponentSerializer):
+    class Meta:
+        model = MediaEntities
+        fields = '__all__'
+
+
+    def create(self, validated_data):
+        user = self.context.get('user')
+        mobj = BaseEntityComponent.create(MediaEntities, owner=user, is_creator=True, **validated_data)
+        return mobj
+
+
 

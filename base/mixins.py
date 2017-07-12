@@ -8,7 +8,17 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
+from base.custom_storage import WizcardQueuedS3BotoStorage
+from base.custom_field import WizcardQueuedFileField
+from django.core.files.uploadedfile import SimpleUploadedFile
 
+def get_s3_bucket(instance, filename):
+    if instance.media_sub_type == MediaMixin.SUB_TYPE_F_BIZCARD:
+        return "deadcards"
+    elif instance.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL:
+        return "thumbnails"
+    else:
+        return "bizcards"
 
 class VcardMixin(models.Model):
     class Meta:
@@ -70,3 +80,58 @@ class OwnersRelationshipMixin(models.Model):
     def add_owner(self, obj):
         self. content_type = ContentType.objects.get_for_model(obj)
         self.object_id = obj.pk
+
+
+class MediaMixin(models.Model):
+    class Meta:
+        abstract = True
+
+    TYPE_IMAGE = 'IMG'
+    TYPE_VIDEO = 'VID'
+
+    SUB_TYPE_BANNER = 'BNR'
+    SUB_TYPE_LOGO = 'LGO'
+    SUB_TYPE_SPONSORS_LOGO = 'SLG'
+    SUB_TYPE_ROLLING = 'ROL'
+    SUB_TYPE_THUMBNAIL = 'THB'
+    SUB_TYPE_F_BIZCARD = 'FBZ'
+    SUB_TYPE_D_BIZCARD = 'DBZ'
+    SUB_TYPE_PROFILE_VIDEO = 'PVD'
+
+    MEDIA_CHOICES = (
+        (TYPE_IMAGE, 'Image'),
+        (TYPE_VIDEO, 'Video'),
+    )
+
+    MEDIA_SUBTYPE_CHOICES = (
+        (SUB_TYPE_BANNER, 'Banner'),
+        (SUB_TYPE_LOGO, 'Logo'),
+        (SUB_TYPE_SPONSORS_LOGO, 'Sponsor Logo'),
+        (SUB_TYPE_ROLLING, 'Rolling'),
+        (SUB_TYPE_THUMBNAIL, 'Thumbnail'),
+        (SUB_TYPE_F_BIZCARD, 'Business Card Front'),
+        (SUB_TYPE_D_BIZCARD, 'Dead Business Card'),
+        (SUB_TYPE_PROFILE_VIDEO, 'Profile Video')
+    )
+
+    media_type = models.CharField(
+        max_length=3,
+        choices=MEDIA_CHOICES,
+        default=TYPE_IMAGE
+    )
+
+    media_sub_type = models.CharField(
+        max_length=3,
+        choices=MEDIA_SUBTYPE_CHOICES,
+        default=SUB_TYPE_ROLLING
+    )
+    # s3 upload file field. Used for scanned cards
+    upload_file = WizcardQueuedFileField(
+        storage=WizcardQueuedS3BotoStorage(delayed=False),
+        upload_to=get_s3_bucket,
+        blank=True
+    )
+
+    # url of media element
+    media_element = models.URLField(blank=True, default=None)
+    media_iframe = models.URLField(blank=True)

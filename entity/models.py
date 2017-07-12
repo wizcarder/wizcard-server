@@ -1,6 +1,6 @@
 from django.db import models
 from taggit.managers import TaggableManager
-from media_mgr.models import MediaObjects
+
 from django.contrib.contenttypes import generic
 from genericm2m.models import RelatedObjectsDescriptor
 from location_mgr.models import LocationMgr
@@ -9,9 +9,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
 from polymorphic.models import PolymorphicModel
 from rabbit_service import rconfig
-import pdb
 from django.db.models import Q
+#from media_mgr.models import MediaEntities
 from wizcardship.models import Wizcard
+
 from lib.preserialize.serialize import serialize
 from wizserver import verbs
 from base.cctx import ConnectionContext
@@ -64,6 +65,14 @@ class BaseEntityManager(models.Manager):
         return entities, entities.count()
 
 
+class BaseEntityComponentManager(models.Manager):
+
+    def users_components(self, user, component_type):
+        comps = user.owners_baseentitycomponent_related.all().instance_of(component_type)
+        return comps
+
+
+
 # everything inherits from this. This holds the relationship
 # end-points for owners and related_entity.
 class BaseEntityComponent(PolymorphicModel):
@@ -77,6 +86,8 @@ class BaseEntityComponent(PolymorphicModel):
     # (defined in entity_components) inherit from here, they can be linked
     # via a regular many2many
     related_entities = models.ManyToManyField('self', blank=True)
+
+    objects = BaseEntityComponentManager()
 
     @classmethod
     def create(cls, e, owner, is_creator, **kwargs):
@@ -158,7 +169,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     category = models.ForeignKey(Taganomy, blank=True)
     # media
-    media = generic.GenericRelation(MediaObjects)
+    #media = generic.GenericRelation(MediaEntities)
 
     # hashtags.
     tags = TaggableManager()
@@ -229,8 +240,8 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return c
 
-    def add_subentity(self, id, entity_type):
-        c = self.entity_cls_from_subentity_type(entity_type)
+    def add_subentity(self, id, type):
+        c = self.entity_cls_from_subentity_type(type)
         obj = c.objects.get(id=id)
 
         return self.related.connect(obj, alias=type)
@@ -699,3 +710,5 @@ def create_engagement_stats(sender, instance, created, **kwargs):
         e = EntityEngagementStats.objects.create()
         instance.engagements = e
         instance.save()
+
+

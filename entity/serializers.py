@@ -10,7 +10,7 @@ from media_mgr.signals import media_create
 from location_mgr.serializers import LocationSerializerField
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
-from entity_components.serializers import SpeakerSerializer, SponsorSerializer
+from entity_components.serializers import SpeakerSerializerL1, SponsorSerializerL1, MediaEntitiesSerializer
 from entity_components.models import Speaker, Sponsor
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
@@ -64,10 +64,39 @@ class RelatedSerializerFieldL2(RelatedSerializerField):
         return serializer.data
 
 
-class RelatedEntitiesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BaseEntityComponent
-        fields = '__all__'
+class RelatedEntitiesField(serializers.RelatedField):
+
+
+    def get_queryset(self):
+        pass
+
+    def to_internal_value(self, data):
+        id = data.get('id', None)
+        type = data.get('type', None)
+
+        # Perform the data validation.
+        if not id:
+            raise ValidationError({
+                'id': 'This field is required.'
+            })
+        if not type:
+            raise ValidationError({
+                'type': 'This field is required.'
+            })
+
+        return {
+            'id': int(id),
+            'type': type
+        }
+
+    def to_representation(self, value):
+        if isinstance(value.object, Speaker):
+            serializer = SpeakerSerializerL1(value.object, context=self.context)
+        elif isinstance(value.object, Sponsor):
+            serializer = SponsorSerializerL1(value.object, context=self.context)
+        elif isinstance(value.object, MediaEntities):
+            serializer = MediaObjectsSerializer(value.object, context=self.context)
+        return serializer.data
 
 
 class EntityEngagementSerializer(serializers.Serializer):
@@ -314,6 +343,7 @@ class EventSerializerL1(EntitySerializerL1):
 
 # these are used by App.
 class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
+    related_entities = RelatedEntitiesField(many=True, required=False)
     class Meta:
         model = Event
         my_fields = ('start', 'end',)
