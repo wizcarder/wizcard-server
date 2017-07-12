@@ -46,6 +46,7 @@ class Migration(migrations.Migration):
             name='WizcardBase',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('vcard', models.TextField(blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
                 ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=20)),
@@ -55,7 +56,6 @@ class Migration(migrations.Migration):
                 ('ext_fields', picklefield.fields.PickledObjectField(default={}, editable=False, blank=True)),
                 ('phone', base.char_trunc.TruncatingCharField(max_length=20, blank=True)),
                 ('sms_url', models.URLField(blank=True)),
-                ('vcard', models.TextField(blank=True)),
             ],
             options={
                 'abstract': False,
