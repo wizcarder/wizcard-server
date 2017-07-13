@@ -128,8 +128,6 @@ from rest_framework import generics
 from wizcardship.models import Wizcard
 from wizcardship.serializers import WizcardSerializer
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from media_mgr.serializers import MediaObjectsSerializer
-from media_mgr.models import MediaObjects
 from django.http import Http404
 import pdb
 

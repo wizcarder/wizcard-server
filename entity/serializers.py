@@ -1,22 +1,23 @@
 __author__ = 'aammundi'
+from random import sample
+
 from rest_framework import serializers
-from media_mgr.serializers import MediaObjectsSerializer
-from media_mgr.models import MediaObjects
 from rest_framework.validators import ValidationError
-from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, BaseEntityComponent
-from entity.models import EntityEngagementStats, EntityUserStats
 from django.contrib.auth.models import User
-from media_mgr.signals import media_create
-from location_mgr.serializers import LocationSerializerField
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
-from entity_components.serializers import SpeakerSerializerL1, SponsorSerializerL1, MediaEntitiesSerializer
+from django.utils import timezone
+
+from entity_components.serializers import MediaEntitiesSerializer
+from entity_components.models import MediaEntities
+from entity.models import BaseEntity, Event, Product, Business, VirtualTable, UserEntity, BaseEntityComponent
+from entity.models import EntityEngagementStats, EntityUserStats
+from entity_components.signals import media_create
+from location_mgr.serializers import LocationSerializerField
+from entity_components.serializers import SpeakerSerializerL1, SponsorSerializerL1
 from entity_components.models import Speaker, Sponsor
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
-from django.utils import timezone
-from random import sample
-import pdb
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -95,7 +96,7 @@ class RelatedEntitiesField(serializers.RelatedField):
         elif isinstance(value.object, Sponsor):
             serializer = SponsorSerializerL1(value.object, context=self.context)
         elif isinstance(value.object, MediaEntities):
-            serializer = MediaObjectsSerializer(value.object, context=self.context)
+            serializer = MediaEntitiesSerializer(value.object, context=self.context)
         return serializer.data
 
 
@@ -150,7 +151,7 @@ class EntitySerializerL1(EntitySerializerL0):
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
 
-        qs_thumbnail = qs.filter(wizcard__media__media_sub_type=MediaObjects.SUB_TYPE_THUMBNAIL)
+        qs_thumbnail = qs.filter(wizcard__media__media_sub_type=MediaEntities.SUB_TYPE_THUMBNAIL)
         thumb_count = qs_thumbnail.count()
         if thumb_count > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time
@@ -185,7 +186,7 @@ class EntitySerializerL1(EntitySerializerL0):
 
 # these shouldn't be directly used.
 class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
-    media = MediaObjectsSerializer(many=True, required=False)
+    media = MediaEntitiesSerializer(many=True, required=False)
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerFieldL2(many=True, required=False)
     related_entities = serializers.PrimaryKeyRelatedField(
@@ -253,6 +254,8 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
         return entity
 
+    # AR TODO there are some obvious bugs here for the related fields.
+    # when we update, if we wipe existing, then related is also lost
     def update(self, instance, validated_data):
         instance.name = validated_data.pop('name', instance.name)
         instance.address = validated_data.pop('address', instance.address)
@@ -336,8 +339,8 @@ class EventSerializerL1(EntitySerializerL1):
         fields = EntitySerializerL1.Meta.fields + my_fields
 
     def get_media(self, obj):
-        return MediaObjectsSerializer(
-            obj.media.filter(media_sub_type=MediaObjects.SUB_TYPE_BANNER),
+        return MediaEntitiesSerializer(
+            obj.media.filter(media_sub_type=MediaEntities.SUB_TYPE_BANNER),
             many=True
         ).data
 

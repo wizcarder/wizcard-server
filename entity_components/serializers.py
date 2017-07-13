@@ -2,8 +2,6 @@ __author__ = 'aammundi'
 
 from rest_framework import serializers
 from entity_components.models import Speaker, Sponsor, MediaEntities
-from media_mgr.serializers import MediaObjectsSerializer
-from media_mgr.models import MediaObjects
 from entity.models import BaseEntityComponent
 
 
@@ -36,8 +34,6 @@ class SpeakerSerializerL1(BaseEntityComponentSerializer):
         fields = '__all__'
         read_only_fields = ('vcard',)
 
-
-
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
         spkr = BaseEntityComponent.create(Speaker, owner=self.context.get('user'), is_creator=True, **validated_data)
@@ -68,7 +64,6 @@ class SponsorSerializerL1(BaseEntityComponentSerializer):
 
 
 class SponsorSerializerL2(SponsorSerializerL1):
-    #media = MediaObjectsSerializer(many=True)
 
     class Meta:
         model = Sponsor
@@ -79,7 +74,6 @@ class MediaEntitiesSerializer(BaseEntityComponentSerializer):
     class Meta:
         model = MediaEntities
         fields = '__all__'
-
 
     def create(self, validated_data):
         user = self.context.get('user')

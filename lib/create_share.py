@@ -4,7 +4,6 @@ import sys
 import StringIO, hashlib
 from celery import shared_task
 from django.utils import timezone
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.storage import default_storage as storage
 from django.template import Template,Context
 from django.utils.encoding import smart_str, smart_unicode

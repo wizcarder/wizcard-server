@@ -1,6 +1,6 @@
 __author__ = 'aammundi'
 from rest_framework import serializers
-from media_mgr.serializers import MediaObjectsSerializer
+from entity_components.serializers import MediaEntitiesSerializer
 from wizcardship.models import Wizcard, ContactContainer
 
 class ContactContainerSerializerL1(serializers.ModelSerializer):
@@ -10,7 +10,7 @@ class ContactContainerSerializerL1(serializers.ModelSerializer):
 
 
 class ContactContainerSerializerL2(ContactContainerSerializerL1):
-    media = MediaObjectsSerializer(many=True)
+    media = MediaEntitiesSerializer(many=True)
 
     class Meta:
         model = ContactContainer
@@ -21,7 +21,7 @@ class ContactContainerSerializerL2(ContactContainerSerializerL1):
 class WizcardSerializerL0(serializers.ModelSerializer):
     wizcard_id = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
     wizuser_id = serializers.PrimaryKeyRelatedField(source='user.pk', read_only=True)
-    media = MediaObjectsSerializer(many=True)
+    media = MediaEntitiesSerializer(many=True)
     status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:

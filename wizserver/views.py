@@ -13,15 +13,22 @@
 .. autofunction:: user_unblock
 """
 import json
-import pdb
 import logging
 import re
+import random
+
 from django.views.generic import View
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from lib.ocr import OCR
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
+from django.core.cache import cache
+from django.conf import settings
+import colander
+from converter import Converter
+
+from lib.ocr import OCR
 from wizcardship.models import  Wizcard, DeadCard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
 from entity.models import VirtualTable
@@ -36,28 +43,20 @@ from email_and_push_infra.signals import email_trigger
 from wizcard import err
 from entity.models import BaseEntity, Event
 from wizserver import fields
-from django.utils import timezone
-import random
-from django.core.cache import cache
-from django.conf import settings
 from lib.nexmomessage import NexmoMessage
-import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, genreco
 from wizserver.tasks import contacts_upload_task
 from stats.models import Stats
-from converter import Converter
-from entity.serializers import EventSerializerL1, EventSerializerL2,TableSerializer, \
-    EventSerializerL2, EntityEngagementSerializer
+from entity.serializers import EventSerializerL1, EntityEngagementSerializer
 from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
 from userprofile.serializers import UserSerializerL0
 from entity.models import EntityUserStats
 from entity.models import BaseEntityComponent
-from media_mgr.models import MediaObjects
-from media_mgr.signals import media_create
-
+from entity_components.models import MediaEntities
+from entity_components.signals import media_create
 
 now = timezone.now
 
@@ -666,9 +665,11 @@ class ParseMsgAndDispatch(object):
             password = UserProfile.objects.gen_password(user.pk, device_id)
             user.set_password(password)
             user.save()
-            user.profile.create_user_type(UserProfile.APP_USER)
+            app_user = user.profile.create_user_type(UserProfile.APP_USER)
+            app_user.device_id = device_id
         else:
-            if device_id != user.profile.app_user().device_id:
+            app_user = user.profile.app_user()
+            if device_id != app_user.device_id:
                 #device_id is part of password, reset password to reflect new device_id
                 password = UserProfile.objects.gen_password(user.pk, device_id)
                 user.set_password(password)
@@ -676,10 +677,9 @@ class ParseMsgAndDispatch(object):
 
             # mark for sync if profile is activated
             if user.profile.activated:
-                user.profile.app_user().do_sync = True
+                app_user.do_sync = True
 
-        user.profile.app_user().device_id = device_id
-        user.profile.app_user().save()
+        app_user.save()
 
         # all done. clear cache
         cache.delete_many([k_user, k_device_id, k_rand, k_retry])
@@ -1894,10 +1894,10 @@ class ParseMsgAndDispatch(object):
 
         c = ContactContainer.objects.create(wizcard=wizcard)
 
-        m = MediaObjects.objects.create(
+        m = MediaEntities.objects.create(
             media_element="",
-            media_type=MediaObjects.TYPE_IMAGE,
-            media_sub_type=MediaObjects.SUB_TYPE_F_BIZCARD,
+            media_type=MediaEntities.TYPE_IMAGE,
+            media_sub_type=MediaEntities.SUB_TYPE_F_BIZCARD,
             content_type=ContentType.objects.get_for_model(c),
             object_id=c.id
         )
@@ -1940,10 +1940,10 @@ class ParseMsgAndDispatch(object):
 
     def OcrReqDeadCard(self):
         d = DeadCard.objects.create(user=self.user)
-        m = MediaObjects.objects.create(
+        m = MediaEntities.objects.create(
             media_element="",
-            media_type=MediaObjects.TYPE_IMAGE,
-            media_sub_type=MediaObjects.SUB_TYPE_D_BIZCARD,
+            media_type=MediaEntities.TYPE_IMAGE,
+            media_sub_type=MediaEntities.SUB_TYPE_D_BIZCARD,
             content_type=ContentType.objects.get_for_model(d),
             object_id=d.id
         )

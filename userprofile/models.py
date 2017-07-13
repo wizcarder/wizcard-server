@@ -150,26 +150,27 @@ class UserProfile(models.Model):
         if self.user_type == self.APP_USER:
             if self.app_user():
                 raise AssertionError
-            AppUser.objects.create(
+            user_type = AppUser.objects.create(
                 profile=self,
                 settings=AppUserSettings.objects.create()
             )
         elif self.user_type == self.WEB_ORGANIZER_USER:
             if self.organizer_user():
                 raise AssertionError
-            WebOrganizerUser.objects.create(
+            user_type = WebOrganizerUser.objects.create(
                 profile=self,
                 settings=WebOrganizerUserSettings.objects.create()
             )
         elif self.user_type == self.WEB_EXHIBITOR_USER:
             if self.exhibitor_user():
                 raise AssertionError
-            WebExhibitorUser.objects.create(
+            user_type = WebExhibitorUser.objects.create(
                 profile=self,
                 settings=WebExhibitorUserSettings.objects.create()
             )
 
         self.save()
+        return user_type
 
 
 class BaseUser(PolymorphicModel):

@@ -325,7 +325,6 @@ INSTALLED_APPS = (
     'stats',
     'commands',
     'email_and_push_infra',
-    'media_mgr',
     'entity',
     'entity_components',
     'taggit',

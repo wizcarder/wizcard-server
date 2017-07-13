@@ -1,6 +1,5 @@
 from django.db import models
 from taggit.managers import TaggableManager
-
 from django.contrib.contenttypes import generic
 from genericm2m.models import RelatedObjectsDescriptor
 from location_mgr.models import LocationMgr
@@ -10,9 +9,7 @@ from location_mgr.signals import location
 from polymorphic.models import PolymorphicModel
 from rabbit_service import rconfig
 from django.db.models import Q
-#from media_mgr.models import MediaEntities
 from wizcardship.models import Wizcard
-
 from lib.preserialize.serialize import serialize
 from wizserver import verbs
 from base.cctx import ConnectionContext
@@ -21,6 +18,8 @@ from taganomy.models import Taganomy
 from notifications.signals import notify
 from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
+from django.contrib.contenttypes.models import ContentType
+
 import pdb
 
 
@@ -72,20 +71,47 @@ class BaseEntityComponentManager(models.Manager):
         return comps
 
 
-
 # everything inherits from this. This holds the relationship
 # end-points for owners and related_entity.
 class BaseEntityComponent(PolymorphicModel):
+    EVENT = 'EVT'
+    BUSINESS = 'BUS'
+    PRODUCT = 'PRD'
+    TABLE = 'TBL'
+    WIZCARD = 'WZC'
+    SPEAKER = 'SPK'
+    SPONSOR = 'SPN'
+
+    ENTITY_CHOICES = (
+        (EVENT, 'Event'),
+        (BUSINESS, 'Business'),
+        (PRODUCT, 'Product'),
+        (TABLE, 'Table'),
+        (WIZCARD, 'Wizcard'),
+        (SPEAKER, 'Speaker'),
+        (SPONSOR, 'Sponsor')
+    )
+
+    SUB_ENTITY_PRODUCT = 'e_product'
+    SUB_ENTITY_TABLE = 'e_table'
+    SUB_ENTITY_WIZCARD = 'e_wizcard'
+    SUB_ENTITY_SPEAKER = 'e_speaker'
+    SUB_ENTITY_SPONSOR = 'e_sponsor'
+
+    entity_type = models.CharField(
+        max_length=3,
+        choices=ENTITY_CHOICES,
+        default=EVENT
+    )
+
     owners = models.ManyToManyField(
         User,
         through='BaseEntityComponentsUser',
         related_name="owners_%(class)s_related"
     )
 
-    # Since all related_entities
-    # (defined in entity_components) inherit from here, they can be linked
-    # via a regular many2many
-    related_entities = models.ManyToManyField('self', blank=True)
+    # sub-entities. using django-generic-m2m package
+    related = RelatedObjectsDescriptor()
 
     objects = BaseEntityComponentManager()
 
@@ -127,77 +153,6 @@ class BaseEntityComponent(PolymorphicModel):
                 user=o
             ).delete()
 
-    def add_related(self, obj_list):
-        self.related_entities.add(*obj_list)
-
-
-class BaseEntityComponentsUser(models.Model):
-    base_entity_component = models.ForeignKey(BaseEntityComponent)
-    user = models.ForeignKey(User)
-    is_creator = models.BooleanField(default=True)
-
-
-class BaseEntity(BaseEntityComponent, Base414Mixin):
-
-    EVENT = 'EVT'
-    BUSINESS = 'BUS'
-    PRODUCT = 'PRD'
-    TABLE = 'TBL'
-
-    ENTITY_CHOICES = (
-        (EVENT, 'Event'),
-        (BUSINESS, 'Business'),
-        (PRODUCT, 'Product'),
-        (TABLE, 'Table'),
-    )
-
-    SUB_ENTITY_PRODUCT = 'e_product'
-    SUB_ENTITY_TABLE = 'e_table'
-
-    entity_type = models.CharField(
-        max_length=3,
-        choices=ENTITY_CHOICES,
-        default=EVENT
-    )
-
-    secure = models.BooleanField(default=False)
-    password = TruncatingCharField(max_length=40, blank=True)
-
-    timeout = models.IntegerField(default=30)
-    expired = models.BooleanField(default=False)
-    is_activated = models.BooleanField(default=False)
-
-    category = models.ForeignKey(Taganomy, blank=True)
-    # media
-    #media = generic.GenericRelation(MediaEntities)
-
-    # hashtags.
-    tags = TaggableManager()
-
-    users = models.ManyToManyField(
-        User,
-        through='UserEntity',
-        related_name="users_%(class)s_related"
-    )
-
-    num_users = models.IntegerField(default=1)
-
-    engagements = models.OneToOneField(
-        "EntityEngagementStats",
-        null=True,
-        related_name="engagements_%(class)s_related"
-    )
-
-    # sub-entities. using django-generic-m2m package
-    related = RelatedObjectsDescriptor()
-
-    location = generic.GenericRelation(LocationMgr)
-
-    objects = BaseEntityManager()
-
-    def __unicode__(self):
-        return self.entity_type + '.' + self.name
-
     @classmethod
     def entity_cls_ser_from_type(cls, entity_type=None, detail=False):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
@@ -229,28 +184,84 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return c, s
 
-    @classmethod
-    def entity_cls_from_subentity_type(cls, entity_type):
-        if entity_type == cls.SUB_ENTITY_PRODUCT:
-            c = Product
-        elif type == cls.SUB_ENTITY_TABLE:
-            c = VirtualTable
-        else:
-            c = BaseEntity
+    # @classmethod
+    # def entity_cls_from_subentity_type(cls, entity_type):
+    #     if entity_type == cls.SUB_ENTITY_PRODUCT:
+    #         c = Product
+    #     elif type == cls.SUB_ENTITY_TABLE:
+    #         c = VirtualTable
+    #     elif entity_type == cls.SUB_ENTITY_WIZCARD:
+    #         c = Wizcard
+    #     elif entity_type == cls.SUB_ENTITY_SPEAKER:
+    #         c = Speaker
+    #     elif entity_type == cls.SUB_ENTITY_SPONSOR:
+    #         c = Sponsor
+    #
+    #     return BaseEntityComponent
+    #
+    #    return c
 
-        return c
-
+    # AR: TO fix
     def add_subentity(self, id, type):
         c = self.entity_cls_from_subentity_type(type)
         obj = c.objects.get(id=id)
 
         return self.related.connect(obj, alias=type)
 
+    def add_subentity_obj(self, obj):
+        return self.related.connect(obj, alias=ContentType.objects.get_for_model(obj).name)
+
+    # AR: TO fix
     def remove_sub_entity_of_type(self, id, entity_type):
         self.related.filter(object_id=id, alias=entity_type).delete()
 
+    # AR: TO fix
     def get_sub_entities_of_type(self, entity_type):
         return self.related.filter(alias=entity_type).generic_objects()
+
+    def get_parent_entities(self ):
+        return self.related.related_to().generic_objects()
+
+
+class BaseEntityComponentsUser(models.Model):
+    base_entity_component = models.ForeignKey(BaseEntityComponent)
+    user = models.ForeignKey(User)
+    is_creator = models.BooleanField(default=True)
+
+
+class BaseEntity(BaseEntityComponent, Base414Mixin):
+    secure = models.BooleanField(default=False)
+    password = TruncatingCharField(max_length=40, blank=True, null=True)
+
+    timeout = models.IntegerField(default=30)
+    expired = models.BooleanField(default=False)
+    is_activated = models.BooleanField(default=False)
+
+    category = models.ForeignKey(Taganomy, blank=True)
+
+    # hashtags.
+    tags = TaggableManager()
+
+    users = models.ManyToManyField(
+        User,
+        through='UserEntity',
+        related_name="users_%(class)s_related"
+    )
+
+    num_users = models.IntegerField(default=1)
+
+    engagements = models.OneToOneField(
+        "EntityEngagementStats",
+        null=True,
+        related_name="engagements_%(class)s_related"
+    )
+
+    location = generic.GenericRelation(LocationMgr)
+
+    objects = BaseEntityManager()
+
+    def __unicode__(self):
+        return self.entity_type + '.' + self.name
 
     def get_creator(self):
         return BaseEntityComponentsUser.objects.filter(
@@ -283,9 +294,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def get_tags(self, tags):
         return self.tags.names()
-
-    def get_parent_entities(self ):
-        return self.related.related_to().generic_objects()
 
     # get user's friends within the entity
     def users_friends(self, user, limit=None):
