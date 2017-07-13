@@ -55,6 +55,7 @@ class Command(BaseCommand):
 
         mw = media_create.send(sender=admin_user, objs=admin_wizcard_config.wizcard_media)
         for e in mw[0][1]:
-            pdb.set_trace()
             e.add_subentity_obj(wizcard)
         mc = media_create.send(sender=admin_user, objs=admin_wizcard_config.cc_media)
+        for e in mc[0][1]:
+            e.add_subentity_obj(cc)
