@@ -38,6 +38,7 @@ from polymorphic.manager import PolymorphicManager
 from base.mixins import MediaMixin
 from lib.ocr import OCR
 from base.mixins import CompanyTitleMixin
+from genericm2m.models import RelatedObjectsDescriptor
 
 
 logger = logging.getLogger(__name__)
@@ -248,6 +249,8 @@ class Wizcard(WizcardBase):
                                             symmetrical=False,
                                             related_name='wizconnections_from')
 
+    media = RelatedObjectsDescriptor()
+
     objects = WizcardManager()
 
     class Meta:
@@ -449,6 +452,7 @@ class DeadCard(WizcardBase):
 class ContactContainer(CompanyTitleMixin):
     wizcard = models.ForeignKey(WizcardBase, related_name="contact_container")
     phone = TruncatingCharField(max_length=20, blank=True)
+    media = RelatedObjectsDescriptor()
 
     def __unicode__(self):
         return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % \

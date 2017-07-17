@@ -287,11 +287,11 @@ TEMPLATE_DIRS = (
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-#        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    # )
+     'DEFAULT_PERMISSION_CLASSES': (
+         'rest_framework.permissions.IsAuthenticated',
+     )
 }
 
 INSTALLED_APPS = (
@@ -325,6 +325,7 @@ INSTALLED_APPS = (
     'stats',
     'commands',
     'email_and_push_infra',
+    'base_entity',
     'entity',
     'entity_components',
     'taggit',

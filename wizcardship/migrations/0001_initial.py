@@ -22,8 +22,6 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('company', base.char_trunc.TruncatingCharField(max_length=40, blank=True)),
                 ('title', base.char_trunc.TruncatingCharField(max_length=200, blank=True)),
-                ('start', base.char_trunc.TruncatingCharField(max_length=30, blank=True)),
-                ('end', base.char_trunc.TruncatingCharField(max_length=30, blank=True)),
                 ('phone', base.char_trunc.TruncatingCharField(max_length=20, blank=True)),
             ],
             options={

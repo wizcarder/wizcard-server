@@ -10,18 +10,23 @@ class ContactContainerSerializerL1(serializers.ModelSerializer):
 
 
 class ContactContainerSerializerL2(ContactContainerSerializerL1):
-    media = MediaEntitiesSerializer(many=True)
+    media = serializers.SerializerMethodField()
 
     class Meta:
         model = ContactContainer
         my_fields = ('phone', 'media',)
         fields = ContactContainerSerializerL1.Meta.fields + my_fields
 
+    def get_media(self, obj):
+        mobjs = obj.related.all.generic_objects()
+        data = MediaEntitiesSerializer(mobjs, many=True)
+        return data
+
 
 class WizcardSerializerL0(serializers.ModelSerializer):
     wizcard_id = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
     wizuser_id = serializers.PrimaryKeyRelatedField(source='user.pk', read_only=True)
-    media = MediaEntitiesSerializer(many=True)
+    media = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -37,6 +42,11 @@ class WizcardSerializerL0(serializers.ModelSerializer):
             status = Wizcard.objects.get_connection_status(wizcard, obj)
 
         return status
+
+    def get_media(self, obj):
+        mobjs = obj.related.all.generic_objects()
+        data = MediaEntitiesSerializer(mobjs, many=True)
+        return data
 
 
 class WizcardSerializerL1(WizcardSerializerL0):
