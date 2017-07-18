@@ -6,7 +6,9 @@ from entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.core.files.uploadedfile import SimpleUploadedFile
 from entity_components.signals import media_create
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
 
+import pdb
 now = timezone.now
 
 
@@ -38,6 +40,9 @@ class MediaEntities(BaseEntityComponent, MediaMixin):
         self.media_element = self.upload_file.remote_url()
 
         return self.upload_file.local_path(), self.upload_file.remote_url()
+
+    def related_connect(self, owner_obj):
+        owner_obj.connect(self, alias=ContentType.objects.get_for_model(self).name)
 
 
 class SpeakerManager(BaseEntityComponentManager):

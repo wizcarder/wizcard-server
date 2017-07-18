@@ -38,6 +38,7 @@ from polymorphic.manager import PolymorphicManager
 from base.mixins import MediaMixin
 from lib.ocr import OCR
 from base.mixins import CompanyTitleMixin
+from genericm2m.models import RelatedObjectsDescriptor
 
 
 logger = logging.getLogger(__name__)
@@ -186,6 +187,7 @@ class WizcardManager(PolymorphicManager):
 
 class WizcardBase(PolymorphicModel, Base413Mixin):
     sms_url = URLField(blank=True)
+    media = RelatedObjectsDescriptor()
 
     def get_latest_company(self):
         qs = self.contact_container.all()
@@ -204,10 +206,9 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return self.sms_url
 
     def get_thumbnail_url(self):
-        if self.media.filter(media_sub_type=MediaMixin.SUB_TYPE_THUMBNAIL).exists():
-            return self.media.filter(
-                media_sub_type=MediaMixin.SUB_TYPE_THUMBNAIL
-            ).values_list('media_element', flat=True)
+        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_THUMBNAIL]
+        if l:
+            return l
 
         return ""
 
@@ -218,10 +219,10 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
     def get_name(self):
         return self.user.first_name + " " + self.user.last_name
 
-    @property
     def get_video_url(self):
-        if self.media.filter(media_type=MediaMixin.TYPE_VIDEO).exists():
-            return self.media.filter(media_type=MediaMixin.TYPE_VIDEO).values_list('media_element', 'media_iframe')
+        l = [(x.media_element, x.media_iframe) for x in self.media.all().generic_objects() if x.media_type==MediaMixin.TYPE_VIDEO]
+        if l:
+            return l
 
         return ""
 
@@ -450,6 +451,9 @@ class ContactContainer(CompanyTitleMixin):
     wizcard = models.ForeignKey(WizcardBase, related_name="contact_container")
     phone = TruncatingCharField(max_length=20, blank=True)
 
+    # for media
+    media = RelatedObjectsDescriptor()
+
     def __unicode__(self):
         return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % \
                {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)}
@@ -458,8 +462,9 @@ class ContactContainer(CompanyTitleMixin):
         ordering = ['id']
 
     def get_fbizcard_url(self):
-        if self.media.filter(media_sub_type=MediaMixin.SUB_TYPE_F_BIZCARD).exists():
-            return self.media.filter(media_sub_type=MediaMixin.SUB_TYPE_F_BIZCARD).values_list('media_element')
+        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_F_BIZCARD]
+        if l:
+            return l
 
         return ""
 
