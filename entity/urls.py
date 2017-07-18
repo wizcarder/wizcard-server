@@ -2,7 +2,8 @@ __author__ = 'aammundi'
 
 from django.conf.urls import url, include, patterns
 from entity.views import EventViewSet, ProductViewSet, BusinessViewSet, TableViewSet
-from entity_components.views import  SpeakerViewSet, SponsorViewSet, MediaEntitiesViewSet
+from entity.views import  SpeakerViewSet, SponsorViewSet, ExhibitorViewSet, AttendeeViewSet, OwnersViewSet
+from entity_components.views import  MediaEntitiesViewSet
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -13,6 +14,9 @@ router.register(r'tables', TableViewSet)
 router.register(r'speakers', SpeakerViewSet, base_name='speaker')
 router.register(r'sponsors', SponsorViewSet, base_name='sponsors')
 router.register(r'media', MediaEntitiesViewSet, base_name='media')
+router.register(r'exhibitors', ExhibitorViewSet, base_name='exhibitors')
+router.register(r'attendees', AttendeeViewSet, base_name='attendees')
+router.register(r'owners', OwnersViewSet, base_name='owners')
 
 
 

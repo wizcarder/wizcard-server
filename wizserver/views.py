@@ -41,7 +41,8 @@ from lib.create_share import create_vcard
 from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from wizcard import err
-from entity.models import BaseEntity, Event
+from base_entity.models import BaseEntity
+from entity.models import Event
 from wizserver import fields
 from lib.nexmomessage import NexmoMessage
 from wizcard import message_format as message_format
@@ -50,11 +51,12 @@ from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, genreco
 from wizserver.tasks import contacts_upload_task
 from stats.models import Stats
-from entity.serializers import EventSerializerL1, EntityEngagementSerializer
+from entity.serializers import EventSerializerL1
+from base_entity.serializers import  EntityEngagementSerializer
 from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
 from userprofile.serializers import UserSerializerL0
-from entity.models import EntityUserStats
-from entity.models import BaseEntityComponent
+from base_entity.models import EntityUserStats
+from base_entity.models import BaseEntityComponent
 from entity_components.models import MediaEntities
 from entity_components.signals import media_create
 

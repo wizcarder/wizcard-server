@@ -3,6 +3,7 @@ from email_and_push_infra.models import EmailAndPush
 from email_and_push_infra.models import EmailAndPushManager
 from html_gen_methods import HtmlGen
 from django.utils import timezone
+import pdb
 
 email_trigger = Signal(providing_args=['source', 'trigger', 'target', 'to_email'])
 
@@ -18,6 +19,7 @@ TRIGGER_WEEKLY_DIGEST = 11
 
 
 def callback(sender, **kwargs):
+    pdb.set_trace()
     trigger = kwargs.pop('trigger', None)
     sender = kwargs.pop('source')
     email = kwargs.pop('to_email', None)

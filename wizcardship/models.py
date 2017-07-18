@@ -249,6 +249,8 @@ class Wizcard(WizcardBase):
                                             symmetrical=False,
                                             related_name='wizconnections_from')
 
+    media = RelatedObjectsDescriptor()
+
     objects = WizcardManager()
 
     class Meta:
@@ -450,6 +452,7 @@ class DeadCard(WizcardBase):
 class ContactContainer(CompanyTitleMixin):
     wizcard = models.ForeignKey(WizcardBase, related_name="contact_container")
     phone = TruncatingCharField(max_length=20, blank=True)
+    media = RelatedObjectsDescriptor()
 
     # for media
     media = RelatedObjectsDescriptor()
