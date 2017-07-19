@@ -54,8 +54,8 @@ class Command(BaseCommand):
             self.stdout.write('created new contact container "%s"' % cc)
 
         mw = media_create.send(sender=admin_user, objs=admin_wizcard_config.wizcard_media)
-        for e in mw[0][1]:
-            e.add_subentity_obj(wizcard)
+        for m in mw[0][1]:
+            m.related_connect(wizcard.media)
         mc = media_create.send(sender=admin_user, objs=admin_wizcard_config.cc_media)
-        for e in mc[0][1]:
-            e.add_subentity_obj(cc)
+        for m in mc[0][1]:
+            m.related_connect(cc.media)

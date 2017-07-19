@@ -963,7 +963,9 @@ class ParseMsgAndDispatch(object):
         if 'media' in self.sender:
             # delete any existing media
             wizcard.media.all().delete()
-            media_create.send(sender=wizcard, objs=self.sender['media'])
+            mw = media_create.send(sender=self.user, objs=self.sender['media'])
+            for m in mw[0][1]:
+                m.related_connect(wizcard.media)
 
         if 'contact_container' in self.sender:
             contact_container_list = self.sender['contact_container']
@@ -979,7 +981,9 @@ class ParseMsgAndDispatch(object):
 
                 cc.media.all().delete()
                 if 'media' in contactItem:
-                    media_create.send(sender=cc, objs=contactItem['media'])
+                    mc = media_create.send(sender=self.user, objs=contactItem['media'])
+                    for m in mc[0][1]:
+                        m.related_connect(cc.media)
 
                 cc.save()
 
@@ -1896,16 +1900,21 @@ class ParseMsgAndDispatch(object):
 
         c = ContactContainer.objects.create(wizcard=wizcard)
 
-        m = MediaEntities.objects.create(
+        m = BaseEntityComponent.create(
+            MediaEntities,
+            owner=self.user,
+            is_creator=True,
             media_element="",
             media_type=MediaEntities.TYPE_IMAGE,
-            media_sub_type=MediaEntities.SUB_TYPE_F_BIZCARD,
-            content_type=ContentType.objects.get_for_model(c),
-            object_id=c.id
+            media_sub_type=MediaEntities.SUB_TYPE_F_BIZCARD
         )
+
         local_path, remote_path = m.upload_s3(bytes(self.sender['f_ocr_card_image']))
-        m.remote_path = remote_path
+        m.media_element = remote_path
         m.save()
+
+        # finally connect this via related to cc
+        m.related_connect(c.media)
 
         # Do ocr stuff
         ocr = OCR()
@@ -1942,16 +1951,19 @@ class ParseMsgAndDispatch(object):
 
     def OcrReqDeadCard(self):
         d = DeadCard.objects.create(user=self.user)
-        m = MediaEntities.objects.create(
+        m = BaseEntityComponent.create(
+            MediaEntities,
+            owner=self.user,
+            is_creator=True,
             media_element="",
             media_type=MediaEntities.TYPE_IMAGE,
-            media_sub_type=MediaEntities.SUB_TYPE_D_BIZCARD,
-            content_type=ContentType.objects.get_for_model(d),
-            object_id=d.id
+            media_sub_type=MediaEntities.SUB_TYPE_D_BIZCARD
         )
         local_path, remote_path = m.upload_s3(bytes(self.sender['f_ocr_card_image']))
         m.media_element = remote_path
         m.save()
+
+        m.related_connect(d.media)
 
         d.recognize(local_path)
         dc = WizcardSerializerL2(d).data
