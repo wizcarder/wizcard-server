@@ -7,7 +7,7 @@ from lib.preserialize.serialize import serialize
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntityComponentManager, BaseEntity, BaseEntityManager
-from base_entity.models import EntityEngagementStats
+from base_entity.models import EntityEngagementStats, UserEntity
 
 
 from notifications.signals import notify
@@ -15,13 +15,7 @@ from base.mixins import Base411Mixin, Base412Mixin, Base413Mixin, CompanyTitleMi
     VcardMixin
 
 from django.utils import timezone
-
-
 now = timezone.now
-
-
-import pdb
-
 
 # Create your models here.
 
