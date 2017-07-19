@@ -19,7 +19,6 @@ TRIGGER_WEEKLY_DIGEST = 11
 
 
 def callback(sender, **kwargs):
-    pdb.set_trace()
     trigger = kwargs.pop('trigger', None)
     sender = kwargs.pop('source')
     email = kwargs.pop('to_email', None)

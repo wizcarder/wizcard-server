@@ -12,6 +12,7 @@ from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet
+from base_entity.models import BaseEntityComponent
 import pdb
 
 
@@ -52,7 +53,6 @@ class EventViewSet(BaseEntityViewSet):
 
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):
-        pdb.set_trace()
         inst = self.get_object_or_404(pk)
 
         exhibitors = request.data

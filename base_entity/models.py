@@ -14,6 +14,7 @@ from base.char_trunc import TruncatingCharField
 from django.contrib.contenttypes.models import ContentType
 from base.mixins import  Base414Mixin
 from django.contrib.auth.models import User
+from notifications.signals import notify
 
 
 
@@ -166,7 +167,8 @@ class BaseEntityComponent(PolymorphicModel):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
             BusinessSerializer, TableSerializerL1, TableSerializerL2, EntitySerializerL2, \
             ProductSerializerL1, ProductSerializerL2, AttendeeSerializer, CoOwnersSerializer, \
-            SpeakerSerializerL2, SponsorSerializerL1, SponsorSerializerL2
+            SpeakerSerializerL1, SpeakerSerializerL2, SponsorSerializerL1, SponsorSerializerL2, \
+            ExhibitorSerializer
         from entity.models import Event, Product, Business, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
         from entity_components.models import MediaEntities
@@ -188,7 +190,7 @@ class BaseEntityComponent(PolymorphicModel):
             s = BusinessSerializer
         elif entity_type == cls.TABLE:
             c = VirtualTable
-            s = TableSerializer1
+            s = TableSerializerL1
             if detail:
                 s = TableSerializerL2
         elif entity_type == cls.ATTENDEE:
@@ -224,9 +226,10 @@ class BaseEntityComponent(PolymorphicModel):
 
     @classmethod
     def entity_cls_from_subentity_type(cls, entity_type):
-        from entity.models import Event, Product, Business, VirtualTable, \
+        from entity.models import Event, Product, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
         from entity_components.models import MediaEntities
+        from wizcardship.models import Wizcard
         if entity_type == cls.SUB_ENTITY_PRODUCT:
             c = Product
         elif type == cls.SUB_ENTITY_TABLE:
@@ -240,7 +243,12 @@ class BaseEntityComponent(PolymorphicModel):
         elif entity_type == cls.SUB_ENTITY_MEDIA:
             c = MediaEntities
         elif entity_type == cls.SUB_ENTITY_EXHIBITOR:
-            c = Exhibitor
+            c = ExhibitorInvitee
+        elif entity_type == cls.SUB_ENTITY_ATTENDEE:
+            c = AttendeeInvitee
+        elif entity_type == cls.SUB_ENTITY_COOWNER:
+            c = CoOwners
+
         return c
 
     # AR: TO fix
@@ -248,10 +256,24 @@ class BaseEntityComponent(PolymorphicModel):
         c = self.entity_cls_from_subentity_type(type)
         try:
             obj = c.objects.get(id=id)
+            return self.related.connect(obj, alias=type)
         except:
-            return -1
+            return None
 
-        return self.related.connect(obj, alias=type)
+
+
+    def add_subentities(self, ids, type):
+        c = self.entity_cls_from_subentity_type(type)
+        int_ids = map(lambda x: int(x), ids)
+        try:
+            objs = c.objects.filter(id__in=int_ids)
+            for obj in objs:
+                self.related.connect(obj, alias=type)
+        except:
+            pass
+
+
+
 
     def add_subentity_obj(self, obj):
         return self.related.connect(obj, alias=ContentType.objects.get_for_model(obj).name)
@@ -270,6 +292,7 @@ class BaseEntityComponent(PolymorphicModel):
         for med in media:
             if med.media_sub_type == sub_type and med.media_type == type:
                 return med
+        return None
 
     def get_parent_entities(self ):
         return self.related.related_to().generic_objects()
@@ -344,11 +367,12 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         for tag in taglist:
             self.tags.add(tag)
 
-    def get_tags(self, tags):
+    def get_tags(self):
         return self.tags.names()
 
     # get user's friends within the entity
     def users_friends(self, user, limit=None):
+        from wizcardship.models import Wizcard
         entity_wizcards = [w.wizcard for w in self.users.all().order_by('?') if hasattr(w, 'wizcard')]
         entity_friends = [x for x in entity_wizcards if Wizcard.objects.is_wizcard_following(x, user.wizcard)]
 
@@ -381,7 +405,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return users
 
     def notify_all_users(self, sender, verb, entity, exclude=True):
-        #send notif to all members, just like join
+        # send notif to all members, just like join
         qs = self.users.exclude(id=sender.pk) if exclude else self.users.all()
         for u in qs:
             notify.send(

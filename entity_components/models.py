@@ -3,7 +3,7 @@ from django.db import models
 
 #from entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.core.files.uploadedfile import SimpleUploadedFile
-from entity.signals import media_create
+from entity_components.signals import media_create
 from django.utils import timezone
 from base.mixins import MediaMixin
 from entity.models import BaseEntityComponent, BaseEntityComponentManager
@@ -45,7 +45,6 @@ class MediaEntities(BaseEntityComponent, MediaMixin):
 
 def media_create_handler(**kwargs):
     # this will be User object
-    pdb.set_trace()
     sender = kwargs.pop('sender')
     objs = kwargs.pop('objs', [])
 
