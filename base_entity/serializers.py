@@ -3,28 +3,29 @@ from rest_framework.validators import ValidationError
 from django.contrib.auth.models import User
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
-from entity.signals import media_create
+from entity_components.signals import media_create
 from location_mgr.serializers import LocationSerializerField
-from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats
+from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats, UserEntity
 from entity_components.serializers import MediaEntitiesSerializer
 from entity_components.models import MediaEntities
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
-#from entity.serializers import RelatedSerializerField, RelatedSerializerFieldL2
-import pdb
+from random import sample
 
-class RelatedSerializerFieldL0(serializers.RelatedField):
+
+class RelatedSerializerField(serializers.RelatedField):
 
     def get_queryset(self):
         pass
 
     def to_internal_value(self, data):
-        id = data.get('id', None)
+
+        ids = data.get('ids', None)
         type = data.get('type', None)
 
         # Perform the data validation.
-        if not id:
+        if not ids:
             raise ValidationError({
-                'id': 'This field is required.'
+                'ids': 'This field is required.'
             })
         if not type:
             raise ValidationError({
@@ -32,63 +33,12 @@ class RelatedSerializerFieldL0(serializers.RelatedField):
             })
 
         return {
-            'id': int(id),
+            'ids': ids,
             'type': type
         }
 
     def to_representation(self, value):
-        serializer = EntitySerializerL0(value.object, context=self.context)
-        return serializer.data
-
-class RelatedSerializerFieldL1(RelatedSerializerFieldL0):
-
-
-    def to_representation(self, value):
-        from entity.serializers import EventSerializerL2, EventSerializerL1, \
-            BusinessSerializer, TableSerializerL1, TableSerializerL2, EntitySerializerL2, \
-            ProductSerializerL1, ProductSerializerL2, AttendeeSerializer, MediaEntitiesSerializer, CoOwnersSerializer, \
-            SpeakerSerializerL1, SpeakerSerializerL2, SponsorSerializerL1, SponsorSerializerL2
-        from entity.models import Event, Product, Business, VirtualTable, \
-            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
-
-
-        if isinstance(value.object, Product):
-            serializer = ProductSerializer(value.object, context=self.context)
-        elif isinstance(value.object, Business):
-            serializer = BusinessSerializer(value.object, context=self.context)
-        elif isinstance(value.object, VirtualTable):
-            serializer = TableSerializer(value.object, context=self.context)
-        elif isinstance(value.object, Speaker):
-            serializer = SpeakerSerializerL1(value.object, context=self.context)
-        elif isinstance(value.object, MediaEntities):
-            serializer = MediaEntitiesSerializer(value.object, context=self.context)
-        elif isinstance(value.object, Sponsor):
-            serializer = SponsorSerializerL1(value.object, context=self.context)
-        return serializer.data
-
-# this is used in the app path since related needs 'joined'
-class RelatedSerializerFieldL2(RelatedSerializerFieldL1):
-    def to_representation(self, value):
-        from entity.serializers import EventSerializerL2, EventSerializerL1, \
-            BusinessSerializer, TableSerializerL1, TableSerializerL2, EntitySerializerL2, \
-            ProductSerializerL1, ProductSerializerL2, AttendeeSerializer, MediaEntitiesSerializer, CoOwnersSerializer, \
-            SpeakerSerializerL1, SpeakerSerializerL2, SponsorSerializerL1, SponsorSerializerL2
-        from entity.models import Event, Product, Business, VirtualTable, \
-            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
-        if isinstance(value.object, Product):
-            serializer = ProductSerializerL2(value.object, context=self.context)
-        elif isinstance(value.object, Business):
-            serializer = BusinessSerializer(value.object, context=self.context)
-        elif isinstance(value.object, VirtualTable):
-            serializer = TableSerializerL2(value.object, context=self.context)
-        elif isinstance(value.object, Speaker):
-            serializer = SpeakerSerializerL2(value.object, context=self.context)
-        elif isinstance(value.object, MediaEntities):
-            serializer = MediaEntitiesSerializer(value.object, context=self.context)
-        elif isinstance(value.object, Sponsor):
-            serializer = SponsorSerializerL2(value.object, context=self.context)
-        return serializer.data
-
+        pass
 
 
 class EntityEngagementSerializer(serializers.Serializer):
@@ -118,8 +68,6 @@ class EntityEngagementSerializerL1(EntityEngagementSerializer):
         fields = EntityEngagementSerializer.Meta.fields + my_fields
 
     entity = EntitySerializerL0(read_only=True, source='engagements_baseentity_related')
-
-
 
 # these shouldn't be directly used.
 class EntitySerializerL1(EntitySerializerL0):
@@ -186,15 +134,15 @@ class EntitySerializerL1(EntitySerializerL0):
 
 # these shouldn't be directly used.
 class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
-    media = MediaEntitiesSerializer(many=True, required=False)
+    media = serializers.SerializerMethodField()
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
-    related = RelatedSerializerFieldL2(many=True, required=False)
+    related = RelatedSerializerField(write_only=True, required=False)
     ext_fields = serializers.DictField(required=False)
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
         my_fields = ('website', 'category', 'ext_fields', 'phone',
-                     'email', 'description', 'owners', 'related', 'users')
+                     'email', 'description', 'owners', 'users')
         fields = EntitySerializerL1.Meta.fields + my_fields
         read_only_fields = ('entity_type',)
 
@@ -213,6 +161,11 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     def get_friends(self, obj):
         return ""
 
+    def get_media(self, obj):
+        media = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+        s = MediaEntitiesSerializer(media, many=True)
+        return s.data
+
     def prepare(self, validated_data):
         self.tags = validated_data.pop('tags', None)
         self.owners = validated_data.pop('owners', None)
@@ -230,7 +183,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
         if self.sub_entities:
             for s in self.sub_entities:
-                entity.add_subentity(**s)
+                entity.add_subentities(**s)
 
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])
@@ -271,7 +224,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         if sub_entities:
             instance.related.all().delete()
             for s in sub_entities:
-                instance.add_subentity(**s)
+                instance.add_subentities(**s)
 
         location = validated_data.pop('location', None)
         if location:
@@ -285,7 +238,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
 class BaseEntityComponentSerializer(serializers.ModelSerializer):
     ext_fields = serializers.DictField(required=False)
-    related = RelatedSerializerFieldL0(many=True, required=False)
+    related = RelatedSerializerField(many=True, required=False, write_only=True)
 
     class Meta:
         model = BaseEntityComponent
@@ -297,7 +250,7 @@ class BaseEntityComponentSerializer(serializers.ModelSerializer):
     def post_create(self, obj):
         if self.sub_entities:
             for s in self.sub_entities:
-                obj.add_subentity(**s)
+                obj.add_subentities(**s)
 
         return obj
 
@@ -307,9 +260,11 @@ class BaseEntityComponentSerializer(serializers.ModelSerializer):
         if sub_entities:
             instance.related.all().delete()
             for s in sub_entities:
-                instance.add_subentity(**s)
+                instance.add_subentities(**s)
 
         instance.save()
 
         return instance
+
+
 
