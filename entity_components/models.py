@@ -20,17 +20,21 @@ class MediaEntitiesQuerySet(models.QuerySet):
         # TODO: use this to delete s3 assets for app part
         super(MediaEntitiesQuerySet, self).delete()
 
-
-class MediaEntitiesManager(BaseEntityComponentManager):
     def users_media(self, user):
         umedia = user.owners_baseentitycomponent_related.all().instance_of(MediaEntities)
         return umedia
+
+
+#class MediaEntitiesManager(BaseEntityComponentManager):
+    # Overriding AA changes to make delete work need to look into the delete from s3 part
+
 
 class MediaEntities(BaseEntityComponent, MediaMixin):
     def __repr__(self):
         return str(self.id) + "." + str(self.media_type) + "." + str(self.media_sub_type)
 
     objects = MediaEntitiesQuerySet.as_manager()
+
 
     def upload_s3(self, b64image):
         raw_image = b64image.decode('base64')

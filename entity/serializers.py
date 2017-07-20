@@ -19,7 +19,6 @@ from entity_components.models import MediaEntities
 from django.utils import timezone
 import pdb
 
-# these shouldn't be directly used.
 
 # this is used by portal REST API
 class EventSerializer(EntitySerializerL2):
@@ -34,7 +33,6 @@ class EventSerializer(EntitySerializerL2):
 
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
-    related = RelatedSerializerField(many=True,required=False, write_only=True)
     products = serializers.SerializerMethodField()
     speakers = serializers.SerializerMethodField()
     sponsors = serializers.SerializerMethodField()
@@ -60,18 +58,6 @@ class EventSerializer(EntitySerializerL2):
         instance = super(EventSerializer, self).update(instance, validated_data)
 
         return instance
-
-    def get_related_out(self, obj):
-        valid_sub_entities = [BaseEntity.SUB_ENTITY_SPONSOR, BaseEntity.SUB_ENTITY_SPEAKER, BaseEntity.SUB_ENTITY_MEDIA]
-        related_dict = dict()
-        for se in valid_sub_entities:
-
-            sobjs = obj.get_sub_entities_of_type(se)
-            if sobjs:
-                sids = map(lambda x: x.id, sobjs)
-                related_dict[se] = sids
-
-        return related_dict
 
     def get_products(self, obj):
         prods = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_PRODUCT)
@@ -147,6 +133,7 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
 
 # this is used by App
 class ProductSerializerL1(EntitySerializerL1):
+
     class Meta:
         model = Product
         my_fields = ('name', 'address', 'tags', 'joined', 'like', 'description',)
@@ -163,11 +150,6 @@ class ProductSerializerL1(EntitySerializerL1):
             count=count,
         )
         return out
-
-    def get_media(self, obj):
-        med = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_EXHIBITOR)
-        ids = map(lambda x: x.id, med)
-        return ids
 
 
 # this is used by App
@@ -362,10 +344,6 @@ class SponsorSerializerL2(SponsorSerializerL1):
 
 
 class ExhibitorSerializer(BaseEntityComponentSerializer):
-    #def __init__(self, *args, **kwargs):
-     #   pdb.set_trace()
-      #  many = kwargs.pop('many', True)
-       # super(ExhibitorSerializer, self).__init__(many=many, *args, **kwargs)
 
     class Meta:
         model = ExhibitorInvitee

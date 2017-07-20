@@ -10,6 +10,7 @@ from entity_components.serializers import MediaEntitiesSerializer
 from entity_components.models import MediaEntities
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from random import sample
+import pdb
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -99,7 +100,8 @@ class EntitySerializerL1(EntitySerializerL0):
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
 
-        qs_thumbnail = qs.filter(wizcard__media__media_sub_type=MediaEntities.SUB_TYPE_THUMBNAIL)
+        #qs_thumbnail = qs.filter(wizcard__media__media_sub_type=MediaEntities.SUB_TYPE_THUMBNAIL)
+        qs_thumbnail = qs
         thumb_count = qs_thumbnail.count()
         if thumb_count > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time
@@ -136,12 +138,12 @@ class EntitySerializerL1(EntitySerializerL0):
 class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     media = serializers.SerializerMethodField()
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
-    related = RelatedSerializerField(write_only=True, required=False)
+    related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
-        my_fields = ('website', 'category', 'ext_fields', 'phone',
+        my_fields = ('website', 'category', 'ext_fields', 'phone', 'related',
                      'email', 'description', 'owners', 'users')
         fields = EntitySerializerL1.Meta.fields + my_fields
         read_only_fields = ('entity_type',)
@@ -173,9 +175,11 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         self.location = validated_data.pop('location', None)
         self.users = validated_data.pop('users', None)
         self.creator = validated_data.pop('creator')
+        pdb.set_trace()
 
     def post_create(self, entity):
         # add creator. Should always be there
+        pdb.set_trace()
         BaseEntityComponent.add_creator(entity, self.creator)
 
         if self.owners:

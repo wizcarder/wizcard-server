@@ -202,7 +202,7 @@ class BaseEntityComponent(PolymorphicModel):
         elif entity_type == cls.MEDIA:
             c = MediaEntities
             s = MediaEntitiesSerializer
-        elif entity_type ==cls.COOWNERS:
+        elif entity_type ==cls.COOWNER:
             c = CoOwners
             s = CoOwnersSerializer
         elif entity_type == cls.SPEAKER:

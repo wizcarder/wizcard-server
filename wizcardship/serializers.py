@@ -2,6 +2,7 @@ __author__ = 'aammundi'
 from rest_framework import serializers
 from entity_components.serializers import MediaEntitiesSerializer
 from wizcardship.models import Wizcard, ContactContainer
+import pdb
 
 class ContactContainerSerializerL1(serializers.ModelSerializer):
     class Meta:
@@ -18,8 +19,8 @@ class ContactContainerSerializerL2(ContactContainerSerializerL1):
         fields = ContactContainerSerializerL1.Meta.fields + my_fields
 
     def get_media(self, obj):
-        mobjs = obj.related.all.generic_objects()
-        data = MediaEntitiesSerializer(mobjs, many=True)
+        mobjs = obj.media.all().generic_objects()
+        data = MediaEntitiesSerializer(mobjs, many=True).data
         return data
 
 
@@ -44,8 +45,8 @@ class WizcardSerializerL0(serializers.ModelSerializer):
         return status
 
     def get_media(self, obj):
-        mobjs = obj.related.all.generic_objects()
-        data = MediaEntitiesSerializer(mobjs, many=True)
+        mobjs = obj.media.all().generic_objects()
+        data = MediaEntitiesSerializer(mobjs, many=True).data
         return data
 
 
