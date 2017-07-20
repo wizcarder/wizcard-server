@@ -175,11 +175,9 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         self.location = validated_data.pop('location', None)
         self.users = validated_data.pop('users', None)
         self.creator = validated_data.pop('creator')
-        pdb.set_trace()
 
     def post_create(self, entity):
         # add creator. Should always be there
-        pdb.set_trace()
         BaseEntityComponent.add_creator(entity, self.creator)
 
         if self.owners:

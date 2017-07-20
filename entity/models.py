@@ -36,9 +36,6 @@ class EventManager(BaseEntityManager):
             include_expired=include_expired
         )
 
-
-
-
 class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
@@ -64,6 +61,7 @@ class ProductManager(BaseEntityManager):
             entity_type=entity_type,
             include_expired=include_expired
         )
+
 
 class Product(BaseEntity):
 
@@ -199,21 +197,6 @@ class VirtualTable(BaseEntity):
             cctx = ConnectionContext(asset_obj=self)
             Wizcard.objects.exchange(wizcard1, wizcard2, cctx)
 
-        return self
-
-    def join_table_and_exchange(self, user, password, skip_password=False):
-        #check password
-        if (not self.secure) or \
-            (self.password == password) or skip_password:
-            m, created = UserEntity.user_join(user=user, base_entity_obj=self)
-            if not created:
-                #somehow already a member
-		        return self
-            self.inc_numsitting()
-
-            self.table_exchange(user)
-        else:
-            return None
         return self
 
     def delete(self, *args, **kwargs):
