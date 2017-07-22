@@ -1963,7 +1963,7 @@ class ParseMsgAndDispatch(object):
 
     def OcrDeadCardEdit(self):
         try:
-            deadcard = DeadCard.objects.get(id=self.sender['dead_card_id'])
+            deadcard = DeadCard.objects.get(id=self.sender['wizcard_id'])
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
