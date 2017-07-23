@@ -36,7 +36,6 @@ class MediaEntities(BaseEntityComponent, MediaMixin):
         upfile = SimpleUploadedFile("%s-%s.jpg" % (self.media_sub_type, now().strftime("%Y-%m-%d %H:%M")),
                                     raw_image, "image/jpeg")
         self.upload_file.save(upfile.name, upfile)
-        self.media_element = self.upload_file.remote_url()
 
         return self.upload_file.local_path(), self.upload_file.remote_url()
 
