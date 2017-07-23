@@ -22,7 +22,6 @@ import pdb
 
 
 class EventViewSet(BaseEntityViewSet):
-    #queryset = Event.objects.all()
     serializer_class = EventSerializer
 
     def get_serializer_class(self):
@@ -82,8 +81,6 @@ class BusinessViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = Business.objects.users_entities(user)
         return queryset
-        #queryset = Business.objects.all()
-        #super(BusinessViewSet, self).get_queryset()
 
 
 class TableViewSet(BaseEntityViewSet):
@@ -94,8 +91,6 @@ class TableViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = VirtualTable.objects.users_entities(user)
         return queryset
-        #queryset = VirtualTable.objects.all()
-        #super(TableViewSet, self).get_queryset()
 
 class SpeakerViewSet(viewsets.ModelViewSet):
     queryset = Speaker.objects.all()
@@ -106,7 +101,7 @@ class SpeakerViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_context(self):
-        return {'user' : self.request.user}
+        return {'user': self.request.user}
 
     def get_serializer_class(self):
         return SpeakerSerializerL1
@@ -121,7 +116,7 @@ class SponsorViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_context(self):
-        return {'user' : self.request.user}
+        return {'user': self.request.user}
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -135,14 +130,14 @@ class ExhibitorViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset=BaseEntityComponent.objects.users_components(user, ExhibitorInvitee)
+        queryset = BaseEntityComponent.objects.users_components(user, ExhibitorInvitee)
         return queryset
 
     def get_serializer_context(self):
-        return {'user' : self.request.user}
+        return {'user': self.request.user}
 
 class AttendeeViewSet(viewsets.ModelViewSet):
-    queryset =AttendeeInvitee.objects.all()
+    queryset = AttendeeInvitee.objects.all()
     serializer_class = AttendeeSerializer
 
     def get_queryset(self):

@@ -286,6 +286,8 @@ class BaseEntityComponent(PolymorphicModel):
     def get_sub_entities_of_type(self, entity_type):
         return self.related.filter(alias=entity_type).generic_objects()
 
+    def get_sub_entities_id_of_type(self, entity_type):
+        return self.related.filter(alias=entity_type).values('object_id', flat=True)
 
     def get_media_filter(self, type, sub_type):
         media = self.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)

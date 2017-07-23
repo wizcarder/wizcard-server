@@ -25,16 +25,11 @@ class MediaEntitiesQuerySet(models.QuerySet):
         return umedia
 
 
-#class MediaEntitiesManager(BaseEntityComponentManager):
-    # Overriding AA changes to make delete work need to look into the delete from s3 part
-
-
 class MediaEntities(BaseEntityComponent, MediaMixin):
     def __repr__(self):
         return str(self.id) + "." + str(self.media_type) + "." + str(self.media_sub_type)
 
     objects = MediaEntitiesQuerySet.as_manager()
-
 
     def upload_s3(self, b64image):
         raw_image = b64image.decode('base64')
@@ -47,7 +42,6 @@ class MediaEntities(BaseEntityComponent, MediaMixin):
 
     def related_connect(self, owner_obj):
         owner_obj.connect(self, alias=ContentType.objects.get_for_model(self).name)
-
 
 
 def media_create_handler(**kwargs):

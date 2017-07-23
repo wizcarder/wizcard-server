@@ -1,16 +1,11 @@
 __author__ = 'aammundi'
-
+from random import sample
 
 from rest_framework import serializers
-
-
 from entity.models import Event, Product, Business, VirtualTable
 from base_entity.models import UserEntity, BaseEntityComponent, BaseEntity
 from base_entity.serializers import EntitySerializerL0, EntitySerializerL1, EntitySerializerL2, \
     BaseEntityComponentSerializer, RelatedSerializerField
-#from entity.models import EntityEngagementStats, EntityUserStats
-
-#from entity.serializers import SpeakerSerializerL1, SponsorSerializerL1
 from entity.models import Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
@@ -38,10 +33,9 @@ class EventSerializer(EntitySerializerL2):
     sponsors = serializers.SerializerMethodField()
     exhibitors = serializers.SerializerMethodField()
 
-
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers', 'sponsors','exhibitors', 'products')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'exhibitors', 'products')
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
@@ -60,29 +54,20 @@ class EventSerializer(EntitySerializerL2):
         return instance
 
     def get_products(self, obj):
-        prods = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_PRODUCT)
-        ids = map(lambda x:x.id, prods)
-        return ids
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_PRODUCT)
 
     def get_speakers(self, obj):
-        spkrs = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
-        ids = map(lambda x: x.id, spkrs)
-        return ids
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
 
     def get_sponsors(self, obj):
-        spns = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPONSOR)
-        ids = map(lambda x: x.id, spns)
-        return ids
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPONSOR)
 
     def get_exhibitors(self, obj):
-        exb = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_EXHIBITOR)
-        ids = map(lambda x: x.id, exb)
-        return ids
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_EXHIBITOR)
 
     def get_media(self, obj):
-        med = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)
-        ids = map(lambda x: x.id, med)
-        return ids
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+
 
 # these are used by App.
 class EventSerializerL1(EntitySerializerL1):
@@ -184,8 +169,6 @@ class ProductSerializer(EntitySerializerL2):
         return product
 
 
-
-
 # this is used by portal REST API
 class BusinessSerializer(EntitySerializerL2):
     class Meta:
@@ -263,20 +246,16 @@ class TableSerializer(EntitySerializerL2):
 class SpeakerSerializerL1(BaseEntityComponentSerializer):
     media = serializers.SerializerMethodField(required=False, read_only=True)
 
-
     class Meta:
         model = Speaker
         fields = '__all__'
         read_only_fields = ('vcard',)
-
-
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
         spkr = BaseEntityComponent.create(Speaker, owner=self.context.get('user'), is_creator=True, entity_type='SPK', **validated_data)
         self.post_create(spkr)
         return spkr
-
 
     def update(self, instance, validated_data):
         instance.vcard = validated_data.pop('vcard', instance.vcard)
@@ -287,16 +266,12 @@ class SpeakerSerializerL1(BaseEntityComponentSerializer):
         instance.website = validated_data.pop('website', instance.website)
         instance.description = validated_data.pop('description', instance.description)
 
-
         instance = super(SpeakerSerializerL1, self).update(instance, validated_data)
-
 
         return instance
 
     def get_media(self, obj):
-        media = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)
-        ids = map(lambda x: x.id, media)
-        return ids
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
 
 class SpeakerSerializerL2(SpeakerSerializerL1):
 
@@ -313,10 +288,10 @@ class SpeakerSerializerL2(SpeakerSerializerL1):
 class SponsorSerializerL1(BaseEntityComponentSerializer):
 
     media = serializers.SerializerMethodField(required=False, read_only=True)
+
     class Meta:
         model = Sponsor
         fields = "__all__"
-
 
     def create(self, validated_data):
         self.prepare(validated_data)
@@ -325,9 +300,7 @@ class SponsorSerializerL1(BaseEntityComponentSerializer):
         return spn
 
     def get_media(self, obj):
-        media = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)
-        ids = map(lambda x: x.id, media)
-        return ids
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
 
 
 class SponsorSerializerL2(SponsorSerializerL1):
@@ -365,16 +338,3 @@ class AttendeeSerializer(ExhibitorSerializer):
 
 class CoOwnersSerializer(BaseEntityComponentSerializer):
     pass
-
-
-
-
-
-
-
-
-
-
-
-
-
