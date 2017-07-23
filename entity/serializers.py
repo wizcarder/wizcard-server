@@ -1,8 +1,8 @@
 __author__ = 'aammundi'
-from random import sample
+
 
 from rest_framework import serializers
-from rest_framework.validators import ValidationError
+
 
 from entity.models import Event, Product, Business, VirtualTable
 from base_entity.models import UserEntity, BaseEntityComponent, BaseEntity
