@@ -3,11 +3,11 @@ from rest_framework.validators import ValidationError
 from django.contrib.auth.models import User
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
-from entity_components.signals import media_create
+from media_components.signals import media_create
 from location_mgr.serializers import LocationSerializerField
 from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats, UserEntity
-from entity_components.serializers import MediaEntitiesSerializer
-from entity_components.models import MediaEntities
+from media_components.serializers import MediaEntitiesSerializer
+from media_components.models import MediaEntities
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from random import sample
 import pdb

@@ -6,10 +6,11 @@ from django.utils import timezone
 from wizcardship.models import Wizcard, ContactContainer
 from userprofile.models import UserProfile
 from wizcard import admin_wizcard_config
-from entity_components.signals import media_create
-import pdb
+from media_components.signals import media_create
+
 
 now = timezone.now
+
 
 class Command(BaseCommand):
     help = 'create wizcard from config dict'

@@ -6,6 +6,7 @@ import libtest
 from libtest import send_request, handle_response
 import httplib
 import pdb
+from random import sample
 
 SERVER_URL = 'localhost'
 SERVER_PORT = 8000
@@ -33,7 +34,7 @@ class User(object):
         self.username = id_generator()
         self.target = id_generator()
         self.response_mode = 'sms'
-        self.msg_hdr = dict(header=dict(deviceID='DUMMY', hash='DUMMY', version=messages.APP_VERSION))
+        self.msg_hdr = dict(header=dict(device_id='DUMMY', hash='DUMMY', version=messages.APP_VERSION))
         self.global_index = len(global_user_list)
         self.connection = Connect()
         self.conn = self.connection.conn
@@ -56,12 +57,12 @@ class User(object):
 
         self.reqmsg['sender']['username'] = self.username
         self.reqmsg['sender']['target'] = self.target
-        self.reqmsg['sender']['responseMode'] = 'sms'
+        self.reqmsg['sender']['response_mode'] = 'sms'
 
         send_request(self.conn, self.reqmsg)
 
         # Parse and dump the JSON response from server
-        objs = handle_response(self.conn, self.reqmsg['header']['msgType'])
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
         self.response_key = objs['data'].get('challenge_key', 1234)
 
         # send challenge response
@@ -69,11 +70,11 @@ class User(object):
 
         self.reqmsg['header'].update(self.msg_hdr['header'])
         self.reqmsg['sender']['username'] = self.username
-        self.reqmsg['sender']['responseKey'] = self.response_key
+        self.reqmsg['sender']['response_key'] = self.response_key
 
         send_request(self.conn, self.reqmsg)
-        objs = handle_response(self.conn, self.reqmsg['header']['msgType'])
-        self.uid = objs['data']['userID']
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
+        self.uid = objs['data']['user_id']
 
         self.key = str(self.global_index)
         global_user_list.append({self.key:dict(uid=self.uid)})
@@ -82,13 +83,14 @@ class User(object):
         self.reqmsg = messages.login.copy()
         self.reqmsg['header'].update(self.msg_hdr['header'])
 
-        self.reqmsg['sender']['userID'] = self.uid
+        self.reqmsg['sender']['user_id'] = self.uid
         self.reqmsg['sender']['username'] = self.username
+        self.reqmsg['sender']['password'] = self.username
 
         send_request(self.conn, self.reqmsg)
-        objs = handle_response(self.conn, self.reqmsg['header']['msgType'])
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
 
-        self.wuid = objs['data']['wizUserID']
+        self.wuid = objs['data']['wizuser_id']
 
         global_user_list[self.global_index][self.key].update(wuid=self.wuid)
 
@@ -96,11 +98,11 @@ class User(object):
         self.reqmsg = messages.register1.copy()
         self.reqmsg['header'].update(self.msg_hdr['header'])
 
-        self.reqmsg['sender']['userID'] = self.uid
-        self.reqmsg['sender']['wizUserID'] = self.wuid
+        self.reqmsg['sender']['user_id'] = self.uid
+        self.reqmsg['sender']['wizuser_id'] = self.wuid
 
         send_request(self.conn, self.reqmsg)
-        objs = handle_response(self.conn, self.reqmsg['header']['msgType'])
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
 
     def add_wizcard(self):
         self.reqmsg = messages.edit_card.copy()
@@ -110,9 +112,9 @@ class User(object):
         self.reqmsg['sender']['wizuser_id'] = self.wuid
 
         send_request(self.conn, self.reqmsg)
-        objs = handle_response(self.conn, self.reqmsg['header']['msgType'])
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
 
-        self.wc_id = objs['data']['wizCardID']
+        self.wc_id = objs['data']['wizcard_id']
         global_user_list[self.global_index][self.key].update(wc_id=self.wc_id)
 
     def get_cards(self):
@@ -132,6 +134,28 @@ class User(object):
         self.add_wizcard()
         self.get_cards()
 
+    def send_asset_to_xyz(self, users):
+        valid_users = []
+	pdb.set_trace()
+        for u in users:
+            if self.uid != u.uid:
+                valid_users.append(u.wuid)
+
+
+        self.reqmsg = messages.send_asset_to_xyz.copy()
+        self.reqmsg['header'].update(self.msg_hdr['header'])
+
+        self.reqmsg['sender']['user_id'] = self.uid
+        self.reqmsg['sender']['wizuser_id'] = self.wuid
+        self.reqmsg['sender']['asset_id'] = self.wc_id
+        self.reqmsg['sender']['asset_type'] = "wizcard"
+        self.reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
+        self.reqmsg['receiver']['receiver_ids'] = valid_users
+        send_request(self.conn, self.reqmsg)
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
+
+
+
 from threading import Timer
 import time
 import sys
@@ -144,6 +168,13 @@ def main():
         u = User()
         u.onboard_user()
         list_u.append(u)
+
+    for u in list_u:
+        uids = sample(xrange(1, num_users), int(0.4 * num_users))
+	users = map(lambda x:list_u[x], uids)
+	
+        u.send_asset_to_xyz(users)
+
 
     while True:
         for u in list_u:

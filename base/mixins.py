@@ -1,16 +1,12 @@
-__author__ = 'aammundi'
-
 from django.db import models
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
 from picklefield.fields import PickledObjectField
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from polymorphic.models import PolymorphicModel
-from polymorphic.manager import PolymorphicManager
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
-from django.core.files.uploadedfile import SimpleUploadedFile
+
 
 def get_s3_bucket(instance, filename):
     if instance.media_sub_type == MediaMixin.SUB_TYPE_F_BIZCARD:
@@ -19,6 +15,7 @@ def get_s3_bucket(instance, filename):
         return "thumbnails"
     else:
         return "bizcards"
+
 
 class VcardMixin(models.Model):
     class Meta:
@@ -41,10 +38,8 @@ class Base411Mixin(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-
     name = TruncatingCharField(max_length=20, default="")
     email = EmailField(blank=True)
-
 
 
 class Base412Mixin(Base411Mixin):

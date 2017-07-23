@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 from celery import shared_task
 from django.utils import timezone
-from entity_components.models import MediaEntities
+from media_components.models import MediaEntities
 from django.template import Template,Context
 from lib.ses import Email
 import vobject

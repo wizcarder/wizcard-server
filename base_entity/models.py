@@ -171,8 +171,8 @@ class BaseEntityComponent(PolymorphicModel):
             ExhibitorSerializer
         from entity.models import Event, Product, Business, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
-        from entity_components.models import MediaEntities
-        from entity_components.serializers import MediaEntitiesSerializer
+        from media_components.models import MediaEntities
+        from media_components.serializers import MediaEntitiesSerializer
 
 
         if entity_type == cls.EVENT:
@@ -228,7 +228,7 @@ class BaseEntityComponent(PolymorphicModel):
     def entity_cls_from_subentity_type(cls, entity_type):
         from entity.models import Event, Product, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
-        from entity_components.models import MediaEntities
+        from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
         if entity_type == cls.SUB_ENTITY_PRODUCT:
             c = Product

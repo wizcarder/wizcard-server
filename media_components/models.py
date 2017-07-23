@@ -3,7 +3,7 @@ from django.db import models
 
 #from entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.core.files.uploadedfile import SimpleUploadedFile
-from entity_components.signals import media_create
+from media_components.signals import media_create
 from django.utils import timezone
 from base.mixins import MediaMixin
 from entity.models import BaseEntityComponent, BaseEntityComponentManager
@@ -48,11 +48,11 @@ def media_create_handler(**kwargs):
     sender = kwargs.pop('sender')
     objs = kwargs.pop('objs', [])
 
-    e = [BaseEntityComponent.create(MediaEntities, owner=sender, is_creator=True, **mobjs) for mobjs in objs]
+    e = [BaseEntityComponent.create(MediaEntities, owner=sender, entity_type='MED', is_creator=True, **mobjs) for mobjs in objs]
 
     # note, related is not handled by this.
     return e
 
 
-media_create.connect(media_create_handler, dispatch_uid='entity_components.models.media_entities')
+media_create.connect(media_create_handler, dispatch_uid='media_components.models.media_entities')
 

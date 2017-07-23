@@ -57,8 +57,8 @@ from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2, De
 from userprofile.serializers import UserSerializerL0
 from base_entity.models import EntityUserStats
 from base_entity.models import BaseEntityComponent
-from entity_components.models import MediaEntities
-from entity_components.signals import media_create
+from media_components.models import MediaEntities
+from media_components.signals import media_create
 
 import pdb
 
@@ -140,10 +140,9 @@ class ParseMsgAndDispatch(object):
     def validate_sender(self, sender):
         self.sender = sender
         if not self.msg_is_initial():
+            wizuser_id = self.sender.pop('wizuser_id')
+            user_id = self.sender.pop('user_id')
             try:
-                wizuser_id = self.sender.pop('wizuser_id')
-                user_id = self.sender.pop('user_id')
-
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
                 self.app_userprofile = self.user.profile.app_user()
@@ -216,7 +215,7 @@ class ParseMsgAndDispatch(object):
         if not self.validate_header():
             self.security_exception()
             self.response.ignore()
-            logger.warning('user failed header security check on msg {%s}', \
+            logger.warning('user failed header security check on msg {%s}',
                            self.msg_type)
             return False, self.response
 
@@ -227,7 +226,7 @@ class ParseMsgAndDispatch(object):
         if self.msg.has_key('sender') and not self.validate_sender(self.msg['sender']):
             self.security_exception()
             self.response.ignore()
-            logger.warning('user failed sender security check on msg {%s}', \
+            logger.warning('user failed sender security check on msg {%s}',
                            self.msg_type)
             return False, self.response
         if 'receiver' in self.msg:
@@ -633,9 +632,9 @@ class ParseMsgAndDispatch(object):
         d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
         logger.info( "cached value for phone_check_xx {%s}", d)
 
-        if not (d.has_key(k_user) and \
-                        d.has_key(k_rand) and \
-                        d.has_key(k_retry) and \
+        if not (d.has_key(k_user) and
+                        d.has_key(k_rand) and
+                        d.has_key(k_retry) and
                         d.has_key(k_device_id)):
             cache.delete_many([k_user, k_rand, k_retry, k_device_id])
             self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
@@ -1249,7 +1248,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         w = wizcard.get_deleted()
-        self.response.add_data("wizcards", WizcardSerializerL2(out, many=True, **self.user_context).data)
+        self.response.add_data("wizcards", WizcardSerializerL2(w, many=True, **self.user_context).data)
 
         return self.response
 
@@ -2144,7 +2143,7 @@ class ParseMsgAndDispatch(object):
 
         out = s(entity, **self.user_context).data
 
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
         return self.response
 
     def EntityDestroy(self):
@@ -2175,7 +2174,7 @@ class ParseMsgAndDispatch(object):
         entity.join(self.user)
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
@@ -2193,7 +2192,7 @@ class ParseMsgAndDispatch(object):
         entity.leave(self.user)
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
@@ -2222,7 +2221,7 @@ class ParseMsgAndDispatch(object):
         entity.save()
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
@@ -2327,7 +2326,7 @@ class ParseMsgAndDispatch(object):
 
         if count:
             out = s(result, many=True, **self.user_context).data
-            self.response.add_data("data", out)
+            self.response.add_data("result", out)
 
         self.response.add_data("count", count)
 
@@ -2343,7 +2342,7 @@ class ParseMsgAndDispatch(object):
         count = entities.count()
 
         if count:
-            self.response.add_data("data", out)
+            self.response.add_data("result", out)
         self.response.add_data("count", count)
         return self.response
 
@@ -2364,7 +2363,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
