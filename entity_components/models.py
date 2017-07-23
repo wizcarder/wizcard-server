@@ -55,7 +55,7 @@ def media_create_handler(**kwargs):
     sender = kwargs.pop('sender')
     objs = kwargs.pop('objs', [])
 
-    e = [BaseEntityComponent.create(MediaEntities, owner=sender, is_creator=True, **mobjs) for mobjs in objs]
+    e = [BaseEntityComponent.create(MediaEntities, owner=sender, entity_type='MED', is_creator=True, **mobjs) for mobjs in objs]
 
     # note, related is not handled by this.
     return e
