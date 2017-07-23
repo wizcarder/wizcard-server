@@ -3,7 +3,7 @@ __author__ = 'aammundi'
 from django.conf.urls import url, include, patterns
 from entity.views import EventViewSet, ProductViewSet, BusinessViewSet, TableViewSet
 from entity.views import  SpeakerViewSet, SponsorViewSet, ExhibitorViewSet, AttendeeViewSet, OwnersViewSet
-from entity_components.views import  MediaEntitiesViewSet
+from media_components.views import  MediaEntitiesViewSet
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()

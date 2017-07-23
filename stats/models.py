@@ -136,7 +136,6 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
-
     def inc_wizcard_decline(self, user_stats, global_stats):
         user_stats.wizcard_decline += 1
         global_stats.wizcard_decline += 1

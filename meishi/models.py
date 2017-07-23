@@ -20,6 +20,7 @@ MEISHI_TIME_THRESHOLD = 10
 #TODO: Need to see whether lat, lng granularity can be increased
 MEISHI_DIST_THRESHOLD = 200.00
 
+
 class MeishiMgr(models.Manager):
 
     # Time interval between 2 gestures in seconds
@@ -46,6 +47,7 @@ class MeishiMgr(models.Manager):
 #when paired up...will have to figure out additional ways of inactivating
 #maybe this is one use-case for sending meishi_end
 #in general, instead if binary state, it could be multiple states [active, paired, complete, didnt_find_pair]..etc
+
 
 class Meishi(models.Model):
     wizcard = models.ForeignKey(Wizcard, related_name="meishis")
@@ -78,7 +80,7 @@ class Meishi(models.Model):
 
     def satisfies_space_constraint(self, candidate):
         return True
-        meishi_distance = self.distance_from(candidate.lat,candidate.lng)
+        meishi_distance = self.distance_from(candidate.lat, candidate.lng)
         if meishi_distance <= MEISHI_DIST_THRESHOLD:
             return True
         return False
@@ -99,7 +101,7 @@ class Meishi(models.Model):
 
         candidate = heapq.nsmallest(1, h)[0][1]
         if self.satisfies_space_constraint(candidate):
-            Meishi.objects.pair_up(self,candidate)
+            Meishi.objects.pair_up(self, candidate)
             #AA: Where is this cached wizcard being used ?
             #you might want to use this for when the candidate comes
             #in...in which case the key should probably be candidate wizcard_id

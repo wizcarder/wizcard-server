@@ -1,6 +1,6 @@
 __author__ = 'aammundi'
 from rest_framework import serializers
-from entity_components.serializers import MediaEntitiesSerializer
+from media_components.serializers import MediaEntitiesSerializer
 from wizcardship.models import Wizcard, ContactContainer
 import pdb
 

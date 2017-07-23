@@ -9,8 +9,8 @@ from base_entity.serializers import EntitySerializerL0, EntitySerializerL1, Enti
 from entity.models import Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
-from entity_components.serializers import MediaEntitiesSerializer
-from entity_components.models import MediaEntities
+from media_components.serializers import MediaEntitiesSerializer
+from media_components.models import MediaEntities
 from django.utils import timezone
 import pdb
 

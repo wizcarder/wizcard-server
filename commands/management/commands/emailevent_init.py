@@ -1,9 +1,8 @@
 __author__ = 'aammundi'
 
-import pdb
 from email_and_push_infra.models import EmailEvent
-
 from django.core.management.base import BaseCommand, CommandError
+
 
 class Command(BaseCommand):
     help = 'Initialize Email Events (ONLY ONCE)'

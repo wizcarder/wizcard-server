@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 TEST_AWSHOSTS = ['ec2-35-154-93-114.ap-south-1.compute.amazonaws.com']
 DEV_AWSHOSTS = ['localhost']
-#PROD_AWSHOSTS = ['ec2-35-154-15-196.ap-south-1.compute.amazonaws.com',
-#		'ec2-35-154-4-181.ap-south-1.compute.amazonaws.com']
 PROD_AWSHOSTS = ['ec2-35-154-61-96.ap-south-1.compute.amazonaws.com',
-		'ec2-35-154-91-109.ap-south-1.compute.amazonaws.com']
+                 'ec2-35-154-91-109.ap-south-1.compute.amazonaws.com']
 STG_AWSHOSTS = ['ec2-35-154-81-185.ap-south-1.compute.amazonaws.com']
 LOCALHOST = ['localhost']
 

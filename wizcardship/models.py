@@ -454,9 +454,6 @@ class ContactContainer(CompanyTitleMixin):
     phone = TruncatingCharField(max_length=20, blank=True)
     media = RelatedObjectsDescriptor()
 
-    # for media
-    media = RelatedObjectsDescriptor()
-
     def __unicode__(self):
         return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % \
                {'user': unicode(self.wizcard.user), 'title': unicode(self.title), 'company': unicode(self.company)}
@@ -595,7 +592,7 @@ class WizcardFlickManager(models.Manager):
         if name:
             split = name.split()
             for n in split:
-                name_result = ((Q(wizcard__first_name__istartswith=n) | \
+                name_result = ((Q(wizcard__first_name__istartswith=n) |
                                 Q(wizcard__last_name__istartswith=n)) &
                                Q(expired=False))
                 qlist.append(name_result)

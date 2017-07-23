@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from entity_components.models import MediaEntities
-from entity_components.serializers import  MediaEntitiesSerializer
+from media_components.models import MediaEntities
+from media_components.serializers import  MediaEntitiesSerializer
 import pdb
 
 # Create your views here.

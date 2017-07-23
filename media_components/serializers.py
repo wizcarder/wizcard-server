@@ -2,7 +2,7 @@ __author__ = 'aammundi'
 
 from rest_framework import serializers
 from entity.models import BaseEntityComponent
-from entity_components.models import MediaEntities
+from media_components.models import MediaEntities
 
 #from entity.serializers import RelatedSerializerField, RelatedSerializerFieldL2
 import pdb
