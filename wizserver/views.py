@@ -1246,7 +1246,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         w = wizcard.get_deleted()
-        self.response.add_data("wizcards", WizcardSerializerL2(out, many=True, **self.user_context).data)
+        self.response.add_data("wizcards", WizcardSerializerL2(w, many=True, **self.user_context).data)
 
         return self.response
 
@@ -1972,7 +1972,7 @@ class ParseMsgAndDispatch(object):
 
     def OcrDeadCardEdit(self):
         try:
-            deadcard = DeadCard.objects.get(id=self.sender['dead_card_id'])
+            deadcard = DeadCard.objects.get(id=self.sender['wizcard_id'])
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
@@ -2145,7 +2145,7 @@ class ParseMsgAndDispatch(object):
 
         out = s(entity, **self.user_context).data
 
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
         return self.response
 
     def EntityDestroy(self):
@@ -2176,7 +2176,7 @@ class ParseMsgAndDispatch(object):
         entity.join(self.user)
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
@@ -2194,7 +2194,7 @@ class ParseMsgAndDispatch(object):
         entity.leave(self.user)
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
@@ -2223,7 +2223,7 @@ class ParseMsgAndDispatch(object):
         entity.save()
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
@@ -2328,7 +2328,7 @@ class ParseMsgAndDispatch(object):
 
         if count:
             out = s(result, many=True, **self.user_context).data
-            self.response.add_data("data", out)
+            self.response.add_data("result", out)
 
         self.response.add_data("count", count)
 
@@ -2344,7 +2344,7 @@ class ParseMsgAndDispatch(object):
         count = entities.count()
 
         if count:
-            self.response.add_data("data", out)
+            self.response.add_data("result", out)
         self.response.add_data("count", count)
         return self.response
 
@@ -2365,7 +2365,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
