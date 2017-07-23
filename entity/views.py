@@ -4,7 +4,7 @@ from base_entity.models import BaseEntity
 from entity.models import Event, Product, Business, VirtualTable,\
     Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners
 from entity.serializers import  EventSerializer, EventSerializerL2 ,ProductSerializer, \
-    BusinessSerializer, TableSerializer, ExhibitorSerializer, AttendeeSerializer, SpeakerSerializerL1, SpeakerSerializerL2, \
+    BusinessSerializer, TableSerializer, ExhibitorSerializer, AttendeeSerializer, SpeakerSerializerL1, \
     SponsorSerializerL1, SponsorSerializerL2, CoOwnersSerializer
 from django.http import Http404
 from rest_framework.decorators import detail_route
@@ -17,9 +17,6 @@ import pdb
 
 
 # Create your views here.
-
-
-
 
 class EventViewSet(BaseEntityViewSet):
     serializer_class = EventSerializer
