@@ -1306,7 +1306,7 @@ if TEST_TABLE:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    tid_1 = objs['data']['data']['id']
+    tid_1 = objs['data']['result']['id']
 
     reqmsg = messages.entity_create
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1317,7 +1317,7 @@ if TEST_TABLE:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    tid_2 = objs['data']['data']['id']
+    tid_2 = objs['data']['result']['id']
 
     #join created entity
     print "Joining Table"
@@ -1369,7 +1369,7 @@ if TEST_TABLE:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    tid_3 = objs['data']['data']['id']
+    tid_3 = objs['data']['result']['id']
 
     # entity query
     print "sending entity query"
