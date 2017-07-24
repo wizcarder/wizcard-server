@@ -51,10 +51,10 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-prod',
+                'NAME': 'wizcard-test',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-stage.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
             }
         },
         'caches': {
@@ -287,11 +287,11 @@ TEMPLATE_DIRS = (
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-#        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    # )
+     'DEFAULT_PERMISSION_CLASSES': (
+         'rest_framework.permissions.IsAuthenticated',
+     )
 }
 
 INSTALLED_APPS = (
@@ -325,9 +325,9 @@ INSTALLED_APPS = (
     'stats',
     'commands',
     'email_and_push_infra',
-    'media_mgr',
+    'base_entity',
     'entity',
-    'entity_components',
+    'media_components',
     'taggit',
     'genericm2m',
     'django_filters',

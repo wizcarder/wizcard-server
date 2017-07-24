@@ -13,15 +13,22 @@
 .. autofunction:: user_unblock
 """
 import json
-import pdb
 import logging
 import re
+import random
+
 from django.views.generic import View
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from lib.ocr import OCR
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
+from django.core.cache import cache
+from django.conf import settings
+import colander
+from converter import Converter
+
+from lib.ocr import OCR
 from wizcardship.models import  Wizcard, DeadCard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
 from entity.models import VirtualTable
@@ -34,29 +41,26 @@ from lib.create_share import create_vcard
 from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from wizcard import err
-from entity.models import BaseEntity, Event
+from base_entity.models import BaseEntity
+from entity.models import Event
 from wizserver import fields
-from django.utils import timezone
-import random
-from django.core.cache import cache
-from django.conf import settings
 from lib.nexmomessage import NexmoMessage
-import colander
 from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, genreco
 from wizserver.tasks import contacts_upload_task
 from stats.models import Stats
-from converter import Converter
-from entity.serializers import EventSerializerL1, EventSerializerL2,TableSerializer, \
-    EventSerializerL2, EntityEngagementSerializer
-from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
+from entity.serializers import EventSerializerL1
+from base_entity.serializers import  EntityEngagementSerializer
+from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2, DeadCardSerializerL2
 from userprofile.serializers import UserSerializerL0
-from entity.models import EntityUserStats
-from media_mgr.models import MediaObjects
-from media_mgr.signals import media_create
+from base_entity.models import EntityUserStats
+from base_entity.models import BaseEntityComponent
+from media_components.models import MediaEntities
+from media_components.signals import media_create
 
+import pdb
 
 now = timezone.now
 
@@ -136,13 +140,12 @@ class ParseMsgAndDispatch(object):
     def validate_sender(self, sender):
         self.sender = sender
         if not self.msg_is_initial():
+            wizuser_id = self.sender.pop('wizuser_id')
+            user_id = self.sender.pop('user_id')
             try:
-                wizuser_id = self.sender.pop('wizuser_id')
-                user_id = self.sender.pop('user_id')
-
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
-                self.app_userprofile = self.user.profile.app_user
+                self.app_userprofile = self.user.profile.app_user()
                 self.app_settings = self.app_userprofile.settings
                 self.user_stats, created = Stats.objects.get_or_create(user=self.user)
 
@@ -212,7 +215,7 @@ class ParseMsgAndDispatch(object):
         if not self.validate_header():
             self.security_exception()
             self.response.ignore()
-            logger.warning('user failed header security check on msg {%s}', \
+            logger.warning('user failed header security check on msg {%s}',
                            self.msg_type)
             return False, self.response
 
@@ -223,7 +226,7 @@ class ParseMsgAndDispatch(object):
         if self.msg.has_key('sender') and not self.validate_sender(self.msg['sender']):
             self.security_exception()
             self.response.ignore()
-            logger.warning('user failed sender security check on msg {%s}', \
+            logger.warning('user failed sender security check on msg {%s}',
                            self.msg_type)
             return False, self.response
         if 'receiver' in self.msg:
@@ -618,8 +621,7 @@ class ParseMsgAndDispatch(object):
         challenge_response = self.sender['response_key']
 
         if not (username and challenge_response):
-            self.response.error_response( \
-                err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
+            self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
         k_user = (settings.PHONE_CHECK_USER_KEY % username)
@@ -630,9 +632,9 @@ class ParseMsgAndDispatch(object):
         d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
         logger.info( "cached value for phone_check_xx {%s}", d)
 
-        if not (d.has_key(k_user) and \
-                        d.has_key(k_rand) and \
-                        d.has_key(k_retry) and \
+        if not (d.has_key(k_user) and
+                        d.has_key(k_rand) and
+                        d.has_key(k_retry) and
                         d.has_key(k_device_id)):
             cache.delete_many([k_user, k_rand, k_retry, k_device_id])
             self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
@@ -657,7 +659,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.PHONE_CHECK_CHALLENGE_RESPONSE_DENIED)
             return self.response
 
-        #response is valid. create user here and send back user_id
+        # response is valid. create user here and send back user_id
         user, created = User.objects.get_or_create(username=username)
 
         if created:
@@ -666,9 +668,11 @@ class ParseMsgAndDispatch(object):
             password = UserProfile.objects.gen_password(user.pk, device_id)
             user.set_password(password)
             user.save()
-            user.profile.create_user_type(UserProfile.APP_USER)
+            app_user = user.profile.create_user_type(UserProfile.APP_USER)
+            app_user.device_id = device_id
         else:
-            if device_id != user.profile.app_user.device_id:
+            app_user = user.profile.app_user()
+            if device_id != app_user.device_id:
                 #device_id is part of password, reset password to reflect new device_id
                 password = UserProfile.objects.gen_password(user.pk, device_id)
                 user.set_password(password)
@@ -676,16 +680,11 @@ class ParseMsgAndDispatch(object):
 
             # mark for sync if profile is activated
             if user.profile.activated:
-                user.profile.app_user.do_sync = True
+                app_user.do_sync = True
 
-            # this happens only during testing. shouldn't happen otherwise
-            if not hasattr(user.profile, 'app_user'):
-                user.profile.add_user_type(UserProfile.APP_USER)
+        app_user.save()
 
-        user.profile.app_user.device_id = device_id
-        user.profile.app_user.save()
-
-        #all done. #clear cache
+        # all done. clear cache
         cache.delete_many([k_user, k_device_id, k_rand, k_retry])
 
         user.profile.save()
@@ -965,7 +964,9 @@ class ParseMsgAndDispatch(object):
         if 'media' in self.sender:
             # delete any existing media
             wizcard.media.all().delete()
-            media_create.send(sender=wizcard, objs=self.sender['media'])
+            mw = media_create.send(sender=self.user, objs=self.sender['media'])
+            for m in mw[0][1]:
+                m.related_connect(wizcard.media)
 
         if 'contact_container' in self.sender:
             contact_container_list = self.sender['contact_container']
@@ -981,7 +982,9 @@ class ParseMsgAndDispatch(object):
 
                 cc.media.all().delete()
                 if 'media' in contactItem:
-                    media_create.send(sender=cc, objs=contactItem['media'])
+                    mc = media_create.send(sender=self.user, objs=contactItem['media'])
+                    for m in mc[0][1]:
+                        m.related_connect(cc.media)
 
                 cc.save()
 
@@ -1245,7 +1248,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         w = wizcard.get_deleted()
-        self.response.add_data("wizcards", WizcardSerializerL2(out, many=True, **self.user_context).data)
+        self.response.add_data("wizcards", WizcardSerializerL2(w, many=True, **self.user_context).data)
 
         return self.response
 
@@ -1495,7 +1498,7 @@ class ParseMsgAndDispatch(object):
                 return self.response
             #creator can fwd private table, anyone (member) can fwd public
             #table
-            if not((table.secure and table.creator == self.user) or
+            if not((table.secure and table.get_creator() == self.user) or
                        ((not table.secure) and table.is_joined(self.user))):
                 self.response.error_response(err.NOT_AUTHORIZED)
                 return self.response
@@ -1898,16 +1901,21 @@ class ParseMsgAndDispatch(object):
 
         c = ContactContainer.objects.create(wizcard=wizcard)
 
-        m = MediaObjects.objects.create(
+        m = BaseEntityComponent.create(
+            MediaEntities,
+            owner=self.user,
+            is_creator=True,
             media_element="",
-            media_type=MediaObjects.TYPE_IMAGE,
-            media_sub_type=MediaObjects.SUB_TYPE_F_BIZCARD,
-            content_type=ContentType.objects.get_for_model(c),
-            object_id=c.id
+            media_type=MediaEntities.TYPE_IMAGE,
+            media_sub_type=MediaEntities.SUB_TYPE_F_BIZCARD
         )
+
         local_path, remote_path = m.upload_s3(bytes(self.sender['f_ocr_card_image']))
-        m.remote_path = remote_path
+        m.media_element = remote_path
         m.save()
+
+        # finally connect this via related to cc
+        m.related_connect(c.media)
 
         # Do ocr stuff
         ocr = OCR()
@@ -1917,22 +1925,18 @@ class ParseMsgAndDispatch(object):
             logging.error(result['str'])
             return self.response
 
-        if result.has_key('first_name') and result.get('first_name'):
-            self.user.first_name = wizcard.first_name
-        if result.has_key('last_name') and result.get('last_name'):
-            self.user.last_name = wizcard.last_name
-        if result.has_key('email') and result.get('email'):
-            wizcard.email = result.get('email')
+        self.user.first_name = result.get('first_name', "")
+        self.user.last_name = result.get('last_name', "")
+
+        wizcard.name = self.user.first_name + "" + self.user.last_name
+        wizcard.email = result.get('email', "")
 
         wizcard.save()
         self.user.save()
 
-        if result.has_key('title') and result.get('title'):
-            c.title = result.get('title')
-        if result.has_key('company') and result.get('company'):
-            c.company = result.get('company')
-        if result.has_key('phone') and result.get('phone'):
-            c.phone = result.get('phone')
+        c.title = result.get('title', "")
+        c.company = result.get('company', "")
+        c.phone = result.get('phone', "")
 
         c.save()
 
@@ -1944,19 +1948,22 @@ class ParseMsgAndDispatch(object):
 
     def OcrReqDeadCard(self):
         d = DeadCard.objects.create(user=self.user)
-        m = MediaObjects.objects.create(
+        m = BaseEntityComponent.create(
+            MediaEntities,
+            owner=self.user,
+            is_creator=True,
             media_element="",
-            media_type=MediaObjects.TYPE_IMAGE,
-            media_sub_type=MediaObjects.SUB_TYPE_D_BIZCARD,
-            content_type=ContentType.objects.get_for_model(d),
-            object_id=d.id
+            media_type=MediaEntities.TYPE_IMAGE,
+            media_sub_type=MediaEntities.SUB_TYPE_D_BIZCARD
         )
         local_path, remote_path = m.upload_s3(bytes(self.sender['f_ocr_card_image']))
         m.media_element = remote_path
         m.save()
 
+        m.related_connect(d.media)
+
         d.recognize(local_path)
-        dc = WizcardSerializerL2(d).data
+        dc = DeadCardSerializerL2(d).data
 
         self.response.add_data("response", dc)
         return self.response
@@ -2127,17 +2134,16 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     # Entity Api's for App
-
     def EntityCreate(self):
-        e, s = BaseEntity.entity_cls_ser_from_type(type=self.sender.get('entity_type'))
-        entity = e.objects.create(creator=self.user, **self.sender)
+        e, s = BaseEntity.entity_cls_ser_from_type(entity_type=self.sender.get('entity_type'))
+        entity = BaseEntityComponent.create(e, owner=self.user, is_creator=True, **self.sender)
 
         updated, l = entity.create_or_update_location(self.lat, self.lng)
         l.start_timer(entity.timeout)
 
         out = s(entity, **self.user_context).data
 
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
         return self.response
 
     def EntityDestroy(self):
@@ -2147,7 +2153,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        if table.creator == self.user:
+        if table.get_creator() == self.user:
             table.delete(type=verbs.WIZCARD_TABLE_DESTROY[0])
         else:
             self.response.error_response(err.NOT_AUTHORIZED)
@@ -2156,10 +2162,10 @@ class ParseMsgAndDispatch(object):
 
     def EntityJoin(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(type)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -2168,16 +2174,16 @@ class ParseMsgAndDispatch(object):
         entity.join(self.user)
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
     def EntityLeave(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(type)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -2186,23 +2192,22 @@ class ParseMsgAndDispatch(object):
         entity.leave(self.user)
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
     def EntityEdit(self):
-
         id = self.sender.get('entity_id')
-        type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(type)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        if entity.creator != self.user:
+        if entity.get_creator() != self.user:
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
@@ -2216,7 +2221,7 @@ class ParseMsgAndDispatch(object):
         entity.save()
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 
@@ -2321,7 +2326,7 @@ class ParseMsgAndDispatch(object):
 
         if count:
             out = s(result, many=True, **self.user_context).data
-            self.response.add_data("data", out)
+            self.response.add_data("result", out)
 
         self.response.add_data("count", count)
 
@@ -2337,17 +2342,17 @@ class ParseMsgAndDispatch(object):
         count = entities.count()
 
         if count:
-            self.response.add_data("data", out)
+            self.response.add_data("result", out)
         self.response.add_data("count", count)
         return self.response
 
     def EntityDetails(self):
         id = self.sender.get('entity_id')
-        type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type')
         detail = self.sender.get('detail', True)
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(type, detail=detail)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -2358,7 +2363,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         out = s(entity, **self.user_context).data
-        self.response.add_data("data", out)
+        self.response.add_data("result", out)
 
         return self.response
 

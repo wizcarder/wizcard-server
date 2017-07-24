@@ -5,12 +5,14 @@ import pdb
 TIMER_ONE_SHOT = 1
 TIME_RECURRING = 2
 
+
 class PeriodicManager(models.Manager):
     def get_expired(self):
         return self.filter(expires_at__lt = timezone.now())
 
     def clear_expired(self, e):
         map(lambda x: x.delete(), e)
+
 
 class Periodic(models.Model):
     #timeout_value is in seconds
@@ -23,7 +25,7 @@ class Periodic(models.Model):
     objects = PeriodicManager()
 
     def __unicode__(self):
-        return u'timeout: %s expires in: %ss (%sm)' % (self.timeout_value, \
+        return u'timeout: %s expires in: %ss (%sm)' % (self.timeout_value,
                 self.time_remaining(), self.time_remaining()/60)
 
     #returns in seconds

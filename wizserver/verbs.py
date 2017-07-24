@@ -273,7 +273,6 @@ gcm_notification_dictionary = {
     },
     WIZCARD_TABLE_TIMEOUT[0]: {
         'title' : 'Wizcard - Table expired',
-        'badge': 0,
         'body': '{1.name} table has now expired',
     },
 

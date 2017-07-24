@@ -1,20 +1,13 @@
 #!/usr/bin/env python
 from __future__ import absolute_import
-import sys
-import StringIO, hashlib
+
 from celery import shared_task
 from django.utils import timezone
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.files.storage import default_storage as storage
+from media_components.models import MediaEntities
 from django.template import Template,Context
-from django.utils.encoding import smart_str, smart_unicode
-from wizcardship.models import WizcardManager, Wizcard
-from wizcard import settings
-from PIL import Image,ImageFont, ImageDraw, ImageOps
 from lib.ses import Email
 import vobject
-import requests
-import pdb
+
 now = timezone.now
 
 
@@ -86,7 +79,10 @@ def send_event(event, to, emaildetails):
     email_dict = dict()
     html = emaildetails['template']
     email_dict['event_name'] = event.name
-    email_dict['banner'] = event.get_banner()
+    event_media = event.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER)
+    email_dict['banner'] = 'http://PlaceholderImage.com'
+    if event_media:
+        email_dict['banner'] = event_media.media_element
     email_dict['event_url'] = "http://getwizcard.com/entity/event/%d/product" % event.id
 
     ctx = Context(email_dict)

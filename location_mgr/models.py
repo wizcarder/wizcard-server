@@ -4,7 +4,6 @@ import heapq
 from django.db import models
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
-
 from location_mgr.signals import location, location_timeout
 from periodic.models import Periodic
 from lib import wizlib

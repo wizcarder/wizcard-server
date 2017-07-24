@@ -3,6 +3,7 @@ from email_and_push_infra.models import EmailAndPush
 from email_and_push_infra.models import EmailAndPushManager
 from html_gen_methods import HtmlGen
 from django.utils import timezone
+import pdb
 
 email_trigger = Signal(providing_args=['source', 'trigger', 'target', 'to_email'])
 

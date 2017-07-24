@@ -1,50 +1,31 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
-from entity.models import BaseEntity, Event, Product, Business, VirtualTable
-from entity.serializers import EntitySerializerL2, EventSerializer, EventSerializerL2 ,ProductSerializer, \
-    BusinessSerializer, TableSerializer
+from base_entity.models import BaseEntity
+from entity.models import Event, Product, Business, VirtualTable,\
+    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners
+from entity.serializers import  EventSerializer, EventSerializerL2 ,ProductSerializer, \
+    BusinessSerializer, TableSerializer, ExhibitorSerializer, AttendeeSerializer, SpeakerSerializerL1, \
+    SponsorSerializerL1, SponsorSerializerL2, CoOwnersSerializer
 from django.http import Http404
-from django.contrib.auth.models import User
 from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from rest_framework import status
+from base_entity.views import BaseEntityViewSet
+from base_entity.models import BaseEntityComponent
 import pdb
 
 
 # Create your views here.
 
-class BaseEntityViewSet(viewsets.ModelViewSet):
-    queryset = BaseEntity.objects.all()
-    serializer_class = EntitySerializerL2
-
-    def get_queryset(self):
-        #if isinstance(self, BaseEntityViewSet):
-         #   queryset = BaseEntity.objects.all()
-        user = self.request.user
-        queryset = BaseEntity.objects.users_entities(user)
-        return queryset
-
-    def perform_create(self, serializer):
-        pdb.set_trace()
-        instance = serializer.save(creator=self.request.user)
-        instance.join(self.request.user)
-
-    def get_serializer_context(self):
-        return {'user': self.request.user}
-
-
-
 class EventViewSet(BaseEntityViewSet):
-    queryset = Event.objects.all()
     serializer_class = EventSerializer
 
     def get_serializer_class(self):
         user = self.request.user
-        if self.request.method == 'GET' and user is not None:
-            return EventSerializerL2
+        #if self.request.method == 'GET' and user is not None:
+         #   return EventSerializerL2
         return EventSerializer
-
 
     def get_object_or_404(self, pk):
         try:
@@ -56,10 +37,6 @@ class EventViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = Event.objects.users_entities(user)
         return queryset
-        #queryset = Event.objects.all()
-        #return super(EventViewSet, self).get_queryset()
-
-
 
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
@@ -73,10 +50,14 @@ class EventViewSet(BaseEntityViewSet):
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):
         inst = self.get_object_or_404(pk)
-        emails = request.data
-        for recp in emails['email']:
+
+        exhibitors = request.data
+        passed_emails, failed_str = ExhibitorInvitee.validate(exhibitors['ids'])
+
+        for recp in passed_emails:
             email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
-        return Response("Exhibitors email added", status=status.HTTP_201_CREATED)
+
+        return Response("Exhibitors invited %s Failed ids: %s" % (len(passed_emails), failed_str) , status=status.HTTP_200_OK)
 
 
 class ProductViewSet(BaseEntityViewSet):
@@ -87,8 +68,6 @@ class ProductViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = Product.objects.users_entities(user)
         return queryset
-        #queryset = Product.objects.all()
-        #super(ProductViewSet, self).get_queryset()
 
 
 class BusinessViewSet(BaseEntityViewSet):
@@ -99,8 +78,6 @@ class BusinessViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = Business.objects.users_entities(user)
         return queryset
-        #queryset = Business.objects.all()
-        #super(BusinessViewSet, self).get_queryset()
 
 
 class TableViewSet(BaseEntityViewSet):
@@ -111,8 +88,67 @@ class TableViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = VirtualTable.objects.users_entities(user)
         return queryset
-        #queryset = VirtualTable.objects.all()
-        #super(TableViewSet, self).get_queryset()
+
+class SpeakerViewSet(viewsets.ModelViewSet):
+    queryset = Speaker.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Speaker.objects.users_speakers(user)
+        return queryset
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+    def get_serializer_class(self):
+        return SpeakerSerializerL1
+
+
+class SponsorViewSet(viewsets.ModelViewSet):
+    queryset = Sponsor.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Sponsor.objects.users_sponsors(user)
+        return queryset
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return SponsorSerializerL2
+        return SponsorSerializerL1
+
+
+class ExhibitorViewSet(viewsets.ModelViewSet):
+    queryset = ExhibitorInvitee.objects.all()
+    serializer_class = ExhibitorSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = BaseEntityComponent.objects.users_components(user, ExhibitorInvitee)
+        return queryset
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+class AttendeeViewSet(viewsets.ModelViewSet):
+    queryset = AttendeeInvitee.objects.all()
+    serializer_class = AttendeeSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = BaseEntityComponent.objects.users_components(user, AttendeeInvitee)
+        return queryset
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+
+class OwnersViewSet(viewsets.ModelViewSet):
+    pass
+
 
 
 

@@ -48,7 +48,6 @@ class HtmlGen:
 
     def invite_exhibitor(self, sender, to):
         event_organizer = sender
-        event_image = sender.get_banner()
         email_details = {"template" : "invite_exhibitor.html", "subject": "%s - has invited you to Create your Product"}
         send_event(event_organizer, to, email_details)
 

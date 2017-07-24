@@ -97,8 +97,6 @@ class UserSerializerL0(serializers.ModelSerializer):
 
         instance = super(UserSerializerL0, self).update(instance, validated_data)
 
-        instance.profile.add_user_type(user_type)
-
         return instance
 
 

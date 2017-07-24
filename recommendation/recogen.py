@@ -289,7 +289,7 @@ class RecoRunner(RabbitServer):
         return newreco
 
     def updateRecoTime(self, tuser):
-        au_profile = tuser.profile.app_user
+        au_profile = tuser.profile.app_user()
         au_profile.reco_generated_at = timezone.now()
         au_profile.save()
 
@@ -310,7 +310,7 @@ class RecoRunner(RabbitServer):
                     target=tuser.wizcard,onlypush=True)
 
     def updateRecoCount(self,tuser,recocount):
-        au_profile = tuser.profile.app_user
+        au_profile = tuser.profile.app_user()
         au_profile.reco_ready = recocount
         au_profile.save()
 

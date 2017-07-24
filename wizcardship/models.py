@@ -33,12 +33,12 @@ from wizcard import err
 from wizserver import verbs
 from notifications.models import notify, Notification
 from django.db.models import URLField
-from genericm2m.models import RelatedObjectsDescriptor
-from media_mgr.models import MediaObjects
 from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
-from base.cctx import ConnectionContext
+from base.mixins import MediaMixin
 from lib.ocr import OCR
+from base.mixins import CompanyTitleMixin
+from genericm2m.models import RelatedObjectsDescriptor
 
 
 logger = logging.getLogger(__name__)
@@ -153,7 +153,7 @@ class WizcardManager(PolymorphicManager):
             qlist.append(email_result)
 
         result = self.filter(reduce(operator.or_, qlist)).exclude(user_id=exclude_user.id).\
-            exclude(user__profile__app_user__settings__is_visible=False)
+            exclude(user__profile__baseuser__appuser__settings__is_visible=False)
 
         return result, len(result)
 
@@ -186,28 +186,8 @@ class WizcardManager(PolymorphicManager):
         return [x for x in wizcards if Wizcard.objects.is_wizcard_following(x, my_wizcard)]
 
 class WizcardBase(PolymorphicModel, Base413Mixin):
-    media = generic.GenericRelation(MediaObjects)
     sms_url = URLField(blank=True)
-    vcard = models.TextField(blank=True)
-
-    def serialize_wizconnections(self):
-        out = []
-        # doing import here to avoid circular import. This does affect performance
-        # (eventhough django caches re-imports). Still, doing it here since this
-        # method is called only in the resync path
-        from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
-        admin = self.get_admin_wizcard()
-        out.append(WizcardSerializerL2(admin, many=True, context={'status': verbs.ADMIN}).data)
-
-        connected = self.get_connections_without_admin()
-        if connected:
-            out.append(WizcardSerializerL2(connected, many=True, context={'status': verbs.CONNECTED}).data)
-
-        following = self.get_following_only()
-        if following:
-            out.append(WizcardSerializerL1(following, many=True, context={'status': verbs.FOLLOWED}).data)
-
-        return out
+    media = RelatedObjectsDescriptor()
 
     def get_latest_company(self):
         qs = self.contact_container.all()
@@ -226,10 +206,9 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return self.sms_url
 
     def get_thumbnail_url(self):
-        if self.media.filter(media_sub_type=MediaObjects.SUB_TYPE_THUMBNAIL).exists():
-            return self.media.filter(
-                media_sub_type=MediaObjects.SUB_TYPE_THUMBNAIL
-            ).values_list('media_element', flat=True)
+        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_THUMBNAIL]
+        if l:
+            return l
 
         return ""
 
@@ -240,10 +219,10 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
     def get_name(self):
         return self.user.first_name + " " + self.user.last_name
 
-    @property
     def get_video_url(self):
-        if self.media.filter(media_type=MediaObjects.TYPE_VIDEO).exists():
-            return self.media.filter(media_type=MediaObjects.TYPE_VIDEO).values_list('media_element', 'media_iframe')
+        l = [(x.media_element, x.media_iframe) for x in self.media.all().generic_objects() if x.media_type==MediaMixin.TYPE_VIDEO]
+        if l:
+            return l
 
         return ""
 
@@ -262,11 +241,15 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return None
 
 class Wizcard(WizcardBase):
+    # TODO move this upstairs
     user = models.OneToOneField(User, related_name='wizcard')
+
     wizconnections_to = models.ManyToManyField('self',
                                             through='WizConnectionRequest',
                                             symmetrical=False,
                                             related_name='wizconnections_from')
+
+    media = RelatedObjectsDescriptor()
 
     objects = WizcardManager()
 
@@ -288,6 +271,25 @@ class Wizcard(WizcardBase):
                             u', ...' if self.wizconnection_count() > count else u'')
 
     wizconnection_summary.short_description = _(u'Summary of wizconnections')
+
+    def serialize_wizconnections(self):
+        out = []
+        # doing import here to avoid circular import. This does affect performance
+        # (eventhough django caches re-imports). Still, doing it here since this
+        # method is called only in the resync path
+        from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
+        admin = self.get_admin_wizcard()
+        out.append(WizcardSerializerL2(admin, many=True, context={'status': verbs.ADMIN}).data)
+
+        connected = self.get_connections_without_admin()
+        if connected:
+            out.append(WizcardSerializerL2(connected, many=True, context={'status': verbs.CONNECTED}).data)
+
+        following = self.get_following_only()
+        if following:
+            out.append(WizcardSerializerL1(following, many=True, context={'status': verbs.FOLLOWED}).data)
+
+        return out
 
     def flood(self):
         # full card for connections and half for followers
@@ -412,7 +414,7 @@ class DeadCard(WizcardBase):
     user = models.ForeignKey(User, related_name="dead_cards")
     invited = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
-    cctx = PickledObjectField(blank=True)
+    cctx = PickledObjectField(blank=True, default = {})
 
     def __unicode__(self):
         return _(u'%(user)s\'s deadcard') % {'user': unicode(self.user)}
@@ -447,14 +449,10 @@ class DeadCard(WizcardBase):
         return self.cctx
 
 
-class ContactContainer(models.Model):
+class ContactContainer(CompanyTitleMixin):
     wizcard = models.ForeignKey(WizcardBase, related_name="contact_container")
-    company = TruncatingCharField(max_length=40, blank=True)
-    title = TruncatingCharField(max_length=200, blank=True)
-    start = TruncatingCharField(max_length=30, blank=True)
-    end = TruncatingCharField(max_length=30, blank=True)
     phone = TruncatingCharField(max_length=20, blank=True)
-    media = generic.GenericRelation(MediaObjects)
+    media = RelatedObjectsDescriptor()
 
     def __unicode__(self):
         return (u'%(user)s\'s contact container: %(title)s@ %(company)s \n') % \
@@ -464,8 +462,9 @@ class ContactContainer(models.Model):
         ordering = ['id']
 
     def get_fbizcard_url(self):
-        if self.media.filter(media_sub_type=MediaObjects.SUB_TYPE_F_BIZCARD).exists():
-            return self.media.filter(media_sub_type=MediaObjects.SUB_TYPE_F_BIZCARD).values_list('media_element')
+        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_F_BIZCARD]
+        if l:
+            return l
 
         return ""
 
@@ -593,7 +592,7 @@ class WizcardFlickManager(models.Manager):
         if name:
             split = name.split()
             for n in split:
-                name_result = ((Q(wizcard__first_name__istartswith=n) | \
+                name_result = ((Q(wizcard__first_name__istartswith=n) |
                                 Q(wizcard__last_name__istartswith=n)) &
                                Q(expired=False))
                 qlist.append(name_result)
