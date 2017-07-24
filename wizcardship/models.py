@@ -414,7 +414,7 @@ class DeadCard(WizcardBase):
     user = models.ForeignKey(User, related_name="dead_cards")
     invited = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
-    cctx = PickledObjectField(blank=True)
+    cctx = PickledObjectField(blank=True, default = {})
 
     def __unicode__(self):
         return _(u'%(user)s\'s deadcard') % {'user': unicode(self.user)}

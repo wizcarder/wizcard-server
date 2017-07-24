@@ -1607,7 +1607,6 @@ if OCR_FLAG:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
     reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['sender']['wizcard_id'] = e1_id
     reqmsg['sender']['f_ocr_card_image'] = ocr_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1619,7 +1618,7 @@ if OCR_FLAG:
         reqmsg['header']['version'] = messages.APP_VERSION
         reqmsg['sender']['user_id'] = uid1
         reqmsg['sender']['wizuser_id'] = wuid1
-        reqmsg['sender']['dead_card_id'] = dc1_id
+        reqmsg['sender']['wizcard_id'] = dc1_id
         reqmsg['sender']['inviteother'] = 0
         reqmsg['sender']['contact_container'][0]['email'] = 'anandramani98@gmail.com'
         reqmsg['sender']['notes']['note'] = "Test Dead Card notes"

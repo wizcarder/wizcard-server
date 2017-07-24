@@ -1,7 +1,7 @@
 __author__ = 'aammundi'
 from rest_framework import serializers
 from media_components.serializers import MediaEntitiesSerializer
-from wizcardship.models import Wizcard, ContactContainer
+from wizcardship.models import Wizcard, ContactContainer, DeadCard
 import pdb
 
 class ContactContainerSerializerL1(serializers.ModelSerializer):
@@ -74,6 +74,17 @@ class WizcardSerializerL2(WizcardSerializerL1):
 
     contact_container = ContactContainerSerializerL2(many=True, read_only=True)
 
+
+class DeadCardSerializerL2(WizcardSerializerL2):
+    context = serializers.DictField(source='cctx')
+
+    class Meta(WizcardSerializerL2.Meta):
+        model = DeadCard
+        my_fields = ('invited', 'activated', 'context',)
+        fields = WizcardSerializerL2.Meta.fields + my_fields
+
+    def get_status(self, obj):
+        return "dead_card"
 
 # not used by App
 class WizcardSerializer(WizcardSerializerL2):

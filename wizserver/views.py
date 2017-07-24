@@ -53,12 +53,14 @@ from wizserver.tasks import contacts_upload_task
 from stats.models import Stats
 from entity.serializers import EventSerializerL1
 from base_entity.serializers import  EntityEngagementSerializer
-from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
+from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2, DeadCardSerializerL2
 from userprofile.serializers import UserSerializerL0
 from base_entity.models import EntityUserStats
 from base_entity.models import BaseEntityComponent
 from media_components.models import MediaEntities
 from media_components.signals import media_create
+
+import pdb
 
 now = timezone.now
 
@@ -1923,22 +1925,18 @@ class ParseMsgAndDispatch(object):
             logging.error(result['str'])
             return self.response
 
-        if result.has_key('first_name') and result.get('first_name'):
-            self.user.first_name = wizcard.first_name
-        if result.has_key('last_name') and result.get('last_name'):
-            self.user.last_name = wizcard.last_name
-        if result.has_key('email') and result.get('email'):
-            wizcard.email = result.get('email')
+        self.user.first_name = result.get('first_name', "")
+        self.user.last_name = result.get('last_name', "")
+
+        wizcard.name = self.user.first_name + "" + self.user.last_name
+        wizcard.email = result.get('email', "")
 
         wizcard.save()
         self.user.save()
 
-        if result.has_key('title') and result.get('title'):
-            c.title = result.get('title')
-        if result.has_key('company') and result.get('company'):
-            c.company = result.get('company')
-        if result.has_key('phone') and result.get('phone'):
-            c.phone = result.get('phone')
+        c.title = result.get('title', "")
+        c.company = result.get('company', "")
+        c.phone = result.get('phone', "")
 
         c.save()
 
@@ -1965,7 +1963,7 @@ class ParseMsgAndDispatch(object):
         m.related_connect(d.media)
 
         d.recognize(local_path)
-        dc = WizcardSerializerL2(d).data
+        dc = DeadCardSerializerL2(d).data
 
         self.response.add_data("response", dc)
         return self.response
