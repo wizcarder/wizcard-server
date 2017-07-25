@@ -7,10 +7,9 @@ from media_components.signals import media_create
 from location_mgr.serializers import LocationSerializerField
 from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats, UserEntity
 from media_components.serializers import MediaEntitiesSerializer
-from media_components.models import MediaEntities
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from random import sample
-import pdb
+
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -21,7 +20,7 @@ class RelatedSerializerField(serializers.RelatedField):
     def to_internal_value(self, data):
 
         ids = data.get('ids', None)
-        type = data.get('type', None)
+        etype = data.get('type', None)
 
         # Perform the data validation.
         if not ids:
@@ -35,7 +34,7 @@ class RelatedSerializerField(serializers.RelatedField):
 
         return {
             'ids': ids,
-            'type': type
+            'type': etype
         }
 
     def to_representation(self, value):
@@ -57,10 +56,12 @@ class EntityEngagementSerializer(serializers.Serializer):
 
         return EntityUserStats.MIN_ENGAGEMENT_LEVEL
 
+
 class EntitySerializerL0(serializers.ModelSerializer):
     class Meta:
         model = BaseEntity
         fields = ('id', 'entity_type', 'num_users')
+
 
 class EntityEngagementSerializerL1(EntityEngagementSerializer):
     class Meta:
@@ -69,6 +70,7 @@ class EntityEngagementSerializerL1(EntityEngagementSerializer):
         fields = EntityEngagementSerializer.Meta.fields + my_fields
 
     entity = EntitySerializerL0(read_only=True, source='engagements_baseentity_related')
+
 
 # these shouldn't be directly used.
 class EntitySerializerL1(EntitySerializerL0):
@@ -100,9 +102,14 @@ class EntitySerializerL1(EntitySerializerL0):
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
 
-        #qs_thumbnail = qs.filter(wizcard__media__media_sub_type=MediaEntities.SUB_TYPE_THUMBNAIL)
-        qs_thumbnail = qs
-        thumb_count = qs_thumbnail.count()
+        qs_media = [x.wizcard.media.all().generic_objects() for x in qs if x.wizcard.media.all().exists()]
+        qs_thumbnail = [y.get_creator() for x in qs_media for y in x if
+                        y.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL]
+
+        thumb_count = len(qs_thumbnail)
+        if not thumb_count:
+            return out
+
         if thumb_count > self.MAX_THUMBNAIL_UI_LIMIT:
             # lets make it interesting and give out different slices each time
             rand_ids = sample(xrange(1, thumb_count), self.MAX_THUMBNAIL_UI_LIMIT)
@@ -140,11 +147,12 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
     related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
+    is_activated = serializers.BooleanField(write_only=True, default=False)
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
         my_fields = ('website', 'category', 'ext_fields', 'phone', 'related',
-                     'email', 'description', 'owners', 'users')
+                     'email', 'description', 'owners', 'users', 'is_activated')
         fields = EntitySerializerL1.Meta.fields + my_fields
         read_only_fields = ('entity_type',)
 
@@ -209,6 +217,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         instance.description = validated_data.pop('description', instance.description)
         instance.phone = validated_data.pop('phone', instance.phone)
         instance.email = validated_data.pop('email', instance.email)
+        instance.is_activated = validated_data.pop('is_activated', instance.is_activated)
 
         # handle related objects. It's a replace
         media = validated_data.pop('media', None)
@@ -237,6 +246,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
 
         instance.save()
         return instance
+
 
 class BaseEntityComponentSerializer(serializers.ModelSerializer):
     ext_fields = serializers.DictField(required=False)

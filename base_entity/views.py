@@ -1,10 +1,14 @@
-from django.shortcuts import render
 
 # Create your views here.
 from rest_framework import viewsets
 from base_entity.models import BaseEntity
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('expired', 'is_activated')
+
     def get_queryset(self):
         user = self.request.user
         queryset = BaseEntity.objects.users_entities(user)
