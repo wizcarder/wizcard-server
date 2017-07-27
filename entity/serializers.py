@@ -133,7 +133,7 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
 
     def get_products(self, obj):
         prods = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_PRODUCT)
-        s = ProductSerializerL2(prods, many=True)
+        s = ProductSerializerL2(prods, many=True, context=self.context)
         return s.data
 
 
