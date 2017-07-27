@@ -100,9 +100,16 @@ class EntitySerializerL1(EntitySerializerL0):
         return ""
 
     def get_users(self, obj):
-        out = {}
+        out = dict(
+            count=0,
+            data=""
+        )
+
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
+
+        if not count:
+            return out
 
         qs_media = [x.wizcard.media.all().generic_objects() for x in qs if x.wizcard.media.all().exists()]
         qs_thumbnail = [y.get_creator() for x in qs_media for y in x if
