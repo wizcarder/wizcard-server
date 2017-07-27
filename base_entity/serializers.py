@@ -3,6 +3,7 @@ from rest_framework.validators import ValidationError
 from django.contrib.auth.models import User
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
+from base.mixins import MediaMixin
 from media_components.signals import media_create
 from location_mgr.serializers import LocationSerializerField
 from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats, UserEntity
@@ -99,6 +100,7 @@ class EntitySerializerL1(EntitySerializerL0):
         return ""
 
     def get_users(self, obj):
+        out = {}
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
 
@@ -107,6 +109,7 @@ class EntitySerializerL1(EntitySerializerL0):
                         y.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL]
 
         thumb_count = len(qs_thumbnail)
+
         if not thumb_count:
             return out
 
