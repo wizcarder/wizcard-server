@@ -79,7 +79,7 @@ def send_event(event, to, emaildetails):
     email_dict = dict()
     html = emaildetails['template']
     email_dict['event_name'] = event.name
-    event_media = event.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER)
+    event_media = event.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER)[0]
     email_dict['banner'] = 'http://PlaceholderImage.com'
     if event_media:
         email_dict['banner'] = event_media.media_element

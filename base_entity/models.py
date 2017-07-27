@@ -291,10 +291,12 @@ class BaseEntityComponent(PolymorphicModel):
 
     def get_media_filter(self, type, sub_type):
         media = self.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+        banners = []
         for med in media:
             if med.media_sub_type == sub_type and med.media_type == type:
-                return med
-        return None
+                banners.append(med)
+        return banners
+
 
     def get_parent_entities(self ):
         return self.related.related_to().generic_objects()
