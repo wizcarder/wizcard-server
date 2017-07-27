@@ -13,7 +13,7 @@ from wizcardship.models import WizConnectionRequest, Wizcard
 from entity.models import VirtualTable
 from entity.models import Product
 from entity.serializers import ProductSerializer, TableSerializerL1, TableSerializerL2
-from wizcardship.serializers import WizcardSerializerL2
+from wizcardship.serializers import WizcardSerializerL2, DeadCardSerializerL2
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
 from notifications.models import Notification
@@ -302,7 +302,7 @@ class AppUser(BaseUser):
         # dead card
         deadcards = self.profile.user.dead_cards.filter(activated=True)
         if deadcards.count():
-            dc = WizcardSerializerL2(deadcards).data
+            dc = DeadCardSerializerL2(deadcards, many=True, context={'user': self.profile.user}).data
             s['deadcards'] = dc
 
         # notifications. This is done by simply setting readed=False for
