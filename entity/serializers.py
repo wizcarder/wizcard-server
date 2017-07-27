@@ -88,9 +88,14 @@ class EventSerializerL1(EntitySerializerL1):
 # these are used by App.
 class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
 
+    products = serializers.SerializerMethodField()
+    speakers = serializers.SerializerMethodField()
+    sponsors = serializers.SerializerMethodField()
+
+
     class Meta:
         model = Event
-        my_fields = ('start', 'end',)
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'products')
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def get_users(self, obj):
@@ -115,6 +120,22 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
         out['data'] = WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
 
         return out
+
+    def get_speakers(self, obj):
+        spkrs = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
+        s = SpeakerSerializerL2(spkrs, many=True)
+        return s.data
+
+    def get_sponsors(self, obj):
+        spns = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPONSOR)
+        s = SponsorSerializerL2(spns, many=True)
+        return s.data
+
+    def get_products(self, obj):
+        prods = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_PRODUCT)
+        s = ProductSerializerL2(prods, many=True)
+        return s.data
+
 
 # this is used by App
 class ProductSerializerL1(EntitySerializerL1):
