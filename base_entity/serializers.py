@@ -102,7 +102,7 @@ class EntitySerializerL1(EntitySerializerL0):
     def get_users(self, obj):
         out = dict(
             count=0,
-            data=""
+            data=[]
         )
 
         qs = obj.users.exclude(wizcard__isnull=True)
@@ -167,7 +167,15 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         read_only_fields = ('entity_type',)
 
     def get_users(self, obj):
+        out = dict(
+            count=0,
+            data=[]
+        )
+
         count = obj.users.count()
+        if not count:
+            return out
+
         wizcards = map(lambda u: u.wizcard, obj.users.exclude(wizcard__isnull=True))
         user = self.context.get('user', None)
 

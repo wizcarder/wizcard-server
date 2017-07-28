@@ -94,10 +94,10 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def get_users(self, obj):
-        count = 0
-        data = []
-
-        out = dict(count=count, data=data)
+        out = dict(
+            count=0,
+            data=[]
+        )
 
         user = self.context.get('user')
         ue, is_member = UserEntity.user_member(user, obj)
@@ -110,6 +110,9 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
 
         wizcards = [x.wizcard for x in users if hasattr(x, 'wizcard')]
         count = len(wizcards)
+
+        if not count:
+            return out
 
         out['count'] = count
         out['data'] = WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
