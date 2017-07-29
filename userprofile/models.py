@@ -248,11 +248,11 @@ class AppUser(BaseUser):
         result, count = l.lookup(n)
         # convert result to query set result
         if count and not count_only:
-            users = [UserProfile.objects.get(id=x).user for x in result if
-                     UserProfile.objects.filter(
+            users = [AppUser.objects.get(id=x).profile.user for x in result if
+                     AppUser.objects.filter(
                          id=x,
-                         activated=True,
-                         baseuser__appuser__settings__is_visible=True
+                         profile__activated=True,
+                         settings__is_visible=True
                      ).exists()]
             count = len(users)
         return users, count
