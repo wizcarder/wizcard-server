@@ -1,0 +1,230 @@
+- config:
+    - testset: "Portal API Tests"
+    - timeout: 100  # Increase timeout from the default 10 seconds
+- test:
+    - name: "User Creation"
+    - url: "/users/login/"
+    - expected_status: [200]
+    - method: 'POST'
+#    - body: '{"username": "kappu.biz", "email": "kappu.biz@gmail.com", "password1": "a1b2c3d4", "first_name": "Karpagam", "last_name": "G", "password2":"a1b2c3d4", "user_type":2}'
+    - body: '{"username": "kappu.biz", "password": "a1b2c3d4"}'
+    - headers: {Content-Type: application/json}
+    - validators:
+        - compare: {raw_body: "", comparator: contains, expected: 'key'}
+    - extract_binds:
+        - 'token': {'jsonpath_mini': 'key'}
+
+
+- test:
+    - name: "Media Banner Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://pixabay.com/p-1090835/?no_redirect", "media_iframe": "", "media_type": "IMG", "media_sub_type": "BNR" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'bnr_media_id1': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Media Sponsor Logo Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "http://cdn.overclock.net/9/93/93476152_intel.png", "media_iframe": "", "media_type": "IMG", "media_sub_type": "SLG" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'slg_media_id1': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Media Sponsor Logo Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "http://cdn.overclock.net/9/93/93476152_intel.png", "media_iframe": "", "media_type": "IMG", "media_sub_type": "LGO" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'lgo_media_id1': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Media Sponsor Logo Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://cug.org/sites/default/files/pictures/nvidia-sponsor-logo.png", "media_iframe": "", "media_type": "IMG", "media_sub_type": "SLG" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'slg_media_id2': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Media Sponsor Logo Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://cug.org/sites/default/files/pictures/nvidia-sponsor-logo.png", "media_iframe": "", "media_type": "IMG", "media_sub_type": "LGO" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'lgo_media_id2': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Media Speaker  Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "http://kara.allthingsd.com/files/2009/06/jeff_weiner_lowresjpg.jpeg", "media_iframe": "", "media_type": "IMG", "media_sub_type": "THB" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'spk_media_id1': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Media Speaker  Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://pbs.twimg.com/profile_images/669103856106668033/UF3cgUk4.jpg", "media_iframe": "", "media_type": "IMG", "media_sub_type": "THB" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'spk_media_id2': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Media Rolling Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://cdn1.recombu.com/media/mobile/news/legacy/M18640/1357555416_w670_h376.png", "media_iframe": "", "media_type": "IMG", "media_sub_type": "ROL" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'rol_media_id1': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Media Rolling Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://www.youtube.com/watch?v=BoSVFwFRBfw", "media_iframe": "", "media_type": "VID", "media_sub_type": "ROL" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'rol_media_id2': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Media Rolling Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://www.youtube.com/watch?v=O55SKZEAEFo", "media_iframe": "", "media_type": "VID", "media_sub_type": "ROL" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'rol_media_id3': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Speaker Creation1"
+    - url: "/entity/speakers/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {'template':'{"related":[{"ids":[$spk_media_id1] , "type":"e_media"}], "ext_fields": { "linkedin": "https://www.linkedin.com/in/jeffweiner08/"},"vcard": "",
+            "company": "Linkedin-Microsoft",
+           "title": "CEO",
+           "name": "Jeff Weiner",
+            "email": "jweiner@linkedin.com",
+            "website": "http://www.yahoo.com",
+             "description": "Professional Networking @Events"
+             }'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'spkr1': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Speaker Creation2"
+    - url: "/entity/speakers/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {'template':'{"related":[{"ids":[$spk_media_id2] , "type":"e_media"}], "ext_fields": { "linkedin": "https://www.linkedin.com/in/jeffweiner08/"},"vcard": "",
+          "company": "Amazon",
+         "title": "CEO",
+          "name": "Jeff Bezos",
+          "email": "jbezos@amazon.com",
+          "website": "http://www.amazon.com",
+         "description": "Amazon Echo"
+         }'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'spkr2': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Sponsor Creation1"
+    - url: "/entity/sponsors/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {'template':'{"related":[{"ids":[$slg_media_id1] , "type":"e_media"}], "name":"Intel", "Caption": "Intel Inside"}'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'spns1': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Sponsor Creation2"
+    - url: "/entity/sponsors/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {'template':'{"related":[{"ids":[$slg_media_id2] , "type":"e_media"}], "name":"nvidia", "Caption": "The way its meant to be played"}'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'spns2': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Product Creation1"
+    - url: "/entity/products/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {'template':'{"related":[{"ids":[$lgo_media_id1, $rol_media_id3] , "type":"e_media"}],
+          "name": "Intel",
+          "address": "Intel Sacramento",
+          "website": "http://www.intel.com",
+          "description": "The new VR platform from Intel",
+          "tags": ["VR platform", "AR Rahman", "Le Musk"]
+          }'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'prod1': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Product Creation2"
+    - url: "/entity/products/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {'template':'{"related":[{"ids":[$lgo_media_id2, $rol_media_id1, $rol_media_id2] , "type":"e_media"}],
+          "name": "Nvidia",
+          "address": "NVidia Graphics",
+          "website": "http://www.nvidia.com",
+          "description": "The new Gaming Chip - Tegra 4",
+          "tags": ["nvidia", "GEForce", "Tegra 4"]
+          }'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'prod2': {'jsonpath_mini': 'id'}
+- test:
+    - name: "Event Creation"
+    - url: "/entity/events/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {'template':'{"related":[{"ids":[$bnr_media_id1, $rol_media_id1, $rol_media_id2, $rol_media_id3] , "type":"e_media"},
+                                      {"ids":[$spkr1, $spkr2], "type":"e_speaker"},
+                                      {"ids":[$spns1, $spns2], "type": "e_sponsor"},
+                                      {"ids":[$prod1, $prod2], "type": "e_product"}],
+          "name": "Test Event2",
+          "address": "Chowdiah memorial",
+          "website": "http://www.testevent.com",
+          "description": "Largest Tedx Event in Bangalore",
+          "location": {
+             "lat": 12.960146,
+              "lng": 77.6463127
+           },
+          "start": "2017-08-31 14:30:59",
+          "end": "2017-09-02 19:30:59",
+          "tags": ["TechnAsia", "AsiaTech"]
+          }'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'event1': {'jsonpath_mini': 'id'}
+
+
+
+
+
+
+
+
+
+
+
+
