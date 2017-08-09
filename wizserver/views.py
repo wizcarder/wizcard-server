@@ -663,9 +663,9 @@ class ParseMsgAndDispatch(object):
         user, created = User.objects.get_or_create(username=username)
 
         if created:
-            #AA TODO: Generate hash from device_id and user.pk
+            #AA TODO: Generate hash from device_id and user_id
             #and maybe phone number
-            password = UserProfile.objects.gen_password(user.pk, device_id)
+            password = UserProfile.objects.gen_password(device_id, str(user.profile.userid))
             user.set_password(password)
             user.save()
             app_user = user.profile.create_user_type(UserProfile.APP_USER)
@@ -673,8 +673,10 @@ class ParseMsgAndDispatch(object):
         else:
             app_user = user.profile.app_user()
             if device_id != app_user.device_id:
+                app_user.device_id = device_id
+
                 #device_id is part of password, reset password to reflect new device_id
-                password = UserProfile.objects.gen_password(user.pk, device_id)
+                password = UserProfile.objects.gen_password(device_id, str(user.profile.userid))
                 user.set_password(password)
                 user.save()
 
@@ -696,7 +698,7 @@ class ParseMsgAndDispatch(object):
         try:
             self.username = self.sender['username']
             self.user = User.objects.get(username=self.username)
-            self.password = self.device_id
+            self.password = self.sender['password']
             auth = authenticate(username=self.username, password=self.password)
             if auth is None:
                 #invalid password

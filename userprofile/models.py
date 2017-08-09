@@ -66,8 +66,8 @@ class UserProfileManager(models.Manager):
             pass
         return userid
 
-    def gen_password(self, id1, id2, id3=None):
-        return id2
+    def gen_password(self, id1, id2):
+        return id1+id2
 
     def check_user_exists(self, query_type, query_key):
         if query_type == verbs.INVITE_VERBS[verbs.SMS_INVITE]:
