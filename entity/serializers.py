@@ -19,7 +19,7 @@ import pdb
 class EventSerializer(EntitySerializerL2):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
-        remove_fields = ['joined', 'engagements']
+        remove_fields = ['joined', 'engagements', 'users']
 
         super(EventSerializer, self).__init__(*args, **kwargs)
 
