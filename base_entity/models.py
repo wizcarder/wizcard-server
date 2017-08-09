@@ -301,6 +301,12 @@ class BaseEntityComponent(PolymorphicModel):
     def get_parent_entities(self ):
         return self.related.related_to().generic_objects()
 
+    def get_creator(self):
+        return BaseEntityComponentsUser.objects.filter(
+            base_entity_component=self,
+            is_creator=True
+        ).get().user.profile.user
+
 
 class BaseEntityComponentsUser(models.Model):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
