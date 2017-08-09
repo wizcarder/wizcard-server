@@ -208,6 +208,8 @@ if not SKIP_BASIC:
     reqmsg['sender']['username'] = USERNAME1
     reqmsg['sender']['user_id'] = uid1
     reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['sender']['password'] = DEVICE_ID1+uid1
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -216,6 +218,8 @@ if not SKIP_BASIC:
     reqmsg['sender']['username'] = USERNAME2
     reqmsg['sender']['user_id'] = uid2
     reqmsg['header']['device_id'] = DEVICE_ID2
+    reqmsg['sender']['password'] = DEVICE_ID2+uid2
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -224,6 +228,8 @@ if not SKIP_BASIC:
     reqmsg['sender']['username'] = USERNAME3
     reqmsg['sender']['user_id'] = uid3
     reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['sender']['password'] = DEVICE_ID3+uid3
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -521,7 +527,6 @@ if not SKIP_BASIC:
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     fuid1 = objs['data']['user_id']
 
-
     reqmsg = messages.phone_check_req
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['header']['device_id'] = DEVICE_ID5
@@ -552,6 +557,8 @@ if not SKIP_BASIC:
     reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
     reqmsg['sender']['user_id'] = fuid1
     reqmsg['header']['device_id'] = DEVICE_ID4
+    reqmsg['sender']['password'] = DEVICE_ID4+fuid1
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -560,6 +567,8 @@ if not SKIP_BASIC:
     reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
     reqmsg['sender']['user_id'] = fuid2
     reqmsg['header']['device_id'] = DEVICE_ID5
+    reqmsg['sender']['password'] = DEVICE_ID5+fuid2
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1052,6 +1061,8 @@ if not SKIP_BASIC:
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
     reqmsg['sender']['user_id'] = uid1
     reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['sender']['password'] = DEVICE_ID1+uid1
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1085,6 +1096,8 @@ if not SKIP_BASIC:
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
     reqmsg['sender']['user_id'] = uid2
     reqmsg['header']['device_id'] = DEVICE_ID2
+    reqmsg['sender']['password'] = DEVICE_ID2+uid2
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1118,6 +1131,8 @@ if not SKIP_BASIC:
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
     reqmsg['sender']['user_id'] = uid3
     reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['sender']['password'] = DEVICE_ID3+uid3
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1587,6 +1602,8 @@ if OCR_FLAG:
     reqmsg['sender']['username'] = messages.OCR_USERNAME
     reqmsg['sender']['user_id'] = ocr_uid
     reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['sender']['password'] = DEVICE_ID3+ocr_uid
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])

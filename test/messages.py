@@ -189,7 +189,7 @@ login = {
     "sender" : {
         "username" : "",
         "user_id": "",
-        "password": "wizcard"
+        "password": ""
     },
 }
 
