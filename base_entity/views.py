@@ -1,8 +1,9 @@
 
 # Create your views here.
-from rest_framework import viewsets
-from base_entity.models import BaseEntity
+from base_entity.models import BaseEntity, BaseEntityComponent
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
@@ -20,3 +21,22 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         return {'user': self.request.user}
+
+class BaseEntityComponentViewSet(viewsets.ModelViewSet):
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = BaseEntityComponent.objects.users_entities(user)
+        return queryset
+
+    def perform_destroy(self, instance):
+        parents = instance.get_parent_entities()
+        if parents:
+            return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
+        else:
+            instance.delete()
+            return Response(status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        return self.perform_destroy(instance)

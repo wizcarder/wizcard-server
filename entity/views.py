@@ -11,7 +11,7 @@ from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from rest_framework import status
-from base_entity.views import BaseEntityViewSet
+from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
 from base_entity.models import BaseEntityComponent
 import pdb
 
@@ -60,7 +60,7 @@ class EventViewSet(BaseEntityViewSet):
         return Response("Exhibitors invited %s Failed ids: %s" % (len(passed_emails), failed_str) , status=status.HTTP_200_OK)
 
 
-class ProductViewSet(BaseEntityViewSet):
+class ProductViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -70,7 +70,7 @@ class ProductViewSet(BaseEntityViewSet):
         return queryset
 
 
-class BusinessViewSet(BaseEntityViewSet):
+class BusinessViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
     queryset = Business.objects.all()
     serializer_class = BusinessSerializer
 
@@ -80,7 +80,7 @@ class BusinessViewSet(BaseEntityViewSet):
         return queryset
 
 
-class TableViewSet(BaseEntityViewSet):
+class TableViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
     queryset = VirtualTable.objects.all()
     serializer_class = TableSerializer
 
@@ -89,7 +89,7 @@ class TableViewSet(BaseEntityViewSet):
         queryset = VirtualTable.objects.users_entities(user)
         return queryset
 
-class SpeakerViewSet(viewsets.ModelViewSet):
+class SpeakerViewSet(BaseEntityComponentViewSet):
     queryset = Speaker.objects.all()
 
     def get_queryset(self):
@@ -104,7 +104,7 @@ class SpeakerViewSet(viewsets.ModelViewSet):
         return SpeakerSerializerL1
 
 
-class SponsorViewSet(viewsets.ModelViewSet):
+class SponsorViewSet(BaseEntityComponentViewSet):
     queryset = Sponsor.objects.all()
 
     def get_queryset(self):
@@ -121,7 +121,7 @@ class SponsorViewSet(viewsets.ModelViewSet):
         return SponsorSerializerL1
 
 
-class ExhibitorViewSet(viewsets.ModelViewSet):
+class ExhibitorViewSet(BaseEntityComponentViewSet):
     queryset = ExhibitorInvitee.objects.all()
     serializer_class = ExhibitorSerializer
 
@@ -133,7 +133,7 @@ class ExhibitorViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {'user': self.request.user}
 
-class AttendeeViewSet(viewsets.ModelViewSet):
+class AttendeeViewSet(BaseEntityComponentViewSet):
     queryset = AttendeeInvitee.objects.all()
     serializer_class = AttendeeSerializer
 
@@ -146,7 +146,7 @@ class AttendeeViewSet(viewsets.ModelViewSet):
         return {'user': self.request.user}
 
 
-class OwnersViewSet(viewsets.ModelViewSet):
+class OwnersViewSet(BaseEntityComponentViewSet):
     pass
 
 

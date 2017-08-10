@@ -1,11 +1,9 @@
-from rest_framework import viewsets
 from media_components.models import MediaEntities
 from media_components.serializers import  MediaEntitiesSerializer
-import pdb
+from base_entity.views import BaseEntityComponentViewSet
 
-# Create your views here.
 
-class MediaEntitiesViewSet(viewsets.ModelViewSet):
+class MediaEntitiesViewSet(BaseEntityComponentViewSet):
     queryset = MediaEntities.objects.all()
     serializer_class = MediaEntitiesSerializer
 
