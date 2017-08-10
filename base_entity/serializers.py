@@ -12,7 +12,6 @@ from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from random import sample
 
 
-
 class RelatedSerializerField(serializers.RelatedField):
 
     def get_queryset(self):
@@ -244,13 +243,13 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
             media_create.send(sender=instance, objs=media)
 
         owners = validated_data.pop('owners', None)
-        if owners:
+        if owners is not None:
             instance.owners.clear()
             for o in owners:
                 instance.add_owner(o)
 
         sub_entities = validated_data.pop('related', None)
-        if sub_entities:
+        if sub_entities is not None:
             instance.related.all().delete()
             for s in sub_entities:
                 instance.add_subentities(**s)
