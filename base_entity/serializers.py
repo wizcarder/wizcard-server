@@ -23,7 +23,7 @@ class RelatedSerializerField(serializers.RelatedField):
         etype = data.get('type', None)
 
         # Perform the data validation.
-        if not ids:
+        if ids is None:
             raise ValidationError({
                 'ids': 'This field is required.'
             })
