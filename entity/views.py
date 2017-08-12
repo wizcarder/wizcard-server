@@ -116,8 +116,6 @@ class SponsorViewSet(BaseEntityComponentViewSet):
         return {'user': self.request.user}
 
     def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return SponsorSerializerL2
         return SponsorSerializerL1
 
 
