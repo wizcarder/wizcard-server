@@ -299,7 +299,11 @@ class BaseEntityComponent(PolymorphicModel):
 
 
     def get_parent_entities(self ):
-        return self.related.related_to().generic_objects()
+        try:
+            parents = self.related.related_to().generic_objects()
+            return parents
+        except:
+            return None
 
     def get_creator(self):
         return BaseEntityComponentsUser.objects.filter(
