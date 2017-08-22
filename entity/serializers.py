@@ -32,6 +32,7 @@ class EventSerializer(EntitySerializerL2):
     speakers = serializers.SerializerMethodField()
     sponsors = serializers.SerializerMethodField()
     exhibitors = serializers.SerializerMethodField()
+    attendees = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -67,6 +68,9 @@ class EventSerializer(EntitySerializerL2):
 
     def get_media(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+
+    def get_attendees(self, obj):
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_ATTENDEE)
 
 
 # these are used by App.
