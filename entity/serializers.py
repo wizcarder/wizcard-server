@@ -358,7 +358,12 @@ class AttendeeSerializer(ExhibitorSerializer):
 
     class Meta:
         model = AttendeeInvitee
-        fields = ['name', 'email']
+        fields = ['id', 'name', 'email']
+
+    def create(self, validated_data):
+        user = self.context.get('user')
+        mobj = BaseEntityComponent.create(AttendeeInvitee, owner=user, is_creator=True, entity_type='ATT', **validated_data)
+        return mobj
 
 class CoOwnersSerializer(BaseEntityComponentSerializer):
     pass
