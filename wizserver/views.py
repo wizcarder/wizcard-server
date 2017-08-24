@@ -1898,7 +1898,7 @@ class ParseMsgAndDispatch(object):
             # Wizcard. Want to be sure about the implications
 
             # AA: not sure about this fix. userprofile will get activated when edit_card comes
-            # self.userprofile.activated = True
+            self.userprofile.activated = True
             #self.userprofile.save()
 
         c = ContactContainer.objects.create(wizcard=wizcard)
