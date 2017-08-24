@@ -740,8 +740,8 @@ class ParseMsgAndDispatch(object):
                 if 'deadcards' in s:
                     self.response.add_data("deadcards", s["deadcards"])
 
-        self.userprofile.activated = True
-        self.app_userprofile.do_sync = False
+                self.userprofile.activated = True
+            self.app_userprofile.do_sync = False
         self.app_userprofile.save()
 
         return self.response
@@ -1899,7 +1899,7 @@ class ParseMsgAndDispatch(object):
 
             # AA: not sure about this fix. userprofile will get activated when edit_card comes
             self.userprofile.activated = True
-            #self.userprofile.save()
+            self.userprofile.save()
 
         c = ContactContainer.objects.create(wizcard=wizcard)
 
