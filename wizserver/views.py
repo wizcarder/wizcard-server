@@ -85,7 +85,7 @@ class ParseMsgAndDispatch(object):
     def __init__(self, request):
         self.request = request
         self.response = Response
-        self.msg = json.loads(self.request.body)
+        self.msg = (json.loads(self.request.body)).copy()
         self.msg_type = None
         self.device_id = None
         self.password_hash = None
@@ -141,8 +141,8 @@ class ParseMsgAndDispatch(object):
     def validate_sender(self, sender):
         self.sender = sender
         if not self.msg_is_initial():
-            wizuser_id = self.sender.get('wizuser_id')
-            user_id = self.sender.get('user_id')
+            wizuser_id = self.sender.pop('wizuser_id')
+            user_id = self.sender.pop('user_id')
             try:
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
@@ -162,8 +162,8 @@ class ParseMsgAndDispatch(object):
 
         #AA:TODO - Move to header
         if self.msg_has_location():
-            self.lat = float(self.sender.get('lat'))
-            self.lng = float(self.sender.get('lng'))
+            self.lat = float(self.sender.pop('lat'))
+            self.lng = float(self.sender.pop('lng'))
             logger.debug('User %s @lat, lng: {%s, %s}',
                          self.user.first_name+" "+self.user.last_name, self.lat, self.lng)
 
