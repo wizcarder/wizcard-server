@@ -967,6 +967,11 @@ class ParseMsgAndDispatch(object):
         if 'media' in self.sender:
             # delete any existing media
             wizcard.media.all().delete()
+
+            # not liking this way. Need to remove media_id since app is not able to remove it
+            for m in self.sender['media']:
+                discard = m.pop('media_id', None)
+
             mw = media_create.send(sender=self.user, objs=self.sender['media'])
             for m in mw[0][1]:
                 m.related_connect(wizcard.media)
@@ -985,6 +990,9 @@ class ParseMsgAndDispatch(object):
 
                 cc.media.all().delete()
                 if 'media' in contactItem:
+                    for m in contactItem['media']:
+                        discard = m.pop('media_id', None)
+
                     mc = media_create.send(sender=self.user, objs=contactItem['media'])
                     for m in mc[0][1]:
                         m.related_connect(cc.media)
