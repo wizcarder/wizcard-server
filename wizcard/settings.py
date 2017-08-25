@@ -113,7 +113,8 @@ DATABASES = WIZCARD_SETTINGS[RUNENV]['databases']
 CACHES = WIZCARD_SETTINGS[RUNENV]['caches']
 
 # RAVEN config for Sentry
-RAVEN_CONFIG = WIZCARD_SETTINGS[RUNENV]['raven_config']
+if RUNENV != 'dev':
+    RAVEN_CONFIG = WIZCARD_SETTINGS[RUNENV]['raven_config']
 
 
 # Local time zone for this installation. Choices can be found here:
@@ -411,7 +412,10 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 #
 #... somewhere in settings.py or imported ...
 
-LOGGING = {
+
+
+MYLOG = {}
+MYLOG['dev'] = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -480,26 +484,11 @@ LOGGING = {
             'backupCount' : 30,
             'mode': 'a', #append+create
         },
-        'sentry': {
-            'level': 'ERROR',
-            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-        },
     },
     'loggers': {
         'django': {
             'level':'DEBUG',
             'handlers': ['timed-log-file'],
-            'propagate': False,
-        },
-        #AA TODO: Need to figure this out. Sentry logging still not working
-        'raven': {
-            'level': 'ERROR',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'sentry.errors': {
-            'level': 'ERROR',
-            'handlers': ['console'],
             'propagate': False,
         },
         'wizserver': {
@@ -510,6 +499,23 @@ LOGGING = {
 
     }
 }
+MYLOG[RUNENV] = MYLOG['dev']
+if RUNENV != 'dev':
+    MYLOG[RUNENV]['handlers']['sentry'] =  {
+                                        'level': 'ERROR',
+                                        'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+                                        }
+    MYLOG[RUNENV]['loggers']['sentry.errors'] = {
+                                             'level': 'ERROR',
+                                             'handlers': ['console'],
+                                             'propagate': False,
+                                         }
+    MYLOG[RUNENV]['loggers']['raven']  = {
+                                           'level': 'ERROR',
+                                           'handlers': ['console'],
+                                           'propagate': False,
+                                       }
+LOGGING = MYLOG[RUNENV]
 
 APP_ID = 'com.beta.wizcard'
 PYAPNS_CONFIG = {

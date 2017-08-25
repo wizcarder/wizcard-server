@@ -36,7 +36,7 @@ class EventSerializer(EntitySerializerL2):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'exhibitors', 'products')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'exhibitors', 'products', 'attendees')
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
