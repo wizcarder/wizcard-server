@@ -118,6 +118,7 @@ class ParseMsgAndDispatch(object):
         #AA TODO
         return None
 
+    # note: this assumes that self.msg is stored in self without any changes
     def msg_has_location(self):
         return ('lat' in self.msg['header'] and 'lng' in self.msg['header']) or ('lat' in self.msg['sender'] and 'lng' in self.msg['sender'])
 
@@ -140,8 +141,8 @@ class ParseMsgAndDispatch(object):
     def validate_sender(self, sender):
         self.sender = sender
         if not self.msg_is_initial():
-            wizuser_id = self.sender.pop('wizuser_id')
-            user_id = self.sender.pop('user_id')
+            wizuser_id = self.sender.get('wizuser_id')
+            user_id = self.sender.get('user_id')
             try:
                 self.user = User.objects.get(id=wizuser_id)
                 self.userprofile = self.user.profile
@@ -161,8 +162,8 @@ class ParseMsgAndDispatch(object):
 
         #AA:TODO - Move to header
         if self.msg_has_location():
-            self.lat = float(self.sender.pop('lat'))
-            self.lng = float(self.sender.pop('lng'))
+            self.lat = float(self.sender.get('lat'))
+            self.lng = float(self.sender.get('lng'))
             logger.debug('User %s @lat, lng: {%s, %s}',
                          self.user.first_name+" "+self.user.last_name, self.lat, self.lng)
 
@@ -929,7 +930,7 @@ class ParseMsgAndDispatch(object):
         # present, from the failed iteration but not activated.
         if created or not self.userprofile.activated:
             self.userprofile.activated = True
-            self.user.save()
+            self.userprofile.save()
 
         #AA:TODO: Change app to call this phone as well
         if 'phone' in self.sender or 'phone1' in self.sender:

@@ -128,7 +128,7 @@ class NotifResponse(ResponseN):
             cctx = notif.action_object.cctx
 
             #update the timestamp on the WizConnectionRequest
-            notif.action_object.created = datetime.datetime.now()
+            notif.action_object.created = timezone.now()
             notif.action_object.save()
 
             nctx = NotifContext(

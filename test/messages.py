@@ -1166,28 +1166,28 @@ rolodex_edit_card2 = {
 
 rolodex_edit_card3 = {
     "header" : {
-	"device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
-	"hash" : "da0f7402460b85205c85618edf685916",
-	#above 2 fields are not currently used by server
-	"msg_type" : "edit_card",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "edit_card",
     },
     "sender" : {
-	#maybe should have a separate data file for lat, lng and read with some
-	#random index from there
-	"address_city" : "Chandigarh",
-	"address_state" : "PJ",
-	"address_street1" : "Mohali",
-	"address_zip" : 300014,
-	"email" : "akashjindal@gmail.com",
-	"first_name" : "Akash",
-	"last_name" : "Jindal",
-	"imageWasEdited" : "0",
-	"location" : "Mohali",
-	"phone1" : OCR_PHONE,
-	"user_id" : "USER2",
-	#wizuser_id should be the user_id got from response of above register message
-	"wizuser_id" : "",
-	"contact_container" : [contact_container, contact_container, contact_container]
+        #maybe should have a separate data file for lat, lng and read with some
+        #random index from there
+        "address_city" : "Chandigarh",
+        "address_state" : "PJ",
+        "address_street1" : "Mohali",
+        "address_zip" : 300014,
+        "email" : "akashjindal@gmail.com",
+        "first_name" : "Akash",
+        "last_name" : "Jindal",
+        "imageWasEdited" : "0",
+        "location" : "Mohali",
+        "phone1" : OCR_PHONE,
+        "user_id" : "USER2",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
+        "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 

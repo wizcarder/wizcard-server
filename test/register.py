@@ -262,7 +262,6 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-
     reqmsg = messages.edit_card1
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
@@ -1188,7 +1187,7 @@ if not SKIP_BASIC:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
     reqmsg['sender']['wizuser_id'] = wuid3
-    contacts = reqmsg['sender']['wizcard']['contact_container']
+    contacts = reqmsg['sender']['contact_container']
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
