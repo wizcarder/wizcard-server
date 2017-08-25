@@ -499,6 +499,7 @@ MYLOG['dev'] = {
 
     }
 }
+MYLOG[RUNENV] = MYLOG['dev']
 if RUNENV != 'dev':
     MYLOG[RUNENV]['handlers']['sentry'] =  {
                                         'level': 'ERROR',
