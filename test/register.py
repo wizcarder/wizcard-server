@@ -271,7 +271,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    e1_id = objs['data']['wizcard_id']
+    e1_id = objs['data']['wizcard']['wizcard_id']
 
     reqmsg = messages.edit_card2
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -281,7 +281,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    e2_id = objs['data']['wizcard_id']
+    e2_id = objs['data']['wizcard']['wizcard_id']
 
     reqmsg = messages.get_email_template
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -300,7 +300,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    e3_id = objs['data']['wizcard_id']
+    e3_id = objs['data']['wizcard']['wizcard_id']
 
     #send location update
     reqmsg = messages.location
@@ -601,7 +601,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    fe1_id = objs['data']['wizcard_id']
+    fe1_id = objs['data']['wizcard']['wizcard_id']
 
     reqmsg = messages.edit_card1
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -612,7 +612,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    fe2_id = objs['data']['wizcard_id']
+    fe2_id = objs['data']['wizcard']['wizcard_id']
 
             # connection state so far
             # uid1(A)<->uid2(P)
@@ -1171,7 +1171,7 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    e1_id = objs['data']['wizcard_id']
+    e1_id = objs['data']['wizcard']['wizcard_id']
 
     reqmsg = messages.rolodex_edit_card2
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1182,18 +1182,18 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    e2_id = objs['data']['wizcard_id']
+    e2_id = objs['data']['wizcard']['wizcard_id']
 
     reqmsg = messages.rolodex_edit_card3
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
     reqmsg['sender']['wizuser_id'] = wuid3
-    contacts = reqmsg['sender']['contact_container']
+    contacts = reqmsg['sender']['wizcard']['contact_container']
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    e3_id = objs['data']['wizcard_id']
+    e3_id = objs['data']['wizcard']['wizcard_id']
 
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION

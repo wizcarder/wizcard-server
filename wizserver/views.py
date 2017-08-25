@@ -920,16 +920,16 @@ class ParseMsgAndDispatch(object):
     def WizcardEdit(self):
         modify = False
         user_modify = False
-        userprofile_modify = False
 
         wizcard, created = Wizcard.objects.get_or_create(user=self.user)
-        if created:
-            cc = ContactContainer.objects.create(wizcard=wizcard)
-            # set activated to true.
+        cc = ContactContainer.objects.create(wizcard=wizcard) if created else wizcard.contact_container.all()[0]
+
+        # set activated to true on creation and if not already set. There can be a scenario when one mode of onboarding
+        # (say ocr) failed and the user re-onboarded from a different mode. In this case there will be a wizcard
+        # present, from the failed iteration but not activated.
+        if created or not self.userprofile.activated:
             self.userprofile.activated = True
-            userprofile_modify = True
-        else:
-            cc = wizcard.contact_container.all()[0]
+            self.user.save()
 
         #AA:TODO: Change app to call this phone as well
         if 'phone' in self.sender or 'phone1' in self.sender:
@@ -990,25 +990,14 @@ class ParseMsgAndDispatch(object):
 
                 cc.save()
 
-        # check if futureUser states exist for this phone or email
-        # check if futureUser states exist for this phone or email
-        future_users = FutureUser.objects.check_future_user(
-            wizcard.email,
-            wizcard.phone)
-        for f in future_users:
-            f.generate_self_invite(self.user)
-
-        if future_users.count():
-            future_users.delete()
-
-        # flood to contacts
         if user_modify:
             self.user.save()
-        if userprofile_modify:
-            self.userprofile.save()
-        if modify:
-            wizcard.save()
-            wizcard.flood()
+
+        if created or modify:
+            vcard = create_vcard(wizcard)
+            wizcard.vcard = vcard
+
+        wizcard.save()
 
         # Check for admin user connection and create it
         admin_user = UserProfile.objects.get_admin_user()
@@ -1049,13 +1038,23 @@ class ParseMsgAndDispatch(object):
                 target=admin_user.wizcard,
                 action_object=rel21)
 
-        vcard = create_vcard(wizcard)
-        if vcard:
-            wizcard.save_vcard(vcard)
+        # check if futureUser states exist for this phone or email
+        future_users = FutureUser.objects.check_future_user(wizcard.email, wizcard.phone)
+
+        for f in future_users:
+            f.generate_self_invite(self.user)
+
+        if future_users.count():
+            future_users.delete()
+
+        # flood to contacts
+        if modify:
+            wizcard.flood()
+
         if created:
             email_trigger.send(self.user, trigger=EmailEvent.NEWUSER, source=self.user.wizcard, target=wizcard)
 
-        self.response.add_data("wizcard_id", wizcard.pk)
+        self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
         return self.response
 
     # Set both sides to accept. There should already be wizcard1(me)->wizcard2(him) in ACCEPT
@@ -1894,12 +1893,6 @@ class ParseMsgAndDispatch(object):
         except ObjectDoesNotExist:
             #this is the expected case
             wizcard = Wizcard.objects.create(user=self.user)
-            #AR: Temporary Fix, ideally we should be sending only the OCR response without creating
-            # Wizcard. Want to be sure about the implications
-
-            # AA: not sure about this fix. userprofile will get activated when edit_card comes
-            self.userprofile.activated = True
-            self.userprofile.save()
 
         c = ContactContainer.objects.create(wizcard=wizcard)
 
