@@ -60,6 +60,28 @@ class EventViewSet(BaseEntityViewSet):
         return Response("Exhibitors invited %s Failed ids: %s" % (len(passed_emails), failed_str) , status=status.HTTP_200_OK)
 
 
+     # AR: Need to the nested thingy but given Raghu's time adding this hack.
+    @detail_route(methods=['post'])
+    def invite_attendees(self, request, pk=None):
+        inst = self.get_object_or_404(pk)
+
+        attendees = request.data
+        passed_emails, failed_str = AttendeeInvitee.validate(attendees['ids'])
+
+        for recp in passed_emails:
+            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEES, to_email=recp)
+
+        return Response("Attendees invited %s Failed ids: %s" % (len(passed_emails), failed_str),
+                        status=status.HTTP_200_OK)
+
+    @detail_route(methods=['get'])
+    def publish_event(self, request, pk=None):
+        inst = self.get_object_or_404(pk)
+        inst.makelive()
+
+        return Response("event id %d activated" % pk, status=status.HTTP_200_OK)
+
+
 class ProductViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer

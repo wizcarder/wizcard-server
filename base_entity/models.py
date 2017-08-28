@@ -434,6 +434,10 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         #if media_element is null better to have a place holder but what event will not have a image (Bad event)!!!
         return media_row.media_element
 
+    def makelive(self):
+        self.is_activated = True
+        self.save()
+
 
 # explicit through table since we will want to associate additional
 # fields as we go forward.
