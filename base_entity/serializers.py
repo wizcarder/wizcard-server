@@ -157,11 +157,12 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
     related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
     is_activated = serializers.BooleanField(write_only=True, default=False)
+    status = serializers.SerializerMethodField(read_only=True)
 
     class Meta(EntitySerializerL1.Meta):
         model = BaseEntity
         my_fields = ('website', 'category', 'ext_fields', 'phone', 'related',
-                     'email', 'description', 'owners', 'users', 'is_activated')
+                     'email', 'description', 'owners', 'users', 'is_activated', 'status')
         fields = EntitySerializerL1.Meta.fields + my_fields
         read_only_fields = ('entity_type',)
 
@@ -183,6 +184,15 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
             data=WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
         )
         return out
+
+    def get_status(self, obj):
+        if obj.is_activated == False and obj.expired == False:
+            return "unpublished"
+        if obj.expired == True:
+            return "expired"
+        if obj.is_activated == True:
+            return "live"
+
 
     # no need to send friends at L2. removing it from the fields list seems convoluted
     def get_friends(self, obj):
