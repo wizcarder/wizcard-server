@@ -2,6 +2,7 @@ __author__ = 'aammundi'
 from rest_framework import serializers
 from media_components.serializers import MediaEntitiesSerializer
 from wizcardship.models import Wizcard, ContactContainer, DeadCard
+from wizserver.response import NotifContext
 import pdb
 
 class ContactContainerSerializerL1(serializers.ModelSerializer):
@@ -76,7 +77,7 @@ class WizcardSerializerL2(WizcardSerializerL1):
 
 
 class DeadCardSerializerL2(WizcardSerializerL2):
-    context = serializers.DictField(source='cctx')
+    context = serializers.SerializerMethodField()
 
     class Meta(WizcardSerializerL2.Meta):
         model = DeadCard
@@ -85,6 +86,15 @@ class DeadCardSerializerL2(WizcardSerializerL2):
 
     def get_status(self, obj):
         return "dead_card"
+
+    def get_context(self, obj):
+        return NotifContext(
+            description=obj.cctx.description,
+            asset_id=obj.cctx.asset_id,
+            asset_type=obj.cctx.asset_type,
+            connection_mode=obj.cctx.connection_mode,
+            notes=obj.cctx.notes,
+            timestamp=obj.created.strftime("%d %B %Y")).context
 
 # not used by App
 class WizcardSerializer(WizcardSerializerL2):
