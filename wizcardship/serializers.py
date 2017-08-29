@@ -2,7 +2,7 @@ __author__ = 'aammundi'
 from rest_framework import serializers
 from media_components.serializers import MediaEntitiesSerializer
 from wizcardship.models import Wizcard, ContactContainer, DeadCard
-from wizserver.response import NotifContext
+from base.cctx import NotifContext
 import pdb
 
 class ContactContainerSerializerL1(serializers.ModelSerializer):
