@@ -434,11 +434,11 @@ class DeadCard(WizcardBase):
         self.email = result.get('email', "")
         self.ext_fields = dict(web=result.get('web', ""))
 
-        ContactContainer.objects.create(
-            company=result.get('company', ""),
-            title=result.get('job', ""),
-            wizcard=self
-        )
+        c = self.contact_container.get()
+        c.company = result.get('company', "")
+        c.title = title=result.get('job', "")
+
+        c.save()
         self.save()
 
     def set_context(self, cctx):

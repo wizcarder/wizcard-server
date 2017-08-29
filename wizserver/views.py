@@ -1952,6 +1952,8 @@ class ParseMsgAndDispatch(object):
 
     def OcrReqDeadCard(self):
         d = DeadCard.objects.create(user=self.user)
+        c = ContactContainer.objects.create(wizcard=d)
+
         m = BaseEntityComponent.create(
             MediaEntities,
             owner=self.user,
@@ -1964,7 +1966,7 @@ class ParseMsgAndDispatch(object):
         m.media_element = remote_path
         m.save()
 
-        m.related_connect(d.media)
+        m.related_connect(c.media)
 
         d.recognize(local_path)
         dc = DeadCardSerializerL2(d).data
