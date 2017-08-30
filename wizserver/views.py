@@ -1996,7 +1996,7 @@ class ParseMsgAndDispatch(object):
                 asset_obj = deadcard,
                 location=location_str
             )
-            deadcard.set_context(cctx)
+            deadcard.cctx = cctx
 
         if 'notes' in self.sender:
             deadcard.cctx.notes = self.sender['notes']['note']
@@ -2047,6 +2047,9 @@ class ParseMsgAndDispatch(object):
         # or rescan
         deadcard.activated = True
         deadcard.save()
+
+        dc = DeadCardSerializerL2(deadcard).data
+        self.response.add_data("response", dc)
 
         return self.response
 

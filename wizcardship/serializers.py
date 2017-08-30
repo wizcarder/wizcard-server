@@ -77,6 +77,13 @@ class WizcardSerializerL2(WizcardSerializerL1):
 
 
 class DeadCardSerializerL2(WizcardSerializerL2):
+    def __init__(self, *args, **kwargs):
+        remove_fields = ['wizuser_id']
+        super(DeadCardSerializerL2, self).__init__(*args, **kwargs)
+
+        for field_name in remove_fields:
+            self.fields.pop(field_name)
+
     context = serializers.SerializerMethodField()
 
     class Meta(WizcardSerializerL2.Meta):
@@ -88,6 +95,9 @@ class DeadCardSerializerL2(WizcardSerializerL2):
         return "dead_card"
 
     def get_context(self, obj):
+        if not obj.activated:
+            return {}
+
         return NotifContext(
             description=obj.cctx.description,
             asset_id=obj.cctx.asset_id,
