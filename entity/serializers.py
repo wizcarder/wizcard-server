@@ -143,6 +143,12 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
         s = ProductSerializerL2(prods, many=True, context=self.context)
         return s.data
 
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
+            many=True
+        ).data
+
 
 # this is used by App
 class ProductSerializerL1(EntitySerializerL1):
