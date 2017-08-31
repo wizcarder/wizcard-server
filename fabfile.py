@@ -98,9 +98,10 @@ def gitcloneupdate():
     with settings(warn_only=True):
         if run("test -d %s" % env.installroot).failed:
             run("git clone git@github.com:wizcarder/wizcard-server.git  %s" % env.installroot)
+            run("cd %s && git checkout -b entity" % env.installroot)
         else:
             with cd(env.installroot):
-             run("cd %s && git checkout master && git pull origin master" % env.installroot)
+             run("cd %s && git checkout entity && git pull origin entity" % env.installroot)
 
 def localgitpullfile():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
