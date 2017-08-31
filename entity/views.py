@@ -79,7 +79,7 @@ class EventViewSet(BaseEntityViewSet):
         inst = self.get_object_or_404(pk)
         inst.makelive()
 
-        return Response("event id %d activated" % pk, status=status.HTTP_200_OK)
+        return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
 
 
 class ProductViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):

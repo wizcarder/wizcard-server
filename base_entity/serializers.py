@@ -177,7 +177,7 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
             return out
 
         user = self.context.get('user', None)
-        wizcards = map(lambda u: u.wizcard, obj.users.exclude(wizcard__isnull=True, id=user.id))
+        wizcards = map(lambda u: u.wizcard, obj.users.exclude(wizcard__isnull=True))
 
         out = dict(
             count=count,
