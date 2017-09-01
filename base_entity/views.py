@@ -22,6 +22,19 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {'user': self.request.user}
 
+    def perform_destroy(self, instance):
+        parents = instance.get_parent_entities()
+        if parents:
+            return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
+        else:
+            instance.related.all().delete
+            instance.delete()
+            return Response(status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        return self.perform_destroy(instance)
+
 class BaseEntityComponentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
@@ -34,6 +47,7 @@ class BaseEntityComponentViewSet(viewsets.ModelViewSet):
         if parents:
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
         else:
+            instance.related.all().delete()
             instance.delete()
             return Response(status=status.HTTP_200_OK)
 
