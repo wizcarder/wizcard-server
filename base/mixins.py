@@ -85,6 +85,7 @@ class MediaMixin(models.Model):
 
     TYPE_IMAGE = 'IMG'
     TYPE_VIDEO = 'VID'
+    TYPE_DOC = 'DOC'
 
     SUB_TYPE_BANNER = 'BNR'
     SUB_TYPE_LOGO = 'LGO'
@@ -94,10 +95,12 @@ class MediaMixin(models.Model):
     SUB_TYPE_F_BIZCARD = 'FBZ'
     SUB_TYPE_D_BIZCARD = 'DBZ'
     SUB_TYPE_PROFILE_VIDEO = 'PVD'
+    SUB_TYPE_AGENDA = 'AGN'
 
     MEDIA_CHOICES = (
         (TYPE_IMAGE, 'Image'),
         (TYPE_VIDEO, 'Video'),
+        (TYPE_DOC, 'Doc')
     )
 
     MEDIA_SUBTYPE_CHOICES = (
@@ -108,7 +111,8 @@ class MediaMixin(models.Model):
         (SUB_TYPE_THUMBNAIL, 'Thumbnail'),
         (SUB_TYPE_F_BIZCARD, 'Business Card Front'),
         (SUB_TYPE_D_BIZCARD, 'Dead Business Card'),
-        (SUB_TYPE_PROFILE_VIDEO, 'Profile Video')
+        (SUB_TYPE_PROFILE_VIDEO, 'Profile Video'),
+        (SUB_TYPE_AGENDA, 'Agenda')
     )
 
     media_type = models.CharField(

@@ -6,7 +6,7 @@ from entity.models import Event, Product, Business, VirtualTable
 from base_entity.models import UserEntity, BaseEntityComponent, BaseEntity
 from base_entity.serializers import EntitySerializerL0, EntitySerializerL1, EntitySerializerL2, \
     BaseEntityComponentSerializer, RelatedSerializerField
-from entity.models import Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners
+from entity.models import Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners, Agenda
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
 from media_components.serializers import MediaEntitiesSerializer
@@ -33,10 +33,11 @@ class EventSerializer(EntitySerializerL2):
     sponsors = serializers.SerializerMethodField()
     exhibitors = serializers.SerializerMethodField()
     attendees = serializers.SerializerMethodField()
+    agenda = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'exhibitors', 'products', 'attendees')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'exhibitors', 'products', 'attendees', 'agenda')
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
@@ -72,6 +73,9 @@ class EventSerializer(EntitySerializerL2):
     def get_attendees(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_ATTENDEE)
 
+    def get_agenda(self, obj):
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
+
 
 # these are used by App.
 class EventSerializerL1(EntitySerializerL1):
@@ -95,11 +99,12 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
     products = serializers.SerializerMethodField()
     speakers = serializers.SerializerMethodField()
     sponsors = serializers.SerializerMethodField()
+    agenda = serializers.SerializerMethodField()
 
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'products')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'products', 'agenda')
         fields = EntitySerializerL2.Meta.fields + my_fields
 
     def get_users(self, obj):
@@ -141,6 +146,11 @@ class EventSerializerL2(EventSerializerL1, EntitySerializerL2):
     def get_products(self, obj):
         prods = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_PRODUCT)
         s = ProductSerializerL2(prods, many=True, context=self.context)
+        return s.data
+
+    def get_agenda(self, obj):
+        agns = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_AGENDA)
+        s = AgendaSerializerL2(agns, many=True, context=self.context)
         return s.data
 
     def get_media(self, obj):
@@ -287,7 +297,7 @@ class SpeakerSerializerL1(BaseEntityComponentSerializer):
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
-        spkr = BaseEntityComponent.create(Speaker, owner=self.context.get('user'), is_creator=True, entity_type='SPK', **validated_data)
+        spkr = BaseEntityComponent.create(Speaker, owner=self.context.get('user'), is_creator=True, entity_type=BaseEntity.SPEAKER, **validated_data)
         self.post_create(spkr)
         return spkr
 
@@ -329,7 +339,7 @@ class SponsorSerializerL1(BaseEntityComponentSerializer):
 
     def create(self, validated_data):
         self.prepare(validated_data)
-        spn = BaseEntityComponent.create(Sponsor, owner=self.context.get('user'), is_creator=True, entity_type='SPN',**validated_data)
+        spn = BaseEntityComponent.create(Sponsor, owner=self.context.get('user'), is_creator=True, entity_type=BaseEntity.SPONSOR,**validated_data)
         self.post_create(spn)
         return spn
 
@@ -358,7 +368,7 @@ class ExhibitorSerializer(BaseEntityComponentSerializer):
 
     def create(self, validated_data):
         user = self.context.get('user')
-        mobj = BaseEntityComponent.create(ExhibitorInvitee, owner=user, is_creator=True, entity_type='EXB', **validated_data)
+        mobj = BaseEntityComponent.create(ExhibitorInvitee, owner=user, is_creator=True, entity_type=BaseEntity.EXHIBITOR, **validated_data)
         return mobj
 
 class AttendeeSerializer(ExhibitorSerializer):
@@ -372,8 +382,43 @@ class AttendeeSerializer(ExhibitorSerializer):
 
     def create(self, validated_data):
         user = self.context.get('user')
-        mobj = BaseEntityComponent.create(AttendeeInvitee, owner=user, is_creator=True, entity_type='ATT', **validated_data)
+        mobj = BaseEntityComponent.create(AttendeeInvitee, owner=user, is_creator=True, entity_type=BaseEntity.ATTENDEE, **validated_data)
         return mobj
 
 class CoOwnersSerializer(BaseEntityComponentSerializer):
     pass
+
+class AgendaSerializerL1(BaseEntityComponentSerializer):
+    media = serializers.SerializerMethodField(required=False, read_only=True)
+
+    class Meta:
+        model = Agenda
+        fields = '__all__'
+
+    def create(self, validated_data, **kwargs):
+        pdb.set_trace()
+        self.prepare(validated_data)
+        agn = BaseEntityComponent.create(Agenda, owner=self.context.get('user'), is_creator=True, entity_type=BaseEntity.AGENDA, **validated_data)
+        self.post_create(agn)
+        return agn
+
+    def update(self, instance, validated_data):
+        instance = super(AgendaSerializerL1, self).update(instance, validated_data)
+
+        return instance
+
+    def get_media(self, obj):
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+
+class AgendaSerializerL2(AgendaSerializerL1):
+
+    class Meta:
+        model = Agenda
+        fields = '__all__'
+
+    def get_media(self, obj):
+        media = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+        s = MediaEntitiesSerializer(media, many=True)
+        return s.data
+
+

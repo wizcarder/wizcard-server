@@ -81,6 +81,7 @@ class BaseEntityComponent(PolymorphicModel):
     EXHIBITOR = 'EXB'
     ATTENDEE = 'ATT'
     COOWNER = 'COW'
+    AGENDA = 'AGN'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -94,7 +95,8 @@ class BaseEntityComponent(PolymorphicModel):
         (ATTENDEE, 'Attendee'),
         (EXHIBITOR, 'Exhibitor'),
         (MEDIA, 'Media'),
-        (COOWNER, 'Coowner')
+        (COOWNER, 'Coowner'),
+        (AGENDA, 'Agenda')
     )
 
     SUB_ENTITY_PRODUCT = 'e_product'
@@ -106,6 +108,7 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_EXHIBITOR = 'e_exhibitor'
     SUB_ENTITY_ATTENDEE = 'e_attendee'
     SUB_ENTITY_COOWNER = 'e_coowner'
+    SUB_ENTITY_AGENDA = 'e_agenda'
 
     entity_type = models.CharField(
         max_length=3,
@@ -227,7 +230,7 @@ class BaseEntityComponent(PolymorphicModel):
     @classmethod
     def entity_cls_from_subentity_type(cls, entity_type):
         from entity.models import Event, Product, VirtualTable, \
-            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
+            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
         if entity_type == cls.SUB_ENTITY_PRODUCT:
@@ -248,6 +251,8 @@ class BaseEntityComponent(PolymorphicModel):
             c = AttendeeInvitee
         elif entity_type == cls.SUB_ENTITY_COOWNER:
             c = CoOwners
+        elif entity_type == cls.SUB_ENTITY_AGENDA:
+            c = Agenda
 
         return c
 
