@@ -396,7 +396,6 @@ class AgendaSerializerL1(BaseEntityComponentSerializer):
         fields = '__all__'
 
     def create(self, validated_data, **kwargs):
-        pdb.set_trace()
         self.prepare(validated_data)
         agn = BaseEntityComponent.create(Agenda, owner=self.context.get('user'), is_creator=True, entity_type=BaseEntity.AGENDA, **validated_data)
         self.post_create(agn)
