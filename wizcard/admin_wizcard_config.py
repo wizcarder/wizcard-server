@@ -12,10 +12,10 @@ BIZCARD_IMAGE_PATH = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-de
 
 
 ext_fields = {
-    'Facebook': "https://www.facebook.com/getwizcard/#",
-    'Twitter': 'https://twitter.com/wizcarder',
-    'LinkedIn': 'https://www.linkedin.com/in/wizcard-administrator-2a866696',
-    'Web': 'http://www.getwizcard.com',
+    'facebook': "https://www.facebook.com/getwizcard/#",
+    'twitter': 'https://twitter.com/wizcarder',
+    'linkedin': 'https://www.linkedin.com/in/wizcard-administrator-2a866696',
+    'web': 'http://www.getwizcard.com',
     'about_me': "I believe when people meet, they should be able to exchange more than just a piece of Dead paper. "
                 "They should be able to instantly ANNOUNCE their PERSONA - What I call WizCard...An Alive digital expression of WHO YOU ARE. "
                 "I help WizCarders like you Discover, Exchange and Connect with People, Entities, THINGS: around you. "

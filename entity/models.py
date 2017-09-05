@@ -249,6 +249,15 @@ class CoOwners(BaseEntityComponent, Base411Mixin):
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
     pass
 
+class AgendaManager(BaseEntityComponentManager):
+
+    def users_agenda(self, user):
+        return super(SpeakerManager, self).users_components(user, Speaker)
+
+class Agenda(BaseEntityComponent):
+
+    objects = AgendaManager()
+
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
 
     @classmethod

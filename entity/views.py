@@ -2,10 +2,10 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from base_entity.models import BaseEntity
 from entity.models import Event, Product, Business, VirtualTable,\
-    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners
+    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners, Agenda
 from entity.serializers import  EventSerializer, EventSerializerL2 ,ProductSerializer, \
     BusinessSerializer, TableSerializer, ExhibitorSerializer, AttendeeSerializer, SpeakerSerializerL1, \
-    SponsorSerializerL1, SponsorSerializerL2, CoOwnersSerializer
+    SponsorSerializerL1, SponsorSerializerL2, CoOwnersSerializer, AgendaSerializerL1
 from django.http import Http404
 from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
@@ -79,7 +79,7 @@ class EventViewSet(BaseEntityViewSet):
         inst = self.get_object_or_404(pk)
         inst.makelive()
 
-        return Response("event id %d activated" % pk, status=status.HTTP_200_OK)
+        return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
 
 
 class ProductViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
@@ -169,6 +169,20 @@ class AttendeeViewSet(BaseEntityComponentViewSet):
 class OwnersViewSet(BaseEntityComponentViewSet):
     pass
 
+
+class AgendaViewSet(BaseEntityComponentViewSet):
+    queryset = Agenda.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = BaseEntityComponent.objects.users_components(user, Agenda)
+        return queryset
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
+    def get_serializer_class(self):
+        return AgendaSerializerL1
 
 
 
