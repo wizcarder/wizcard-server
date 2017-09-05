@@ -1,13 +1,15 @@
 __author__ = 'aammundi'
+import os
 
-THUMBNAIL_IMAGE_PATH = "test/bizcard.jpeg"
+RUNENV = os.getenv('WIZRUNENV','dev')
+
+# TODO make cleaner...paths have to be based on env settings. Also, access url should be seaparate
+# from file path
+
+THUMBNAIL_IMAGE_PATH = "https://s3.ap-south-1.amazonaws.com/wizcard-in-dev/admin/TN1.jpeg"
 VIDEO_URL = "https://youtu.be/QujpdmsXAb4"
 BIZCARD_IMAGE_PATH = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/wizcard_admin/bizcard.jpeg"
-ADMIN_ASSETS_PATH="assets/admin_wizcard/"
-BIZCARD_FILE = "bizcard.jpeg"
-THUMBNAIL_FILE = "TN1.jpeg"
-#BIZCARD_IMAGE_PATH = ADMIN_ASSETS_PATH+BIZCARD_FILE
-#THUMBNAIL_IMAGE_PATH = ADMIN_ASSETS_PATH+THUMBNAIL_FILE
+
 
 ext_fields = {
     'Facebook': "https://www.facebook.com/getwizcard/#",

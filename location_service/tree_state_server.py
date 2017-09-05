@@ -150,6 +150,7 @@ class TreeServer(RabbitServer):
         tree_type = kwargs.pop('tree_type')
         key = kwargs.pop('key')
         exclude_self = kwargs.pop('exclude_self', True)
+        cached_val = None
         n = kwargs.pop('n', DEFAULT_MAX_LOOKUP_RESULTS)
 
         tree = self.get_tree_from_type(tree_type)
@@ -188,7 +189,9 @@ class TreeServer(RabbitServer):
     def lookup_closest_n(self, tree, key, n):
         #lookup using top half of key
         result = []
+        prev_result = []
         count = 0
+        prev_count = 0
         left = 0
         right = len(key)
         part = right

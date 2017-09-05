@@ -76,7 +76,7 @@ class LocationMgr(models.Model):
         updated = False
         if not self.is_eq_lat_lng(lat, lng):
             #delete old guy
-            self.delete_from_tree()
+            self.delete_from_tree(self.pk)
             #update self
             self.lat = lat
             self.lng = lng
@@ -88,10 +88,10 @@ class LocationMgr(models.Model):
 
         return updated
 
-    def delete_from_tree(self):
+    def delete_from_tree(self, mod_id):
         tsc = TreeStateClient()
         val = tsc.tree_delete(
-            key=wizlib.modified_key(self.key, self.pk),
+            key=wizlib.modified_key(self.key, mod_id),
             tree_type=self.tree_type)
 
         logger.debug('deleted from tree: [{%s}.{%s}]', self.tree_type, self.key)
@@ -107,8 +107,9 @@ class LocationMgr(models.Model):
         logger.debug('inserted into tree: [{%s}.{%s}]', self.tree_type, self.key)
 
     def delete(self, *args, **kwargs):
-        self.delete_from_tree()
+        mod_id = self.pk
         super(LocationMgr, self).delete(*args, **kwargs)
+        self.delete_from_tree(mod_id)
 
     def lookup(self, n):
         return LocationMgr.objects.lookup(

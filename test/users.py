@@ -33,14 +33,18 @@ class User(object):
         self.last_name = id_generator()
         self.username = id_generator()
         self.target = id_generator()
+        self.device_id = "DUMMY_DEVICE_ID"
         self.response_mode = 'sms'
-        self.msg_hdr = dict(header=dict(device_id='DUMMY', hash='DUMMY', version=messages.APP_VERSION))
+        self.msg_hdr = dict(header=dict(device_id=self.device_id, hash='DUMMY', version=messages.APP_VERSION))
         self.global_index = len(global_user_list)
         self.connection = Connect()
         self.conn = self.connection.conn
 
         self.uid = 0
         self.wuid = 0
+
+    def password(self, uid):
+        return self.device_id+uid
 
     def get_fbizcard_image(self):
         try:
@@ -85,7 +89,7 @@ class User(object):
 
         self.reqmsg['sender']['user_id'] = self.uid
         self.reqmsg['sender']['username'] = self.username
-        self.reqmsg['sender']['password'] = self.username
+        self.reqmsg['sender']['password'] = self.password(self.uid)
 
         send_request(self.conn, self.reqmsg)
         objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
@@ -114,7 +118,7 @@ class User(object):
         send_request(self.conn, self.reqmsg)
         objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
 
-        self.wc_id = objs['data']['wizcard_id']
+        self.wc_id = objs['data']['wizcard']['wizcard_id']
         global_user_list[self.global_index][self.key].update(wc_id=self.wc_id)
 
     def get_cards(self):
@@ -136,11 +140,9 @@ class User(object):
 
     def send_asset_to_xyz(self, users):
         valid_users = []
-	pdb.set_trace()
         for u in users:
             if self.uid != u.uid:
                 valid_users.append(u.wuid)
-
 
         self.reqmsg = messages.send_asset_to_xyz.copy()
         self.reqmsg['header'].update(self.msg_hdr['header'])
@@ -169,11 +171,14 @@ def main():
         u.onboard_user()
         list_u.append(u)
 
-    for u in list_u:
-        uids = sample(xrange(1, num_users), int(0.4 * num_users))
-	users = map(lambda x:list_u[x], uids)
-	
-        u.send_asset_to_xyz(users)
+    # AA: commenting all this. No point doing it like a test/register manner all over again.
+    # this needs to be done in a better, structured manner. where there is a test.definition and the stuff
+    # here follows that definition
+
+    # for u in list_u:
+    #     uids = sample(xrange(1, num_users), int(0.4 * num_users))
+    #     users = map(lambda x:list_u[x], uids)
+    #     u.send_asset_to_xyz(users)
 
 
     while True:
