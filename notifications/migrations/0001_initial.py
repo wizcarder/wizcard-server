@@ -19,9 +19,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('readed', models.BooleanField(default=False)),
+                ('acted_upon', models.BooleanField(default=True)),
                 ('actor_object_id', models.CharField(max_length=255)),
                 ('verb', models.CharField(max_length=255)),
-                ('description', models.TextField(null=True, blank=True)),
                 ('target_object_id', models.CharField(max_length=255, null=True, blank=True)),
                 ('action_object_object_id', models.CharField(max_length=255, null=True, blank=True)),
                 ('timestamp', models.DateTimeField(default=django.utils.timezone.now)),

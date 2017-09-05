@@ -6,16 +6,19 @@ import pdb
 from wizcard import settings
 
 ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
-test_image_path = "test/photo.JPG"
-ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
+#test_image_path = "test/photo.JPG"
+#ocr_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
+test_image_path = "test/1-f_bc.2.2015-06-21_2056.jpg"
+
 
 
 APP_VERSION = str(settings.APP_MAJOR) + "." +  str(settings.APP_MINOR)
 
 
 def send_request(conn, req):
-    print("Sending ", req['header']['msgType'])
-    pprint.pprint(req)
+    print("Sending ", req['header']['msg_type'])
+    if not req['header']['msg_type'] in ['ocr_req_self', 'ocr_req_dead_card']:
+        pprint.pprint(req)
     jreq = json.dumps(req)
     conn.request("POST", "", jreq)
 

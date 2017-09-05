@@ -101,7 +101,6 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
-
     def inc_edit_card_video(self, user_stats, global_stats):
         user_stats.edit_card_video += 1
         global_stats.edit_card_video += 1
@@ -136,7 +135,6 @@ class StatsMgr(models.Manager):
 
         user_stats.save()
         global_stats.save()
-
 
     def inc_wizcard_decline(self, user_stats, global_stats):
         user_stats.wizcard_decline += 1
@@ -270,6 +268,82 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
+    def inc_events_get(self, user_stats, global_stats):
+        user_stats.get_events += 1
+        global_stats.get_events += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_create(self, user_stats, global_stats):
+        user_stats.entity_create += 1
+        global_stats.entity_create += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_destroy(self, user_stats, global_stats):
+        user_stats.entity_destroy += 1
+        global_stats.entity_destroy += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_edit(self, user_stats, global_stats):
+        user_stats.entity_edit += 1
+        global_stats.entity_edit += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entities_engage(self, user_stats, global_stats):
+        user_stats.entities_engage += 1
+        global_stats.entities_engage += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_join(self, user_stats, global_stats):
+        user_stats.entity_join += 1
+        global_stats.entity_join += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_leave(self, user_stats, global_stats):
+        user_stats.entity_leave += 1
+        global_stats.entity_leave += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_query(self, user_stats, global_stats):
+        user_stats.entity_query += 1
+        global_stats.entity_query += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_my_entities(self, user_stats, global_stats):
+        user_stats.my_entities += 1
+        global_stats.my_entities += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_summary(self, user_stats, global_stats):
+        user_stats.entity_summary += 1
+        global_stats.entity_summary += 1
+
+        user_stats.save()
+        global_stats.save()
+
+    def inc_entity_details(self, user_stats, global_stats):
+        user_stats.entity_details += 1
+        global_stats.entity_details += 1
+
+        user_stats.save()
+        global_stats.save()
 
 
 class Stats(models.Model):
@@ -316,6 +390,17 @@ class Stats(models.Model):
     set_reco = models.IntegerField(blank=True, default=0)
     get_common_connections = models.IntegerField(blank=True, default=0)
     video_thumbnail = models.IntegerField(blank=True, default=0)
+    entity_create = models.IntegerField(blank=True, default=0)
+    entity_destroy = models.IntegerField(blank=True, default=0)
+    entity_edit = models.IntegerField(blank=True, default=0)
+    entity_join = models.IntegerField(blank=True, default=0)
+    entity_leave = models.IntegerField(blank=True, default=0)
+    entity_query = models.IntegerField(blank=True, default=0)
+    my_entities = models.IntegerField(blank=True, default=0)
+    entity_summary = models.IntegerField(blank=True, default=0)
+    entity_details = models.IntegerField(blank=True, default=0)
+    get_events = models.IntegerField(blank=True, default=0)
+    entities_engage = models.IntegerField(blank=True, default=0)
 
     objects = StatsMgr()
 
@@ -323,7 +408,7 @@ class Stats(models.Model):
 def create_user_stats(sender, instance, created, **kwargs):
     if created:
         user_stats = Stats(user=instance)
-        if UserProfile.objects.is_admin_user(instance):
+        if instance.profile.is_admin:
             user_stats.is_global = True
         user_stats.save()
 

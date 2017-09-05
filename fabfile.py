@@ -12,13 +12,13 @@ env.venv = '/home/'+env.runuser+'/'+env.henv
 env.activate = 'source /home/' +env.runuser+'/'+ env.henv+'/bin/activate'
 env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
 env.awskey = './certs/stagewizcard.pem'
-env.gitkey = '/home/ubuntu/.ssh/id_rsa'
 if env.henv != 'dev':
     env.key_filename = ['./certs/prodindia.pem']
 else:
     env.key_filename = ['/home/anand/testenv/wizcard-server/certs/wizcard-default.pem']
     env.key_filename = ['./certs/wizcard-default.pem']
-env.gitkey = '/home/ubuntu/.ssh/id_rsa'
+#env.gitkey = '/home/ubuntu/.ssh/id_rsa'
+env.gitkey = '~/.ssh/id_rsa'
 #env.henv = 'dev'
 #env.function = 'WIZSERVER'
 
@@ -91,16 +91,17 @@ def installpackage(name=env.installroot + "/req.txt"):
 @task
 def gitcloneupdate():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
-    if env.henv == 'dev':
+    if env.henv != 'dev':
         with settings(warn_only=True):
          local("scp -i %s %s %s@%s:/home/%s/.ssh/id_rsa" % (env.key_filename[0],env.gitkey,env.runuser,env.host,env.runuser)) 
 
     with settings(warn_only=True):
         if run("test -d %s" % env.installroot).failed:
             run("git clone git@github.com:wizcarder/wizcard-server.git  %s" % env.installroot)
+            run("cd %s && git checkout -b entity" % env.installroot)
         else:
             with cd(env.installroot):
-             run("cd %s && git checkout master && git pull origin master" % env.installroot)
+             run("cd %s && git checkout entity && git pull origin entity" % env.installroot)
 
 def localgitpullfile():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
@@ -321,16 +322,16 @@ def restart():
 		
 def deployall():
 	fastprint("\nRunning aptgets===================================\n")
-        aptgets()
+        #aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
-	gitcloneupdate()
+	#gitcloneupdate()
 	fastprint("\nDone gitcloneupdate===================================\n")
 	fastprint("\nRunning createvirtualenv===================================\n")
-	createvirtualenv()
+	#createvirtualenv()
 	fastprint("\nDone createvirtualenv===================================\n")
 	fastprint("\nRunning installpackage===================================\n")
-	installpackage()
+	#installpackage()
 	fastprint("\nDone installpackage===================================\n")
 	fastprint("\nRunning postinstall===================================\n")
 	postinstall()
@@ -344,16 +345,16 @@ def deployall():
 
 def deploylocation():
 	fastprint("\nRunning aptgets===================================\n")
-        aptgets()
+        #aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
-	gitcloneupdate()
+	#gitcloneupdate()
 	fastprint("\nDone gitcloneupdate===================================\n")
 	fastprint("\nRunning createvirtualenv===================================\n")
-	createvirtualenv()
+	#createvirtualenv()
 	fastprint("\nDone createvirtualenv===================================\n")
 	fastprint("\nRunning installpackage===================================\n")
-	installpackage()
+	#installpackage()
 	fastprint("\nDone installpackage===================================\n")
 	fastprint("\nRunning postinstall===================================\n")
 	postinstall()
@@ -367,16 +368,16 @@ def deploylocation():
 
 def deploywizserver():
 	fastprint("\nRunning aptgets===================================\n")
-        aptgets()
+        #aptgets()
 	fastprint("\ndone aptgets===================================\n")
 	fastprint("\nRunning aptgets===================================\n")
-	gitcloneupdate()
+	#gitcloneupdate()
 	fastprint("\nDone gitcloneupdate===================================\n")
 	fastprint("\nRunning createvirtualenv===================================\n")
-	createvirtualenv()
+	#createvirtualenv()
 	fastprint("\nDone createvirtualenv===================================\n")
 	fastprint("\nRunning installpackage===================================\n")
-	installpackage()
+	#installpackage()
 	fastprint("\nDone installpackage===================================\n")
 	fastprint("\nRunning postinstall===================================\n")
 	postinstall()

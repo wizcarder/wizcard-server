@@ -67,9 +67,11 @@ class RabbitClient(object):
                                        routing_key=self.routing_key,
                                        body=json.dumps(params))
 
+        self.connection_close()
+
         if self.response:
             return json.loads(self.response)
-        self.connection_close()
+
         return None
 
     def on_response(self, ch, method, props, body):

@@ -289,9 +289,9 @@ class RecoRunner(RabbitServer):
         return newreco
 
     def updateRecoTime(self, tuser):
-        uprofile = tuser.profile
-        uprofile.reco_generated_at = timezone.now()
-        uprofile.save()
+        au_profile = tuser.profile.app_user()
+        au_profile.reco_generated_at = timezone.now()
+        au_profile.save()
 
     def run_allreco(self, target):
         tuser = None
@@ -310,9 +310,9 @@ class RecoRunner(RabbitServer):
                     target=tuser.wizcard,onlypush=True)
 
     def updateRecoCount(self,tuser,recocount):
-        uprofile = tuser.profile
-        uprofile.reco_ready = recocount
-        uprofile.save()
+        au_profile = tuser.profile.app_user()
+        au_profile.reco_ready = recocount
+        au_profile.save()
 
     def on_message(self, ch, basic_deliver, props, body):
         logger.info('Received message # %s from %s: %s',

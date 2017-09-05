@@ -17,39 +17,38 @@ MSG_ROLODEX_EDIT        = 13
 MSG_ARCHIVED_CARDS      = 14
 MSG_CARD_DETAILS        = 15
 MSG_QUERY_USER          = 16
-MSG_CREATE_TABLE        = 17
-MSG_JOIN_TABLE          = 18
-MSG_LEAVE_TABLE         = 19
-MSG_DESTROY_TABLE       = 20
-MSG_TABLE_EDIT          = 21
-MSG_TABLE_SUMMARY       = 22
-MSG_TABLE_DETAILS       = 23
-MSG_TABLE_QUERY         = 24
-MSG_MY_TABLES           = 25
-MSG_SETTINGS            = 26
-MSG_OCR_SELF            = 27
-MSG_OCR_DEAD_CARD       = 28
-MSG_OCR_EDIT            = 29
-MSG_EMAIL_TEMPLATE      = 30
-MSG_GET_RECOMMENDATION  = 31
-MSG_SET_RECO_ACTION     = 32
-MSG_GET_COMMON_CONNECTIONS = 33
-MSG_GET_VIDEO_THUMBNAIL = 34
-MSG_MEISHI_START        = 35
-MSG_MEISHI_FIND         = 36
-MSG_MEISHI_END          = 37
-MSG_FLICK               = 38
-MSG_FLICK_ACCEPT        = 39
-MSG_FLICK_ACCEPT_CONNECT = 40
-MSG_FLICK_QUERY         = 41
-MSG_MY_FLICKS           = 42
-MSG_FLICK_WITHDRAW      = 44
-MSG_FLICK_EDIT          = 45
-MSG_FLICK_PICKS         = 46
-MSG_WIZWEB_QUERY_USER   = 47
-MSG_WIZWEB_QUERY_WIZCARD = 48
-MSG_WIZWEB_CREATE_USER  = 49
-MSG_WIZWEB_ADD_EDIT_CARD = 50
+MSG_ENTITY_CREATE       = 17
+MSG_ENTITY_DESTROY      = 18
+MSG_ENTITY_EDIT         = 19
+MSG_ENTITY_JOIN         = 20
+MSG_ENTITY_LEAVE        = 21
+MSG_ENTITY_SUMMARY      = 22
+MSG_ENTITY_DETAILS      = 23
+MSG_ENTITY_QUERY        = 24
+MSG_MY_ENTITIES         = 25
+MSG_GET_EVENTS          = 26
+MSG_ENTITIES_ENGAGE     = 28
+MSG_SETTINGS            = 28
+MSG_OCR_SELF            = 29
+MSG_OCR_DEAD_CARD       = 30
+MSG_OCR_EDIT            = 31
+MSG_EMAIL_TEMPLATE      = 32
+MSG_GET_RECOMMENDATION  = 33
+MSG_SET_RECO_ACTION     = 34
+MSG_GET_COMMON_CONNECTIONS = 35
+MSG_GET_VIDEO_THUMBNAIL = 36
+MSG_MEISHI_START        = 37
+MSG_MEISHI_FIND         = 38
+MSG_MEISHI_END          = 39
+MSG_FLICK               = 40
+MSG_FLICK_ACCEPT        = 41
+MSG_FLICK_ACCEPT_CONNECT = 42
+MSG_FLICK_QUERY         = 43
+MSG_MY_FLICKS           = 44
+MSG_FLICK_WITHDRAW      = 45
+MSG_FLICK_EDIT          = 46
+MSG_FLICK_PICKS         = 47
+
 
 wizcardMsgTypes = {
     'login'                       : MSG_LOGIN,
@@ -75,16 +74,18 @@ wizcardMsgTypes = {
     'flick_pickers'               : MSG_FLICK_PICKS,
     'send_asset_to_xyz'           : MSG_SEND_ASSET_XYZ,
     'send_query_user'             : MSG_QUERY_USER,
+    'entity_create'               : MSG_ENTITY_CREATE,
+    'entity_destroy'              : MSG_ENTITY_DESTROY,
+    'entity_edit'                 : MSG_ENTITY_EDIT,
+    'entity_join'                 : MSG_ENTITY_JOIN,
+    'entity_leave'                : MSG_ENTITY_LEAVE,
+    'entity_summary'              : MSG_ENTITY_SUMMARY,
+    'entity_details'              : MSG_ENTITY_DETAILS,
+    'entity_query'                : MSG_ENTITY_QUERY,
+    'my_entities'                 : MSG_MY_ENTITIES,
+    'get_events'                  : MSG_GET_EVENTS,
+    'entities_like'               : MSG_ENTITIES_ENGAGE,
     'get_card_details'            : MSG_CARD_DETAILS,
-    'query_tables'                : MSG_TABLE_QUERY,
-    'my_tables'                   : MSG_MY_TABLES,
-    'table_summary'               : MSG_TABLE_SUMMARY,
-    'table_details'               : MSG_TABLE_DETAILS,
-    'create_table'                : MSG_CREATE_TABLE,
-    'join_table'                  : MSG_JOIN_TABLE,
-    'leave_table'                 : MSG_LEAVE_TABLE,
-    'destroy_table'               : MSG_DESTROY_TABLE,
-    'table_edit'                  : MSG_TABLE_EDIT,
     'settings'                    : MSG_SETTINGS,
     'ocr_req_self'                : MSG_OCR_SELF,
     'ocr_req_dead_card'           : MSG_OCR_DEAD_CARD,
@@ -97,10 +98,6 @@ wizcardMsgTypes = {
     'set_reco_action'             : MSG_SET_RECO_ACTION,
     'get_common_connections'      : MSG_GET_COMMON_CONNECTIONS,
     'get_video_thumbnail'         : MSG_GET_VIDEO_THUMBNAIL,
-    'wizweb_query_user'           : MSG_WIZWEB_QUERY_USER,
-    'wizweb_query_wizcard'	      : MSG_WIZWEB_QUERY_WIZCARD,
-    'wizweb_create_user'	      : MSG_WIZWEB_CREATE_USER,
-    'wizweb_add_edit_card'	      : MSG_WIZWEB_ADD_EDIT_CARD,
 }
 
 
@@ -117,11 +114,10 @@ NOTIF_NEARBY_TABLES             = 8
 NOTIF_FLICK_TIMEOUT             = 9
 NOTIF_FLICK_PICK                = 10
 NOTIF_WITHDRAW_REQUEST          = 11
-NOTIF_WIZWEB_UPDATE_WIZCARD     = 12
 NOTIF_TABLE_INVITE              = 13
 NOTIF_WIZCARD_FORWARD           = 14
-NOTIF_TABLE_JOIN                = 15
-NOTIF_TABLE_LEAVE               = 16
+NOTIF_ENTITY_JOIN               = 15
+NOTIF_ENTITY_LEAVE              = 16
 NOTIF_FOLLOW_EXPLICIT           = 17
 
 # receiver types
@@ -156,6 +152,7 @@ RELATIONSHIP_STATUSES = (
 )
 
 # tags
+ADMIN = "admin"
 OWN = "own"
 CONNECTED = "connected"
 FOLLOWER = "follower"
@@ -180,10 +177,10 @@ WIZCARD_FLICK_TIMEOUT = ('flick timeout', 1)
 WIZCARD_FLICK_PICK = ('flick pick', 1)
 WIZCARD_TABLE_INVITE = ('table invite', 1)
 WIZCARD_FORWARD = ('wizcard forward', 1)
-WIZCARD_TABLE_JOIN = ('table join', 0)
-WIZCARD_TABLE_LEAVE = ('table leave', 0)
-WIZWEB_WIZCARD_UPDATE = ('wizweb wizcard update', 1)
+WIZCARD_ENTITY_JOIN = ('entity join', 0)
+WIZCARD_ENTITY_LEAVE = ('entity leave', 0)
 WIZCARD_RECO_READY = ('new recommendations ready', 1)
+
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {
@@ -211,7 +208,7 @@ apns_notification_dictionary = {
     WIZCARD_TABLE_TIMEOUT[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': '{1.tablename} table has now expired',
+        'alert': '{1.name} table has now expired',
     },
     WIZCARD_TABLE_DESTROY[0]: {
         'sound': 'flynn.caf',
@@ -238,11 +235,6 @@ apns_notification_dictionary = {
         'badge': 0,
         'alert': '{0.first_name} {0.last_name} picked up your flicked wizcard',
     },
-    WIZWEB_WIZCARD_UPDATE[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'your wizcard was updated',
-    },
     WIZCARD_RECO_READY[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
@@ -253,12 +245,10 @@ apns_notification_dictionary = {
 gcm_notification_dictionary = {
     WIZREQ_U[0]	: {
         'title':'Connection Request',
-        #AA:TODO: separate verb from push message
         'body': '{0.first_name} {0.last_name} would like to connect with you',
     },
     WIZREQ_F[0]	: {
         'title':'Follow Request',
-        #AA:TODO: separate verb from push message
         'body': '{0.first_name} {0.last_name} would like to follow you',
     },
     WIZREQ_T[0]	: {
@@ -269,7 +259,6 @@ gcm_notification_dictionary = {
         'title': 'Accepted',
         'body': '{0.first_name} {0.last_name} accepted your invitation',
     },
-
     WIZCARD_UPDATE[0]: {
         'title': 'Updated WizCard',
         'body': '{0.first_name} {0.last_name} has an updated wizcard',
@@ -281,7 +270,11 @@ gcm_notification_dictionary = {
     WIZCARD_RECO_READY[0]: {
         'title' : 'Wizcard - New Recommendations waiting for you',
         'body': 'Wizcard - New Recommendations waiting for you ',
-    }
+    },
+    WIZCARD_TABLE_TIMEOUT[0]: {
+        'title' : 'Wizcard - Table expired',
+        'body': '{1.name} table has now expired',
+    },
 
 }
 

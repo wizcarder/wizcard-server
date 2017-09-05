@@ -11,11 +11,11 @@ logger = logging.getLogger(__name__)
 def tick():
     logger.debug('Timer Tick received')
     tsc = TreeStateClient()
-    tsc.print_trees(tree_type=None)
+
     e = Periodic.objects.get_expired()
     if e.count():
-        logger.info('Expired objects found')
         ids = map(lambda x:  x.location.pk, e)
+        logger.info('Expired objects found {%s}', ids)
         location_timeout.send(sender=None, ids=ids)
 
     tsc.print_trees(tree_type=None)

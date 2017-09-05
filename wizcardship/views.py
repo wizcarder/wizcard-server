@@ -12,7 +12,7 @@
 .. autofunction:: user_block
 
 .. autofunction:: user_unblock
-"""
+
 from django.http import HttpResponseBadRequest, Http404
 from django.http import HttpResponse
 from django.db import transaction
@@ -117,3 +117,37 @@ wizconnection_cancel = login_required(WizcardCancelView.as_view())
 wizconnection_delete = login_required(WizcardDeleteView.as_view())
 user_block = login_required(WizcardBlockView.as_view())
 user_unblock = login_required(WizcardUnblockView.as_view())
+"""
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import generics
+from wizcardship.models import Wizcard
+from wizcardship.serializers import WizcardSerializer
+from rest_framework_extensions.mixins import NestedViewSetMixin
+from django.http import Http404
+import pdb
+
+
+# Create your views here.
+
+
+class WizcardViewSet(viewsets.ModelViewSet):
+
+    def get_object_or_404(self, pk):
+        try:
+            return Wizcard.objects.get(pk=pk)
+        except Wizcard.DoesNotExist:
+            raise Http404
+
+    serializer_class = WizcardSerializer
+    queryset = Wizcard.objects.all()
+
+    def retrieve(self, request, pk=None):
+        queryset = Wizcard.objects.get(id=pk)
+        serializer = WizcardSerializer(queryset)
+        return Response(serializer.data)
+

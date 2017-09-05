@@ -17,12 +17,15 @@ import libtest
 from libtest import send_request, handle_response
 
 
-TEST_IMAGE=False
+TEST_IMAGE=True
 OCR_FLAG = False
-TEST_TABLE = False
+TEST_TABLE = True
 TEST_FLICK = False
 TEST_WIZWEB = False
-APP_VERSION = str(settings.APP_MAJOR) + "." +  str(settings.APP_MINOR)
+OEMBED = False
+SKIP_BASIC = False
+TEST_ENTITY = True
+
 
 USERNAME1 = messages.PHONE1+'@wizcard.com'
 USERNAME2 = messages.PHONE2+'@wizcard.com'
@@ -85,12 +88,6 @@ server_port = 8000
 # Open the connection to Wiz server
 conn = httplib.HTTPConnection(server_url, server_port)
 
-#send edit_cards for each
-if TEST_IMAGE:
-    f = open(libtest.test_image_path, 'rb')
-    cc_out = f.read().encode('base64')
-else:
-    cc_out = None
 
 if OCR_FLAG:
     f = open(libtest.ocr_image_path, 'rb')
@@ -99,1156 +96,1407 @@ else:
     ocr_out = None
 
 
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID1
-reqmsg['header']['hash'] = HASH1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data'].get('challenge_key', 1234)
-
-# send some more requests to simulate user retry
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID1
-reqmsg['header']['hash'] = HASH1
-reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID1
-reqmsg['header']['hash'] = HASH1
-reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID1
-reqmsg['header']['hash'] = HASH1
-reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-# this one should be an error
-objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
-
-reqmsg = messages.phone_check_resp
-reqmsg['header']['deviceID'] = DEVICE_ID1
-reqmsg['header']['hash'] = HASH1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['responseKey'] = response_key
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-uid1 = objs['data']['userID']
-
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID2
-reqmsg['header']['hash'] = HASH2
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = USERNAME2
-reqmsg['sender']['target'] = messages.PHONE2
-reqmsg['sender']['responseMode'] = 'sms'
-
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data']['challenge_key']
-
-reqmsg = messages.phone_check_resp
-reqmsg['header']['deviceID'] = DEVICE_ID2
-reqmsg['header']['hash'] = HASH2
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = USERNAME2
-reqmsg['sender']['responseKey'] = response_key
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-uid2 = objs['data']['userID']
-
-#AnandR: Should check when the response_key doesnt match the sent response_key
-
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID3
-reqmsg['header']['hash'] = HASH3
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = USERNAME3
-reqmsg['sender']['target'] = messages.PHONE3
-reqmsg['sender']['responseMode'] = 'sms'
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data']['challenge_key']
-
-
-#resp = objs['data']['key']
-reqmsg = messages.phone_check_resp
-reqmsg['header']['deviceID'] = DEVICE_ID3
-reqmsg['header']['hash'] = HASH3
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = USERNAME3
-reqmsg['sender']['responseKey'] = response_key
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-uid3 = objs['data']['userID']
-
-reqmsg = messages.login
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = USERNAME1
-reqmsg['sender']['userID'] = uid1
-reqmsg['header']['deviceID'] = DEVICE_ID1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-wuid1 = objs['data']['wizUserID']
-
-reqmsg['sender']['username'] = USERNAME2
-reqmsg['sender']['userID'] = uid2
-reqmsg['header']['deviceID'] = DEVICE_ID2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-wuid2 = objs['data']['wizUserID']
-
-reqmsg['sender']['username'] = USERNAME3
-reqmsg['sender']['userID'] = uid3
-reqmsg['header']['deviceID'] = DEVICE_ID3
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-wuid3 = objs['data']['wizUserID']
-
-
-#send register
-
-#create 3 users
-reqmsg = messages.register1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID']=uid1
-reqmsg['sender']['wizUserID']=wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.register2
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID']=uid2
-reqmsg['sender']['wizUserID']=wuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.register3
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID']=uid3
-reqmsg['sender']['wizUserID']=wuid3
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-
-reqmsg = messages.edit_card1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-contacts = reqmsg['sender']['contact_container']
-#populate file
-for c in contacts:
-    c['f_bizCardImage'] = cc_out
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-e1_id = objs['data']['wizCardID']
-
-reqmsg = messages.edit_card2
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-contacts = reqmsg['sender']['contact_container']
-#populate file
-for c in contacts:
-    c['f_bizCardImage'] = cc_out
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-e2_id = objs['data']['wizCardID']
-
-reqmsg = messages.get_email_template
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-#send_request(conn, reqmsg)
-#objs = handle_response(conn, reqmsg['header']['msgType'])
-#email = objs['data']['emailTemplate']
-print "Email check..."
-
-reqmsg = messages.edit_card3
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-contacts = reqmsg['sender']['contact_container']
-#populate file
-for c in contacts:
-    c['f_bizCardImage'] = cc_out
-    #c['b_bizCardImage'] = out
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-e3_id = objs['data']['wizCardID']
-
-#send location update
-reqmsg = messages.location
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['lat'] = messages.LAT1
-reqmsg['sender']['lng'] = messages.LNG1
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-#send get cards to seed location information
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-notif = NotifParser(objs['data'], uid1, wuid1)
-nrsp = notif.process()
-
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-notif = NotifParser(objs['data'], uid2, wuid2)
-nrsp = notif.process()
-
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-notif = NotifParser(objs['data'], uid3, wuid3)
-nrsp = notif.process()
-
-#contacts upload user 1
-reqmsg = messages.contacts_upload
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
-reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
-reqmsg['receiver']['ab_list'] = messages.USER1_AB
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-#contacts upload user 2
-reqmsg = messages.contacts_upload
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
-reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
-reqmsg['receiver'].update(messages.ab_list_ananda_1)
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-#contacts upload user 3
-reqmsg = messages.contacts_upload
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['receiver']['prefix'] = INTERNATIONAL_PREFIX
-reqmsg['receiver'].update(messages.ab_list_baskar_1)
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-# get reco for u1
-reqmsg = messages.get_recommendations
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['size'] = 5
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.contacts_upload
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
-reqmsg['receiver'].update(messages.ab_list_anandr_1)
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-
-reqmsg = messages.card_details
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardID'] = e1_id
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.card_details
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['receiver']['wizCardID'] = e2_id
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.card_details
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['receiver']['wizCardID'] = e3_id
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-
-#1:1 Tests
-
-#assetToXYZ tests
-#asset types: wizcard, table
-#receiverType: phone, email, wizUserID
-#u1 -> u2, u3 via wiz
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "wiz_untrusted"
-reqmsg['receiver']['receiverIDs'] = [wuid2, wuid3]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # connection state so far
-        # uid1(A)<->uid2(P)
-        # uid1(A)<->uid3(P)
-
-#u1 -> future_u1, u2 via sms
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_PHONE1, messages.FUTURE_PHONE2]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-#u2 -> future u1, u2 via email
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['sender']['assetID'] = e2_id
-reqmsg['receiver']['receiverType'] = "email"
-reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_EMAIL1, messages.FUTURE_EMAIL2]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-
-# Self invite - Should throw an error
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [messages.SELF_PHONE]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
-
-# Self invite + some other number - Shouldnt  throw an error and silently pass
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [messages.SELF_PHONE,messages.FUTURE_PHONE1]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-#now create future u1 and u2
-
-print "creating future user 1 and 2"
-reqmsg = messages.phone_check_req
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['header']['deviceID'] = DEVICE_ID4
-reqmsg['header']['hash'] = HASH2
-reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
-reqmsg['sender']['target'] = messages.FUTURE_PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
-
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data']['challenge_key']
-
-reqmsg = messages.phone_check_resp
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['header']['deviceID'] = DEVICE_ID4
-reqmsg['header']['hash'] = HASH2
-reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
-reqmsg['sender']['responseKey'] = response_key
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-fuid1 = objs['data']['userID']
-
-
-reqmsg = messages.phone_check_req
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['header']['deviceID'] = DEVICE_ID5
-reqmsg['header']['hash'] = HASH2
-reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
-reqmsg['sender']['target'] = messages.FUTURE_PHONE2
-reqmsg['sender']['responseMode'] = 'sms'
-
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data']['challenge_key']
-
-reqmsg = messages.phone_check_resp
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['header']['deviceID'] = DEVICE_ID5
-reqmsg['header']['hash'] = HASH2
-reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
-reqmsg['sender']['responseKey'] = response_key
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-fuid2 = objs['data']['userID']
-
-print "logging in future user 1 and 2"
-reqmsg = messages.login
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
-reqmsg['sender']['userID'] = fuid1
-reqmsg['header']['deviceID'] = DEVICE_ID4
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-fwuid1 = objs['data']['wizUserID']
-
-reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
-reqmsg['sender']['userID'] = fuid2
-reqmsg['header']['deviceID'] = DEVICE_ID5
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-fwuid2 = objs['data']['wizUserID']
-
-print "registering future user 1 and 2"
-reqmsg = messages.register1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID']=fuid1
-reqmsg['sender']['wizUserID']=fwuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.register2
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID']=fuid2
-reqmsg['sender']['wizUserID']=fwuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-print "creating wizcard for future user"
-reqmsg = messages.edit_card1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = fuid1
-reqmsg['sender']['wizUserID'] = fwuid1
-reqmsg['sender']['email'] = messages.FUTURE_EMAIL1
-reqmsg['sender']['phone1'] = messages.FUTURE_PHONE1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-fe1_id = objs['data']['wizCardID']
-
-reqmsg = messages.edit_card1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = fuid2
-reqmsg['sender']['wizUserID'] = fwuid2
-reqmsg['sender']['email'] = messages.FUTURE_EMAIL2
-reqmsg['sender']['phone1'] = messages.FUTURE_PHONE2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-fe2_id = objs['data']['wizCardID']
-
-        # connection state so far
-        # uid1(A)<->uid2(P)
-        # uid1(A)<->uid3(P)
-        # uid1(A)<->fuid1(P)
-        # uid1(A)<->fuid2(P)
-
-#at this point there should be notifs for this user
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-notif = NotifParser(objs['data'], uid1, wuid1)
-nrsp = notif.process()
-
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-notif = NotifParser(objs['data'], uid2, wuid2)
-nrsp = notif.process()
-
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-notif = NotifParser(objs['data'], uid3, wuid3)
-nrsp = notif.process()
-
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = fuid1
-reqmsg['sender']['wizUserID'] = fwuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-notif = NotifParser(objs['data'], fuid1, fwuid1)
-nrsp = notif.process()
-
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = fuid2
-reqmsg['sender']['wizUserID'] = fwuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-notif = NotifParser(objs['data'], fuid2, fwuid2)
-nrsp = notif.process()
-
-        # connection state so far
-        # uid1(A)<->uid2(P)
-        # uid1(A)<->uid3(P)
-        # uid1(A)<->fuid1(P)
-        # uid1(A)<->fuid2(P)
-
-# uid2 accept uid1
-reqmsg = messages.accept_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['receiver']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(P)
-        # uid1(A)<->fuid1(P)
-        # uid1(A)<->fuid2(P)
-
-# uid3 decline uid1
-reqmsg = messages.decline_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['receiver']['wizCardID'] = e1_id
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(DC)
-        # uid1(A)<->fuid1(P)
-        # uid1(A)<->fuid2(P)
-
-# fuid1 accept
-reqmsg = messages.accept_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = fuid1
-reqmsg['sender']['wizUserID'] = fwuid1
-reqmsg['receiver']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(DC)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(P)
-
-# fuid2 decline
-reqmsg = messages.decline_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = fuid2
-reqmsg['sender']['wizUserID'] = fwuid2
-reqmsg['receiver']['wizCardID'] = e1_id
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(DC)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-#u1 delete U2 rolodex
-reqmsg = messages.delete_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(DL)<->uid2(A)
-        # uid1(A)<->uid3(D)
-        # uid1(A)<->fuid1(P)
-        # uid1(A)<->fuid2(D)
-
-#u1 reaccept U2
-reqmsg = messages.accept_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['flag'] = "reaccept"
-reqmsg['receiver']['wizUserID'] = wuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(DC)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-#u3 reaccept u1
-reqmsg = messages.accept_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['sender']['flag'] = "reaccept"
-reqmsg['receiver']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-
-# Do it again (bug test)
-reqmsg = messages.accept_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['sender']['flag'] = "reaccept"
-reqmsg['receiver']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-
-# get common connections between 2 and 3
-reqmsg = messages.get_common_connections
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['sender']['wizCardID'] = e2_id
-reqmsg['sender']['more'] = False
-reqmsg['receiver']['wizCardID'] = e3_id
-send_request(conn, reqmsg)
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-# u1 delete U2 Rolodex
-reqmsg = messages.delete_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(DL)<->uid2(A)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-#u1 unarchive u2
-reqmsg = messages.accept_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['flag'] = "unarchive"
-reqmsg['receiver']['wizUserID'] = wuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-# u1 delete U2 Rolodex
-reqmsg = messages.delete_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(DL)<->uid2(A)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-# u1 <-> U2
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "wiz_untrusted"
-reqmsg['receiver']['receiverIDs'] = [wuid2]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(A)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-#U2 delete U1 rolodex
-reqmsg = messages.delete_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e1_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(DL)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-# u1 invite fuid1 when connected
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_PHONE1]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(DL)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(DC)
-
-# u1 delete card fuid2
-reqmsg = messages.delete_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [fe2_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(DL)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(DL)<->fuid2(DC)
-
-# AA: Debug this
-# u1 invite fuid2 when declined
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "sms"
-reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_PHONE2]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(DL)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(P)
-
-# fuid2 accept u1
-reqmsg = messages.accept_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = fuid2
-reqmsg['sender']['wizUserID'] = fwuid2
-reqmsg['receiver']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(A)<->uid2(DL)
-        # uid1(A)<->uid3(A)
-        # uid1(A)<->fuid1(A)
-        # uid1(A)<->fuid2(A)
-
-#delete all rolodex card of u1
-print "deleting all cards of ", uid1
-reqmsg = messages.delete_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id, e3_id, fe1_id, fe2_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-        # uid1(DL)<->uid2(DL)
-        # uid1(DL)<->uid3(A)
-        # uid1(DL)->fuid1(A)
-        # uid1(DL) fuid2(A)
-
-# u1 edit rolodex card of u3
-print "adding notes to  ", uid3
-reqmsg = messages.edit_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardID'] = wuid3
-reqmsg['receiver']['notes']['note'] = "test one test two"
-reqmsg['receiver']['notes']['last_saved'] = "1st Jan 2016"
-
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-#user query
-reqmsg = messages.user_query
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['receiver']['name'] = FIRSTNAME_Q
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-# archived cards
-reqmsg = messages.archived_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-# Meishi
-reqmsg = messages.meishi_start
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['sender']['wizCardID'] = e1_id
-reqmsg['sender']['lat'] = messages.LAT1
-reqmsg['sender']['lng'] = messages.LNG1
-send_request(conn, reqmsg)
-objs = handle_response(conn,reqmsg['header']['msgType'])
-mei_id2 = objs['data']['mID']
-m_nearby = objs['data']['m_nearby']
-
-reqmsg = messages.meishi_find
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['sender']['mID'] = mei_id2
-send_request(conn, reqmsg)
-objs = handle_response(conn,reqmsg['header']['msgType'])
-if objs['data'].has_key('m_result'):
-    mei_pair = objs['data']['m_result']
-else:
-    # expect nearby response
+if not SKIP_BASIC:
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = USERNAME1
+    reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+    reqmsg['sender']['response_mode'] = 'sms'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    response_key = objs['data'].get('challenge_key', 1234)
+
+    # send some more requests to simulate user retry
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['sender']['username'] = USERNAME1
+    reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+    reqmsg['sender']['response_mode'] = 'sms'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['sender']['username'] = USERNAME1
+    reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+    reqmsg['sender']['response_mode'] = 'sms'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['sender']['username'] = USERNAME1
+    reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+    reqmsg['sender']['response_mode'] = 'sms'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    # this one should be an error
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
+
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = USERNAME1
+    reqmsg['sender']['response_key'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    uid1 = objs['data']['user_id']
+
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID2
+    reqmsg['header']['hash'] = HASH2
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = USERNAME2
+    reqmsg['sender']['target'] = messages.PHONE2
+    reqmsg['sender']['response_mode'] = 'sms'
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    response_key = objs['data']['challenge_key']
+
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['device_id'] = DEVICE_ID2
+    reqmsg['header']['hash'] = HASH2
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = USERNAME2
+    reqmsg['sender']['response_key'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    uid2 = objs['data']['user_id']
+
+    #AnandR: Should check when the response_key doesnt match the sent response_key
+
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['header']['hash'] = HASH3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = USERNAME3
+    reqmsg['sender']['target'] = messages.PHONE3
+    reqmsg['sender']['response_mode'] = 'sms'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    response_key = objs['data']['challenge_key']
+
+
+    #resp = objs['data']['key']
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['header']['hash'] = HASH3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = USERNAME3
+    reqmsg['sender']['response_key'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    uid3 = objs['data']['user_id']
+
+    reqmsg = messages.login
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = USERNAME1
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['sender']['password'] = DEVICE_ID1+uid1
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    wuid1 = objs['data']['wizuser_id']
+
+    reqmsg['sender']['username'] = USERNAME2
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['header']['device_id'] = DEVICE_ID2
+    reqmsg['sender']['password'] = DEVICE_ID2+uid2
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    wuid2 = objs['data']['wizuser_id']
+
+    reqmsg['sender']['username'] = USERNAME3
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['sender']['password'] = DEVICE_ID3+uid3
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    wuid3 = objs['data']['wizuser_id']
+
+    #send register
+
+    #create 3 users
+    reqmsg = messages.register1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id']=uid1
+    reqmsg['sender']['wizuser_id']=wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.register2
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id']=uid2
+    reqmsg['sender']['wizuser_id']=wuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.register3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id']=uid3
+    reqmsg['sender']['wizuser_id']=wuid3
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.edit_card1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    contacts = reqmsg['sender']['contact_container']
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    e1_id = objs['data']['wizcard']['wizcard_id']
+
+    reqmsg = messages.edit_card2
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    contacts = reqmsg['sender']['contact_container']
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    e2_id = objs['data']['wizcard']['wizcard_id']
+
+    reqmsg = messages.get_email_template
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    #send_request(conn, reqmsg)
+    #objs = handle_response(conn, reqmsg['header']['msg_type'])
+    #email = objs['data']['emailTemplate']
+    print "Email check..."
+
+    reqmsg = messages.edit_card3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    contacts = reqmsg['sender']['contact_container']
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    e3_id = objs['data']['wizcard']['wizcard_id']
+
+    #send location update
+    reqmsg = messages.location
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['lat'] = messages.LAT1
+    reqmsg['sender']['lng'] = messages.LNG1
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    #send get cards to seed location information
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    notif = NotifParser(objs['data'], uid1, wuid1)
+    nrsp = notif.process()
+
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    notif = NotifParser(objs['data'], uid2, wuid2)
+    nrsp = notif.process()
+
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    notif = NotifParser(objs['data'], uid3, wuid3)
+    nrsp = notif.process()
+
+    #contacts upload user 1
+    reqmsg = messages.contacts_upload
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+    reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+    reqmsg['receiver']['ab_list'] = messages.USER1_AB
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    #contacts upload user 2
+    reqmsg = messages.contacts_upload
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+    reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+    reqmsg['receiver'].update(messages.ab_list_ananda_1)
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    #contacts upload user 3
+    reqmsg = messages.contacts_upload
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['receiver']['prefix'] = INTERNATIONAL_PREFIX
+    reqmsg['receiver'].update(messages.ab_list_baskar_1)
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # get reco for u1
+    reqmsg = messages.get_recommendations
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['size'] = 5
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.contacts_upload
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+    reqmsg['receiver'].update(messages.ab_list_anandr_1)
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+
+    reqmsg = messages.card_details
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_id'] = e1_id
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.card_details
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['receiver']['wizcard_id'] = e2_id
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.card_details
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['receiver']['wizcard_id'] = e3_id
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+
+    #1:1 Tests
+
+    #assetToXYZ tests
+    #asset types: wizcard, entity
+    #receiver_type: phone, email, wizuser_id
+    #u1 -> u2, u3 via wiz
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
+    reqmsg['receiver']['receiver_ids'] = [wuid2, wuid3]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # connection state so far
+            # uid1(A)<->uid2(P)
+            # uid1(A)<->uid3(P)
+
+    #u1 -> future_u1, u2 via sms
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "sms"
+    reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_PHONE1, messages.FUTURE_PHONE2]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    #u2 -> future u1, u2 via email
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['asset_id'] = e2_id
+    reqmsg['receiver']['receiver_type'] = "email"
+    reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_EMAIL1, messages.FUTURE_EMAIL2]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+
+    # Self invite - Should throw an error
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "sms"
+    reqmsg['receiver']['receiver_ids'] = [messages.SELF_PHONE]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
+
+    # Self invite + some other number - Shouldnt  throw an error and silently pass
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "sms"
+    reqmsg['receiver']['receiver_ids'] = [messages.SELF_PHONE,messages.FUTURE_PHONE1]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    #now create future u1 and u2
+
+    print "creating future user 1 and 2"
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['header']['device_id'] = DEVICE_ID4
+    reqmsg['header']['hash'] = HASH2
+    reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
+    reqmsg['sender']['target'] = messages.FUTURE_PHONE1
+    reqmsg['sender']['response_mode'] = 'sms'
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    response_key = objs['data']['challenge_key']
+
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['header']['device_id'] = DEVICE_ID4
+    reqmsg['header']['hash'] = HASH2
+    reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
+    reqmsg['sender']['response_key'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    fuid1 = objs['data']['user_id']
+
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['header']['device_id'] = DEVICE_ID5
+    reqmsg['header']['hash'] = HASH2
+    reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
+    reqmsg['sender']['target'] = messages.FUTURE_PHONE2
+    reqmsg['sender']['response_mode'] = 'sms'
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    response_key = objs['data']['challenge_key']
+
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['header']['device_id'] = DEVICE_ID5
+    reqmsg['header']['hash'] = HASH2
+    reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
+    reqmsg['sender']['response_key'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    fuid2 = objs['data']['user_id']
+
+    print "logging in future user 1 and 2"
+    reqmsg = messages.login
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = messages.FUTURE_USERNAME1
+    reqmsg['sender']['user_id'] = fuid1
+    reqmsg['header']['device_id'] = DEVICE_ID4
+    reqmsg['sender']['password'] = DEVICE_ID4+fuid1
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    fwuid1 = objs['data']['wizuser_id']
+
+    reqmsg['sender']['username'] = messages.FUTURE_USERNAME2
+    reqmsg['sender']['user_id'] = fuid2
+    reqmsg['header']['device_id'] = DEVICE_ID5
+    reqmsg['sender']['password'] = DEVICE_ID5+fuid2
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    fwuid2 = objs['data']['wizuser_id']
+
+    print "registering future user 1 and 2"
+    reqmsg = messages.register1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id']=fuid1
+    reqmsg['sender']['wizuser_id']=fwuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.register2
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id']=fuid2
+    reqmsg['sender']['wizuser_id']=fwuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    print "creating wizcard for future user"
+    reqmsg = messages.edit_card1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = fuid1
+    reqmsg['sender']['wizuser_id'] = fwuid1
+    reqmsg['sender']['email'] = messages.FUTURE_EMAIL1
+    reqmsg['sender']['phone1'] = messages.FUTURE_PHONE1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    fe1_id = objs['data']['wizcard']['wizcard_id']
+
+    reqmsg = messages.edit_card1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = fuid2
+    reqmsg['sender']['wizuser_id'] = fwuid2
+    reqmsg['sender']['email'] = messages.FUTURE_EMAIL2
+    reqmsg['sender']['phone1'] = messages.FUTURE_PHONE2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    fe2_id = objs['data']['wizcard']['wizcard_id']
+
+            # connection state so far
+            # uid1(A)<->uid2(P)
+            # uid1(A)<->uid3(P)
+            # uid1(A)<->fuid1(P)
+            # uid1(A)<->fuid2(P)
+
+    #at this point there should be notifs for this user
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    notif = NotifParser(objs['data'], uid1, wuid1)
+    nrsp = notif.process()
+
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    notif = NotifParser(objs['data'], uid2, wuid2)
+    nrsp = notif.process()
+
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    notif = NotifParser(objs['data'], uid3, wuid3)
+    nrsp = notif.process()
+
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = fuid1
+    reqmsg['sender']['wizuser_id'] = fwuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    notif = NotifParser(objs['data'], fuid1, fwuid1)
+    nrsp = notif.process()
+
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = fuid2
+    reqmsg['sender']['wizuser_id'] = fwuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    notif = NotifParser(objs['data'], fuid2, fwuid2)
+    nrsp = notif.process()
+
+            # connection state so far
+            # uid1(A)<->uid2(P)
+            # uid1(A)<->uid3(P)
+            # uid1(A)<->fuid1(P)
+            # uid1(A)<->fuid2(P)
+
+    # uid2 accept uid1
+    reqmsg = messages.accept_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['receiver']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(A)
+            # uid1(A)<->uid3(P)
+            # uid1(A)<->fuid1(P)
+            # uid1(A)<->fuid2(P)
+
+    # uid3 decline uid1
+    reqmsg = messages.decline_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['receiver']['wizcard_id'] = e1_id
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(A)
+            # uid1(A)<->uid3(DC)
+            # uid1(A)<->fuid1(P)
+            # uid1(A)<->fuid2(P)
+
+    # fuid1 accept
+    reqmsg = messages.accept_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = fuid1
+    reqmsg['sender']['wizuser_id'] = fwuid1
+    reqmsg['receiver']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(A)
+            # uid1(A)<->uid3(DC)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(P)
+
+    # fuid2 decline
+    reqmsg = messages.decline_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = fuid2
+    reqmsg['sender']['wizuser_id'] = fwuid2
+    reqmsg['receiver']['wizcard_id'] = e1_id
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(A)
+            # uid1(A)<->uid3(DC)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+    #u1 delete U2 rolodex
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(DL)<->uid2(A)
+            # uid1(A)<->uid3(D)
+            # uid1(A)<->fuid1(P)
+            # uid1(A)<->fuid2(D)
+
+    #u1 reaccept U2
+    reqmsg = messages.accept_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['flag'] = "reaccept"
+    reqmsg['receiver']['wizuser_id'] = wuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(A)
+            # uid1(A)<->uid3(DC)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+    #u3 reaccept u1
+    reqmsg = messages.accept_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['flag'] = "reaccept"
+    reqmsg['receiver']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(A)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+
+    # Do it again (bug test)
+    reqmsg = messages.accept_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['flag'] = "reaccept"
+    reqmsg['receiver']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+
+    # get common connections between 2 and 3
+    reqmsg = messages.get_common_connections
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['wizcard_id'] = e2_id
+    reqmsg['sender']['more'] = False
+    reqmsg['receiver']['wizcard_id'] = e3_id
+    send_request(conn, reqmsg)
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # u1 delete U2 Rolodex
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(DL)<->uid2(A)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+    #u1 unarchive u2
+    reqmsg = messages.accept_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['flag'] = "unarchive"
+    reqmsg['receiver']['wizuser_id'] = wuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(A)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+    # u1 delete U2 Rolodex
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(DL)<->uid2(A)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+    # u1 <-> U2
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
+    reqmsg['receiver']['receiver_ids'] = [wuid2]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(A)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+    #U2 delete U1 rolodex
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e1_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(DL)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+    # u1 invite fuid1 when connected
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "sms"
+    reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_PHONE1]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(DL)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(DC)
+
+    # u1 delete card fuid2
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [fe2_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(DL)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(DL)<->fuid2(DC)
+
+    # AA: Debug this
+    # u1 invite fuid2 when declined
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "sms"
+    reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_PHONE2]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(DL)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(P)
+
+    # fuid2 accept u1
+    reqmsg = messages.accept_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = fuid2
+    reqmsg['sender']['wizuser_id'] = fwuid2
+    reqmsg['receiver']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(A)<->uid2(DL)
+            # uid1(A)<->uid3(A)
+            # uid1(A)<->fuid1(A)
+            # uid1(A)<->fuid2(A)
+
+    #delete all rolodex card of u1
+    print "deleting all cards of ", uid1
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id, e3_id, fe1_id, fe2_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            # uid1(DL)<->uid2(DL)
+            # uid1(DL)<->uid3(A)
+            # uid1(DL)->fuid1(A)
+            # uid1(DL) fuid2(A)
+
+    # u1 edit rolodex card of u3
+    print "adding notes to  ", uid3
+    reqmsg = messages.edit_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_id'] = wuid3
+    reqmsg['receiver']['notes']['note'] = "test one test two"
+    reqmsg['receiver']['notes']['last_saved'] = "1st Jan 2016"
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    #user query
+    reqmsg = messages.user_query
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['receiver']['name'] = FIRSTNAME_Q
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # archived cards
+    reqmsg = messages.archived_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # Meishi
+    reqmsg = messages.meishi_start
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['wizcard_id'] = e1_id
+    reqmsg['sender']['lat'] = messages.LAT1
+    reqmsg['sender']['lng'] = messages.LNG1
+    send_request(conn, reqmsg)
+    objs = handle_response(conn,reqmsg['header']['msg_type'])
+    mei_id2 = objs['data']['mID']
     m_nearby = objs['data']['m_nearby']
 
-reqmsg = messages.get_video_thumbnail_url
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['videoUrl'] = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/bizcards/test_video.mp4"
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+    reqmsg = messages.meishi_find
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['mID'] = mei_id2
+    send_request(conn, reqmsg)
+    objs = handle_response(conn,reqmsg['header']['msg_type'])
+    if objs['data'].has_key('m_result'):
+        mei_pair = objs['data']['m_result']
+    else:
+        # expect nearby response
+        m_nearby = objs['data']['m_nearby']
 
-# this one will work with oembed
-reqmsg = messages.get_video_thumbnail_url
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['videoUrl'] = "https://youtu.be/kvjxoBG5euo"
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+    #DELETE_ROLODEX_CASE
 
-# this one will return error
-reqmsg = messages.get_video_thumbnail_url
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['videoUrl'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'], err_skip=True)
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
+    reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+    reqmsg['sender']['response_mode'] = 'sms'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    response_key = objs['data'].get('challenge_key', 1234)
+
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
+    reqmsg['sender']['response_key'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    uid1 = objs['data']['user_id']
+
+    reqmsg = messages.login
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['header']['device_id'] = DEVICE_ID1
+    reqmsg['sender']['password'] = DEVICE_ID1+uid1
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    wuid1 = objs['data']['wizuser_id']
+
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID2
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
+    reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+    reqmsg['sender']['response_mode'] = 'sms'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    response_key = objs['data'].get('challenge_key', 1234)
+
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['device_id'] = DEVICE_ID2
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
+    reqmsg['sender']['response_key'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    uid2 = objs['data']['user_id']
+
+    reqmsg = messages.login
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['header']['device_id'] = DEVICE_ID2
+    reqmsg['sender']['password'] = DEVICE_ID2+uid2
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    wuid2 = objs['data']['wizuser_id']
+
+    reqmsg = messages.phone_check_req
+    reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
+    reqmsg['sender']['target'] = messages.NEXMO_PHONE1
+    reqmsg['sender']['response_mode'] = 'sms'
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    response_key = objs['data'].get('challenge_key', 1234)
+
+    reqmsg = messages.phone_check_resp
+    reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['header']['hash'] = HASH1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
+    reqmsg['sender']['response_key'] = response_key
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    uid3 = objs['data']['user_id']
+
+    reqmsg = messages.login
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['sender']['password'] = DEVICE_ID3+uid3
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    wuid3 = objs['data']['wizuser_id']
+
+    reqmsg = messages.register1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id']=uid1
+    reqmsg['sender']['wizuser_id']=wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.register2
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id']=uid2
+    reqmsg['sender']['wizuser_id']=wuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.register3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id']=uid3
+    reqmsg['sender']['wizuser_id']=wuid3
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.rolodex_edit_card1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    contacts = reqmsg['sender']['contact_container']
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    e1_id = objs['data']['wizcard']['wizcard_id']
+
+    reqmsg = messages.rolodex_edit_card2
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    contacts = reqmsg['sender']['contact_container']
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    e2_id = objs['data']['wizcard']['wizcard_id']
+
+    reqmsg = messages.rolodex_edit_card3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    contacts = reqmsg['sender']['contact_container']
+
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    e3_id = objs['data']['wizcard']['wizcard_id']
+
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
+    reqmsg['receiver']['receiver_ids'] = [wuid2, wuid3]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # send get cards to clear readed on one guy
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # delete. Expect 3 to go back to new state, and 2 will follow error 24 path upon
+    # accept/decline
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id, e3_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # uid2 accept uid1
+    reqmsg = messages.accept_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['receiver']['wizuser_id'] = wuid1
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # recreate 1<->3 to test decline path
+    reqmsg = messages.send_asset_to_xyz
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = e1_id
+    reqmsg['sender']['asset_type'] = "wizcard"
+    reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
+    reqmsg['receiver']['receiver_ids'] = [wuid3]
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # send get cards to clear readed on 3
+    reqmsg = messages.get_cards
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    reqmsg = messages.delete_rolodex_card
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e3_id])
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    #uid3 declines uid1
+    reqmsg = messages.decline_connection_request
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['receiver']['wizcard_id'] = e1_id
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+if OEMBED:
+    reqmsg = messages.get_video_thumbnail_url
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['video_url'] = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/bizcards/test_video.mp4"
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # this one will work with oembed
+    reqmsg = messages.get_video_thumbnail_url
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['video_url'] = "https://www.youtube.com/watch?v=QujpdmsXAb4&feature=youtu.be"
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    # this one will return error
+    reqmsg = messages.get_video_thumbnail_url
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['video_url'] = "https://noembed.com/embed?url=https://youtu.be/kvjxoBG5euo"
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
 #clean all rolodexes
-
 
 
 # Table Tests
 if TEST_TABLE:
-
-
-
-    reqmsg = messages.table_create
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['table_name'] = TABLE1NAME
+    reqmsg = messages.entity_create
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['name'] = TABLE1NAME
     reqmsg['sender']['timeout'] = 1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    tid_1 = objs['data']['tableID']
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    tid_1 = objs['data']['result']['id']
 
-    reqmsg = messages.table_create
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid2
-    reqmsg['sender']['wizUserID'] = wuid2
-    reqmsg['sender']['table_name'] = TABLE2NAME
+    reqmsg = messages.entity_create
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['name'] = TABLE2NAME
     reqmsg['sender']['timeout'] = 5
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    tid_2 = objs['data']['tableID']
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    tid_2 = objs['data']['result']['id']
 
-    #join created table
+    #join created entity
     print "Joining Table"
-    reqmsg = messages.table_join
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid2
-    reqmsg['sender']['wizUserID'] = wuid2
-    reqmsg['sender']['tableID'] = tid_1
+
+    reqmsg = messages.entity_join
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['entity_id'] = tid_1
+    reqmsg['sender']['entity_type'] = 'TBL'
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     print "Joining Table with error password"
-    reqmsg = messages.table_join
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
-    reqmsg['sender']['tableID'] = tid_1
+    reqmsg = messages.entity_join
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['entity_id'] = tid_1
+    reqmsg['sender']['entity_type'] = 'TBL'
     reqmsg['sender']['password'] = "xxx"
     # Parse and dump the JSON response from server
     send_request(conn, reqmsg)
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
 
     print "Edit Table"
-    reqmsg = messages.table_edit
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['tableID'] = tid_1
-    reqmsg['sender']['oldName'] = TABLE1NAME
-    reqmsg['sender']['newName'] = TABLE1NAME_NEW
+    reqmsg = messages.entity_edit
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['entity_id'] = tid_1
+    reqmsg['sender']['entity_type'] = 'TBL'
+    reqmsg['sender']['name'] = TABLE1NAME_NEW
     reqmsg['sender']['timeout'] = 5
     # Parse and dump the JSON response from server
     send_request(conn, reqmsg)
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     print "Creating Table Three"
-    reqmsg = messages.table_create
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
-    reqmsg['sender']['table_name'] = TABLE3NAME
+    reqmsg = messages.entity_create
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['name'] = TABLE3NAME
+    reqmsg['sender']['entity_type'] = 'TBL'
     reqmsg['sender']['timeout'] = 5
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    tid_3 = objs['data']['tableID']
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    tid_3 = objs['data']['result']['id']
 
-    #table query
-    print "sending table query"
-    reqmsg = messages.table_query
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
-    reqmsg['receiver']['name'] = TABLENAME_Q
+    # entity query
+    print "sending entity query"
+    reqmsg = messages.entity_query
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['query_str'] = TABLENAME_Q
+    reqmsg['sender']['entity_type'] = 'TBL'
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-    #table summary
-    print "sending table summary"
-    reqmsg = messages.table_summary
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
-    reqmsg['sender']['tableID'] = tid_2
+    # entity summary
+    print "sending entity summary"
+    reqmsg = messages.entity_summary
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['entity_id'] = tid_1
+    reqmsg['sender']['entity_type'] = 'TBL'
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     #table details
     print "sending table details"
-    reqmsg = messages.table_details
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
-    reqmsg['sender']['tableID'] = tid_1
+    reqmsg = messages.entity_summary
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['entity_id'] = tid_1
+    reqmsg['sender']['detail'] = True
+    reqmsg['sender']['entity_type'] = 'TBL'
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
+    print "my entities"
+    reqmsg = messages.my_entities
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['entity_id'] = tid_1
+    reqmsg['sender']['entity_type'] = None
 
-    #u1 -> u2, u3 via wiz, assetType = Table
+    send_request(conn, reqmsg)
+    # Parse and dump the JSON response from server
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    #t1 -> fu3, fu4 via email, asset_type = Table
     reqmsg = messages.send_asset_to_xyz
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['assetID'] = tid_1
-    reqmsg['sender']['assetType'] = "table"
-    reqmsg['receiver']['receiverType'] = "wiz_trusted"
-    reqmsg['receiver']['receiverIDs'] = [uid2, uid3]
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['asset_id'] = tid_1
+    reqmsg['sender']['asset_type'] = "table"
+    reqmsg['receiver']['receiver_type'] = "email"
+    reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_EMAIL3, messages.FUTURE_EMAIL4]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-
-    #t1 -> fu3, fu4 via email, assetType = Table
+    #t2 -> fu3, fu4 via sms, asset_type = Table
     reqmsg = messages.send_asset_to_xyz
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['assetID'] = tid_1
-    reqmsg['sender']['assetType'] = "table"
-    reqmsg['receiver']['receiverType'] = "email"
-    reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_EMAIL3, messages.FUTURE_EMAIL4]
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['asset_id'] = tid_2
+    reqmsg['sender']['asset_type'] = "table"
+    reqmsg['receiver']['receiver_type'] = "sms"
+    reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_PHONE3, messages.FUTURE_PHONE4]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-    #t2 -> fu3, fu4 via sms, assetType = Table
-    reqmsg = messages.send_asset_to_xyz
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid2
-    reqmsg['sender']['wizUserID'] = wuid2
-    reqmsg['sender']['assetID'] = tid_2
-    reqmsg['sender']['assetType'] = "table"
-    reqmsg['receiver']['receiverType'] = "sms"
-    reqmsg['receiver']['receiverIDs'] = [messages.FUTURE_PHONE3, messages.FUTURE_PHONE4]
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
 
 # Flick Tests
-
 if TEST_FLICK:
     reqmsg = messages.card_flick
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
     cf1_id = objs['data']['flickCardID']
 
     #re flick to check agglomeration
     reqmsg = messages.card_flick
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid2
-    reqmsg['sender']['wizUserID'] = wuid2
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['wizuser_id'] = wuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
     cf2_id = objs['data']['flickCardID']
 
     #re flick to check agglomeration with delta lat,lng
     reqmsg = messages.card_flick
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    print "re-flicking card from close-by location", reqmsg['sender']['userID']
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    print "re-flicking card from close-by location", reqmsg['sender']['user_id']
     reqmsg['sender']['lng'] += 0.000001
     reqmsg['sender']['lat'] += 0.000001
     reqmsg['sender']['timeout'] = 2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
     cf3_id = objs['data']['flickCardID']
     if cf3_id != cf1_id:
         print "ERROR in DELTA AGGLORMERATION"
@@ -1256,511 +1504,232 @@ if TEST_FLICK:
 
     #edit flick
     reqmsg = messages.card_flick_edit
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['flickCardID'] = cf1_id
     reqmsg['sender']['timeout'] = 1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.card_flick
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['timeout'] = 3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
     cf3_id = objs['data']['flickCardID']
 
     reqmsg = messages.card_flick_accept
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['flickCardIDs'] = [cf3_id]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.flick_pickers
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['flickCardID'] = cf3_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.my_flicks
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['wizCardID'] = e1_id
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['wizcard_id'] = e1_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.my_flicks
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
-    reqmsg['sender']['wizCardID'] = e3_id
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['wizcard_id'] = e3_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     #flick query
     reqmsg = messages.card_flick_query
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid3
-    reqmsg['sender']['wizUserID'] = wuid3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['receiver']['name'] = FIRSTNAME_Q
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
 
 if OCR_FLAG:
     #OCR USER
     reqmsg = messages.phone_check_req
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['header']['deviceID'] = DEVICE_ID3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['header']['device_id'] = DEVICE_ID3
     reqmsg['header']['hash'] = HASH3
     reqmsg['sender']['username'] = messages.OCR_USERNAME
     reqmsg['sender']['target'] = messages.OCR_PHONE
-    reqmsg['sender']['responseMode'] = 'sms'
+    reqmsg['sender']['response_mode'] = 'sms'
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
     response_key = objs['data']['challenge_key']
 
     #resp = objs['data']['key']
     reqmsg = messages.phone_check_resp
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['header']['deviceID'] = DEVICE_ID3
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['header']['device_id'] = DEVICE_ID3
     reqmsg['header']['hash'] = HASH3
     reqmsg['sender']['username'] = messages.OCR_USERNAME
-    reqmsg['sender']['responseKey'] = response_key
+    reqmsg['sender']['response_key'] = response_key
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    ocr_uid = objs['data']['userID']
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    ocr_uid = objs['data']['user_id']
 
     reqmsg = messages.login
-    reqmsg['header']['version'] = APP_VERSION
+    reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = messages.OCR_USERNAME
-    reqmsg['sender']['userID'] = ocr_uid
-    reqmsg['header']['deviceID'] = DEVICE_ID3
+    reqmsg['sender']['user_id'] = ocr_uid
+    reqmsg['header']['device_id'] = DEVICE_ID3
+    reqmsg['sender']['password'] = DEVICE_ID3+ocr_uid
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    ocr_wuid = objs['data']['wizUserID']
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    ocr_wuid = objs['data']['wizuser_id']
 
     reqmsg = messages.ocr_req_self
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = ocr_uid
-    reqmsg['sender']['wizUserID'] = ocr_wuid
-    reqmsg['sender']['f_ocrCardImage'] = ocr_out
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = ocr_uid
+    reqmsg['sender']['wizuser_id'] = ocr_wuid
+    reqmsg['sender']['f_ocr_card_image'] = ocr_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    contact_container = objs['data']['ocr_result']['contact_container']
-
-    reqmsg = messages.edit_card2
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = ocr_uid
-    reqmsg['sender']['wizUserID'] = ocr_wuid
-    contacts = contact_container
-    #populate file
-    for c in contacts:
-        c['f_bizCardImage'] = cc_out
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    ocr_wizcard_id = objs['data']['wizCardID']
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
+    if not objs['result']['Error']:
+        contact_container = objs['data']['ocr_result']['contact_container']
 
     reqmsg = messages.ocr_dead_card
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['wizCardID'] = e1_id
-    reqmsg['sender']['f_ocrCardImage'] = ocr_out
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['f_ocr_card_image'] = ocr_out
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    dc1_id = objs['data']['response']['id']
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
+    if not objs['result']['Error']:
+        dc1_id = objs['data']['response']['wizcard_id']
 
-    reqmsg = messages.ocr_dead_card_edit
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['deadCardID'] = dc1_id
-    reqmsg['sender']['inviteother'] = 0
-    reqmsg['sender']['contact_container'][0]['email'] = 'anandramani98@gmail.com'
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-
-    reqmsg = messages.ocr_dead_card_edit
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['sender']['deadCardID'] = dc1_id
-    reqmsg['sender']['notes']['note'] = "Test Dead Card notes"
-    reqmsg['sender']['notes']['last_saved'] = "1st Jan 2016"
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+        reqmsg = messages.ocr_dead_card_edit
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
+        reqmsg['sender']['wizcard_id'] = dc1_id
+        reqmsg['sender']['inviteother'] = 0
+        reqmsg['sender']['contact_container'][0]['email'] = 'anandramani98@gmail.com'
+        reqmsg['sender']['notes']['note'] = "Test Dead Card notes"
+        reqmsg['sender']['notes']['last_saved'] = "1st Jan 2016"
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.delete_rolodex_card
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['wizUserID'] = wuid1
-    reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card": True}, [dc1_id])
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card": True}, [dc1_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
 
-if TEST_WIZWEB:
-    ####wizweb messages########################
-    #query user
-    print "wizweb query existing user"
-    reqmsg = messages.wizweb_query_user
-    reqmsg['header']['version'] = APP_VERSION
-    #reqmsg['sender']['username'] = USERNAME1
+if TEST_ENTITY:
+    reqmsg = messages.get_events
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['lat'] = messages.LAT1
+    reqmsg['sender']['lng'] = messages.LNG1
+    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['wizuser_id'] = wuid3
+
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    entity_list = []
+    if 'result' in objs['data']:
+        entity_list = [(x['id'], x['entity_type']) for x in objs['data']['result']]
 
+    if entity_list:
+        reqmsg = messages.entity_join
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
+        reqmsg['sender']['entity_id'] = entity_list[0][0]
+        reqmsg['sender']['entity_type'] = entity_list[0][1]
 
-    print "wizweb query non-existing user"
-    reqmsg['sender']['username'] = "does not exist"
-    print "wizweb message query_user ", reqmsg['sender']['username']
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
+        reqmsg = messages.entities_like
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
 
-    #query wizcard
-    print "wizweb query existing wizcard"
-    reqmsg = messages.wizweb_query_wizcard
-    reqmsg['header']['version'] = APP_VERSION
-    #reqmsg['sender']['username'] = USERNAME1
-    reqmsg['sender']['userID'] = uid1
-    print "wizweb message query_wizcard ", reqmsg['sender']['username']
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+        likes = []
+        for index, item in enumerate(entity_list):
+            if index > 4:
+                break
+            d = messages.ENTITY_LIKE.copy()
+            d['entity_id'] = item[0]
+            d['entity_type'] = item[1]
+            d['like_level'] = messages.LIKE_LEVELS[index]
+            likes.append(d)
+        reqmsg['sender']['likes'] = likes
 
-    print "wizweb query non-valid wizcard"
-    reqmsg['sender']['username'] = USERNAME1
-    reqmsg['sender']['userID'] = uid2
-    print "wizweb message query invalid wizcard ", reqmsg['sender']['userID']
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-    #wizweb user create
-    print "wizweb user create"
-    reqmsg = messages.wizweb_create_user
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['username'] = USERNAME4
-    reqmsg['sender']['first_name'] = USERNAME4_FIRST_NAME
-    reqmsg['sender']['last_name'] = USERNAME4_LAST_NAME
-    print "wizweb message user create ", reqmsg['sender']['username']
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
-    uid4 = objs['data']['userID']
+        reqmsg = messages.get_events
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['lat'] = messages.LAT1
+        reqmsg['sender']['lng'] = messages.LNG1
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
 
-    #wizweb add card new
-    print "wizweb add card latest"
-    reqmsg = messages.wizweb_add_edit_card
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['username'] = USERNAME4
-    reqmsg['sender']['userID'] = uid4
-    reqmsg['sender']['mode'] = 1
-    reqmsg['sender']['first_name'] = USERNAME4_FIRST_NAME
-    reqmsg['sender']['last_name'] = USERNAME4_LAST_NAME
-    reqmsg['sender']['phone'] = messages.PHONE4
-    reqmsg['sender']['title'] = DEFAULT_TITLE
-    reqmsg['sender']['company'] = DEFAULT_COMPANY
-    reqmsg['sender']['start'] = START1
-    reqmsg['sender']['mediaUrl'] = DEFAULT_MEDIA_URL
-    reqmsg['sender']['f_bizCardUrl'] = DEFAULT_BIZCARD_URL
-    print "wizweb message edit card latest ", reqmsg['sender']['userID']
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-    #wizweb edit card
-    print "wizweb edit card force"
-    reqmsg = messages.wizweb_add_edit_card
-    reqmsg['header']['version'] = APP_VERSION
-    reqmsg['sender']['username'] = USERNAME1
-    reqmsg['sender']['userID'] = uid1
-    reqmsg['sender']['mode'] = 2
-    reqmsg['sender']['first_name'] = USERNAME1
-    reqmsg['sender']['last_name'] = USERNAME1
-    reqmsg['sender']['phone'] = messages.PHONE1
-    reqmsg['sender']['title'] = DEFAULT_TITLE
-    reqmsg['sender']['company'] = DEFAULT_COMPANY
-    reqmsg['sender']['start'] = START1
-    reqmsg['sender']['mediaUrl'] = DEFAULT_MEDIA_URL
-    reqmsg['sender']['f_bizCardUrl'] = DEFAULT_BIZCARD_URL
-    print "wizweb message edit card force ", reqmsg['sender']['userID']
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msgType'])
+        reqmsg = messages.entity_leave
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
+        reqmsg['sender']['entity_id'] = entity_list[0][0]
+        reqmsg['sender']['entity_type'] = entity_list[0][1]
 
-#DELETE_ROLODEX_CASE
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID1
-reqmsg['header']['hash'] = HASH1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
-reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data'].get('challenge_key', 1234)
+        reqmsg = messages.entity_summary
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
+        reqmsg['sender']['entity_id'] = entity_list[0][0]
+        reqmsg['sender']['entity_type'] = entity_list[0][1]
+        reqmsg['sender']['detail'] = True
 
-reqmsg = messages.phone_check_resp
-reqmsg['header']['deviceID'] = DEVICE_ID1
-reqmsg['header']['hash'] = HASH1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
-reqmsg['sender']['responseKey'] = response_key
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-uid1 = objs['data']['userID']
-
-reqmsg = messages.login
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
-reqmsg['sender']['userID'] = uid1
-reqmsg['header']['deviceID'] = DEVICE_ID1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-wuid1 = objs['data']['wizUserID']
-
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID2
-reqmsg['header']['hash'] = HASH1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
-reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data'].get('challenge_key', 1234)
-
-reqmsg = messages.phone_check_resp
-reqmsg['header']['deviceID'] = DEVICE_ID2
-reqmsg['header']['hash'] = HASH1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
-reqmsg['sender']['responseKey'] = response_key
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-uid2 = objs['data']['userID']
-
-reqmsg = messages.login
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
-reqmsg['sender']['userID'] = uid2
-reqmsg['header']['deviceID'] = DEVICE_ID2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-wuid2 = objs['data']['wizUserID']
-
-reqmsg = messages.phone_check_req
-reqmsg['header']['deviceID'] = DEVICE_ID3
-reqmsg['header']['hash'] = HASH1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
-reqmsg['sender']['target'] = messages.NEXMO_PHONE1
-reqmsg['sender']['responseMode'] = 'sms'
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-response_key = objs['data'].get('challenge_key', 1234)
-
-reqmsg = messages.phone_check_resp
-reqmsg['header']['deviceID'] = DEVICE_ID3
-reqmsg['header']['hash'] = HASH1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
-reqmsg['sender']['responseKey'] = response_key
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-uid3 = objs['data']['userID']
-
-reqmsg = messages.login
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
-reqmsg['sender']['userID'] = uid3
-reqmsg['header']['deviceID'] = DEVICE_ID3
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-wuid3 = objs['data']['wizUserID']
-
-reqmsg = messages.register1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID']=uid1
-reqmsg['sender']['wizUserID']=wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.register2
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID']=uid2
-reqmsg['sender']['wizUserID']=wuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.register3
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID']=uid3
-reqmsg['sender']['wizUserID']=wuid3
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.rolodex_edit_card1
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-contacts = reqmsg['sender']['contact_container']
-#populate file
-for c in contacts:
-    c['f_bizCardImage'] = cc_out
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-e1_id = objs['data']['wizCardID']
-
-reqmsg = messages.rolodex_edit_card2
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-contacts = reqmsg['sender']['contact_container']
-#populate file
-for c in contacts:
-    c['f_bizCardImage'] = cc_out
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-e2_id = objs['data']['wizCardID']
-
-reqmsg = messages.rolodex_edit_card3
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-contacts = reqmsg['sender']['contact_container']
-#populate file
-for c in contacts:
-    c['f_bizCardImage'] = cc_out
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-e3_id = objs['data']['wizCardID']
-
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "wiz_untrusted"
-reqmsg['receiver']['receiverIDs'] = [wuid2, wuid3]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-# send get cards to clear readed on one guy
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-# delete. Expect 3 to go back to new state, and 2 will follow error 24 path upon
-# accept/decline
-reqmsg = messages.delete_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e2_id, e3_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-
-# uid2 accept uid1
-reqmsg = messages.accept_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid2
-reqmsg['sender']['wizUserID'] = wuid2
-reqmsg['receiver']['wizUserID'] = wuid1
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-
-# recreate 1<->3 to test decline path
-reqmsg = messages.send_asset_to_xyz
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['sender']['assetID'] = e1_id
-reqmsg['sender']['assetType'] = "wizcard"
-reqmsg['receiver']['receiverType'] = "wiz_untrusted"
-reqmsg['receiver']['receiverIDs'] = [wuid3]
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-# send get cards to clear readed on 3
-reqmsg = messages.get_cards
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-reqmsg = messages.delete_rolodex_card
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid1
-reqmsg['sender']['wizUserID'] = wuid1
-reqmsg['receiver']['wizCardIDs'] = map(lambda x: {"wizCardID": x, "dead_card":False}, [e3_id])
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
-
-#uid3 declines uid1
-reqmsg = messages.decline_connection_request
-reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['userID'] = uid3
-reqmsg['sender']['wizUserID'] = wuid3
-reqmsg['receiver']['wizCardID'] = e1_id
-send_request(conn, reqmsg)
-# Parse and dump the JSON response from server
-objs = handle_response(conn, reqmsg['header']['msgType'])
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])

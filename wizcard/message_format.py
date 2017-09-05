@@ -31,8 +31,6 @@ class PhoneCheckRequestSchema(colander.MappingSchema):
     pass
 class PhoneCheckResponseSchema(colander.MappingSchema):
     pass
-class RegisterSchema(colander.MappingSchema):
-    pass
 class LocationUpdateSchema(colander.MappingSchema):
     pass
 class ContactsVerifySchema(colander.MappingSchema):
@@ -85,26 +83,6 @@ class UserQuerySchema(colander.MappingSchema):
     pass
 class WizcardGetDetailSchema(colander.MappingSchema):
     pass
-class TableQuerySchema(colander.MappingSchema):
-    pass
-class TableMyTablesSchema(colander.MappingSchema):
-    pass
-class TableSummarySchema(colander.MappingSchema):
-    pass
-class TableDetailsSchema(colander.MappingSchema):
-    pass
-class TableCreateSchema(colander.MappingSchema):
-    pass
-class TableJoinSchema(colander.MappingSchema):
-    pass
-class TableJoinByInviteSchema(colander.MappingSchema):
-    pass
-class TableLeaveSchema(colander.MappingSchema):
-    pass
-class TableDestroySchema(colander.MappingSchema):
-    pass
-class TableEditSchema(colander.MappingSchema):
-    pass
 class SettingsSchema(colander.MappingSchema):
     pass
 class OcrRequestSelfSchema(colander.MappingSchema):
@@ -130,17 +108,27 @@ class GetCommonConnectionsSchema(colander.MappingSchema):
 class GetVideoThumbnailSchema(colander.MappingSchema):
     pass
 
-#wizweb
-class WizWebUserQuerySchema(colander.MappingSchema):
-    pass
 
-class WizWebWizcardQuerySchema(colander.MappingSchema):
+class EntityCreateSchema(colander.MappingSchema):
     pass
-
-class WizWebUserCreateSchema(colander.MappingSchema):
+class EntityDestroySchema(colander.MappingSchema):
     pass
-
-class WizWebAddEditCardSchema(colander.MappingSchema):
+class EntityEditSchema(colander.MappingSchema):
     pass
-
+class EntityJoinSchema(colander.MappingSchema):
+    pass
+class TableJoinByInviteSchema(colander.MappingSchema):
+    pass
+class EntityLeaveSchema(colander.MappingSchema):
+    pass
+class EntityQuerySchema(colander.MappingSchema):
+    pass
+class MyEntitiesSchema(colander.MappingSchema):
+    pass
+class EntityDetailsSchema(colander.MappingSchema):
+    pass
+class EventsGetSchema(colander.MappingSchema):
+    pass
+class EntitiesEngageSchema(colander.MappingSchema):
+    pass
 

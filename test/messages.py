@@ -1,8 +1,14 @@
 
 #TODO: Probably should keep the message definition separate and read the
 # data into it from a text/db file
+import sys
+proj_path="."
+sys.path.append(proj_path)
 
 from datetime import datetime
+from wizcard import settings
+
+APP_VERSION = str(settings.APP_MAJOR) + "." +  str(settings.APP_MINOR)
 
 LAT1 = 37.885938
 LNG1 = -122.506419
@@ -36,13 +42,22 @@ OCR_USERNAME = OCR_PHONE+'@wizcard.com'
 
 SELF_PHONE = "+" + NEXMO_PHONE1
 
-
 EMAIL1 = "aammundi@gmail.com"
 EMAIL2 = "amsaha@gmail.com"
 EMAIL3 = "wizcard1@gmail.com"
 EMAIL4 = "nothere@gmail.com"
 EMAIL5 = "amnothere@gmail.com"
 
+ENTITY_TABLE = 'TBL'
+ENTITY_PRODUCT = 'PRD'
+
+ENTITY_LIKE = {
+        "entity_id": "",
+        "entity_type": "",
+        "like_level": 5
+}
+
+LIKE_LEVELS = [1, 3, 5.5, 8, 10]
 
 USER1_AB = [
     {
@@ -111,16 +126,42 @@ USER2_AB = [
         'email': [FUTURE_EMAIL1]
     }
 ]
+VIDEO_URL = "https://youtu.be/QujpdmsXAb4"
+BIZCARD_IMAGE_PATH = "https://s3-us-west-1.amazonaws.com/wizcard-image-bucket-dev/wizcard_admin/bizcard.jpeg"
+
+wizcard_media = [
+      {
+        "media_element": VIDEO_URL,
+        "media_iframe": "http://www.eventone.com",
+        "media_type": "VID",
+        "media_sub_type": "ROL"
+      },
+      {
+        "media_element": "http://www.eventone.com",
+        "media_iframe": "",
+        "media_type": "IMG",
+        "media_sub_type": "THB"
+      },
+]
+
+cc_media = [
+      {
+        "media_element": BIZCARD_IMAGE_PATH,
+        "media_iframe": "",
+        "media_type": "IMG",
+        "media_sub_type": "FBZ"
+      },
+]
 
 phone_check_req = {
     "header" : {
-        "msgType" : "phone_check_req",
-        "deviceID": "",
+        "msg_type" : "phone_check_req",
+        "device_id": "",
         "hash":""
     },
     "sender" : {
         "username" : "",
-        "responseMode" : "",
+        "response_mode" : "",
         "target" : "",
         "test_mode": True
     },
@@ -128,8 +169,8 @@ phone_check_req = {
 
 phone_check_resp = {
     "header" : {
-        "msgType" : "phone_check_rsp",
-        "deviceID": "",
+        "msg_type" : "phone_check_rsp",
+        "device_id": "",
         "hash":""
     },
     "sender" : {
@@ -141,32 +182,32 @@ phone_check_resp = {
 
 login = {
     "header" : {
-        "msgType" : "login",
-        "deviceID": "1234",
+        "msg_type" : "login",
+        "device_id": "1234",
         "hash":"xyz123"
     },
     "sender" : {
         "username" : "",
-        "userID": "",
-        "password": "wizcard"
+        "user_id": "",
+        "password": ""
     },
 }
 
 register_sync = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "register",
+        "msg_type" : "register",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
         "lat" : 37.785834,
         "lng" : -122.406415,
-        "deviceType": "android",
+        "device_type": "android",
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
-        "userID" : "2UIPIEPbBk"
+        "user_id" : "2UIPIEPbBk"
 
     },
 }
@@ -174,10 +215,10 @@ register_sync = {
 
 register1 = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "register",
+        "msg_type" : "register",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
@@ -185,18 +226,18 @@ register1 = {
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785835,
         "lng" : -122.406416,
-        "deviceType": "android",
-        "userID" : "",
-        "wizUserID" : "",
+        "device_type": "android",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
 register2 = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17C",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17C",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "register",
+        "msg_type" : "register",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
@@ -204,18 +245,18 @@ register2 = {
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785837,
         "lng" : -122.406418,
-        "deviceType": "android",
-        "userID" : "",
-        "wizUserID" : ""
+        "device_type": "android",
+        "user_id" : "",
+        "wizuser_id" : ""
     },
 }
 
 register3 = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "register",
+        "msg_type" : "register",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
@@ -223,17 +264,17 @@ register3 = {
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "android",
-        "userID" : "",
-        "wizUserID" : ""
+        "device_type": "android",
+        "user_id" : "",
+        "wizuser_id" : ""
     },
 }
 ocr_register = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "register",
+        "msg_type" : "register",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
@@ -241,41 +282,41 @@ ocr_register = {
         "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "android",
-        "userID" : "",
-        "wizUserID" : ""
+        "device_type": "android",
+        "user_id" : "",
+        "wizuser_id" : ""
     },
 }
 
 location = {
     "header" : {
-        "deviceID" : "",
+        "device_id" : "",
         "hash" : "",
         #above 2 fields are not currently used by server
-        "msgType" : "current_location",
+        "msg_type" : "current_location",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
         "lat" : "",
         "lng" : "",
-        "userID" : "",
-        "wizUserID" : ""
+        "user_id" : "",
+        "wizuser_id" : ""
     },
 }
 
 contacts_verify = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "contacts_verify",
+        "msg_type" : "contacts_verify",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "verify_phones" : "",
@@ -284,19 +325,18 @@ contacts_verify = {
 
 }
 
-
 contacts_upload = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "contacts_upload",
+        "msg_type" : "contacts_upload",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "prefix" : "",
@@ -309,22 +349,45 @@ contacts_upload = {
 contact_container = {
     "company": "Wizcard Inc",
     "title" : "CEO",
-    "f_bizCardImage" : "",
-    "r_bizCardImage" : "",
     "start" : "xxx",
     "end" : "current",
     "phone": "12345678",
-    "card_url": ""
+    "media": cc_media
 }
 
-
+edit_card = {
+    "header" : {
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "edit_card",
+    },
+    "sender" : {
+        #maybe should have a separate data file for lat, lng and read with some
+        #random index from there
+        "address_city": "San Francisco Bay Area",
+        "address_state": "CA",
+        "address_street1": "1914 N Marthilda Ave",
+        "address_zip": 94087,
+        "email": "aammundi@gmail.com",
+        "first_name": "Anand",
+        "last_name": "Ammundi",
+        "phone1": PHONE1,
+        "user_id": "",
+        "device_type": "android",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id": "",
+        "media": wizcard_media,
+        "contact_container": [contact_container]
+    },
+}
 
 edit_card1 = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "edit_card",
+        "msg_type" : "edit_card",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
@@ -339,10 +402,11 @@ edit_card1 = {
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
         "phone1" : PHONE1,
-        "userID" : "USER1",
-        "deviceType": "android",
-        #wizUserID should be the userID got from response of above register message
-        "wizUserID" : "",
+        "user_id" : "USER1",
+        "device_type": "android",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
+        "media": wizcard_media,
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -350,10 +414,10 @@ edit_card1 = {
 
 edit_card2 = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17C",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17C",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "edit_card",
+        "msg_type" : "edit_card",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
@@ -368,9 +432,10 @@ edit_card2 = {
         "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
         "phone1" : OCR_PHONE,
-        "userID" : "USER2",
-        #wizUserID should be the userID got from response of above register message
-        "wizUserID" : "",
+        "user_id" : "USER2",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
+        "media": wizcard_media,
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -378,10 +443,10 @@ edit_card2 = {
 
 edit_card3 = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "edit_card",
+        "msg_type" : "edit_card",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
@@ -393,195 +458,284 @@ edit_card3 = {
         "email" : "wizard1@gmail.com",
         "first_name" : "Wizard",
         "last_name" : "One",
-        "imageWasEdited" : "0",
         "location" : "San Francisco Bay Area",
         "phone1" : PHONE3,
-        "userID" : "USER3",
-	"extFields" : {'linkedin': 'http://www.linkedin.com/testli','facebook': 'http://www.facebook.com/testfb', 'www': 'http://www.website.com/testww'},
-	"videoUrl" : "http://www.youtube.com/zaHgTRo",
-        #wizUserID should be the userID got from response of above register message
-        "wizUserID" : "",
+        "user_id" : "USER3",
+	    "ext_fields" : {'linkedin': 'http://www.linkedin.com/testli','facebook': 'http://www.facebook.com/testfb', 'www': 'http://www.website.com/testww'},
+	    "video_url" : "http://www.youtube.com/zaHgTRo",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
+        "media": wizcard_media,
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
 
-table_create = {
-    "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "create_table",
-    },
-    "sender" : {
-        "lat" : 37.785838,
-        "lng" : -122.406419,
-        "deviceType": "android",
-        "userID" : "",
-        "wizUserID" : "",
-        "table_name" : "",
-        "timeout": 1,
-        "secureTable" : "True",
-        "password" : "test",
-        "created":str(datetime.now())
-    },
-}
-
 send_asset_to_xyz= {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "send_asset_to_xyz",
+        "msg_type" : "send_asset_to_xyz",
     },
-    #senderID can be wizCardID or tableID
+    #senderID can be wizcard_id or table_id
     "sender" : {
         #asset type can be wizcard, table, forwarded_wizcard
-        "assetID" : "",
-        "assetType": ""
+        "asset_id" : "",
+        "asset_type": ""
     },
     "receiver" : {
         #receiver type can be wiz_untrusted, wiz_trusted, wiz_trusted_check
         #for in-network. email, sms for non-wiz network (future handliing)
-        "receiverType" : "",
-        #receiver id's can be phone, email, wizUserID
-        "receiverIDs" : []
+        "receiver_type" : "",
+        #receiver id's can be phone, email, wizuser_id
+        "receiver_ids" : []
     }
 }
 
 
 send_to_user = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "send_card_to_user",
+        "msg_type" : "send_card_to_user",
     },
     "receiver" : {
-        "wizUserIDs" : []
+        "wizuser_ids" : []
     }
 }
 
 
 send_to_contacts = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "send_card_to_contacts",
+        "msg_type" : "send_card_to_contacts",
     },
     "receiver" : {
-        "wizUserIDs" : []
+        "wizuser_ids" : []
     }
 }
 
 send_to_future_contacts = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "send_card_to_future_contacts",
+        "msg_type" : "send_card_to_future_contacts",
     },
     "receiver" : {
         "phones" : []
     }
 }
 
-table_join = {
-    "header" : {
-        "deviceID" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
-        "hash" : "da0f02460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "join_table",
-    },
-    "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
-        "tableID": "",
-        "password" : "test"
-    },
-}
 
-table_edit = {
+
+
+entity_create = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "table_edit",
+        "msg_type" : "entity_create",
     },
     "sender" : {
         "lat" : 37.785838,
         "lng" : -122.406419,
-        "deviceType": "android",
-        "userID" : "",
-        "wizUserID" : "",
-        "tableID": "",
-        "table_name" : "",
-        "oldName":"",
-        "newName":"",
+        "user_id" : "",
+        "wizuser_id" : "",
+        "name" : "",
+        "timeout": 1,
+        "secure": "False",
+        "entity_type": ENTITY_TABLE,
+    },
+}
+
+entity_join = {
+    "header" : {
+        "device_id" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f02460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "entity_join",
+    },
+    "sender" : {
+        "user_id" : "",
+        "wizuser_id" : "",
+        "table_id": "",
+        "password" : "test",
+        "entity_type": ENTITY_TABLE,
+        "entity_id": ""
+
+    },
+}
+
+
+entity_leave = {
+    "header" : {
+        "device_id" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f02460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "entity_join",
+    },
+    "sender" : {
+        "user_id" : "",
+        "wizuser_id" : "",
+        "table_id": "",
+        "password" : "test",
+        "entity_type": ENTITY_TABLE,
+        "entity_id": ""
+    },
+}
+
+entity_edit = {
+    "header" : {
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "entity_edit",
+    },
+    "sender" : {
+        "lat" : 37.785838,
+        "lng" : -122.406419,
+        "device_type": "android",
+        "user_id" : "",
+        "wizuser_id" : "",
+        "entity_type": ENTITY_TABLE,
+        "entity_id": "",
+        "name" : "",
         "timeout":5,
         "created":str(datetime.now())
     },
 }
 
-table_query = {
+entity_query = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "query_tables",
+        "msg_type" : "entity_query",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
-    },
-    "receiver" : {
-        "name": "",
-    },
-}
-
-table_summary = {
-    "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
-        "hash" : "da0f7402460b85205c85618edf685916",
-        #above 2 fields are not currently used by server
-        "msgType" : "table_summary",
-    },
-    "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
-        "tableID": ""
+        "user_id" : "",
+        "wizuser_id" : "",
+        "query_str": ""
     }
 }
 
-table_details = {
+entity_summary = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "table_details",
+        "msg_type" : "entity_summary",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
-        "tableID": ""
+        "user_id" : "",
+        "wizuser_id" : "",
+        "entity_id": "",
+        "detail": False
     }
+}
+
+entity_details = {
+    "header" : {
+        "device_id" : "47561E8D-47E6-4DA8-B66B-1F031A1FAC56",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "entity_details",
+    },
+    "sender" : {
+        "user_id" : "",
+        "wizuser_id" : "",
+        "entity_id": "",
+        "detail": True
+    }
+}
+
+get_events = {
+    "header" : {
+        "device_id" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "get_events",
+    },
+    "sender" : {
+        "device_type": "android",
+        "lat": LAT1,
+        "lng": LNG1
+    },
+}
+
+entities_like = {
+    "header" : {
+        "device_id" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "entities_like",
+    },
+    "sender" : {
+        "device_type": "android",
+    },
+}
+
+entity_join = {
+     "header" : {
+        "device_id" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "entity_join",
+    },
+    "sender" : {
+        "device_type": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+    }
+}
+
+entity_leave = {
+        "header" : {
+        "device_id" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "entity_leave",
+    },
+    "sender" : {
+        "device_type": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+    },
+}
+
+my_entities = {
+        "header" : {
+        "device_id" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "my_entities",
+    },
+    "sender" : {
+        "device_type": "android",
+        "entity_id" : "",
+        "entity_type" : "",
+    },
 }
 
 card_flick = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "card_flick",
+        "msg_type" : "card_flick",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
         "lat" : 37.785834,
         "lng" : -122.406415,
         "timeout": 1,
-        "deviceType": "android",
+        "device_type": "android",
         "created":str(datetime.now())
 
     },
@@ -589,14 +743,14 @@ card_flick = {
 
 card_flick_accept = {
     "header" : {
-        "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f02460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "card_flick_accept",
+        "msg_type" : "card_flick_accept",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "flickCardIDs" : "",
@@ -604,66 +758,66 @@ card_flick_accept = {
 }
 accept_connection_request = {
     "header" : {
-        "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f02460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "accept_connection_request",
+        "msg_type" : "accept_connection_request",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
         "reaccept" : False,
         # this is dummy...the right thing to do is to get the
         # correct notif_id from the get_cards and pass it back in here
         "notif_id": 1
     },
     "receiver" : {
-        "wizUserID" : "",
+        "wizuser_id" : "",
     }
 }
 
 decline_connection_request = {
     "header" : {
-        "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f02460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "decline_connection_request",
+        "msg_type" : "decline_connection_request",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
         "notif_id": 1
 
     },
     "receiver" : {
-        "wizCardID" : "",
+        "wizcard_id" : "",
     }
 }
 
 flick_pickers = {
     "header" : {
-        "deviceID" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "55C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f02460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "flick_pickers",
+        "msg_type" : "flick_pickers",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
         "flickCardIDs" : "",
     },
 }
 
 card_flick_edit = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "flick_edit",
+        "msg_type" : "flick_edit",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
         "flickCardID": "",
         "timeout":"",
         "created":str(datetime.now())
@@ -672,14 +826,14 @@ card_flick_edit = {
 
 user_query = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "send_query_user",
+        "msg_type" : "send_query_user",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "name": "",
@@ -688,45 +842,45 @@ user_query = {
 
 get_common_connections = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "get_common_connections",
+        "msg_type" : "get_common_connections",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
-        "wizCardID": "",
+        "user_id" : "",
+        "wizuser_id" : "",
+        "wizcard_id": "",
         "full": True
     },
     "receiver" : {
-        "wizCardID": "",
+        "wizcard_id": "",
     },
 }
 
 archived_cards = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "archived_cards",
+        "msg_type" : "archived_cards",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
 card_flick_query = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "query_flicks",
+        "msg_type" : "query_flicks",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
         "name": "",
@@ -735,28 +889,27 @@ card_flick_query = {
 
 my_flicks = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "my_flicks",
+        "msg_type" : "my_flicks",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
-        "wizCardID" : ""
+        "user_id" : "",
+        "wizuser_id" : "",
+        "wizcard_id" : ""
     }
 }
 
-
 get_cards = {
     "header" : {
-        "deviceID" : "17b90b2e03dc7b38",
+        "device_id" : "17b90b2e03dc7b38",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "get_cards",
+        "msg_type" : "get_cards",
     },
     "sender" : {
-        "deviceType": "android",
+        "device_type": "android",
         "lat": LAT1,
         "lng": LNG1
     },
@@ -764,33 +917,33 @@ get_cards = {
 
 delete_rolodex_card = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "delete_rolodex_card",
+        "msg_type" : "delete_rolodex_card",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : ""
+        "user_id" : "",
+        "wizuser_id" : ""
     },
     "receiver" : {
-        "wizCardIDs" : ""
+        "wizcard_ids" : ""
     }
 }
 
 edit_rolodex_card = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "edit_rolodex_card",
+        "msg_type" : "edit_rolodex_card",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : ""
+        "user_id" : "",
+        "wizuser_id" : ""
     },
     "receiver" : {
-        "wizCardID" : "",
+        "wizcard_id" : "",
         "notes" : {
             'note': "",
             'last_saved': ""
@@ -800,57 +953,57 @@ edit_rolodex_card = {
 
 card_details = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "get_card_details",
+        "msg_type" : "get_card_details",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
     "receiver" : {
-        "wizCardID" : "",
+        "wizcard_id" : "",
     }
 }
 
 ocr_req_self = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "ocr_req_self",
+        "msg_type" : "ocr_req_self",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
 ocr_dead_card = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "ocr_req_dead_card",
+        "msg_type" : "ocr_req_dead_card",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
 }
 
 ocr_dead_card_edit = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "ocr_dead_card_edit",
+        "msg_type" : "ocr_dead_card_edit",
     },
     "sender" : {
-        "userID" : "",
-        "wizUserID" : "",
-        "deadCardID": "",
+        "user_id" : "",
+        "wizuser_id" : "",
+        "dead_card_id": "",
         "inviteother" : 0,
         "contact_container": [contact_container],
         "notes" : {
@@ -861,9 +1014,9 @@ ocr_dead_card_edit = {
 }
 wizweb_query_user = {
     "header" : {
-        "deviceID" : "wizweb",
+        "device_id" : "wizweb",
         "hash" : "da0f7402460b85205c85618edf685916",
-        "msgType" : "wizweb_query_user",
+        "msg_type" : "wizweb_query_user",
     },
     "sender" : {
         "email" : "xyz@abc.co.in",
@@ -874,9 +1027,9 @@ wizweb_query_user = {
 
 wizweb_query_wizcard = {
     "header" : {
-        "deviceID" : "wizweb",
+        "device_id" : "wizweb",
         "hash" : "da0f7402460b85205c85618edf685916",
-        "msgType" : "wizweb_query_wizcard",
+        "msg_type" : "wizweb_query_wizcard",
     },
     "sender" : {
         "email" : "xyz@abc.co.in",
@@ -886,9 +1039,9 @@ wizweb_query_wizcard = {
 
 wizweb_create_user = {
     "header" : {
-        "deviceID" : "wizweb",
+        "device_id" : "wizweb",
         "hash" : "da0f7402460b85205c85618edf685916",
-        "msgType" : "wizweb_create_user",
+        "msg_type" : "wizweb_create_user",
     },
     "sender" : {
         "username" : "",
@@ -899,70 +1052,70 @@ wizweb_create_user = {
 
 wizweb_add_edit_card = {
     "header" : {
-        "deviceID" : "wizweb",
+        "device_id" : "wizweb",
         "hash" : "da0f7402460b85205c85618edf685916",
-        "msgType" : "wizweb_add_edit_card",
+        "msg_type" : "wizweb_add_edit_card",
     },
     "sender" : {
         "username" : "",
-        "userID" : "",
+        "user_id" : "",
         "first_name" : "",
         "last_name" : "",
         "phone" : "",
         "title" : "",
         "company" : "",
-        "mediaUrl" : "",
-        "f_bizCardUrl" : "",
+        "media_url" : "",
+        "f_bizcard_url" : "",
         "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
 meishi_start = {
     "header" : {
-        "msgType" : "meishi_start",
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "msg_type" : "meishi_start",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
     },
     "sender" : {
-        "userID" : "",
-        "wizCardID" : "",
+        "user_id" : "",
+        "wizcard_id" : "",
         "lat" : 37.785834,
         "lng" : -122.406415,
-        "deviceType": "android",
+        "device_type": "android",
     },
 }
 meishi_find = {
     "header" : {
-        "msgType" : "meishi_find",
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "msg_type" : "meishi_find",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
     },
     "sender" : {
-        "userID" : "",
-        "wizCardID" : "",
+        "user_id" : "",
+        "wizcard_id" : "",
         "mID" : "",
-        "deviceType": "android",
+        "device_type": "android",
     },
 }
 get_email_template = {
     "header" : {
-        "msgType" : "get_email_template",
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
+        "msg_type" : "get_email_template",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f7402460b85205c85618edf685916",
     },
     "sender" : {
-        "userID" : "",
-        "wizCardID" : "",
+        "user_id" : "",
+        "wizcard_id" : "",
         "mID" : "",
-        "deviceType": "android",
+        "device_type": "android",
     },
 }
 rolodex_edit_card1 = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17C",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17C",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "edit_card",
+        "msg_type" : "edit_card",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
@@ -977,18 +1130,18 @@ rolodex_edit_card1 = {
         "imageWasEdited" : "0",
         "location" : "Bangalore",
         "phone1" : OCR_PHONE,
-        "userID" : "USER2",
-        #wizUserID should be the userID got from response of above register message
-        "wizUserID" : "",
-	"contact_container" : [contact_container, contact_container, contact_container]
+        "user_id" : "USER2",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
+	    "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 rolodex_edit_card2 = {
     "header" : {
-	"deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+	"device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
 	"hash" : "da0f7402460b85205c85618edf685916",
 	#above 2 fields are not currently used by server
-	"msgType" : "edit_card",
+	"msg_type" : "edit_card",
     },
     "sender" : {
 	#maybe should have a separate data file for lat, lng and read with some
@@ -1003,9 +1156,9 @@ rolodex_edit_card2 = {
 	"imageWasEdited" : "0",
 	"location" : "Bangalore",
 	"phone1" : OCR_PHONE,
-	"userID" : "USER2",
-	#wizUserID should be the userID got from response of above register message
-	"wizUserID" : "",
+	"user_id" : "USER2",
+	#wizuser_id should be the user_id got from response of above register message
+	"wizuser_id" : "",
 	"contact_container" : [contact_container, contact_container, contact_container]
     },
 }
@@ -1013,59 +1166,59 @@ rolodex_edit_card2 = {
 
 rolodex_edit_card3 = {
     "header" : {
-	"deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
-	"hash" : "da0f7402460b85205c85618edf685916",
-	#above 2 fields are not currently used by server
-	"msgType" : "edit_card",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "edit_card",
     },
     "sender" : {
-	#maybe should have a separate data file for lat, lng and read with some
-	#random index from there
-	"address_city" : "Chandigarh",
-	"address_state" : "PJ",
-	"address_street1" : "Mohali",
-	"address_zip" : 300014,
-	"email" : "akashjindal@gmail.com",
-	"first_name" : "Akash",
-	"last_name" : "Jindal",
-	"imageWasEdited" : "0",
-	"location" : "Mohali",
-	"phone1" : OCR_PHONE,
-	"userID" : "USER2",
-	#wizUserID should be the userID got from response of above register message
-	"wizUserID" : "",
-	"contact_container" : [contact_container, contact_container, contact_container]
+        #maybe should have a separate data file for lat, lng and read with some
+        #random index from there
+        "address_city" : "Chandigarh",
+        "address_state" : "PJ",
+        "address_street1" : "Mohali",
+        "address_zip" : 300014,
+        "email" : "akashjindal@gmail.com",
+        "first_name" : "Akash",
+        "last_name" : "Jindal",
+        "imageWasEdited" : "0",
+        "location" : "Mohali",
+        "phone1" : OCR_PHONE,
+        "user_id" : "USER2",
+        #wizuser_id should be the user_id got from response of above register message
+        "wizuser_id" : "",
+        "contact_container" : [contact_container, contact_container, contact_container]
     },
 }
 
 get_video_thumbnail_url = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "get_video_thumbnail",
+        "msg_type" : "get_video_thumbnail",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "userID" : "",
-        "wizUserID" : "",
-        "videoUrl": ""
+        "user_id" : "",
+        "wizuser_id" : "",
+        "video_url": ""
     },
 }
 
 get_recommendations = {
     "header" : {
-        "deviceID" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msgType" : "get_recommendations",
+        "msg_type" : "get_recommendations",
     },
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "userID" : "",
-        "wizUserID" : "",
+        "user_id" : "",
+        "wizuser_id" : "",
     },
 }
 

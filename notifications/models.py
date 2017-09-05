@@ -144,10 +144,6 @@ class Notification(models.Model):
             self.readed = True
             self.save()
 
-    def set_acted(self):
-        self.acted_upon = True
-        self.save()
-
     def set_acted(self, flag):
         self.acted_upon = flag
         self.save()

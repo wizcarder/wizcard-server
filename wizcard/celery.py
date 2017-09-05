@@ -19,10 +19,11 @@ wizcard_app.config_from_object('celeryconfig')
 wizcard_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS + ("lib.ocr", "lib.create_share"))
 
 
-#if hasattr(settings, 'RAVEN_CONFIG'):
+
 # Celery signal registration
-client = Client(dsn=settings.RAVEN_CONFIG['dsn'])
-register_signal(client)
+if hasattr(settings, 'RAVEN_CONFIG'):
+        client = Client(dsn=settings.RAVEN_CONFIG['dsn'])
+        register_signal(client)
 
 @wizcard_app.task(bind=True)
 def debug_task(self):

@@ -1,16 +1,16 @@
 __author__ = 'aammundi'
 
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
+
 from wizcardship.models import Wizcard, ContactContainer
 from userprofile.models import UserProfile
 from wizcard import admin_wizcard_config
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.utils import timezone
-from lib import noembed
-import pdb
+from media_components.signals import media_create
 
 
 now = timezone.now
+
 
 class Command(BaseCommand):
     help = 'create wizcard from config dict'
@@ -19,6 +19,10 @@ class Command(BaseCommand):
         admin_user = UserProfile.objects.get_admin_user()
         if not admin_user:
             CommandError("please configure an admin user")
+
+        admin_user.first_name = admin_wizcard_config.u['first_name']
+        admin_user.last_name = admin_wizcard_config.u['last_name']
+        admin_user.save()
 
         # create a Wizcard and attach to admin user
         wizcard, created = Wizcard.objects.get_or_create(
@@ -31,12 +35,16 @@ class Command(BaseCommand):
 
             for attr, value in admin_wizcard_config.w.iteritems():
                 setattr(wizcard, attr, value)
-                wizcard.save()
+
+            wizcard.save()
 
             cc = wizcard.contact_container.all()[0]
             for attr, value in admin_wizcard_config.cc.iteritems():
                 setattr(cc, attr, value)
                 cc.save()
+
+            wizcard.media.all().delete()
+            cc.media.all().delete()
         else:
             self.stdout.write('created new wizcard "%s"' % wizcard)
             # create cc
@@ -46,28 +54,9 @@ class Command(BaseCommand):
             )
             self.stdout.write('created new contact container "%s"' % cc)
 
-        # upload images
-        # thumbnail
-        self.stdout.write('uploading thumbmail')
-        f = open(admin_wizcard_config.THUMBNAIL_IMAGE_PATH, 'rb')
-        rawimage = f.read()
-        upfile = SimpleUploadedFile("%s-%s.jpg" %
-                                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                                    rawimage, "image/jpeg")
-        wizcard.thumbnailImage.save(upfile.name, upfile)
-
-        # video thumbnail url
-        resp = noembed.embed(wizcard.videoUrl)
-        wizcard.videoThumbnailUrl = resp.thumbnail_url
-
-        wizcard.save()
-
-        # bizcard image
-        f = open(admin_wizcard_config.BIZCARD_IMAGE_PATH, 'rb')
-        rawimage = f.read()
-        upfile = SimpleUploadedFile("%s-%s.jpg" %
-                                    (wizcard.pk, now().strftime("%Y-%m-%d %H:%M")),
-                                    rawimage, "image/jpeg")
-        cc.f_bizCardImage.save(upfile.name, upfile)
-
-        self.stdout.write('Successfully created wizcard "%s"' % wizcard)
+        mw = media_create.send(sender=admin_user, objs=admin_wizcard_config.wizcard_media)
+        for m in mw[0][1]:
+            m.related_connect(wizcard.media)
+        mc = media_create.send(sender=admin_user, objs=admin_wizcard_config.cc_media)
+        for m in mc[0][1]:
+            m.related_connect(cc.media)
