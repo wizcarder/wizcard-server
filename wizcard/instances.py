@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 TEST_AWSHOSTS = ['ec2-13-126-85-179.ap-south-1.compute.amazonaws.com']
 DEV_AWSHOSTS = ['localhost']
-PROD_AWSHOSTS = ['ec2-35-154-61-96.ap-south-1.compute.amazonaws.com',
-                 'ec2-35-154-91-109.ap-south-1.compute.amazonaws.com']
+PROD_AWSHOSTS = ['ec2-13-126-41-180.ap-south-1.compute.amazonaws.com',
+                 'ec2-13-126-102-44.ap-south-1.compute.amazonaws.com']
 STG_AWSHOSTS = ['ec2-35-154-81-185.ap-south-1.compute.amazonaws.com']
 LOCALHOST = ['localhost']
 
@@ -46,14 +46,14 @@ RUNHOSTS = {'dev': {'LOCATIONSERVER': ['localhost'],
          'RABBITSERVER': ['localhost'],
          'RECOSERVER': ['localhost'],
          'WIZSERVER': ['localhost']},
- 'prod': {'LOCATIONSERVER': ['172.31.20.255'],
-          'MEMCACHE': ['172.31.20.255:11211',
-                       '172.31.20.254:11211'],
-          'NGINX': ['172.31.20.255',
-                    '172.31.20.254'],
+ 'prod': {'LOCATIONSERVER': ['172.31.28.254'],
+          'MEMCACHE': ['172.31.26.42:11211',
+                       '172.31.28.254:11211'],
+          'NGINX': ['172.31.26.42',
+                    '172.31.28.254'],
           'RABBITSERVER': ['localhost'],
-          'WIZSERVER': ['172.31.20.255',
-                        '172.31.20.254']},
+          'WIZSERVER': ['172.31.26.42',
+                        '172.31.28.254']},
  'stage': {'LOCATIONSERVER': ['172.31.9.38'],
            'MEMCACHE': ['172.31.9.38:11211'],
            'NGINX': ['172.31.9.38'],
