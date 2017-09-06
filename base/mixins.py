@@ -6,15 +6,18 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
+import os
 
 
 def get_s3_bucket(instance, filename):
     if instance.media_sub_type == MediaMixin.SUB_TYPE_F_BIZCARD:
-        return "deadcards"
+        folder = "bizcards"
     elif instance.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL:
-        return "thumbnails"
+        folder = "thumbnails"
     else:
-        return "bizcards"
+        folder = "deadcards"
+
+    return os.path.join(folder, filename)
 
 
 class VcardMixin(models.Model):

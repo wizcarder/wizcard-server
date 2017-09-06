@@ -1,4 +1,3 @@
-
 from django.db import models
 
 #from entity.models import BaseEntityComponent, BaseEntityComponentManager
@@ -33,8 +32,8 @@ class MediaEntities(BaseEntityComponent, MediaMixin):
 
     def upload_s3(self, b64image):
         raw_image = b64image.decode('base64')
-        upfile = SimpleUploadedFile("%s-%s.jpg" % (self.media_sub_type, now().strftime("%Y-%m-%d %H:%M")),
-                                    raw_image, "image/jpeg")
+        upfile = SimpleUploadedFile("%s-%s.%s.jpg" % (self.media_sub_type, now().strftime("%Y-%m-%d-%H:%M"),
+                                                      self.pk), raw_image, "image/jpeg")
         self.upload_file.save(upfile.name, upfile)
 
         return self.upload_file.local_path(), self.upload_file.remote_url()

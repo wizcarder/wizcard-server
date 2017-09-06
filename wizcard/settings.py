@@ -279,10 +279,14 @@ ROOT_URLCONF = 'wizcard.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'wizcard.wsgi.application'
 
+SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
+
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    os.path.join(SETTINGS_PATH, 'templates'),
+
 )
 
 REST_FRAMEWORK = {
@@ -359,8 +363,7 @@ DEFAULT_VIDEO_THUMBNAIL = AWS_STORAGE_BUCKET_NAME+ "/thumbnails/no-video-uploade
 
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
-STATIC_URL = S3_URL + STATIC_DIRECTORY
-MEDIA_URL = S3_URL + MEDIA_DIRECTORY
+
 
 #django-ses Settings
 SES_SMTP_USER = 'AKIAJIXICBLUCPSKQPKA'
@@ -371,7 +374,6 @@ EMAIL_BACKEND='django_ses.SESBackend'
 #AWS_RETURN_PATH='wizcarder@gmail.com'
 AWS_RETURN_PATH='admin@getwizcard.com'
 SES_RETURN_PATH='admin@getwizcard.com'
-EMAIL_FROM_ADDR='WizCard Inc <admin@getwizcard.com>'
 DEFAULT_FROM_EMAIL='admin@getwizcard.com'
 #ACCOUNT_EMAIL_VERIFICATION='mandatory'
 ACCOUNT_EMAIL_REQUIRED=True
@@ -382,7 +384,7 @@ ACCOUNT_USERNAME_REQUIRED = True
 #LOGIN_REDIRECT_URL = "http://www.getwizcard.com"
 
 REST_AUTH_REGISTER_SERIALIZERS = {
-        'REGISTER_SERIALIZER': 'userprofile.serializers.UserRegisterSerializer',
+    'REGISTER_SERIALIZER': 'userprofile.serializers.UserRegisterSerializer',
 }
 
 AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
@@ -501,20 +503,21 @@ MYLOG['dev'] = {
 }
 MYLOG[RUNENV] = MYLOG['dev']
 if RUNENV != 'dev':
-    MYLOG[RUNENV]['handlers']['sentry'] =  {
-                                        'level': 'ERROR',
-                                        'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-                                        }
+    MYLOG[RUNENV]['handlers']['sentry'] = {
+        'level': 'ERROR',
+        'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+    }
     MYLOG[RUNENV]['loggers']['sentry.errors'] = {
-                                             'level': 'ERROR',
-                                             'handlers': ['console'],
-                                             'propagate': False,
-                                         }
-    MYLOG[RUNENV]['loggers']['raven']  = {
-                                           'level': 'ERROR',
-                                           'handlers': ['console'],
-                                           'propagate': False,
-                                       }
+        'level': 'ERROR',
+        'handlers': ['console'],
+        'propagate': False,
+    }
+    MYLOG[RUNENV]['loggers']['raven'] = {
+        'level': 'ERROR',
+        'handlers': ['console'],
+        'propagate': False,
+    }
+
 LOGGING = MYLOG[RUNENV]
 
 APP_ID = 'com.beta.wizcard'
@@ -532,12 +535,6 @@ SHORTEN_API_KEY = 'AIzaSyBiw4HSRUb8VlR5oY0bLuRPTjT2G-fW8qo'
 SHORTEN_SERVICE = 'Google'
 
 CELERY_TIMEZONE = TIME_ZONE
-SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
-# Find templates in the same folder as settings.py.
-TEMPLATE_DIRS = (
-            os.path.join(SETTINGS_PATH, 'templates'),
-            )
-
 # RECOMMENDATION SETTINGS
 # In minutes - Interval to check for recommendation for trigger and full
 FULL_RECO_GEN_INTERVAL = 5
