@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             name='BaseEntityComponent',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('entity_type', models.CharField(default=b'EVT', max_length=3, choices=[(b'EVT', b'Event'), (b'BUS', b'Business'), (b'PRD', b'Product'), (b'TBL', b'Table'), (b'WZC', b'Wizcard'), (b'SPK', b'Speaker'), (b'SPN', b'Sponsor'), (b'COW', b'Coowner'), (b'ATT', b'Attendee'), (b'EXB', b'Exhibitor'), (b'MED', b'Media'), (b'COW', b'Coowner')])),
+                ('entity_type', models.CharField(default=b'EVT', max_length=3, choices=[(b'EVT', b'Event'), (b'BUS', b'Business'), (b'PRD', b'Product'), (b'TBL', b'Table'), (b'WZC', b'Wizcard'), (b'SPK', b'Speaker'), (b'SPN', b'Sponsor'), (b'COW', b'Coowner'), (b'ATT', b'Attendee'), (b'EXB', b'Exhibitor'), (b'MED', b'Media'), (b'COW', b'Coowner'), (b'AGN', b'Agenda')])),
             ],
             options={
                 'abstract': False,
@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
                 ('vcard', models.TextField(blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=20)),
+                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=50)),
                 ('email', base.emailField.EmailField(max_length=254, blank=True)),
                 ('website', models.URLField(blank=True)),
                 ('description', models.CharField(max_length=1000, blank=True)),

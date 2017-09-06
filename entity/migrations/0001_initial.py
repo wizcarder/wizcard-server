@@ -15,12 +15,22 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='Agenda',
+            fields=[
+                ('baseentitycomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='base_entity.BaseEntityComponent')),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('base_entity.baseentitycomponent',),
+        ),
+        migrations.CreateModel(
             name='AttendeeInvitee',
             fields=[
                 ('baseentitycomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='base_entity.BaseEntityComponent')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=20)),
+                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=50)),
                 ('email', base.emailField.EmailField(max_length=254, blank=True)),
             ],
             options={
@@ -44,7 +54,7 @@ class Migration(migrations.Migration):
                 ('baseentitycomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='base_entity.BaseEntityComponent')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=20)),
+                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=50)),
                 ('email', base.emailField.EmailField(max_length=254, blank=True)),
             ],
             options={
@@ -70,7 +80,7 @@ class Migration(migrations.Migration):
                 ('baseentitycomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='base_entity.BaseEntityComponent')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=20)),
+                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=50)),
                 ('email', base.emailField.EmailField(max_length=254, blank=True)),
             ],
             options={
@@ -97,7 +107,7 @@ class Migration(migrations.Migration):
                 ('title', base.char_trunc.TruncatingCharField(max_length=200, blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=20)),
+                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=50)),
                 ('email', base.emailField.EmailField(max_length=254, blank=True)),
                 ('website', models.URLField(blank=True)),
                 ('description', models.CharField(max_length=1000, blank=True)),
@@ -115,7 +125,7 @@ class Migration(migrations.Migration):
                 ('vcard', models.TextField(blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=20)),
+                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=50)),
                 ('email', base.emailField.EmailField(max_length=254, blank=True)),
                 ('website', models.URLField(blank=True)),
                 ('description', models.CharField(max_length=1000, blank=True)),
