@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 ('vcard', models.TextField(blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=20)),
+                ('name', base.char_trunc.TruncatingCharField(default=b'', max_length=50)),
                 ('email', base.emailField.EmailField(max_length=254, blank=True)),
                 ('website', models.URLField(blank=True)),
                 ('description', models.CharField(max_length=1000, blank=True)),
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
                 ('wizcardbase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='wizcardship.WizcardBase')),
                 ('invited', models.BooleanField(default=False)),
                 ('activated', models.BooleanField(default=False)),
-                ('cctx', picklefield.fields.PickledObjectField(editable=False, blank=True)),
+                ('cctx', picklefield.fields.PickledObjectField(default={}, editable=False, blank=True)),
                 ('user', models.ForeignKey(related_name='dead_cards', to=settings.AUTH_USER_MODEL)),
             ],
             options={
