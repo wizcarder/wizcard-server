@@ -69,7 +69,7 @@ class EventViewSet(BaseEntityViewSet):
         passed_emails, failed_str = AttendeeInvitee.validate(attendees['ids'])
 
         for recp in passed_emails:
-            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEES, to_email=recp)
+            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEE, to_email=recp)
 
         return Response("Attendees invited %s Failed ids: %s" % (len(passed_emails), failed_str),
                         status=status.HTTP_200_OK)

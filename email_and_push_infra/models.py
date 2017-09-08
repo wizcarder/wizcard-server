@@ -30,6 +30,7 @@ class EmailEvent(models.Model):
     JOINUS = 6
     DIGEST = 7
     INVITE_EXHIBITOR = 8
+    INVITE_ATTENDEE = 9
     EVENTS = (
         (NEWUSER, 'NEWUSER'),
         (INVITED, 'INVITED'),
@@ -38,7 +39,8 @@ class EmailEvent(models.Model):
         (MISSINGU, 'MISSINGU'),
         (JOINUS, 'JOINUS'),
         (DIGEST, 'DIGEST'),
-        (INVITE_EXHIBITOR, 'INVITE_EXHIBITOR')
+        (INVITE_EXHIBITOR, 'INVITE_EXHIBITOR'),
+        (INVITE_ATTENDEE, 'INVITE_ATTENDEE')
     )
     BUFFERED = 1
     INSTANT = 2

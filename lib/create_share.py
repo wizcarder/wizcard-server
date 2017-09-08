@@ -83,13 +83,19 @@ def send_event(event, to, emaildetails):
     email_dict['banner'] = 'http://PlaceholderImage.com'
     if event_media:
         email_dict['banner'] = event_media.media_element
-    email_dict['event_url'] = "http://getwizcard.com/entity/event/%d/product" % event.id
+    if html == 'invite_exhibitor.html':
+        email_dict['event_url'] = "http://getwizcard.com/entity/event/%d/product" % event.id
+        subject = "Welcome to %s - Claim your product space" % event.name
+    if html == 'invite_attendee.html':
+        subject = "%s - Official App for the Event" % event.name
 
     ctx = Context(email_dict)
-    email = Email(to=to, subject = "Welcome to %s - Claim your product space" % event.name)
+
+    email = Email(to=to, subject = subject)
     email.html(html, ctx)
     email.send()
 #    email.send(from_addr=emaildetails['from_addr'])
+
 
 def mass_email(to, id):
 

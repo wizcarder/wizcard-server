@@ -20,7 +20,8 @@ class HtmlGen:
             EmailEvent.INVITED: (self.invite_user, False),
             EmailEvent.NEWRECOMMENDATION: (self.dummy_func, False),
             EmailEvent.SCANNED: (self.scan_user, False),
-            EmailEvent.INVITE_EXHIBITOR: (self.invite_exhibitor, False)
+            EmailEvent.INVITE_EXHIBITOR: (self.invite_exhibitor, False),
+            EmailEvent.INVITE_ATTENDEE: (self.invite_attendee, False)
         }
 
     def run(self):
@@ -51,6 +52,10 @@ class HtmlGen:
         email_details = {"template" : "invite_exhibitor.html", "subject": "%s - has invited you to Create your Product"}
         send_event(event_organizer, to, email_details)
 
+    def invite_attendee(self, sender, to):
+        event_organizer = sender
+        email_details = {"template" : "invite_attendee.html", "subject": "%s - Welcome to %s"}
+        send_event(event_organizer, to, email_details)
 
 
 
