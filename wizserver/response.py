@@ -115,15 +115,11 @@ class NotifResponse(ResponseN):
 
     def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
-        if half:
-            s = WizcardSerializerL1
-            status = verbs.FOLLOWED
-        else:
-            if wizcard.is_admin_wizcard():
-                status = verbs.ADMIN
-            else:
-                status = verbs.CONNECTED
-            s = WizcardSerializerL2
+        r_wizcard = notif.recipient.wizcard
+
+        s = WizcardSerializerL1 if half else WizcardSerializerL2
+
+        status = Wizcard.objects.get_connection_status(r_wizcard, wizcard)
 
         out = s(wizcard, context={'status': status}).data
 
