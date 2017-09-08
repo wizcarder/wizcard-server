@@ -119,8 +119,11 @@ class NotifResponse(ResponseN):
             s = WizcardSerializerL1
             status = verbs.FOLLOWED
         else:
+            if wizcard.is_admin_wizcard():
+                status = verbs.ADMIN
+            else:
+                status = verbs.CONNECTED
             s = WizcardSerializerL2
-            status = verbs.CONNECTED
 
         out = s(wizcard, context={'status': status}).data
 
