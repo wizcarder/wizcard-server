@@ -1932,7 +1932,7 @@ class ParseMsgAndDispatch(object):
         self.user.first_name = result.get('first_name', "")[:settings.MAX_NAME_LEN]
         self.user.last_name = result.get('last_name', "")[:settings.MAX_NAME_LEN]
 
-        wizcard.name = self.user.first_name + "" + self.user.last_name
+        # wizcard.name = self.user.first_name + "" + self.user.last_name
         wizcard.email = result.get('email', "")
 
         wizcard.save()

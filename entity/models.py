@@ -45,11 +45,22 @@ class Event(BaseEntity):
     def join(self, user):
         super(Event, self).join(user)
 
+        self.notify_all_users(
+            user,
+            verbs.WIZCARD_ENTITY_JOIN[0],
+            self,
+        )
         # do any event specific stuff here
         return
 
     def leave(self, user):
         super(Event, self).leave(user)
+
+        self.notify_all_users(
+            user,
+            verbs.WIZCARD_ENTITY_LEAVE[0],
+            self,
+        )
 
         return
 

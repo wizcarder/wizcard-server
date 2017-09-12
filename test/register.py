@@ -398,7 +398,6 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-
     reqmsg = messages.card_details
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid1
@@ -426,8 +425,7 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-
-    #1:1 Tests
+    # 1:1 Tests
 
     #assetToXYZ tests
     #asset types: wizcard, entity

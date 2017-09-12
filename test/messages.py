@@ -1009,7 +1009,9 @@ ocr_dead_card_edit = {
         "notes" : {
             'note': "",
             'last_saved': ""
-        }
+        },
+        'first_name': "Abcd",
+        'last_name' : "Efgh"
     },
 }
 wizweb_query_user = {

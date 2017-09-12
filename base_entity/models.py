@@ -177,7 +177,6 @@ class BaseEntityComponent(PolymorphicModel):
         from media_components.models import MediaEntities
         from media_components.serializers import MediaEntitiesSerializer
 
-
         if entity_type == cls.EVENT:
             c = Event
             s = EventSerializerL1
@@ -265,8 +264,6 @@ class BaseEntityComponent(PolymorphicModel):
         except:
             return None
 
-
-
     def add_subentities(self, ids, type):
         c = self.entity_cls_from_subentity_type(type)
         int_ids = map(lambda x: int(x), ids)
@@ -276,9 +273,6 @@ class BaseEntityComponent(PolymorphicModel):
                 self.related.connect(obj, alias=type)
         except:
             pass
-
-
-
 
     def add_subentity_obj(self, obj):
         return self.related.connect(obj, alias=ContentType.objects.get_for_model(obj).name)
@@ -301,7 +295,6 @@ class BaseEntityComponent(PolymorphicModel):
             if med.media_sub_type == sub_type and med.media_type == type:
                 banners.append(med)
         return banners
-
 
     def get_parent_entities(self ):
         try:

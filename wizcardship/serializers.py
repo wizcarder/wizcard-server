@@ -84,6 +84,8 @@ class DeadCardSerializerL2(WizcardSerializerL2):
         for field_name in remove_fields:
             self.fields.pop(field_name)
 
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
     context = serializers.SerializerMethodField()
 
     class Meta(WizcardSerializerL2.Meta):

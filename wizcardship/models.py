@@ -412,6 +412,8 @@ class Wizcard(WizcardBase):
 
 class DeadCard(WizcardBase):
     user = models.ForeignKey(User, related_name="dead_cards")
+    first_name = TruncatingCharField(max_length=30, default="")
+    last_name = TruncatingCharField(max_length=30, default="")
     invited = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
     cctx = PickledObjectField(blank=True, default = {})
