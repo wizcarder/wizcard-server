@@ -2263,7 +2263,7 @@ class ParseMsgAndDispatch(object):
             events_serialized = EventSerializerL1(
                 events,
                 many=True,
-                **self.user_context,
+                **self.user_context
             ).data
 
             self.response.add_data("result", events_serialized)

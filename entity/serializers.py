@@ -193,7 +193,7 @@ class ProductSerializerL2(EntitySerializerL2):
 # this is used by portal REST API
 class ProductSerializer(EntitySerializerL2):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['joined']
+        remove_fields = ['joined', 'engagements', 'users']
         super(ProductSerializer, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
@@ -203,7 +203,6 @@ class ProductSerializer(EntitySerializerL2):
         model = Product
         fields = EntitySerializerL2.Meta.fields
 
-    related = RelatedSerializerField(many=True, required=False, write_only=True)
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
@@ -211,6 +210,9 @@ class ProductSerializer(EntitySerializerL2):
         self.post_create(product)
 
         return product
+
+    def get_media(self, obj):
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
 
 
 # this is used by portal REST API
