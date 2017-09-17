@@ -43,9 +43,6 @@ WIZCARD_SETTINGS = {
             'LOCATION': 'default-cache'
             }
         },
-        'raven_config': {
-            'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
-        }
     },
     'test': {
         'databases': {
@@ -63,9 +60,6 @@ WIZCARD_SETTINGS = {
                 'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
             }
         },
-        'raven_config': {
-            'dsn':'https://a8d0ed041ea04ed3a5425d473c7eef4e:9334d4a08de2483f90a26402e57ddb0e@app.getsentry.com/80078',
-        }
     },
     'stage': {
         'databases': {
@@ -82,9 +76,6 @@ WIZCARD_SETTINGS = {
                 'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
                 'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
             }
-        },
-        'raven_config': {
-            'dsn': 'https://c2ee29b3727d4d599b0fa0035c64c9fa:e7d756b3a14a4a86947c6c011e2c6122@app.getsentry.com/46407',
         }
     },
     'prod': {
@@ -113,7 +104,7 @@ DATABASES = WIZCARD_SETTINGS[RUNENV]['databases']
 CACHES = WIZCARD_SETTINGS[RUNENV]['caches']
 
 # RAVEN config for Sentry
-if RUNENV != 'dev':
+if RUNENV == 'prod':
     RAVEN_CONFIG = WIZCARD_SETTINGS[RUNENV]['raven_config']
 
 

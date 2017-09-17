@@ -21,7 +21,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wizcard.settings")
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.
 from django.core.wsgi import get_wsgi_application
-from raven.contrib.django.raven_compat.models import client
+#from raven.contrib.django.raven_compat.models import client
 application = get_wsgi_application()
 
 # Apply WSGI middleware here.

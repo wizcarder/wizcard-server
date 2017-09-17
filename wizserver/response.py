@@ -17,6 +17,7 @@ from entity.serializers import ProductSerializer, EntitySerializerL0
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1, WizcardSerializerL2
 from entity.serializers import TableSerializerL1
 from django.utils import timezone
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,10 @@ class Response:
         try:
             raise RuntimeError('%s: %s' % (err['errno'], err['str']))
         except:
-            client.captureException()
+            if hasattr(settings, 'RAVEN_CONFIG'):
+                client.captureException()
+            else:
+                pass
         return self
 
     def ignore(self):
