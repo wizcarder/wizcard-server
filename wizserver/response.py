@@ -205,7 +205,7 @@ class NotifResponse(ResponseN):
 
     def notifLeaveEntity(self, notif):
         wizcard=notif.actor.wizcard
-        ws = WizcardSerializerL1(wizcard)
+        ws = WizcardSerializerL1(wizcard).data
 
         if notif.target:
             s = EntitySerializerL0(notif.target).data
