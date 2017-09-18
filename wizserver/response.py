@@ -113,6 +113,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
+            verbs.WIZCARD_EVENT_CHANGE[0]       : self.notifEventChange,
         }
         for notification in notifications:
             notifHandler[notification.verb](notification)
@@ -201,6 +202,15 @@ class NotifResponse(ResponseN):
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_JOIN, notif.id)
             logger.debug('%s', self.response)
 
+        return self.response
+
+    def notifEventChange(self, notif):
+        event = notif.target
+        out = dict(
+            event=event.id
+        )
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_EVENT_CHANGE, notif.id)
+        logger.debug('%s', self.response)
         return self.response
 
     def notifLeaveEntity(self, notif):
