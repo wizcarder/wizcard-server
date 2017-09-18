@@ -42,6 +42,10 @@ class NotificationManager(models.Manager):
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
 
+    def get_unread_users(self):
+        unread_users = map(lambda x: x.recipient, self.filter(readed=False))
+        return unread_users
+
 
 class Notification(models.Model):
     """

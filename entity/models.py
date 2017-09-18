@@ -64,6 +64,15 @@ class Event(BaseEntity):
 
         return
 
+    def notify_update(self):
+        self.notify_all_users(
+            self,
+            verbs.WIZCARD_EVENT_CHANGE[0],
+            self,
+            exclude_sender=False,
+            filter_users=True
+        )
+
 
 class ProductManager(BaseEntityManager):
     def users_entities(self, user, entity_type=BaseEntity.PRODUCT, include_expired=False):

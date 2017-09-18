@@ -15,6 +15,7 @@ from django.contrib.contenttypes.models import ContentType
 from base.mixins import  Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
+from notifications.models import Notification
 
 
 
@@ -416,10 +417,14 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return users
 
-    def notify_all_users(self, sender, verb, entity, exclude=True):
+    def notify_all_users(self, sender, verb, entity, exclude_sender=True, filter_users=False):
         # send notif to all members, just like join
-        qs = self.users.exclude(id=sender.pk) if exclude else self.users.all()
-        for u in qs:
+
+        unread_users = set(Notification.objects.get_unread_users()) if filter_users else set([])
+        qs = set(self.users.exclude(id=sender.pk)) if exclude_sender else set(self.users.all())
+
+        notif_users = qs - unread_users
+        for u in notif_users:
             notify.send(
                 sender,
                 recipient=u,
