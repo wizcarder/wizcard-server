@@ -1,18 +1,16 @@
-from rest_framework import viewsets
 from rest_framework.response import Response
-from base_entity.models import BaseEntity
-from entity.models import Event, Product, Business, VirtualTable,\
-    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, CoOwners, Agenda
-from entity.serializers import  EventSerializer, EventSerializerL2 ,ProductSerializer, \
-    BusinessSerializer, TableSerializer, ExhibitorSerializer, AttendeeSerializer, SpeakerSerializerL1, \
-    SponsorSerializerL1, SponsorSerializerL2, CoOwnersSerializer, AgendaSerializerL1
+from base_entity.models import BaseEntityComponent
+from entity.models import Event, Campaign, VirtualTable,\
+    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee
+from entity.serializers import EventSerializer, CampaignSerializer, \
+    TableSerializer, AttendeeSerializer, ExhibitorSerializer, SponsorSerializer, \
+    SpeakerSerializer
 from django.http import Http404
 from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
-from base_entity.models import BaseEntityComponent
 import pdb
 
 
@@ -59,7 +57,6 @@ class EventViewSet(BaseEntityViewSet):
 
         return Response("Exhibitors invited %s Failed ids: %s" % (len(passed_emails), failed_str) , status=status.HTTP_200_OK)
 
-
      # AR: Need to the nested thingy but given Raghu's time adding this hack.
     @detail_route(methods=['post'])
     def invite_attendees(self, request, pk=None):
@@ -77,32 +74,21 @@ class EventViewSet(BaseEntityViewSet):
     @detail_route(methods=['get'])
     def publish_event(self, request, pk=None):
         inst = self.get_object_or_404(pk)
-        inst.makelive()
+        inst.make_live()
 
         return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
 
 
-class ProductViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+class CampaignViewSet(BaseEntityViewSet):
+    queryset = Campaign.objects.all()
+    serializer_class = CampaignSerializer
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Product.objects.users_entities(user)
+        queryset = Campaign.objects.users_entities(user)
         return queryset
 
-
-class BusinessViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
-    queryset = Business.objects.all()
-    serializer_class = BusinessSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = Business.objects.users_entities(user)
-        return queryset
-
-
-class TableViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
+class TableViewSet(BaseEntityViewSet):
     queryset = VirtualTable.objects.all()
     serializer_class = TableSerializer
 
@@ -123,7 +109,7 @@ class SpeakerViewSet(BaseEntityComponentViewSet):
         return {'user': self.request.user}
 
     def get_serializer_class(self):
-        return SpeakerSerializerL1
+        return SpeakerSerializer
 
 
 class SponsorViewSet(BaseEntityComponentViewSet):
@@ -138,7 +124,7 @@ class SponsorViewSet(BaseEntityComponentViewSet):
         return {'user': self.request.user}
 
     def get_serializer_class(self):
-        return SponsorSerializerL1
+        return SponsorSerializer
 
 
 class ExhibitorViewSet(BaseEntityComponentViewSet):
@@ -168,21 +154,6 @@ class AttendeeViewSet(BaseEntityComponentViewSet):
 
 class OwnersViewSet(BaseEntityComponentViewSet):
     pass
-
-
-class AgendaViewSet(BaseEntityComponentViewSet):
-    queryset = Agenda.objects.all()
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = BaseEntityComponent.objects.users_components(user, Agenda)
-        return queryset
-
-    def get_serializer_context(self):
-        return {'user': self.request.user}
-
-    def get_serializer_class(self):
-        return AgendaSerializerL1
 
 
 

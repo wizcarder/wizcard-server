@@ -27,7 +27,7 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         if parents:
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
         else:
-            instance.related.all().delete
+            instance.related.all().delete()
             instance.delete()
             return Response(status=status.HTTP_200_OK)
 

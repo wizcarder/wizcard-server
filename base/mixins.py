@@ -39,8 +39,8 @@ class Base411Mixin(models.Model):
     class Meta:
         abstract = True
 
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True, null=True)
+    modified = models.DateTimeField(auto_now=True, null=True)
     name = TruncatingCharField(max_length=50, default="")
     email = EmailField(blank=True)
 

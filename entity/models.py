@@ -6,7 +6,7 @@ from wizcardship.models import Wizcard
 from lib.preserialize.serialize import serialize
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from base_entity.models import BaseEntityComponent, BaseEntityComponentManager, BaseEntity, BaseEntityManager
+from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager
 from base_entity.models import EntityEngagementStats, UserEntity
 
 
@@ -65,22 +65,22 @@ class Event(BaseEntity):
         return
 
 
-class ProductManager(BaseEntityManager):
-    def users_entities(self, user, entity_type=BaseEntity.PRODUCT, include_expired=False):
-        return super(ProductManager, self).users_entities(
+class CampaignManager(BaseEntityManager):
+    def users_entities(self, user, entity_type=BaseEntity.CAMPAIGN, include_expired=False):
+        return super(CampaignManager, self).users_entities(
             user,
             entity_type=entity_type,
             include_expired=include_expired
         )
 
 
-class Product(BaseEntity):
+class Campaign(BaseEntity):
 
-    objects = ProductManager()
+    objects = CampaignManager()
 
     # this is a follow
     def join(self, user):
-        super(Product, self).join(user)
+        super(Campaign, self).join(user)
 
         self.notify_all_users(
             user,
@@ -94,7 +94,7 @@ class Product(BaseEntity):
     # deleted from rolodex or if there is a button on the campaign
     # to un-follow
     def leave(self, user):
-        super(Product, self).leave(user)
+        super(Campaign, self).leave(user)
 
         # send notif to all members, just like join
         self.notify_all_users(
@@ -104,21 +104,6 @@ class Product(BaseEntity):
         )
 
         return
-
-
-class BusinessManager(BaseEntityManager):
-    def users_entities(self, user, entity_type=BaseEntity.BUSINESS, include_expired=False):
-        return super(BusinessManager, self).users_entities(
-            user,
-            entity_type=entity_type,
-            include_expired=include_expired
-        )
-
-class Business(BaseEntity):
-
-    objects = BusinessManager()
-
-    pass
 
 
 class VirtualTableManager(BaseEntityManager):
@@ -236,41 +221,23 @@ class VirtualTable(BaseEntity):
         return 0
 
 
-class SpeakerManager(BaseEntityComponentManager):
-
-    def users_speakers(self, user):
-        return super(SpeakerManager, self).users_components(user, Speaker)
-
 class Speaker(BaseEntityComponent, Base412Mixin, CompanyTitleMixin, VcardMixin):
+    pass
 
-    objects = SpeakerManager()
-
-class SponsorManager(BaseEntityComponentManager):
-    def users_sponsors(self, user):
-        return super(SponsorManager, self).users_components(user, Sponsor)
 
 class Sponsor(BaseEntityComponent, Base413Mixin):
     caption = models.CharField(max_length=50, default='Not Available')
 
-    objects = SponsorManager()
 
 class CoOwners(BaseEntityComponent, Base411Mixin):
     pass
 
+
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
     pass
 
-class AgendaManager(BaseEntityComponentManager):
-
-    def users_agenda(self, user):
-        return super(SpeakerManager, self).users_components(user, Speaker)
-
-class Agenda(BaseEntityComponent):
-
-    objects = AgendaManager()
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
-
     @classmethod
     def validate(cls, exhibitors):
         failed_ids = ""
@@ -284,12 +251,17 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
         return valid_emails, failed_ids
 
 
+class Agenda(BaseEntityComponent):
+    start = models.DateTimeField(auto_now_add=True)
+    end = models.DateTimeField(auto_now_add=True)
+    where = models.CharField(max_length=100, default="")
+
+
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 @receiver(post_save, sender=Event)
-@receiver(post_save, sender=Product)
-@receiver(post_save, sender=Business)
+@receiver(post_save, sender=Campaign)
 @receiver(post_save, sender=VirtualTable)
 def create_engagement_stats(sender, instance, created, **kwargs):
     if created:
