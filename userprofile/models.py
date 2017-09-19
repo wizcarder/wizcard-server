@@ -305,15 +305,14 @@ class AppUser(BaseUser):
             dc = DeadCardSerializerL2(deadcards, many=True, context={'user': self.profile.user}).data
             s['deadcards'] = dc
 
-        # notifications. This is done by simply setting readed=False for
-        # those user.notifs which have acted=False
-        # This way, these notifs will be sent natively via get_cards
-
         campaigns = Campaign.objects.users_entities(self.profile.user)
         if campaigns.count():
             camp_data = CampaignSerializer(campaigns, many=True, context={'user': self.profile.user}).data
             s['campaigns'] = camp_data
 
+        # notifications. This is done by simply setting readed=False for
+        # those user.notifs which have acted=False
+        # This way, these notifs will be sent natively via get_cards
         Notification.objects.unacted(self.profile.user).update(readed=False)
         return s
 

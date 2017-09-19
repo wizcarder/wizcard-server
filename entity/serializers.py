@@ -326,15 +326,13 @@ class TableSerializer(EntitySerializer):
 
         return table
 
-
 """
 used by portal
 """
 class SpeakerSerializer(EntitySerializer):
-
     class Meta:
         model = Speaker
-        fields = '__all__'
+        fields = ('id', 'name', 'email', 'entity_type', 'website', 'description', 'ext_fields', 'company', 'title')
         read_only_fields = ('vcard',)
 
     def get_media(self, obj):
@@ -342,7 +340,13 @@ class SpeakerSerializer(EntitySerializer):
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
-        spkr = BaseEntityComponent.create(Speaker, owner=self.context.get('user'), is_creator=True, entity_type=BaseEntity.SPEAKER, **validated_data)
+        spkr = BaseEntityComponent.create(
+            Speaker,
+            owner=self.context.get('user'),
+            is_creator=True,
+            entity_type=BaseEntity.SPEAKER,
+            **validated_data
+        )
         self.post_create(spkr)
         return spkr
 
@@ -362,7 +366,7 @@ class SpeakerSerializer(EntitySerializer):
 """
 used by App
 """
-class SpeakerSerializerL2(EntitySerializer):
+class SpeakerSerializerL2(SpeakerSerializer):
 
     class Meta:
         model = Speaker
@@ -404,7 +408,7 @@ class SponsorSerializerL2(EntitySerializer):
         ).data
 
 
-class ExhibitorSerializer(EntitySerializer):
+class ExhibitorInviteeSerializer(EntitySerializer):
 
     class Meta:
         model = ExhibitorInvitee
@@ -415,10 +419,10 @@ class ExhibitorSerializer(EntitySerializer):
         mobj = BaseEntityComponent.create(ExhibitorInvitee, owner=user, is_creator=True, entity_type=BaseEntity.EXHIBITOR, **validated_data)
         return mobj
 
-class AttendeeSerializer(EntitySerializer):
+class AttendeeInviteeSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
         many = kwargs.pop('many', True)
-        super(AttendeeSerializer, self).__init__(many=many, *args, **kwargs)
+        super(AttendeeInviteeSerializer, self).__init__(many=many, *args, **kwargs)
 
     class Meta:
         model = AttendeeInvitee
@@ -426,7 +430,12 @@ class AttendeeSerializer(EntitySerializer):
 
     def create(self, validated_data):
         user = self.context.get('user')
-        mobj = BaseEntityComponent.create(AttendeeInvitee, owner=user, is_creator=True, entity_type=BaseEntity.ATTENDEE, **validated_data)
+        mobj = BaseEntityComponent.create(
+            AttendeeInvitee,
+            owner=user, is_creator=True,
+            entity_type=BaseEntity.ATTENDEE_INVITEE,
+            **validated_data
+        )
         return mobj
 
 

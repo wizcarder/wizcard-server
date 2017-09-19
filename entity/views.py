@@ -3,7 +3,7 @@ from base_entity.models import BaseEntityComponent
 from entity.models import Event, Campaign, VirtualTable,\
     Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee
 from entity.serializers import EventSerializer, CampaignSerializer, \
-    TableSerializer, AttendeeSerializer, ExhibitorSerializer, SponsorSerializer, \
+    TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
     SpeakerSerializer
 from django.http import Http404
 from rest_framework.decorators import detail_route
@@ -33,7 +33,7 @@ class EventViewSet(BaseEntityViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Event.objects.users_entities(user)
+        queryset = Event.objects.owners_entities(user)
         return queryset
 
     def update(self, request, pk=None, partial=True):
@@ -85,7 +85,7 @@ class CampaignViewSet(BaseEntityViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Campaign.objects.users_entities(user)
+        queryset = Campaign.objects.owners_entities(user)
         return queryset
 
 class TableViewSet(BaseEntityViewSet):
@@ -94,7 +94,7 @@ class TableViewSet(BaseEntityViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = VirtualTable.objects.users_entities(user)
+        queryset = VirtualTable.objects.owners_entities(user)
         return queryset
 
 class SpeakerViewSet(BaseEntityComponentViewSet):
@@ -102,7 +102,7 @@ class SpeakerViewSet(BaseEntityComponentViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Speaker.objects.users_speakers(user)
+        queryset = Speaker.objects.owners_entities(user)
         return queryset
 
     def get_serializer_context(self):
@@ -129,7 +129,7 @@ class SponsorViewSet(BaseEntityComponentViewSet):
 
 class ExhibitorViewSet(BaseEntityComponentViewSet):
     queryset = ExhibitorInvitee.objects.all()
-    serializer_class = ExhibitorSerializer
+    serializer_class = ExhibitorInviteeSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -141,7 +141,7 @@ class ExhibitorViewSet(BaseEntityComponentViewSet):
 
 class AttendeeViewSet(BaseEntityComponentViewSet):
     queryset = AttendeeInvitee.objects.all()
-    serializer_class = AttendeeSerializer
+    serializer_class = AttendeeInviteeSerializer
 
     def get_queryset(self):
         user = self.request.user

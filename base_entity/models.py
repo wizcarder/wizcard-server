@@ -40,18 +40,19 @@ class BaseEntityManager(models.Manager):
             entities = self.filter(id__in=result)
         return entities, count
 
-    def users_entities(self, user, entity_type=None, include_expired=False):
+    def owners_entities(self, user, entity_type=None):
         cls, ser = BaseEntity.entity_cls_ser_from_type(entity_type=entity_type)
-        if include_expired:
-            return user.users_baseentity_related.all().instance_of(cls)
-        else:
-            return user.users_baseentity_related.all().instance_of(cls).exclude(expired=True)
+        return user.owners_baseentitycomponent_related.all().instance_of(cls)
+
+    def users_entities(self, user, entity_type=None):
+        cls, ser = BaseEntity.entity_cls_ser_from_type(entity_type=entity_type)
+        return user.users_baseentity_related.all().instance_of(cls)
 
     def query(self, query_str):
         # check names
         q1 = Q(name__istartswith=query_str)
         q2 = Q(tags__name__istartswith=query_str)
-        #
+
         entities = self.filter(q1 | q2)[0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
 
         return entities, entities.count()
@@ -70,7 +71,8 @@ class BaseEntityComponent(PolymorphicModel):
     SPEAKER = 'SPK'
     SPONSOR = 'SPN'
     MEDIA = 'MED'
-    ATTENDEE = 'ATT'
+    ATTENDEE_INVITEE = 'ATI'
+    EXHIBITOR_INVITEE = 'EXI'
     COOWNER = 'COW'
     AGENDA = 'AGN'
 
@@ -82,7 +84,8 @@ class BaseEntityComponent(PolymorphicModel):
         (SPEAKER, 'Speaker'),
         (SPONSOR, 'Sponsor'),
         (COOWNER, 'Coowner'),
-        (ATTENDEE, 'Attendee'),
+        (ATTENDEE_INVITEE, 'AttendeeInvitee'),
+        (EXHIBITOR_INVITEE, 'ExhibitorInvitee'),
         (MEDIA, 'Media'),
         (COOWNER, 'Coowner'),
         (AGENDA, 'Agenda')
@@ -166,7 +169,7 @@ class BaseEntityComponent(PolymorphicModel):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
             TableSerializerL1, TableSerializerL2, EntitySerializer, \
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
-            SpeakerSerializerL2, SponsorSerializerL2
+            SpeakerSerializerL2, SponsorSerializerL2, AttendeeInviteeSerializer, ExhibitorInviteeSerializer
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
         from media_components.models import MediaEntities
@@ -181,12 +184,12 @@ class BaseEntityComponent(PolymorphicModel):
         elif entity_type == cls.TABLE:
             c = VirtualTable
             s = TableSerializerL2 if detail else TableSerializerL1
-        elif entity_type == cls.ATTENDEE:
+        elif entity_type == cls.ATTENDEE_INVITEE:
             c = AttendeeInvitee
-            s = AttendeeSerializer
-        elif entity_type == cls.EXHIBITOR:
+            s = AttendeeInviteeSerializer
+        elif entity_type == cls.EXHIBITOR_INVITEE:
             c = ExhibitorInvitee
-            s = ExhibitorSerializer
+            s = ExhibitorInviteeSerializer
         elif entity_type == cls.MEDIA:
             c = MediaEntities
             s = MediaEntitiesSerializer

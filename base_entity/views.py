@@ -12,7 +12,7 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = BaseEntity.objects.users_entities(user)
+        queryset = BaseEntity.objects.owners_entities(user)
         return queryset
 
     def perform_create(self, serializer):
@@ -39,7 +39,7 @@ class BaseEntityComponentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = BaseEntityComponent.objects.users_entities(user)
+        queryset = BaseEntityComponent.objects.owners_entities(user)
         return queryset
 
     def perform_destroy(self, instance):
