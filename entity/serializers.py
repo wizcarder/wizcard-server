@@ -126,7 +126,7 @@ class EventSerializerL1(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type = MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
             many=True
         ).data
 
@@ -218,7 +218,7 @@ class CampaignSerializerL1(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type = MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
             many=True
         ).data
 
@@ -240,7 +240,7 @@ class CampaignSerializerL2(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type = MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
             many=True
         ).data
 
@@ -275,7 +275,7 @@ class TableSerializerL1(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type = MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
             many=True
         ).data
 
@@ -306,6 +306,13 @@ class TableSerializerL2(EntitySerializer):
         model = VirtualTable
         fields = EntitySerializer.Meta.fields
 
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
+            many=True
+        ).data
+
+
 # this is used by portal REST API
 class TableSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
@@ -332,14 +339,13 @@ used by portal
 class SpeakerSerializer(EntitySerializer):
     class Meta:
         model = Speaker
-        fields = ('id', 'name', 'email', 'entity_type', 'website', 'description', 'ext_fields', 'company', 'title')
+        fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
+                  'description', 'ext_fields', 'company', 'title', 'media', 'related')
         read_only_fields = ('vcard',)
-
-    def get_media(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
 
     def create(self, validated_data, **kwargs):
         self.prepare(validated_data)
+
         spkr = BaseEntityComponent.create(
             Speaker,
             owner=self.context.get('user'),
@@ -347,17 +353,19 @@ class SpeakerSerializer(EntitySerializer):
             entity_type=BaseEntity.SPEAKER,
             **validated_data
         )
+
         self.post_create(spkr)
         return spkr
 
     def update(self, instance, validated_data):
-        instance.vcard = validated_data.pop('vcard', instance.vcard)
-        instance.company = validated_data.pop('company', instance.company)
-        instance.title = validated_data.pop('title', instance.title)
         instance.name = validated_data.pop('name', instance.name)
         instance.email = validated_data.pop('email', instance.email)
         instance.website = validated_data.pop('website', instance.website)
+        instance.vcard = validated_data.pop('vcard', instance.vcard)
         instance.description = validated_data.pop('description', instance.description)
+        instance.ext_fields = validated_data.pop('ext_fields', instance.ext_fields)
+        instance.company = validated_data.pop('company', instance.company)
+        instance.title = validated_data.pop('title', instance.title)
 
         instance = super(SpeakerSerializer, self).update(instance, validated_data)
 
@@ -366,11 +374,12 @@ class SpeakerSerializer(EntitySerializer):
 """
 used by App
 """
-class SpeakerSerializerL2(SpeakerSerializer):
+class SpeakerSerializerL2(EntitySerializer):
 
     class Meta:
         model = Speaker
-        fields = '__all__'
+        fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
+                  'description', 'ext_fields', 'company', 'title', 'media')
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
@@ -383,23 +392,44 @@ class SponsorSerializer(EntitySerializer):
 
     class Meta:
         model = Sponsor
-        fields = "__all__"
+        fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard', 'description',
+                  'phone', 'caption', 'ext_fields', 'company', 'title', 'media', 'related')
 
     def create(self, validated_data):
         self.prepare(validated_data)
-        spn = BaseEntityComponent.create(Sponsor, owner=self.context.get('user'), is_creator=True, entity_type=BaseEntity.SPONSOR,**validated_data)
+
+        spn = BaseEntityComponent.create(
+            Sponsor,
+            owner=self.context.get('user'),
+            is_creator=True,
+            entity_type=BaseEntity.SPONSOR,
+            **validated_data
+        )
+
         self.post_create(spn)
+
         return spn
 
-    def get_media(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+    def update(self, instance, validated_data):
+        instance.vcard = validated_data.pop('vcard', instance.vcard)
+        instance.company = validated_data.pop('company', instance.company)
+        instance.title = validated_data.pop('title', instance.title)
+        instance.name = validated_data.pop('name', instance.name)
+        instance.email = validated_data.pop('email', instance.email)
+        instance.website = validated_data.pop('website', instance.website)
+        instance.description = validated_data.pop('description', instance.description)
+
+        instance = super(SponsorSerializer, self).update(instance, validated_data)
+
+        return instance
 
 
 class SponsorSerializerL2(EntitySerializer):
 
     class Meta:
         model = Sponsor
-        fields = '__all__'
+        fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard', 'description',
+                  'phone', 'caption', 'ext_fields', 'company', 'title', 'media')
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(

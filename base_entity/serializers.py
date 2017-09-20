@@ -104,7 +104,7 @@ class EntitySerializer(EntitySerializerL0):
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_media(self, obj):
-        return ""
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
 
     def get_users(self, obj):
         return ""
@@ -167,19 +167,20 @@ class EntitySerializer(EntitySerializerL0):
     # AR TODO there are some obvious bugs here for the related fields.
     # when we update, if we wipe existing, then related is also lost
     def update(self, instance, validated_data):
-        instance.name = validated_data.pop('name', instance.name)
-        instance.address = validated_data.pop('address', instance.address)
-        instance.website = validated_data.pop('website', instance.website)
-        instance.description = validated_data.pop('description', instance.description)
-        instance.phone = validated_data.pop('phone', instance.phone)
-        instance.email = validated_data.pop('email', instance.email)
-        instance.is_activated = validated_data.pop('is_activated', instance.is_activated)
-
-        # handle related objects. It's a replace
-        media = validated_data.pop('media', None)
-        if media:
-            instance.media.all().delete()
-            media_create.send(sender=instance, objs=media)
+        if hasattr(instance, 'name'):
+            instance.name = validated_data.pop('name', instance.name)
+        if hasattr(instance, 'address'):
+            instance.address = validated_data.pop('address', instance.address)
+        if hasattr(instance, 'website'):
+            instance.website = validated_data.pop('website', instance.website)
+        if hasattr(instance, 'description'):
+            instance.description = validated_data.pop('description', instance.description)
+        if hasattr(instance, 'phone'):
+            instance.phone = validated_data.pop('phone', instance.phone)
+        if hasattr(instance, 'email'):
+            instance.email = validated_data.pop('email', instance.email)
+        if hasattr(instance, 'activated'):
+            instance.is_activated = validated_data.pop('is_activated', instance.is_activated)
 
         owners = validated_data.pop('owners', None)
         if owners is not None:
@@ -196,6 +197,7 @@ class EntitySerializer(EntitySerializerL0):
         location = validated_data.pop('location', None)
         if location:
             instance.create_or_update_location(location['lat'], location['lng'])
+
         tags = validated_data.pop('tags', None)
         if tags:
             instance.add_tags(tags)
