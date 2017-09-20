@@ -82,6 +82,19 @@ class EventViewSet(BaseEntityViewSet):
 
         return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
 
+    def perform_destroy(self, instance):
+        parents = instance.get_parent_entities()
+        if parents:
+            return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
+        else:
+            instance.related.all().delete
+            instance.delete()
+            instance.notify_delete()
+            return Response(status=status.HTTP_200_OK)
+
+
+
+
 
 class ProductViewSet(BaseEntityViewSet, BaseEntityComponentViewSet):
     queryset = Product.objects.all()

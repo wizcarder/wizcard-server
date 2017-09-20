@@ -119,7 +119,9 @@ NOTIF_WIZCARD_FORWARD           = 14
 NOTIF_ENTITY_JOIN               = 15
 NOTIF_ENTITY_LEAVE              = 16
 NOTIF_FOLLOW_EXPLICIT           = 17
-NOTIF_EVENT_CHANGE              = 18
+NOTIF_EVENT_UPDATE              = 18
+NOTIF_EVENT_EXPIRE              = 19
+NOTIF_EVENT_DELETE              = 20
 
 # receiver types
 WIZCARD_CONNECT_U   = 1
@@ -181,8 +183,9 @@ WIZCARD_FORWARD = ('wizcard forward', 1)
 WIZCARD_ENTITY_JOIN = ('entity join', 0)
 WIZCARD_ENTITY_LEAVE = ('entity leave', 0)
 WIZCARD_RECO_READY = ('new recommendations ready', 1)
-WIZCARD_EVENT_CHANGE = ('event_changed', 0)
-
+WIZCARD_EVENT_UPDATE = ('event_updated', 0)
+WIZCARD_EVENT_EXPIRE = ('event_expired', 0)
+WIZCARD_EVENT_DELETED = ('event_deleted', 0)
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {

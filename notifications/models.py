@@ -7,6 +7,7 @@ from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
 from notifications.tasks import pushNotificationToApp
+from wizserver import  verbs
 import logging
 import pdb
 
@@ -42,9 +43,14 @@ class NotificationManager(models.Manager):
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
 
-    def get_unread_users(self):
-        unread_users = map(lambda x: x.recipient, self.filter(readed=False))
-        return unread_users
+    def get_unread_users(self, verb, filter_users=None):
+
+        qs = self.filter(verb=verb, readed=False)
+        if filter_users:
+            qs = qs.filter(recipient__in=filter_users)
+        exclude_users = map(lambda x: x.recipient, qs)
+
+        return exclude_users
 
 
 class Notification(models.Model):

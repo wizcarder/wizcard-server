@@ -41,4 +41,8 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=60),
 #       'options': {'queue': CELERY_BEAT_QUEUE_NAME}
     },
+    'expire_events' : {
+        'task' : 'events.task.expire',
+        'schedule' : timedelta(seconds=86400),
+    }
 }
