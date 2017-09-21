@@ -201,7 +201,7 @@ class VirtualTable(BaseEntity):
         return 0
 
 
-class SpeakerManager(BaseEntityManager):
+class SpeakerManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntity.SPEAKER):
         return super(SpeakerManager, self).owners_entities(
             user,
@@ -213,7 +213,7 @@ class Speaker(BaseEntityComponent, Base412Mixin, CompanyTitleMixin, VcardMixin):
     objects = SpeakerManager()
 
 
-class SponsorManager(BaseEntityManager):
+class SponsorManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntity.SPONSOR):
         return super(SponsorManager, self).owners_entities(
             user,
@@ -227,7 +227,7 @@ class Sponsor(BaseEntityComponent, Base413Mixin):
     objects = SponsorManager()
 
 
-class CoOwnersManager(BaseEntityManager):
+class CoOwnersManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntity.COOWNER):
         return super(CoOwnersManager, self).owners_entities(
             user,
@@ -238,7 +238,7 @@ class CoOwners(BaseEntityComponent, Base411Mixin):
     objects = CoOwnersManager()
 
 
-class AttendeeInviteeManager(BaseEntityManager):
+class AttendeeInviteeManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntity.ATTENDEE_INVITEE):
         return super(AttendeeInviteeManager, self).owners_entities(
             user,
@@ -250,7 +250,7 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
     objects = AttendeeInviteeManager()
 
 
-class ExhibitorInviteeManager(BaseEntityManager):
+class ExhibitorInviteeManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntity.EXHIBITOR_INVITEE):
         return super(ExhibitorInviteeManager, self).owners_entities(
             user,

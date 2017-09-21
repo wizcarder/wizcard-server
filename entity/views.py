@@ -117,7 +117,7 @@ class SponsorViewSet(BaseEntityComponentViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Sponsor.objects.users_sponsors(user)
+        queryset = Sponsor.objects.owners_entities(user)
         return queryset
 
     def get_serializer_context(self):
@@ -133,7 +133,7 @@ class ExhibitorViewSet(BaseEntityComponentViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = BaseEntityComponent.objects.users_components(user, ExhibitorInvitee)
+        queryset = ExhibitorInvitee.objects.owners_entities(user)
         return queryset
 
     def get_serializer_context(self):

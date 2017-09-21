@@ -10,6 +10,7 @@ from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComp
 from media_components.serializers import MediaEntitiesSerializer
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from random import sample
+import pdb
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -78,20 +79,20 @@ can be defined as needed and methods overridden.
 This serializer should not be directly used
 """
 class EntitySerializer(EntitySerializerL0):
-    media = serializers.SerializerMethodField(read_only=True)
+    media = serializers.SerializerMethodField()
     location = LocationSerializerField(required=False)
-    users = serializers.SerializerMethodField(read_only=True)
-    friends = serializers.SerializerMethodField(read_only=True)
-    joined = serializers.SerializerMethodField(read_only=True)
+    users = serializers.SerializerMethodField()
+    friends = serializers.SerializerMethodField()
+    joined = serializers.SerializerMethodField()
     tags = TagListSerializerField(required=False)
-    like = serializers.SerializerMethodField(read_only=True)
-    engagements = EntityEngagementSerializer(read_only=True)
-    creator = serializers.SerializerMethodField(read_only=True)
-    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
+    like = serializers.SerializerMethodField()
+    engagements = EntityEngagementSerializer()
+    creator = serializers.SerializerMethodField()
+    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False, write_only=True)
     related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
     is_activated = serializers.BooleanField(write_only=True, default=False)
-    status = serializers.SerializerMethodField(read_only=True)
+    status = serializers.SerializerMethodField()
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
@@ -138,10 +139,21 @@ class EntitySerializer(EntitySerializerL0):
         self.users = validated_data.pop('users', None)
         self.creator = validated_data.pop('creator', None)
 
-    def post_create(self, entity):
-        # add creator. Should always be there
-        BaseEntityComponent.add_creator(entity, self.creator if self.creator else self.context.get('user'))
+    def create(self, validated_data):
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(validated_data['entity_type'])
+        self.prepare(validated_data)
 
+        obj = BaseEntityComponent.create(
+            cls,
+            owner=self.context.get('user'),
+            is_creator=True,
+            **validated_data
+        )
+
+        self.post_create(obj)
+        return obj
+
+    def post_create(self, entity):
         if self.owners:
             BaseEntityComponent.add_owners(entity, self.owners)
 

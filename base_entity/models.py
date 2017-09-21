@@ -19,7 +19,17 @@ import pdb
 
 # Create your models here.
 
-class BaseEntityManager(models.Manager):
+
+
+class BaseEntityComponentManager(models.Manager):
+    def user_entities(self, user, entity_type):
+        return BaseEntity.objects.users_entities(user, entity_type)
+
+    def owners_entities(self, user, entity_type):
+        return BaseEntity.objects.owners_entities(user, entity_type)
+
+
+class BaseEntityManager(BaseEntityComponentManager):
     def create(self, *args, **kwargs):
         category = kwargs.pop('category', Taganomy.objects.get_default_category())
         return super(BaseEntityManager, self).create(*args, category=category, **kwargs)
@@ -57,9 +67,6 @@ class BaseEntityManager(models.Manager):
 
         return entities, entities.count()
 
-
-class BaseEntityComponentManager(models.Manager):
-    pass
 
 # everything inherits from this. This holds the relationship
 # end-points for owners and related_entity.
@@ -142,15 +149,15 @@ class BaseEntityComponent(PolymorphicModel):
     itself
     """
     @classmethod
-    def add_creator(cls, obj, creator):
-        BaseEntityComponentsOwner.objects.filter(
+    def update_creator(cls, obj, creator):
+        BaseEntityComponentsOwner.objects.get(
             base_entity_component=obj,
             owner=creator).update(is_creator=True)
 
     @classmethod
     def add_owners(cls, obj, owners):
         for o in owners:
-            BaseEntityComponentsOwner.objects.create(
+            BaseEntityComponentsOwner.objects.get_or_create(
                 base_entity_component=obj,
                 owner=o,
                 is_creator=False

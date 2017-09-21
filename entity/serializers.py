@@ -39,11 +39,9 @@ class EventSerializer(EntitySerializer):
         fields = EntitySerializer.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
-        self.prepare(validated_data)
-        event = Event.objects.create(entity_type=BaseEntity.EVENT, **validated_data)
-        self.post_create(event)
+        validated_data.update(entity_type=BaseEntityComponent.EVENT)
 
-        return event
+        return super(EventSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
         instance.start = validated_data.pop("start", instance.start)
@@ -258,11 +256,10 @@ class CampaignSerializer(EntitySerializer):
         fields = EntitySerializer.Meta.fields
 
     def create(self, validated_data, **kwargs):
-        self.prepare(validated_data)
-        campaign = Campaign.objects.create(entity_type=BaseEntity.CAMPAIGN, **validated_data)
-        self.post_create(campaign)
+        validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)
 
-        return campaign
+        return super(CampaignSerializer, self).create(validated_data)
+
 
 class TableSerializerL1(EntitySerializer):
     time_remaining = serializers.SerializerMethodField(read_only=True)
@@ -326,12 +323,10 @@ class TableSerializer(EntitySerializer):
         model = VirtualTable
         fields = EntitySerializer.Meta.fields
 
-    def create(self, validated_data):
-        self.prepare(validated_data)
-        table = VirtualTable.objects.create(entity_type=BaseEntity.TABLE, **validated_data)
-        self.post_create(table)
+    def create(self, validated_data, **kwargs):
+        validated_data.update(entity_type=BaseEntityComponent.TABLE)
 
-        return table
+        return super(TableSerializer, self).create(validated_data)
 
 """
 used by portal
@@ -344,18 +339,9 @@ class SpeakerSerializer(EntitySerializer):
         read_only_fields = ('vcard',)
 
     def create(self, validated_data, **kwargs):
-        self.prepare(validated_data)
+        validated_data.update(entity_type=BaseEntityComponent.SPEAKER)
 
-        spkr = BaseEntityComponent.create(
-            Speaker,
-            owner=self.context.get('user'),
-            is_creator=True,
-            entity_type=BaseEntity.SPEAKER,
-            **validated_data
-        )
-
-        self.post_create(spkr)
-        return spkr
+        return super(SpeakerSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
         instance.name = validated_data.pop('name', instance.name)
@@ -392,23 +378,12 @@ class SponsorSerializer(EntitySerializer):
 
     class Meta:
         model = Sponsor
-        fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard', 'description',
-                  'phone', 'caption', 'ext_fields', 'company', 'title', 'media', 'related')
+        fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related')
 
-    def create(self, validated_data):
-        self.prepare(validated_data)
+    def create(self, validated_data, **kwargs):
+        validated_data.update(entity_type=BaseEntityComponent.SPONSOR)
 
-        spn = BaseEntityComponent.create(
-            Sponsor,
-            owner=self.context.get('user'),
-            is_creator=True,
-            entity_type=BaseEntity.SPONSOR,
-            **validated_data
-        )
-
-        self.post_create(spn)
-
-        return spn
+        return super(SponsorSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
         instance.vcard = validated_data.pop('vcard', instance.vcard)
@@ -444,10 +419,6 @@ class ExhibitorInviteeSerializer(EntitySerializer):
         model = ExhibitorInvitee
         fields = ('id', 'name', 'email')
 
-    def create(self, validated_data):
-        user = self.context.get('user')
-        mobj = BaseEntityComponent.create(ExhibitorInvitee, owner=user, is_creator=True, entity_type=BaseEntity.EXHIBITOR, **validated_data)
-        return mobj
 
 class AttendeeInviteeSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
@@ -458,16 +429,6 @@ class AttendeeInviteeSerializer(EntitySerializer):
         model = AttendeeInvitee
         fields = ['id', 'name', 'email']
 
-    def create(self, validated_data):
-        user = self.context.get('user')
-        mobj = BaseEntityComponent.create(
-            AttendeeInvitee,
-            owner=user, is_creator=True,
-            entity_type=BaseEntity.ATTENDEE_INVITEE,
-            **validated_data
-        )
-        return mobj
-
 
 class CoOwnersSerializer(EntitySerializer):
     pass
@@ -476,18 +437,6 @@ class AgendaSerializer(EntitySerializer):
     class Meta:
         model = Agenda
         fields = ('id', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media')
-
-    def create(self, validated_data, **kwargs):
-        self.prepare(validated_data)
-        agn = BaseEntityComponent.create(
-            Agenda,
-            owner=self.context.get('user'),
-            is_creator=True,
-            entity_type=BaseEntity.AGENDA,
-            **validated_data
-        )
-        self.post_create(agn)
-        return agn
 
     def update(self, instance, validated_data):
         instance = super(AgendaSerializer, self).update(instance, validated_data)
