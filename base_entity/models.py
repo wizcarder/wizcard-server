@@ -41,15 +41,16 @@ class BaseEntityManager(models.Manager):
 
         #convert result to query set result
         if count and not count_only:
-            entities = self.filter(id__in=result, is_expired=False, is_deleted=False)
+            entities = self.filter(id__in=result, expired=False, is_deleted=False)
         return entities, count
 
-    def users_entities(self, user, entity_type=None, include_expired=False):
+    def users_entities(self, user, entity_type=None, include_expired=False, include_deleted=False):
         cls, ser = BaseEntity.entity_cls_ser_from_type(entity_type=entity_type)
         if include_expired:
-            return user.users_baseentity_related.all().instance_of(cls)
+            return user.users_baseentity_related.all().instance_of(cls).exclude(is_deleted=True)
         else:
-            return user.users_baseentity_related.all().instance_of(cls).exclude(expired=True)
+            return user.users_baseentity_related.all().instance_of(cls).exclude(expired=True, is_deleted=True)
+
 
     def query(self, query_str):
         # check names
