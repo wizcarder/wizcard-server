@@ -29,11 +29,12 @@ class EventManager(BaseEntityManager):
             count_only
         )
 
-    def users_entities(self, user, entity_type=BaseEntity.EVENT, include_expired=False):
+    def users_entities(self, user, entity_type=BaseEntity.EVENT, include_expired=False, include_deleted=False):
         return super(EventManager, self).users_entities(
             user,
             entity_type=entity_type,
-            include_expired=include_expired
+            include_expired=include_expired,
+            include_deleted = include_deleted
         )
 
     def expire(self):

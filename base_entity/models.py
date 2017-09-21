@@ -41,7 +41,7 @@ class BaseEntityManager(models.Manager):
 
         #convert result to query set result
         if count and not count_only:
-            entities = self.filter(id__in=result)
+            entities = self.filter(id__in=result, is_expired=False, is_deleted=False)
         return entities, count
 
     def users_entities(self, user, entity_type=None, include_expired=False):
@@ -324,6 +324,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     timeout = models.IntegerField(default=30)
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
 
     category = models.ForeignKey(Taganomy, blank=True)
 
@@ -441,6 +442,10 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def makelive(self):
         self.is_activated = True
+        self.save()
+
+    def mark_deleted(self):
+        self.is_deleted = True
         self.save()
 
 
