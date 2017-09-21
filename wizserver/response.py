@@ -206,7 +206,7 @@ class NotifResponse(ResponseN):
 
         return self.response
 
-    def notifEventChange(self, notif, notifType):
+    def notifEvent(self, notif, notifType):
         event = notif.target
         out = dict(
             event=event.id

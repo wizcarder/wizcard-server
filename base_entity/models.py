@@ -420,7 +420,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def notify_all_users(self, sender, verb, entity, exclude_sender=True, filter_users=False):
         # send notif to all members, just like join
 
-        entity_users = self.users.all()
+        entity_users = entity.users.all()
 
         unread_users = set(Notification.objects.get_unread_users(verb, filter_users=entity_users)) if filter_users else set([])
         entity_users = set(entity_users.exclude(id=sender.pk)) if exclude_sender else set(entity_users)
