@@ -12,7 +12,7 @@ from django.conf import settings
 from taganomy.models import Taganomy
 from base.char_trunc import TruncatingCharField
 from django.contrib.contenttypes.models import ContentType
-from base.mixins import  Base414Mixin
+from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
 import pdb
@@ -51,11 +51,11 @@ class BaseEntityManager(BaseEntityComponentManager):
         return entities, count
 
     def owners_entities(self, user, entity_type=None):
-        cls, ser = BaseEntity.entity_cls_ser_from_type(entity_type=entity_type)
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
         return user.owners_baseentitycomponent_related.all().instance_of(cls)
 
     def users_entities(self, user, entity_type=None):
-        cls, ser = BaseEntity.entity_cls_ser_from_type(entity_type=entity_type)
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
         return user.users_baseentity_related.all().instance_of(cls)
 
     def query(self, query_str):
@@ -82,6 +82,7 @@ class BaseEntityComponent(PolymorphicModel):
     EXHIBITOR_INVITEE = 'EXI'
     COOWNER = 'COW'
     AGENDA = 'AGN'
+    AGENDA_ITEM = 'AGI'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -95,7 +96,9 @@ class BaseEntityComponent(PolymorphicModel):
         (EXHIBITOR_INVITEE, 'ExhibitorInvitee'),
         (MEDIA, 'Media'),
         (COOWNER, 'Coowner'),
-        (AGENDA, 'Agenda')
+        (AGENDA, 'Agenda'),
+        (AGENDA_ITEM, 'AgendaItem')
+
     )
 
     SUB_ENTITY_CAMPAIGN = 'e_campaign'
@@ -176,9 +179,10 @@ class BaseEntityComponent(PolymorphicModel):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
             TableSerializerL1, TableSerializerL2, EntitySerializer, \
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
-            SpeakerSerializerL2, SponsorSerializerL2, AttendeeInviteeSerializer, ExhibitorInviteeSerializer
+            SpeakerSerializerL2, SponsorSerializerL2, AttendeeInviteeSerializer, \
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer
         from entity.models import Event, Campaign, VirtualTable, \
-            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
+            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
         from media_components.serializers import MediaEntitiesSerializer
 
@@ -212,6 +216,12 @@ class BaseEntityComponent(PolymorphicModel):
         elif entity_type == cls.MEDIA:
             c = MediaEntities
             s = MediaEntitiesSerializer
+        elif entity_type == cls.AGENDA:
+            c = Agenda
+            s = AgendaSerializer
+        elif entity_type == cls.AGENDA_ITEM:
+            c = AgendaItem
+            s = AgendaItemSerializer
         else:
             c = BaseEntity
             s = EntitySerializer
@@ -244,14 +254,6 @@ class BaseEntityComponent(PolymorphicModel):
             c = Agenda
 
         return c
-
-    # AR: TO fix
-    def add_subentity(self, id, type):
-        c = self.entity_cls_from_subentity_type(type)
-        return self.related.connect(
-            c.objects.get(id=id),
-            alias=type
-        )
 
     def add_subentities(self, ids, type):
         c = self.entity_cls_from_subentity_type(type)

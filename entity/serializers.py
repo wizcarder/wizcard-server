@@ -2,10 +2,11 @@ __author__ = 'aammundi'
 from random import sample
 
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 from entity.models import Event, Campaign, VirtualTable
 from base_entity.models import UserEntity, BaseEntityComponent, BaseEntity
 from base_entity.serializers import EntitySerializerL0, EntitySerializer
-from entity.models import Speaker, Sponsor, Agenda, AttendeeInvitee, ExhibitorInvitee
+from entity.models import Speaker, Sponsor, Agenda, AgendaItem, AttendeeInvitee, ExhibitorInvitee
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
 from media_components.serializers import MediaEntitiesSerializer
@@ -419,6 +420,11 @@ class ExhibitorInviteeSerializer(EntitySerializer):
         model = ExhibitorInvitee
         fields = ('id', 'name', 'email')
 
+    def create(self, validated_data, **kwargs):
+        validated_data.update(entity_type=BaseEntityComponent.EXHIBITOR_INVITEE)
+
+        return super(ExhibitorInviteeSerializer, self).create(validated_data)
+
 
 class AttendeeInviteeSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
@@ -429,19 +435,59 @@ class AttendeeInviteeSerializer(EntitySerializer):
         model = AttendeeInvitee
         fields = ['id', 'name', 'email']
 
+    def create(self, validated_data, **kwargs):
+        validated_data.update(entity_type=BaseEntityComponent.ATTENDEE_INVITEE)
+
+        return super(AttendeeInviteeSerializer, self).create(validated_data)
+
 
 class CoOwnersSerializer(EntitySerializer):
-    pass
+    class Meta:
+        model = AttendeeInvitee
+        fields = ['id', 'name', 'email']
+
+    def create(self, validated_data, **kwargs):
+        validated_data.update(entity_type=BaseEntityComponent.COOWNER)
+
+        return super(CoOwnersSerializer, self).create(validated_data)
+
+
+class AgendaItemSerializer(EntitySerializer):
+    class Meta:
+        model = AgendaItem
+        fields = ('id', 'name', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media')
+
+    speakers = serializers.SerializerMethodField()
+
+    def create(self, validated_data, **kwargs):
+        validated_data.update(entity_type=BaseEntityComponent.AGENDA_ITEM)
+
+        return super(AgendaItemSerializer, self).create(validated_data)
+
+    def get_speakers(self, obj):
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
+
+    def update(self, instance, validated_data):
+        instance = super(AgendaItemSerializer, self).update(instance, validated_data)
+
+        return instance
+
 
 class AgendaSerializer(EntitySerializer):
     class Meta:
         model = Agenda
-        fields = ('id', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media')
+        fields = ('items',)
 
-    def update(self, instance, validated_data):
-        instance = super(AgendaSerializer, self).update(instance, validated_data)
+    items = AgendaItemSerializer(many=True)
 
-        return instance
+    def create(self, validated_data, **kwargs):
+        agn = Agenda.objects.create()
+
+        for item in validated_data['items']:
+            item.update(agenda = agn)
+            AgendaItemSerializer(context=self.context).create(item)
+
+        return agn
 
 
 class AgendaSerializerL2(EntitySerializer):

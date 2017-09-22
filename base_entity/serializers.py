@@ -86,7 +86,7 @@ class EntitySerializer(EntitySerializerL0):
     joined = serializers.SerializerMethodField()
     tags = TagListSerializerField(required=False)
     like = serializers.SerializerMethodField()
-    engagements = EntityEngagementSerializer()
+    engagements = EntityEngagementSerializer(read_only=True)
     creator = serializers.SerializerMethodField()
     owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False, write_only=True)
     related = RelatedSerializerField(write_only=True, required=False, many=True)

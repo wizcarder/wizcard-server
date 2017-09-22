@@ -1,16 +1,18 @@
 from rest_framework.response import Response
 from base_entity.models import BaseEntityComponent
 from entity.models import Event, Campaign, VirtualTable,\
-    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee
+    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, CoOwners
 from entity.serializers import EventSerializer, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
-    SpeakerSerializer
+    SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
 from django.http import Http404
 from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
+from rest_framework_extensions.mixins import NestedViewSetMixin
+
 import pdb
 
 
@@ -105,9 +107,6 @@ class SpeakerViewSet(BaseEntityComponentViewSet):
         queryset = Speaker.objects.owners_entities(user)
         return queryset
 
-    def get_serializer_context(self):
-        return {'user': self.request.user}
-
     def get_serializer_class(self):
         return SpeakerSerializer
 
@@ -119,9 +118,6 @@ class SponsorViewSet(BaseEntityComponentViewSet):
         user = self.request.user
         queryset = Sponsor.objects.owners_entities(user)
         return queryset
-
-    def get_serializer_context(self):
-        return {'user': self.request.user}
 
     def get_serializer_class(self):
         return SponsorSerializer
@@ -136,8 +132,6 @@ class ExhibitorViewSet(BaseEntityComponentViewSet):
         queryset = ExhibitorInvitee.objects.owners_entities(user)
         return queryset
 
-    def get_serializer_context(self):
-        return {'user': self.request.user}
 
 class AttendeeViewSet(BaseEntityComponentViewSet):
     queryset = AttendeeInvitee.objects.all()
@@ -145,15 +139,27 @@ class AttendeeViewSet(BaseEntityComponentViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = BaseEntityComponent.objects.users_components(user, AttendeeInvitee)
+        queryset = AttendeeInvitee.objects.owners_entities(user)
         return queryset
 
-    def get_serializer_context(self):
-        return {'user': self.request.user}
+
+class CoOwnersViewSet(BaseEntityComponentViewSet):
+    queryset = CoOwners.objects.all()
+    serializer_class = CoOwnersSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = CoOwners.objects.owners_entities(user)
+        return queryset
 
 
-class OwnersViewSet(BaseEntityComponentViewSet):
-    pass
+class AgendaViewSet(BaseEntityComponentViewSet, NestedViewSetMixin):
+    queryset = Agenda.objects.all()
+    serializer_class = AgendaSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Agenda.objects.owners_entities(user)
+        return queryset
 
 

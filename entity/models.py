@@ -259,6 +259,9 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
 
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
+
+    objects = ExhibitorInviteeManager()
+
     @classmethod
     def validate(cls, exhibitors):
         failed_ids = ""
@@ -272,7 +275,20 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
         return valid_emails, failed_ids
 
 
+class AgendaManager(BaseEntityComponentManager):
+    def owners_entities(self, user, entity_type=BaseEntity.AGENDA):
+        return super(AgendaManager, self).owners_entities(
+            user,
+            entity_type=entity_type
+        )
+
+
 class Agenda(BaseEntityComponent):
+    objects = AgendaManager()
+
+
+class AgendaItem(BaseEntityComponent, Base412Mixin):
+    agenda = models.ForeignKey(Agenda, related_name='items')
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
     where = models.CharField(max_length=100, default="")
