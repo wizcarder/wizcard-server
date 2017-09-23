@@ -176,8 +176,6 @@ class EntitySerializer(EntitySerializerL0):
 
         return entity
 
-    # AR TODO there are some obvious bugs here for the related fields.
-    # when we update, if we wipe existing, then related is also lost
     def update(self, instance, validated_data):
         if hasattr(instance, 'name'):
             instance.name = validated_data.pop('name', instance.name)

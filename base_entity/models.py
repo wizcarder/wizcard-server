@@ -246,12 +246,12 @@ class BaseEntityComponent(PolymorphicModel):
             c = Sponsor
         elif entity_type == cls.SUB_ENTITY_MEDIA:
             c = MediaEntities
-        elif entity_type == cls.SUB_ENTITY_EXHIBITOR:
-            c = ExhibitorInvitee
         elif entity_type == cls.SUB_ENTITY_COOWNER:
             c = CoOwners
         elif entity_type == cls.SUB_ENTITY_AGENDA:
             c = Agenda
+        else:
+            raise AssertionError("Invalid sub_entity %s" % entity_type)
 
         return c
 
