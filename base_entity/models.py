@@ -267,8 +267,8 @@ class BaseEntityComponent(PolymorphicModel):
         except:
             pass
 
-    def add_subentity_obj(self, obj):
-        return self.related.connect(obj, alias=ContentType.objects.get_for_model(obj).name)
+    def add_subentity_obj(self, obj, alias):
+        return self.related.connect(obj, alias=alias)
 
     # AR: TO fix
     def remove_sub_entity_of_type(self, id, entity_type):
@@ -310,6 +310,9 @@ class BaseEntityComponentsOwner(models.Model):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
     owner = models.ForeignKey(User)
     is_creator = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = (("base_entity_component", "owner"),)
 
 class BaseEntity(BaseEntityComponent, Base414Mixin):
     secure = models.BooleanField(default=False)

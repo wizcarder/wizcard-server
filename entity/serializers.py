@@ -111,7 +111,7 @@ class EventSerializer(EntitySerializer):
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
-        remove_fields = ['joined', 'engagements', 'users']
+        remove_fields = ['joined', 'engagements', 'users', 'creator']
 
         super(EventSerializer, self).__init__(*args, **kwargs)
 
