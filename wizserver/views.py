@@ -2174,7 +2174,7 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type')
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=True)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)

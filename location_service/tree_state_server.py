@@ -101,8 +101,10 @@ class TreeServer(RabbitServer):
                                                              props.correlation_id),
                              body=json.dumps(response))
         except:
-            client.captureException()
-            pass
+            if hasattr(settings, 'RAVEN_CONFIG'):
+                client.captureException()
+            else:
+                pass
 
         self.acknowledge_message(basic_deliver.delivery_tag)
 
@@ -240,4 +242,7 @@ if __name__ == '__main__':
     try:
         main()
     except:
-        client.captureException()
+        if hasattr(settings, 'RAVEN_CONFIG'):
+            client.captureException()
+        else:
+            pass

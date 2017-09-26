@@ -41,6 +41,14 @@ class EventManager(BaseEntityManager):
             entity_type=entity_type
         )
 
+    def expire(self):
+        evts = self.filter(end__lt=timezone.now(), expired=False)
+        evids = []
+        for e in evts:
+            e.expire_and_notif()
+            evids.append(str(e.id))
+        return evids
+
 class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
@@ -68,6 +76,34 @@ class Event(BaseEntity):
         )
 
         return
+
+    def notify_update(self):
+        self.notify_all_users(
+            self,
+            verbs.WIZCARD_EVENT_UPDATE[0],
+            self,
+            exclude_sender=False,
+            filter_users=True
+        )
+
+    def notify_delete(self):
+        self.notify_all_users(
+            self,
+            verbs.WIZCARD_EVENT_DELETE[0],
+            self
+        )
+
+    def expire_and_notif(self, flag=True):
+        self.expired = flag
+        self.save()
+        self.notify_expire()
+
+    def notify_expire(self):
+        self.notify_all_users(
+            self,
+            verbs.WIZCARD_EVENT_EXPIRE[0],
+            self
+        )
 
 
 class CampaignManager(BaseEntityManager):

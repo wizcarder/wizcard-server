@@ -15,7 +15,7 @@ from django.contrib.contenttypes.models import ContentType
 from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
-import pdb
+from notifications.models import Notification
 
 # Create your models here.
 
@@ -47,7 +47,7 @@ class BaseEntityManager(BaseEntityComponentManager):
 
         #convert result to query set result
         if count and not count_only:
-            entities = self.filter(id__in=result)
+            entities = self.filter(id__in=result, expired=False, is_deleted=False)
         return entities, count
 
     def owners_entities(self, user, entity_type=None):
@@ -321,6 +321,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     timeout = models.IntegerField(default=30)
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
 
     category = models.ForeignKey(Taganomy, blank=True)
 
@@ -396,10 +397,16 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return users
 
-    def notify_all_users(self, sender, verb, entity, exclude=True):
+    def notify_all_users(self, sender, verb, entity, exclude_sender=True, filter_users=False):
         # send notif to all members, just like join
-        qs = self.users.exclude(id=sender.pk) if exclude else self.users.all()
-        for u in qs:
+
+        entity_users = entity.users.all()
+
+        unread_users = set(Notification.objects.get_unread_users(verb, filter_users=entity_users)) if filter_users else set([])
+        entity_users = set(entity_users.exclude(id=sender.pk)) if exclude_sender else set(entity_users)
+
+        notif_users = entity_users - unread_users
+        for u in notif_users:
             notify.send(
                 sender,
                 recipient=u,
@@ -416,6 +423,10 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def make_live(self):
         self.is_activated = True
+        self.save()
+
+    def mark_deleted(self):
+        self.is_deleted = True
         self.save()
 
 

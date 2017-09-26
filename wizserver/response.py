@@ -17,6 +17,7 @@ from entity.serializers import EntitySerializerL0
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1, WizcardSerializerL2
 from entity.serializers import TableSerializerL1
 from django.utils import timezone
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,10 @@ class Response:
         try:
             raise RuntimeError('%s: %s' % (err['errno'], err['str']))
         except:
-            client.captureException()
+            if hasattr(settings, 'RAVEN_CONFIG'):
+                client.captureException()
+            else:
+                pass
         return self
 
     def ignore(self):
@@ -109,6 +113,9 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
+            verbs.WIZCARD_EVENT_UPDATE[0]       : self.notifEventUpdate,
+            verbs.WIZCARD_EVENT_EXPIRE[0]       : self.notifEventExpire,
+            verbs.WIZCARD_EVENT_DELETE[0]       : self.notifEventDelete
         }
         for notification in notifications:
             notifHandler[notification.verb](notification)
@@ -186,7 +193,7 @@ class NotifResponse(ResponseN):
 
     def notifJoinEntity(self, notif):
         wizcard=notif.actor.wizcard
-        ws = WizcardSerializerL0(wizcard, context={'user': notif.recipient}).data
+        ws = WizcardSerializerL1(wizcard, context={'user': notif.recipient}).data
 
         if notif.target:  # since there is a possibility that the entity got destroyed in-between
             s = EntitySerializerL0(notif.target).data
@@ -199,9 +206,27 @@ class NotifResponse(ResponseN):
 
         return self.response
 
+    def notifEvent(self, notif, notifType):
+        event = notif.target
+        out = dict(
+            event=event.id
+        )
+        self.add_data_and_seq_with_notif(out, notifType, notif.id)
+        logger.debug('%s', self.response)
+        return self.response
+
+    def notifEventDelete(self, notif):
+        self.notifEvent(notif, verbs.NOTIF_EVENT_DELETE)
+
+    def notifEventExpire(self, notif):
+        self.notifEvent(notif, verbs.NOTIF_EVENT_EXPIRE)
+
+    def notifEventUpdate(self, notif):
+        self.notifEvent(notif, verbs.NOTIF_EVENT_UPDATE)
+
     def notifLeaveEntity(self, notif):
         wizcard=notif.actor.wizcard
-        ws = WizcardSerializerL0(wizcard)
+        ws = WizcardSerializerL1(wizcard).data
 
         if notif.target:
             s = EntitySerializerL0(notif.target).data
