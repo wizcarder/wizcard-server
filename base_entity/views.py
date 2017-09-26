@@ -7,8 +7,8 @@ from rest_framework.response import Response
 import pdb
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
-    # filter_backends = (DjangoFilterBackend,)
-    # filter_fields = ('expired', 'is_activated')
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('expired', 'is_activated')
 
     def get_queryset(self):
         user = self.request.user
@@ -27,6 +27,8 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         if parents:
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
         else:
+            # AR: TODO this has to be in the model not view. instance.delete should handle
+            # all model dependencies
             instance.related.all().delete()
             instance.delete()
             return Response(status=status.HTTP_200_OK)

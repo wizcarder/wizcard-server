@@ -39,6 +39,7 @@ class EventViewSet(BaseEntityViewSet):
         queryset = Event.objects.owners_entities(user)
         return queryset
 
+    # AR: TODO why is this not in base_entity.views ?
     def update(self, request, pk=None, partial=True):
         inst = self.get_object_or_404(pk)
         serializer = EventSerializer(inst, data=request.data, partial=partial)
@@ -82,6 +83,9 @@ class EventViewSet(BaseEntityViewSet):
 
         return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
 
+    # AR: TODO why duplication. if something specific needs to be done, then do that and call super.
+    # I don't think anything special for event needs to be done. all entities can have the same code
+    # which can be put in base_entity
     def perform_destroy(self, instance):
         parents = instance.get_parent_entities()
         if parents:
@@ -91,10 +95,6 @@ class EventViewSet(BaseEntityViewSet):
             instance.mark_deleted()
             instance.notify_delete()
             return Response(status=status.HTTP_200_OK)
-
-
-
-
 
 class CampaignViewSet(BaseEntityViewSet):
     queryset = Campaign.objects.all()

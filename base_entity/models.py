@@ -46,6 +46,9 @@ class BaseEntityManager(BaseEntityComponentManager):
         result, count = LocationMgr.objects.lookup(ttype, lat, lng, n)
 
         #convert result to query set result
+
+        # AR: TODO: this is getting kludgy with multiple parameters. Best to have
+        # REST API filters that portal can use
         if count and not count_only:
             entities = self.filter(id__in=result, expired=False, is_deleted=False)
         return entities, count
@@ -319,6 +322,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     password = TruncatingCharField(max_length=40, blank=True, null=True)
 
     timeout = models.IntegerField(default=30)
+
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
@@ -441,13 +445,13 @@ class UserEntity(models.Model):
 
     @classmethod
     def user_join(cls, user, base_entity_obj):
-        return  UserEntity.objects.get_or_create(
+        return UserEntity.objects.get_or_create(
             user=user,
             entity=base_entity_obj
         )
 
     @classmethod
-    def user_leave(self, user, base_entity_obj):
+    def user_leave(cls, user, base_entity_obj):
         user.userentity_set.get(entity=base_entity_obj).delete()
 
     @classmethod

@@ -41,6 +41,8 @@ class EventManager(BaseEntityManager):
             entity_type=entity_type
         )
 
+    # AR: TOOD: what about etree ? what about it's timer ? and what about
+    # deletion of the etree upon expire
     def expire(self):
         evts = self.filter(end__lt=timezone.now(), expired=False)
         evids = []
