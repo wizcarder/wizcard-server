@@ -43,13 +43,12 @@ class HtmlGen:
 
     def scan_user(self, sender, to):
         wizcard = sender
-        email_details = {"template" : "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}
+        email_details = {"template": "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}
         send_wizcard.delay(wizcard, to, email_details, half_card = True)
-
 
     def invite_exhibitor(self, sender, to):
         event_organizer = sender
-        email_details = {"template" : "invite_exhibitor.html", "subject": "%s - has invited you to Create your Product"}
+        email_details = {"template": "invite_exhibitor.html", "subject": "%s - has invited you to Create your Campaign"}
         send_event(event_organizer, to, email_details)
 
     def invite_attendee(self, sender, to):

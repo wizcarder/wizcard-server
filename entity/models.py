@@ -6,7 +6,7 @@ from wizcardship.models import Wizcard
 from lib.preserialize.serialize import serialize
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from base_entity.models import BaseEntityComponent, BaseEntityComponentManager, BaseEntity, BaseEntityManager
+from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
 from base_entity.models import EntityEngagementStats, UserEntity
 
 
@@ -29,14 +29,20 @@ class EventManager(BaseEntityManager):
             count_only
         )
 
-    def users_entities(self, user, entity_type=BaseEntity.EVENT, include_expired=False, include_deleted=False):
-        return super(EventManager, self).users_entities(
+    def owners_entities(self, user, entity_type=BaseEntity.EVENT):
+        return super(EventManager, self).owners_entities(
             user,
-            entity_type=entity_type,
-            include_expired=include_expired,
-            include_deleted = include_deleted
+            entity_type=entity_type
         )
 
+    def users_entities(self, user, entity_type=BaseEntity.EVENT):
+        return super(EventManager, self).users_entities(
+            user,
+            entity_type=entity_type
+        )
+
+    # AR: TOOD: what about etree ? what about it's timer ? and what about
+    # deletion of the etree upon expire
     def expire(self):
         evts = self.filter(end__lt=timezone.now(), expired=False)
         evids = []
@@ -102,22 +108,27 @@ class Event(BaseEntity):
         )
 
 
-class ProductManager(BaseEntityManager):
-    def users_entities(self, user, entity_type=BaseEntity.PRODUCT, include_expired=False):
-        return super(ProductManager, self).users_entities(
+class CampaignManager(BaseEntityManager):
+    def owners_entities(self, user, entity_type=BaseEntity.CAMPAIGN):
+        return super(CampaignManager, self).owners_entities(
             user,
-            entity_type=entity_type,
-            include_expired=include_expired
+            entity_type=entity_type
+        )
+
+    def users_entities(self, user, entity_type=BaseEntity.CAMPAIGN):
+        return super(CampaignManager, self).users_entities(
+            user,
+            entity_type=entity_type
         )
 
 
-class Product(BaseEntity):
+class Campaign(BaseEntity):
 
-    objects = ProductManager()
+    objects = CampaignManager()
 
     # this is a follow
     def join(self, user):
-        super(Product, self).join(user)
+        super(Campaign, self).join(user)
 
         self.notify_all_users(
             user,
@@ -131,7 +142,7 @@ class Product(BaseEntity):
     # deleted from rolodex or if there is a button on the campaign
     # to un-follow
     def leave(self, user):
-        super(Product, self).leave(user)
+        super(Campaign, self).leave(user)
 
         # send notif to all members, just like join
         self.notify_all_users(
@@ -143,27 +154,17 @@ class Product(BaseEntity):
         return
 
 
-class BusinessManager(BaseEntityManager):
-    def users_entities(self, user, entity_type=BaseEntity.BUSINESS, include_expired=False):
-        return super(BusinessManager, self).users_entities(
+class VirtualTableManager(BaseEntityManager):
+    def owners_entities(self, user, entity_type=BaseEntity.TABLE):
+        return super(VirtualTableManager, self).owners_entities(
             user,
-            entity_type=entity_type,
-            include_expired=include_expired
+            entity_type=entity_type
         )
 
-class Business(BaseEntity):
-
-    objects = BusinessManager()
-
-    pass
-
-
-class VirtualTableManager(BaseEntityManager):
-    def users_entities(self, user, entity_type=BaseEntity.TABLE, include_expired=False):
+    def users_entities(self, user, entity_type=BaseEntity.TABLE):
         return super(VirtualTableManager, self).users_entities(
             user,
-            entity_type=entity_type,
-            include_expired=include_expired
+            entity_type=entity_type
         )
 
     def lookup(self, lat, lng, n, etype=BaseEntity.TABLE, count_only=False):
@@ -174,41 +175,6 @@ class VirtualTableManager(BaseEntityManager):
             etype,
             count_only
         )
-
-    def serialize(self, tables, template):
-        return serialize(tables, **template)
-
-    def serialize_split(self, tables, user, template):
-        created, joined, connected, others = self.split_table(tables, user)
-
-        s = dict()
-        if created:
-            s['created'] = self.serialize(created, template)
-        if joined:
-            s['joined'] = self.serialize(joined, template)
-        if connected:
-            s['connected'] = self.serialize(connected, template)
-        if others:
-            s['others'] = self.serialize(others, template)
-        return s
-
-    def split_table(self, tables, user):
-        created = []
-        joined = []
-        connected = []
-        others = []
-        for t in tables:
-            if t.is_creator(user):
-                created.append(t)
-            elif t.is_joined(user):
-                joined.append(t)
-            elif Wizcard.objects.are_wizconnections(
-                    user.wizcard,
-                    t.get_creator().wizcard):
-                connected.append(t)
-            else:
-                others.append(t)
-        return created, joined, connected, others
 
 
 class VirtualTable(BaseEntity):
@@ -274,39 +240,65 @@ class VirtualTable(BaseEntity):
 
 
 class SpeakerManager(BaseEntityComponentManager):
+    def owners_entities(self, user, entity_type=BaseEntity.SPEAKER):
+        return super(SpeakerManager, self).owners_entities(
+            user,
+            entity_type=entity_type
+        )
 
-    def users_speakers(self, user):
-        return super(SpeakerManager, self).users_components(user, Speaker)
 
 class Speaker(BaseEntityComponent, Base412Mixin, CompanyTitleMixin, VcardMixin):
-
     objects = SpeakerManager()
 
+
 class SponsorManager(BaseEntityComponentManager):
-    def users_sponsors(self, user):
-        return super(SponsorManager, self).users_components(user, Sponsor)
+    def owners_entities(self, user, entity_type=BaseEntity.SPONSOR):
+        return super(SponsorManager, self).owners_entities(
+            user,
+            entity_type=entity_type
+        )
+
 
 class Sponsor(BaseEntityComponent, Base413Mixin):
     caption = models.CharField(max_length=50, default='Not Available')
 
     objects = SponsorManager()
 
+
+class CoOwnersManager(BaseEntityComponentManager):
+    def owners_entities(self, user, entity_type=BaseEntity.COOWNER):
+        return super(CoOwnersManager, self).owners_entities(
+            user,
+            entity_type=entity_type
+        )
+
 class CoOwners(BaseEntityComponent, Base411Mixin):
-    pass
+    objects = CoOwnersManager()
+
+
+class AttendeeInviteeManager(BaseEntityComponentManager):
+    def owners_entities(self, user, entity_type=BaseEntity.ATTENDEE_INVITEE):
+        return super(AttendeeInviteeManager, self).owners_entities(
+            user,
+            entity_type=entity_type
+        )
+
 
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
-    pass
+    objects = AttendeeInviteeManager()
 
-class AgendaManager(BaseEntityComponentManager):
 
-    def users_agenda(self, user):
-        return super(SpeakerManager, self).users_components(user, Speaker)
+class ExhibitorInviteeManager(BaseEntityComponentManager):
+    def owners_entities(self, user, entity_type=BaseEntity.EXHIBITOR_INVITEE):
+        return super(ExhibitorInviteeManager, self).owners_entities(
+            user,
+            entity_type=entity_type
+        )
 
-class Agenda(BaseEntityComponent):
-
-    objects = AgendaManager()
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
+
+    objects = ExhibitorInviteeManager()
 
     @classmethod
     def validate(cls, exhibitors):
@@ -321,12 +313,30 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
         return valid_emails, failed_ids
 
 
+class AgendaManager(BaseEntityComponentManager):
+    def owners_entities(self, user, entity_type=BaseEntity.AGENDA):
+        return super(AgendaManager, self).owners_entities(
+            user,
+            entity_type=entity_type
+        )
+
+
+class Agenda(BaseEntityComponent):
+    objects = AgendaManager()
+
+
+class AgendaItem(BaseEntityComponent, Base412Mixin):
+    agenda = models.ForeignKey(Agenda, related_name='items')
+    start = models.DateTimeField(auto_now_add=True)
+    end = models.DateTimeField(auto_now_add=True)
+    where = models.CharField(max_length=100, default="")
+
+
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 @receiver(post_save, sender=Event)
-@receiver(post_save, sender=Product)
-@receiver(post_save, sender=Business)
+@receiver(post_save, sender=Campaign)
 @receiver(post_save, sender=VirtualTable)
 def create_engagement_stats(sender, instance, created, **kwargs):
     if created:

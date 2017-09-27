@@ -4,7 +4,7 @@ from base_entity.models import BaseEntity, BaseEntityComponent
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-
+import pdb
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
@@ -12,7 +12,7 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = BaseEntity.objects.users_entities(user)
+        queryset = BaseEntity.objects.owners_entities(user)
         return queryset
 
     def perform_create(self, serializer):
@@ -27,7 +27,9 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         if parents:
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
         else:
-            instance.related.all().delete
+            # AR: TODO this has to be in the model not view. instance.delete should handle
+            # all model dependencies
+            instance.related.all().delete()
             instance.delete()
             return Response(status=status.HTTP_200_OK)
 
@@ -39,8 +41,11 @@ class BaseEntityComponentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = BaseEntityComponent.objects.users_entities(user)
+        queryset = BaseEntityComponent.objects.owners_entities(user, entity_type=None)
         return queryset
+
+    def get_serializer_context(self):
+        return {'user': self.request.user}
 
     def perform_destroy(self, instance):
         parents = instance.get_parent_entities()
