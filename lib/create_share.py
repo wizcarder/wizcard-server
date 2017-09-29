@@ -91,7 +91,7 @@ def send_event(event, to, emaildetails):
 
     ctx = Context(email_dict)
 
-    email = Email(to=to, subject = subject)
+    email = Email(to=to, subject=subject)
     email.html(html, ctx)
     email.send()
 #    email.send(from_addr=emaildetails['from_addr'])

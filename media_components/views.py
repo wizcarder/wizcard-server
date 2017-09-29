@@ -12,9 +12,6 @@ class MediaEntitiesViewSet(BaseEntityComponentViewSet):
         queryset = MediaEntities.objects.users_media(user)
         return queryset
 
-    def get_serializer_context(self):
-        return {'user': self.request.user}
-
 
 
 

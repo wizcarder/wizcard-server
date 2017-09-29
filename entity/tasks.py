@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def expire():
     logger.debug('Timer Tick received')
     evids = Event.objects.expire()
-    if evts:
+    if evids:
         logger.info('Events expired found {%s}', ",".join(evids))
 
 

@@ -13,7 +13,7 @@ import fields
 import simplejson as json
 import pdb
 from wizserver import verbs
-from entity.serializers import ProductSerializer, EntitySerializerL0
+from entity.serializers import EntitySerializerL0
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1, WizcardSerializerL2
 from entity.serializers import TableSerializerL1
 from django.utils import timezone

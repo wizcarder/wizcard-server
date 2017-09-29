@@ -43,6 +43,7 @@ class NotificationManager(models.Manager):
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
 
+    # AR: TODO this query seems convoluted. It should simply be: verb, target, unreaded
     def get_unread_users(self, verb, filter_users=None):
 
         qs = self.filter(verb=verb, readed=False)

@@ -2144,7 +2144,7 @@ class ParseMsgAndDispatch(object):
 
     # Entity Api's for App
     def EntityCreate(self):
-        e, s = BaseEntity.entity_cls_ser_from_type(entity_type=self.sender.get('entity_type'))
+        e, s = BaseEntityComponent.entity_cls_ser_from_type(entity_type=self.sender.get('entity_type'))
         entity = BaseEntityComponent.create(e, owner=self.user, is_creator=True, **self.sender)
 
         updated, l = entity.create_or_update_location(self.lat, self.lng)
