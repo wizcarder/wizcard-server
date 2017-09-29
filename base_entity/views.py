@@ -1,14 +1,11 @@
 
 # Create your views here.
 from base_entity.models import BaseEntity, BaseEntityComponent
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 import pdb
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
-    filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('expired', 'is_activated')
 
     def get_queryset(self):
         user = self.request.user
