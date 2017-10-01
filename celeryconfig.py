@@ -42,7 +42,7 @@ CELERYBEAT_SCHEDULE = {
 #       'options': {'queue': CELERY_BEAT_QUEUE_NAME}
     },
     'expire_events' : {
-        'task' : 'events.task.expire',
+        'task' : 'entity.tasks.expire',
         'schedule' : timedelta(seconds=86400),
     }
 }
