@@ -92,7 +92,7 @@ venusian==1.0
 vobject==0.9.4.1
 wcwidth==0.1.7
 zope.interface==4.1.2
-django_filters
+django_filter
 django-taggit_serializer
 django-allauth==0.32.0
 django-categories==1.5.3
