@@ -275,6 +275,9 @@ class BaseEntityComponent(PolymorphicModel):
     def add_subentity_obj(self, obj, alias):
         return self.related.connect(obj, alias=alias)
 
+    def remove_sub_entities_of_type(self, entity_type):
+        self.related.filter(alias=entity_type).delete()
+
     def remove_sub_entity_of_type(self, id, entity_type):
         self.related.filter(object_id=id, alias=entity_type).delete()
 

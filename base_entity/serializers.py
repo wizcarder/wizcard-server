@@ -200,8 +200,8 @@ class EntitySerializer(EntitySerializerL0):
 
         sub_entities = validated_data.pop('related', None)
         if sub_entities is not None:
-            instance.related.all().delete()
             for s in sub_entities:
+                instance.remove_sub_entities_of_type(s['type'])
                 instance.add_subentities(**s)
 
         location = validated_data.pop('location', None)
