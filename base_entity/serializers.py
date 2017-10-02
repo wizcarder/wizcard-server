@@ -194,7 +194,6 @@ class EntitySerializer(EntitySerializerL0):
 
         owners = validated_data.pop('owners', None)
         if owners is not None:
-            instance.owners.clear()
             for o in owners:
                 instance.add_owner(o)
 
