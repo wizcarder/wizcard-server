@@ -183,9 +183,9 @@ WIZCARD_FORWARD = ('wizcard forward', 1)
 WIZCARD_ENTITY_JOIN = ('entity join', 0)
 WIZCARD_ENTITY_LEAVE = ('entity leave', 0)
 WIZCARD_RECO_READY = ('new recommendations ready', 1)
-WIZCARD_EVENT_UPDATE = ('event_updated', 0)
-WIZCARD_EVENT_EXPIRE = ('event_expired', 0)
-WIZCARD_EVENT_DELETE = ('event_deleted', 0)
+WIZCARD_ENTITY_UPDATE = ('event_updated', 0)
+WIZCARD_ENTITY_EXPIRE = ('event_expired', 0)
+WIZCARD_ENTITY_DELETE = ('event_deleted', 0)
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {

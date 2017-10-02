@@ -113,9 +113,9 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
-            verbs.WIZCARD_EVENT_UPDATE[0]       : self.notifEventUpdate,
-            verbs.WIZCARD_EVENT_EXPIRE[0]       : self.notifEventExpire,
-            verbs.WIZCARD_EVENT_DELETE[0]       : self.notifEventDelete
+            verbs.WIZCARD_ENTITY_UPDATE[0]       : self.notifEventUpdate,
+            verbs.WIZCARD_ENTITY_EXPIRE[0]       : self.notifEventExpire,
+            verbs.WIZCARD_ENTITY_DELETE[0]       : self.notifEventDelete
         }
         for notification in notifications:
             notifHandler[notification.verb](notification)
@@ -207,9 +207,9 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifEvent(self, notif, notifType):
-        event = notif.target
+        event_id = notif.target_object_id
         out = dict(
-            event=event.id
+            event=event_id
         )
         self.add_data_and_seq_with_notif(out, notifType, notif.id)
         logger.debug('%s', self.response)

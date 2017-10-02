@@ -41,15 +41,9 @@ class EventManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    # AR: TOOD: what about etree ? what about it's timer ? and what about
-    # deletion of the etree upon expire
-    def expire(self):
-        evts = self.filter(end__lt=timezone.now(), expired=False)
-        evids = []
-        for e in evts:
-            e.expire_and_notif()
-            evids.append(str(e.id))
-        return evids
+    def get_expired(self):
+        return self.filter(end__lt=timezone.now(), expired=False)
+
 
 class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
@@ -57,53 +51,10 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
-    def join(self, user):
-        super(Event, self).join(user)
-
-        self.notify_all_users(
-            user,
-            verbs.WIZCARD_ENTITY_JOIN[0],
-            self,
-        )
-        # do any event specific stuff here
-        return
-
-    def leave(self, user):
-        super(Event, self).leave(user)
-
-        self.notify_all_users(
-            user,
-            verbs.WIZCARD_ENTITY_LEAVE[0],
-            self,
-        )
-
-        return
-
     def notify_update(self):
         self.notify_all_users(
-            self,
-            verbs.WIZCARD_EVENT_UPDATE[0],
-            self,
-            exclude_sender=False,
-            filter_users=True
-        )
-
-    def notify_delete(self):
-        self.notify_all_users(
-            self,
-            verbs.WIZCARD_EVENT_DELETE[0],
-            self
-        )
-
-    def expire_and_notif(self, flag=True):
-        self.expired = flag
-        self.save()
-        self.notify_expire()
-
-    def notify_expire(self):
-        self.notify_all_users(
-            self,
-            verbs.WIZCARD_EVENT_EXPIRE[0],
+            self.get_creator(),
+            verbs.WIZCARD_ENTITY_UPDATE[0],
             self
         )
 

@@ -170,14 +170,20 @@ def notify_handler(verb, **kwargs):
     onlypush = kwargs.pop('onlypush', False)
 
     if not onlypush:
-        newnotify = Notification(
-            recipient = recipient,
-            actor_content_type=ContentType.objects.get_for_model(actor),
-            actor_object_id=actor.pk,
+        newnotify, created = Notification.objects.get_or_create(
+            recipient=recipient,
             verb=unicode(verb),
-            public=bool(kwargs.pop('public', True)),
-            timestamp=kwargs.pop('timestamp', now())
+            readed=False,
+            defaults={
+                'actor_content_type': ContentType.objects.get_for_model(actor),
+                'actor_object_id': actor.pk,
+                'public': bool(kwargs.pop('public', True)),
+                'timestamp': kwargs.pop('timestamp', now())
+            }
         )
+
+        if not created:
+            return
 
         for opt in ('target', 'action_object'):
             obj = kwargs.pop(opt, None)

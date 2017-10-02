@@ -5,7 +5,7 @@ from genericm2m.models import RelatedObjectsDescriptor
 from location_mgr.models import LocationMgr
 from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
-from polymorphic.models import PolymorphicModel
+from polymorphic.models import PolymorphicModel, PolymorphicManager
 from rabbit_service import rconfig
 from django.db.models import Q
 from django.conf import settings
@@ -16,12 +16,14 @@ from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
 from notifications.models import Notification
+from wizserver import verbs
+import pdb
 
 # Create your models here.
 
 
 
-class BaseEntityComponentManager(models.Manager):
+class BaseEntityComponentManager(PolymorphicManager):
     def user_entities(self, user, entity_type):
         return BaseEntity.objects.users_entities(user, entity_type)
 
@@ -273,11 +275,9 @@ class BaseEntityComponent(PolymorphicModel):
     def add_subentity_obj(self, obj, alias):
         return self.related.connect(obj, alias=alias)
 
-    # AR: TO fix
     def remove_sub_entity_of_type(self, id, entity_type):
         self.related.filter(object_id=id, alias=entity_type).delete()
 
-    # AR: TO fix
     def get_sub_entities_of_type(self, entity_type):
         return self.related.filter(alias=entity_type).generic_objects()
 
@@ -338,7 +338,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         related_name="users_%(class)s_related"
     )
 
-    num_users = models.IntegerField(default=1)
+    num_users = models.IntegerField(default=0)
 
     location = generic.GenericRelation(LocationMgr)
 
@@ -375,21 +375,35 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def join(self, user):
+    def join(self, user, notify=True):
         e, created = UserEntity.user_join(user=user, base_entity_obj=self)
         if created:
             self.num_users += 1
             self.save()
+
+        if notify:
+            self.notify_all_users(
+                user,
+                verbs.WIZCARD_ENTITY_JOIN[0],
+                self,
+            )
 
         return self
 
     def is_joined(self, user):
         return bool(self.users.filter(id=user.id).exists())
 
-    def leave(self, user):
+    def leave(self, user, notify=True):
         UserEntity.user_leave(user, self)
         self.num_users -= 1
         self.save()
+
+        if notify:
+            self.notify_all_users(
+                user,
+                verbs.WIZCARD_ENTITY_LEAVE[0],
+                self,
+            )
 
         return self
 
@@ -401,16 +415,11 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return users
 
-    def notify_all_users(self, sender, verb, entity, exclude_sender=True, filter_users=False):
+    def notify_all_users(self, sender, verb, entity, exclude_sender=True):
         # send notif to all members, just like join
 
-        entity_users = entity.users.all()
-
-        unread_users = set(Notification.objects.get_unread_users(verb, filter_users=entity_users)) if filter_users else set([])
-        entity_users = set(entity_users.exclude(id=sender.pk)) if exclude_sender else set(entity_users)
-
-        notif_users = entity_users - unread_users
-        for u in notif_users:
+        qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
+        for u in qs:
             notify.send(
                 sender,
                 recipient=u,
@@ -429,9 +438,29 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.is_activated = True
         self.save()
 
-    def mark_deleted(self):
-        self.is_deleted = True
+    def delete(self, *args, **kwargs):
+        verb = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE[0])
+
+        self.notify_all_users(
+            self.get_creator(),
+            verb,
+            self,
+            exclude_sender=False
+        )
+
+        self.related.all().delete()
+        self.location.get().delete()
+
+        if verb == verbs.WIZCARD_ENTITY_EXPIRE[0]:
+            self.expired = True
+            self.save()
+        else:
+            super(BaseEntity, self).delete(*args, **kwargs)
+
+    def expire(self):
+        self.expired = True
         self.save()
+        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
 
 
 # explicit through table since we will want to associate additional
