@@ -53,6 +53,9 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
 class BaseEntityComponentViewSet(viewsets.ModelViewSet):
 
+    def get_object_or_404(*args, **kwargs):
+        return get_object_or_404(BaseEntityComponent, *args, **kwargs)
+
     def get_queryset(self):
         user = self.request.user
         queryset = BaseEntityComponent.objects.owners_entities(user, entity_type=None)

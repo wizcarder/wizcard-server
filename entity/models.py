@@ -20,7 +20,7 @@ now = timezone.now
 # Create your models here.
 
 class EventManager(BaseEntityManager):
-    def lookup(self, lat, lng, n, etype=BaseEntity.EVENT, count_only=False):
+    def lookup(self, lat, lng, n, etype=BaseEntityComponent.EVENT, count_only=False):
         return super(EventManager, self).lookup(
             lat,
             lng,
@@ -29,13 +29,13 @@ class EventManager(BaseEntityManager):
             count_only
         )
 
-    def owners_entities(self, user, entity_type=BaseEntity.EVENT):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.EVENT):
         return super(EventManager, self).owners_entities(
             user,
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntity.EVENT):
+    def users_entities(self, user, entity_type=BaseEntityComponent.EVENT):
         return super(EventManager, self).users_entities(
             user,
             entity_type=entity_type
@@ -60,13 +60,13 @@ class Event(BaseEntity):
 
 
 class CampaignManager(BaseEntityManager):
-    def owners_entities(self, user, entity_type=BaseEntity.CAMPAIGN):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
         return super(CampaignManager, self).owners_entities(
             user,
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntity.CAMPAIGN):
+    def users_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
         return super(CampaignManager, self).users_entities(
             user,
             entity_type=entity_type
@@ -106,19 +106,19 @@ class Campaign(BaseEntity):
 
 
 class VirtualTableManager(BaseEntityManager):
-    def owners_entities(self, user, entity_type=BaseEntity.TABLE):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.TABLE):
         return super(VirtualTableManager, self).owners_entities(
             user,
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntity.TABLE):
+    def users_entities(self, user, entity_type=BaseEntityComponent.TABLE):
         return super(VirtualTableManager, self).users_entities(
             user,
             entity_type=entity_type
         )
 
-    def lookup(self, lat, lng, n, etype=BaseEntity.TABLE, count_only=False):
+    def lookup(self, lat, lng, n, etype=BaseEntityComponent.TABLE, count_only=False):
         return super(VirtualTableManager, self).lookup(
             lat,
             lng,
@@ -191,7 +191,7 @@ class VirtualTable(BaseEntity):
 
 
 class SpeakerManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.SPEAKER):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.SPEAKER):
         return super(SpeakerManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -203,7 +203,7 @@ class Speaker(BaseEntityComponent, Base412Mixin, CompanyTitleMixin, VcardMixin):
 
 
 class SponsorManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.SPONSOR):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.SPONSOR):
         return super(SponsorManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -217,7 +217,7 @@ class Sponsor(BaseEntityComponent, Base413Mixin):
 
 
 class CoOwnersManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.COOWNER):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.COOWNER):
         return super(CoOwnersManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -228,7 +228,7 @@ class CoOwners(BaseEntityComponent, Base411Mixin):
 
 
 class AttendeeInviteeManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.ATTENDEE_INVITEE):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE):
         return super(AttendeeInviteeManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -240,7 +240,7 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
 
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.EXHIBITOR_INVITEE):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.EXHIBITOR_INVITEE):
         return super(ExhibitorInviteeManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -265,7 +265,7 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
 
 
 class AgendaManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.AGENDA):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.AGENDA):
         return super(AgendaManager, self).owners_entities(
             user,
             entity_type=entity_type

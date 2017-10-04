@@ -22,10 +22,20 @@ class AgendaItemSerializer(EntitySerializer):
 
     speakers = serializers.SerializerMethodField()
 
+    def prepare(self, validated_data):
+        super(AgendaItemSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(AgendaItemSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.AGENDA_ITEM)
 
-        return super(AgendaItemSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(AgendaItemSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 
     def get_speakers(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
@@ -65,13 +75,22 @@ class AgendaSerializer(EntitySerializer):
 
     items = AgendaItemSerializer(many=True)
 
+    def prepare(self, validated_data):
+        super(AgendaSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(AgendaSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         items = validated_data.pop('items', [])
         validated_data.update(entity_type=BaseEntityComponent.AGENDA)
+
+        self.prepare(validated_data)
         agn = super(AgendaSerializer, self).create(validated_data)
+        self.post_create(agn)
 
         for item in items:
-            item.update(agenda = agn)
+            item.update(agenda=agn)
             AgendaItemSerializer(context=self.context).create(item)
 
         return agn
@@ -123,10 +142,20 @@ class EventSerializer(EntitySerializer):
         my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda')
         fields = EntitySerializer.Meta.fields + my_fields
 
+    def prepare(self, validated_data):
+        super(EventSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(EventSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.EVENT)
 
-        return super(EventSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(EventSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 
     def update(self, instance, validated_data):
         instance.start = validated_data.pop("start", instance.start)
@@ -344,10 +373,20 @@ class CampaignSerializer(EntitySerializer):
         model = Campaign
         fields = EntitySerializer.Meta.fields
 
+    def prepare(self, validated_data):
+        super(CampaignSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(CampaignSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)
 
-        return super(CampaignSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(CampaignSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 
 
 class TableSerializerL1(EntitySerializer):
@@ -412,10 +451,20 @@ class TableSerializer(EntitySerializer):
         model = VirtualTable
         fields = EntitySerializer.Meta.fields
 
+    def prepare(self, validated_data):
+        super(TableSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(TableSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.TABLE)
 
-        return super(TableSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(TableSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 
 """
 used by portal
@@ -427,10 +476,20 @@ class SpeakerSerializer(EntitySerializer):
                   'description', 'ext_fields', 'company', 'title', 'media', 'related')
         read_only_fields = ('vcard',)
 
+    def prepare(self, validated_data):
+        super(SpeakerSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(SpeakerSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.SPEAKER)
 
-        return super(SpeakerSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(SpeakerSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 
     def update(self, instance, validated_data):
         instance.name = validated_data.pop('name', instance.name)
@@ -469,10 +528,20 @@ class SponsorSerializer(EntitySerializer):
         model = Sponsor
         fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related')
 
+    def prepare(self, validated_data):
+        super(SponsorSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(SponsorSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.SPONSOR)
 
-        return super(SponsorSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(SponsorSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 
     def update(self, instance, validated_data):
         instance.name = validated_data.pop('name', instance.name)
@@ -506,10 +575,20 @@ class ExhibitorInviteeSerializer(EntitySerializer):
         model = ExhibitorInvitee
         fields = ('id', 'name', 'email')
 
+    def prepare(self, validated_data):
+        super(ExhibitorInviteeSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(ExhibitorInviteeSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.EXHIBITOR_INVITEE)
 
-        return super(ExhibitorInviteeSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(ExhibitorInviteeSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 
 
 class AttendeeInviteeSerializer(EntitySerializer):
@@ -521,10 +600,20 @@ class AttendeeInviteeSerializer(EntitySerializer):
         model = AttendeeInvitee
         fields = ['id', 'name', 'email']
 
+    def prepare(self, validated_data):
+        super(AttendeeInviteeSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(AttendeeInviteeSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.ATTENDEE_INVITEE)
 
-        return super(AttendeeInviteeSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(AttendeeInviteeSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 
 
 class CoOwnersSerializer(EntitySerializer):
@@ -532,8 +621,18 @@ class CoOwnersSerializer(EntitySerializer):
         model = AttendeeInvitee
         fields = ['id', 'name', 'email']
 
+    def prepare(self, validated_data):
+        super(CoOwnersSerializer, self).prepare(validated_data)
+
+    def post_create(self, entity):
+        super(CoOwnersSerializer, self).post_create(entity)
+
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.COOWNER)
 
-        return super(CoOwnersSerializer, self).create(validated_data)
+        self.prepare(validated_data)
+        obj = super(CoOwnersSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
 

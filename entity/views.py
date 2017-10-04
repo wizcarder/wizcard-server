@@ -5,16 +5,11 @@ from entity.models import Event, Campaign, VirtualTable,\
 from entity.serializers import EventSerializer, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
     SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
-from django.http import Http404
-from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
-from django.shortcuts import get_object_or_404
-
-from rest_framework_extensions.mixins import NestedViewSetMixin
 
 import pdb
 
@@ -25,9 +20,6 @@ class EventViewSet(BaseEntityViewSet):
     serializer_class = EventSerializer
 
     def get_serializer_class(self):
-        user = self.request.user
-        #if self.request.method == 'GET' and user is not None:
-         #   return EventSerializerL2
         return EventSerializer
 
     def get_queryset(self):
@@ -141,14 +133,17 @@ class CoOwnersViewSet(BaseEntityComponentViewSet):
 
 
 class AgendaViewSet(BaseEntityComponentViewSet):
+    queryset = Agenda.objects.all()
+    serializer_class = AgendaSerializer
+
     def list(self, request, event_pk=None):
         event = Event.objects.get(id=event_pk)
         agn = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA)
         return Response(AgendaSerializer(agn, many=True).data)
 
     def retrieve(self, request, pk=None, event_pk=None):
-        agn = self.get_object_or_404(pk=pk)
         try:
+            agn = Agenda.objects.get(id=pk)
             event = Event.objects.get(id=event_pk)
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)

@@ -88,6 +88,7 @@ class BaseEntityComponent(PolymorphicModel):
     COOWNER = 'COW'
     AGENDA = 'AGN'
     AGENDA_ITEM = 'AGI'
+    POLL='POL'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -102,7 +103,8 @@ class BaseEntityComponent(PolymorphicModel):
         (MEDIA, 'Media'),
         (COOWNER, 'Coowner'),
         (AGENDA, 'Agenda'),
-        (AGENDA_ITEM, 'AgendaItem')
+        (AGENDA_ITEM, 'AgendaItem'),
+        (POLL, 'Polls')
 
     )
 
@@ -114,6 +116,7 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_MEDIA = 'e_media'
     SUB_ENTITY_COOWNER = 'e_coowner'
     SUB_ENTITY_AGENDA = 'e_agenda'
+    SUB_ENTITY_POLL = 'e_poll'
 
     objects = BaseEntityComponentManager()
 
@@ -186,10 +189,12 @@ class BaseEntityComponent(PolymorphicModel):
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SponsorSerializerL2, AttendeeInviteeSerializer, \
             ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer
+        from polls.serializers import PollSerializer
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
         from media_components.serializers import MediaEntitiesSerializer
+        from polls.models import Poll
 
         if entity_type == cls.EVENT:
             c = Event
@@ -227,6 +232,9 @@ class BaseEntityComponent(PolymorphicModel):
         elif entity_type == cls.AGENDA_ITEM:
             c = AgendaItem
             s = AgendaItemSerializer
+        elif entity_type == cls.POLL:
+            c = Poll
+            s = PollSerializer
         else:
             c = BaseEntity
             s = EntitySerializer

@@ -326,6 +326,7 @@ INSTALLED_APPS = (
     'base_entity',
     'entity',
     'media_components',
+    'polls',
     'taggit',
     'genericm2m',
     'django_filters',
