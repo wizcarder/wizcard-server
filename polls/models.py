@@ -3,7 +3,7 @@ from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.contrib.auth.models import User
 from polymorphic.models import PolymorphicModel
 
-
+import pdb
 # Create your models here.
 
 class PollManager(BaseEntityComponentManager):
@@ -22,9 +22,19 @@ class PollManager(BaseEntityComponentManager):
 
 class Poll(BaseEntityComponent):
     description = models.CharField(max_length=100)
-    is_published = models.BooleanField(default=True, verbose_name='is published')
+    is_published = models.BooleanField(default=False, verbose_name='is published')
 
     objects = PollManager()
+
+    def delete(self, *args, **kwargs):
+        # delete questions. Some issue in django polymorphic...bulk delete is not working
+        for qc in QuestionChoicesBase.objects.filter(question__in=self.questions.all()):
+            qc.delete()
+
+        for q in self.questions.all():
+            q.delete()
+
+        super(Poll, self).delete(*args, **kwargs)
 
     def question_count(self):
         return self.question_set.count()
@@ -113,7 +123,6 @@ class QuestionChoicesBase(PolymorphicModel):
     question = models.ForeignKey(Question, related_name='choices', on_delete=models.CASCADE)
     extra_text = models.BooleanField(default=False)
 
-
 class QuestionChoicesText(QuestionChoicesBase):
     question_key = models.CharField(max_length=1)
     question_value = models.TextField()
@@ -124,7 +133,7 @@ class QuestionChoices1ToX(QuestionChoicesBase):
     high = models.IntegerField(default=10)
 
 
-class UserAnswerManager(models.Manager):
+class UserResponseManager(models.Manager):
 
     """
     how many responded to the poll
@@ -145,5 +154,5 @@ class UserResponse(models.Model):
     has_user_value = models.BooleanField(default=False)
     user_value = models.IntegerField(blank=True)
 
-    object = UserAnswerManager()
+    object = UserResponseManager()
 

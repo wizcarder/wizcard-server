@@ -131,4 +131,6 @@ class EventsGetSchema(colander.MappingSchema):
     pass
 class EntitiesEngageSchema(colander.MappingSchema):
     pass
+class PollResponseSchema(colander.MappingSchema):
+    pass
 

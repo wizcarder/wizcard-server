@@ -10,7 +10,7 @@ import pdb
 class QuestionChoicesSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionChoicesBase
-        fields = ('extra_text', 'question_key', 'question_value', 'low', 'high')
+        fields = ('id', 'extra_text', 'question_key', 'question_value', 'low', 'high')
 
     question_key = serializers.CharField(required=False)
     question_value = serializers.CharField(required=False)
@@ -21,7 +21,7 @@ class QuestionChoicesSerializer(serializers.ModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ('question_type', 'ui_type', 'single_answer', 'question', 'poll', 'choices')
+        fields = ('id', 'question_type', 'ui_type', 'single_answer', 'question', 'poll', 'choices')
 
     choices = QuestionChoicesSerializer(many=True)
     poll = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -30,7 +30,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 class PollSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('description', 'questions')
+        fields = ('id', 'description', 'questions')
 
     questions = QuestionSerializer(many=True)
 

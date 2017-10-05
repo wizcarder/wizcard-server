@@ -28,26 +28,27 @@ MSG_ENTITY_QUERY        = 24
 MSG_MY_ENTITIES         = 25
 MSG_GET_EVENTS          = 26
 MSG_ENTITIES_ENGAGE     = 28
-MSG_SETTINGS            = 28
-MSG_OCR_SELF            = 29
-MSG_OCR_DEAD_CARD       = 30
-MSG_OCR_EDIT            = 31
-MSG_EMAIL_TEMPLATE      = 32
-MSG_GET_RECOMMENDATION  = 33
-MSG_SET_RECO_ACTION     = 34
-MSG_GET_COMMON_CONNECTIONS = 35
-MSG_GET_VIDEO_THUMBNAIL = 36
-MSG_MEISHI_START        = 37
-MSG_MEISHI_FIND         = 38
-MSG_MEISHI_END          = 39
-MSG_FLICK               = 40
-MSG_FLICK_ACCEPT        = 41
-MSG_FLICK_ACCEPT_CONNECT = 42
-MSG_FLICK_QUERY         = 43
-MSG_MY_FLICKS           = 44
-MSG_FLICK_WITHDRAW      = 45
-MSG_FLICK_EDIT          = 46
-MSG_FLICK_PICKS         = 47
+MSG_SETTINGS            = 29
+MSG_OCR_SELF            = 30
+MSG_OCR_DEAD_CARD       = 31
+MSG_OCR_EDIT            = 32
+MSG_EMAIL_TEMPLATE      = 33
+MSG_GET_RECOMMENDATION  = 34
+MSG_SET_RECO_ACTION     = 35
+MSG_GET_COMMON_CONNECTIONS = 36
+MSG_GET_VIDEO_THUMBNAIL = 37
+MSG_ENTITY_POLL_RESPONSE = 38
+MSG_MEISHI_START        = 39
+MSG_MEISHI_FIND         = 40
+MSG_MEISHI_END          = 41
+MSG_FLICK               = 42
+MSG_FLICK_ACCEPT        = 43
+MSG_FLICK_ACCEPT_CONNECT = 44
+MSG_FLICK_QUERY         = 45
+MSG_MY_FLICKS           = 46
+MSG_FLICK_WITHDRAW      = 47
+MSG_FLICK_EDIT          = 48
+MSG_FLICK_PICKS         = 49
 
 
 wizcardMsgTypes = {
@@ -98,6 +99,7 @@ wizcardMsgTypes = {
     'set_reco_action'             : MSG_SET_RECO_ACTION,
     'get_common_connections'      : MSG_GET_COMMON_CONNECTIONS,
     'get_video_thumbnail'         : MSG_GET_VIDEO_THUMBNAIL,
+    'poll_response'               : MSG_ENTITY_POLL_RESPONSE
 }
 
 
