@@ -973,8 +973,8 @@ if not SKIP_BASIC:
     print "adding notes to  ", uid3
     reqmsg = messages.edit_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['receiver']['wizcard_id'] = e3_id
     reqmsg['receiver']['notes']['note'] = "test one test two"
     reqmsg['receiver']['notes']['last_saved'] = "1st Jan 2016"
