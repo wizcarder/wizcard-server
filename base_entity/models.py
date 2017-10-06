@@ -247,6 +247,7 @@ class BaseEntityComponent(PolymorphicModel):
             Speaker, Sponsor, ExhibitorInvitee, CoOwners, Agenda
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
+        from polls.models import Poll
         if entity_type == cls.SUB_ENTITY_CAMPAIGN:
             c = Campaign
         elif type == cls.SUB_ENTITY_TABLE:
@@ -263,6 +264,8 @@ class BaseEntityComponent(PolymorphicModel):
             c = CoOwners
         elif entity_type == cls.SUB_ENTITY_AGENDA:
             c = Agenda
+        elif entity_type == cls.SUB_ENTITY_POLL:
+            c = Poll
         else:
             raise AssertionError("Invalid sub_entity %s" % entity_type)
 

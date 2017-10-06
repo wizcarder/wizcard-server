@@ -127,6 +127,7 @@ class EventSerializer(EntitySerializer):
     sponsors = serializers.SerializerMethodField()
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
+    polls = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -139,7 +140,7 @@ class EventSerializer(EntitySerializer):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda')
+        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls')
         fields = EntitySerializer.Meta.fields + my_fields
 
     def prepare(self, validated_data):
@@ -175,6 +176,9 @@ class EventSerializer(EntitySerializer):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPONSOR)
 
     def get_agenda(self, obj):
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
+
+    def get_polls(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
 
