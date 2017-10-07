@@ -26,6 +26,21 @@ class QuestionSerializer(serializers.ModelSerializer):
     choices = QuestionChoicesSerializer(many=True)
     poll = serializers.PrimaryKeyRelatedField(read_only=True)
 
+    def update(self, instance, validated_data):
+        choices = validated_data.pop('choices', [])
+
+        # clear all choices
+        instance.choices.all().delete()
+
+        for c in choices:
+            cls = Question.get_choice_cls_from_type(validated_data['question_type'])
+            for c in choices:
+                cls.objects.create(question=instance, **c)
+
+        obj = super(QuestionSerializer, self).update(instance, validated_data)
+
+        return obj
+
 
 class PollSerializer(EntitySerializer):
     class Meta:
@@ -36,15 +51,18 @@ class PollSerializer(EntitySerializer):
 
     def prepare(self, validated_data):
         self.questions = validated_data.pop('questions', None)
+        super(PollSerializer, self).prepare(validated_data)
 
     def post_create(self, obj):
         for q in self.questions:
             choices = q.pop('choices', [])
             q_inst = Question.objects.create(poll=obj, **q)
 
+            cls = Question.get_choice_cls_from_type(q['question_type'])
             for c in choices:
-                cls = Question.get_choice_cls_from_type(q['question_type'])
                 cls.objects.create(question=q_inst, **c)
+
+        super(PollSerializer, self).post_create(obj)
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.POLL)
@@ -56,6 +74,14 @@ class PollSerializer(EntitySerializer):
         return obj
 
     def update(self, instance, validated_data):
-        instance = super(PollSerializer, self).update(instance, validated_data)
+        self.prepare(validated_data)
+        obj = super(PollSerializer, self).update(instance, validated_data)
+
+        # clear all questions first. For some reason bulk delete is not working
+        for q in instance.questions.all():
+            q.delete()
+
+        # create the questions and choices
+        self.post_create(instance)
 
         return instance

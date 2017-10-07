@@ -28,9 +28,6 @@ class Poll(BaseEntityComponent):
 
     def delete(self, *args, **kwargs):
         # delete questions. Some issue in django polymorphic...bulk delete is not working
-        for qc in QuestionChoicesBase.objects.filter(question__in=self.questions.all()):
-            qc.delete()
-
         for q in self.questions.all():
             q.delete()
 
@@ -118,10 +115,18 @@ class Question(PolymorphicModel):
         else:
             return QuestionChoicesBase
 
+    def delete(self, *args, **kwargs):
+        # delete questions. Some issue in django polymorphic...bulk delete is not working
+        for qc in self.choices.all():
+            qc.delete()
+
+        super(Question, self).delete(*args, **kwargs)
+
 
 class QuestionChoicesBase(PolymorphicModel):
     question = models.ForeignKey(Question, related_name='choices', on_delete=models.CASCADE)
     extra_text = models.BooleanField(default=False)
+
 
 class QuestionChoicesText(QuestionChoicesBase):
     question_key = models.CharField(max_length=1)
