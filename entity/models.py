@@ -20,7 +20,7 @@ now = timezone.now
 # Create your models here.
 
 class EventManager(BaseEntityManager):
-    def lookup(self, lat, lng, n, etype=BaseEntity.EVENT, count_only=False):
+    def lookup(self, lat, lng, n, etype=BaseEntityComponent.EVENT, count_only=False):
         return super(EventManager, self).lookup(
             lat,
             lng,
@@ -29,27 +29,21 @@ class EventManager(BaseEntityManager):
             count_only
         )
 
-    def owners_entities(self, user, entity_type=BaseEntity.EVENT):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.EVENT):
         return super(EventManager, self).owners_entities(
             user,
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntity.EVENT):
+    def users_entities(self, user, entity_type=BaseEntityComponent.EVENT):
         return super(EventManager, self).users_entities(
             user,
             entity_type=entity_type
         )
 
-    # AR: TOOD: what about etree ? what about it's timer ? and what about
-    # deletion of the etree upon expire
-    def expire(self):
-        evts = self.filter(end__lt=timezone.now(), expired=False)
-        evids = []
-        for e in evts:
-            e.expire_and_notif()
-            evids.append(str(e.id))
-        return evids
+    def get_expired(self):
+        return self.filter(end__lt=timezone.now(), expired=False)
+
 
 class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
@@ -57,65 +51,22 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
-    def join(self, user):
-        super(Event, self).join(user)
-
-        self.notify_all_users(
-            user,
-            verbs.WIZCARD_ENTITY_JOIN[0],
-            self,
-        )
-        # do any event specific stuff here
-        return
-
-    def leave(self, user):
-        super(Event, self).leave(user)
-
-        self.notify_all_users(
-            user,
-            verbs.WIZCARD_ENTITY_LEAVE[0],
-            self,
-        )
-
-        return
-
     def notify_update(self):
         self.notify_all_users(
-            self,
-            verbs.WIZCARD_EVENT_UPDATE[0],
-            self,
-            exclude_sender=False,
-            filter_users=True
-        )
-
-    def notify_delete(self):
-        self.notify_all_users(
-            self,
-            verbs.WIZCARD_EVENT_DELETE[0],
-            self
-        )
-
-    def expire_and_notif(self, flag=True):
-        self.expired = flag
-        self.save()
-        self.notify_expire()
-
-    def notify_expire(self):
-        self.notify_all_users(
-            self,
-            verbs.WIZCARD_EVENT_EXPIRE[0],
+            self.get_creator(),
+            verbs.WIZCARD_ENTITY_UPDATE[0],
             self
         )
 
 
 class CampaignManager(BaseEntityManager):
-    def owners_entities(self, user, entity_type=BaseEntity.CAMPAIGN):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
         return super(CampaignManager, self).owners_entities(
             user,
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntity.CAMPAIGN):
+    def users_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
         return super(CampaignManager, self).users_entities(
             user,
             entity_type=entity_type
@@ -155,19 +106,19 @@ class Campaign(BaseEntity):
 
 
 class VirtualTableManager(BaseEntityManager):
-    def owners_entities(self, user, entity_type=BaseEntity.TABLE):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.TABLE):
         return super(VirtualTableManager, self).owners_entities(
             user,
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntity.TABLE):
+    def users_entities(self, user, entity_type=BaseEntityComponent.TABLE):
         return super(VirtualTableManager, self).users_entities(
             user,
             entity_type=entity_type
         )
 
-    def lookup(self, lat, lng, n, etype=BaseEntity.TABLE, count_only=False):
+    def lookup(self, lat, lng, n, etype=BaseEntityComponent.TABLE, count_only=False):
         return super(VirtualTableManager, self).lookup(
             lat,
             lng,
@@ -240,7 +191,7 @@ class VirtualTable(BaseEntity):
 
 
 class SpeakerManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.SPEAKER):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.SPEAKER):
         return super(SpeakerManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -252,7 +203,7 @@ class Speaker(BaseEntityComponent, Base412Mixin, CompanyTitleMixin, VcardMixin):
 
 
 class SponsorManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.SPONSOR):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.SPONSOR):
         return super(SponsorManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -266,7 +217,7 @@ class Sponsor(BaseEntityComponent, Base413Mixin):
 
 
 class CoOwnersManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.COOWNER):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.COOWNER):
         return super(CoOwnersManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -277,7 +228,7 @@ class CoOwners(BaseEntityComponent, Base411Mixin):
 
 
 class AttendeeInviteeManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.ATTENDEE_INVITEE):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE):
         return super(AttendeeInviteeManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -289,7 +240,7 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
 
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.EXHIBITOR_INVITEE):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.EXHIBITOR_INVITEE):
         return super(ExhibitorInviteeManager, self).owners_entities(
             user,
             entity_type=entity_type
@@ -314,7 +265,7 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
 
 
 class AgendaManager(BaseEntityComponentManager):
-    def owners_entities(self, user, entity_type=BaseEntity.AGENDA):
+    def owners_entities(self, user, entity_type=BaseEntityComponent.AGENDA):
         return super(AgendaManager, self).owners_entities(
             user,
             entity_type=entity_type

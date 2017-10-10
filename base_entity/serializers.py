@@ -141,7 +141,6 @@ class EntitySerializer(EntitySerializerL0):
 
     def create(self, validated_data):
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(validated_data['entity_type'])
-        self.prepare(validated_data)
 
         obj = BaseEntityComponent.create(
             cls,
@@ -150,7 +149,6 @@ class EntitySerializer(EntitySerializerL0):
             **validated_data
         )
 
-        self.post_create(obj)
         return obj
 
     def post_create(self, entity):
@@ -199,8 +197,8 @@ class EntitySerializer(EntitySerializerL0):
 
         sub_entities = validated_data.pop('related', None)
         if sub_entities is not None:
-            instance.related.all().delete()
             for s in sub_entities:
+                instance.remove_sub_entities_of_type(s['type'])
                 instance.add_subentities(**s)
 
         location = validated_data.pop('location', None)

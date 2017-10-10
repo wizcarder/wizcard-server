@@ -3,9 +3,17 @@
 from base_entity.models import BaseEntity, BaseEntityComponent
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+
 import pdb
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
+
+
+    def get_object_or_404(*args, **kwargs):
+        return get_object_or_404(BaseEntity, *args, **kwargs)
+
 
     def get_queryset(self):
         user = self.request.user
@@ -23,18 +31,31 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         parents = instance.get_parent_entities()
         if parents:
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
-        else:
-            # AR: TODO this has to be in the model not view. instance.delete should handle
-            # all model dependencies
-            instance.related.all().delete()
-            instance.delete()
-            return Response(status=status.HTTP_200_OK)
+
+        instance.delete()
+        return Response(status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         return self.perform_destroy(instance)
 
+    def update(self, request, pk=None, partial=True):
+        inst = get_object_or_404(BaseEntity, pk=pk)
+        ser = self.get_serializer_class()
+        serializer = ser(inst, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+            inst.notify_update()
+        else:
+            raise Http404
+
+        return Response(serializer.data)
+
+
 class BaseEntityComponentViewSet(viewsets.ModelViewSet):
+
+    def get_object_or_404(*args, **kwargs):
+        return get_object_or_404(BaseEntityComponent, *args, **kwargs)
 
     def get_queryset(self):
         user = self.request.user
@@ -56,3 +77,4 @@ class BaseEntityComponentViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         return self.perform_destroy(instance)
+

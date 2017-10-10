@@ -5,14 +5,11 @@ from entity.models import Event, Campaign, VirtualTable,\
 from entity.serializers import EventSerializer, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
     SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
-from django.http import Http404
-from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
 from email_and_push_infra.signals import email_trigger
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
-from rest_framework_extensions.mixins import NestedViewSetMixin
 
 import pdb
 
@@ -23,36 +20,16 @@ class EventViewSet(BaseEntityViewSet):
     serializer_class = EventSerializer
 
     def get_serializer_class(self):
-        user = self.request.user
-        #if self.request.method == 'GET' and user is not None:
-         #   return EventSerializerL2
         return EventSerializer
-
-    def get_object_or_404(self, pk):
-        try:
-            return Event.objects.get(pk=pk)
-        except Event.DoesNotExist:
-            raise Http404
 
     def get_queryset(self):
         user = self.request.user
         queryset = Event.objects.owners_entities(user)
         return queryset
 
-    # AR: TODO why is this not in base_entity.views ?
-    def update(self, request, pk=None, partial=True):
-        inst = self.get_object_or_404(pk)
-        serializer = EventSerializer(inst, data=request.data, partial=partial)
-        if serializer.is_valid():
-            serializer.save()
-            inst.notify_update()
-        else:
-            raise Http404
-        return Response(serializer.data)
-
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):
-        inst = self.get_object_or_404(pk)
+        inst = self.get_object_or_404(pk=pk)
 
         exhibitors = request.data
         passed_emails, failed_str = ExhibitorInvitee.validate(exhibitors['ids'])
@@ -60,12 +37,12 @@ class EventViewSet(BaseEntityViewSet):
         for recp in passed_emails:
             email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
 
-        return Response("Exhibitors invited %s Failed ids: %s" % (len(passed_emails), failed_str) , status=status.HTTP_200_OK)
+        return Response("Exhibitors invited %s Failed ids: %s" % (len(passed_emails), failed_str),
+                        status=status.HTTP_200_OK)
 
-     # AR: Need to the nested thingy but given Raghu's time adding this hack.
     @detail_route(methods=['post'])
     def invite_attendees(self, request, pk=None):
-        inst = self.get_object_or_404(pk)
+        inst = self.get_object_or_404(pk=pk)
 
         attendees = request.data
         passed_emails, failed_str = AttendeeInvitee.validate(attendees['ids'])
@@ -78,23 +55,10 @@ class EventViewSet(BaseEntityViewSet):
 
     @detail_route(methods=['get'])
     def publish_event(self, request, pk=None):
-        inst = self.get_object_or_404(pk)
+        inst = self.get_object_or_404(pk=pk)
         inst.make_live()
 
         return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
-
-    # AR: TODO why duplication. if something specific needs to be done, then do that and call super.
-    # I don't think anything special for event needs to be done. all entities can have the same code
-    # which can be put in base_entity
-    def perform_destroy(self, instance):
-        parents = instance.get_parent_entities()
-        if parents:
-            return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
-        else:
-            instance.related.all().delete()
-            instance.mark_deleted()
-            instance.notify_delete()
-            return Response(status=status.HTTP_200_OK)
 
 class CampaignViewSet(BaseEntityViewSet):
     queryset = Campaign.objects.all()
@@ -169,6 +133,9 @@ class CoOwnersViewSet(BaseEntityComponentViewSet):
 
 
 class AgendaViewSet(BaseEntityComponentViewSet):
+    queryset = Agenda.objects.all()
+    serializer_class = AgendaSerializer
+
     def list(self, request, event_pk=None):
         event = Event.objects.get(id=event_pk)
         agn = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA)

@@ -137,12 +137,6 @@ import pdb
 
 class WizcardViewSet(viewsets.ModelViewSet):
 
-    def get_object_or_404(self, pk):
-        try:
-            return Wizcard.objects.get(pk=pk)
-        except Wizcard.DoesNotExist:
-            raise Http404
-
     serializer_class = WizcardSerializer
     queryset = Wizcard.objects.all()
 

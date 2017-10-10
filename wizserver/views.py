@@ -59,6 +59,7 @@ from base_entity.models import EntityUserStats
 from base_entity.models import BaseEntityComponent
 from media_components.models import MediaEntities
 from media_components.signals import media_create
+from polls.models import Poll, UserResponse
 
 import pdb
 
@@ -522,7 +523,14 @@ class ParseMsgAndDispatch(object):
                     message_format.EntitiesEngageSchema,
                     self.EntitiesEngage,
                     Stats.objects.inc_entities_engage
+                ),
+            verbs.MSG_ENTITY_POLL_RESPONSE:
+                (
+                    message_format.PollResponseSchema,
+                    self.PollResponse,
+                    Stats.objects.inc_poll_response
                 )
+
         }
 
         # update location since it may have changed
@@ -2375,6 +2383,19 @@ class ParseMsgAndDispatch(object):
         self.response.add_data("result", out)
 
         return self.response
+
+    def PollResponse(self):
+        id = self.sender.get('entity_id')
+        try:
+            entity = Poll.objects.get(id=id)
+        except:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        UserResponse.objects.create(**self.sender)
+
+        return self.response
+
 
     def TableJoinByInvite(self):
         return self.EntityJoin()
