@@ -1,11 +1,10 @@
 from django.db import models
 
-#from entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.core.files.uploadedfile import SimpleUploadedFile
 from media_components.signals import media_create
 from django.utils import timezone
 from base.mixins import MediaMixin
-from entity.models import BaseEntityComponent, BaseEntityComponentManager
+from entity.models import BaseEntityComponent
 import pdb
 from django.contrib.contenttypes.models import ContentType
 

@@ -5,31 +5,39 @@ from genericm2m.models import RelatedObjectsDescriptor
 from location_mgr.models import LocationMgr
 from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
-from polymorphic.models import PolymorphicModel
+from polymorphic.models import PolymorphicModel, PolymorphicManager
 from rabbit_service import rconfig
 from django.db.models import Q
 from django.conf import settings
 from taganomy.models import Taganomy
 from base.char_trunc import TruncatingCharField
 from django.contrib.contenttypes.models import ContentType
-from base.mixins import  Base414Mixin
+from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
 from notifications.models import Notification
-
-
-
+from wizserver import verbs
+import pdb
 
 # Create your models here.
 
-class BaseEntityManager(models.Manager):
 
+
+class BaseEntityComponentManager(PolymorphicManager):
+    def user_entities(self, user, entity_type):
+        return BaseEntity.objects.users_entities(user, entity_type)
+
+    def owners_entities(self, user, entity_type):
+        return BaseEntity.objects.owners_entities(user, entity_type)
+
+
+class BaseEntityManager(BaseEntityComponentManager):
     def create(self, *args, **kwargs):
         category = kwargs.pop('category', Taganomy.objects.get_default_category())
         return super(BaseEntityManager, self).create(*args, category=category, **kwargs)
 
     def get_location_tree_name(self, etype):
-        if etype == BaseEntity.TABLE:
+        if etype == BaseEntityComponent.TABLE:
             return rconfig.TREES[rconfig.VTREE]
         return rconfig.TREES[rconfig.ETREE]
 
@@ -40,77 +48,77 @@ class BaseEntityManager(models.Manager):
         result, count = LocationMgr.objects.lookup(ttype, lat, lng, n)
 
         #convert result to query set result
+
+        # AR: TODO: this is getting kludgy with multiple parameters. Best to have
+        # REST API filters that portal can use
         if count and not count_only:
             entities = self.filter(id__in=result, expired=False, is_deleted=False)
         return entities, count
 
-    def users_entities(self, user, entity_type=None, include_expired=False, include_deleted=False):
-        cls, ser = BaseEntity.entity_cls_ser_from_type(entity_type=entity_type)
-        if include_expired:
-            return user.users_baseentity_related.all().instance_of(cls).filter(is_deleted=False)
-        else:
-            return user.users_baseentity_related.all().instance_of(cls).filter(expired=False, is_deleted=False)
+    def owners_entities(self, user, entity_type=None):
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
+        return user.owners_baseentitycomponent_related.all().instance_of(cls)
 
+    def users_entities(self, user, entity_type=None):
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
+        return user.users_baseentity_related.all().instance_of(cls)
 
     def query(self, query_str):
         # check names
         q1 = Q(name__istartswith=query_str)
         q2 = Q(tags__name__istartswith=query_str)
-        #
+
         entities = self.filter(q1 | q2)[0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
 
         return entities, entities.count()
-
-
-class BaseEntityComponentManager(models.Manager):
-
-    def users_components(self, user, component_type):
-        comps = user.owners_baseentitycomponent_related.all().instance_of(component_type)
-        return comps
 
 
 # everything inherits from this. This holds the relationship
 # end-points for owners and related_entity.
 class BaseEntityComponent(PolymorphicModel):
     EVENT = 'EVT'
-    BUSINESS = 'BUS'
-    PRODUCT = 'PRD'
+    CAMPAIGN = 'CMP'
     TABLE = 'TBL'
     WIZCARD = 'WZC'
     SPEAKER = 'SPK'
     SPONSOR = 'SPN'
     MEDIA = 'MED'
-    EXHIBITOR = 'EXB'
-    ATTENDEE = 'ATT'
+    ATTENDEE_INVITEE = 'ATI'
+    EXHIBITOR_INVITEE = 'EXI'
     COOWNER = 'COW'
     AGENDA = 'AGN'
+    AGENDA_ITEM = 'AGI'
+    POLL='POL'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
-        (BUSINESS, 'Business'),
-        (PRODUCT, 'Product'),
+        (CAMPAIGN, 'Campaign'),
         (TABLE, 'Table'),
         (WIZCARD, 'Wizcard'),
         (SPEAKER, 'Speaker'),
         (SPONSOR, 'Sponsor'),
         (COOWNER, 'Coowner'),
-        (ATTENDEE, 'Attendee'),
-        (EXHIBITOR, 'Exhibitor'),
+        (ATTENDEE_INVITEE, 'AttendeeInvitee'),
+        (EXHIBITOR_INVITEE, 'ExhibitorInvitee'),
         (MEDIA, 'Media'),
         (COOWNER, 'Coowner'),
-        (AGENDA, 'Agenda')
+        (AGENDA, 'Agenda'),
+        (AGENDA_ITEM, 'AgendaItem'),
+        (POLL, 'Polls')
+
     )
 
-    SUB_ENTITY_PRODUCT = 'e_product'
+    SUB_ENTITY_CAMPAIGN = 'e_campaign'
     SUB_ENTITY_TABLE = 'e_table'
     SUB_ENTITY_WIZCARD = 'e_wizcard'
     SUB_ENTITY_SPEAKER = 'e_speaker'
     SUB_ENTITY_SPONSOR = 'e_sponsor'
     SUB_ENTITY_MEDIA = 'e_media'
-    SUB_ENTITY_EXHIBITOR = 'e_exhibitor'
-    SUB_ENTITY_ATTENDEE = 'e_attendee'
     SUB_ENTITY_COOWNER = 'e_coowner'
     SUB_ENTITY_AGENDA = 'e_agenda'
+    SUB_ENTITY_POLL = 'e_poll'
+
+    objects = BaseEntityComponentManager()
 
     entity_type = models.CharField(
         max_length=3,
@@ -120,122 +128,128 @@ class BaseEntityComponent(PolymorphicModel):
 
     owners = models.ManyToManyField(
         User,
-        through='BaseEntityComponentsUser',
+        through='BaseEntityComponentsOwner',
         related_name="owners_%(class)s_related"
     )
 
     # sub-entities. using django-generic-m2m package
     related = RelatedObjectsDescriptor()
 
-    objects = BaseEntityComponentManager()
+    engagements = models.OneToOneField(
+        "EntityEngagementStats",
+        null=True,
+        related_name="engagements_%(class)s_related"
+    )
 
     @classmethod
     def create(cls, e, owner, is_creator, **kwargs):
         obj = e.objects.create(**kwargs)
 
         # add owner
-        BaseEntityComponentsUser.objects.create(
+        BaseEntityComponentsOwner.objects.create(
             base_entity_component=obj,
-            user=owner,
+            owner=owner,
             is_creator=is_creator
         )
 
         return obj
 
+    """
+    updates an existing entry, which was already created. This method
+    may not really be required since creator is set during creation time
+    itself
+    """
     @classmethod
-    def add_creator(cls, obj, creator):
-        BaseEntityComponentsUser.objects.create(
+    def update_creator(cls, obj, creator):
+        BaseEntityComponentsOwner.objects.get(
             base_entity_component=obj,
-            user=creator,
-            is_creator=True
-        )
+            owner=creator).update(is_creator=True)
 
     @classmethod
     def add_owners(cls, obj, owners):
         for o in owners:
-            BaseEntityComponentsUser.objects.create(
+            BaseEntityComponentsOwner.objects.get_or_create(
                 base_entity_component=obj,
-                user=o,
+                owner=o,
                 is_creator=False
             )
 
     @classmethod
     def remove_owners(cls, obj, owners):
         for o in owners:
-            BaseEntityComponentsUser.objects.filter(
+            BaseEntityComponentsOwner.objects.filter(
                 base_entity_component=obj,
-                user=o
+                owner=o
             ).delete()
 
     @classmethod
     def entity_cls_ser_from_type(cls, entity_type=None, detail=False):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
-            BusinessSerializer, TableSerializerL1, TableSerializerL2, EntitySerializerL2, \
-            ProductSerializerL1, ProductSerializerL2, AttendeeSerializer, CoOwnersSerializer, \
-            SpeakerSerializerL1, SpeakerSerializerL2, SponsorSerializerL1, SponsorSerializerL2, \
-            ExhibitorSerializer
-        from entity.models import Event, Product, Business, VirtualTable, \
-            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners
+            TableSerializerL1, TableSerializerL2, EntitySerializer, \
+            CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
+            SpeakerSerializerL2, SponsorSerializerL2, AttendeeInviteeSerializer, \
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer
+        from polls.serializers import PollSerializer
+        from entity.models import Event, Campaign, VirtualTable, \
+            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
         from media_components.serializers import MediaEntitiesSerializer
+        from polls.models import Poll
 
         if entity_type == cls.EVENT:
             c = Event
-            s = EventSerializerL1
-            if detail:
-                s = EventSerializerL2
-        elif entity_type == cls.PRODUCT:
-            c = Product
-            s = ProductSerializerL1
-            if detail:
-                s = ProductSerializerL2
-        elif entity_type == cls.BUSINESS:
-            c = Business
-            s = BusinessSerializer
+            s = EventSerializerL2 if detail else EventSerializerL1
+        elif entity_type == cls.CAMPAIGN:
+            c = Campaign
+            s = CampaignSerializerL2 if detail else CampaignSerializerL1
         elif entity_type == cls.TABLE:
             c = VirtualTable
-            s = TableSerializerL1
-            if detail:
-                s = TableSerializerL2
-        elif entity_type == cls.ATTENDEE:
+            s = TableSerializerL2 if detail else TableSerializerL1
+        elif entity_type == cls.ATTENDEE_INVITEE:
             c = AttendeeInvitee
-            s = AttendeeSerializer
-        elif entity_type == cls.EXHIBITOR:
+            s = AttendeeInviteeSerializer
+        elif entity_type == cls.EXHIBITOR_INVITEE:
             c = ExhibitorInvitee
-            s = ExhibitorSerializer
+            s = ExhibitorInviteeSerializer
         elif entity_type == cls.MEDIA:
             c = MediaEntities
             s = MediaEntitiesSerializer
-        elif entity_type ==cls.COOWNER:
+        elif entity_type == cls.COOWNER:
             c = CoOwners
             s = CoOwnersSerializer
         elif entity_type == cls.SPEAKER:
             c = Speaker
-            s = SpeakerSerializerL1
-            if detail:
-                s = SpeakerSerializerL2
+            s = SpeakerSerializerL2
         elif entity_type == cls.SPONSOR:
             c = Sponsor
-            s = SponsorSerializerL1
-            if detail:
-                s = SponsorSerializerL2
+            s = SponsorSerializerL2
         elif entity_type == cls.MEDIA:
             c = MediaEntities
             s = MediaEntitiesSerializer
+        elif entity_type == cls.AGENDA:
+            c = Agenda
+            s = AgendaSerializer
+        elif entity_type == cls.AGENDA_ITEM:
+            c = AgendaItem
+            s = AgendaItemSerializer
+        elif entity_type == cls.POLL:
+            c = Poll
+            s = PollSerializer
         else:
             c = BaseEntity
-            s = EntitySerializerL2
+            s = EntitySerializer
 
         return c, s
 
     @classmethod
     def entity_cls_from_subentity_type(cls, entity_type):
-        from entity.models import Event, Product, VirtualTable, \
-            Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda
+        from entity.models import Campaign, VirtualTable, \
+            Speaker, Sponsor, ExhibitorInvitee, CoOwners, Agenda
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
-        if entity_type == cls.SUB_ENTITY_PRODUCT:
-            c = Product
+        from polls.models import Poll
+        if entity_type == cls.SUB_ENTITY_CAMPAIGN:
+            c = Campaign
         elif type == cls.SUB_ENTITY_TABLE:
             c = VirtualTable
         elif entity_type == cls.SUB_ENTITY_WIZCARD:
@@ -246,29 +260,22 @@ class BaseEntityComponent(PolymorphicModel):
             c = Sponsor
         elif entity_type == cls.SUB_ENTITY_MEDIA:
             c = MediaEntities
-        elif entity_type == cls.SUB_ENTITY_EXHIBITOR:
-            c = ExhibitorInvitee
-        elif entity_type == cls.SUB_ENTITY_ATTENDEE:
-            c = AttendeeInvitee
         elif entity_type == cls.SUB_ENTITY_COOWNER:
             c = CoOwners
         elif entity_type == cls.SUB_ENTITY_AGENDA:
             c = Agenda
+        elif entity_type == cls.SUB_ENTITY_POLL:
+            c = Poll
+        else:
+            raise AssertionError("Invalid sub_entity %s" % entity_type)
 
         return c
-
-    # AR: TO fix
-    def add_subentity(self, id, type):
-        c = self.entity_cls_from_subentity_type(type)
-        try:
-            obj = c.objects.get(id=id)
-            return self.related.connect(obj, alias=type)
-        except:
-            return None
 
     def add_subentities(self, ids, type):
         c = self.entity_cls_from_subentity_type(type)
         int_ids = map(lambda x: int(x), ids)
+
+        # AR: TODO Why try except ? id's should always be correct.
         try:
             objs = c.objects.filter(id__in=int_ids)
             for obj in objs:
@@ -276,14 +283,15 @@ class BaseEntityComponent(PolymorphicModel):
         except:
             pass
 
-    def add_subentity_obj(self, obj):
-        return self.related.connect(obj, alias=ContentType.objects.get_for_model(obj).name)
+    def add_subentity_obj(self, obj, alias):
+        return self.related.connect(obj, alias=alias)
 
-    # AR: TO fix
+    def remove_sub_entities_of_type(self, entity_type):
+        self.related.filter(alias=entity_type).delete()
+
     def remove_sub_entity_of_type(self, id, entity_type):
         self.related.filter(object_id=id, alias=entity_type).delete()
 
-    # AR: TO fix
     def get_sub_entities_of_type(self, entity_type):
         return self.related.filter(alias=entity_type).generic_objects()
 
@@ -292,11 +300,8 @@ class BaseEntityComponent(PolymorphicModel):
 
     def get_media_filter(self, type, sub_type):
         media = self.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)
-        banners = []
-        for med in media:
-            if med.media_sub_type == sub_type and med.media_type == type:
-                banners.append(med)
-        return banners
+
+        return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
     def get_parent_entities(self ):
         try:
@@ -306,23 +311,32 @@ class BaseEntityComponent(PolymorphicModel):
             return None
 
     def get_creator(self):
-        return BaseEntityComponentsUser.objects.filter(
+        return BaseEntityComponentsOwner.objects.filter(
             base_entity_component=self,
             is_creator=True
-        ).get().user.profile.user
+        ).get().owner.profile.user
+
+    def is_creator(self, user):
+        return bool(user == self.get_creator())
+
+    def is_owner(self, user):
+        return bool(self.owners.all() & user.profile.baseuser.all())
 
 
-class BaseEntityComponentsUser(models.Model):
+class BaseEntityComponentsOwner(models.Model):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
-    user = models.ForeignKey(User)
+    owner = models.ForeignKey(User)
     is_creator = models.BooleanField(default=True)
 
+    class Meta:
+        unique_together = (("base_entity_component", "owner"),)
 
 class BaseEntity(BaseEntityComponent, Base414Mixin):
     secure = models.BooleanField(default=False)
     password = TruncatingCharField(max_length=40, blank=True, null=True)
 
     timeout = models.IntegerField(default=30)
+
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
@@ -338,13 +352,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         related_name="users_%(class)s_related"
     )
 
-    num_users = models.IntegerField(default=1)
-
-    engagements = models.OneToOneField(
-        "EntityEngagementStats",
-        null=True,
-        related_name="engagements_%(class)s_related"
-    )
+    num_users = models.IntegerField(default=0)
 
     location = generic.GenericRelation(LocationMgr)
 
@@ -352,18 +360,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def __unicode__(self):
         return self.entity_type + '.' + self.name
-
-    def get_creator(self):
-        return BaseEntityComponentsUser.objects.filter(
-            base_entity_component=self,
-            is_creator=True
-        ).get().user.profile.user
-
-    def is_creator(self, user):
-        return bool(user == self.get_creator())
-
-    def is_owner(self, user):
-        return bool(self.owners.all() & user.profile.baseuser.all())
 
     def create_or_update_location(self, lat, lng):
         try:
@@ -393,21 +389,35 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def join(self, user):
+    def join(self, user, notify=True):
         e, created = UserEntity.user_join(user=user, base_entity_obj=self)
         if created:
             self.num_users += 1
             self.save()
+
+        if notify:
+            self.notify_all_users(
+                user,
+                verbs.WIZCARD_ENTITY_JOIN[0],
+                self,
+            )
 
         return self
 
     def is_joined(self, user):
         return bool(self.users.filter(id=user.id).exists())
 
-    def leave(self, user):
+    def leave(self, user, notify=True):
         UserEntity.user_leave(user, self)
         self.num_users -= 1
         self.save()
+
+        if notify:
+            self.notify_all_users(
+                user,
+                verbs.WIZCARD_ENTITY_LEAVE[0],
+                self,
+            )
 
         return self
 
@@ -419,16 +429,11 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return users
 
-    def notify_all_users(self, sender, verb, entity, exclude_sender=True, filter_users=False):
+    def notify_all_users(self, sender, verb, entity, exclude_sender=True):
         # send notif to all members, just like join
 
-        entity_users = entity.users.all()
-
-        unread_users = set(Notification.objects.get_unread_users(verb, filter_users=entity_users)) if filter_users else set([])
-        entity_users = set(entity_users.exclude(id=sender.pk)) if exclude_sender else set(entity_users)
-
-        notif_users = entity_users - unread_users
-        for u in notif_users:
+        qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
+        for u in qs:
             notify.send(
                 sender,
                 recipient=u,
@@ -438,16 +443,38 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def get_banner(self):
         media_row = self.get_sub_entities_of_type(entity_type=BaseEntity.SUB_ENTITY_MEDIA)
-        #if media_element is null better to have a place holder but what event will not have a image (Bad event)!!!
-        return media_row.media_element
+        if media_row:
+            return media_row.media_element
 
-    def makelive(self):
+        return ""
+
+    def make_live(self):
         self.is_activated = True
         self.save()
 
-    def mark_deleted(self):
-        self.is_deleted = True
+    def delete(self, *args, **kwargs):
+        verb = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE[0])
+
+        self.notify_all_users(
+            self.get_creator(),
+            verb,
+            self,
+            exclude_sender=False
+        )
+
+        self.related.all().delete()
+        self.location.get().delete()
+
+        if verb == verbs.WIZCARD_ENTITY_EXPIRE[0]:
+            self.expired = True
+            self.save()
+        else:
+            super(BaseEntity, self).delete(*args, **kwargs)
+
+    def expire(self):
+        self.expired = True
         self.save()
+        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
 
 
 # explicit through table since we will want to associate additional
@@ -461,13 +488,13 @@ class UserEntity(models.Model):
 
     @classmethod
     def user_join(cls, user, base_entity_obj):
-        return  UserEntity.objects.get_or_create(
+        return UserEntity.objects.get_or_create(
             user=user,
             entity=base_entity_obj
         )
 
     @classmethod
-    def user_leave(self, user, base_entity_obj):
+    def user_leave(cls, user, base_entity_obj):
         user.userentity_set.get(entity=base_entity_obj).delete()
 
     @classmethod
@@ -536,10 +563,10 @@ class EntityEngagementStats(models.Model):
 
         if created:
             self.like_count += 1
-            self.agg_like_level = ((self.agg_like_level * (self.like_count - 1)) + level) / self.like_count
+            self.agg_like_level = ((self.agg_like_level * (int(self.like_count) - 1)) + level) / int(self.like_count)
         else:
-            self.agg_like_level = ((
-                                   self.agg_like_level * self.like_count) - stat.like_level + level) / self.like_count
+            self.agg_like_level = ((self.agg_like_level * self.like_count) -
+                                   stat.like_level + level) / int(self.like_count)
             stat.like_level = level
             stat.save()
 
@@ -587,7 +614,3 @@ class EntityEngagementStats(models.Model):
         self.save()
 
         return self.unfollows
-
-
-
-

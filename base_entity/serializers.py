@@ -10,6 +10,7 @@ from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComp
 from media_components.serializers import MediaEntitiesSerializer
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from random import sample
+import pdb
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -72,75 +73,48 @@ class EntityEngagementSerializerL1(EntityEngagementSerializer):
     entity = EntitySerializerL0(read_only=True, source='engagements_baseentity_related')
 
 
-# these shouldn't be directly used.
-class EntitySerializerL1(EntitySerializerL0):
-    media = serializers.SerializerMethodField(read_only=True)
+"""
+One Serializer with everything in it. This can be subclassed and individual fields
+can be defined as needed and methods overridden.
+This serializer should not be directly used
+"""
+class EntitySerializer(EntitySerializerL0):
+    media = serializers.SerializerMethodField()
     location = LocationSerializerField(required=False)
-    users = serializers.SerializerMethodField(read_only=True)
-    friends = serializers.SerializerMethodField(read_only=True)
-    joined = serializers.SerializerMethodField(read_only=True)
+    users = serializers.SerializerMethodField()
+    friends = serializers.SerializerMethodField()
+    joined = serializers.SerializerMethodField()
     tags = TagListSerializerField(required=False)
-    like = serializers.SerializerMethodField(read_only=True)
+    like = serializers.SerializerMethodField()
     engagements = EntityEngagementSerializer(read_only=True)
-    creator = serializers.SerializerMethodField(read_only=True)
+    creator = serializers.SerializerMethodField()
+    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False, write_only=True)
+    related = RelatedSerializerField(write_only=True, required=False, many=True)
+    ext_fields = serializers.DictField(required=False)
+    is_activated = serializers.BooleanField(write_only=True, default=False)
+    status = serializers.SerializerMethodField()
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
-        my_fields = ('media', 'name', 'address', 'tags', 'location', 'friends',
-                     'secure', 'users', 'joined', 'like', 'engagements', 'description')
+        my_fields = ('name', 'address', 'secure', 'description', 'email', 'website', 'phone',
+                     'category', 'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
+                     'engagements', 'creator', 'owners', 'related', 'ext_fields', 'is_activated', 'status')
+
         fields = EntitySerializerL0.Meta.fields + my_fields
+
+    def get_media(self, obj):
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+
+    def get_users(self, obj):
+        return ""
 
     def get_creator(self, obj):
         return ""
 
-    def get_media(self, obj):
-        return ""
-
-    def get_users(self, obj):
-        out = dict(
-            count=0,
-            data=[]
-        )
-
-        qs = obj.users.exclude(wizcard__isnull=True)
-        count = qs.count()
-
-        if not count:
-            return out
-
-        qs_media = [x.wizcard.media.all().generic_objects() for x in qs if x.wizcard.media.all().exists()]
-        qs_thumbnail = [y.get_creator() for x in qs_media for y in x if
-                        y.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL]
-
-        thumb_count = len(qs_thumbnail)
-
-        if not thumb_count:
-            return out
-
-        if thumb_count > self.MAX_THUMBNAIL_UI_LIMIT:
-            # lets make it interesting and give out different slices each time
-            rand_ids = sample(xrange(1, thumb_count), self.MAX_THUMBNAIL_UI_LIMIT)
-            qs_thumbnail = [qs_thumbnail[x] for x in rand_ids]
-
-        wizcards = map(lambda u: u.wizcard, qs_thumbnail)
-
-        out = dict(
-            count=count,
-            data=WizcardSerializerL0(wizcards, many=True).data
-        )
-        return out
-
     def get_friends(self, obj):
-        user = self.context.get('user')
-
-        friends_wizcards = obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT)
-        out = dict(
-            count=len(friends_wizcards),
-            data=WizcardSerializerL0(friends_wizcards, many=True).data
-        )
-        return out
+        return ""
 
     def get_joined(self, obj):
         return obj.is_joined(self.context.get('user'))
@@ -149,59 +123,13 @@ class EntitySerializerL1(EntitySerializerL0):
         liked, level = obj.engagements.user_liked(self.context.get('user'))
         return dict(liked=liked, like_level=level)
 
-
-# these shouldn't be directly used.
-class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
-    media = serializers.SerializerMethodField()
-    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
-    related = RelatedSerializerField(write_only=True, required=False, many=True)
-    ext_fields = serializers.DictField(required=False)
-    is_activated = serializers.BooleanField(write_only=True, default=False)
-    status = serializers.SerializerMethodField(read_only=True)
-
-    class Meta(EntitySerializerL1.Meta):
-        model = BaseEntity
-        my_fields = ('website', 'category', 'ext_fields', 'phone', 'related',
-                     'email', 'description', 'owners', 'users', 'is_activated', 'status')
-        fields = EntitySerializerL1.Meta.fields + my_fields
-        read_only_fields = ('entity_type',)
-
-    def get_users(self, obj):
-        out = dict(
-            count=0,
-            data=[]
-        )
-
-        count = obj.users.count()
-        if not count:
-            return out
-
-        user = self.context.get('user', None)
-        wizcards = map(lambda u: u.wizcard, obj.users.exclude(wizcard__isnull=True))
-
-        out = dict(
-            count=count,
-            data=WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
-        )
-        return out
-
     def get_status(self, obj):
-        if obj.is_activated == False and obj.expired == False:
-            return "unpublished"
-        if obj.expired == True:
+        if obj.expired:
             return "expired"
-        if obj.is_activated == True:
+        elif obj.is_activated:
             return "live"
-
-
-    # no need to send friends at L2. removing it from the fields list seems convoluted
-    def get_friends(self, obj):
-        return ""
-
-    def get_media(self, obj):
-        media = obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA)
-        s = MediaEntitiesSerializer(media, many=True)
-        return s.data
+        else:
+            return "unpublished"
 
     def prepare(self, validated_data):
         self.tags = validated_data.pop('tags', None)
@@ -209,12 +137,21 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
         self.sub_entities = validated_data.pop('related', None)
         self.location = validated_data.pop('location', None)
         self.users = validated_data.pop('users', None)
-        self.creator = validated_data.pop('creator')
+        self.creator = validated_data.pop('creator', None)
+
+    def create(self, validated_data):
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(validated_data['entity_type'])
+
+        obj = BaseEntityComponent.create(
+            cls,
+            owner=self.context.get('user'),
+            is_creator=True,
+            **validated_data
+        )
+
+        return obj
 
     def post_create(self, entity):
-        # add creator. Should always be there
-        BaseEntityComponent.add_creator(entity, self.creator)
-
         if self.owners:
             BaseEntityComponent.add_owners(entity, self.owners)
 
@@ -229,81 +166,50 @@ class EntitySerializerL2(TaggitSerializer, EntitySerializerL1):
             for u in self.users:
                 UserEntity.user_join(u, entity)
 
+        # TODO: Handle owners and create linkage to existing owners
+
         # Generate Tags
         if self.tags:
             entity.add_tags(self.tags)
 
         return entity
 
-    # AR TODO there are some obvious bugs here for the related fields.
-    # when we update, if we wipe existing, then related is also lost
     def update(self, instance, validated_data):
-        instance.name = validated_data.pop('name', instance.name)
-        instance.address = validated_data.pop('address', instance.address)
-        instance.website = validated_data.pop('website', instance.website)
-        instance.description = validated_data.pop('description', instance.description)
-        instance.phone = validated_data.pop('phone', instance.phone)
-        instance.email = validated_data.pop('email', instance.email)
-        instance.is_activated = validated_data.pop('is_activated', instance.is_activated)
-
-        # handle related objects. It's a replace
-        media = validated_data.pop('media', None)
-        if media:
-            instance.media.all().delete()
-            media_create.send(sender=instance, objs=media)
+        if hasattr(instance, 'name'):
+            instance.name = validated_data.pop('name', instance.name)
+        if hasattr(instance, 'address'):
+            instance.address = validated_data.pop('address', instance.address)
+        if hasattr(instance, 'website'):
+            instance.website = validated_data.pop('website', instance.website)
+        if hasattr(instance, 'description'):
+            instance.description = validated_data.pop('description', instance.description)
+        if hasattr(instance, 'phone'):
+            instance.phone = validated_data.pop('phone', instance.phone)
+        if hasattr(instance, 'email'):
+            instance.email = validated_data.pop('email', instance.email)
+        if hasattr(instance, 'activated'):
+            instance.is_activated = validated_data.pop('is_activated', instance.is_activated)
 
         owners = validated_data.pop('owners', None)
         if owners is not None:
-            instance.owners.clear()
             for o in owners:
                 instance.add_owner(o)
 
         sub_entities = validated_data.pop('related', None)
         if sub_entities is not None:
-            instance.related.all().delete()
             for s in sub_entities:
+                instance.remove_sub_entities_of_type(s['type'])
                 instance.add_subentities(**s)
 
         location = validated_data.pop('location', None)
         if location:
             instance.create_or_update_location(location['lat'], location['lng'])
+
         tags = validated_data.pop('tags', None)
         if tags:
             instance.add_tags(tags)
 
         instance.save()
         return instance
-
-
-class BaseEntityComponentSerializer(serializers.ModelSerializer):
-    ext_fields = serializers.DictField(required=False)
-    related = RelatedSerializerField(many=True, required=False, write_only=True)
-
-    class Meta:
-        model = BaseEntityComponent
-        fields = '__all__'
-
-    def prepare(self, validated_data):
-        self.sub_entities = validated_data.pop('related', None)
-
-    def post_create(self, obj):
-        if self.sub_entities:
-            for s in self.sub_entities:
-                obj.add_subentities(**s)
-
-        return obj
-
-    def update(self, instance, validated_data):
-
-        sub_entities = validated_data.pop('related', None)
-        if sub_entities:
-            instance.related.all().delete()
-            for s in sub_entities:
-                instance.add_subentities(**s)
-
-        instance.save()
-
-        return instance
-
 
 

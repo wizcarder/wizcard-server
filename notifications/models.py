@@ -43,6 +43,7 @@ class NotificationManager(models.Manager):
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
 
+    # AR: TODO this query seems convoluted. It should simply be: verb, target, unreaded
     def get_unread_users(self, verb, filter_users=None):
 
         qs = self.filter(verb=verb, readed=False)
@@ -169,14 +170,20 @@ def notify_handler(verb, **kwargs):
     onlypush = kwargs.pop('onlypush', False)
 
     if not onlypush:
-        newnotify = Notification(
-            recipient = recipient,
-            actor_content_type=ContentType.objects.get_for_model(actor),
-            actor_object_id=actor.pk,
+        newnotify, created = Notification.objects.get_or_create(
+            recipient=recipient,
             verb=unicode(verb),
-            public=bool(kwargs.pop('public', True)),
-            timestamp=kwargs.pop('timestamp', now())
+            readed=False,
+            defaults={
+                'actor_content_type': ContentType.objects.get_for_model(actor),
+                'actor_object_id': actor.pk,
+                'public': bool(kwargs.pop('public', True)),
+                'timestamp': kwargs.pop('timestamp', now())
+            }
         )
+
+        if not created:
+            return
 
         for opt in ('target', 'action_object'):
             obj = kwargs.pop(opt, None)
