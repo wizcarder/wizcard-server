@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('base_entity', '0002_auto_20170906_1747'),
+        ('base_entity', '0004_auto_20170923_2319'),
     ]
 
     operations = [
@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='baseentitycomponent',
             name='entity_type',
-            field=models.CharField(default=b'EVT', max_length=3, choices=[(b'EVT', b'Event'), (b'CMP', b'Campaign'), (b'TBL', b'Table'), (b'WZC', b'Wizcard'), (b'SPK', b'Speaker'), (b'SPN', b'Sponsor'), (b'COW', b'Coowner'), (b'ATT', b'Attendee'), (b'MED', b'Media'), (b'COW', b'Coowner'), (b'AGN', b'Agenda')]),
+            field=models.CharField(default=b'EVT', max_length=3, choices=[(b'EVT', b'Event'), (b'CMP', b'Campaign'), (b'TBL', b'Table'), (b'WZC', b'Wizcard'), (b'SPK', b'Speaker'), (b'SPN', b'Sponsor'), (b'COW', b'Coowner'), (b'ATI', b'AttendeeInvitee'), (b'EXI', b'ExhibitorInvitee'), (b'MED', b'Media'), (b'COW', b'Coowner'), (b'AGN', b'Agenda'), (b'AGI', b'AgendaItem')]),
         ),
         migrations.AlterField(
             model_name='baseentitycomponent',
@@ -69,5 +69,9 @@ class Migration(migrations.Migration):
             model_name='baseentitycomponentsowner',
             name='owner',
             field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterUniqueTogether(
+            name='baseentitycomponentsowner',
+            unique_together=set([('base_entity_component', 'owner')]),
         ),
     ]

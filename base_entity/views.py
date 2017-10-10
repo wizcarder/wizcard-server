@@ -1,7 +1,6 @@
 
 # Create your views here.
 from base_entity.models import BaseEntity, BaseEntityComponent
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.http import Http404
@@ -11,8 +10,10 @@ import pdb
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
 
+
     def get_object_or_404(*args, **kwargs):
         return get_object_or_404(BaseEntity, *args, **kwargs)
+
 
     def get_queryset(self):
         user = self.request.user
