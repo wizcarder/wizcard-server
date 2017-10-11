@@ -7,8 +7,8 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('base_entity', '0006_auto_20171010_2239'),
         ('contenttypes', '0002_remove_content_type_name'),
-        ('base_entity', '0007_auto_20171004_1352'),
     ]
 
     operations = [
@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('baseentitycomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='base_entity.BaseEntityComponent')),
                 ('description', models.CharField(max_length=100)),
-                ('is_published', models.BooleanField(default=True, verbose_name=b'is published')),
+                ('is_published', models.BooleanField(default=False, verbose_name=b'is published')),
             ],
             options={
                 'abstract': False,
