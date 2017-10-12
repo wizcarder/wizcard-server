@@ -77,33 +77,6 @@ class Campaign(BaseEntity):
 
     objects = CampaignManager()
 
-    # this is a follow
-    def join(self, user):
-        super(Campaign, self).join(user)
-
-        self.notify_all_users(
-            user,
-            verbs.WIZCARD_ENTITY_JOIN[0],
-            self,
-        )
-
-        return
-
-    # this is an un-follow. Will happen when product is either
-    # deleted from rolodex or if there is a button on the campaign
-    # to un-follow
-    def leave(self, user):
-        super(Campaign, self).leave(user)
-
-        # send notif to all members, just like join
-        self.notify_all_users(
-            user,
-            verbs.WIZCARD_ENTITY_LEAVE[0],
-            self,
-        )
-
-        return
-
 
 class VirtualTableManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.TABLE):
@@ -131,26 +104,6 @@ class VirtualTableManager(BaseEntityManager):
 class VirtualTable(BaseEntity):
 
     objects = VirtualTableManager()
-
-    def join(self, user):
-        super(VirtualTable, self).join(user)
-
-        self.notify_all_users(
-            user,
-            verbs.WIZCARD_ENTITY_JOIN[0],
-            self,
-        )
-        return
-
-    def leave(self, user):
-        super(VirtualTable, self).leave(user)
-
-        self.notify_all_users(
-            user,
-            verbs.WIZCARD_ENTITY_LEAVE[0],
-            self,
-        )
-        return
 
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
