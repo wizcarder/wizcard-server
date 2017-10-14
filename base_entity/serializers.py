@@ -7,6 +7,7 @@ from base.mixins import MediaMixin
 from media_components.signals import media_create
 from location_mgr.serializers import LocationSerializerField
 from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats, UserEntity
+from entity.models import CoOwners
 from media_components.serializers import MediaEntitiesSerializer
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from random import sample
@@ -88,7 +89,12 @@ class EntitySerializer(EntitySerializerL0):
     like = serializers.SerializerMethodField()
     engagements = EntityEngagementSerializer(read_only=True)
     creator = serializers.SerializerMethodField()
-    owners = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False, write_only=True)
+    owners = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=CoOwners.objects.all(),
+        required=False,
+        write_only=True
+    )
     related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
     is_activated = serializers.BooleanField(write_only=True, default=False)

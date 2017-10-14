@@ -6,6 +6,7 @@ from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorViewSet, Atten
 from media_components.views import MediaEntitiesViewSet
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
+from polls.urls import urlpatterns as poll_urlpatterns
 from polls.urls import poll_router, questions_router, choices_router
 
 
@@ -28,7 +29,6 @@ urlpatterns = patterns(
     '',
     url(r'^', include(router.urls)),
     url(r'^', include(events_router.urls)),
-    url(r'^', include(poll_router.urls)),
-    url(r'^', include(questions_router.urls)),
-    url(r'^', include(choices_router.urls)),
 )
+
+urlpatterns += poll_urlpatterns

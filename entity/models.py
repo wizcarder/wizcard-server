@@ -7,7 +7,7 @@ from lib.preserialize.serialize import serialize
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
-from base_entity.models import EntityEngagementStats, UserEntity
+from base_entity.models import EntityEngagementStats
 
 
 from notifications.signals import notify
@@ -118,7 +118,7 @@ class VirtualTable(BaseEntity):
         return self
 
     def delete(self, *args, **kwargs):
-        #notify members of deletion (including self)
+        # notify members of deletion (including self)
         verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
         members = self.users.all()
         for member in members:
@@ -176,7 +176,11 @@ class CoOwnersManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
-class CoOwners(BaseEntityComponent, Base411Mixin):
+
+class CoOwners(BaseEntityComponent):
+    # the user model for this guy
+    user = models.OneToOneField(User)
+
     objects = CoOwnersManager()
 
 
@@ -239,6 +243,7 @@ class AgendaItem(BaseEntityComponent, Base412Mixin):
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
+
 @receiver(post_save, sender=Event)
 @receiver(post_save, sender=Campaign)
 @receiver(post_save, sender=VirtualTable)
@@ -247,11 +252,3 @@ def create_engagement_stats(sender, instance, created, **kwargs):
         e = EntityEngagementStats.objects.create()
         instance.engagements = e
         instance.save()
-
-
-
-
-#from entity.models import BaseEntityComponent
-
-
-

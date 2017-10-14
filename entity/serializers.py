@@ -5,13 +5,15 @@ from rest_framework import serializers
 from entity.models import Event, Campaign, VirtualTable
 from base_entity.models import UserEntity, BaseEntityComponent, BaseEntity
 from base_entity.serializers import EntitySerializerL0, EntitySerializer
-from entity.models import Speaker, Sponsor, Agenda, AgendaItem, AttendeeInvitee, ExhibitorInvitee
+from entity.models import Speaker, Sponsor, Agenda, AgendaItem, AttendeeInvitee, ExhibitorInvitee, CoOwners
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
 from base.mixins import MediaMixin
 from django.utils import timezone
+from django.contrib.auth.models import User
+
 import pdb
 
 
@@ -622,8 +624,15 @@ class AttendeeInviteeSerializer(EntitySerializer):
 
 class CoOwnersSerializer(EntitySerializer):
     class Meta:
-        model = AttendeeInvitee
-        fields = ['id', 'name', 'email']
+        model = CoOwners
+        fields = ['id', 'user', 'name', 'email']
+
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    name = serializers.SerializerMethodField(read_only=True)
+    email = serializers.EmailField(read_only=True, source='user.email')
+
+    def get_name(self, obj):
+        return obj.user.first_name + "" + obj.user.last_name
 
     def prepare(self, validated_data):
         super(CoOwnersSerializer, self).prepare(validated_data)
@@ -633,7 +642,6 @@ class CoOwnersSerializer(EntitySerializer):
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.COOWNER)
-
         self.prepare(validated_data)
         obj = super(CoOwnersSerializer, self).create(validated_data)
         self.post_create(obj)
