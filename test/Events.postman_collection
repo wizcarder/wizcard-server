@@ -8,7 +8,317 @@
 	},
 	"item": [
 		{
-			"name": "Basic Entity Create",
+			"name": "2.user type 1 (AppUser) create",
+			"request": {
+				"url": "http://localhost:8000/users/registration/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"appuser\",\n  \"email\": \"app.user@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "3.User Type 2 (Organizer) create",
+			"request": {
+				"url": "http://localhost:8000/users/registration/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"organizer_user\",\n  \"email\": \"organizer@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "4.User Type 4 (Exhibitor) create",
+			"request": {
+				"url": "http://localhost:8000/users/registration/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"username\": \"exhibitor_user\",\n   \"email\": \"exhibitor@getwizcard.com\",\n  \"first_name\":\"Exhibitor\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n   \"user_type\": \"4\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "4.Media Create IMG.THB",
+			"request": {
+				"url": "http://localhost:8000/entity/media/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"media_element\": \"http://www.eventone.updated.com\",\n\t\"media_iframe\": \"\",\n\t\"media_type\": \"IMG\",\n\t\"media_sub_type\": \"THB\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "5.Media Create IMG.BNR",
+			"request": {
+				"url": "http://localhost:8000/entity/media/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"media_element\": \"http://www.eventone.updated.com\",\n\t\"media_iframe\": \"\",\n\t\"media_type\": \"IMG\",\n\t\"media_sub_type\": \"BNR\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "6.Media Create IMG.ROL",
+			"request": {
+				"url": "http://localhost:8000/entity/media/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"media_element\": \"http://www.eventone.updated.com\",\n\t\"media_iframe\": \"\",\n\t\"media_type\": \"IMG\",\n\t\"media_sub_type\": \"ROL\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "7.Speaker Create 1",
+			"request": {
+				"url": "http://localhost:8000/entity/speakers/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"John Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc\",\n    \"title\": \"Speaker in Chief\",\n    \"website\": \"http://www.getwizcard.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john\",\n    \t\"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "8.Speaker Create 2",
+			"request": {
+				"url": "http://localhost:8000/entity/speakers/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"Jane Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc\",\n    \"title\": \"Speaker in Chief\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john\",\n    \t\"linkedin\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "9.Sponsor Create 1",
+			"request": {
+				"url": "http://localhost:8000/entity/sponsors/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"Cisco Systems\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems\",\n    \"title\": \"Speaker in Chief\",\n    \"website\": \"http://www.getwizcard.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john\",\n    \t\"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [5], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "10.Coowner.1 Create",
+			"request": {
+				"url": "http://localhost:8000/entity/owners/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{app_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"user\": 2\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "11.Coowner.2 Create",
+			"request": {
+				"url": "http://localhost:8000/entity/owners/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{app_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"user\": 4\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "12.Basic Campaign Create 1",
+			"request": {
+				"url": "http://localhost:8000/entity/campaigns/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"creator\": 3,\n    \"related\": [\n    \t{\n    \t\t\"ids\": [6], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+				},
+				"description": "Test 1: Basic Product  create"
+			},
+			"response": []
+		},
+		{
+			"name": "13.Basic Campaign Create 2",
+			"request": {
+				"url": "http://localhost:8000/entity/campaigns/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\",\n    \"owners\": [\n      11\n    ],\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"creator\": 3,\n    \"related\": [\n    \t{\n    \t\t\"ids\": [3], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+				},
+				"description": "Test 1: Basic Product  create"
+			},
+			"response": []
+		},
+		{
+			"name": "14.Basic Event Create One",
 			"request": {
 				"url": "http://localhost:8000/entity/events/",
 				"method": "POST",
@@ -20,136 +330,444 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Basic YWFtbXVuZGk6YQ==",
-						"description": "",
-						"disabled": true
+						"value": "Token {{organizer_user}}",
+						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4,\n      5\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [3], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [10], \"type\": \"e_campaign\"\n    \t}\n    ]\n  }"
 				},
 				"description": "Test 1: Basic entity create"
 			},
 			"response": []
 		},
 		{
-			"name": "user type 1 (AppUser) create",
+			"name": "15.Basic Event Create two",
 			"request": {
-				"url": "http://localhost:8000/users/users/",
+				"url": "http://localhost:8000/entity/events/",
 				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
 						"value": "application/json",
 						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\": \"app user\",\n    \"email\": \"app_user@getwizcard.com\",\n    \"user_type\": \"1\"\n}"
+					"raw": "  {\n    \"name\": \"event 2\",\n    \"address\": \"Event Two\",\n    \"website\": \"http://www.eventwo.com\",\n    \"description\": \"event two\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [11], \"type\": \"e_campaign\"\n    \t}\n    ]\n  }"
+				},
+				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "16.Agenda Create",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/agenda/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall A\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [6], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
 				},
 				"description": ""
 			},
 			"response": []
 		},
 		{
-			"name": "User Type 2 (Organizer) create",
+			"name": "19.Agenda Create",
 			"request": {
-				"url": "http://localhost:8000/users/users/",
+				"url": "http://localhost:8000/entity/events/14/agenda/",
 				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
 						"value": "application/json",
 						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\": \"organizer_user\",\n    \"email\": \"organizer@getwizcard.com\",\n    \"user_type\": \"2\"\n}"
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
 				},
 				"description": ""
 			},
 			"response": []
 		},
 		{
-			"name": "User Type 4 (Exhibitor) create",
+			"name": "22 Poll Create",
 			"request": {
-				"url": "http://localhost:8000/users/users/",
+				"url": "http://localhost:8000/entity/polls/",
 				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
 						"value": "application/json",
 						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{app_user}}",
+						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\": \"exhibitor_user\",\n    \"email\": \"exhibitor@getwizcard.com\",\n    \"user_type\": \"4\"\n}"
+					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCT\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t}\n\t]\n}"
 				},
 				"description": ""
 			},
 			"response": []
 		},
 		{
-			"name": "Basic Product Create 1",
+			"name": "14.Event Update with evrything",
 			"request": {
-				"url": "http://localhost:8000/entity/products/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.productone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"BNR\"\n      }\n    ],\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"owners\": [\n      4,\n      3\n    ],\n    \"creator\": 3,\n    \"related\": [\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
-				},
-				"description": "Test 1: Basic Product  create"
-			},
-			"response": []
-		},
-		{
-			"name": "Basic Product Create 2",
-			"request": {
-				"url": "http://localhost:8000/entity/products/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.producttwo.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"BNR\"\n      }\n    ],\n    \"owners\": [\n      3,\n      4\n    ],\n    \"extFields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"creator\": 3,\n    \"related\": [\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
-				},
-				"description": "Test 1: Basic Product  create"
-			},
-			"response": []
-		},
-		{
-			"name": "Basic Entity Update (PUT)",
-			"request": {
-				"url": "http://localhost:8000/entity/events/10",
+				"url": "http://localhost:8000/entity/events/14",
 				"method": "PUT",
 				"header": [
 					{
 						"key": "Content-Type",
 						"value": "application/json",
 						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    \t{\n    \t\t\"id\": 30, \"type\": \"e_product\"\n    \t},\n    \t{\n    \t\t\"id\": 31, \"type\": \"e_product\"\n    \t}\n\t],\n\t\"users\": [3, 4]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [12], \"type\": \"e_campaign\"\n    \t},\n    \t{\n    \t\t\"ids\": [7], \"type\": \"e_speaker\"\n    \t},\n    \t{\n    \t\t\"ids\": [4, 5], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [9], \"type\": \"e_sponsor\"\n    \t},\n    \t{\n    \t\t\"ids\": [16], \"type\": \"e_agenda\"\n    \t},\n    \t{\n    \t\t\"ids\": [22], \"type\": \"e_poll\"\n    \t}\n\t],\n\t\"users\": [2, 3, 4]\n}"
 				},
 				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "14.Event Update Selective",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [12, 13], \"type\": \"e_campaign\"\n    \t},\n    \t{\n    \t\t\"ids\": [8], \"type\": \"e_speaker\"\n    \t}\n\t]\n}"
+				},
+				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "15.Event Update with evrything",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [12], \"type\": \"e_campaign\"\n    \t},\n    \t{\n    \t\t\"ids\": [8], \"type\": \"e_speaker\"\n    \t},\n    \t{\n    \t\t\"ids\": [5, 6], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [9], \"type\": \"e_sponsor\"\n    \t},\n    \t{\n    \t\t\"ids\": [19], \"type\": \"e_agenda\"\n    \t}\n\t],\n\t\"users\": [2, 3, 4]\n}"
+				},
+				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "14.GET Events Detail",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "15.GET Events Detail",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "14.Event Update (PUT)",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    \t{\n    \t\t\"ids\": [12], \"type\": \"e_campaign\"\n    \t},\n    \t{\n    \t\t\"ids\": [7, 8], \"type\": \"e_speaker\"\n    \t}\n\t],\n\t\"users\": [3, 4]\n}"
+				},
+				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "Speaker Update",
+			"request": {
+				"url": "http://localhost:8000/entity/speakers/7",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"first_name\": \"Doe\",\n    \"last_name\": \"John\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"org\": \"\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/updated\",\n    \t\"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"UPdated\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4, 5], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "GET Campaigns",
+			"request": {
+				"url": "http://localhost:8000/entity/campaigns/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "GET Events",
+			"request": {
+				"url": "http://localhost:8000/entity/events/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "12.GET Agenda",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/agenda/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "13.GET Agenda",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/agenda/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "13.GET Polls",
+			"request": {
+				"url": "http://localhost:8000/entity/polls/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{app_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "GET CoOwners",
+			"request": {
+				"url": "http://localhost:8000/entity/owners/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{app_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCT\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t}\n\t]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "GET Speakers",
+			"request": {
+				"url": "http://localhost:8000/entity/speakers/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
 			},
 			"response": []
 		},
@@ -161,7 +779,12 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Basic YWFtbXVuZGk6YQ==",
+						"value": "Token {{token}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
 						"description": ""
 					}
 				],
@@ -189,7 +812,12 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Basic YWRtaW46cGFzc3dvcmQ=",
+						"value": "Token {{app_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
 						"description": ""
 					}
 				],
@@ -200,6 +828,22 @@
 		},
 		{
 			"name": "http://localhost:8000/get_auth_token/",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"",
+							"",
+							"",
+							"postman.setEnvironmentVariable(\"token\", \"jsonData.token\");"
+						]
+					}
+				}
+			],
 			"request": {
 				"url": "http://localhost:8000/get_auth_token/",
 				"method": "POST",
@@ -209,35 +853,17 @@
 					"formdata": [
 						{
 							"key": "username",
-							"value": "admin",
+							"value": "appuser",
 							"type": "text"
 						},
 						{
 							"key": "password",
-							"value": "password",
+							"value": "yahoo@123",
 							"type": "text"
 						}
 					]
 				},
 				"description": "get auth token"
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:8000/entity/products/",
-			"request": {
-				"url": "http://localhost:8000/entity/products/",
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Token c43d9a6386369c6c0d874ebc7f2bbeef1567dacb",
-						"description": "",
-						"disabled": true
-					}
-				],
-				"body": {},
-				"description": ""
 			},
 			"response": []
 		},
@@ -249,86 +875,6 @@
 				"header": [],
 				"body": {},
 				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "Speaker Create",
-			"request": {
-				"url": "http://localhost:8000/entity/speakers/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"org\": \"\",\n    \"designation\": \"\",\n    \"extFields\": {\n    \t\"twitter\": \"twitter.com/john\",\n    \t\"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\"\n  }"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "GET Speakers",
-			"request": {
-				"url": "http://localhost:8000/entity/speakers/",
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "Speaker Update",
-			"request": {
-				"url": "http://localhost:8000/entity/speakers/1",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"first_name\": \"Doe\",\n    \"last_name\": \"John\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"org\": \"\",\n    \"designation\": \"\",\n    \"extFields\": {\n    \t\"twitter\": \"twitter.com/john/updated\",\n    \t\"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"UPdated\"\n  }"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "Entity Update with Speakers",
-			"request": {
-				"url": "http://localhost:8000/entity/events/10",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "\n{\n    \"speakers\": [1]\n}"
-				},
-				"description": "Test 1: Basic entity create"
 			},
 			"response": []
 		},
@@ -365,14 +911,13 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Basic YWFtbXVuZGk6YQ==",
-						"description": "",
-						"disabled": true
+						"value": "Token 3bc158bc4ce1411519e793672931c846aed53274",
+						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4,\n      5\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Table Create"
 			},
