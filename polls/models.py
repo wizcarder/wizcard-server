@@ -2,9 +2,11 @@ from django.db import models
 from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.contrib.auth.models import User
 from polymorphic.models import PolymorphicModel
+from django.db.models import Count
 
 import pdb
 # Create your models here.
+
 
 class PollManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.POLL):
@@ -34,13 +36,15 @@ class Poll(BaseEntityComponent):
         super(Poll, self).delete(*args, **kwargs)
 
     def question_count(self):
-        return self.question_set.count()
+        return self.questions.count()
 
     def num_responders(self):
-        return self.responders.count()
-
-    def get_num_responses(self):
-        return self.question_set.count()
+        """
+        how many responded to the poll
+        """
+        return self.userresponse_set.aggregate(
+            num_responders=Count('user', distinct=True)
+        ).get('num_responders')
 
     """
     detailed response breakdown of the Poll
@@ -139,15 +143,15 @@ class QuestionChoices1ToX(QuestionChoicesBase):
 
 
 class UserResponseManager(models.Manager):
-
-    """
-    how many responded to the poll
-    """
-    def num_respondents(self, poll):
-        return poll.user_answer_set.count()
+    pass
 
 
 class UserResponse(models.Model):
+    # user answering the poll
+    user = models.ForeignKey(User)
+
+    # poll that was taken
+    poll = models.ForeignKey(Poll)
     # the question that was answered
     question = models.ForeignKey(Question)
     # answer that was given
@@ -157,7 +161,7 @@ class UserResponse(models.Model):
     extra_text = models.TextField()
 
     has_user_value = models.BooleanField(default=False)
-    user_value = models.IntegerField(blank=True)
+    user_value = models.IntegerField(blank=True, default=5)
 
-    object = UserResponseManager()
+    objects = UserResponseManager()
 
