@@ -8,7 +8,7 @@ from wizserver import verbs
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
 from base_entity.models import EntityEngagementStats
-
+from picklefield.fields import PickledObjectField
 
 from notifications.signals import notify
 from base.mixins import Base411Mixin, Base412Mixin, Base413Mixin, CompanyTitleMixin, \
@@ -48,6 +48,7 @@ class EventManager(BaseEntityManager):
 class Event(BaseEntity):
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(auto_now_add=True)
+    highlights = PickledObjectField(blank=True)
 
     objects = EventManager()
 

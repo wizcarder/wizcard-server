@@ -130,6 +130,7 @@ class EventSerializer(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
+    highlights = serializers.DictField()
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -142,7 +143,7 @@ class EventSerializer(EntitySerializer):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls')
+        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls', 'highlights')
         fields = EntitySerializer.Meta.fields + my_fields
 
     def prepare(self, validated_data):
@@ -163,6 +164,7 @@ class EventSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         instance.start = validated_data.pop("start", instance.start)
         instance.end = validated_data.pop("end", instance.end)
+        instance.highlights = validated_data.pop("highlights", instance.highlights)
 
         instance = super(EventSerializer, self).update(instance, validated_data)
 
@@ -188,13 +190,14 @@ class EventSerializer(EntitySerializer):
 class EventSerializerL1(EntitySerializer):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
+    highlights = serializers.DictField()
 
     class Meta:
         model = Event
 
         parent_fields = ('id', 'entity_type', 'num_users', 'name', 'address', 'secure', 'description', 'media',
                          'location', 'users', 'joined', 'friends', 'like', 'tags', 'engagements')
-        my_fields = ('start', 'end', )
+        my_fields = ('start', 'end', 'highlights',)
 
         fields = parent_fields + my_fields
 
@@ -256,12 +259,13 @@ class EventSerializerL2(EntitySerializer):
     sponsors = serializers.SerializerMethodField()
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
+    highlights = serializers.DictField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'highlights')
 
         fields = parent_fields + my_fields
 

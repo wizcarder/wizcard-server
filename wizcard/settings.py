@@ -29,7 +29,7 @@ WIZCARD_SETTINGS = {
             'default': {
                 #'ENGINE': 'django.db.backends.mysql',
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-dev',
+                'NAME': 'girnar-dev',
                 'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
