@@ -2392,10 +2392,9 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        UserResponse.objects.create(**self.sender)
+        UserResponse.objects.create(user=self.user, **self.sender)
 
         return self.response
-
 
     def TableJoinByInvite(self):
         return self.EntityJoin()
