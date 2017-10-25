@@ -71,7 +71,7 @@ class AgendaItemSerializerL2(EntitySerializer):
 class AgendaSerializer(EntitySerializer):
     class Meta:
         model = Agenda
-        fields = ('id', 'entity_type', 'items')
+        fields = ('id', 'entity_type', 'items', 'media')
 
     items = AgendaItemSerializer(many=True)
 
@@ -100,7 +100,7 @@ class AgendaSerializerL2(EntitySerializer):
 
     class Meta:
         model = Agenda
-        fields = ('id', 'entity_type', 'items')
+        fields = ('id', 'entity_type', 'items', 'media')
 
     items = AgendaItemSerializerL2(many=True)
 
@@ -202,7 +202,7 @@ class EventSerializerL1(EntitySerializer):
         friends_wizcards = obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT)
         out = dict(
             count=len(friends_wizcards),
-            data=WizcardSerializerL0(friends_wizcards, many=True).data
+            data=WizcardSerializerL0(friends_wizcards, many=True, context=self.context).data
         )
         return out
 
@@ -236,7 +236,7 @@ class EventSerializerL1(EntitySerializer):
 
         out = dict(
             count=count,
-            data=WizcardSerializerL0(wizcards, many=True).data
+            data=WizcardSerializerL0(wizcards, many=True, context={'user':self.context.get('user')}).data
         )
         return out
 
