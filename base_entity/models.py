@@ -55,7 +55,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         # AR: TODO: this is getting kludgy with multiple parameters. Best to have
         # REST API filters that portal can use
         if count and not count_only:
-            entities = self.filter(id__in=result, expired=False, is_deleted=False)
+            entities = self.filter(id__in=result, expired=False, is_deleted=False, is_activated=True)
         return entities, count
 
     def owners_entities(self, user, entity_type=None):
