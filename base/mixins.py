@@ -89,7 +89,7 @@ class MediaMixin(models.Model):
     TYPE_IMAGE = 'IMG'
     TYPE_VIDEO = 'VID'
     TYPE_DOC = 'DOC'
-    TYPE_DOC = 'AUD'
+    TYPE_AUDIO = 'AUD'
 
     SUB_TYPE_BANNER = 'BNR'
     SUB_TYPE_LOGO = 'LGO'
