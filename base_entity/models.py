@@ -11,11 +11,9 @@ from django.db.models import Q
 from django.conf import settings
 from taganomy.models import Taganomy
 from base.char_trunc import TruncatingCharField
-from django.contrib.contenttypes.models import ContentType
 from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
-from notifications.models import Notification
 from wizserver import verbs
 import pdb
 
@@ -470,19 +468,17 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             exclude_sender=False
         )
 
-        self.related.all().delete()
         self.location.get().delete()
 
         if verb == verbs.WIZCARD_ENTITY_EXPIRE[0]:
             self.expired = True
             self.save()
         else:
+            self.related.all().delete()
             super(BaseEntity, self).delete(*args, **kwargs)
 
     def expire(self):
-        self.expired = True
-        self.save()
-        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
+        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE[0])
 
 
 # explicit through table since we will want to associate additional

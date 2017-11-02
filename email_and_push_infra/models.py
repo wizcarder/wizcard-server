@@ -66,10 +66,20 @@ class EmailAndPushManager(models.Manager):
             target_content_type = ContentType.objects.get_for_model(target)
             target_object_id = target.id
             to = target.email
-            eap, created = EmailAndPush.objects.get_or_create(sender_content_type=sender_content_type, sender_object_id=sender.id, event=event, to=to, target_content_type=target_content_type,
-                                                              target_object_id = target_object_id)
+            eap, created = EmailAndPush.objects.get_or_create(
+                sender_content_type=sender_content_type,
+                sender_object_id=sender.id,
+                event=event, to=to,
+                target_content_type=target_content_type,
+                target_object_id = target_object_id
+            )
         else:
-            eap, created = EmailAndPush.objects.get_or_create(sender_content_type=sender_content_type, sender_object_id = sender.id, event=event, to=to)
+            eap, created = EmailAndPush.objects.get_or_create(
+                sender_content_type=sender_content_type,
+                sender_object_id = sender.id,
+                event=event,
+                to=to
+            )
 
         return eap
 

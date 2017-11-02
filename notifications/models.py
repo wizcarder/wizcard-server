@@ -100,8 +100,7 @@ class Notification(models.Model):
 
     verb = models.CharField(max_length=255)
 
-    target_content_type = models.ForeignKey(ContentType, related_name='notify_target',
-        blank=True, null=True)
+    target_content_type = models.ForeignKey(ContentType, related_name='notify_target', blank=True, null=True)
     target_object_id = models.CharField(max_length=255, blank=True, null=True)
     target = generic.GenericForeignKey('target_content_type',
         'target_object_id')
