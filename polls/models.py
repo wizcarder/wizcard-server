@@ -15,7 +15,7 @@ class PollManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
+    def users_entities(self, user, entity_type=BaseEntityComponent.POLL):
         return super(PollManager, self).users_entities(
             user,
             entity_type=entity_type
@@ -25,6 +25,8 @@ class PollManager(BaseEntityComponentManager):
 class Poll(BaseEntityComponent):
     description = models.CharField(max_length=100)
     is_published = models.BooleanField(default=False, verbose_name='is published')
+    created = models.DateTimeField(auto_now_add=True)
+
 
     objects = PollManager()
 
@@ -62,12 +64,14 @@ class Question(PolymorphicModel):
     SCALE_OF_1_X_CHOICE = 'SCL'
     ABCD_CHOICE = 'MCR'
     TRUE_FALSE_CHOICE = 'TOF'
+    QUESTION_ANSWER = 'QA'
 
     QUESTION_CHOICES = (
         (MULTIPLE_TEXT_CHOICE, 'MultipleChoiceText'),
         (SCALE_OF_1_X_CHOICE, 'ScaleOf1toX'),
         (ABCD_CHOICE, 'ChoiceAbcd'),
         (TRUE_FALSE_CHOICE, 'TrueFalse'),
+        (QUESTION_ANSWER, 'QuestionAnswer')
     )
 
     """
@@ -77,12 +81,14 @@ class Question(PolymorphicModel):
     GRADED_SLIDER_TYPE = 'SLD'
     RADIO_BUTTON_TYPE = 'RAD'
     DROP_DOWN_TYPE = 'DRP'
+    TEXT_AREA = 'TEX'
 
     UI_TYPE_CHOICES = (
         (SELECT_OPTION_TYPE, 'Select'),
         (GRADED_SLIDER_TYPE, 'GradedSlider'),
         (RADIO_BUTTON_TYPE, 'RadioButton'),
         (DROP_DOWN_TYPE, 'DropDown'),
+        (TEXT_AREA, 'TextArea')
     )
 
     question_type = models.CharField(
@@ -143,15 +149,17 @@ class QuestionChoices1ToX(QuestionChoicesBase):
 
 
 class UserResponseManager(models.Manager):
-    pass
+    def has_responded(self, user, poll):
+        qs = UserResponse.objects.filter(user=user, poll=poll)
+        return True if qs else False
 
 
 class UserResponse(models.Model):
     # user answering the poll
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, db_index=True)
 
     # poll that was taken
-    poll = models.ForeignKey(Poll)
+    poll = models.ForeignKey(Poll, db_index=True)
     # the question that was answered
     question = models.ForeignKey(Question)
     # answer that was given
@@ -162,6 +170,8 @@ class UserResponse(models.Model):
 
     has_user_value = models.BooleanField(default=False)
     user_value = models.IntegerField(blank=True, default=5)
+
+    response_time = models.DateTimeField(auto_now=True)
 
     objects = UserResponseManager()
 

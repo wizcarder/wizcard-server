@@ -668,6 +668,20 @@ get_events = {
     },
 }
 
+poll_response = {
+    "header" : {
+        "device_id" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "poll_response",
+    },
+    "sender" : {
+        "device_type": "android",
+        "lat": LAT1,
+        "lng": LNG1
+    },
+}
+
 entities_like = {
     "header" : {
         "device_id" : "17b90b2e03dc7b38",

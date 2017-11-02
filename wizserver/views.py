@@ -59,7 +59,7 @@ from base_entity.models import EntityUserStats
 from base_entity.models import BaseEntityComponent
 from media_components.models import MediaEntities
 from media_components.signals import media_create
-from polls.models import Poll, UserResponse
+from polls.models import Poll, UserResponse, QuestionChoicesBase, Question
 
 import pdb
 
@@ -2375,7 +2375,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        if entity.secure and not entity.is_joined(self.user):
+        if entity_type == 'EVT' and entity.secure and not entity.is_joined(self.user):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
 
@@ -2386,13 +2386,27 @@ class ParseMsgAndDispatch(object):
 
     def PollResponse(self):
         id = self.sender.get('entity_id')
+        params = dict()
         try:
             entity = Poll.objects.get(id=id)
+            params['poll'] = entity
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        UserResponse.objects.create(user=self.user, **self.sender)
+        try:
+
+            params['answer'] = QuestionChoicesBase.objects.get(id=self.sender['answer_id'])
+            params['question'] = Question.objects.get(id=self.sender['question_id'])
+            params['has_extra_text'] = self.sender.get('has_extra_text', False)
+            params['extra_text'] = self.sender.get('extra_text', "")
+            params['has_user_value'] = self.sender.get('has_user_value', False)
+            params['user_value'] = self.sender.get('user_value', 5)
+        except:
+            self.response.error_response(err.POLL_RESPONSE_INVALID)
+            return self.response
+
+        UserResponse.objects.create(user=self.user, **params)
 
         return self.response
 

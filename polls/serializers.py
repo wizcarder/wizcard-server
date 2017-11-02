@@ -1,7 +1,7 @@
 __author__ = 'aammundi'
 
 from rest_framework import serializers
-from polls.models import Poll, Question, QuestionChoicesBase
+from polls.models import Poll, Question, QuestionChoicesBase, UserResponse
 from base_entity.models import BaseEntityComponent
 from entity.serializers import EntitySerializer
 
@@ -85,3 +85,62 @@ class PollSerializer(EntitySerializer):
         self.post_create(instance)
 
         return instance
+
+
+class PollSerializerL1(EntitySerializer):
+    class Meta:
+        model = Poll
+        fields = ('id', 'description', 'responded', 'num_responders', 'created')
+
+    responded = serializers.SerializerMethodField()
+    num_responders = serializers.SerializerMethodField()
+    created = serializers.DateTimeField(format='%d-%b-%Y')
+
+
+    def get_responded(self, obj):
+        user = self.context.get('user')
+        return UserResponse.objects.has_responded(user, obj)
+
+
+    def get_num_responders(self, obj):
+        return obj.num_responders()
+
+
+class PollSerializerL2(PollSerializerL1):
+    questions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Poll
+        fields = PollSerializerL1.Meta.fields  + ('questions',)
+
+
+    def get_questions(self, obj):
+        #pdb.set_trace()
+        user = self.context.get('user')
+        user_response = UserResponse.objects.filter(user=user, poll=obj)
+        if user_response:
+            questions = UserResponseSerializer(user_response, many=True).data
+        else:
+            questions = QuestionSerializer(obj.questions, many=True).data
+        return questions
+
+
+
+class UserResponseSerializer(serializers.ModelSerializer):
+    question = QuestionSerializer(read_only=True)
+    answer = QuestionChoicesSerializer(read_only=True)
+
+    class Meta:
+        model = UserResponse
+        fields = ('id', 'question', 'answer', 'has_extra_text', 'extra_text', 'has_user_value', 'user_value')
+
+
+        #has_extra_text = serializers.BooleanField()
+        #extra_text = serializers.CharField()
+        #has_user_value = serializers.BooleanField()
+        #user_value = serializers.IntegerField()
+
+
+
+
+

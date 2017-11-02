@@ -13,6 +13,7 @@ from media_components.models import MediaEntities
 from base.mixins import MediaMixin
 from django.utils import timezone
 from django.contrib.auth.models import User
+from polls.serializers import PollSerializerL1, PollSerializerL2
 
 import pdb
 
@@ -258,14 +259,16 @@ class EventSerializerL2(EntitySerializer):
     speakers = serializers.SerializerMethodField()
     sponsors = serializers.SerializerMethodField()
     campaigns = serializers.SerializerMethodField()
+    polls = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
+
     highlights = serializers.DictField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'highlights')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls',  'highlights')
 
         fields = parent_fields + my_fields
 
@@ -326,6 +329,12 @@ class EventSerializerL2(EntitySerializer):
     def get_media(self, obj):
         return MediaEntitiesSerializer(
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
+            many=True
+        ).data
+
+    def get_polls(self, obj):
+        return PollSerializerL1(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_POLL),
             many=True
         ).data
 

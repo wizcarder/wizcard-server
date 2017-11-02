@@ -91,6 +91,6 @@ class EmailAndPush(models.Model):
     def get_to(self):
         return self.to
 
-    def updateEmailTime(self, sent_time=timezone.now):
+    def update_email_sent(self, sent_time=timezone.now):
         self.last_sent = sent_time
 

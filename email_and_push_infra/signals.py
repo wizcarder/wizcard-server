@@ -28,7 +28,8 @@ def callback(sender, **kwargs):
 
     html = HtmlGen(sender, trigger, eap.get_to)
     html.run()
-    eap.updateEmailTime(timezone.now)
+    eap.update_email_sent(timezone.now)
+
 
 
 email_trigger.connect(callback, dispatch_uid='email_and_push_infra.models.EmailAndPush')
