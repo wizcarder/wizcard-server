@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 
 
 class EmailAndPushManager(models.Manager):
-
+    '''
     def pushEvent(self, sender, event, event_type=INSTANT, delivery, target=None):
         sender_content_type = ContentType.objects.get_for_model(sender)
 
@@ -41,6 +41,7 @@ class EmailAndPushManager(models.Manager):
                                                           target_object_id = target_object_id)
 
         return eap
+    '''
 
     def candidates(self, reminder_intervals=[1, 3, 5]):
 
@@ -99,19 +100,13 @@ class EmailAndPush(models.Model):
         (FAILURE, 'failed'),
         (NEW, 'new')
     )
-    sender_content_type = models.ForeignKey(ContentType, related_name='email_and_push', default=15)
-    sender_object_id = models.PositiveIntegerField()
-    sender = generic.GenericForeignKey('sender_content_type', 'sender_object_id')
-    event = models.PositiveSmallIntegerField(choices=EVENTS)
+
     event_type = models.PositiveSmallIntegerField(choices=EVENT_TYPE, default=INSTANT)
-    target_content_type = models.ForeignKey(ContentType, related_name="email_target", blank=True, null=True)
-    target_object_id = models.PositiveIntegerField(null=True, blank=True)
-    target = generic.GenericForeignKey('target_content_type', 'target_object_id')
     last_tried = models.DateTimeField(blank=True, null=True)
-    delivery = models.PositiveSmallIntegerField(choices=DELIVERY)
+    delivery = models.PositiveSmallIntegerField(choices=DELIVERY, default=EMAIL)
     created = models.DateTimeField(auto_now=True)
-    status = models.PostiveSmallIntegerField(choices=STATUS, default=NEW)
-    start_date = models.DateTimeField(default=timezone.now())
+    status = models.PositiveSmallIntegerField(choices=STATUS, default=NEW)
+    start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(default=timezone.now() + timedelta(days=5))
 
     #Ideally should add interval fields also (periodicity) hardcoding to 1, 3, 5  from the end_date
@@ -131,7 +126,4 @@ class EmailAndPush(models.Model):
     def update_status(self, status):
         self.status = status
         self.save()
-
-    def instant_candidates(self):
-        self.
 

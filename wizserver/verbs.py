@@ -188,6 +188,13 @@ WIZCARD_RECO_READY = ('new recommendations ready', 1)
 WIZCARD_ENTITY_UPDATE = ('event_updated', 0)
 WIZCARD_ENTITY_EXPIRE = ('event_expired', 0)
 WIZCARD_ENTITY_DELETE = ('event_deleted', 0)
+WIZCARD_EVENT_REMINDER = ('event_reminder', 1)
+WIZCARD_NEW_USER = ('new_user', 0)
+WIZCARD_SCANNED_USER = ('scanned_user', 0)
+WIZCARD_INVITE_USER = ('invite_user', 0)
+WIZCARD_NEW_POLL = ('new_poll', 1)
+WIZCARD_INVITE_EXHIBITOR = ('invite_exhibitor', 0)
+WIZCARD_INVITE_ATTENDEE = ('invite_attendee', 0)
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {

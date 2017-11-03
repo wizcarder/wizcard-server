@@ -21,10 +21,10 @@ except ImportError:
 
 class NotificationManager(models.Manager):
     def unread(self, user, count=settings.NOTIF_BATCH_SIZE):
-        return list(self.filter(recipient=user, readed=False)[:count])
+        return list(self.filter(recipient=user, is_offline=False, readed=False)[:count])
 
     def unacted(self, user):
-        return self.filter(recipient=user, acted_upon=False)
+        return self.filter(recipient=user, is_offline=False, acted_upon=False)
 
     def unread_count(self, user):
         return self.unread(user).count()
@@ -38,7 +38,7 @@ class NotificationManager(models.Manager):
         return count
 
     def mark_all_as_read(self, recipient, count):
-        return self.filter(recipient=recipient, readed=False).update(readed=True)
+        return self.filter(recipient=recipient, is_offline=False, readed=False).update(readed=True)
 
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
@@ -46,7 +46,7 @@ class NotificationManager(models.Manager):
     # AR: TODO this query seems convoluted. It should simply be: verb, target, unreaded
     def get_unread_users(self, verb, filter_users=None):
 
-        qs = self.filter(verb=verb, readed=False)
+        qs = self.filter(verb=verb, is_offline=False, readed=False)
         if filter_users:
             qs = qs.filter(recipient__in=filter_users)
         exclude_users = map(lambda x: x.recipient, qs)
@@ -116,6 +116,8 @@ class Notification(models.Model):
     timestamp = models.DateTimeField(default=now)
 
     public = models.BooleanField(default=True)
+    is_offline = models.BooleanField(default=False)
+
 
     objects = NotificationManager()
 
@@ -168,12 +170,14 @@ def notify_handler(verb, **kwargs):
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
     onlypush = kwargs.pop('onlypush', False)
+    is_offline = kwargs.pop('is_offline', False)
 
     if not onlypush:
         newnotify, created = Notification.objects.get_or_create(
             recipient=recipient,
             verb=unicode(verb),
             readed=False,
+            is_offline=is_offline,
             defaults={
                 'actor_content_type': ContentType.objects.get_for_model(actor),
                 'actor_object_id': actor.pk,

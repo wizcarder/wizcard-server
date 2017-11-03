@@ -38,8 +38,8 @@ from userprofile.models import UserProfile
 from userprofile.models import FutureUser
 from lib import wizlib, noembed
 from lib.create_share import create_vcard
-from email_and_push_infra.models import EmailEvent
-from email_and_push_infra.signals import message_trigger
+from email_and_push_infra.models import EmailAndPush
+#from email_and_push_infra.signals import message_trigger
 from wizcard import err
 from base_entity.models import BaseEntity
 from entity.models import Event
@@ -1069,8 +1069,16 @@ class ParseMsgAndDispatch(object):
             wizcard.flood()
 
         if created:
-            message_trigger.send(self.user, trigger=EmailEvent.NEWUSER, source=self.user.wizcard, target=wizcard, delivery=EmailAndPush.EMAIL)
-
+            email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
+                                                      delivery=EmailAndPush.EMAIL,
+                                                      )
+            notify.send(self.r_user,
+                        recipient=self.user,
+                        verb=verbs.WIZCARD_NEW_USER,
+                        target=wizcard,
+                        is_offline=True,
+                        action_object = email_push
+                        )
         self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
         return self.response
 
@@ -1753,7 +1761,17 @@ class ParseMsgAndDispatch(object):
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=wizcard, delivery=EmailEvent.EMAIL)
+                    email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
+                                                             delivery=EmailAndPush.EMAIL,
+                                                             )
+                    notify.send(self.user,
+                                recipient=self.user,
+                                verb=verbs.WIZCARD_SCANNED_USER,
+                                target=wizcard,
+                                is_offline=True,
+                                action_object=email_push
+                                )
+                    #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=wizcard, delivery=EmailEvent.EMAIL)
             else:
                 fuser = FutureUser.objects.get_or_create(
                         inviter=self.user,
@@ -1763,7 +1781,17 @@ class ParseMsgAndDispatch(object):
                         email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=fuser, delivery=EmailAndPush.EMAIL)
+                    email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
+                                                             delivery=EmailAndPush.EMAIL,
+                                                             )
+                    notify.send(self.r_user,
+                                recipient=self.user,
+                                verb=verbs.WIZCARD_INVITE_USER,
+                                target=fuser,
+                                is_offline=True,
+                                action_object=email_push
+                                )
+                    #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=fuser, delivery=EmailAndPush.EMAIL)
 
     def UserQuery(self):
         try:
@@ -2049,7 +2077,17 @@ class ParseMsgAndDispatch(object):
         else:
             if deadcard.activated == False:
                 #send_wizcard.delay(self.user.wizcard, deadcard.email, template="emailscan")
-                message_trigger.send(self.user, trigger=EmailEvent.SCANNED, source=self.user.wizcard, target=deadcard, delivery=EmailAndPush.EMAIL)
+                email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
+                                                         delivery=EmailAndPush.EMAIL,
+                                                         )
+                notify.send(self.r_user,
+                            recipient=self.user,
+                            verb=verbs.WIZCARD_SCANNED_USER,
+                            target=deadcard,
+                            is_offline=True,
+                            action_object=email_push
+                            )
+                #message_trigger.send(self.user, trigger=EmailEvent.SCANNED, source=self.user.wizcard, target=deadcard, delivery=EmailAndPush.EMAIL)
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan

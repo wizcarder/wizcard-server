@@ -196,6 +196,11 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
     objects = AttendeeInviteeManager()
 
+    @classmethod
+    def validate(cls, attendees):
+        exhibitors = AttendeeInvitee.objects.filter(id__in=attendees)
+        return exhibitors
+
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.EXHIBITOR_INVITEE):
@@ -211,15 +216,8 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
 
     @classmethod
     def validate(cls, exhibitors):
-        failed_ids = ""
-        valid_emails = []
-        for eid in exhibitors:
-            try:
-                email = ExhibitorInvitee.objects.get(id=eid).email
-                valid_emails.append(email)
-            except:
-                failed_ids = failed_ids + "," + str(eid)
-        return valid_emails, failed_ids
+        exhibitors = ExhibitorInvitee.objects.filter(id__in=exhibitors)
+        return exhibitors
 
 
 class AgendaManager(BaseEntityComponentManager):
