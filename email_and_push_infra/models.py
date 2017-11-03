@@ -75,11 +75,13 @@ class EmailAndPush(models.Model):
         (INVITE_EXHIBITOR, 'INVITE_EXHIBITOR'),
         (INVITE_ATTENDEE, 'INVITE_ATTENDEE')
     )
-    BUFFERED = 1
+    RECUR = 1
     INSTANT = 2
+    SCHEDULED = 3
     EVENT_TYPE = (
-        (BUFFERED, 'BUFFERED'),
-        (INSTANT, 'INSTANT')
+        (RECUR, 'RECUR'),
+        (INSTANT, 'INSTANT'),
+        (SCHEDULED, 'SCHEDULED')
     )
 
 
