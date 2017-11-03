@@ -370,7 +370,7 @@
 		{
 			"name": "16.Agenda Create",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/agenda/",
+				"url": "http://localhost:8000/entity/events/14/agenda/",
 				"method": "POST",
 				"header": [
 					{
@@ -395,7 +395,7 @@
 		{
 			"name": "19.Agenda Create",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/agenda/",
+				"url": "http://localhost:8000/entity/events/18/agenda/",
 				"method": "POST",
 				"header": [
 					{
@@ -437,6 +437,31 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCT\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t}\n\t]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "23.Notification Create",
+			"request": {
+				"url": "http://localhost:8000/entity/notifications/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"notif_type\": \"PUSH\",\n\t\"recipient\": 2,\n\t\"actor\": {\n\t\t\"type\": \"user\", \n\t\t\"id\": 7\n\t}, \n\t\"target\": {\n\t\t\"type\": \"wizcard\", \n\t\t\"id\": 4\n\t}, \n\t\"action_object\": {\n\t\t\"type\": \"wizconnectionrequest\", \n\t\t\"id\": 10\n\t}, \n\t\"verb\": \"wizconnection request trusted\"\n}"
 				},
 				"description": ""
 			},
