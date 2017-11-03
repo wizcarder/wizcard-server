@@ -9,7 +9,7 @@ import pdb
 # there needs to be a call-in into the entry function from the handler table
 
 class HtmlGen:
-    def __init__(self, sender, trigger, to):
+    def __init__(self, sender, trigger, target):
         self.sender = sender
         self.trigger = trigger
         self.to = to
@@ -31,27 +31,27 @@ class HtmlGen:
         object = sender.get()
         print object
 
-    def welcome_user(self, sender, to):
+    def welcome_user(self, sender, target):
         wizcard = sender
         email_details = {"template" : "welcome.html", "subject": "Welcome %s to WizCard"}
         send_wizcard.delay(wizcard, to, email_details, half_card=True)
 
-    def invite_user(self, sender, to):
+    def invite_user(self, sender, target):
         wizcard = sender
         email_details = {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"}
         send_wizcard.delay(wizcard, to,  email_details)
 
-    def scan_user(self, sender, to):
+    def scan_user(self, sender, target):
         wizcard = sender
         email_details = {"template": "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}
         send_wizcard.delay(wizcard, to, email_details, half_card = True)
 
-    def invite_exhibitor(self, sender, to):
+    def invite_exhibitor(self, sender, target):
         event_organizer = sender
         email_details = {"template": "invite_exhibitor.html", "subject": "%s - has invited you to Create your Campaign"}
         send_event(event_organizer, to, email_details)
 
-    def invite_attendee(self, sender, to):
+    def invite_attendee(self, sender, target):
         event_organizer = sender
         email_details = {"template" : "invite_attendee.html", "subject": "%s - Welcome to %s"}
         send_event(event_organizer, to, email_details)

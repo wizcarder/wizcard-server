@@ -339,6 +339,7 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'herald'
 )
 
 #django-storage settings

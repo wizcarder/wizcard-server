@@ -7,7 +7,7 @@ from entity.serializers import EventSerializer, CampaignSerializer, \
     SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
 from rest_framework.decorators import detail_route
 from email_and_push_infra.models import EmailEvent
-from email_and_push_infra.signals import email_trigger
+from email_and_push_infra.signals import message_trigger
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
 
@@ -35,7 +35,7 @@ class EventViewSet(BaseEntityViewSet):
         passed_emails, failed_str = ExhibitorInvitee.validate(exhibitors['ids'])
 
         for recp in passed_emails:
-            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
+            message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
 
         return Response("Exhibitors invited %s Failed ids: %s" % (len(passed_emails), failed_str),
                         status=status.HTTP_200_OK)
@@ -48,7 +48,7 @@ class EventViewSet(BaseEntityViewSet):
         passed_emails, failed_str = AttendeeInvitee.validate(attendees['ids'])
 
         for recp in passed_emails:
-            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEE, to_email=recp)
+            message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEE, to_email=recp)
 
         return Response("Attendees invited %s Failed ids: %s" % (len(passed_emails), failed_str),
                         status=status.HTTP_200_OK)

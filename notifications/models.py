@@ -195,6 +195,8 @@ def notify_handler(verb, **kwargs):
 
         newnotify.save()
 
+        # AR_TODO: This should be replaced by message_trigger
+
         pushNotificationToApp.delay(
             newnotify.actor_object_id,
             newnotify.recipient_id,
@@ -219,6 +221,7 @@ def notify_handler(verb, **kwargs):
                 pushparam[tkey] = None
                 tkey = '%s_content_type' % opt
                 pushparam[tkey] = None
+        # AR_TODO: This should be replaced by message_trigger
 
         pushNotificationToApp.delay(
             actor.pk,
