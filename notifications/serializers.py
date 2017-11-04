@@ -42,13 +42,12 @@ class GenericSerializerField(serializers.RelatedField):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ('id', 'notif_type', 'recipient', 'actor', 'target', 'action_object', 'verb',
+        fields = ('id', 'delivery_type', 'recipient', 'actor', 'target', 'action_object', 'verb',
                   'start', 'end')
 
     actor = GenericSerializerField(required=True)
     target = GenericSerializerField()
     action_object = GenericSerializerField()
-    notif_type = serializers.CharField(read_only=True)
     start = serializers.DateTimeField(required=False)
     end = serializers.DateTimeField(required=False)
 
@@ -70,15 +69,13 @@ class NotificationSerializer(serializers.ModelSerializer):
             parms.update(action_object_object_id=action_object['id'])
 
         n = Notification.objects.create(
+            delivery_type=validated_data['delivery_type'],
+            is_async=True,
             recipient=validated_data['recipient'],
             verb=validated_data['verb'],
             **parms
         )
 
         return n
-
-    def delete(self, validated_data):
-        pass
-
 
 

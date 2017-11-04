@@ -50,7 +50,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         entities = []
         result, count = LocationMgr.objects.lookup(ttype, lat, lng, n)
 
-        #convert result to query set result
+        # convert result to query set result
 
         # AR: TODO: this is getting kludgy with multiple parameters. Best to have
         # REST API filters that portal can use

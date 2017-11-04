@@ -59,6 +59,24 @@ class NotificationManager(models.Manager):
 
 class Notification(models.Model):
     """
+    unified notification model.
+    is_async=True/False is picked up by celery/get_cards respectively
+
+    """
+
+    EMAIL = 1
+    PUSHNOTIF = 2
+    SMS = 3,
+    ALERT = 4
+
+    DELIVERY_TYPE = (
+        (EMAIL, 'email'),
+        (PUSHNOTIF, 'pushnotif'),
+        (SMS, 'sms'),
+        (ALERT, 'alert')
+    )
+
+    """
     Action model describing the actor acting out a verb (on an optional
     target).
     Nomenclature based on http://activitystrea.ms/specs/atom/1.0/
@@ -86,6 +104,9 @@ class Notification(models.Model):
         <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
     """
+    delivery_type = models.PositiveSmallIntegerField(choices=DELIVERY_TYPE, default=ALERT)
+    is_async = models.BooleanField(default=False)
+
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     readed = models.BooleanField(default=False, blank=False)
 
@@ -103,23 +124,22 @@ class Notification(models.Model):
 
     verb = models.CharField(max_length=255)
 
-    target_content_type = models.ForeignKey(ContentType, related_name='notify_target',
-        blank=True, null=True)
+    target_content_type = models.ForeignKey(ContentType, related_name='notify_target', blank=True, null=True)
     target_object_id = models.CharField(max_length=255, blank=True, null=True)
-    target = generic.GenericForeignKey('target_content_type',
-        'target_object_id')
+    target = generic.GenericForeignKey('target_content_type', 'target_object_id')
 
-    action_object_content_type = models.ForeignKey(ContentType,
-        related_name='notify_action_object', blank=True, null=True)
-    action_object_object_id = models.CharField(max_length=255, blank=True,
-        null=True)
-    action_object = generic.GenericForeignKey('action_object_content_type',
-        'action_object_object_id')
+    action_object_content_type = models.ForeignKey(
+        ContentType,
+        related_name='notify_action_object',
+        blank=True,
+        null=True
+    )
+    action_object_object_id = models.CharField(max_length=255, blank=True, null=True)
+    action_object = generic.GenericForeignKey('action_object_content_type', 'action_object_object_id')
 
     timestamp = models.DateTimeField(default=now)
 
     public = models.BooleanField(default=True)
-    is_async = models.BooleanField(default=False)
 
     objects = NotificationManager()
 
@@ -201,8 +221,7 @@ def notify_handler(verb, **kwargs):
 
         newnotify.save()
 
-        # AR_TODO: This should be replaced by message_trigger
-
+        # AR: TODO: This should be replaced by message_trigger
         pushNotificationToApp.delay(
             newnotify.actor_object_id,
             newnotify.recipient_id,
@@ -238,10 +257,6 @@ def notify_handler(verb, **kwargs):
             pushparam['target_content_type'],
             verb
             )
-
-    #    except:
-    #        logging.error("Failed to send APNS to User %s",
-    #                recipient.profile.userid)
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

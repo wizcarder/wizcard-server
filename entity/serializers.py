@@ -131,7 +131,7 @@ class EventSerializer(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
-    highlights = serializers.DictField()
+    highlights = serializers.DictField(required=False)
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -191,7 +191,7 @@ class EventSerializer(EntitySerializer):
 class EventSerializerL1(EntitySerializer):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
-    highlights = serializers.DictField()
+    highlights = serializers.DictField(required=False)
 
     class Meta:
         model = Event
@@ -261,14 +261,13 @@ class EventSerializerL2(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
-
-    highlights = serializers.DictField()
+    highlights = serializers.DictField(required=False)
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls',  'highlights')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'highlights')
 
         fields = parent_fields + my_fields
 

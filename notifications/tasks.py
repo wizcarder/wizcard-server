@@ -37,11 +37,9 @@ def pushNotificationToApp(
     target_object = None
 
     if action_object_id:
-        action_object = \
-                a_content_type.get_object_for_this_type(pk=action_object_id)
+        action_object = a_content_type.get_object_for_this_type(pk=action_object_id)
     if target_object_id:
-        target_object = \
-                t_content_type.get_object_for_this_type(pk=target_object_id)
+        target_object = t_content_type.get_object_for_this_type(pk=target_object_id)
 
     apns = ApnsMsg(
         sender,
