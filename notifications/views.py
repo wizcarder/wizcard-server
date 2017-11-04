@@ -12,14 +12,14 @@ from entity.models import Event
 
 
 class NotificationViewSet(BaseEntityComponentViewSet):
-    queryset = Notification.objects.all()
+    queryset = Notification.objects.filter(is_async=True)
     serializer_class = NotificationSerializer
-    #
-    # def get_queryset(self):
-    #     """
-    #     we have to filter on the celery read part of the notif table.
-    #     """
-    #     pass
+
+    def get_queryset(self):
+        """
+        we have to filter on the celery read part of the notif table.
+        """
+        return Notification.objects.filter(is_async=True)
 
     def destroy(self, request, *args, **kwargs):
         self.get_object().delete()

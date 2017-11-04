@@ -55,7 +55,6 @@ class EmailAndPushManager(models.Manager):
         return inst_email_candidates, inst_notif_candidates
 
 
-
 class EmailAndPush(models.Model):
     NEWUSER = 1
     INVITED = 2
@@ -66,6 +65,7 @@ class EmailAndPush(models.Model):
     DIGEST = 7
     INVITE_EXHIBITOR = 8
     INVITE_ATTENDEE = 9
+
     EVENTS = (
         (NEWUSER, 'NEWUSER'),
         (INVITED, 'INVITED'),
@@ -77,9 +77,11 @@ class EmailAndPush(models.Model):
         (INVITE_EXHIBITOR, 'INVITE_EXHIBITOR'),
         (INVITE_ATTENDEE, 'INVITE_ATTENDEE')
     )
+
     RECUR = 1
     INSTANT = 2
     SCHEDULED = 3
+
     EVENT_TYPE = (
         (RECUR, 'RECUR'),
         (INSTANT, 'INSTANT'),
@@ -95,9 +97,11 @@ class EmailAndPush(models.Model):
         (PUSHNOTIF, 'pushnotif'),
         (SMS, 'sms')
     )
+
     SUCCESS = 0
     FAILURE = -1
     NEW = 1
+
     STATUS = (
         (SUCCESS, 'success'),
         (FAILURE, 'failed'),
