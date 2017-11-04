@@ -10,10 +10,8 @@ import pdb
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
 
-
     def get_object_or_404(self, *args, **kwargs):
         return get_object_or_404(BaseEntity, *args, **kwargs)
-
 
     def get_queryset(self):
         user = self.request.user
