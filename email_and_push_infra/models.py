@@ -10,21 +10,15 @@
 """
 
 from django.db import models
-from wizcardship.models import Wizcard
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
-from base.emailField import EmailField
-from entity.models import Event
-import datetime
 from django.utils import timezone
 import pdb
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 # Create your models here.
 
 
 class EmailAndPushManager(models.Manager):
-    '''
+    """
     def pushEvent(self, sender, event, event_type=INSTANT, delivery, target=None):
         sender_content_type = ContentType.objects.get_for_model(sender)
 
@@ -41,16 +35,24 @@ class EmailAndPushManager(models.Manager):
                                                           target_object_id = target_object_id)
 
         return eap
-    '''
+    """
 
     def candidates(self, reminder_intervals=[1, 3, 5]):
 
-        inst_email_candidates = EmailAndPush.objects.filter(event_type=EmailAndPush.INSTANT, status=EmailAndPush.NEW, delivery=EmailAndPush.EMAIL)
-        inst_notif_candidates = EmailAndPush.objects.filter(event_type=EmailAndPush.INSTANT, status=EmailAndPush.NEW, delivery=EmailAndPush.PUSHNOTIF)
+        inst_email_candidates = EmailAndPush.objects.filter(
+            event_type=EmailAndPush.INSTANT,
+            status=EmailAndPush.NEW,
+            delivery=EmailAndPush.EMAIL
+        )
+        inst_notif_candidates = EmailAndPush.objects.filter(
+            event_type=EmailAndPush.INSTANT,
+            status=EmailAndPush.NEW,
+            delivery=EmailAndPush.PUSHNOTIF
+        )
 
-        ## Buffered events requires some timestamp calculations using extra deferring it for now but is pretty easy to do.
-
-        return (inst_email_candidates, inst_notif_candidates)
+        # Buffered events requires some timestamp calculations using extra deferring it
+        # for now but is pretty easy to do.
+        return inst_email_candidates, inst_notif_candidates
 
 
 
@@ -84,7 +86,6 @@ class EmailAndPush(models.Model):
         (SCHEDULED, 'SCHEDULED')
     )
 
-
     EMAIL = 1
     PUSHNOTIF = 2
     SMS = 3
@@ -111,9 +112,7 @@ class EmailAndPush(models.Model):
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(default=timezone.now() + timedelta(days=5))
 
-    #Ideally should add interval fields also (periodicity) hardcoding to 1, 3, 5  from the end_date
-
-
+    # Ideally should add interval fields also (periodicity) hardcoding to 1, 3, 5  from the end_date
     objects = EmailAndPushManager()
 
     @property
@@ -123,7 +122,6 @@ class EmailAndPush(models.Model):
     def update_last_tried(self, sent_time=timezone.now):
         self.last_tried = sent_time
         self.save()
-
 
     def update_status(self, status):
         self.status = status

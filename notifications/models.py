@@ -121,7 +121,6 @@ class Notification(models.Model):
     public = models.BooleanField(default=True)
     is_async = models.BooleanField(default=False)
 
-
     objects = NotificationManager()
 
     class Meta:
