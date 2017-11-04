@@ -103,18 +103,18 @@ class Notification(models.Model):
 
     verb = models.CharField(max_length=255)
 
-    target_content_type = models.ForeignKey(ContentType, related_name='notify_target',
-        blank=True, null=True)
+    target_content_type = models.ForeignKey(ContentType, related_name='notify_target', blank=True, null=True)
     target_object_id = models.CharField(max_length=255, blank=True, null=True)
-    target = generic.GenericForeignKey('target_content_type',
-        'target_object_id')
+    target = generic.GenericForeignKey('target_content_type', 'target_object_id')
 
-    action_object_content_type = models.ForeignKey(ContentType,
-        related_name='notify_action_object', blank=True, null=True)
-    action_object_object_id = models.CharField(max_length=255, blank=True,
-        null=True)
-    action_object = generic.GenericForeignKey('action_object_content_type',
-        'action_object_object_id')
+    action_object_content_type = models.ForeignKey(
+        ContentType,
+        related_name='notify_action_object',
+        blank=True,
+        null=True
+    )
+    action_object_object_id = models.CharField(max_length=255, blank=True, null=True)
+    action_object = generic.GenericForeignKey('action_object_content_type', 'action_object_object_id')
 
     timestamp = models.DateTimeField(default=now)
 
