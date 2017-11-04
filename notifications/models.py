@@ -118,7 +118,6 @@ class Notification(models.Model):
     public = models.BooleanField(default=True)
     is_offline = models.BooleanField(default=False)
 
-
     objects = NotificationManager()
 
     class Meta:

@@ -101,8 +101,6 @@ class MediaMixin(models.Model):
     SUB_TYPE_PROFILE_VIDEO = 'PVD'
     SUB_TYPE_AGENDA = 'AGN'
 
-
-
     MEDIA_CHOICES = (
         (TYPE_IMAGE, 'Image'),
         (TYPE_VIDEO, 'Video'),

@@ -1737,7 +1737,7 @@ class ParseMsgAndDispatch(object):
                             rel21.save()
                             conn_status = verbs.WIZREQ_T_HALF[0]
                         else:
-                        # if declined/deleted, follower-d case, full card can be added
+                            # if declined/deleted, follower-d case, full card can be added
                             rel21.set_context(cctx2)
                             rel21.accept()
                             conn_status = verbs.WIZREQ_T[0]
@@ -1755,43 +1755,46 @@ class ParseMsgAndDispatch(object):
 
                 elif ContentType.objects.get_for_model(obj) == \
                         ContentType.objects.get(model="virtualtable"):
-                    #Q this to the receiver
-                    notify.send(self.user, recipient=wizcard.user,
-                                verb=verbs.WIZCARD_TABLE_INVITE[0],
-                                target=obj)
+                    # Q this to the receiver
+                    notify.send(
+                        self.user, recipient=wizcard.user,
+                        verb=verbs.WIZCARD_TABLE_INVITE[0],
+                        target=obj
+                    )
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
-                                                             delivery=EmailAndPush.EMAIL,
-                                                             )
-                    notify.send(self.user,
-                                recipient=self.user,
-                                verb=verbs.WIZCARD_SCANNED_USER,
-                                target=wizcard,
-                                is_offline=True,
-                                action_object=email_push
-                                )
-                    #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=wizcard, delivery=EmailEvent.EMAIL)
+                    email_push = EmailAndPush.objects.create(
+                        event_type=EmailAndPush.INSTANT,
+                        delivery=EmailAndPush.EMAIL
+                    )
+                    notify.send(
+                        self.user,
+                        recipient=self.user,
+                        verb=verbs.WIZCARD_SCANNED_USER,
+                        target=wizcard,
+                        is_offline=True,
+                        action_object=email_push
+                    )
             else:
                 fuser = FutureUser.objects.get_or_create(
-                        inviter=self.user,
-                        content_type=ContentType.objects.get_for_model(obj),
-                        object_id=obj.id,
-                        phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
-                        email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
+                    inviter=self.user,
+                    content_type=ContentType.objects.get_for_model(obj),
+                    phone=r if receiver_type == verbs.INVITE_VERBS[verbs.SMS_INVITE] else "",
+                    email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
-                                                             delivery=EmailAndPush.EMAIL,
-                                                             )
-                    notify.send(self.r_user,
-                                recipient=self.user,
-                                verb=verbs.WIZCARD_INVITE_USER,
-                                target=fuser,
-                                is_offline=True,
-                                action_object=email_push
-                                )
-                    #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=fuser, delivery=EmailAndPush.EMAIL)
+                    email_push = EmailAndPush.objects.create(
+                        event_type=EmailAndPush.INSTANT,
+                        delivery=EmailAndPush.EMAIL
+                    )
+                    notify.send(
+                        self.r_user,
+                        recipient=self.user,
+                        verb=verbs.WIZCARD_INVITE_USER,
+                        target=fuser,
+                        is_offline=True,
+                        action_object=email_push
+                    )
 
     def UserQuery(self):
         try:
@@ -2075,19 +2078,19 @@ class ParseMsgAndDispatch(object):
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
-            if deadcard.activated == False:
-                #send_wizcard.delay(self.user.wizcard, deadcard.email, template="emailscan")
-                email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
-                                                         delivery=EmailAndPush.EMAIL,
-                                                         )
-                notify.send(self.r_user,
-                            recipient=self.user,
-                            verb=verbs.WIZCARD_SCANNED_USER,
-                            target=deadcard,
-                            is_offline=True,
-                            action_object=email_push
-                            )
-                #message_trigger.send(self.user, trigger=EmailEvent.SCANNED, source=self.user.wizcard, target=deadcard, delivery=EmailAndPush.EMAIL)
+            if not deadcard.activated:
+                email_push = EmailAndPush.objects.create(
+                    event_type=EmailAndPush.INSTANT,
+                    delivery=EmailAndPush.EMAIL
+                )
+                notify.send(
+                    self.r_user,
+                    recipient=self.user,
+                    verb=verbs.WIZCARD_SCANNED_USER,
+                    target=deadcard,
+                    is_offline=True,
+                    action_object=email_push
+                )
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
