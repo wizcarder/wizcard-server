@@ -1072,11 +1072,11 @@ class ParseMsgAndDispatch(object):
             email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
                                                       delivery=EmailAndPush.EMAIL,
                                                       )
-            notify.send(self.r_user,
+            notify.send(self.user,
                         recipient=self.user,
-                        verb=verbs.WIZCARD_NEW_USER,
+                        verb=verbs.WIZCARD_NEW_USER[0],
                         target=wizcard,
-                        is_offline=True,
+                        is_async=True,
                         action_object = email_push
                         )
         self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
@@ -1766,9 +1766,9 @@ class ParseMsgAndDispatch(object):
                                                              )
                     notify.send(self.user,
                                 recipient=self.user,
-                                verb=verbs.WIZCARD_SCANNED_USER,
+                                verb=verbs.WIZCARD_INVITE_USER[0],
                                 target=wizcard,
-                                is_offline=True,
+                                is_async=True,
                                 action_object=email_push
                                 )
                     #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=wizcard, delivery=EmailEvent.EMAIL)
@@ -1784,11 +1784,11 @@ class ParseMsgAndDispatch(object):
                     email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
                                                              delivery=EmailAndPush.EMAIL,
                                                              )
-                    notify.send(self.r_user,
+                    notify.send(self.user,
                                 recipient=self.user,
-                                verb=verbs.WIZCARD_INVITE_USER,
-                                target=fuser,
-                                is_offline=True,
+                                verb=verbs.WIZCARD_INVITE_USER[0],
+                                target=fuser[0],
+                                is_async=True,
                                 action_object=email_push
                                 )
                     #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=fuser, delivery=EmailAndPush.EMAIL)
@@ -2080,11 +2080,11 @@ class ParseMsgAndDispatch(object):
                 email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
                                                          delivery=EmailAndPush.EMAIL,
                                                          )
-                notify.send(self.r_user,
+                notify.send(self.user,
                             recipient=self.user,
-                            verb=verbs.WIZCARD_SCANNED_USER,
+                            verb=verbs.WIZCARD_SCANNED_USER[0],
                             target=deadcard,
-                            is_offline=True,
+                            is_async=True,
                             action_object=email_push
                             )
                 #message_trigger.send(self.user, trigger=EmailEvent.SCANNED, source=self.user.wizcard, target=deadcard, delivery=EmailAndPush.EMAIL)
@@ -2292,7 +2292,7 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        m_events = Event.objects.users_entities(self.user)
+        m_events = Event.objects.users_entities(self.user, entity_type='EVT')
         n_events, count = Event.objects.lookup(
             self.lat,
             self.lng,
@@ -2391,7 +2391,7 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type')
         cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
-        entities = cls.objects.users_entities(self.user)
+        entities = cls.objects.users_entities(self.user, entity_type=entity_type)
 
         out = s(entities, many=True, **self.user_context).data
         count = entities.count()

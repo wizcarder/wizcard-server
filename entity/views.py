@@ -6,11 +6,11 @@ from entity.serializers import EventSerializer, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
     SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
 from rest_framework.decorators import detail_route
-#from email_and_push_infra.models import EmailEvent
-from email_and_push_infra.signals import message_trigger
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
 from wizserver import verbs
+from email_and_push_infra.models import EmailAndPush
+from notifications.signals import notify
 
 import pdb
 
@@ -41,9 +41,9 @@ class EventViewSet(BaseEntityViewSet):
                                                      )
             notify.send(self.r_user,
                         recipient=self.user,
-                        verb=verbs.WIZCARD_INVITE_EXHIBITOR,
+                        verb=verbs.WIZCARD_INVITE_EXHIBITOR[0],
                         target=recp,
-                        is_offline=True,
+                        is_async=True,
                         action_object=email_push
                         )
 
@@ -65,9 +65,9 @@ class EventViewSet(BaseEntityViewSet):
                                                      )
             notify.send(self.r_user,
                         recipient=self.user,
-                        verb=verbs.WIZCARD_INVITE_ATTENDEE,
+                        verb=verbs.WIZCARD_INVITE_ATTENDEE[0],
                         target=recp,
-                        is_offline=True,
+                        is_async=True,
                         action_object=email_push
                         )
             #message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEE, to_email=recp)

@@ -19,6 +19,7 @@ class HtmlGen:
             # Key: (email handler, Push required)
             verbs.WIZCARD_NEW_USER[0]: (self.welcome_user, False),
             verbs.WIZCARD_INVITE_USER[0]: (self.invite_user, False),
+            verbs.WIZCARD_SCANNED_USER[0]: (self.scan_user, False),
 #            EmailEvent.NEWRECOMMENDATION: (self.dummy_func, False),
 #            EmailEvent.SCANNED: (self.scan_user, False),
 #            EmailEvent.INVITE_EXHIBITOR: (self.invite_exhibitor, False),
