@@ -1,14 +1,11 @@
 # Create your views here.
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.shortcuts import get_object_or_404, render_to_response, redirect
-from django.template.context import RequestContext
-from .utils import slug2id
 from notifications.models import Notification
 from notifications.serializers import NotificationSerializer
 from base_entity.views import BaseEntityComponentViewSet
-from entity.models import Event
+from rest_framework.response import Response
+from rest_framework import status
+
+import pdb
 
 
 class NotificationViewSet(BaseEntityComponentViewSet):
@@ -23,6 +20,7 @@ class NotificationViewSet(BaseEntityComponentViewSet):
 
     def destroy(self, request, *args, **kwargs):
         self.get_object().delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 

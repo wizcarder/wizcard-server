@@ -78,9 +78,4 @@ class NotificationSerializer(serializers.ModelSerializer):
 
         return n
 
-    def delete(self, validated_data):
-        # AA: TODO
-        pass
-
-
 
