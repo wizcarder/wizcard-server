@@ -219,35 +219,34 @@ def notify_handler(notif_type, **kwargs):
         #AR:TODO: Looks like every ALERT will have a Push notif (or atleast thats what the earlier code was doing)
         # Had a pushnotiftoApp for every notification created so for every ALERT there has to be a pushnotif??
 
-        for dtype in delivery_array:
-            is_async = False if dtype == Notification.ALERT else True
-            action_object = notif_action_object if not is_async else email_action_object
-            newnotify, created = Notification.objects.get_or_create(
-                actor_content_type=ContentType.objects.get_for_model(actor),
-                actor_object_id=actor.pk,
-                recipient=recipient,
-                readed=False,
-                is_async=is_async,
-                delivery_type=delivery_type,
-                notif_type=notif_type,
-                verb=verb,
-                target_content_type=ContentType.objects.get_for_model(target),
-                target_object_id=target.pk,
-                defaults={
-                    'public': bool(kwargs.pop('public', True)),
-                    'timestamp': kwargs.pop('timestamp', now())
-                }
-            )
-            if not created:
-                return
-            if action_object:
-                setattr(newnotify, 'action_object_object_id', action_object.pk)
-                setattr(newnotify, 'action_object_content_type',
+    for dtype in delivery_array:
+        is_async = False if dtype == Notification.ALERT else True
+        action_object = notif_action_object if not is_async else email_action_object
+        newnotify, created = Notification.objects.get_or_create(actor_content_type=ContentType.objects.get_for_model(actor),
+                                                                actor_object_id=actor.pk,
+                                                                recipient=recipient,
+                                                                readed=False,
+                                                                is_async=is_async,
+                                                                delivery_type=delivery_type,
+                                                                notif_type=notif_type,
+                                                                verb=verb,
+                                                                target_content_type=ContentType.objects.get_for_model(target),
+                                                                target_object_id=target.pk,
+                                                                defaults={
+                                                                    'public': bool(kwargs.pop('public', True)),
+                                                                    'timestamp': kwargs.pop('timestamp', now())
+                                                                }
+                                                                )
+        if not created:
+            return
+        if action_object:
+            setattr(newnotify, 'action_object_object_id', action_object.pk)
+            setattr(newnotify, 'action_object_content_type',
                         ContentType.objects.get_for_model(action_object))
-                setattr(newnotify, 'action_object', action_object)
-                newnotify.save()
+            setattr(newnotify, 'action_object', action_object)
+            newnotify.save()
 
-        return newnotify
+    return newnotify
 
 
 
