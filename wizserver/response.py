@@ -116,7 +116,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_ENTITY_UPDATE[0]       : self.notifEventUpdate,
             verbs.WIZCARD_ENTITY_EXPIRE[0]       : self.notifEventExpire,
             verbs.WIZCARD_ENTITY_DELETE[0]       : self.notifEventDelete,
-            verbs.WIZCARD_EVENT_BROADCAST[0]    : self.notifEventBroadcast
+            verbs.WIZCARD_ENTITY_BROADCAST[0]    : self.notifEventBroadcast
         }
         for notification in notifications:
             notifHandler[notification.notif_type](notification)
@@ -287,7 +287,7 @@ class NotifResponse(ResponseN):
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_FLICKED_WIZCARD)
         return self.response
 
-    def notifUserLookup(self, count, me, users):
+    def notifUserLookup(self, me, users):
         wizcards = map(lambda u: u.wizcard, users)
         out = WizcardSerializerL1(wizcards, many=True, context={'user': me}).data
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_USERS)

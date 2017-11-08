@@ -312,12 +312,19 @@ class BaseEntityComponent(PolymorphicModel):
 
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
-    def get_parent_entities(self ):
-        try:
-            parents = self.related.related_to().generic_objects()
+    def get_parent_entities(self):
+        parents = self.related.related_to().generic_objects()
+        if parents:
             return parents
-        except:
-            return None
+
+        return None
+
+    def get_parent_entities_by_type(self, entity_type):
+        parents = self.related.related_to().filter(alias=entity_type).generic_objects()
+        if parents:
+            return parents
+
+        return None
 
     def get_creator(self):
         return BaseEntityComponentsOwner.objects.filter(

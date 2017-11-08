@@ -34,8 +34,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
         for c in choices:
             cls = Question.get_choice_cls_from_type(validated_data['question_type'])
-            for c in choices:
-                cls.objects.create(question=instance, **c)
+            cls.objects.create(question=instance, **c)
 
         obj = super(QuestionSerializer, self).update(instance, validated_data)
 
@@ -70,13 +69,16 @@ class PollSerializer(EntitySerializer):
         self.prepare(validated_data)
         obj = super(PollSerializer, self).create(validated_data)
         self.post_create(obj)
-        obj.notify_create()
+
+        # AA: Comments: When a poll is created, it's not bound to an Entity. Hence
+        # notify_create here is not correct. Probably during the binding of it ??
+        # obj.notify_create()
 
         return obj
 
     def update(self, instance, validated_data):
         self.prepare(validated_data)
-        obj = super(PollSerializer, self).update(instance, validated_data)
+        super(PollSerializer, self).update(instance, validated_data)
 
         # clear all questions first. For some reason bulk delete is not working
         for q in instance.questions.all():
@@ -97,12 +99,14 @@ class PollSerializerL1(EntitySerializer):
     num_responders = serializers.SerializerMethodField()
     created = serializers.DateTimeField(format='%d-%b-%Y')
 
-
+    # AA: Comments...please pay attention to the PEP related warnings PyCharm is telling you
+    # too many blank lines,
     def get_responded(self, obj):
         user = self.context.get('user')
         return UserResponse.objects.has_responded(user, obj)
 
-
+    # AA: Comments...please pay attention to the PEP related warnings PyCharm is telling you
+    # too many blank lines,
     def get_num_responders(self, obj):
         return obj.num_responders()
 
@@ -115,29 +119,34 @@ class PollSerializerL2(PollSerializerL1):
         model = Poll
         fields = PollSerializerL1.Meta.fields  + ('questions', 'response')
 
-
+    # AA: Comments...please pay attention to the PEP related warnings PyCharm is telling you
+    # too many blank lines,
     def get_response(self, obj):
-        #pdb.set_trace()
         user = self.context.get('user')
-        #AR:TODO: Assumes there is no partially complete poll - DANGEROUS
+        # AA: Comments...please pay attention to the PEP related warnings PyCharm is telling you
+        # space after #
+        # AR:TODO: Assumes there is no partially complete poll - DANGEROUS
         user_response = UserResponse.objects.filter(user=user, poll=obj)
         if user_response:
             questions = UserResponseSerializer(user_response, many=True).data
         else:
             questions = QuestionSerializer(obj.questions, many=True).data
-        return response
+
+        # AA: Comments...please pay attention to the PEP related ERRORS
+        # PyCharm is telling you
+        return questions
 
 
 
 class UserResponseSerializer(serializers.ModelSerializer):
-    question = serializers.PrimaryKeyRelatedField()
+    question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
     answer = QuestionChoicesSerializer(read_only=True)
 
     class Meta:
         model = UserResponse
         fields = ('id', 'question', 'answer', 'has_extra_text', 'extra_text', 'has_user_value', 'user_value')
 
-
+        # AA: Comments: If not required, just delete it!!
         #has_extra_text = serializers.BooleanField()
         #extra_text = serializers.CharField()
         #has_user_value = serializers.BooleanField()

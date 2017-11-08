@@ -11,6 +11,7 @@ import pdb
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task(ignore_result=True)
 def pushNotificationToApp(
         sender_id,
@@ -25,27 +26,28 @@ def pushNotificationToApp(
     action_object = None
     target_object = None
 
+    receiver_p = User.objects.get(id=receiver_id).profile
+    app_user = receiver_p.app_user()
+
     if action_object_id:
         action_object = a_content_type.get_object_for_this_type(pk=action_object_id)
     if target_object_id:
         target_object = t_content_type.get_object_for_this_type(pk=target_object_id)
 
-    if  verbs.apns_notification_dictionary.has_key(notif_type):
+    if 'notif_type' in verbs.apns_notification_dictionary:
         apns_dict = verbs.apns_notification_dictionary[verb] if app_user.is_ios() else \
             verbs.gcm_notification_dictionary[notif_type]
     else:
+        # AA Comment: bad bad. Please no hardcoding of message here. Expecting you to look/tweak
+        # into infrastructure code as well as opposed to extending locally to get things to work.
         apns_dict = {"title": "Message from %s" % target_object.name, "body": verb}
 
     sender = User.objects.get(id=sender_id)
     receiver_p = User.objects.get(id=receiver_id).profile
     app_user = receiver_p.app_user()
 
-
-
     if app_user.settings.dnd:
         return
-
-
 
     apns = ApnsMsg(
         sender,
@@ -105,5 +107,3 @@ class ApnsMsg(object):
             self.aps['aps']
         )
         return
-
-

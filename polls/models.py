@@ -3,6 +3,7 @@ from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.contrib.auth.models import User
 from polymorphic.models import PolymorphicModel
 from django.db.models import Count
+from django.contrib.contenttypes.models import ContentType
 from wizserver import verbs
 
 import pdb
@@ -27,7 +28,6 @@ class Poll(BaseEntityComponent):
     description = models.CharField(max_length=100)
     is_published = models.BooleanField(default=False, verbose_name='is published')
     created = models.DateTimeField(auto_now_add=True)
-
 
     objects = PollManager()
 
@@ -55,16 +55,31 @@ class Poll(BaseEntityComponent):
     def get_poll_responses(self):
         return None
 
-    def get_event(self):
-        event = self.related.related_to().filter(parent_type=ContentType.objects.get(model='event')).generic_objects()[0]
-        return event
+    # AA: Comments: keep it generic. Event is not the only entity to which a poll may be attached
+    # def get_entities(self):
+        # AA: Comment: 1. red error line under ContentType.
+        # 2. warning around line-too-long
+        # 3. Already a base_entity method called get_parent_entities. Best to define another to
+        # to get by type. filtering by content_type is not correct. We use event_type everywhere
+        # 4. Cannot assume that only 1 parent exists.
+        # 5. no need for multiple methods...instance method can directly be called
+        # return self.get_parent_entities_by_type(BaseEntityComponent.SUB_ENTITY_POLL)
 
     def notify_create(self):
-        event = self.get_event()
-        event.notify_all_users(self.get_creator,
-                               verbs.WIZCARD_NEW_POLL,
-                               self
-                               )
+        entities = self.get_parent_entities_by_type(BaseEntityComponent.SUB_ENTITY_POL)
+
+        if not entities:
+            return
+
+        # AA: Comment: lets pls follow the below way of multi-linining the params. The open paranthesis
+        # and close paranthesis on 1 separate line each with all the params in the middle. you can let
+        # PC auto-indent the lines
+        for e in entities:
+            e.notify_all_users(
+                self.get_creator,
+                verbs.WIZCARD_NEW_POLL,
+                self
+            )
 
 
 class Question(PolymorphicModel):
@@ -186,4 +201,3 @@ class UserResponse(models.Model):
     response_time = models.DateTimeField(auto_now=True)
 
     objects = UserResponseManager()
-

@@ -884,7 +884,6 @@ class ParseMsgAndDispatch(object):
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifUserLookup(
-                count,
                 self.user,
                 users)
 
@@ -1265,7 +1264,6 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def WizcardRolodexArchivedCards(self):
-        out = ""
         try:
             wizcard = self.user.wizcard
         except:
@@ -1766,17 +1764,14 @@ class ParseMsgAndDispatch(object):
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-
-
+                    # AA: Comment: Too many blank lines. Also pls delete these comments upon perusal
                     notify.send(self.user,
                                 recipient=self.user,
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
                                 target=wizcard,
                                 is_async=True,
-                                action_object=email_push,
                                 delivery_type=Notification.EMAIL
                                 )
-                    #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=wizcard, delivery=EmailEvent.EMAIL)
             else:
                 fuser = FutureUser.objects.get_or_create(
                         inviter=self.user,
@@ -2077,15 +2072,15 @@ class ParseMsgAndDispatch(object):
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
-            if deadcard.activated == False:
-                notify.send(self.user,
-                            recipient=self.user,
-                            notif_type=verbs.WIZCARD_SCANNED_USER[0],
-                            target=deadcard,
-                            is_async=True,
-                            delivery_type=Notification.EMAIL
-                            )
-                #message_trigger.send(self.user, trigger=EmailEvent.SCANNED, source=self.user.wizcard, target=deadcard, delivery=Notification.EMAIL)
+            if not deadcard.activated:
+                notify.send(
+                    self.user,
+                    recipient=self.user,
+                    notif_type=verbs.WIZCARD_SCANNED_USER[0],
+                    target=deadcard,
+                    is_async=True,
+                    delivery_type=Notification.EMAIL
+                )
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
