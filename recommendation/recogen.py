@@ -305,9 +305,10 @@ class RecoRunner(RabbitServer):
         self.updateRecoTime(tuser)
         self.updateRecoCount(tuser,newreco)
         if newreco >= MIN_RECOS_FOR_PUSH_NOTIF:
-            notify.send(tuser, recipient=tuser,
-                    verb=verbs.WIZCARD_RECO_READY[0],
-                    target=tuser.wizcard,onlypush=True)
+            notify.send(tuser,
+                        recipient=tuser,
+                        notif_tuple=verbs.WIZCARD_RECO_READY[0],
+                        target=tuser.wizcard,onlypush=True)
 
     def updateRecoCount(self,tuser,recocount):
         au_profile = tuser.profile.app_user()

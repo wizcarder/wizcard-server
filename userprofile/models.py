@@ -226,6 +226,9 @@ class AppUser(BaseUser):
     def is_ios(self):
         return bool(self.device_type == self.IOS)
 
+    def get_reg_token(self):
+        return self.reg_token
+
     def create_or_update_location(self, lat, lng):
         try:
             l = self.location.get()
@@ -348,6 +351,10 @@ class FutureUser(models.Model):
 
     objects = FutureUserManager()
 
+
+    def get_email(self):
+        return self.email
+
     def generate_self_invite(self, real_user):
         cctx = ConnectionContext(
             asset_obj=self.content_object,
@@ -374,24 +381,28 @@ class FutureUser(models.Model):
             # Q notif for to_wizcard
             notify.send(self.inviter,
                         recipient=real_user,
-                        verb=verbs.WIZREQ_U[0],
+                        notif_type=verbs.WIZREQ_U[0],
                         description=cctx.description,
                         target=self.content_object,
-                        action_object=rel12)
+                        action_object=rel12
+                        )
 
             # Q implicit notif for from_wizcard
             notify.send(real_user,
                         recipient=self.inviter,
-                        verb=verbs.WIZREQ_T[0],
+                        notif_type=verbs.WIZREQ_T[0],
                         description=cctx.description,
                         target=real_user.wizcard,
-                        action_object=rel21)
+                        action_object=rel21
+                        )
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
             # Q this to the receiver
-            notify.send(self.inviter, recipient=real_user,
-                        verb=verbs.WIZCARD_TABLE_INVITE[0],
-                        target=self.content_object)
+            notify.send(self.inviter,
+                        recipient=real_user,
+                        notif_type=verbs.WIZCARD_TABLE_INVITE[0],
+                        target=self.content_object
+                        )
 
 # Model for Address-Book Support. Standard M2M-through
 MIN_MATCHES_FOR_PHONE_DECISION = 3

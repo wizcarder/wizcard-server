@@ -1,18 +1,18 @@
 - config:
     - testset: "Portal API Tests"
     - timeout: 100  # Increase timeout from the default 10 seconds
-#- test:
-#    - name: "User Creation"
-#    - url: "/users/registration/"
-#    - expected_status: [200]
-#    - method: 'POST'
-#    - body: '{"username": "kappu.biz", "email": "kappu.biz@gmail.com", "password1": "a1b2c3d4", "first_name": "Karpagam", "last_name": "G", "password2":"a1b2c3d4", "user_type":2}'
+- test:
+    - name: "User Creation"
+    - url: "/users/registration/"
+    - expected_status: [200]
+    - method: 'POST'
+    - body: '{"username": "kappu.biz", "email": "kappu.biz@gmail.com", "password1": "a1b2c3d4", "first_name": "Karpagam", "last_name": "G", "password2":"a1b2c3d4", "user_type":2}'
 ##    - body: '{"username": "kappu.biz", "password": "a1b2c3d4"}'
-#    - headers: {Content-Type: application/json}
-#    - validators:
-#        - compare: {raw_body: "", comparator: contains, expected: 'key'}
-#    - extract_binds:
-#        - 'token': {'jsonpath_mini': 'key'}
+    - headers: {Content-Type: application/json}
+    - validators:
+        - compare: {raw_body: "", comparator: contains, expected: 'key'}
+    - extract_binds:
+        - 'token': {'jsonpath_mini': 'key'}
 
 - test:
     - name: "User Creation"

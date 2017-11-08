@@ -7,9 +7,11 @@ from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
 from notifications.tasks import pushNotificationToApp
+from email_and_push_infra.models import EmailAndPush
 from wizserver import  verbs
 import logging
 import pdb
+from datetime import timedelta
 
 
 try:
@@ -53,7 +55,7 @@ class NotificationManager(models.Manager):
 
         return exclude_users
 
-    def offline(self):
+    def async(self):
         return self.filter(is_async=True, readed=False)
 
 
@@ -75,6 +77,8 @@ class Notification(models.Model):
         (SMS, 'sms'),
         (ALERT, 'alert')
     )
+
+
 
     """
     Action model describing the actor acting out a verb (on an optional
@@ -140,6 +144,7 @@ class Notification(models.Model):
     timestamp = models.DateTimeField(default=now)
 
     public = models.BooleanField(default=True)
+    notif_type = models.PositiveIntegerField()
 
     objects = NotificationManager()
 
@@ -183,7 +188,11 @@ class Notification(models.Model):
         self.acted_upon = flag
         self.save()
 
-def notify_handler(verb, **kwargs):
+    def update_status(self, status):
+        self.status = status
+        self.save()
+
+def notify_handler(notif_type, **kwargs):
     """
     Handler function to create Notification instance upon action signal call.
     """
@@ -191,72 +200,56 @@ def notify_handler(verb, **kwargs):
     kwargs.pop('signal', None)
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
-    onlypush = kwargs.pop('onlypush', False)
-    is_async = kwargs.pop('is_async', False)
+    is_async = kwargs.pop('is_async', True)
+    delivery_type = kwargs.pop('delivery_type', Notification.ALERT)
+    verb = kwargs.pop('verb', "")
+    target = kwargs.pop('target', None)
+    notif_action_object = kwargs.pop('action_object', None)
+    delivery_array=[delivery_type]
 
-    if not onlypush:
-        newnotify, created = Notification.objects.get_or_create(
-            recipient=recipient,
-            verb=unicode(verb),
-            readed=False,
-            is_async=is_async,
-            defaults={
-                'actor_content_type': ContentType.objects.get_for_model(actor),
-                'actor_object_id': actor.pk,
-                'public': bool(kwargs.pop('public', True)),
-                'timestamp': kwargs.pop('timestamp', now())
-            }
-        )
+    if is_async:
+        start = kwargs.pop('start_date', timezone.now() + timedelta(minutes=1))
+        end = kwargs.pop('end_date', start)
+        email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT, start_date=start, end_date=end)
+        email_action_object = email_push
+        if delivery_type == Notification.ALERT:
+            delivery_array=[delivery_type, Notification.PUSHNOTIF]
 
-        if not created:
-            return
 
-        for opt in ('target', 'action_object'):
-            obj = kwargs.pop(opt, None)
-            if not obj is None:
-                setattr(newnotify, '%s_object_id' % opt, obj.pk)
-                setattr(newnotify, '%s_content_type' % opt,
-                    ContentType.objects.get_for_model(obj))
-                setattr(newnotify, '%s' % opt, obj)
+        #AR:TODO: Looks like every ALERT will have a Push notif (or atleast thats what the earlier code was doing)
+        # Had a pushnotiftoApp for every notification created so for every ALERT there has to be a pushnotif??
 
-        newnotify.save()
-
-        # AR: TODO: This should be replaced by message_trigger
-        pushNotificationToApp.delay(
-            newnotify.actor_object_id,
-            newnotify.recipient_id,
-            newnotify.action_object_object_id,
-            newnotify.action_object_content_type,
-            newnotify.target_object_id,
-            newnotify.target_content_type,
-            newnotify.verb
+        for dtype in delivery_array:
+            is_async = False if dtype == Notification.ALERT else True
+            action_object = notif_action_object if not is_async else email_action_object
+            newnotify, created = Notification.objects.get_or_create(
+                actor_content_type=ContentType.objects.get_for_model(actor),
+                actor_object_id=actor.pk,
+                recipient=recipient,
+                readed=False,
+                is_async=is_async,
+                delivery_type=delivery_type,
+                notif_type=notif_type,
+                verb=verb,
+                target_content_type=ContentType.objects.get_for_model(target),
+                target_object_id=target.pk,
+                defaults={
+                    'public': bool(kwargs.pop('public', True)),
+                    'timestamp': kwargs.pop('timestamp', now())
+                }
             )
-    else:
-        pushparam = dict()
-        verb = unicode(verb)
-        for opt in ('target','action_object'):
-            obj = kwargs.pop(opt, None)
-            if not obj is None:
-                tkey = '%s_object_id' % opt
-                pushparam[tkey] = obj.pk
-                tkey = '%s_content_type' % opt
-                pushparam[tkey] = ContentType.objects.get_for_model(obj)
-            else:
-                tkey = '%s_object_id' % opt
-                pushparam[tkey] = None
-                tkey = '%s_content_type' % opt
-                pushparam[tkey] = None
-        # AR_TODO: This should be replaced by message_trigger
+            if not created:
+                return
+            if action_object:
+                setattr(newnotify, 'action_object_object_id', action_object.pk)
+                setattr(newnotify, 'action_object_content_type',
+                        ContentType.objects.get_for_model(action_object))
+                setattr(newnotify, 'action_object', action_object)
+                newnotify.save()
 
-        pushNotificationToApp.delay(
-            actor.pk,
-            recipient.pk,
-            pushparam['action_object_object_id'],
-            pushparam['action_object_content_type'],
-            pushparam['target_object_id'],
-            pushparam['target_content_type'],
-            verb
-            )
+        return newnotify
+
+
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

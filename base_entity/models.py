@@ -17,6 +17,7 @@ from django.contrib.auth.models import User
 from notifications.signals import notify
 from notifications.models import Notification
 from wizserver import verbs
+from django.utils import timezone
 import pdb
 
 # Create your models here.
@@ -406,7 +407,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         if notify:
             self.notify_all_users(
                 user,
-                verbs.WIZCARD_ENTITY_JOIN[0],
+                verbs.WIZCARD_ENTITY_JOIN,
                 self,
             )
 
@@ -423,7 +424,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         if notify:
             self.notify_all_users(
                 user,
-                verbs.WIZCARD_ENTITY_LEAVE[0],
+                verbs.WIZCARD_ENTITY_LEAVE,
                 self,
             )
 
@@ -437,7 +438,12 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return users
 
-    def notify_all_users(self, sender, verb, entity, exclude_sender=True):
+    def get_wizcard_users(self):
+        users = self.get_users_after(timezone.now())
+        wiz_users = [x for x in users if hasattr(x, 'wizcard')]
+        return wiz_users
+
+    def notify_all_users(self, sender, notif_type, entity, exclude_sender=True):
         # send notif to all members, just like join
 
         qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
@@ -445,7 +451,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             notify.send(
                 sender,
                 recipient=u,
-                verb=verb,
+                notif_type=notif_type[0],
                 target=entity
             )
 
@@ -461,11 +467,11 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.save()
 
     def delete(self, *args, **kwargs):
-        verb = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE[0])
+        notif_tuple = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE)
 
         self.notify_all_users(
             self.get_creator(),
-            verb,
+            notif_tuple,
             self,
             exclude_sender=False
         )
@@ -473,7 +479,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.related.all().delete()
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_ENTITY_EXPIRE[0]:
+        if notif_tuple[0] == verbs.WIZCARD_ENTITY_EXPIRE[0]:
             self.expired = True
             self.save()
         else:

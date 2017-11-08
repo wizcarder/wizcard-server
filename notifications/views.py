@@ -22,5 +22,8 @@ class NotificationViewSet(BaseEntityComponentViewSet):
         self.get_object().delete()
         return Response(status=status.HTTP_200_OK)
 
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+
 
 

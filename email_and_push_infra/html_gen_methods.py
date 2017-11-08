@@ -13,7 +13,7 @@ class HtmlGen:
     def __init__(self, sender, trigger, target):
         self.sender = sender
         self.trigger = trigger
-        self.to = to
+        self.target = target 
 
         self.emailHandlers = {
             # Key: (email handler, Push required)
@@ -26,25 +26,44 @@ class HtmlGen:
 #            EmailEvent.INVITE_ATTENDEE: (self.invite_attendee, False)
         }
 
-    def run(self):
-        self.emailHandlers[self.trigger][0](self.sender, self.to)
+        #self.notifHandlers = {
+        #    verbs.WIZCARD_MESG_ATTENDEE[0]: (self.mesg_attendees, False)
+        #}
+
+    def email_send(self):
+        self.emailHandlers[self.trigger][0](self.sender, self.target)
+
+    def notif_send(self):
+        self.notifHandlers[self.trigger][0](self.sender, self.target)
 
     def dummy_func(self, sender):
         object = sender.get()
         print object
 
     def welcome_user(self, sender, target):
-        wizcard = sender
+        wizcard = target
+        try:
+            to = target.get_email()
+        except:
+            return -1
         email_details = {"template" : "welcome.html", "subject": "Welcome %s to WizCard"}
         send_wizcard.delay(wizcard, to, email_details, half_card=True)
 
     def invite_user(self, sender, target):
-        wizcard = sender
+        wizcard = sender.wizcard
+        try:
+            to = target.get_email()
+        except:
+            return -1
         email_details = {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"}
         send_wizcard.delay(wizcard, to,  email_details)
 
     def scan_user(self, sender, target):
-        wizcard = sender
+        wizcard = sender.wizcard
+        try:
+            to = target.get_email()
+        except:
+            return -1
         email_details = {"template": "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}
         send_wizcard.delay(wizcard, to, email_details, half_card = True)
 
@@ -57,6 +76,12 @@ class HtmlGen:
         event_organizer = sender
         email_details = {"template" : "invite_attendee.html", "subject": "%s - Welcome to %s"}
         send_event(event_organizer, to, email_details)
+
+    #def mesg_attendees(self, sender, target):
+    #   event_organizer = sender
+    #   attendees = target.get_notif_targets()
+
+
 
 
 

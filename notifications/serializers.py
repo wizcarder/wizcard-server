@@ -2,8 +2,12 @@ __author__ = 'aammundi'
 
 from rest_framework import serializers
 from notifications.models import Notification
+from notifications.signals import notify
 from rest_framework.validators import ValidationError
 from django.contrib.contenttypes.models import ContentType
+from wizserver import verbs
+from django.utils import timezone
+from datetime import timedelta
 
 
 import pdb
@@ -27,10 +31,10 @@ class GenericSerializerField(serializers.RelatedField):
                 'type': 'This field is required.'
             })
 
-        return {
-            'id': id,
-            'type': type
-        }
+        ct = ContentType.objects.get(model=type)
+        obj = ct.get_object_for_this_type(id=id)
+        return obj
+
 
     def to_representation(self, value):
         return dict(
@@ -43,39 +47,45 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'delivery_type', 'recipient', 'actor', 'target', 'action_object', 'verb',
-                  'start', 'end')
+                  'start', 'end', 'notif_type')
 
-    actor = GenericSerializerField(required=True)
+
+    actor = GenericSerializerField()
+    recipient = GenericSerializerField()
     target = GenericSerializerField()
-    action_object = GenericSerializerField()
+    action_object = GenericSerializerField(required=False)
     start = serializers.DateTimeField(required=False)
     end = serializers.DateTimeField(required=False)
+    notif_type = serializers.IntegerField(required=False)
 
     def create(self, validated_data):
         parms = dict()
 
         actor = validated_data.pop('actor')
-        parms.update(actor_content_type=ContentType.objects.get(model=actor['type']))
-        parms.update(actor_object_id=actor['id'])
+        recipient = validated_data.pop('recipient')
+        notif_type = validated_data.pop('notif_type', verbs.WIZCARD_EVENT_BROADCAST[0])
+        delivery_type = validated_data.pop('delivery_type', Notification.ALERT)
+        start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))
+        end = validated_data.pop('end', timezone.now() + timedelta(minutes=1))
+
 
         target = validated_data.pop('target', None)
-        if target:
-            parms.update(target_content_type=ContentType.objects.get(model=target['type']))
-            parms.update(target_object_id=target['id'])
+        parms.update(target=target)
+        parms.update(verb=validated_data.pop('verb'))
+
 
         action_object = validated_data.pop('action_object', None)
-        if action_object:
-            parms.update(action_object_content_type=ContentType.objects.get(model=action_object['type']))
-            parms.update(action_object_object_id=action_object['id'])
+        parms.update(action_object=action_object)
 
-        n = Notification.objects.create(
-            delivery_type=validated_data['delivery_type'],
-            is_async=True,
-            recipient=validated_data['recipient'],
-            verb=validated_data['verb'],
-            **parms
-        )
+        push_notif = notify.send(actor,
+                                 recipient=recipient,
+                                 notif_type=notif_type,
+                                 delivery_type=delivery_type,
+                                 start_date=start,
+                                 end_date=end,
+                                 **parms
+                                 )
 
-        return n
+        return push_notif[0][1]
 
 

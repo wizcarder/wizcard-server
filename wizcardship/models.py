@@ -107,13 +107,13 @@ class WizcardManager(PolymorphicManager):
 
         #send Type 1 notification to both
         notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb=verbs.WIZREQ_T[0],
+                    notif_type=verbs.WIZREQ_T[0],
                     description=cctx.description,
                     target=wizcard1,
                     action_object=rel1)
 
         notify.send(wizcard2.user, recipient=wizcard1.user,
-                        verb=verbs.WIZREQ_T[0],
+                        notif_type=verbs.WIZREQ_T[0],
                         description=cctx.description,
                         target=wizcard2,
                         action_object=rel2)
@@ -122,14 +122,19 @@ class WizcardManager(PolymorphicManager):
 
     def update_wizconnection(self, wizcard1, wizcard2, half=False):
         # suppress if unread notif already exists
-        if not Notification.objects.filter(
+
+        n_exists = Notification.objects.filter(
                 recipient=wizcard2.user,
                 target_object_id=wizcard1.id,
                 readed=False,
-                verb=verbs.WIZCARD_UPDATE[0]).exists():
-            notify.send(wizcard1.user, recipient=wizcard2.user,
-                        verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
-                        target=wizcard1)
+                notif_type=verbs.WIZCARD_UPDATE[0]).exists()
+        if n_exists:
+            notif_tuple = verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0]
+            notify.send(wizcard1.user,
+                        recipient=wizcard2.user,
+                        notif_type=notif_tuple[0],
+                        target=wizcard1,
+                        action_object=wizcard1.get_relationship(wizcard2))
 
     def query_users(self, exclude_user, name, phone, email):
         #name can be first name, last name or even combined
@@ -205,6 +210,9 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
     def get_sms_url(self):
         return self.sms_url
 
+    def get_email(self):
+        return self.email
+
     def get_thumbnail_url(self):
         l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_THUMBNAIL]
         if l:
@@ -239,6 +247,7 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         if qs.exists():
             return qs[0].title
         return None
+
 
 class Wizcard(WizcardBase):
     # TODO move this upstairs
@@ -632,17 +641,19 @@ class WizcardFlick(models.Model):
         return loc
 
     def delete(self, *args, **kwargs):
+
+        ## AR:TODO: Need to change this to notif_type
         verb = kwargs.pop('type', None)
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_FLICK_TIMEOUT[0]:
+        if verb == verbs.WIZCARD_FLICK_TIMEOUT[1]:
             #timeout
             logger.debug('timeout flicked wizcard %s', self.id)
             self.expired = True
             self.save()
             notify.send(self.wizcard.user,
                         recipient=self.wizcard.user,
-                        verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
+                        notif_type =verbs.WIZCARD_FLICK_TIMEOUT[0],
                         target=self)
         else:
             #withdraw/delete flick case

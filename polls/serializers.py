@@ -70,6 +70,7 @@ class PollSerializer(EntitySerializer):
         self.prepare(validated_data)
         obj = super(PollSerializer, self).create(validated_data)
         self.post_create(obj)
+        obj.notify_create()
 
         return obj
 
@@ -117,6 +118,7 @@ class PollSerializerL2(PollSerializerL1):
     def get_questions(self, obj):
         #pdb.set_trace()
         user = self.context.get('user')
+        #AR:TODO: Assumes there is no partially complete poll - DANGEROUS
         user_response = UserResponse.objects.filter(user=user, poll=obj)
         if user_response:
             questions = UserResponseSerializer(user_response, many=True).data

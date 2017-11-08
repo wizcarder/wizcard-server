@@ -47,6 +47,6 @@ class Command(BaseCommand):
 
             notify.send(
                 wizcard.user, recipient=w.user,
-                verb=verbs.WIZREQ_T[0],
+                notif_tuple=verbs.WIZREQ_T,
                 target=wizcard,
                 action_object=rel12)

@@ -36,15 +36,13 @@ class EventViewSet(BaseEntityViewSet):
         valid_candidates = ExhibitorInvitee.validate(exhibitors['ids'])
 
         for recp in valid_candidates:
-            email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
-                                                     delivery=EmailAndPush.EMAIL,
-                                                     )
+
             notify.send(self.r_user,
                         recipient=self.user,
-                        verb=verbs.WIZCARD_INVITE_EXHIBITOR[0],
+                        notif_type=verbs.WIZCARD_INVITE_EXHIBITOR[0],
                         target=recp,
                         is_async=True,
-                        action_object=email_push
+                        delivery_type=Notification.EMAIL
                         )
 
             #message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
@@ -60,15 +58,12 @@ class EventViewSet(BaseEntityViewSet):
         valid_candidates = AttendeeInvitee.validate(attendees['ids'])
 
         for recp in valid_candidates:
-            email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT,
-                                                     delivery=EmailAndPush.EMAIL,
-                                                     )
             notify.send(self.r_user,
                         recipient=self.user,
-                        verb=verbs.WIZCARD_INVITE_ATTENDEE[0],
+                        notif_tuple=verbs.WIZCARD_INVITE_ATTENDEE[0],
                         target=recp,
                         is_async=True,
-                        action_object=email_push
+                        delivery_type=Notification.EMAIL
                         )
             #message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEE, to_email=recp)
 

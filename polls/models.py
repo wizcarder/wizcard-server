@@ -3,6 +3,7 @@ from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.contrib.auth.models import User
 from polymorphic.models import PolymorphicModel
 from django.db.models import Count
+from wizserver import verbs
 
 import pdb
 # Create your models here.
@@ -53,6 +54,17 @@ class Poll(BaseEntityComponent):
     """
     def get_poll_responses(self):
         return None
+
+    def get_event(self):
+        event = self.related.related_to().filter(parent_type=ContentType.objects.get(model='event')).generic_objects()[0]
+        return event
+
+    def notify_create(self):
+        event = self.get_event()
+        event.notify_all_users(self.get_creator,
+                               verbs.WIZCARD_NEW_POLL,
+                               self
+                               )
 
 
 class Question(PolymorphicModel):
