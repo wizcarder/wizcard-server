@@ -108,14 +108,15 @@ class PollSerializerL1(EntitySerializer):
 
 
 class PollSerializerL2(PollSerializerL1):
-    questions = serializers.SerializerMethodField()
+    questions = QuestionSerializer(many=True)
+    response = serializers.SerializerMethodField()
 
     class Meta:
         model = Poll
-        fields = PollSerializerL1.Meta.fields  + ('questions',)
+        fields = PollSerializerL1.Meta.fields  + ('questions', 'response')
 
 
-    def get_questions(self, obj):
+    def get_response(self, obj):
         #pdb.set_trace()
         user = self.context.get('user')
         #AR:TODO: Assumes there is no partially complete poll - DANGEROUS
@@ -124,12 +125,12 @@ class PollSerializerL2(PollSerializerL1):
             questions = UserResponseSerializer(user_response, many=True).data
         else:
             questions = QuestionSerializer(obj.questions, many=True).data
-        return questions
+        return response
 
 
 
 class UserResponseSerializer(serializers.ModelSerializer):
-    question = QuestionSerializer(read_only=True)
+    question = serializers.PrimaryKeyRelatedField()
     answer = QuestionChoicesSerializer(read_only=True)
 
     class Meta:
