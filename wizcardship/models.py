@@ -99,7 +99,7 @@ class WizcardManager(PolymorphicManager):
     #wrapper for 2-way exchanges
     def exchange(self, wizcard1, wizcard2, cctx):
         if self.are_wizconnections(wizcard1, wizcard2):
-            return  err.EXISTING_CONNECTION
+            return err.EXISTING_CONNECTION
 
         #setup bidir relationships
         rel1 = Wizcard.objects.cardit(wizcard1, wizcard2, status=verbs.ACCEPTED, cctx=cctx)
@@ -112,11 +112,13 @@ class WizcardManager(PolymorphicManager):
                     target=wizcard1,
                     action_object=rel1)
 
-        notify.send(wizcard2.user, recipient=wizcard1.user,
-                        notif_type=verbs.WIZREQ_T[0],
-                        description=cctx.description,
-                        target=wizcard2,
-                        action_object=rel2)
+        notify.send(wizcard2.user,
+                    recipient=wizcard1.user,
+                    notif_type=verbs.WIZREQ_T[0],
+                    description=cctx.description,
+                    target=wizcard2,
+                    action_object=rel2
+                    )
 
         return err.OK
 
@@ -190,6 +192,7 @@ class WizcardManager(PolymorphicManager):
     def friends_in_wizcards(self, my_wizcard, wizcards):
         return [x for x in wizcards if Wizcard.objects.is_wizcard_following(x, my_wizcard)]
 
+
 class WizcardBase(PolymorphicModel, Base413Mixin):
     sms_url = URLField(blank=True)
     media = RelatedObjectsDescriptor()
@@ -203,7 +206,7 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
     def is_admin_wizcard(self):
         return self.user.profile.is_admin
 
-    def save_sms_url(self,url):
+    def save_sms_url(self, url):
         self.sms_url = wizlib.shorten_url(url)
         self.save()
 
@@ -214,13 +217,13 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return self.email
 
     def get_thumbnail_url(self):
-        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_THUMBNAIL]
+        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL]
         if l:
             return l
 
         return ""
 
-    def save_vcard(self,vobj):
+    def save_vcard(self, vobj):
         self.vcard = vobj
         self.save()
 
@@ -228,7 +231,7 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return self.user.first_name + " " + self.user.last_name
 
     def get_video_url(self):
-        l = [(x.media_element, x.media_iframe) for x in self.media.all().generic_objects() if x.media_type==MediaMixin.TYPE_VIDEO]
+        l = [(x.media_element, x.media_iframe) for x in self.media.all().generic_objects() if x.media_type == MediaMixin.TYPE_VIDEO]
         if l:
             return l
 
@@ -254,9 +257,10 @@ class Wizcard(WizcardBase):
     user = models.OneToOneField(User, related_name='wizcard')
 
     wizconnections_to = models.ManyToManyField('self',
-                                            through='WizConnectionRequest',
-                                            symmetrical=False,
-                                            related_name='wizconnections_from')
+                                                through='WizConnectionRequest',
+                                                symmetrical=False,
+                                                related_name='wizconnections_from'
+                                               )
 
     media = RelatedObjectsDescriptor()
 
@@ -334,8 +338,8 @@ class Wizcard(WizcardBase):
                 cctx=ctx,
                 status=status)
         else:
-            rel.cctx=ctx
-            rel.status=status
+            rel.cctx = ctx
+            rel.status = status
             rel.save()
         return rel
 
@@ -411,13 +415,13 @@ class Wizcard(WizcardBase):
     # note: this excludes admin wizcard
     def get_following_only(self):
         return self.get_connected_from(verbs.ACCEPTED).exclude(
-            id__in=Wizcard.objects.filter(
-                Q(requests_to__status=verbs.ACCEPTED,
-                requests_to__from_wizcard=self)| Q(user__profile__is_admin=True)))
+            id__in=Wizcard.objects.filter(Q(requests_to__status=verbs.ACCEPTED,
+                                            requests_to__from_wizcard=self) | Q(user__profile__is_admin=True)))
 
     def get_following_no_admin(self):
         return self.get_connected_from(verbs.ACCEPTED).exclude(
             id__in=Wizcard.objects.filter(Q(user__profile__is_admin=True)))
+
 
 class DeadCard(WizcardBase):
     user = models.ForeignKey(User, related_name="dead_cards")
@@ -425,7 +429,7 @@ class DeadCard(WizcardBase):
     last_name = TruncatingCharField(max_length=30, default="")
     invited = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
-    cctx = PickledObjectField(blank=True, default = {})
+    cctx = PickledObjectField(blank=True, default={})
 
     def __unicode__(self):
         return _(u'%(user)s\'s deadcard') % {'user': unicode(self.user)}
@@ -447,7 +451,7 @@ class DeadCard(WizcardBase):
 
         c = self.contact_container.get()
         c.company = result.get('company', "")
-        c.title = title=result.get('job', "")
+        c.title = result.get('job', "")
 
         c.save()
         self.save()
@@ -473,7 +477,7 @@ class ContactContainer(CompanyTitleMixin):
         ordering = ['id']
 
     def get_fbizcard_url(self):
-        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_F_BIZCARD]
+        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type == MediaMixin.SUB_TYPE_F_BIZCARD]
         if l:
             return l
 
@@ -526,19 +530,15 @@ class WizConnectionRequest(models.Model):
         if hasattr(self.cctx, '_usercctx'):
             if type(self.cctx.notes) is not dict:
                 old_notes = self.cctx.notes
-                self.cctx._usercctx = dict(
-                    notes = dict(
-                        note=old_notes,
-                        last_saved=self.created.strftime("%d %B %Y")
-                    )
-                )
+                self.cctx._usercctx = dict(notes=dict(note=old_notes,
+                                                      last_saved=self.created.strftime("%d %B %Y")
+                                                      )
+                                           )
         else:
-            self.cctx._usercctx = dict(
-                    notes = dict(
-                        note="",
-                        last_saved=self.created.strftime("%d %B %Y")
-                    )
-                )
+            self.cctx._usercctx = dict(notes=dict(note="",
+                                                    last_saved=self.created.strftime("%d %B %Y")
+                                                  )
+                                       )
         self.save()
 
 
@@ -553,7 +553,7 @@ class WizcardFlickManager(models.Manager):
 
     def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
-        result, count =  LocationMgr.objects.lookup(
+        result, count = LocationMgr.objects.lookup(
             "WTREE",
             lat,
             lng,
@@ -636,7 +636,7 @@ class WizcardFlick(models.Model):
                                lng=lng,
                                key=key,
                                tree="WTREE")
-        loc= retval[0][1]
+        loc = retval[0][1]
 
         return loc
 
@@ -653,7 +653,7 @@ class WizcardFlick(models.Model):
             self.save()
             notify.send(self.wizcard.user,
                         recipient=self.wizcard.user,
-                        notif_type =verbs.WIZCARD_FLICK_TIMEOUT[0],
+                        notif_type=verbs.WIZCARD_FLICK_TIMEOUT[0],
                         target=self)
         else:
             #withdraw/delete flick case

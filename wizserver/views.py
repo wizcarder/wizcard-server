@@ -2077,7 +2077,7 @@ class ParseMsgAndDispatch(object):
             else:
                 self.response.error_response(err.NO_RECEIVER)
         else:
-            if deadcard.activated == False:
+            if not deadcard.activated:
                 notify.send(self.user,
                             recipient=self.user,
                             notif_type=verbs.WIZCARD_SCANNED_USER[0],

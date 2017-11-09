@@ -8,7 +8,7 @@ from .utils import id2slug
 from notifications.signals import notify
 from notifications.tasks import pushNotificationToApp
 from email_and_push_infra.models import EmailAndPush
-from wizserver import  verbs
+from wizserver import verbs
 import logging
 import pdb
 from datetime import timedelta
@@ -20,6 +20,7 @@ try:
 except ImportError:
     from datetime import datetime
     now = datetime.datetime.now()
+
 
 class NotificationManager(models.Manager):
     def unread(self, user, count=settings.NOTIF_BATCH_SIZE):
@@ -77,8 +78,6 @@ class Notification(models.Model):
         (SMS, 'sms'),
         (ALERT, 'alert')
     )
-
-
 
     """
     Action model describing the actor acting out a verb (on an optional
@@ -192,6 +191,7 @@ class Notification(models.Model):
         self.status = status
         self.save()
 
+
 def notify_handler(notif_type, **kwargs):
     """
     Handler function to create Notification instance upon action signal call.
@@ -205,7 +205,7 @@ def notify_handler(notif_type, **kwargs):
     verb = kwargs.pop('verb', "")
     target = kwargs.pop('target', None)
     notif_action_object = kwargs.pop('action_object', None)
-    delivery_array=[delivery_type]
+    delivery_array = [delivery_type]
 
     if is_async:
         start = kwargs.pop('start_date', timezone.now() + timedelta(minutes=1))
@@ -213,8 +213,7 @@ def notify_handler(notif_type, **kwargs):
         email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT, start_date=start, end_date=end)
         email_action_object = email_push
         if delivery_type == Notification.ALERT:
-            delivery_array=[delivery_type, Notification.PUSHNOTIF]
-
+            delivery_array = [delivery_type, Notification.PUSHNOTIF]
 
         #AR:TODO: Looks like every ALERT will have a Push notif (or atleast thats what the earlier code was doing)
         # Had a pushnotiftoApp for every notification created so for every ALERT there has to be a pushnotif??
@@ -247,8 +246,6 @@ def notify_handler(notif_type, **kwargs):
             newnotify.save()
 
     return newnotify
-
-
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

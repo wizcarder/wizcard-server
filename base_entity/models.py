@@ -94,7 +94,7 @@ class BaseEntityComponent(PolymorphicModel):
     COOWNER = 'COW'
     AGENDA = 'AGN'
     AGENDA_ITEM = 'AGI'
-    POLL='POL'
+    POLL = 'POL'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -312,7 +312,7 @@ class BaseEntityComponent(PolymorphicModel):
 
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
-    def get_parent_entities(self ):
+    def get_parent_entities(self):
         try:
             parents = self.related.related_to().generic_objects()
             return parents
@@ -339,6 +339,7 @@ class BaseEntityComponentsOwner(models.Model):
 
     class Meta:
         unique_together = (("base_entity_component", "owner"),)
+
 
 class BaseEntity(BaseEntityComponent, Base414Mixin):
     secure = models.BooleanField(default=False)
@@ -525,6 +526,8 @@ class UserEntity(models.Model):
 
     # Join Table.
     # this will contain per user level stat
+
+
 class EntityUserStats(models.Model):
 
     MIN_ENGAGEMENT_LEVEL = 0
@@ -542,6 +545,8 @@ class EntityUserStats(models.Model):
     viewed = models.BooleanField(default=False)
 
 # the entity model will use this
+
+
 class EntityEngagementStats(models.Model):
     like_count = models.IntegerField(default=0)
     views = models.IntegerField(default=0)

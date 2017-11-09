@@ -39,7 +39,6 @@ RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010, 01, 01))
 logger = logging.getLogger(__name__)
 
 
-
 class AppUserSettings(models.Model):
     is_profile_private = models.BooleanField(default=False)
     is_wifi_data = models.BooleanField(default=False)
@@ -319,6 +318,7 @@ class AppUser(BaseUser):
         Notification.objects.unacted(self.profile.user).update(readed=False)
         return s
 
+
 class WebOrganizerUser(BaseUser):
     settings = models.OneToOneField(WebOrganizerUserSettings, related_name='base_user')
 
@@ -350,7 +350,6 @@ class FutureUser(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     objects = FutureUserManager()
-
 
     def get_email(self):
         return self.email

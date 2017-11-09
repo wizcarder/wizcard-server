@@ -32,7 +32,7 @@ class MeishiMgr(models.Manager):
         end_time = m.timestamp + delta
         start_time = m.timestamp - delta
 
-        qs2 = qs1.filter(timestamp__range = (start_time, end_time))
+        qs2 = qs1.filter(timestamp__range=(start_time, end_time))
         return qs2, qs2.count()
 
     def pair_up(self, meishi1, meishi2):

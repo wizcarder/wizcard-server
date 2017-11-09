@@ -141,4 +141,4 @@ class MediaMixin(models.Model):
     # url of media element
     media_element = models.URLField(blank=True, default=None)
     media_iframe = models.URLField(blank=True)
-    media_title = models.CharField(blank=True, max_length=50)
+    media_title = models.CharField(blank=True, max_length=200)

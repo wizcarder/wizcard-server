@@ -38,7 +38,7 @@ class LocationMgrManager(models.Manager):
 
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
-            distance = int(l.distance_from(lat,lng) / 10000)
+            distance = int(l.distance_from(lat, lng) / 10000)
             if distance < NEARBY_THRESHOLD:
                 heapq.heappush(h, (distance, l.object_id))
 
@@ -47,6 +47,7 @@ class LocationMgrManager(models.Manager):
         if h_result:
             count = len(h_result)
         return [r[1] for r in h_result], count
+
 
 class LocationMgr(models.Model):
     lat = models.DecimalField(null=True, max_digits=20, 
@@ -70,7 +71,7 @@ class LocationMgr(models.Model):
         super(LocationMgr, self).__init__(*args, **kwargs)
 
     def is_eq_lat_lng(self, lat, lng):
-        return bool( (float(self.lat) == lat and float(self.lng) == lng))
+        return bool((float(self.lat) == lat and float(self.lng) == lng))
 
     def do_update(self, lat, lng):
         updated = False
@@ -123,7 +124,8 @@ class LocationMgr(models.Model):
     # Database based timer implementation
     def start_timer(self, timeout):
         t = Periodic.objects.create(location=self,
-                timeout_value=timeout*60)
+                                    timeout_value=timeout*60
+                                    )
         return t.start()
 
     def extend_timer(self, timeout):
@@ -161,26 +163,31 @@ def location_create_handler(**kwargs):
     logger.debug("inserted key %s in tree %s", key, tree_type)
     return newlocation
 
+
 def location_timeout_handler(**kwargs):
     ids = kwargs.pop('ids')
     expired = map(lambda x: LocationMgr.objects.get(id=x), ids)
     for e in expired:
         timeout_callback_execute(e)
 
+
 def location_timeout_cb(l):
     l.delete()
+
 
 def virtual_table_timeout_cb(l):
     l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[0])
 
+
 def flicked_card_timeout(l):
     l.content_object.delete(type=verbs.WIZCARD_FLICK_TIMEOUT[0])
 
+
 def timeout_callback_execute(e):
     timeout_callback = {
-        ContentType.objects.get(app_label="userprofile", model="appuser").id    : location_timeout_cb,
-        ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id   : flicked_card_timeout,
-        ContentType.objects.get(app_label="entity", model="virtualtable").id : virtual_table_timeout_cb,
+        ContentType.objects.get(app_label="userprofile", model="appuser").id:location_timeout_cb,
+        ContentType.objects.get(app_label="wizcardship", model="wizcardflick").id:flicked_card_timeout,
+        ContentType.objects.get(app_label="entity", model="virtualtable").id:virtual_table_timeout_cb,
         }
     timeout_callback[e.content_type.id](e)
 

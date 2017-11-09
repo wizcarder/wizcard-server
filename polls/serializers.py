@@ -32,10 +32,9 @@ class QuestionSerializer(serializers.ModelSerializer):
         # clear all choices
         instance.choices.all().delete()
 
+        cls = Question.get_choice_cls_from_type(validated_data['question_type'])
         for c in choices:
-            cls = Question.get_choice_cls_from_type(validated_data['question_type'])
-            for c in choices:
-                cls.objects.create(question=instance, **c)
+            cls.objects.create(question=instance, **c)
 
         obj = super(QuestionSerializer, self).update(instance, validated_data)
 
@@ -122,9 +121,9 @@ class PollSerializerL2(PollSerializerL1):
         #AR:TODO: Assumes there is no partially complete poll - DANGEROUS
         user_response = UserResponse.objects.filter(user=user, poll=obj)
         if user_response:
-            questions = UserResponseSerializer(user_response, many=True).data
+            response = UserResponseSerializer(user_response, many=True).data
         else:
-            questions = QuestionSerializer(obj.questions, many=True).data
+            response= QuestionSerializer(obj.questions, many=True).data
         return response
 
 
