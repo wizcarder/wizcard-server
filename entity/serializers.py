@@ -13,7 +13,8 @@ from media_components.models import MediaEntities
 from base.mixins import MediaMixin
 from django.utils import timezone
 from django.contrib.auth.models import User
-from polls.serializers import PollSerializerL1, PollSerializerL2
+from polls.serializers import PollSerializerL1
+from collections import OrderedDict
 
 import pdb
 
@@ -186,12 +187,11 @@ class EventSerializer(EntitySerializer):
     def get_polls(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
-
 # these are used by App.
 class EventSerializerL1(EntitySerializer):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
-    highlights = serializers.DictField(required=False)
+    highlights = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -252,6 +252,16 @@ class EventSerializerL1(EntitySerializer):
             many=True
         ).data
 
+    def get_highlights(self, obj):
+        pdb.set_trace()
+        key_order = ["About Girnar", "About Navanu", "Dress Code", "Safety Code"]
+        if obj.highlights:
+            list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
+            od = OrderedDict(list_of_tuples)
+            return od
+        else:
+            return None
+
 # these are used by App.
 class EventSerializerL2(EntitySerializer):
     start = serializers.DateTimeField(read_only=True)
@@ -261,7 +271,6 @@ class EventSerializerL2(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
-    highlights = serializers.DictField(required=False)
 
     class Meta:
         model = Event
@@ -334,7 +343,8 @@ class EventSerializerL2(EntitySerializer):
     def get_polls(self, obj):
         return PollSerializerL1(
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_POLL),
-            many=True
+            many=True,
+            context=self.context
         ).data
 
 
