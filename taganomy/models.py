@@ -7,14 +7,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth.models import User
-
-
-
 import pdb
 
 # Create your models here.
 
 # Its a Taxanomy + tags => Taganomy
+
 
 class TaganomyManager(models.Manager):
 
@@ -28,6 +26,7 @@ class TaganomyManager(models.Manager):
             category=Taganomy.CATEGORY_OTHERS,
             editor=UserProfile.objects.get_admin_user()
         )
+
 
 class Taganomy(models.Model):
 

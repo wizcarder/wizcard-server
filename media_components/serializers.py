@@ -10,7 +10,7 @@ import pdb
 class MediaEntitiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaEntities
-        fields = ('id', 'entity_type', 'media_type', 'media_element', 'media_iframe', 'media_sub_type')
+        fields = ('id', 'entity_type', 'media_type', 'media_element', 'media_iframe', 'media_sub_type', 'media_title')
 
     def create(self, validated_data):
         user = self.context.get('user')

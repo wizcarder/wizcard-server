@@ -13,6 +13,8 @@ from media_components.models import MediaEntities
 from base.mixins import MediaMixin
 from django.utils import timezone
 from django.contrib.auth.models import User
+from polls.serializers import PollSerializerL1
+from collections import OrderedDict
 
 import pdb
 
@@ -130,6 +132,7 @@ class EventSerializer(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
+    highlights = serializers.DictField(required=False)
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -142,7 +145,7 @@ class EventSerializer(EntitySerializer):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls')
+        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls', 'highlights')
         fields = EntitySerializer.Meta.fields + my_fields
 
     def prepare(self, validated_data):
@@ -163,6 +166,7 @@ class EventSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         instance.start = validated_data.pop("start", instance.start)
         instance.end = validated_data.pop("end", instance.end)
+        instance.highlights = validated_data.pop("highlights", instance.highlights)
 
         instance = super(EventSerializer, self).update(instance, validated_data)
 
@@ -183,18 +187,18 @@ class EventSerializer(EntitySerializer):
     def get_polls(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
-
 # these are used by App.
 class EventSerializerL1(EntitySerializer):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
+    highlights = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = ('id', 'entity_type', 'num_users', 'name', 'address', 'secure', 'description', 'media',
                          'location', 'users', 'joined', 'friends', 'like', 'tags', 'engagements')
-        my_fields = ('start', 'end', )
+        my_fields = ('start', 'end', 'highlights',)
 
         fields = parent_fields + my_fields
 
@@ -248,6 +252,16 @@ class EventSerializerL1(EntitySerializer):
             many=True
         ).data
 
+    def get_highlights(self, obj):
+        pdb.set_trace()
+        key_order = ["About Girnar", "About Navanu", "Dress Code", "Safety Code"]
+        if obj.highlights:
+            list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
+            od = OrderedDict(list_of_tuples)
+            return od
+        else:
+            return None
+
 # these are used by App.
 class EventSerializerL2(EntitySerializer):
     start = serializers.DateTimeField(read_only=True)
@@ -255,13 +269,14 @@ class EventSerializerL2(EntitySerializer):
     speakers = serializers.SerializerMethodField()
     sponsors = serializers.SerializerMethodField()
     campaigns = serializers.SerializerMethodField()
+    polls = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'highlights')
 
         fields = parent_fields + my_fields
 
@@ -323,6 +338,13 @@ class EventSerializerL2(EntitySerializer):
         return MediaEntitiesSerializer(
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
             many=True
+        ).data
+
+    def get_polls(self, obj):
+        return PollSerializerL1(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_POLL),
+            many=True,
+            context=self.context
         ).data
 
 

@@ -47,7 +47,7 @@ class NotifParser:
     def process(self):
         while True:
             nrsp = self.process_one()
-            if nrsp == False:
+            if not nrsp:
                 break
 
     def accept_implicit(self, data):

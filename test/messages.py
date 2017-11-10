@@ -42,11 +42,11 @@ OCR_USERNAME = OCR_PHONE+'@wizcard.com'
 
 SELF_PHONE = "+" + NEXMO_PHONE1
 
-EMAIL1 = "aammundi@gmail.com"
-EMAIL2 = "amsaha@gmail.com"
-EMAIL3 = "wizcard1@gmail.com"
-EMAIL4 = "nothere@gmail.com"
-EMAIL5 = "amnothere@gmail.com"
+EMAIL1 = "anandramani98@gmail.com"
+EMAIL2 = "anand@dalchemy.com"
+EMAIL3 = "anand.ramani@ambertag.com"
+EMAIL4 = "r_anand98@outlook.com"
+EMAIL5 = "r_anand98@yahoo.com"
 
 ENTITY_TABLE = 'TBL'
 ENTITY_PRODUCT = 'PRD'
@@ -660,6 +660,20 @@ get_events = {
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
         "msg_type" : "get_events",
+    },
+    "sender" : {
+        "device_type": "android",
+        "lat": LAT1,
+        "lng": LNG1
+    },
+}
+
+poll_response = {
+    "header" : {
+        "device_id" : "17b90b2e03dc7b38",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "poll_response",
     },
     "sender" : {
         "device_type": "android",

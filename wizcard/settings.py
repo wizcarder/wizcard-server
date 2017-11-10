@@ -29,7 +29,7 @@ WIZCARD_SETTINGS = {
             'default': {
                 #'ENGINE': 'django.db.backends.mysql',
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-dev',
+                'NAME': 'girnar-dev',
                 'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
@@ -339,6 +339,7 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'herald'
 )
 
 #django-storage settings
@@ -373,6 +374,7 @@ DEFAULT_FROM_EMAIL='admin@getwizcard.com'
 ACCOUNT_EMAIL_REQUIRED=True
 #ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = True
+ENABLE_PHONE_LIST_CHECK = False
 
 #ACCOUNT_AUTHENTICATION_METHOD='email'
 #LOGIN_REDIRECT_URL = "http://www.getwizcard.com"

@@ -44,5 +44,9 @@ CELERYBEAT_SCHEDULE = {
     'expire_events' : {
         'task' : 'entity.tasks.expire',
         'schedule' : timedelta(seconds=86400),
+    },
+    'handle_message' : {
+        'task' : 'email_and_push_infra.tasks.message_event_handler',
+        'schedule' : timedelta(seconds=30),
     }
 }

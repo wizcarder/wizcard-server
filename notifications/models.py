@@ -2,29 +2,26 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
-from django.utils import timezone
 from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
-from notifications.tasks import pushNotificationToApp
-from wizserver import  verbs
+from email_and_push_infra.models import EmailAndPush
+from wizserver import verbs
 import logging
 import pdb
+from datetime import timedelta
+from django.utils import timezone
+
+now = timezone.now()
 
 
-try:
-    from django.utils import timezone
-    now = timezone.now
-except ImportError:
-    from datetime import datetime
-    now = datetime.datetime.now()
 
 class NotificationManager(models.Manager):
     def unread(self, user, count=settings.NOTIF_BATCH_SIZE):
-        return list(self.filter(recipient=user, readed=False)[:count])
+        return list(self.filter(recipient=user, is_async=False, readed=False)[:count])
 
     def unacted(self, user):
-        return self.filter(recipient=user, acted_upon=False)
+        return self.filter(recipient=user, is_async=False, acted_upon=False)
 
     def unread_count(self, user):
         return self.unread(user).count()
@@ -38,7 +35,7 @@ class NotificationManager(models.Manager):
         return count
 
     def mark_all_as_read(self, recipient, count):
-        return self.filter(recipient=recipient, readed=False).update(readed=True)
+        return self.filter(recipient=recipient, is_async=False, readed=False).update(readed=True)
 
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
@@ -46,15 +43,37 @@ class NotificationManager(models.Manager):
     # AR: TODO this query seems convoluted. It should simply be: verb, target, unreaded
     def get_unread_users(self, verb, filter_users=None):
 
-        qs = self.filter(verb=verb, readed=False)
+        qs = self.filter(verb=verb, is_async=False, readed=False)
         if filter_users:
             qs = qs.filter(recipient__in=filter_users)
         exclude_users = map(lambda x: x.recipient, qs)
 
         return exclude_users
 
+    def async(self):
+        return self.filter(is_async=True, readed=False)
+
 
 class Notification(models.Model):
+    """
+    unified notification model.
+    is_async=True/False is picked up by celery/get_cards respectively
+
+    """
+
+    # used by Portal. ALERT is also used by app for legacy path
+    EMAIL = 1
+    ALERT = 2
+
+    # used internally as consequence of 2
+    PUSHNOTIF = 3
+
+    DELIVERY_TYPE = (
+        (EMAIL, 'email'),
+        (ALERT, 'alert'),
+        (PUSHNOTIF, 'pushnotif'),
+    )
+
     """
     Action model describing the actor acting out a verb (on an optional
     target).
@@ -83,6 +102,9 @@ class Notification(models.Model):
         <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
     """
+    delivery_type = models.PositiveSmallIntegerField(choices=DELIVERY_TYPE, default=ALERT)
+    is_async = models.BooleanField(default=False)
+
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     readed = models.BooleanField(default=False, blank=False)
 
@@ -102,19 +124,23 @@ class Notification(models.Model):
 
     target_content_type = models.ForeignKey(ContentType, related_name='notify_target', blank=True, null=True)
     target_object_id = models.CharField(max_length=255, blank=True, null=True)
-    target = generic.GenericForeignKey('target_content_type',
-        'target_object_id')
+    target = generic.GenericForeignKey('target_content_type', 'target_object_id')
 
-    action_object_content_type = models.ForeignKey(ContentType,
-        related_name='notify_action_object', blank=True, null=True)
-    action_object_object_id = models.CharField(max_length=255, blank=True,
-        null=True)
-    action_object = generic.GenericForeignKey('action_object_content_type',
-        'action_object_object_id')
+    action_object_content_type = models.ForeignKey(
+        ContentType,
+        related_name='notify_action_object',
+        blank=True,
+        null=True
+    )
+    action_object_object_id = models.CharField(max_length=255, blank=True, null=True)
+    action_object = generic.GenericForeignKey('action_object_content_type', 'action_object_object_id')
 
-    timestamp = models.DateTimeField(default=now)
+    email_push = models.ForeignKey(EmailAndPush, related_name='email_push_notif', blank=True, null=True)
+
+    timestamp = models.DateTimeField(default=timezone.now)
 
     public = models.BooleanField(default=True)
+    notif_type = models.PositiveIntegerField()
 
     objects = NotificationManager()
 
@@ -158,7 +184,12 @@ class Notification(models.Model):
         self.acted_upon = flag
         self.save()
 
-def notify_handler(verb, **kwargs):
+    def update_status(self, status):
+        self.status = status
+        self.save()
+
+
+def notify_handler(notif_type, **kwargs):
     """
     Handler function to create Notification instance upon action signal call.
     """
@@ -166,69 +197,88 @@ def notify_handler(verb, **kwargs):
     kwargs.pop('signal', None)
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
-    onlypush = kwargs.pop('onlypush', False)
+    is_async = kwargs.pop('is_async', False)
+    delivery_type = kwargs.pop('delivery_type', Notification.ALERT)
+    verb = kwargs.pop('verb', "")
+    target = kwargs.pop('target', None)
+    action_object = kwargs.pop('action_object', None)
+    action_object_content_type = ContentType.objects.get_for_model(action_object) if action_object else None
+    action_object_object_id = action_object.pk if action_object else None
+    push_obj = None
 
-    if not onlypush:
-        newnotify = Notification.objects.create(
-            recipient=recipient,
-            verb=unicode(verb),
-            readed=False,
-            defaults={
-                'actor_content_type': ContentType.objects.get_for_model(actor),
-                'actor_object_id': actor.pk,
-                'public': bool(kwargs.pop('public', True)),
-                'timestamp': kwargs.pop('timestamp', now())
-            }
+    if is_async:
+        start = kwargs.pop('start_date', timezone.now() + timedelta(minutes=1))
+        end = kwargs.pop('end_date', start)
+
+        # AA: Comments: EmailPush cannot decide whether this is INSTANT or not. It has to come from top
+        # It might need additional fields in the REST API. Think about usecases. For example, if the portal
+        # user ties a push to a speaker session in the agenda. Portal will digest this, create some information
+        # to figure out when start-stop should be. Alternatively, it could be something that allows REST api to indicate
+        # that this is tied to this entity.
+        # net-net, pls think top-down, of all potential use-cases of what/why it's being implemented and construct
+        # the code architecture to span all those cases. We may not implement all those at once, but the arch
+        # should be extensible
+
+        # action obj for async is always EmailAndPush
+        push_obj = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT, start_date=start, end_date=end)
+
+        # if push_notif needs to be sent
+        do_push = bool(kwargs.pop('do_push', False))
+
+    else:
+        do_push = notif_type in verbs.apns_notification_dictionary
+        start = end = timezone.now()
+
+    if do_push:
+        # create EmailPush and Notif
+        push_obj = EmailAndPush.objects.create(
+            event_type=EmailAndPush.INSTANT,
+            start_date=start,
+            end_date=end
         )
 
-        for opt in ('target', 'action_object'):
-            obj = kwargs.pop(opt, None)
-            if not obj is None:
-                setattr(newnotify, '%s_object_id' % opt, obj.pk)
-                setattr(newnotify, '%s_content_type' % opt,
-                    ContentType.objects.get_for_model(obj))
-                setattr(newnotify, '%s' % opt, obj)
+        Notification.objects.create(
+            actor_content_type=ContentType.objects.get_for_model(actor),
+            actor_object_id=actor.pk,
+            recipient=recipient,
+            readed=False,
+            is_async=True,
+            delivery_type=Notification.PUSHNOTIF,
+            notif_type=notif_type,
+            verb=verb,
+            target_content_type=ContentType.objects.get_for_model(target),
+            target_object_id=target.pk,
+            email_push=push_obj,
+            action_object_content_type=action_object_content_type,
+            action_object_object_id=action_object_object_id,
+            public=bool(kwargs.pop('public', True)),
+            timestamp=kwargs.pop('timestamp', now())
+        )
 
-        newnotify.save()
+    is_async = False if delivery_type == Notification.ALERT else True
 
-        pushNotificationToApp.delay(
-            newnotify.actor_object_id,
-            newnotify.recipient_id,
-            newnotify.action_object_object_id,
-            newnotify.action_object_content_type,
-            newnotify.target_object_id,
-            newnotify.target_content_type,
-            newnotify.verb
-            )
-    else:
-        pushparam = dict()
-        verb = unicode(verb)
-        for opt in ('target','action_object'):
-            obj = kwargs.pop(opt, None)
-            if not obj is None:
-                tkey = '%s_object_id' % opt
-                pushparam[tkey] = obj.pk
-                tkey = '%s_content_type' % opt
-                pushparam[tkey] = ContentType.objects.get_for_model(obj)
-            else:
-                tkey = '%s_object_id' % opt
-                pushparam[tkey] = None
-                tkey = '%s_content_type' % opt
-                pushparam[tkey] = None
+    newnotify, created = Notification.objects.get_or_create(
+        actor_content_type=ContentType.objects.get_for_model(actor),
+        actor_object_id=actor.pk,
+        recipient=recipient,
+        readed=False,
+        delivery_type=delivery_type,
+        notif_type=notif_type,
+        verb=verb,
+        target_content_type=ContentType.objects.get_for_model(target),
+        target_object_id=target.pk,
+        email_push=push_obj,
+        defaults={
+            'is_async': is_async,
+            'action_object_content_type': action_object_content_type,
+            'action_object_object_id': action_object_object_id,
+            'public': bool(kwargs.pop('public', True)),
+            'timestamp': kwargs.pop('timestamp', now())
+        }
+    )
 
-        pushNotificationToApp.delay(
-            actor.pk,
-            recipient.pk,
-            pushparam['action_object_object_id'],
-            pushparam['action_object_content_type'],
-            pushparam['target_object_id'],
-            pushparam['target_content_type'],
-            verb
-            )
+    return newnotify
 
-    #    except:
-    #        logging.error("Failed to send APNS to User %s",
-    #                recipient.profile.userid)
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

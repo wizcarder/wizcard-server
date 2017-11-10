@@ -6,10 +6,11 @@ from entity.serializers import EventSerializer, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
     SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
 from rest_framework.decorators import detail_route
-from email_and_push_infra.models import EmailEvent
-from email_and_push_infra.signals import email_trigger
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
+from wizserver import verbs
+from email_and_push_infra.models import EmailAndPush
+from notifications.signals import notify
 
 import pdb
 
@@ -32,12 +33,21 @@ class EventViewSet(BaseEntityViewSet):
         inst = self.get_object_or_404(pk=pk)
 
         exhibitors = request.data
-        passed_emails, failed_str = ExhibitorInvitee.validate(exhibitors['ids'])
+        valid_candidates = ExhibitorInvitee.validate(exhibitors['ids'])
 
-        for recp in passed_emails:
-            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
+        for recp in valid_candidates:
 
-        return Response("Exhibitors invited %s Failed ids: %s" % (len(passed_emails), failed_str),
+            notify.send(self.r_user,
+                        recipient=self.user,
+                        notif_type=verbs.WIZCARD_INVITE_EXHIBITOR[0],
+                        target=recp,
+                        is_async=True,
+                        delivery_type=Notification.EMAIL
+                        )
+
+            #message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
+
+        return Response("Exhibitors invited %s" % len(passed_emails),
                         status=status.HTTP_200_OK)
 
     @detail_route(methods=['post'])
@@ -45,12 +55,19 @@ class EventViewSet(BaseEntityViewSet):
         inst = self.get_object_or_404(pk=pk)
 
         attendees = request.data
-        passed_emails, failed_str = AttendeeInvitee.validate(attendees['ids'])
+        valid_candidates = AttendeeInvitee.validate(attendees['ids'])
 
-        for recp in passed_emails:
-            email_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEE, to_email=recp)
+        for recp in valid_candidates:
+            notify.send(self.r_user,
+                        recipient=self.user,
+                        notif_tuple=verbs.WIZCARD_INVITE_ATTENDEE[0],
+                        target=recp,
+                        is_async=True,
+                        delivery_type=Notification.EMAIL
+                        )
+            #message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEE, to_email=recp)
 
-        return Response("Attendees invited %s Failed ids: %s" % (len(passed_emails), failed_str),
+        return Response("Attendees invited %s" % len(valid_candidates),
                         status=status.HTTP_200_OK)
 
     @detail_route(methods=['get'])

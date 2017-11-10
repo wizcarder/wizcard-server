@@ -8,7 +8,7 @@ from wizserver import verbs
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
 from base_entity.models import EntityEngagementStats
-
+from picklefield.fields import PickledObjectField
 
 from notifications.signals import notify
 from base.mixins import Base411Mixin, Base412Mixin, Base413Mixin, CompanyTitleMixin, \
@@ -18,6 +18,7 @@ from django.utils import timezone
 now = timezone.now
 
 # Create your models here.
+
 
 class EventManager(BaseEntityManager):
     def lookup(self, lat, lng, n, etype=BaseEntityComponent.EVENT, count_only=False):
@@ -48,6 +49,7 @@ class EventManager(BaseEntityManager):
 class Event(BaseEntity):
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
+    highlights = PickledObjectField(blank=True)
 
     objects = EventManager()
 
@@ -119,18 +121,18 @@ class VirtualTable(BaseEntity):
 
     def delete(self, *args, **kwargs):
         # notify members of deletion (including self)
-        verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
+        notif_type = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
         members = self.users.all()
         for member in members:
             notify.send(
                 self.get_creator(),
                 recipient=member,
-                verb=verb,
+                notif_type=notif_type,
                 target=self)
 
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_TABLE_TIMEOUT[0]:
+        if notif_type == verbs.WIZCARD_TABLE_TIMEOUT[0]:
             self.expired = True
             self.save()
         else:
@@ -195,6 +197,11 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
     objects = AttendeeInviteeManager()
 
+    @classmethod
+    def validate(cls, attendees):
+        exhibitors = AttendeeInvitee.objects.filter(id__in=attendees)
+        return exhibitors
+
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.EXHIBITOR_INVITEE):
@@ -210,15 +217,8 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
 
     @classmethod
     def validate(cls, exhibitors):
-        failed_ids = ""
-        valid_emails = []
-        for eid in exhibitors:
-            try:
-                email = ExhibitorInvitee.objects.get(id=eid).email
-                valid_emails.append(email)
-            except:
-                failed_ids = failed_ids + "," + str(eid)
-        return valid_emails, failed_ids
+        exhibitors = ExhibitorInvitee.objects.filter(id__in=exhibitors)
+        return exhibitors
 
 
 class AgendaManager(BaseEntityComponentManager):

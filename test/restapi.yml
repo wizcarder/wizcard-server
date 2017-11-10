@@ -3,6 +3,19 @@
     - timeout: 100  # Increase timeout from the default 10 seconds
 - test:
     - name: "User Creation"
+    - url: "/users/registration/"
+    - expected_status: [200]
+    - method: 'POST'
+    - body: '{"username": "kappu.biz", "email": "kappu.biz@gmail.com", "password1": "a1b2c3d4", "first_name": "Karpagam", "last_name": "G", "password2":"a1b2c3d4", "user_type":2}'
+##    - body: '{"username": "kappu.biz", "password": "a1b2c3d4"}'
+    - headers: {Content-Type: application/json}
+    - validators:
+        - compare: {raw_body: "", comparator: contains, expected: 'key'}
+    - extract_binds:
+        - 'token': {'jsonpath_mini': 'key'}
+
+- test:
+    - name: "User Creation"
     - url: "/users/login/"
     - expected_status: [200]
     - method: 'POST'
@@ -10,9 +23,9 @@
     - body: '{"username": "kappu.biz", "password": "a1b2c3d4"}'
     - headers: {Content-Type: application/json}
     - validators:
-        - compare: {raw_body: "", comparator: contains, expected: 'key'}
+        - compare: {raw_body: "", comparator: contains, expected: 'token'}
     - extract_binds:
-        - 'token': {'jsonpath_mini': 'key'}
+        - 'token': {'jsonpath_mini': 'token'}
 
 
 - test:
@@ -162,36 +175,36 @@
     - extract_binds:
         - 'spns2': {'jsonpath_mini': 'id'}
 
-- test:
-    - name: "Product Creation1"
-    - url: "/entity/products/"
-    - expected_status: [201]
-    - method: 'POST'
-    - body: {'template':'{"related":[{"ids":[$lgo_media_id1, $rol_media_id3] , "type":"e_media"}],
-          "name": "Intel",
-          "address": "Intel Sacramento",
-          "website": "http://www.intel.com",
-          "description": "The new VR platform from Intel",
-          "tags": ["VR platform", "AR Rahman", "Le Musk"]
-          }'}
-    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
-    - extract_binds:
-        - 'prod1': {'jsonpath_mini': 'id'}
-- test:
-    - name: "Product Creation2"
-    - url: "/entity/products/"
-    - expected_status: [201]
-    - method: 'POST'
-    - body: {'template':'{"related":[{"ids":[$lgo_media_id2, $rol_media_id1, $rol_media_id2] , "type":"e_media"}],
-          "name": "Nvidia",
-          "address": "NVidia Graphics",
-          "website": "http://www.nvidia.com",
-          "description": "The new Gaming Chip - Tegra 4",
-          "tags": ["nvidia", "GEForce", "Tegra 4"]
-          }'}
-    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
-    - extract_binds:
-        - 'prod2': {'jsonpath_mini': 'id'}
+#- test:
+#    - name: "Product Creation1"
+#    - url: "/entity/products/"
+#    - expected_status: [201]
+#    - method: 'POST'
+#    - body: {'template':'{"related":[{"ids":[$lgo_media_id1, $rol_media_id3] , "type":"e_media"}],
+#          "name": "Intel",
+#          "address": "Intel Sacramento",
+#          "website": "http://www.intel.com",
+#          "description": "The new VR platform from Intel",
+#          "tags": ["VR platform", "AR Rahman", "Le Musk"]
+#          }'}
+#    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+#    - extract_binds:
+#        - 'prod1': {'jsonpath_mini': 'id'}
+#- test:
+#    - name: "Product Creation2"
+#    - url: "/entity/products/"
+#    - expected_status: [201]
+#    - method: 'POST'
+#    - body: {'template':'{"related":[{"ids":[$lgo_media_id2, $rol_media_id1, $rol_media_id2] , "type":"e_media"}],
+#          "name": "Nvidia",
+#          "address": "NVidia Graphics",
+#          "website": "http://www.nvidia.com",
+#          "description": "The new Gaming Chip - Tegra 4",
+#          "tags": ["nvidia", "GEForce", "Tegra 4"]
+#          }'}
+#    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+#    - extract_binds:
+#        - 'prod2': {'jsonpath_mini': 'id'}
 - test:
     - name: "Event Creation"
     - url: "/entity/events/"
@@ -199,8 +212,7 @@
     - method: 'POST'
     - body: {'template':'{"related":[{"ids":[$bnr_media_id1, $rol_media_id1, $rol_media_id2, $rol_media_id3] , "type":"e_media"},
                                       {"ids":[$spkr1, $spkr2], "type":"e_speaker"},
-                                      {"ids":[$spns1, $spns2], "type": "e_sponsor"},
-                                      {"ids":[$prod1, $prod2], "type": "e_product"}],
+                                      {"ids":[$spns1, $spns2], "type": "e_sponsor"}],
           "name": "Test Event2",
           "address": "Chowdiah memorial",
           "website": "http://www.testevent.com",
@@ -211,7 +223,8 @@
            },
           "start": "2017-08-31 14:30:59",
           "end": "2017-09-02 19:30:59",
-          "tags": ["TechnAsia", "AsiaTech"]
+          "tags": ["TechnAsia", "AsiaTech"],
+	  "highlights" : {"About Girnar": "This is a Jain temple", "About Navanu": "This is the event Navanu", "Dress Code": "Clean dress", "Safety Code" : "Be safe act safe"}
           }'}
     - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
     - extract_binds:

@@ -2,13 +2,13 @@ __author__ = 'aammundi'
 
 from django.conf.urls import url, include, patterns
 from entity.views import EventViewSet, CampaignViewSet, TableViewSet
-from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorViewSet, AttendeeViewSet, CoOwnersViewSet, AgendaViewSet
+from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorViewSet, AttendeeViewSet, \
+    CoOwnersViewSet, AgendaViewSet
 from media_components.views import MediaEntitiesViewSet
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
 from polls.urls import urlpatterns as poll_urlpatterns
-from polls.urls import poll_router, questions_router, choices_router
-
+from notifications.urls import urlpatterns as notification_urlpatterns
 
 router = SimpleRouter()
 router.register(r'events', EventViewSet, base_name='events')
@@ -32,3 +32,4 @@ urlpatterns = patterns(
 )
 
 urlpatterns += poll_urlpatterns
+urlpatterns += notification_urlpatterns

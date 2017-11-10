@@ -1,20 +1,18 @@
 # define all outbound responses here
-import datetime
+
 from django.contrib.contenttypes.models import ContentType
-from wizcardship.models import  Wizcard, WizcardFlick
+from wizcardship.models import Wizcard, WizcardFlick
 from entity.models import VirtualTable
-from userprofile.models import UserProfile
 from base.cctx import NotifContext
 from django.http import HttpResponse
 #from wizcard.celery import client
 from raven.contrib.django.raven_compat.models import client
 import logging
-import fields
 import simplejson as json
 import pdb
 from wizserver import verbs
 from entity.serializers import EntitySerializerL0
-from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1, WizcardSerializerL2
+from wizcardship.serializers import  WizcardSerializerL1, WizcardSerializerL2
 from entity.serializers import TableSerializerL1
 from django.utils import timezone
 from django.conf import settings
@@ -22,6 +20,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 #This is the basic Response class used to send simple result and data
+
 class Response:
     def __init__(self):
         self.response = dict(result=dict(Error=0, Description=""), data=dict())
@@ -63,6 +62,8 @@ class Response:
         return False
 
 #subclass of above. This handles arrays of Data and used by Notifications
+
+
 class ResponseN(Response):
     def __init__(self):
         Response.__init__(self)
@@ -91,11 +92,12 @@ class ResponseN(Response):
     def add_data_to_dict(self, _dict, k, v):
         _dict[k] = v
 
+
 class NotifResponse(ResponseN):
 
     def __init__(self, notifications):
         ResponseN.__init__(self)
-        notifHandler = {
+        notif_handler = {
             verbs.WIZREQ_U[0] 	                : self.notifWizConnectionU,
             verbs.WIZREQ_T[0]  	                : self.notifWizConnectionT,
             verbs.WIZREQ_T_HALF[0]              : self.notifWizConnectionH,
@@ -115,10 +117,11 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
             verbs.WIZCARD_ENTITY_UPDATE[0]       : self.notifEventUpdate,
             verbs.WIZCARD_ENTITY_EXPIRE[0]       : self.notifEventExpire,
-            verbs.WIZCARD_ENTITY_DELETE[0]       : self.notifEventDelete
+            verbs.WIZCARD_ENTITY_DELETE[0]       : self.notifEventDelete,
+            verbs.WIZCARD_ENTITY_BROADCAST[0]    : self.notifEventBroadcast
         }
         for notification in notifications:
-            notifHandler[notification.verb](notification)
+            notif_handler[notification.notif_type](notification)
 
     def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
@@ -142,7 +145,7 @@ class NotifResponse(ResponseN):
                 asset_id=cctx.asset_id,
                 asset_type=cctx.asset_type,
                 connection_mode=cctx.connection_mode,
-                timestamp = notif.action_object.created.strftime("%d. %B %Y")
+                timestamp=notif.action_object.created.strftime("%d. %B %Y")
             )
 
             if cctx.asset_type == ContentType.objects.get(model="virtualtable").name:
@@ -192,7 +195,7 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifJoinEntity(self, notif):
-        wizcard=notif.actor.wizcard
+        wizcard = notif.actor.wizcard
         ws = WizcardSerializerL1(wizcard, context={'user': notif.recipient}).data
 
         if notif.target:  # since there is a possibility that the entity got destroyed in-between
@@ -215,6 +218,16 @@ class NotifResponse(ResponseN):
         logger.debug('%s', self.response)
         return self.response
 
+    def notifEventBroadcast(self, notif):
+        event_id = notif.target_object_id
+        out = dict(
+            event=event_id,
+            message=notif.verb
+        )
+        self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
+        logger.debug('%s', self.response)
+        return self.response
+
     def notifEventDelete(self, notif):
         self.notifEvent(notif, verbs.NOTIF_EVENT_DELETE)
 
@@ -225,7 +238,7 @@ class NotifResponse(ResponseN):
         self.notifEvent(notif, verbs.NOTIF_EVENT_UPDATE)
 
     def notifLeaveEntity(self, notif):
-        wizcard=notif.actor.wizcard
+        wizcard = notif.actor.wizcard
         ws = WizcardSerializerL1(wizcard).data
 
         if notif.target:
@@ -276,7 +289,7 @@ class NotifResponse(ResponseN):
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_FLICKED_WIZCARD)
         return self.response
 
-    def notifUserLookup(self, count, me, users):
+    def notifUserLookup(self, me, users):
         wizcards = map(lambda u: u.wizcard, users)
         out = WizcardSerializerL1(wizcards, many=True, context={'user': me}).data
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_USERS)
