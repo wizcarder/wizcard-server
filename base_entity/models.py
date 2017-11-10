@@ -313,11 +313,18 @@ class BaseEntityComponent(PolymorphicModel):
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
     def get_parent_entities(self):
-        try:
-            parents = self.related.related_to().generic_objects()
+        parents = self.related.related_to().generic_objects()
+        if parents:
             return parents
-        except:
-            return None
+
+        return None
+
+    def get_parent_entities_by_type(self, entity_type):
+        parents = self.related.related_to().filter(alias=entity_type).generic_objects()
+        if parents:
+            return parents
+
+        return None
 
     def get_creator(self):
         return BaseEntityComponentsOwner.objects.filter(
@@ -434,13 +441,13 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def get_users_after(self, timestamp):
         # AA: REVERT ME. Temp for app testing
         ue = UserEntity.objects.filter(entity=self)
-        #ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
+        # ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
         users = map(lambda u: u.user, ue)
 
         return users
 
     def get_wizcard_users(self):
-        users = self.get_users_after(timezone.now())
+        users = self.users.all()
         wiz_users = [x for x in users if hasattr(x, 'wizcard')]
         return wiz_users
 
@@ -468,7 +475,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.save()
 
     def delete(self, *args, **kwargs):
-        notif_tuple = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE)
+        notif_tuple = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE[0])
 
         self.notify_all_users(
             self.get_creator(),
@@ -489,7 +496,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def expire(self):
         self.expired = True
         self.save()
-        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
+        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE[0])
 
 
 # explicit through table since we will want to associate additional

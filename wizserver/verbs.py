@@ -136,7 +136,7 @@ NOTIF_CAMPAIGN_REMINDER         = 29
 NOTIF_INVITE_EXHIBITOR          = 30
 NOTIF_INVITE_ATTENDEE           = 31
 NOTIF_ACCEPT_WIZCARD            = 32
-NOTIF_EVENT_BROADCAST           = 33
+NOTIF_ENTITY_BROADCAST           = 33
 
 # receiver types
 WIZCARD_CONNECT_U   = 1
@@ -211,7 +211,7 @@ WIZCARD_INVITE_EXHIBITOR = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', 0)
 WIZCARD_INVITE_ATTENDEE = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', 0)
 WIZCARD_UPDATE_CAMPAIGN = (NOTIF_UPDATE_CAMPAIGN, 'updated campaign', 1)
 WIZCARD_NEW_CAMPAIGN = (NOTIF_NEW_CAMPAIGN, 'new campaign', 1)
-WIZCARD_EVENT_BROADCAST = (NOTIF_EVENT_BROADCAST, 'Event message', 1)
+WIZCARD_ENTITY_BROADCAST = (NOTIF_ENTITY_BROADCAST, 'event broadcast', 1)
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {
@@ -270,7 +270,13 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'alert': 'New Reco Ready',
+    },
+    WIZCARD_ENTITY_BROADCAST[0]: {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'alert': 'Message from {2.name} - {3}'
     }
+
 }
 
 gcm_notification_dictionary = {
@@ -306,9 +312,9 @@ gcm_notification_dictionary = {
         'title' : 'Wizcard - Table expired',
         'body': '{1.name} table has now expired',
     },
-    WIZCARD_EVENT_BROADCAST[0]: {
-        'title': 'Event announcement',
-        'body': 'Some message',
+    WIZCARD_ENTITY_BROADCAST[0]: {
+        'title': '{2.name} announcement',
+        'body': 'Message from {2.name} - {3}',
     }
 
 }

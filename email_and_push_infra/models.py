@@ -12,7 +12,6 @@
 from django.db import models
 from django.utils import timezone
 import pdb
-from datetime import timedelta
 
 # Create your models here.
 
@@ -78,6 +77,7 @@ class EmailAndPush(models.Model):
         (NEW, 'new')
     )
 
+    # AA: Comment: pls rename so it's not confused with events/event_type
     event_type = models.PositiveSmallIntegerField(choices=EVENT_TYPE, default=INSTANT)
     last_tried = models.DateTimeField(blank=True, null=True)
     created = models.DateTimeField(auto_now=True)

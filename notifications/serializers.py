@@ -12,6 +12,7 @@ from datetime import timedelta
 
 import pdb
 
+
 class GenericSerializerField(serializers.RelatedField):
 
     def get_queryset(self):
@@ -35,7 +36,6 @@ class GenericSerializerField(serializers.RelatedField):
         obj = ct.get_object_for_this_type(id=id)
         return obj
 
-
     def to_representation(self, value):
         return dict(
             type=ContentType.objects.get_for_model(value).name,
@@ -46,46 +46,32 @@ class GenericSerializerField(serializers.RelatedField):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ('id', 'delivery_type', 'recipient', 'actor', 'target', 'action_object', 'verb',
-                  'start', 'end', 'notif_type')
+        fields = ('id', 'delivery_type', 'recipient', 'target', 'action_object', 'verb',
+                  'start', 'end', 'notif_type', 'do_push')
 
-
-    actor = GenericSerializerField()
-    recipient = GenericSerializerField()
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
     start = serializers.DateTimeField(required=False)
     end = serializers.DateTimeField(required=False)
-    notif_type = serializers.IntegerField(required=False)
+    # AA Comments: notif_type needn't really be exposed in rest. Leaving it here for now.
+    notif_type = serializers.IntegerField(required=False, default=verbs.WIZCARD_ENTITY_BROADCAST[0])
+    do_push = serializers.BooleanField(required=False, default=True, write_only=True)
 
     def create(self, validated_data):
-        parms = dict()
-
-        actor = validated_data.pop('actor')
-        recipient = validated_data.pop('recipient')
-        notif_type = validated_data.pop('notif_type', verbs.WIZCARD_EVENT_BROADCAST[0])
         delivery_type = validated_data.pop('delivery_type', Notification.ALERT)
         start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))
         end = validated_data.pop('end', timezone.now() + timedelta(minutes=1))
+        do_push=validated_data.pop('do_push', False)
 
-
-        target = validated_data.pop('target', None)
-        parms.update(target=target)
-        parms.update(verb=validated_data.pop('verb'))
-
-
-        action_object = validated_data.pop('action_object', None)
-        parms.update(action_object=action_object)
-
-        push_notif = notify.send(actor,
-                                 recipient=recipient,
-                                 notif_type=notif_type,
-                                 delivery_type=delivery_type,
-                                 start_date=start,
-                                 end_date=end,
-                                 **parms
-                                 )
+        # AA: Comments: this was broken
+        push_notif = notify.send(
+            self.context.get('user'),
+            do_push=do_push,
+            is_async=True,
+            delivery_type=delivery_type,
+            start_date=start,
+            end_date=end,
+            **validated_data
+        )
 
         return push_notif[0][1]
-
-

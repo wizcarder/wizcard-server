@@ -2,24 +2,18 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
-from django.utils import timezone
 from django.conf import settings
 from .utils import id2slug
 from notifications.signals import notify
-from notifications.tasks import pushNotificationToApp
 from email_and_push_infra.models import EmailAndPush
 from wizserver import verbs
 import logging
 import pdb
 from datetime import timedelta
+from django.utils import timezone
 
+now = timezone.now()
 
-try:
-    from django.utils import timezone
-    now = timezone.now
-except ImportError:
-    from datetime import datetime
-    now = datetime.datetime.now()
 
 
 class NotificationManager(models.Manager):
@@ -67,16 +61,17 @@ class Notification(models.Model):
 
     """
 
+    # used by Portal. ALERT is also used by app for legacy path
     EMAIL = 1
-    PUSHNOTIF = 2
-    SMS = 3,
-    ALERT = 4
+    ALERT = 2
+
+    # used internally as consequence of 2
+    PUSHNOTIF = 3
 
     DELIVERY_TYPE = (
         (EMAIL, 'email'),
+        (ALERT, 'alert'),
         (PUSHNOTIF, 'pushnotif'),
-        (SMS, 'sms'),
-        (ALERT, 'alert')
     )
 
     """
@@ -140,7 +135,9 @@ class Notification(models.Model):
     action_object_object_id = models.CharField(max_length=255, blank=True, null=True)
     action_object = generic.GenericForeignKey('action_object_content_type', 'action_object_object_id')
 
-    timestamp = models.DateTimeField(default=now)
+    email_push = models.ForeignKey(EmailAndPush, related_name='email_push_notif', blank=True, null=True)
+
+    timestamp = models.DateTimeField(default=timezone.now)
 
     public = models.BooleanField(default=True)
     notif_type = models.PositiveIntegerField()
@@ -200,52 +197,91 @@ def notify_handler(notif_type, **kwargs):
     kwargs.pop('signal', None)
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
-    is_async = kwargs.pop('is_async', True)
+    is_async = kwargs.pop('is_async', False)
     delivery_type = kwargs.pop('delivery_type', Notification.ALERT)
     verb = kwargs.pop('verb', "")
     target = kwargs.pop('target', None)
-    notif_action_object = kwargs.pop('action_object', None)
-    delivery_array = [delivery_type]
+    action_object = kwargs.pop('action_object', None)
+    action_object_content_type = ContentType.objects.get_for_model(action_object) if action_object else None
+    action_object_object_id = action_object.pk if action_object else None
+    push_obj = None
 
     if is_async:
         start = kwargs.pop('start_date', timezone.now() + timedelta(minutes=1))
         end = kwargs.pop('end_date', start)
-        email_push = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT, start_date=start, end_date=end)
-        email_action_object = email_push
-        if delivery_type == Notification.ALERT:
-            delivery_array = [delivery_type, Notification.PUSHNOTIF]
 
-        #AR:TODO: Looks like every ALERT will have a Push notif (or atleast thats what the earlier code was doing)
-        # Had a pushnotiftoApp for every notification created so for every ALERT there has to be a pushnotif??
+        # AA: Comments: EmailPush cannot decide whether this is INSTANT or not. It has to come from top
+        # It might need additional fields in the REST API. Think about usecases. For example, if the portal
+        # user ties a push to a speaker session in the agenda. Portal will digest this, create some information
+        # to figure out when start-stop should be. Alternatively, it could be something that allows REST api to indicate
+        # that this is tied to this entity.
+        # net-net, pls think top-down, of all potential use-cases of what/why it's being implemented and construct
+        # the code architecture to span all those cases. We may not implement all those at once, but the arch
+        # should be extensible
 
-    for dtype in delivery_array:
-        is_async = False if dtype == Notification.ALERT else True
-        action_object = notif_action_object if not is_async else email_action_object
-        newnotify, created = Notification.objects.get_or_create(actor_content_type=ContentType.objects.get_for_model(actor),
-                                                                actor_object_id=actor.pk,
-                                                                recipient=recipient,
-                                                                readed=False,
-                                                                is_async=is_async,
-                                                                delivery_type=delivery_type,
-                                                                notif_type=notif_type,
-                                                                verb=verb,
-                                                                target_content_type=ContentType.objects.get_for_model(target),
-                                                                target_object_id=target.pk,
-                                                                defaults={
-                                                                    'public': bool(kwargs.pop('public', True)),
-                                                                    'timestamp': kwargs.pop('timestamp', now())
-                                                                }
-                                                                )
-        if not created:
-            return
-        if action_object:
-            setattr(newnotify, 'action_object_object_id', action_object.pk)
-            setattr(newnotify, 'action_object_content_type',
-                        ContentType.objects.get_for_model(action_object))
-            setattr(newnotify, 'action_object', action_object)
-            newnotify.save()
+        # action obj for async is always EmailAndPush
+        push_obj = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT, start_date=start, end_date=end)
+
+        # if push_notif needs to be sent
+        do_push = bool(kwargs.pop('do_push', False))
+
+    else:
+        # AA: TODO : The get_cards push determination can be done in a better way by combining
+        # apns_notification_dictionary & (Verb, APNS_REQUIRED, APNS_TEXT) tuple list
+
+        do_push = notif_type in verbs.apns_notification_dictionary
+        start = end = timezone.now()
+
+    if do_push:
+        # create EmailPush and Notif
+        push_obj = EmailAndPush.objects.create(
+            event_type=EmailAndPush.INSTANT,
+            start_date=start,
+            end_date=end
+        )
+
+        Notification.objects.create(
+            actor_content_type=ContentType.objects.get_for_model(actor),
+            actor_object_id=actor.pk,
+            recipient=recipient,
+            readed=False,
+            is_async=True,
+            delivery_type=Notification.PUSHNOTIF,
+            notif_type=notif_type,
+            verb=verb,
+            target_content_type=ContentType.objects.get_for_model(target),
+            target_object_id=target.pk,
+            email_push=push_obj,
+            action_object_content_type=action_object_content_type,
+            action_object_object_id=action_object_object_id,
+            public=bool(kwargs.pop('public', True)),
+            timestamp=kwargs.pop('timestamp', now())
+        )
+
+    is_async = False if delivery_type == Notification.ALERT else True
+
+    newnotify, created = Notification.objects.get_or_create(
+        actor_content_type=ContentType.objects.get_for_model(actor),
+        actor_object_id=actor.pk,
+        recipient=recipient,
+        readed=False,
+        delivery_type=delivery_type,
+        notif_type=notif_type,
+        verb=verb,
+        target_content_type=ContentType.objects.get_for_model(target),
+        target_object_id=target.pk,
+        email_push=push_obj,
+        defaults={
+            'is_async': is_async,
+            'action_object_content_type': action_object_content_type,
+            'action_object_object_id': action_object_object_id,
+            'public': bool(kwargs.pop('public', True)),
+            'timestamp': kwargs.pop('timestamp', now())
+        }
+    )
 
     return newnotify
+
 
 # connect the signal
 notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

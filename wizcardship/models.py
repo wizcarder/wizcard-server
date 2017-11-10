@@ -106,11 +106,13 @@ class WizcardManager(PolymorphicManager):
         rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
 
         #send Type 1 notification to both
-        notify.send(wizcard1.user, recipient=wizcard2.user,
+        notify.send(wizcard1.user,
+                    recipient=wizcard2.user,
                     notif_type=verbs.WIZREQ_T[0],
                     description=cctx.description,
                     target=wizcard1,
-                    action_object=rel1)
+                    action_object=rel1
+                    )
 
         notify.send(wizcard2.user,
                     recipient=wizcard1.user,
@@ -136,7 +138,8 @@ class WizcardManager(PolymorphicManager):
                         recipient=wizcard2.user,
                         notif_type=notif_tuple[0],
                         target=wizcard1,
-                        action_object=wizcard1.get_relationship(wizcard2))
+                        action_object=wizcard1.get_relationship(wizcard2)
+                        )
 
     def query_users(self, exclude_user, name, phone, email):
         #name can be first name, last name or even combined
@@ -257,9 +260,9 @@ class Wizcard(WizcardBase):
     user = models.OneToOneField(User, related_name='wizcard')
 
     wizconnections_to = models.ManyToManyField('self',
-                                                through='WizConnectionRequest',
-                                                symmetrical=False,
-                                                related_name='wizconnections_from'
+                                               through='WizConnectionRequest',
+                                               symmetrical=False,
+                                               related_name='wizconnections_from'
                                                )
 
     media = RelatedObjectsDescriptor()
@@ -277,6 +280,9 @@ class Wizcard(WizcardBase):
         return self.get_connections().count()
 
     wizconnection_count.short_description = _(u'Cards count')
+
+    def get_wizcard_users(self):
+        return [self.user]
 
     def wizconnection_summary(self, count=7):
         wizconnection_list = self.get_connections().all().select_related()[:count]
@@ -536,7 +542,7 @@ class WizConnectionRequest(models.Model):
                                            )
         else:
             self.cctx._usercctx = dict(notes=dict(note="",
-                                                    last_saved=self.created.strftime("%d %B %Y")
+                                                  last_saved=self.created.strftime("%d %B %Y")
                                                   )
                                        )
         self.save()
@@ -642,7 +648,7 @@ class WizcardFlick(models.Model):
 
     def delete(self, *args, **kwargs):
 
-        ## AR:TODO: Need to change this to notif_type
+        # AR:TODO: Need to change this to notif_type
         verb = kwargs.pop('type', None)
         self.location.get().delete()
 
@@ -654,7 +660,8 @@ class WizcardFlick(models.Model):
             notify.send(self.wizcard.user,
                         recipient=self.wizcard.user,
                         notif_type=verbs.WIZCARD_FLICK_TIMEOUT[0],
-                        target=self)
+                        target=self
+                        )
         else:
             #withdraw/delete flick case
             logger.debug('withdraw flicked wizcard %s', self.id)

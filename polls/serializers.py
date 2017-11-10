@@ -7,6 +7,7 @@ from entity.serializers import EntitySerializer
 
 import pdb
 
+
 class QuestionChoicesSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionChoicesBase
@@ -32,8 +33,8 @@ class QuestionSerializer(serializers.ModelSerializer):
         # clear all choices
         instance.choices.all().delete()
 
-        cls = Question.get_choice_cls_from_type(validated_data['question_type'])
         for c in choices:
+            cls = Question.get_choice_cls_from_type(validated_data['question_type'])
             cls.objects.create(question=instance, **c)
 
         obj = super(QuestionSerializer, self).update(instance, validated_data)
@@ -69,13 +70,12 @@ class PollSerializer(EntitySerializer):
         self.prepare(validated_data)
         obj = super(PollSerializer, self).create(validated_data)
         self.post_create(obj)
-        obj.notify_create()
 
         return obj
 
     def update(self, instance, validated_data):
         self.prepare(validated_data)
-        obj = super(PollSerializer, self).update(instance, validated_data)
+        super(PollSerializer, self).update(instance, validated_data)
 
         # clear all questions first. For some reason bulk delete is not working
         for q in instance.questions.all():
@@ -96,11 +96,9 @@ class PollSerializerL1(EntitySerializer):
     num_responders = serializers.SerializerMethodField()
     created = serializers.DateTimeField(format='%d-%b-%Y')
 
-
     def get_responded(self, obj):
         user = self.context.get('user')
         return UserResponse.objects.has_responded(user, obj)
-
 
     def get_num_responders(self, obj):
         return obj.num_responders()
@@ -112,24 +110,23 @@ class PollSerializerL2(PollSerializerL1):
 
     class Meta:
         model = Poll
-        fields = PollSerializerL1.Meta.fields  + ('questions', 'response')
-
+        fields = PollSerializerL1.Meta.fields + ('questions', 'response')
 
     def get_response(self, obj):
-        #pdb.set_trace()
         user = self.context.get('user')
-        #AR:TODO: Assumes there is no partially complete poll - DANGEROUS
+
+        # AR:TODO: Assumes there is no partially complete poll - DANGEROUS
         user_response = UserResponse.objects.filter(user=user, poll=obj)
         if user_response:
             response = UserResponseSerializer(user_response, many=True).data
         else:
-            response= QuestionSerializer(obj.questions, many=True).data
+            response = QuestionSerializer(obj.questions, many=True).data
+
         return response
 
 
-
 class UserResponseSerializer(serializers.ModelSerializer):
-    question = serializers.PrimaryKeyRelatedField()
+    question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
     answer = QuestionChoicesSerializer(read_only=True)
 
     class Meta:
@@ -137,10 +134,6 @@ class UserResponseSerializer(serializers.ModelSerializer):
         fields = ('id', 'question', 'answer', 'has_extra_text', 'extra_text', 'has_user_value', 'user_value')
 
 
-        #has_extra_text = serializers.BooleanField()
-        #extra_text = serializers.CharField()
-        #has_user_value = serializers.BooleanField()
-        #user_value = serializers.IntegerField()
 
 
 

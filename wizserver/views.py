@@ -29,7 +29,7 @@ import colander
 from converter import Converter
 
 from lib.ocr import OCR
-from wizcardship.models import  Wizcard, DeadCard, ContactContainer, WizcardFlick
+from wizcardship.models import Wizcard, DeadCard, ContactContainer, WizcardFlick
 from notifications.models import notify, Notification
 from entity.models import VirtualTable
 from meishi.models import Meishi
@@ -50,7 +50,7 @@ from recommendation.models import UserRecommendation, genreco
 from wizserver.tasks import contacts_upload_task
 from stats.models import Stats
 from entity.serializers import EventSerializerL1
-from base_entity.serializers import  EntityEngagementSerializer
+from base_entity.serializers import EntityEngagementSerializer
 from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2, DeadCardSerializerL2
 from userprofile.serializers import UserSerializerL0
 from base_entity.models import EntityUserStats
@@ -64,6 +64,7 @@ import pdb
 now = timezone.now
 
 logger = logging.getLogger(__name__)
+
 
 class WizRequestHandler(View):
     def post(self, request, *args, **kwargs):
@@ -79,6 +80,7 @@ class WizRequestHandler(View):
         #    pdispatch.response.error_response(err.INTERNAL_ERROR)
         #send response
         return pdispatch.response.respond()
+
 
 class ParseMsgAndDispatch(object):
     def __init__(self, request):
@@ -107,7 +109,7 @@ class ParseMsgAndDispatch(object):
         return out
 
     def dispatch(self):
-        status, response =  self.validate()
+        status, response = self.validate()
         if not status:
             return response
 
@@ -637,12 +639,12 @@ class ParseMsgAndDispatch(object):
         k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % username)
 
         d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
-        logger.info( "cached value for phone_check_xx {%s}", d)
+        logger.info("cached value for phone_check_xx {%s}", d)
 
         if not (d.has_key(k_user) and
-                        d.has_key(k_rand) and
-                        d.has_key(k_retry) and
-                        d.has_key(k_device_id)):
+                    d.has_key(k_rand) and
+                    d.has_key(k_retry) and
+                    d.has_key(k_device_id)):
             cache.delete_many([k_user, k_rand, k_retry, k_device_id])
             self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
             return self.response
@@ -884,7 +886,6 @@ class ParseMsgAndDispatch(object):
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifUserLookup(
-                count,
                 self.user,
                 users)
 
@@ -1265,7 +1266,6 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def WizcardRolodexArchivedCards(self):
-        out = ""
         try:
             wizcard = self.user.wizcard
         except:
@@ -1323,7 +1323,7 @@ class ParseMsgAndDispatch(object):
                                                      lng=self.lng,
                                                      timeout=timeout,
                                                      reverse_geo_name=location,
-                                                     a_created = a_created)
+                                                     a_created=a_created)
             location = flick_card.create_location(self.lat, self.lng)
             location.start_timer(timeout)
 
@@ -1481,7 +1481,7 @@ class ParseMsgAndDispatch(object):
 
         if count:
             out = Wizcard.objects.serialize(flick_pickers,
-                                            template = fields.wizcard_template_brief)
+                                            template=fields.wizcard_template_brief)
             self.response.add_data("flickPickers", out)
 
         self.response.add_data("count", count)
@@ -1576,7 +1576,6 @@ class ParseMsgAndDispatch(object):
                         location=location_str)
                 rel21 = r_wizcard.get_relationship(wizcard)
                 conn_status = verbs.WIZREQ_U[0]
-
 
                 if rel12:
                     # wizcard->r_wizcard exists previously ?
@@ -1674,9 +1673,11 @@ class ParseMsgAndDispatch(object):
                 )
 
                 #Q this to the receiver
-                notify.send(self.user, recipient=r_user,
+                notify.send(self.user,
+                            recipient=r_user,
                             notif_type=verbs.WIZCARD_TABLE_INVITE[0],
-                            target=table)
+                            target=table
+                            )
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE],
                                verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             # create future user
@@ -1707,10 +1708,12 @@ class ParseMsgAndDispatch(object):
                                                        status=verbs.PENDING,
                                                        cctx=cctx1)
                         # Q notif for to_wizcard
-                        notify.send(self.user, recipient=wizcard.user,
+                        notify.send(self.user,
+                                    recipient=wizcard.user,
                                     notif_type=verbs.WIZREQ_U[0],
                                     target=obj,
-                                    action_object=rel12)
+                                    action_object=rel12
+                                    )
                     elif rel12.status == verbs.DECLINED or \
                                     rel12.status == verbs.DELETED:
                         # reset 2 to pending. Yes there is a potential "don't bother me" angle
@@ -1722,7 +1725,7 @@ class ParseMsgAndDispatch(object):
                                     action_object=rel12)
 
                     rel21 = wizcard.get_relationship(obj)
-                    cctx2 = ConnectionContext(asset_obj = wizcard,connection_mode=receiver_type)
+                    cctx2 = ConnectionContext(asset_obj=wizcard, connection_mode=receiver_type)
                     if not rel21:
                         # create and accept implicitly wizcard2->wizcard1 with cctx->asset_obj as the from_wizcard
                         rel21 = Wizcard.objects.cardit(wizcard,
@@ -1742,7 +1745,7 @@ class ParseMsgAndDispatch(object):
                             rel21.save()
                             conn_status = verbs.WIZREQ_T_HALF
                         else:
-                        # if declined/deleted, follower-d case, full card can be added
+                            # if declined/deleted, follower-d case, full card can be added
                             rel21.set_context(cctx2)
                             rel21.accept()
                             conn_status = verbs.WIZREQ_T
@@ -1766,17 +1769,13 @@ class ParseMsgAndDispatch(object):
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-
-
                     notify.send(self.user,
                                 recipient=self.user,
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
                                 target=wizcard,
                                 is_async=True,
-                                action_object=email_push,
                                 delivery_type=Notification.EMAIL
                                 )
-                    #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=wizcard, delivery=EmailEvent.EMAIL)
             else:
                 fuser = FutureUser.objects.get_or_create(
                         inviter=self.user,
@@ -1793,7 +1792,6 @@ class ParseMsgAndDispatch(object):
                                 is_async=True,
                                 delivery_type=Notification.EMAIL
                                 )
-                    #message_trigger.send(self.user, trigger=EmailEvent.INVITED, source=self.user.wizcard, target=fuser, delivery=Notification.EMAIL)
 
     def UserQuery(self):
         try:
@@ -1857,7 +1855,7 @@ class ParseMsgAndDispatch(object):
             video_url = self.sender['video_url']
             rand_val = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
 
-            filename = "thumbnail_video-%s.%s.jpg" % (rand_val, now().strftime ("%Y-%m-%d %H:%M"))
+            filename = "thumbnail_video-%s.%s.jpg" % (rand_val, now().strftime("%Y-%m-%d %H:%M"))
             outfile = OUTFILE_PATH+filename
 
             c = Converter()
@@ -1886,7 +1884,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        s = WizcardSerializerL1 if self.app_settings.is_profile_private else WizcardSerializerL2
+        # s = WizcardSerializerL1 if self.app_settings.is_profile_private else WizcardSerializerL2
         out = WizcardSerializerL2(wizcard).data
 
         self.response.add_data("Details", out)
@@ -2031,7 +2029,7 @@ class ParseMsgAndDispatch(object):
                 location_str = ""
 
             cctx = ConnectionContext(
-                asset_obj = deadcard,
+                asset_obj=deadcard,
                 location=location_str
             )
             deadcard.cctx = cctx
@@ -2078,14 +2076,14 @@ class ParseMsgAndDispatch(object):
                 self.response.error_response(err.NO_RECEIVER)
         else:
             if not deadcard.activated:
-                notify.send(self.user,
-                            recipient=self.user,
-                            notif_type=verbs.WIZCARD_SCANNED_USER[0],
-                            target=deadcard,
-                            is_async=True,
-                            delivery_type=Notification.EMAIL
-                            )
-                #message_trigger.send(self.user, trigger=EmailEvent.SCANNED, source=self.user.wizcard, target=deadcard, delivery=Notification.EMAIL)
+                notify.send(
+                    self.user,
+                    recipient=self.user,
+                    notif_type=verbs.WIZCARD_SCANNED_USER[0],
+                    target=deadcard,
+                    is_async=True,
+                    delivery_type=Notification.EMAIL
+                )
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
         # or rescan
@@ -2141,9 +2139,7 @@ class ParseMsgAndDispatch(object):
         #too much
         return self.response
 
-
     def GetRecommendations(self):
-
         size = self.sender['size'] if 'size' in self.sender else settings.GET_RECO_SIZE
 
         # AA: Comments: BIG Overarching comment...please get into the habit

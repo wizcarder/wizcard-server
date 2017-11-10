@@ -308,7 +308,8 @@ class RecoRunner(RabbitServer):
             notify.send(tuser,
                         recipient=tuser,
                         notif_tuple=verbs.WIZCARD_RECO_READY[0],
-                        target=tuser.wizcard,onlypush=True)
+                        target=tuser.wizcard
+                        )
 
     def updateRecoCount(self,tuser,recocount):
         au_profile = tuser.profile.app_user()
