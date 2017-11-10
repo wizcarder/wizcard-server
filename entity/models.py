@@ -46,8 +46,8 @@ class EventManager(BaseEntityManager):
 
 
 class Event(BaseEntity):
-    start = models.DateTimeField(auto_now_add=True)
-    end = models.DateTimeField(auto_now_add=True)
+    start = models.DateTimeField(default=timezone.now)
+    end = models.DateTimeField(default=timezone.now)
 
     objects = EventManager()
 
@@ -235,8 +235,8 @@ class Agenda(BaseEntityComponent):
 
 class AgendaItem(BaseEntityComponent, Base412Mixin):
     agenda = models.ForeignKey(Agenda, related_name='items')
-    start = models.DateTimeField(auto_now_add=True)
-    end = models.DateTimeField(auto_now_add=True)
+    start = models.DateTimeField(default=timezone.now)
+    end = models.DateTimeField(default=timezone.now)
     where = models.CharField(max_length=100, default="")
 
 

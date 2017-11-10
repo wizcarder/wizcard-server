@@ -169,7 +169,7 @@ def notify_handler(verb, **kwargs):
     onlypush = kwargs.pop('onlypush', False)
 
     if not onlypush:
-        newnotify, created = Notification.objects.get_or_create(
+        newnotify = Notification.objects.create(
             recipient=recipient,
             verb=unicode(verb),
             readed=False,
@@ -180,9 +180,6 @@ def notify_handler(verb, **kwargs):
                 'timestamp': kwargs.pop('timestamp', now())
             }
         )
-
-        if not created:
-            return
 
         for opt in ('target', 'action_object'):
             obj = kwargs.pop(opt, None)

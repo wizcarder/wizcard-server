@@ -31,7 +31,7 @@ class CompanyTitleMixin(models.Model):
     class Meta:
         abstract = True
 
-    company = TruncatingCharField(max_length=40, blank=True)
+    company = TruncatingCharField(max_length=100, blank=True)
     title = TruncatingCharField(max_length=200, blank=True)
 
 
@@ -50,7 +50,7 @@ class Base412Mixin(Base411Mixin):
         abstract = True
 
     website = models.URLField(blank=True)
-    description = models.CharField(max_length=1000, blank=True)
+    description = models.CharField(max_length=2000, blank=True)
     ext_fields = PickledObjectField(default={}, blank=True)
 
 
