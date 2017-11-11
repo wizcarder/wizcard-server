@@ -45,6 +45,10 @@ class EventManager(BaseEntityManager):
     def get_expired(self):
         return self.filter(end__lt=timezone.now(), expired=False)
 
+    def get_girnar_event(self):
+        e = Event.objects.filter(name="Girnar Darshan")[0]
+        return e
+
 
 class Event(BaseEntity):
     start = models.DateTimeField(default=timezone.now)
@@ -56,7 +60,7 @@ class Event(BaseEntity):
     def notify_update(self):
         self.notify_all_users(
             self.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE[0],
+            verbs.WIZCARD_ENTITY_UPDATE,
             self
         )
 

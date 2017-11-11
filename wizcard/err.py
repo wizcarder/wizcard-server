@@ -22,13 +22,14 @@ VALIDITY_CHECK_FAILED = {'errno': 20, 'str': "validity check fails on data"}
 CRITICAL_ERROR = {'errno': 21, 'str': "something went wrong...please delete and reinstall the app"}
 LIB_OCR_ERROR = {'errno': 22, 'str': "OCR lib error"}
 LIB_OCR_CELERY_TIMEOUT = {'errno': 23, 'str': "OCR response delayed"}
-NO_RECEIVER = {'errno': 25, 'str': "No receiver in the request"}
 VERSION_UPGRADE = {'errno': 24, 'str': "We have a better version of WizCard, Upgrade to Continue"}
+NO_RECEIVER = {'errno': 25, 'str': "No receiver in the request"}
 REVERSE_INVITE = {'errno': 26, 'str': "Invitation expired/revoked, Do you want to invite?"}
 INVALID_STATE = {'errno': 27, 'str': "Invalid connection state"}
 SELF_INVITE = {'errno': 28, 'str': "Connecting with Yourself - You are well connected;)"}
 EMBED_FAILED = {'errno': 29, 'str': "Couldn't Embed Video"}
 POLL_RESPONSE_INVALID = {'errno': 30, 'str': "Question or Answer id not present"}
+APP_AUTHORIZE_FAILED = {'errno' : 31, 'str': 'App access is restricted to attendees'}
 
 
 IGNORE = {'result': 1, 'ignore': 1, 'errStr': ""}

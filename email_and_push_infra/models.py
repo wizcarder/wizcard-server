@@ -67,6 +67,11 @@ class EmailAndPush(models.Model):
         (SCHEDULED, 'SCHEDULED')
     )
 
+    @property
+    def get_event_type(self):
+        return self.event_type
+
+
     SUCCESS = 0
     FAILURE = -1
     NEW = 1

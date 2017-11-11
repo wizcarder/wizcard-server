@@ -253,13 +253,14 @@ class EventSerializerL1(EntitySerializer):
         ).data
 
     def get_highlights(self, obj):
-        if settings.GIRNAR_APP == True:
-            key_order = ["About Girnar", "About Navanu", "Dress Code", "Safety Code"]
-            if obj.highlights:
-                list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
-                od = OrderedDict(list_of_tuples)
-                return od
-            return highlights
+        key_order = ["About Girnar", "About Lord Neminath", "About Navanu", "Our Guru", "Dress Code", "Safety Code", "Medical Help"] 
+
+        if obj.highlights:
+            list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
+            od = OrderedDict(list_of_tuples)
+            return od
+        else:
+            return None
 
 # these are used by App.
 class EventSerializerL2(EntitySerializer):
@@ -270,6 +271,7 @@ class EventSerializerL2(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
+    highlights = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -346,6 +348,15 @@ class EventSerializerL2(EntitySerializer):
             context=self.context
         ).data
 
+    def get_highlights(self, obj):
+        key_order = ["About Girnar", "About Lord Neminath", "About Navanu", "Our Guru", "Dress Code", "Safety Code", "Medical Help"] 
+
+        if obj.highlights:
+            list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
+            od = OrderedDict(list_of_tuples)
+            return od
+        else:
+            return None
 
 # this is used by App
 class CampaignSerializerL1(EntitySerializer):

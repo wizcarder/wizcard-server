@@ -118,7 +118,8 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_ENTITY_UPDATE[0]       : self.notifEventUpdate,
             verbs.WIZCARD_ENTITY_EXPIRE[0]       : self.notifEventExpire,
             verbs.WIZCARD_ENTITY_DELETE[0]       : self.notifEventDelete,
-            verbs.WIZCARD_ENTITY_BROADCAST[0]    : self.notifEventBroadcast
+            verbs.WIZCARD_ENTITY_BROADCAST[0]    : self.notifEventBroadcast,
+            verbs.WIZCARD_NEW_POLL[0]           : self.notifEventNewPoll
         }
         for notification in notifications:
             notif_handler[notification.notif_type](notification)
@@ -223,6 +224,18 @@ class NotifResponse(ResponseN):
         out = dict(
             event=event_id,
             message=notif.verb
+        )
+        self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
+        logger.debug('%s', self.response)
+        return self.response
+
+    # AR: TODO: HACK HACK needs to be rewritten in an elegant way and handle all cases where there is a new entity added
+    def notifEventNewPoll(self, notif):
+        poll = notif.target
+        event = poll.get_parent_entities()[0]
+        out = dict(
+            poll=poll.id,
+            message=event.name + " - New Poll Waiting for you" + poll.description
         )
         self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
         logger.debug('%s', self.response)

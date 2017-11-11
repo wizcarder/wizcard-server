@@ -11,11 +11,9 @@ from django.db.models import Q
 from django.conf import settings
 from taganomy.models import Taganomy
 from base.char_trunc import TruncatingCharField
-from django.contrib.contenttypes.models import ContentType
 from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
-from notifications.models import Notification
 from wizserver import verbs
 from django.utils import timezone
 import pdb
@@ -285,10 +283,17 @@ class BaseEntityComponent(PolymorphicModel):
         int_ids = map(lambda x: int(x), ids)
 
         # AR: TODO Why try except ? id's should always be correct.
+        # AR: HACK HACK (Add nested serializers for polls)
+
         try:
             objs = c.objects.filter(id__in=int_ids)
             for obj in objs:
                 self.related.connect(obj, alias=type)
+                if type == BaseEntity.SUB_ENTITY_POLL:
+                    self.notify_all_users(self.get_creator(),
+                                          verbs.WIZCARD_NEW_POLL,
+                                          obj
+                                        )
         except:
             pass
 
@@ -475,7 +480,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.save()
 
     def delete(self, *args, **kwargs):
-        notif_tuple = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE[0])
+        notif_tuple = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE)
 
         self.notify_all_users(
             self.get_creator(),
@@ -484,19 +489,17 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             exclude_sender=False
         )
 
-        self.related.all().delete()
         self.location.get().delete()
 
         if notif_tuple[0] == verbs.WIZCARD_ENTITY_EXPIRE[0]:
             self.expired = True
             self.save()
         else:
+            self.related.all().delete()
             super(BaseEntity, self).delete(*args, **kwargs)
 
     def expire(self):
-        self.expired = True
-        self.save()
-        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE[0])
+        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
 
 
 # explicit through table since we will want to associate additional

@@ -6,8 +6,8 @@ from wizcard import instances
 
 RUNENV = os.getenv('WIZRUNENV', 'dev')
 
-APP_MAJOR = 1
-APP_MINOR = 9
+APP_MAJOR = 2
+APP_MINOR = 1
 
 DEBUG = False
 if RUNENV != 'prod':
@@ -375,6 +375,7 @@ ACCOUNT_EMAIL_REQUIRED=True
 #ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = True
 ENABLE_PHONE_LIST_CHECK = False
+GIRNAR_ENABLE = True
 
 #ACCOUNT_AUTHENTICATION_METHOD='email'
 #LOGIN_REDIRECT_URL = "http://www.getwizcard.com"
@@ -563,3 +564,6 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+GIRNAR_ATTENDEES = {
+    '14084641727' : 1
+}

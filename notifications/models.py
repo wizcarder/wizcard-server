@@ -226,9 +226,6 @@ def notify_handler(notif_type, **kwargs):
         do_push = bool(kwargs.pop('do_push', False))
 
     else:
-        # AA: TODO : The get_cards push determination can be done in a better way by combining
-        # apns_notification_dictionary & (Verb, APNS_REQUIRED, APNS_TEXT) tuple list
-
         do_push = notif_type in verbs.apns_notification_dictionary
         start = end = timezone.now()
 
@@ -255,7 +252,7 @@ def notify_handler(notif_type, **kwargs):
             action_object_content_type=action_object_content_type,
             action_object_object_id=action_object_object_id,
             public=bool(kwargs.pop('public', True)),
-            timestamp=kwargs.pop('timestamp', now())
+            timestamp=kwargs.pop('timestamp', timezone.now())
         )
 
     is_async = False if delivery_type == Notification.ALERT else True
@@ -276,7 +273,7 @@ def notify_handler(notif_type, **kwargs):
             'action_object_content_type': action_object_content_type,
             'action_object_object_id': action_object_object_id,
             'public': bool(kwargs.pop('public', True)),
-            'timestamp': kwargs.pop('timestamp', now())
+            'timestamp': kwargs.pop('timestamp', timezone.now())
         }
     )
 

@@ -560,6 +560,9 @@ class ParseMsgAndDispatch(object):
         response_mode = self.sender['response_mode']
         response_target = self.sender['target']
 
+        if settings.GIRNAR_ENABLE and response_target in settings.GIRNAR_ATTENDEES:
+            self.response.error_response(err.APP_AUTHORIZE_FAILED)
+
         #AA_TODO: security check for checkMode type
         k_user = (settings.PHONE_CHECK_USER_KEY % username)
         k_device_id = (settings.PHONE_CHECK_DEVICE_ID_KEY % username)
@@ -1018,6 +1021,10 @@ class ParseMsgAndDispatch(object):
         # Check for admin user connection and create it
         admin_user = UserProfile.objects.get_admin_user()
         admin_conn = wizcard.get_relationship(admin_user.wizcard)
+
+        if settings.GIRNAR_ENABLE:
+            ge = Event.objects.get_girnar_event()
+            ge.join(self.user)
 
         if not admin_conn:
             # connect implicitly with admin wizcard
