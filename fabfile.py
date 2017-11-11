@@ -98,10 +98,10 @@ def gitcloneupdate():
     with settings(warn_only=True):
         if run("test -d %s" % env.installroot).failed:
             run("git clone git@github.com:wizcarder/wizcard-server.git  %s" % env.installroot)
-            run("cd %s && git checkout -b entity" % env.installroot)
+            run("cd %s && git checkout -b girnar-email-infra" % env.installroot)
         else:
             with cd(env.installroot):
-             run("cd %s && git checkout entity && git pull origin entity" % env.installroot)
+             run("cd %s && git checkout girnar-email-infra && git pull origin girnar-email-infra" % env.installroot)
 
 def localgitpullfile():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
@@ -132,8 +132,8 @@ def postinstall():
                 with virtualenv():
 		    with cd(env.installroot):
                         #                        run("python manage.py syncdb")
-			if env.henv != 'prod':
-	                        run("python manage.py makemigrations")
+#			if env.henv != 'prod':
+#	                        run("python manage.py makemigrations")
                         run("python manage.py migrate")
 
                         #append_settings()

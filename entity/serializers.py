@@ -253,14 +253,13 @@ class EventSerializerL1(EntitySerializer):
         ).data
 
     def get_highlights(self, obj):
-        pdb.set_trace()
-        key_order = ["About Girnar", "About Navanu", "Dress Code", "Safety Code"]
-        if obj.highlights:
-            list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
-            od = OrderedDict(list_of_tuples)
-            return od
-        else:
-            return None
+        if settings.GIRNAR_APP == True:
+            key_order = ["About Girnar", "About Navanu", "Dress Code", "Safety Code"]
+            if obj.highlights:
+                list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
+                od = OrderedDict(list_of_tuples)
+                return od
+            return highlights
 
 # these are used by App.
 class EventSerializerL2(EntitySerializer):
