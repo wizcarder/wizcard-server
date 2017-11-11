@@ -252,7 +252,7 @@ def notify_handler(notif_type, **kwargs):
             action_object_content_type=action_object_content_type,
             action_object_object_id=action_object_object_id,
             public=bool(kwargs.pop('public', True)),
-            timestamp=kwargs.pop('timestamp', now())
+            timestamp=kwargs.pop('timestamp', timezone.now())
         )
 
     is_async = False if delivery_type == Notification.ALERT else True
@@ -273,7 +273,7 @@ def notify_handler(notif_type, **kwargs):
             'action_object_content_type': action_object_content_type,
             'action_object_object_id': action_object_object_id,
             'public': bool(kwargs.pop('public', True)),
-            'timestamp': kwargs.pop('timestamp', now())
+            'timestamp': kwargs.pop('timestamp', timezone.now())
         }
     )
 
