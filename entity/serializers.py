@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from polls.serializers import PollSerializerL1
 from collections import OrderedDict
+from django.conf import settings
 
 import pdb
 
@@ -253,14 +254,16 @@ class EventSerializerL1(EntitySerializer):
         ).data
 
     def get_highlights(self, obj):
-        key_order = ["About Girnar", "About Lord Neminath", "About Navanu", "Our Guru", "Dress Code", "Safety Code", "Medical Help"] 
+        if settings.GIRNAR_ENABLE == True:
 
-        if obj.highlights:
-            list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
-            od = OrderedDict(list_of_tuples)
-            return od
+            key_order = ["About Girnar", "About Lord Neminath", "About Navanu", "Our Guru", "Dress Code", "Safety Code", "Medical Help"]
+
+            if obj.highlights:
+                list_of_tuples = [(mkey, obj.highlights[mkey]) for mkey in key_order]
+                od = OrderedDict(list_of_tuples)
+                return od
         else:
-            return None
+            return obj.highlights
 
 # these are used by App.
 class EventSerializerL2(EntitySerializer):
