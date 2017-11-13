@@ -66,9 +66,9 @@ WIZCARD_SETTINGS = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
                 'NAME': 'girnar-stage',
-                'USER': 'wizuser',
-                'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'USER': 'girnar_user',
+                'PASSWORD': 'neminath',
+                'HOST': 'girnar-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
             }
         },
         'caches': {
@@ -345,14 +345,14 @@ INSTALLED_APPS = (
 #django-storage settings
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = 'AKIAJCEZ5MQHG4U2M2UA'
+AWS_SECRET_ACCESS_KEY = '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'
 AWS_BUCKET_ENV = "-" + RUNENV
 AWS_QUERYSTRING_AUTH = False
 #Expiry set to 100 years
 AWS_QUERYSTRING_EXPIRE = 3153600000
-AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV 
-S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
+AWS_STORAGE_BUCKET_NAME = 'girnar-image-bucket' + AWS_BUCKET_ENV
+S3_URL = 'http://s3.ap-south-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 EMAIL_DEFAULT_IMAGE = S3_URL +  "/invites/email_info.png"
 DEFAULT_VIDEO_THUMBNAIL = AWS_STORAGE_BUCKET_NAME+ "/thumbnails/no-video-uploaded.gif"
 

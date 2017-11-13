@@ -101,7 +101,7 @@ def gitcloneupdate():
             run("cd %s && git checkout -b girnar-email-infra" % env.installroot)
         else:
             with cd(env.installroot):
-             run("cd %s && git checkout girnar-email-infra && git pull origin girnar-email-infra" % env.installroot)
+             run("cd %s && git pull origin girnar-email-infra" % env.installroot)
 
 def localgitpullfile():
     repo = 'git@github.com:wizcarder/wizcard-server.git'
