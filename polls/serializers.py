@@ -94,7 +94,7 @@ class PollSerializerL1(EntitySerializer):
 
     responded = serializers.SerializerMethodField()
     num_responders = serializers.SerializerMethodField()
-    created = serializers.DateTimeField(format='%d-%b-%Y')
+    created = serializers.DateTimeField()
 
     def get_responded(self, obj):
         user = self.context.get('user')

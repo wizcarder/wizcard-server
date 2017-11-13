@@ -48,5 +48,9 @@ CELERYBEAT_SCHEDULE = {
     'handle_message' : {
         'task' : 'email_and_push_infra.tasks.message_event_handler',
         'schedule' : timedelta(seconds=30),
+    },
+    'create_notifs' : {
+        'task' : 'notifications.tasks.create_notifs',
+        'schedule': timedelta(seconds=60),
     }
 }

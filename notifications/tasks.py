@@ -1,14 +1,39 @@
 from celery import shared_task
 from celery.contrib import rdb
+from celery import task
 from wizserver import verbs
 from pyapns import notify as apns_notify
 from androidgcm import send_gcm_message
 from django.conf import settings
 from django.contrib.auth.models import User
+from notifications.signals import notify
+from notifications.models import Notification
 import logging
 import pdb
 
 logger = logging.getLogger(__name__)
+
+
+@task(ignore_result=True)
+def create_notifs():
+
+    # AR: TODO: Scaling challenge - Cannot have one task serially run through all notifications
+    ns = Notification.objects.get_broadcast()
+
+    for n in ns:
+        users = n.target.get_wizcard_users()
+        for u in users:
+            notify.send(
+                n.sender,
+                u,
+                notif_type=verbs.WIZCARD_ENTITY_BROADCAST[0],
+                target=n.target,
+                action_object=n.action_object,
+                verb=n.verb,
+            )
+        n.mark_as_read()
+
+
 
 
 @shared_task(ignore_result=True)

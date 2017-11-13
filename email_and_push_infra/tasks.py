@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 @task(ignore_result=True)
 def message_event_handler():
     logger.debug('Messaging Tick received')
-    notifs = Notification.objects.async()
+    notifs = Notification.objects.get_async()
 
     for n in notifs:
         delivery_type = n.delivery_type

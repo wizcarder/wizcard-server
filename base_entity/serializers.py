@@ -23,6 +23,7 @@ class RelatedSerializerField(serializers.RelatedField):
 
         ids = data.get('ids', None)
         etype = data.get('type', None)
+        overwrite = data.get('overwrite', False)
 
         # Perform the data validation.
         if ids is None:
@@ -36,7 +37,8 @@ class RelatedSerializerField(serializers.RelatedField):
 
         return {
             'ids': ids,
-            'type': etype
+            'type': etype,
+            'overwrite': overwrite
         }
 
     def to_representation(self, value):
@@ -204,7 +206,9 @@ class EntitySerializer(EntitySerializerL0):
         sub_entities = validated_data.pop('related', None)
         if sub_entities is not None:
             for s in sub_entities:
-                instance.remove_sub_entities_of_type(s['type'])
+                overwrite = s.pop('overwrite', False)
+                if overwrite:
+                    instance.remove_sub_entities_of_type(s['type'])
                 instance.add_subentities(**s)
 
         location = validated_data.pop('location', None)

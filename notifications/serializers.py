@@ -54,7 +54,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     start = serializers.DateTimeField(required=False)
     end = serializers.DateTimeField(required=False)
     # AA Comments: notif_type needn't really be exposed in rest. Leaving it here for now.
-    notif_type = serializers.IntegerField(required=False, default=verbs.WIZCARD_ENTITY_BROADCAST[0])
+    notif_type = serializers.IntegerField(required=False, default=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0])
     do_push = serializers.BooleanField(required=False, default=True, write_only=True)
 
     def create(self, validated_data):

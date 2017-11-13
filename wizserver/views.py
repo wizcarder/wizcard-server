@@ -1851,6 +1851,8 @@ class ParseMsgAndDispatch(object):
 
     def GetVideoThumbnailUrl(self):
         video_url = self.sender['video_url']
+        pass
+        '''
 
         try:
             resp = noembed.embed(video_url)
@@ -1882,6 +1884,7 @@ class ParseMsgAndDispatch(object):
                 return self.response
 
         self.response.add_data("video_thumbnail_url", video_thumbnail_url)
+        '''
         return self.response
 
     def WizcardGetDetail(self):
@@ -2409,7 +2412,10 @@ class ParseMsgAndDispatch(object):
 
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
-            entity = e.objects.get(id=id)
+            if entity_type == 'EVT' and settings.GIRNAR_ENABLE:
+                entity = Event.objects.get_girnar_event()
+            else:
+                entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
