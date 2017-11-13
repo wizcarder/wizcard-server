@@ -276,7 +276,7 @@ apns_notification_dictionary = {
     WIZCARD_ENTITY_BROADCAST[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
-        'alert': 'Message from {2.name} - {3}'
+        'alert': 'Message from {1.name} - {3}'
     }
 
 }

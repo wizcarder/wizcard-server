@@ -26,7 +26,7 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.conf import settings
 import colander
-from converter import Converter
+#from converter import Converter
 
 from lib.ocr import OCR
 from wizcardship.models import Wizcard, DeadCard, ContactContainer, WizcardFlick

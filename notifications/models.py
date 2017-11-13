@@ -34,7 +34,7 @@ class NotificationManager(models.Manager):
             n.save()
         return count
 
-    def mark_all_as_read(self, recipient, count):
+    def mark_all_as_read(self, recipient):
         return self.filter(recipient=recipient, is_async=False, readed=False).update(readed=True)
 
     def migrate_future_user(self, future, current):
