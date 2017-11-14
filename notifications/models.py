@@ -24,7 +24,7 @@ class NotificationManager(models.Manager):
         return self.filter(recipient=user, is_async=False, acted_upon=False)
 
     def unread_count(self, user):
-        return self.unread(user).count()
+        return self.filter(recipient=user, is_async=False, readed=False).count()
 
     def mark_specific_as_read(self, notifications):
         count = 0

@@ -2413,7 +2413,14 @@ class ParseMsgAndDispatch(object):
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             if entity_type == 'EVT' and settings.GIRNAR_ENABLE:
-                entity = Event.objects.get_girnar_event()
+                notif_count = Notification.objects.unread_count(self.user)
+                events_cache = cache.get("events_response")
+                if notif_count or not events_cache:
+                    entity = Event.objects.get_girnar_event()
+                else:
+                    self.response.add_data("result", cache.get("events_response"))
+                    return self.response
+
             else:
                 entity = e.objects.get(id=id)
         except:
@@ -2426,6 +2433,8 @@ class ParseMsgAndDispatch(object):
 
         out = s(entity, **self.user_context).data
         self.response.add_data("result", out)
+        if settings.GIRNAR_ENABLE:
+            cache.set("events_response", out)
 
         return self.response
 
