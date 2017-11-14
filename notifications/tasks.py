@@ -24,7 +24,7 @@ def create_notifs():
         users = n.target.get_wizcard_users()
         for u in users:
             notify.send(
-                n.sender,
+                n.actor,
                 recipient=u,
                 notif_type=verbs.WIZCARD_ENTITY_BROADCAST[0],
                 target=n.target,
@@ -53,8 +53,6 @@ def pushNotificationToApp(
     receiver_p = User.objects.get(id=receiver_id).profile
     app_user = receiver_p.app_user()
 
-    if not app_user:
-        return
 
     if action_object_id:
         action_object = a_content_type.get_object_for_this_type(pk=action_object_id)

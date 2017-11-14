@@ -11,9 +11,9 @@ logging.basicConfig(level=logging.INFO)
 env.venv = '/home/'+env.runuser+'/'+env.henv
 env.activate = 'source /home/' +env.runuser+'/'+ env.henv+'/bin/activate'
 env.installroot = '/home/'+env.runuser+'/' + env.henv + '.env/'
-env.awskey = './certs/stagewizcard.pem'
+env.awskey = './certs/girnar.pem'
 if env.henv != 'dev':
-    env.key_filename = ['./certs/prodindia.pem']
+    env.key_filename = ['./certs/girnar.pem']
 else:
     env.key_filename = ['/home/anand/testenv/wizcard-server/certs/wizcard-default.pem']
     env.key_filename = ['./certs/wizcard-default.pem']
