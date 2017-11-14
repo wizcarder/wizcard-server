@@ -35,7 +35,6 @@ def create_notifs():
 
 
 
-
 @shared_task(ignore_result=True)
 def pushNotificationToApp(
         sender_id,
