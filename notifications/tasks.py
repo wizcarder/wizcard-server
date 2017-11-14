@@ -24,7 +24,7 @@ def create_notifs():
         users = n.target.get_wizcard_users()
         for u in users:
             notify.send(
-                n.sender,
+                n.actor,
                 recipient=u,
                 notif_type=verbs.WIZCARD_ENTITY_BROADCAST[0],
                 target=n.target,
@@ -32,7 +32,6 @@ def create_notifs():
                 verb=n.verb,
             )
         n.mark_as_read()
-
 
 
 

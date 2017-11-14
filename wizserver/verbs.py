@@ -315,8 +315,8 @@ gcm_notification_dictionary = {
         'body': '{1.name} table has now expired',
     },
     WIZCARD_ENTITY_BROADCAST[0]: {
-        'title': '{2.name} announcement',
-        'body': 'Message from {2.name} - {3}',
+        'title': 'Girnar Darshan announcement',
+        'body': 'New Message from Girnar Darshan',
     }
 
 }
