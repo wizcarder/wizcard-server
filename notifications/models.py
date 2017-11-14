@@ -54,7 +54,7 @@ class NotificationManager(models.Manager):
         return self.filter(is_async=True, readed=False)
 
     def get_broadcast(self):
-        return self.filter(is_async=True, readed=False, notif_type=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0])
+        return self.filter(readed=False, notif_type=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0])
 
 
 class Notification(models.Model):
