@@ -2446,28 +2446,41 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def PollResponse(self):
-        id = self.sender.get('entity_id')
-        params = dict()
         try:
-            entity = Poll.objects.get(id=id)
-            params['poll'] = entity
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
-            return self.response
-
-        try:
-
-            params['answer'] = QuestionChoicesBase.objects.get(id=self.sender['answer_id'])
-            params['question'] = Question.objects.get(id=self.sender['question_id'])
-            params['has_extra_text'] = self.sender.get('has_extra_text', False)
-            params['extra_text'] = self.sender.get('extra_text', "")
-            params['has_user_value'] = self.sender.get('has_user_value', False)
-            params['user_value'] = self.sender.get('user_value', 5)
+            entity = Poll.objects.get(id=self.sender.pop('entity_id'))
         except:
             self.response.error_response(err.POLL_RESPONSE_INVALID)
             return self.response
 
-        UserResponse.objects.create(user=self.user, **params)
+        try:
+            answer = QuestionChoicesBase.objects.get(id=self.sender.pop('answer_id'))
+            question = Question.obects.get(id=self.sender.pop('question_id'))
+        except:
+            self.response.error_response(err.POLL_RESPONSE_INVALID)
+            return self.response
+
+        # AA: TODO: remove when app stops sending entity_type
+        self.sender.pop('entity_type', None)
+
+        # AA: Comments: This is convoluted. Why is the whole thing inside
+        # try_except, when the only thing that could potentially except are
+        # the lookups.
+        # Just use **self.sender after popping out the fields
+        # which were already handled. The model anyway contains default values
+        # params['answer'] = QuestionChoicesBase.objects.get(id=self.sender['answer_id'])
+        # params['question'] = Question.objects.get(id=self.sender['question_id'])
+        # params['has_extra_text'] = self.sender.get('has_extra_text', False)
+        # params['extra_text'] = self.sender.get('extra_text', "")
+        # params['has_user_value'] = self.sender.get('has_user_value', False)
+        # params['user_value'] = self.sender.get('user_value', 5)
+
+        UserResponse.objects.create(
+            user=self.user,
+            question=question,
+            answer=answer,
+            **self.sender
+        )
+        # UserResponse.objects.create(user=self.user, **self.sender)
 
         return self.response
 
