@@ -68,7 +68,7 @@ WIZCARD_SETTINGS = {
                 'NAME': 'girnar-stage',
                 'USER': 'girnar_user',
                 'PASSWORD': 'neminath',
-                'HOST': 'girnar-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'HOST': 'girnar-live.cvfcdhihy65l.ap-south-1.rds.amazonaws.com',
             }
         },
         'caches': {
@@ -85,7 +85,7 @@ WIZCARD_SETTINGS = {
                 'NAME': 'girnar-live',
                 'USER': 'girnar_user',
                 'PASSWORD': 'neminath',
-                'HOST': 'girnar-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'HOST': 'girnar-live.cvfcdhihy65l.ap-south-1.rds.amazonaws.com',
             }
         },
         'caches': {
