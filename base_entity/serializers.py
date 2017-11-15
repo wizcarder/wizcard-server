@@ -35,11 +35,9 @@ class RelatedSerializerField(serializers.RelatedField):
                 'type': 'This field is required.'
             })
 
-        return {
-            'ids': ids,
-            'type': etype,
-            'overwrite': overwrite
-        }
+        value_dict = {'ids': ids, 'type': etype, 'overwrite': overwrite} if overwrite else {'ids': ids, 'type': etype}
+
+        return value_dict
 
     def to_representation(self, value):
         pass
