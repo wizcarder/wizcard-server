@@ -98,6 +98,9 @@ class ParseMsgAndDispatch(object):
         self.user_stats = None
         self.global_stats = Stats.objects.get_global_stat()
 
+        # AR: TODO: Hate doing this but deadline looming running out of ideas..REVISIT soon
+        self.current_notif = 0
+
     def __repr__(self):
         out = ""
         if self.msg.has_key('header'):
@@ -560,8 +563,9 @@ class ParseMsgAndDispatch(object):
         response_mode = self.sender['response_mode']
         response_target = self.sender['target']
 
-        if settings.GIRNAR_ENABLE and response_target in settings.GIRNAR_ATTENDEES:
+        if settings.GIRNAR_ENABLE and response_target not in settings.GIRNAR_ATTENDEES:
             self.response.error_response(err.APP_AUTHORIZE_FAILED)
+            return self.response
 
         #AA_TODO: security check for checkMode type
         k_user = (settings.PHONE_CHECK_USER_KEY % username)
@@ -2410,13 +2414,16 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type')
         detail = self.sender.get('detail', True)
 
+
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             if entity_type == 'EVT' and settings.GIRNAR_ENABLE:
-                notif_count = Notification.objects.unread_count(self.user)
+                new_notif = Notification.objects.get_last_notif()
+                purge_cache = True if new_notif > self.current_notif else False
                 events_cache = cache.get("events_response")
-                if notif_count or not events_cache:
+                if not events_cache:
                     entity = Event.objects.get_girnar_event()
+                    self.current_notif = new_notif
                 else:
                     self.response.add_data("result", cache.get("events_response"))
                     return self.response
@@ -2433,7 +2440,7 @@ class ParseMsgAndDispatch(object):
 
         out = s(entity, **self.user_context).data
         self.response.add_data("result", out)
-        if settings.GIRNAR_ENABLE:
+        if  settings.GIRNAR_ENABLE and entity_type == 'EVT':
             cache.set("events_response", out)
 
         return self.response

@@ -50,6 +50,10 @@ class NotificationManager(models.Manager):
 
         return exclude_users
 
+    def get_last_notif(self):
+        last_notif = Notification.objects.latest('id')
+        return last_notif
+
     def get_async(self):
         return self.filter(is_async=True, readed=False)
 
