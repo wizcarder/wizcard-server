@@ -82,10 +82,10 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-prod-live',
-                'USER': 'wizuser',
-                'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'NAME': 'girnar-stage',
+                'USER': 'girnar_user',
+                'PASSWORD': 'neminath',
+                'HOST': 'girnar-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
             }
         },
         'caches': {

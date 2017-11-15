@@ -19,9 +19,11 @@ def message_event_handler():
     for n in notifs:
         delivery_type = n.delivery_type
         if delivery_type == Notification.EMAIL:
-            emailer = HtmlGen(sender=n.actor, trigger=n.notif_type, target=n.target)
-            status = emailer.email_send()
-            n.update_status(status)
+            # AR: TODO: Disabling email for girnar - Remember to enable it later
+            return
+            #emailer = HtmlGen(sender=n.actor, trigger=n.notif_type, target=n.target)
+            #status = emailer.email_send()
+            #n.update_status(status)
         elif delivery_type == Notification.PUSHNOTIF:
             wizcard_users = n.target.get_wizcard_users()
             for wusr in wizcard_users:
