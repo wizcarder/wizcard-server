@@ -82,7 +82,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'girnar-stage',
+                'NAME': 'girnar-live',
                 'USER': 'girnar_user',
                 'PASSWORD': 'neminath',
                 'HOST': 'girnar-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
