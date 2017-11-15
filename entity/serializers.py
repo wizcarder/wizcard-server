@@ -186,7 +186,7 @@ class EventSerializer(EntitySerializer):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
     def get_polls(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_POLL)
 
 # these are used by App.
 class EventSerializerL1(EntitySerializer):
