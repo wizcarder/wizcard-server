@@ -150,8 +150,7 @@ class QuestionChoices1ToX(QuestionChoicesBase):
 
 class UserResponseManager(models.Manager):
     def has_responded(self, user, poll):
-        qs = UserResponse.objects.filter(user=user, poll=poll)
-        return True if qs else False
+        return bool(UserResponse.objects.filter(user=user, poll=poll).exists())
 
 
 class UserResponse(models.Model):
