@@ -242,13 +242,13 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifEventDelete(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_EVENT_DELETE)
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_DELETE)
 
     def notifEventExpire(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_EVENT_EXPIRE)
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_EXPIRE)
 
     def notifEventUpdate(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_EVENT_UPDATE)
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
 
     def notifLeaveEntity(self, notif):
         wizcard = notif.actor.wizcard

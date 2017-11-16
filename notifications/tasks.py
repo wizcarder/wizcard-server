@@ -52,6 +52,10 @@ def pushNotificationToApp(
     receiver_p = User.objects.get(id=receiver_id).profile
     app_user = receiver_p.app_user()
 
+    # AR TODO: Ideally this case should not occur at all.. this is to retrofit all old notifs- HACK HACK
+    if not app_user:
+        return
+
 
     if action_object_id:
         action_object = a_content_type.get_object_for_this_type(pk=action_object_id)
