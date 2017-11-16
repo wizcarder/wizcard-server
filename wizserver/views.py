@@ -537,10 +537,11 @@ class ParseMsgAndDispatch(object):
         }
 
         # update location since it may have changed
-        if self.msg_has_location() and not self.msg_is_initial():
+        if self.msg_has_location() and not self.msg_is_initial() and not settings.DISABLE_LOCATION:
+
             self.app_userprofile.create_or_update_location(
-                self.lat,
-                self.lng)
+            self.lat,
+            self.lng)
 
         # process
         response = msgTypesValidatorsAndHandlers[self.msg_id][HANDLER]()
@@ -764,7 +765,8 @@ class ParseMsgAndDispatch(object):
 
     def LocationUpdate(self):
         #update location in ptree
-        self.app_userprofile.create_or_update_location(self.lat, self.lng)
+        if not settings.DISABLE_LOCATION:
+            self.app_userprofile.create_or_update_location(self.lat, self.lng)
         return self.response
 
     def ContactsUpload(self):
@@ -888,13 +890,13 @@ class ParseMsgAndDispatch(object):
         # if count:
         #     notifResponse.notifFlickedWizcardsLookup(count,
         #                                              self.user, flicked_wizcards)
-
-        users, count = self.app_userprofile.lookup(
-            settings.DEFAULT_MAX_LOOKUP_RESULTS)
-        if count:
-            notifResponse.notifUserLookup(
-                self.user,
-                users)
+        if not settings.DISABLE_LOCATION:
+            users, count = self.app_userprofile.lookup(
+                settings.DEFAULT_MAX_LOOKUP_RESULTS)
+            if count:
+                notifResponse.notifUserLookup(
+                    self.user,
+                    users)
 
         reco_count = self.app_userprofile.reco_ready
         if reco_count:
@@ -910,7 +912,8 @@ class ParseMsgAndDispatch(object):
         Notification.objects.mark_specific_as_read(notifications)
 
         #tickle the timer to keep it going and update the location if required
-        self.app_userprofile.create_or_update_location(self.lat, self.lng)
+        if not settings.DISABLE_LOCATION:
+            self.app_userprofile.create_or_update_location(self.lat, self.lng)
 
         self.response = notifResponse
         return self.response

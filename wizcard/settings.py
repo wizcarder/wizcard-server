@@ -212,6 +212,10 @@ USER_LASTSEEN_TIMEOUT = 60
 #max number of phone check attempt per code
 MAX_PHONE_CHECK_RETRIES = 3
 
+DISABLE_LOCATION = True
+EVENT_DISABLE_USERS = True
+
+
 #for UT..avoid nexmo
 PHONE_CHECK = False
 if RUNENV == 'prod':

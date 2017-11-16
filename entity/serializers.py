@@ -204,6 +204,8 @@ class EventSerializerL1(EntitySerializer):
         fields = parent_fields + my_fields
 
     def get_friends(self, obj):
+        if settings.EVENT_DISABLE_USERS:
+            return None
         user = self.context.get('user')
 
         friends_wizcards = obj.users_friends(user, self.MAX_THUMBNAIL_UI_LIMIT)
@@ -218,6 +220,8 @@ class EventSerializerL1(EntitySerializer):
             count=0,
             data=[]
         )
+        if settings.EVENT_DISABLE_USERS:
+            return out
 
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
