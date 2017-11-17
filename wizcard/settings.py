@@ -6,8 +6,8 @@ from wizcard import instances
 
 RUNENV = os.getenv('WIZRUNENV', 'dev')
 
-APP_MAJOR = 2
-APP_MINOR = 1
+APP_MAJOR = 1
+APP_MINOR = 0
 
 DEBUG = False
 if RUNENV != 'prod':
@@ -48,7 +48,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-test',
+                'NAME': 'girnar-stage',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
                 'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
@@ -1095,5 +1095,8 @@ GIRNAR_ATTENDEES = {
 	"+919677693274" : 1,
 	"+919176585100" : 1,
 	"+919586194126" : 1,
-	"+919482066483" : 1
+	"+919482066483" : 1,
+	"+919884415358" : 1,
+	"+919872016191" : 1,
+	"+919206136020" : 1,
 }
