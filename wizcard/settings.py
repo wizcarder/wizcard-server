@@ -95,7 +95,7 @@ WIZCARD_SETTINGS = {
             }
         },
         'raven_config': {
-            'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@sentry.io/87350'
+            'dsn': 'https://58a3cdb9234a4eb9b3c31ecc6cf21093:5236570702014736bf55bcf9cc20ad06@sentry.io/247013'
         }
     }
 }
@@ -1101,5 +1101,5 @@ GIRNAR_ATTENDEES = {
 	"+919206136020" : 1,
     "+919663638243" : 1,
     "+919930576007" : 1,
-    "+919884237486" : 1,"
+    "+919884237486" : 1,
 }
