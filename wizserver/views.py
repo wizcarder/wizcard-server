@@ -2421,10 +2421,10 @@ class ParseMsgAndDispatch(object):
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             if entity_type == 'EVT' and settings.GIRNAR_ENABLE:
-                new_notif = Notification.objects.get_last_notif()
-                purge_cache = True if new_notif > self.current_notif else False
+                new_notif = Notification.objects.unread()
+                purge_cache = True if new_notif > self.current_notif else True
                 events_cache = cache.get("events_response")
-                if not events_cache:
+                if purge_cache or not events_cache:
                     entity = Event.objects.get_girnar_event()
                     self.current_notif = new_notif
                 else:
@@ -2464,26 +2464,16 @@ class ParseMsgAndDispatch(object):
 
         # AA: TODO: remove when app stops sending entity_type
         self.sender.pop('entity_type', None)
-
-        # AA: Comments: This is convoluted. Why is the whole thing inside
-        # try_except, when the only thing that could potentially except are
-        # the lookups.
-        # Just use **self.sender after popping out the fields
-        # which were already handled. The model anyway contains default values
-        # params['answer'] = QuestionChoicesBase.objects.get(id=self.sender['answer_id'])
-        # params['question'] = Question.objects.get(id=self.sender['question_id'])
-        # params['has_extra_text'] = self.sender.get('has_extra_text', False)
-        # params['extra_text'] = self.sender.get('extra_text', "")
-        # params['has_user_value'] = self.sender.get('has_user_value', False)
-        # params['user_value'] = self.sender.get('user_value', 5)
+        self.sender.pop('wizcard_id', None)
+        self.sender.pop('device_type', None)
 
         UserResponse.objects.create(
             user=self.user,
+            poll=entity,
             question=question,
             answer=answer,
             **self.sender
         )
-        # UserResponse.objects.create(user=self.user, **self.sender)
 
         return self.response
 
