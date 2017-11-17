@@ -98,8 +98,6 @@ class ParseMsgAndDispatch(object):
         self.user_stats = None
         self.global_stats = Stats.objects.get_global_stat()
 
-        # AR: TODO: Hate doing this but deadline looming running out of ideas..REVISIT soon
-        self.current_notif = 0
 
     def __repr__(self):
         out = ""
@@ -2421,16 +2419,7 @@ class ParseMsgAndDispatch(object):
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             if entity_type == 'EVT' and settings.GIRNAR_ENABLE:
-                new_notif = Notification.objects.unread()
-                purge_cache = True if new_notif > self.current_notif else True
-                events_cache = cache.get("events_response")
-                if purge_cache or not events_cache:
-                    entity = Event.objects.get_girnar_event()
-                    self.current_notif = new_notif
-                else:
-                    self.response.add_data("result", cache.get("events_response"))
-                    return self.response
-
+                entity = Event.objects.get_girnar_event()
             else:
                 entity = e.objects.get(id=id)
         except:
@@ -2443,8 +2432,6 @@ class ParseMsgAndDispatch(object):
 
         out = s(entity, **self.user_context).data
         self.response.add_data("result", out)
-        if  settings.GIRNAR_ENABLE and entity_type == 'EVT':
-            cache.set("events_response", out)
 
         return self.response
 
@@ -2457,7 +2444,7 @@ class ParseMsgAndDispatch(object):
 
         try:
             answer = QuestionChoicesBase.objects.get(id=self.sender.pop('answer_id'))
-            question = Question.obects.get(id=self.sender.pop('question_id'))
+            question = Question.objects.get(id=self.sender.pop('question_id'))
         except:
             self.response.error_response(err.POLL_RESPONSE_INVALID)
             return self.response
