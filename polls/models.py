@@ -15,7 +15,7 @@ class PollManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
+    def users_entities(self, user, entity_type=BaseEntityComponent.POLL):
         return super(PollManager, self).users_entities(
             user,
             entity_type=entity_type
@@ -164,4 +164,3 @@ class UserResponse(models.Model):
     user_value = models.IntegerField(blank=True, default=5)
 
     objects = UserResponseManager()
-

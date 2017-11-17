@@ -59,7 +59,7 @@ from base_entity.models import EntityUserStats
 from base_entity.models import BaseEntityComponent
 from media_components.models import MediaEntities
 from media_components.signals import media_create
-from polls.models import Poll, UserResponse
+from polls.models import Poll, UserResponse, QuestionChoicesBase, Question
 
 import pdb
 
@@ -842,7 +842,7 @@ class ParseMsgAndDispatch(object):
         notifications = Notification.objects.unread(self.user)
         notifResponse = NotifResponse(notifications)
 
-        #i will be activated when I have a wizcard
+        # i will be activated when I have a wizcard
         if not self.userprofile.activated:
             return self.response
 
@@ -886,7 +886,6 @@ class ParseMsgAndDispatch(object):
             settings.DEFAULT_MAX_LOOKUP_RESULTS)
         if count:
             notifResponse.notifUserLookup(
-                count,
                 self.user,
                 users)
 
@@ -1258,7 +1257,6 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def WizcardRolodexArchivedCards(self):
-        out = ""
         try:
             wizcard = self.user.wizcard
         except:
@@ -2243,27 +2241,18 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def EventsGet(self):
-        do_location = True
-        if self.lat is None and self.lng is None:
-            try:
-                self.lat = self.app_userprofile.location.get().lat
-                self.lng = self.app_userprofile.location.get().lng
-            except:
-                # maybe location timedout. Shouldn't happen if messages from app
-                # are coming correctly...
-                logger.warning('No location information available')
-                do_location = False
+        # AA: Comments: Lets not do location stuff for now for events. We need to move to
+        # a pagination & filtered approach. Location doesn't really apply to MICE space
 
-        m_events = Event.objects.users_entities(self.user)
+        do_location = False
+
         n_events, count = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
-        ) if do_location else []
+        ) if do_location else Event.objects.filter(expired=False)
 
-        # temp for now
-        if count <= 2:
-            n_events = Event.objects.all()
+        m_events = Event.objects.users_entities(self.user, {'expired': False})
 
         events = list(set(m_events) | set(n_events))
 
@@ -2353,7 +2342,7 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type')
         cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
-        entities = cls.objects.users_entities(self.user)
+        entities = cls.objects.users_entities(self.user, entity_type=entity_type)
 
         out = s(entities, many=True, **self.user_context).data
         count = entities.count()
@@ -2385,14 +2374,28 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def PollResponse(self):
-        id = self.sender.get('entity_id')
         try:
-            entity = Poll.objects.get(id=id)
+            entity = Poll.objects.get(id=self.sender.pop('entity_id'))
         except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            self.response.error_response(err.POLL_RESPONSE_INVALID)
             return self.response
 
-        UserResponse.objects.create(user=self.user, **self.sender)
+        try:
+            answer = QuestionChoicesBase.objects.get(id=self.sender.pop('answer_id'))
+            question = Question.obects.get(id=self.sender.pop('question_id'))
+        except:
+            self.response.error_response(err.POLL_RESPONSE_INVALID)
+            return self.response
+
+        # AA: TODO: remove when app stops sending entity_type
+        self.sender.pop('entity_type', None)
+
+        UserResponse.objects.create(
+            user=self.user,
+            question=question,
+            answer=answer,
+            **self.sender
+        )
 
         return self.response
 
