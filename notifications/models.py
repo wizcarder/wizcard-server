@@ -262,7 +262,6 @@ def notify_handler(notif_type, **kwargs):
             timestamp=kwargs.pop('timestamp', timezone.now())
         )
 
-    is_async = False if delivery_type == Notification.ALERT else True
 
     newnotify, created = Notification.objects.get_or_create(
         actor_content_type=ContentType.objects.get_for_model(actor),
