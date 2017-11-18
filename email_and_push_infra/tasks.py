@@ -18,6 +18,7 @@ def message_event_handler():
 
     for n in notifs:
         delivery_type = n.delivery_type
+        n.mark_as_read()
         if delivery_type == Notification.EMAIL:
             # AR: TODO: Disabling email for girnar - Remember to enable it later
             return
@@ -25,18 +26,16 @@ def message_event_handler():
             #status = emailer.email_send()
             #n.update_status(status)
         elif delivery_type == Notification.PUSHNOTIF:
-            wizcard_users = n.target.get_wizcard_users()
-            for wusr in wizcard_users:
-                pushNotificationToApp.delay(n.actor_object_id,
-                                            wusr.id,
-                                            n.action_object_object_id,
-                                            n.action_object_content_type,
-                                            n.target_object_id,
-                                            n.target_content_type,
-                                            n.notif_type,
-                                            n.verb
-                                            )
-        n.mark_as_read()
+            pushNotificationToApp.delay(n.actor_object_id,
+                                        n.recipient.id,
+                                        n.action_object_object_id,
+                                        n.action_object_content_type,
+                                        n.target_object_id,
+                                        n.target_content_type,
+                                        n.notif_type,
+                                        n.verb
+                                        )
+
 
 
 

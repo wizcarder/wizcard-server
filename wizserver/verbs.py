@@ -316,7 +316,7 @@ gcm_notification_dictionary = {
     },
     WIZCARD_ENTITY_BROADCAST[0]: {
         'title': 'Girnar Darshan announcement',
-        'body': 'New Message from Girnar Darshan',
+        'body': '{3}',
     }
 
 }
