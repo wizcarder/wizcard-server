@@ -25,9 +25,9 @@ def send_gcm_message(key, reg_token, data):
 		push_result = -1
 	
 	if push_result > 0:
-		logger.debug("Successfully sent notification for %s",reg_token)
+		logger.info("Successfully sent notification for %s",reg_token)
 	else:
-		logger.debug("Remove reg_token %s", reg_token)
+		logger.info("Remove reg_token %s", reg_token)
 
 
 
