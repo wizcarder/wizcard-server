@@ -173,12 +173,10 @@ def notify_handler(verb, **kwargs):
             recipient=recipient,
             verb=unicode(verb),
             readed=False,
-            defaults={
-                'actor_content_type': ContentType.objects.get_for_model(actor),
-                'actor_object_id': actor.pk,
-                'public': bool(kwargs.pop('public', True)),
-                'timestamp': kwargs.pop('timestamp', now())
-            }
+            actor_content_type=ContentType.objects.get_for_model(actor),
+            actor_object_id=actor.pk,
+            public=bool(kwargs.pop('public', True)),
+            timestamp=kwargs.pop('timestamp', now())
         )
 
         for opt in ('target', 'action_object'):
