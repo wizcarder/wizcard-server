@@ -1,6 +1,7 @@
 import logging
 
 from celery import task
+from celery.utils.log import get_task_logger
 
 from email_and_push_infra.models import EmailAndPush
 from email_and_push_infra.html_gen_methods import HtmlGen

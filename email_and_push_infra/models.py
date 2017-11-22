@@ -11,12 +11,13 @@
 
 from django.db import models
 from django.utils import timezone
+from notifications.models import Notification, NotificationManager
 import pdb
 
 # Create your models here.
 
 
-class EmailAndPushManager(models.Manager):
+class EmailAndPushManager(NotificationManager):
 
     def candidates(self, reminder_intervals=[1, 3, 5]):
 
@@ -34,37 +35,29 @@ class EmailAndPushManager(models.Manager):
         return inst_email_candidates, inst_notif_candidates
 
 
-class EmailAndPush(models.Model):
-    NEWUSER = 1
-    INVITED = 2
-    SCANNED = 3
-    NEWRECOMMENDATION = 4
-    MISSINGU = 5
-    JOINUS = 6
-    DIGEST = 7
-    INVITE_EXHIBITOR = 8
-    INVITE_ATTENDEE = 9
+class EmailAndPush(Notification):
 
-    EVENTS = (
-        (NEWUSER, 'NEWUSER'),
-        (INVITED, 'INVITED'),
-        (SCANNED, 'SCANNED'),
-        (NEWRECOMMENDATION, 'RECOMMENDATION'),
-        (MISSINGU, 'MISSINGU'),
-        (JOINUS, 'JOINUS'),
-        (DIGEST, 'DIGEST'),
-        (INVITE_EXHIBITOR, 'INVITE_EXHIBITOR'),
-        (INVITE_ATTENDEE, 'INVITE_ATTENDEE')
-    )
 
     RECUR = 1
     INSTANT = 2
     SCHEDULED = 3
 
-    EVENT_TYPE = (
+    EMAIL = 1
+    ALERT = 2
+    PUSHNOTIF = 3
+    SMS = 4
+
+    DELIVERY_PERIOD = (
         (RECUR, 'RECUR'),
         (INSTANT, 'INSTANT'),
         (SCHEDULED, 'SCHEDULED')
+    )
+
+    DELIVERY_METHOD = (
+        (EMAIL, 'email'),
+        (ALERT, 'alert'),
+        (PUSHNOTIF, 'pushnotif'),
+        (SMS, 'sms')
     )
 
     @property
@@ -83,7 +76,8 @@ class EmailAndPush(models.Model):
     )
 
     # AA: Comment: pls rename so it's not confused with events/event_type
-    event_type = models.PositiveSmallIntegerField(choices=EVENT_TYPE, default=INSTANT)
+    delivery_time = models.PositiveSmallIntegerField(choices=DELIVERY_TYPE, default=INSTANT)
+    delivery_method = models.PositiveSmallIntegerField
     last_tried = models.DateTimeField(blank=True, null=True)
     created = models.DateTimeField(auto_now=True)
     status = models.PositiveSmallIntegerField(choices=STATUS, default=NEW)

@@ -75,11 +75,6 @@ class Notification(models.Model):
     # used internally as consequence of 2
     PUSHNOTIF = 3
 
-    DELIVERY_TYPE = (
-        (EMAIL, 'email'),
-        (ALERT, 'alert'),
-        (PUSHNOTIF, 'pushnotif'),
-    )
 
     """
     Action model describing the actor acting out a verb (on an optional
@@ -109,8 +104,6 @@ class Notification(models.Model):
         <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
     """
-    delivery_type = models.PositiveSmallIntegerField(choices=DELIVERY_TYPE, default=ALERT)
-    is_async = models.BooleanField(default=False)
 
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     readed = models.BooleanField(default=False, blank=False)
@@ -141,8 +134,6 @@ class Notification(models.Model):
     )
     action_object_object_id = models.CharField(max_length=255, blank=True, null=True)
     action_object = generic.GenericForeignKey('action_object_content_type', 'action_object_object_id')
-
-    email_push = models.ForeignKey(EmailAndPush, related_name='email_push_notif', blank=True, null=True)
 
     timestamp = models.DateTimeField(default=timezone.now)
 
@@ -205,7 +196,7 @@ def notify_handler(notif_type, **kwargs):
     recipient = kwargs.pop('recipient')
     actor = kwargs.pop('sender')
     is_async = kwargs.pop('is_async', False)
-    delivery_type = kwargs.pop('delivery_type', Notification.ALERT)
+    delivery_method = kwargs.pop('delivery_method', Notification.ALERT)
     verb = kwargs.pop('verb', "")
     target = kwargs.pop('target', None)
     action_object = kwargs.pop('action_object', None)
@@ -227,42 +218,51 @@ def notify_handler(notif_type, **kwargs):
         # should be extensible
 
         # action obj for async is always EmailAndPush
-        push_obj = EmailAndPush.objects.create(event_type=EmailAndPush.INSTANT, start_date=start, end_date=end)
+        if delivery_method == EmailAndPush.EMAIL or delivery_method == EmailAndPush.SMS:
+            push_obj = EmailAndPush.objects.create(actor_content_type=ContentType.objects.get_for_model(actor),
+                                                   actor_object_id=actor.pk,
+                                                   recipient=recipient,
+                                                   readed=False,
+                                                   delivery_type=EmailAndPush.DELIVERY_METHOD,
+                                                   notif_type=notif_type,
+                                                   verb=verb,
+                                                   target_content_type=ContentType.objects.get_for_model(target),
+                                                   target_object_id=target.pk,
+                                                   action_object_content_type=action_object_content_type,
+                                                   action_object_object_id=action_object_object_id,
+                                                   public=bool(kwargs.pop('public', True)),
+                                                   timestamp=kwargs.pop('timestamp', timezone.now()),
+                                                   event_type=EmailAndPush.INSTANT,
+                                                   start_date=start,
+                                                   end_date=end
+                                                   )
 
         # if push_notif needs to be sent
         do_push = bool(kwargs.pop('do_push', False))
+
 
     else:
         do_push = notif_type in verbs.apns_notification_dictionary
         start = end = timezone.now()
 
     if do_push:
-        # create EmailPush and Notif
-        push_obj = EmailAndPush.objects.create(
-            event_type=EmailAndPush.INSTANT,
-            start_date=start,
-            end_date=end
-        )
-
-        Notification.objects.create(
-            actor_content_type=ContentType.objects.get_for_model(actor),
-            actor_object_id=actor.pk,
-            recipient=recipient,
-            readed=False,
-            is_async=True,
-            delivery_type=Notification.PUSHNOTIF,
-            notif_type=notif_type,
-            verb=verb,
-            target_content_type=ContentType.objects.get_for_model(target),
-            target_object_id=target.pk,
-            email_push=push_obj,
-            action_object_content_type=action_object_content_type,
-            action_object_object_id=action_object_object_id,
-            public=bool(kwargs.pop('public', True)),
-            timestamp=kwargs.pop('timestamp', timezone.now())
-        )
-
-    is_async = False if delivery_type == Notification.ALERT else True
+        push_obj = EmailAndPush.objects.create(actor_content_type=ContentType.objects.get_for_model(actor),
+                                               actor_object_id=actor.pk,
+                                               recipient=recipient,
+                                               readed=False,
+                                               delivery_type=EmailAndPush.PUSHNOTIF,
+                                               notif_type=notif_type,
+                                               verb=verb,
+                                               target_content_type=ContentType.objects.get_for_model(target),
+                                               target_object_id=target.pk,
+                                               action_object_content_type=action_object_content_type,
+                                               action_object_object_id=action_object_object_id,
+                                               public=bool(kwargs.pop('public', True)),
+                                               timestamp=kwargs.pop('timestamp', timezone.now()),
+                                               event_type=EmailAndPush.INSTANT,
+                                               start_date=start,
+                                               end_date=end
+                                               )
 
 
     newnotify, created = Notification.objects.get_or_create(
