@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 from polls.serializers import PollSerializerL1
 from collections import OrderedDict
 from django.conf import settings
+from django.core.cache import cache
 
 import pdb
 
@@ -170,6 +171,7 @@ class EventSerializer(EntitySerializer):
         instance.highlights = validated_data.pop("highlights", instance.highlights)
 
         instance = super(EventSerializer, self).update(instance, validated_data)
+        cache.set("EVT_update_time", timezone.now())
 
         return instance
 

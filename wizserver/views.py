@@ -154,6 +154,8 @@ class ParseMsgAndDispatch(object):
 
                 # used often by serializer. might as well put it here
                 self.user_context = {'context': {'user': self.user}}
+                self.user_cache_key = self.user.username + "_" + "%s_response"
+                self.user_cache_time = self.user.username + "_" + "%s_time"
             except:
                 logger.error('Failed User wizuser_id %s, user_id %s', wizuser_id, user_id)
                 return False
@@ -2414,6 +2416,11 @@ class ParseMsgAndDispatch(object):
         id = self.sender.get('entity_id')
         entity_type = self.sender.get('entity_type')
         detail = self.sender.get('detail', True)
+        entity_cache_key = entity_type + "update_time"
+
+        user_cache = cache.get_many([self.user_cache_key, self.user_cache_time])
+        entity_update_time = cache.get(entity_cache_key)
+
 
 
         try:
@@ -2461,6 +2468,8 @@ class ParseMsgAndDispatch(object):
             answer=answer,
             **self.sender
         )
+        cache_key = self.user.username + "_" + "events_response"
+        cache.delete(cache_key)
 
         return self.response
 
