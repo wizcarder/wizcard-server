@@ -15,13 +15,14 @@ from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
 from wizserver import verbs
+from django.utils import timezone
 import pdb
 
 # Create your models here.
 
 
 class BaseEntityComponentManager(PolymorphicManager):
-    def users_entities(self, user, entity_type=None):
+    def users_entities(self, user, entity_type):
         return BaseEntity.objects.users_entities(user, entity_type)
 
     def owners_entities(self, user, entity_type):
@@ -48,12 +49,12 @@ class BaseEntityManager(BaseEntityComponentManager):
         entities = []
         result, count = LocationMgr.objects.lookup(ttype, lat, lng, n)
 
-        #convert result to query set result
+        # convert result to query set result
 
         # AR: TODO: this is getting kludgy with multiple parameters. Best to have
         # REST API filters that portal can use
         if count and not count_only:
-            entities = self.filter(id__in=result, expired=False, is_deleted=False, is_activated=True)
+            entities = self.filter(id__in=result, expired=False, is_deleted=False)
         return entities, count
 
     def owners_entities(self, user, entity_type=None):
@@ -91,7 +92,7 @@ class BaseEntityComponent(PolymorphicModel):
     COOWNER = 'COW'
     AGENDA = 'AGN'
     AGENDA_ITEM = 'AGI'
-    POLL='POL'
+    POLL = 'POL'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -195,7 +196,7 @@ class BaseEntityComponent(PolymorphicModel):
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SponsorSerializerL2, AttendeeInviteeSerializer, \
             ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer
-        from polls.serializers import PollSerializer
+        from polls.serializers import PollSerializer, PollSerializerL2
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
@@ -240,7 +241,7 @@ class BaseEntityComponent(PolymorphicModel):
             s = AgendaItemSerializer
         elif entity_type == cls.POLL:
             c = Poll
-            s = PollSerializer
+            s = PollSerializerL2 if detail else PollSerializer
         else:
             c = BaseEntityComponent
             s = EntitySerializer
@@ -282,10 +283,17 @@ class BaseEntityComponent(PolymorphicModel):
         int_ids = map(lambda x: int(x), ids)
 
         # AR: TODO Why try except ? id's should always be correct.
+        # AR: HACK HACK (Add nested serializers for polls)
+
         try:
             objs = c.objects.filter(id__in=int_ids)
             for obj in objs:
                 self.related.connect(obj, alias=type)
+                if type == BaseEntity.SUB_ENTITY_POLL:
+                    self.notify_all_users(self.get_creator(),
+                                          verbs.WIZCARD_NEW_POLL,
+                                          obj
+                                        )
         except:
             pass
 
@@ -309,12 +317,19 @@ class BaseEntityComponent(PolymorphicModel):
 
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
-    def get_parent_entities(self ):
-        try:
-            parents = self.related.related_to().generic_objects()
+    def get_parent_entities(self):
+        parents = self.related.related_to().generic_objects()
+        if parents:
             return parents
-        except:
-            return None
+
+        return None
+
+    def get_parent_entities_by_type(self, entity_type):
+        parents = self.related.related_to().filter(alias=entity_type).generic_objects()
+        if parents:
+            return parents
+
+        return None
 
     def get_creator(self):
         return BaseEntityComponentsOwner.objects.filter(
@@ -336,6 +351,7 @@ class BaseEntityComponentsOwner(models.Model):
 
     class Meta:
         unique_together = (("base_entity_component", "owner"),)
+
 
 class BaseEntity(BaseEntityComponent, Base414Mixin):
     secure = models.BooleanField(default=False)
@@ -404,7 +420,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         if notify:
             self.notify_all_users(
                 user,
-                verbs.WIZCARD_ENTITY_JOIN[0],
+                verbs.WIZCARD_ENTITY_JOIN,
                 self,
             )
 
@@ -421,7 +437,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         if notify:
             self.notify_all_users(
                 user,
-                verbs.WIZCARD_ENTITY_LEAVE[0],
+                verbs.WIZCARD_ENTITY_LEAVE,
                 self,
             )
 
@@ -430,12 +446,17 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def get_users_after(self, timestamp):
         # AA: REVERT ME. Temp for app testing
         ue = UserEntity.objects.filter(entity=self)
-        #ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
+        # ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
         users = map(lambda u: u.user, ue)
 
         return users
 
-    def notify_all_users(self, sender, verb, entity, exclude_sender=True):
+    def get_wizcard_users(self):
+        users = self.users.all()
+        wiz_users = [x for x in users if hasattr(x, 'wizcard')]
+        return wiz_users
+
+    def notify_all_users(self, sender, notif_type, entity, exclude_sender=True):
         # send notif to all members, just like join
 
         qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
@@ -443,7 +464,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             notify.send(
                 sender,
                 recipient=u,
-                verb=verb,
+                notif_type=notif_type[0],
                 target=entity
             )
 
@@ -459,18 +480,18 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.save()
 
     def delete(self, *args, **kwargs):
-        verb = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE[0])
+        notif_tuple = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE)
 
         self.notify_all_users(
             self.get_creator(),
-            verb,
+            notif_tuple,
             self,
             exclude_sender=False
         )
 
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_ENTITY_EXPIRE[0]:
+        if notif_tuple[0] == verbs.WIZCARD_ENTITY_EXPIRE[0]:
             self.expired = True
             self.save()
         else:
@@ -478,7 +499,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             super(BaseEntity, self).delete(*args, **kwargs)
 
     def expire(self):
-        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE[0])
+        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
 
 
 # explicit through table since we will want to associate additional
@@ -515,6 +536,8 @@ class UserEntity(models.Model):
 
     # Join Table.
     # this will contain per user level stat
+
+
 class EntityUserStats(models.Model):
 
     MIN_ENGAGEMENT_LEVEL = 0
@@ -532,6 +555,8 @@ class EntityUserStats(models.Model):
     viewed = models.BooleanField(default=False)
 
 # the entity model will use this
+
+
 class EntityEngagementStats(models.Model):
     like_count = models.IntegerField(default=0)
     views = models.IntegerField(default=0)

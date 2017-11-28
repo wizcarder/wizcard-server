@@ -21,6 +21,7 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
+DISABLE_LOCATION = False
 
 WIZCARD_SETTINGS = {
     # env: setting
@@ -29,7 +30,7 @@ WIZCARD_SETTINGS = {
             'default': {
                 #'ENGINE': 'django.db.backends.mysql',
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-dev',
+                'NAME': 'wizcard-localhost',
                 'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.

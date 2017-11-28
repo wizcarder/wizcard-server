@@ -122,11 +122,11 @@ class VirtualTable(BaseEntity):
         verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
         members = self.users.all()
         for member in members:
-            notify.send(
-                self.get_creator(),
-                recipient=member,
-                verb=verb,
-                target=self)
+            notify.send(self.get_creator(),
+                        recipient=member,
+                        notif_type=verb,
+                        target=self
+                        )
 
         self.location.get().delete()
 

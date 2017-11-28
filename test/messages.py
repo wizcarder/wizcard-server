@@ -769,7 +769,7 @@ accept_connection_request = {
         "reaccept" : False,
         # this is dummy...the right thing to do is to get the
         # correct notif_id from the get_cards and pass it back in here
-        "notif_id": 1
+        "notif_id": 2
     },
     "receiver" : {
         "wizuser_id" : "",
@@ -786,7 +786,7 @@ decline_connection_request = {
     "sender" : {
         "user_id" : "",
         "wizuser_id" : "",
-        "notif_id": 1
+        "notif_id": 5
 
     },
     "receiver" : {

@@ -107,13 +107,13 @@ class WizcardManager(PolymorphicManager):
 
         #send Type 1 notification to both
         notify.send(wizcard1.user, recipient=wizcard2.user,
-                    verb=verbs.WIZREQ_T[0],
+                    notif_type=verbs.WIZREQ_T[0],
                     description=cctx.description,
                     target=wizcard1,
                     action_object=rel1)
 
         notify.send(wizcard2.user, recipient=wizcard1.user,
-                        verb=verbs.WIZREQ_T[0],
+                        notif_type=verbs.WIZREQ_T[0],
                         description=cctx.description,
                         target=wizcard2,
                         action_object=rel2)
@@ -126,9 +126,10 @@ class WizcardManager(PolymorphicManager):
                 recipient=wizcard2.user,
                 target_object_id=wizcard1.id,
                 readed=False,
-                verb=verbs.WIZCARD_UPDATE[0]).exists():
-            notify.send(wizcard1.user, recipient=wizcard2.user,
-                        verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
+                notif_type=verbs.WIZCARD_UPDATE[0]).exists():
+            notify.send(wizcard1.user,
+                        recipient=wizcard2.user,
+                        notif_type=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
                         target=wizcard1)
 
     def query_users(self, exclude_user, name, phone, email):
@@ -642,7 +643,7 @@ class WizcardFlick(models.Model):
             self.save()
             notify.send(self.wizcard.user,
                         recipient=self.wizcard.user,
-                        verb =verbs.WIZCARD_FLICK_TIMEOUT[0],
+                        notif_type=verbs.WIZCARD_FLICK_TIMEOUT[0],
                         target=self)
         else:
             #withdraw/delete flick case
