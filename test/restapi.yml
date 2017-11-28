@@ -1,6 +1,7 @@
 - config:
     - testset: "Portal API Tests"
     - timeout: 100  # Increase timeout from the default 10 seconds
+## RUN COMMAND: pyresttest --url=http://localhost:8000 --test=test/restapi.yml --verbose
 #- test:
 #    - name: "User Creation"
 #    - url: "/users/registration/"
