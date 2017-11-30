@@ -194,7 +194,7 @@ class BaseEntityComponent(PolymorphicModel):
         from entity.serializers import EventSerializerL2, EventSerializerL1, \
             TableSerializerL1, TableSerializerL2, EntitySerializer, \
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
-            SpeakerSerializerL2, SponsorSerializerL2, AttendeeInviteeSerializer, \
+            SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
             ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer
         from polls.serializers import PollSerializer, PollSerializerL2
         from entity.models import Event, Campaign, VirtualTable, \
@@ -229,7 +229,7 @@ class BaseEntityComponent(PolymorphicModel):
             s = SpeakerSerializerL2
         elif entity_type == cls.SPONSOR:
             c = Sponsor
-            s = SponsorSerializerL2
+            s = SponsorSerializerL2 if detail else SponsorSerializerL1
         elif entity_type == cls.MEDIA:
             c = MediaEntities
             s = MediaEntitiesSerializer

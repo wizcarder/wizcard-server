@@ -68,6 +68,52 @@
         - 'rol_media_id1': {'jsonpath_mini': 'id'}
 
 - test:
+    - name: "Media SLG Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://s3.ap-south-1.amazonaws.com/girnar-prod/Girnar_Logo_360x120.jpg", "media_iframe": "https://goo.gl/BjYfS7", "media_#type": "IMG", "media_sub_type": "SLG", "media_title": "Girnar Logo" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'slg_media': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Media THB Creation"
+    - url: "/entity/media/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"media_element": "https://s3.ap-south-1.amazonaws.com/girnar-prod/Girnar_Logo_360x120.jpg", "media_iframe": "https://goo.gl/BjYfS7", "media_#type": "IMG", "media_sub_type": "THB", "media_title": "Girnar Logo" }'
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'thb_media': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Sponsor Creation"
+    - url: "/entity/sponsors/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {template: '{"related": [{"ids":[$slg_media], "type":"e_media"}], "name":"WizCard", "caption": "Event in a pocket"}'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'spn1': {'jsonpath_mini': 'id'}
+
+- test:
+    - name: "Speaker Creation"
+    - url: "/entity/speakers/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: {template: '{"related": [{"ids":[$thb_media], "type":"e_media"}],
+            "company": "Linkedin-Microsoft",
+           "title": "CEO",
+           "name": "Jeff Weiner",
+            "email": "jweiner@linkedin.com",
+            "website": "http://www.yahoo.com",
+             "description": "Professional Networking @Events"}'}
+    - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
+    - extract_binds:
+        - 'spk1': {'jsonpath_mini': 'id'}
+
+- test:
     - name: "Media Rolling Creation"
     - url: "/entity/media/"
     - expected_status: [201]
@@ -112,7 +158,7 @@
     - url: "/entity/events/"
     - expected_status: [201]
     - method: 'POST'
-    - body : {template : '{"related" : [{"ids": [$poll_id1], "type": "e_poll"}, {"ids": [$rol_media_id1, $rol_media_id2, $rol_media_id3, $rol_media_id4, $bnr_media_id1, $bnr_media_id2, $bnr_media_id3], "type":"e_media"}], "name": "Girnar Darshan", "address": "Girnar Temple", "website": "http://www.girnardarshan.com", "description": "Girnar Darshan", "location": { "lat": "12.960146", "lng": "77.6463127"}, "start": "2017-11-17 14:30:59", "end": "2017-12-31 19:30:59", "tags": ["TechnAsia", "AsiaTech"]}'}
+    - body : {template : '{"related" : [{"ids": [$poll_id1], "type": "e_poll"}, {"ids": [$rol_media_id1, $rol_media_id2, $rol_media_id3, $rol_media_id4, $bnr_media_id1, $bnr_media_id2, $bnr_media_id3], "type":"e_media"}, {"ids":[$spn1], "type":"e_sponsor"},{"ids":[$spk1], "type":"e_speaker"}], "name": "Girnar Darshan", "address": "Girnar Temple", "website": "http://www.girnardarshan.com", "description": "Girnar Darshan", "location": { "lat": "12.960146", "lng": "77.6463127"}, "start": "2017-11-17 14:30:59", "end": "2017-12-31 19:30:59", "tags": ["TechnAsia", "AsiaTech"]}'}
     - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
     - extract_binds:
         - 'event1': {'jsonpath_mini': 'id'}

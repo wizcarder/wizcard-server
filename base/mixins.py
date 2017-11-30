@@ -41,7 +41,7 @@ class Base411Mixin(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, null=True)
     modified = models.DateTimeField(auto_now=True, null=True)
-    name = TruncatingCharField(max_length=100, default="")
+    name = TruncatingCharField(max_length=50, default="")
     email = EmailField(blank=True)
 
 
@@ -89,6 +89,7 @@ class MediaMixin(models.Model):
     TYPE_IMAGE = 'IMG'
     TYPE_VIDEO = 'VID'
     TYPE_DOC = 'DOC'
+    TYPE_AUDIO = 'AUD'
 
     SUB_TYPE_BANNER = 'BNR'
     SUB_TYPE_LOGO = 'LGO'
@@ -103,6 +104,7 @@ class MediaMixin(models.Model):
     MEDIA_CHOICES = (
         (TYPE_IMAGE, 'Image'),
         (TYPE_VIDEO, 'Video'),
+        (TYPE_AUDIO, 'Audio'),
         (TYPE_DOC, 'Doc')
     )
 
@@ -137,5 +139,6 @@ class MediaMixin(models.Model):
     )
 
     # url of media element
-    media_element = models.URLField(blank=True, default=None)
+    media_element = models.URLField(blank=True, default=None, max_length=300)
     media_iframe = models.URLField(blank=True)
+    media_title = models.CharField(blank=True, max_length=200)
