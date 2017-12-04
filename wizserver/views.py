@@ -2277,7 +2277,7 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def EventsGet(self):
-        do_location = True
+        do_location = False
         if self.lat is None and self.lng is None:
             try:
                 self.lat = self.app_userprofile.location.get().lat
@@ -2288,16 +2288,14 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        m_events = Event.objects.users_entities(self.user, entity_type='EVT')
+
+        m_events = Event.objects.users_entities(self.user, {'expired': False})
         n_events, count = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
-        ) if do_location else []
+        ) if do_location else Event.objects.filter(expired=False, is_activated=True)
 
-        # temp for now
-        if count <= 2:
-            n_events = Event.objects.all()
 
         events = list(set(m_events) | set(n_events))
 

@@ -52,7 +52,7 @@ WIZCARD_SETTINGS = {
                 'NAME': 'wizcard-test',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-live.cihg5qbd9uuc.ap-south-1.rds.amazonaws.com',
+                'HOST': 'wizcard-prod-live.cn2wvth0wbg5.ap-south-1.rds.amazonaws.com'
             }
         },
         'caches': {

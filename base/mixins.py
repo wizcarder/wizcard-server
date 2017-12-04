@@ -66,6 +66,7 @@ class Base414Mixin(Base413Mixin):
         abstract = True
 
     address = models.CharField(max_length=200, blank=True)
+    venue = models.CharField(max_length=100, blank=True)
 
 
 class OwnersRelationshipMixin(models.Model):

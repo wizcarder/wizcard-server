@@ -104,7 +104,7 @@ class EntitySerializer(EntitySerializerL0):
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
-        my_fields = ('name', 'address', 'secure', 'description', 'email', 'website', 'phone',
+        my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
                      'category', 'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
                      'engagements', 'creator', 'owners', 'related', 'ext_fields', 'is_activated', 'status')
 
@@ -185,6 +185,8 @@ class EntitySerializer(EntitySerializerL0):
             instance.name = validated_data.pop('name', instance.name)
         if hasattr(instance, 'address'):
             instance.address = validated_data.pop('address', instance.address)
+        if hasattr(instance, 'venue'):
+            instance.address = validated_data.pop('venue', instance.venue)
         if hasattr(instance, 'website'):
             instance.website = validated_data.pop('website', instance.website)
         if hasattr(instance, 'description'):
