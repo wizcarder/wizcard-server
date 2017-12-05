@@ -52,7 +52,7 @@ WIZCARD_SETTINGS = {
                 'NAME': 'wizcard-test',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
-                'HOST': 'wizcard-prod-live.cn2wvth0wbg5.ap-south-1.rds.amazonaws.com'
+                'HOST': 'wizcard-prod-live.cn2wvth0wbg5.ap-south-1.rds.amazonaws.com',
             }
         },
         'caches': {
@@ -185,6 +185,7 @@ MIDDLEWARE_CLASSES = (
     #'pagination.middleware.PaginationMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 )
 
 
@@ -340,6 +341,7 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'corsheaders',
 )
 
 #django-storage settings
