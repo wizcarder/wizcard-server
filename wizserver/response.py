@@ -118,7 +118,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_ENTITY_DELETE[0]       : self.notifEventDelete
         }
         for notification in notifications:
-            notifHandler[notification.verb](notification)
+            notifHandler[notification.notif_type](notification)
 
     def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
@@ -216,13 +216,13 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifEventDelete(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_EVENT_DELETE)
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_DELETE)
 
     def notifEventExpire(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_EVENT_EXPIRE)
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_EXPIRE)
 
     def notifEventUpdate(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_EVENT_UPDATE)
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
 
     def notifLeaveEntity(self, notif):
         wizcard=notif.actor.wizcard
@@ -276,14 +276,14 @@ class NotifResponse(ResponseN):
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_FLICKED_WIZCARD)
         return self.response
 
-    def notifUserLookup(self, count, me, users):
+    def notifUserLookup(self, me, users):
         wizcards = map(lambda u: u.wizcard, users)
         out = WizcardSerializerL1(wizcards, many=True, context={'user': me}).data
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_USERS)
 
         return self.response
 
-    def notifTableLookup(self, count, user, tables):
+    def notifTableLookup(self,  user, tables):
         out = TableSerializerL1(tables, many=True, context={'user': user}).data
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_TABLES)
 

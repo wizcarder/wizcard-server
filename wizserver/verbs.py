@@ -121,9 +121,19 @@ NOTIF_WIZCARD_FORWARD           = 14
 NOTIF_ENTITY_JOIN               = 15
 NOTIF_ENTITY_LEAVE              = 16
 NOTIF_FOLLOW_EXPLICIT           = 17
-NOTIF_EVENT_UPDATE              = 18
-NOTIF_EVENT_EXPIRE              = 19
-NOTIF_EVENT_DELETE              = 20
+NOTIF_ENTITY_UPDATE              = 18
+NOTIF_ENTITY_EXPIRE              = 19
+NOTIF_ENTITY_DELETE              = 20
+NOTIF_ENTITY_CREATE             = 21
+NOTIF_ENTITY_UPDATE             = 22
+NOTIF_NEW_RECO                  = 23
+NOTIF_NEW_WIZUSER               = 24
+NOTIF_ENTITY_BROADCAST          = 25
+NOTIF_SCANNED_USER              = 26
+NOTIF_INVITE_USER               = 27
+NOTIF_ENTITY_REMINDER            = 28
+NOTIF_ENTITY_BROADCAST           = 29
+NOTIF_ENTITY_BROADCAST_CREATE   = 30
 
 # receiver types
 WIZCARD_CONNECT_U   = 1
@@ -166,28 +176,35 @@ FOLLOWED = "followed"
 OTHERS = "others"
 
     # (Verb, APNS_REQUIRED, APNS_TEXT)
-WIZREQ_U = ('wizconnection request untrusted', 1)
-WIZREQ_T = ('wizconnection request trusted', 1)
-WIZREQ_T_HALF = ('wizconnection request trusted half', 0)
-WIZREQ_F = ('wizconnection request follow', 1)
-WIZCARD_ACCEPT = ('accepted wizcard', 1)
-WIZCARD_REVOKE = ('revoked wizcard', 0)
-WIZCARD_WITHDRAW_REQUEST = ('withdraw request', 0)
-WIZCARD_DELETE = ('deleted wizcard', 0)
-WIZCARD_TABLE_TIMEOUT = ('table timeout', 1)
-WIZCARD_TABLE_DESTROY = ('table destroy', 1)
-WIZCARD_UPDATE = ('wizcard update', 1)
-WIZCARD_UPDATE_HALF = ('wizcard update half', 1)
-WIZCARD_FLICK_TIMEOUT = ('flick timeout', 1)
-WIZCARD_FLICK_PICK = ('flick pick', 1)
-WIZCARD_TABLE_INVITE = ('table invite', 1)
-WIZCARD_FORWARD = ('wizcard forward', 1)
-WIZCARD_ENTITY_JOIN = ('entity join', 0)
-WIZCARD_ENTITY_LEAVE = ('entity leave', 0)
-WIZCARD_RECO_READY = ('new recommendations ready', 1)
-WIZCARD_ENTITY_UPDATE = ('event_updated', 0)
-WIZCARD_ENTITY_EXPIRE = ('event_expired', 0)
-WIZCARD_ENTITY_DELETE = ('event_deleted', 0)
+WIZCARD_NULL = (NOTIF_NULL, "Empty notif", 0)
+WIZREQ_U = (NOTIF_ACCEPT_EXPLICIT, 'wizconnection request untrusted', 1)
+WIZREQ_T = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted', 1)
+WIZREQ_T_HALF = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted half', 0)
+WIZREQ_F = (NOTIF_FOLLOW_EXPLICIT, 'wizconnection request follow', 1)
+WIZCARD_ACCEPT = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', 1)
+WIZCARD_REVOKE = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', 0)
+WIZCARD_WITHDRAW_REQUEST = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', 0)
+WIZCARD_DELETE = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', 0)
+WIZCARD_TABLE_TIMEOUT = (NOTIF_TABLE_TIMEOUT, 'table timeout', 1)
+WIZCARD_TABLE_DESTROY = (NOTIF_TABLE_TIMEOUT, 'table destroy', 1)
+WIZCARD_UPDATE = (NOTIF_UPDATE_WIZCARD, 'wizcard update', 1)
+WIZCARD_UPDATE_HALF = (NOTIF_UPDATE_WIZCARD, 'wizcard update half', 1)
+WIZCARD_FLICK_TIMEOUT = (NOTIF_FLICK_TIMEOUT, 'flick timeout', 1)
+WIZCARD_FLICK_PICK = (NOTIF_FLICK_PICK, 'flick pick', 1)
+WIZCARD_TABLE_INVITE = (NOTIF_TABLE_INVITE, 'table invite', 1)
+WIZCARD_FORWARD = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', 1)
+WIZCARD_ENTITY_JOIN = (NOTIF_ENTITY_JOIN, 'entity join', 0)
+WIZCARD_ENTITY_LEAVE = (NOTIF_ENTITY_LEAVE, 'entity leave', 0)
+WIZCARD_RECO_READY = (NOTIF_NEW_RECO, 'new recommendations ready', 1)
+WIZCARD_ENTITY_UPDATE = (NOTIF_ENTITY_UPDATE, 'event_updated', 0)
+WIZCARD_ENTITY_EXPIRE = (NOTIF_ENTITY_EXPIRE, 'event_expired', 0)
+WIZCARD_ENTITY_DELETE = (NOTIF_ENTITY_DELETE, 'event_deleted', 0)
+WIZCARD_EVENT_REMINDER = (NOTIF_ENTITY_REMINDER, 'event_reminder', 1)
+WIZCARD_NEW_USER = (NOTIF_NEW_WIZUSER, 'new_user', 0)
+WIZCARD_SCANNED_USER = (NOTIF_SCANNED_USER, 'scanned_user', 0)
+WIZCARD_INVITE_USER = (NOTIF_INVITE_USER, 'invite_user', 0)
+WIZCARD_ENTITY_BROADCAST = (NOTIF_ENTITY_BROADCAST, 'event broadcast', 1)
+WIZCARD_ENTITY_BROADCAST_CREATE = (NOTIF_ENTITY_BROADCAST_CREATE, 'event_broadcast_create', 0)
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {
@@ -246,7 +263,13 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'alert': 'New Reco Ready',
+    },
+    WIZCARD_ENTITY_BROADCAST[0]: {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'alert': 'Message from {1.name} - {3}'
     }
+
 }
 
 gcm_notification_dictionary = {
@@ -282,6 +305,10 @@ gcm_notification_dictionary = {
         'title' : 'Wizcard - Table expired',
         'body': '{1.name} table has now expired',
     },
+    WIZCARD_ENTITY_BROADCAST[0]: {
+        'title': 'Girnar Darshan announcement',
+        'body': '{3}',
+    }
 
 }
 

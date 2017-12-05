@@ -560,13 +560,40 @@ class SponsorSerializer(EntitySerializer):
 
         return instance
 
+class SponsorSerializerL1(EntitySerializer):
+
+    class Meta:
+        model = Sponsor
+
+        # using L0 fields since not all L1 base class fields are needed
+        parent_fields = EntitySerializerL0.Meta.fields
+        my_fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related', 'joined', 'like')
+
+        fields = parent_fields + my_fields
+
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            many=True
+        ).data
+
+    def get_users(self, obj):
+        count = obj.users.count()
+
+        out = dict(
+            count=count,
+        )
+        return out
+
+
 
 class SponsorSerializerL2(EntitySerializer):
 
     class Meta:
         model = Sponsor
         fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
-                  'description', 'phone', 'caption', 'ext_fields', 'media')
+                  'description', 'phone', 'caption', 'ext_fields', 'media',
+                  'joined', 'like')
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(

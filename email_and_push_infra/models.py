@@ -10,97 +10,92 @@
 """
 
 from django.db import models
-from wizcardship.models import Wizcard
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
-from base.emailField import EmailField
-from entity.models import Event
-import datetime
 from django.utils import timezone
+from notifications.models import BaseNotification, BaseNotificationManager
 import pdb
 
 # Create your models here.
 
-class EmailEvent(models.Model):
-    NEWUSER = 1
-    INVITED = 2
-    SCANNED = 3
-    NEWRECOMMENDATION = 4
-    MISSINGU = 5
-    JOINUS = 6
-    DIGEST = 7
-    INVITE_EXHIBITOR = 8
-    INVITE_ATTENDEE = 9
-    EVENTS = (
-        (NEWUSER, 'NEWUSER'),
-        (INVITED, 'INVITED'),
-        (SCANNED, 'SCANNED'),
-        (NEWRECOMMENDATION, 'RECOMMENDATION'),
-        (MISSINGU, 'MISSINGU'),
-        (JOINUS, 'JOINUS'),
-        (DIGEST, 'DIGEST'),
-        (INVITE_EXHIBITOR, 'INVITE_EXHIBITOR'),
-        (INVITE_ATTENDEE, 'INVITE_ATTENDEE')
-    )
-    BUFFERED = 1
+
+class EmailAndPushManager(BaseNotificationManager):
+
+    def candidates(self, reminder_intervals=[1, 3, 5]):
+
+        inst_email_candidates = EmailAndPush.objects.filter(
+            delivery_period=EmailAndPush.INSTANT,
+            status=EmailAndPush.NEW,
+        )
+        inst_notif_candidates = EmailAndPush.objects.filter(
+            delivery_period=EmailAndPush.INSTANT,
+            status=EmailAndPush.NEW,
+        )
+
+        # Buffered events requires some timestamp calculations using extra deferring it
+        # for now but is pretty easy to do.
+        return inst_email_candidates, inst_notif_candidates
+
+
+class EmailAndPush(BaseNotification):
+
+
+    RECUR = 1
     INSTANT = 2
-    EVENT_TYPE = (
-        (BUFFERED, 'BUFFERED'),
-        (INSTANT, 'INSTANT')
+    SCHEDULED = 3
+
+    EMAIL = 1
+    ALERT = 2
+    PUSHNOTIF = 3
+    SMS = 4
+
+    DELIVERY_PERIOD = (
+        (RECUR, 'RECUR'),
+        (INSTANT, 'INSTANT'),
+        (SCHEDULED, 'SCHEDULED')
     )
-    event = models.PositiveSmallIntegerField(choices=EVENTS)
-    event_type = models.PositiveSmallIntegerField(choices=EVENT_TYPE, default=INSTANT)
+
+    DELIVERY_METHOD = (
+        (EMAIL, 'email'),
+        (ALERT, 'alert'),
+        (PUSHNOTIF, 'pushnotif'),
+        (SMS, 'sms')
+    )
 
     @property
-    def get_event_type(self):
-        return self.event_type
+    def get_delivery_period(self):
+        return self.delivery_period
 
 
-class EmailAndPushManager(models.Manager):
+    SUCCESS = 0
+    FAILURE = -1
+    NEW = 1
 
-    def pushEvent(self, sender, event, to, target=None):
-        event = EmailEvent.objects.get(event=event)
-        sender_content_type = ContentType.objects.get_for_model(sender)
+    STATUS = (
+        (SUCCESS, 'success'),
+        (FAILURE, 'failed'),
+        (NEW, 'new')
+    )
 
-        if target:
-            target_content_type = ContentType.objects.get_for_model(target)
-            target_object_id = target.id
-            to = target.email
-            eap, created = EmailAndPush.objects.get_or_create(
-                sender_content_type=sender_content_type,
-                sender_object_id=sender.id,
-                event=event, to=to,
-                target_content_type=target_content_type,
-                target_object_id = target_object_id
-            )
-        else:
-            eap, created = EmailAndPush.objects.get_or_create(
-                sender_content_type=sender_content_type,
-                sender_object_id = sender.id,
-                event=event,
-                to=to
-            )
+    delivery_period = models.PositiveSmallIntegerField(choices=DELIVERY_PERIOD, default=INSTANT)
+    delivery_method = models.PositiveSmallIntegerField(choices=DELIVERY_METHOD, default=EMAIL)
+    readed = models.BooleanField(default=False)
+    last_tried = models.DateTimeField(blank=True, null=True)
+    created = models.DateTimeField(auto_now=True)
+    status = models.PositiveSmallIntegerField(choices=STATUS, default=NEW)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(default=timezone.now)
 
-        return eap
-
-
-class EmailAndPush(models.Model):
-    sender_content_type = models.ForeignKey(ContentType, related_name='email_and_push', default=15)
-    sender_object_id = models.PositiveIntegerField()
-    sender = generic.GenericForeignKey('sender_content_type', 'sender_object_id')
-    event = models.ForeignKey(EmailEvent, related_name='email_event')
-    to = EmailField(blank=True)
-    target_content_type = models.ForeignKey(ContentType, related_name="email_target", blank=True, null=True)
-    target_object_id = models.PositiveIntegerField(null=True, blank=True)
-    target = generic.GenericForeignKey('target_content_type', 'target_object_id')
-    last_sent = models.DateTimeField(blank=True, null=True)
-
+    # Ideally should add interval fields also (periodicity) hardcoding to 1, 3, 5  from the end_date
     objects = EmailAndPushManager()
 
     @property
     def get_to(self):
         return self.to
 
-    def updateEmailTime(self, sent_time=timezone.now):
-        self.last_sent = sent_time
+    def update_last_tried(self, sent_time=timezone.now):
+        self.last_tried = sent_time
+        self.save()
+
+    def update_status(self, status):
+        self.status = status
+        self.save()
 

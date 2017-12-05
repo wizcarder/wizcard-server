@@ -35,14 +35,14 @@ class EventManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntityComponent.EVENT):
+    def users_entities(self, user, **kwargs):
         return super(EventManager, self).users_entities(
             user,
-            entity_type=entity_type
+            kwargs
         )
 
     def get_expired(self):
-        return self.filter(end__lt=timezone.now(), expired=False)
+        return self.filter(end__lt=timezone.now(), expired=False, is_activated=True)
 
 
 class Event(BaseEntity):
@@ -66,10 +66,11 @@ class CampaignManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
+    def users_entities(self, user, **kwargs):
+        kwargs.update(entity_type=BaseEntityComponent.CAMPAIGN)
         return super(CampaignManager, self).users_entities(
             user,
-            entity_type=entity_type
+            kwargs
         )
 
 
@@ -85,10 +86,11 @@ class VirtualTableManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, entity_type=BaseEntityComponent.TABLE):
+    def users_entities(self, user, **kwargs):
+        kwargs.update(entity_type=BaseEntityComponent.TABLE)
         return super(VirtualTableManager, self).users_entities(
             user,
-            entity_type=entity_type
+            kwargs
         )
 
     def lookup(self, lat, lng, n, etype=BaseEntityComponent.TABLE, count_only=False):
@@ -122,11 +124,11 @@ class VirtualTable(BaseEntity):
         verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
         members = self.users.all()
         for member in members:
-            notify.send(
-                self.get_creator(),
-                recipient=member,
-                verb=verb,
-                target=self)
+            notify.send(self.get_creator(),
+                        recipient=member,
+                        notif_type=verb,
+                        target=self
+                        )
 
         self.location.get().delete()
 
@@ -155,15 +157,21 @@ class Speaker(BaseEntityComponent, Base412Mixin, CompanyTitleMixin, VcardMixin):
     objects = SpeakerManager()
 
 
-class SponsorManager(BaseEntityComponentManager):
+class SponsorManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.SPONSOR):
         return super(SponsorManager, self).owners_entities(
             user,
             entity_type=entity_type
         )
 
+    def users_entities(self, user, **kwargs):
+        kwargs.update(entity_type=BaseEntityComponent.SPONSOR)
+        return super(SponsorManager, self).users_entities(
+            user,
+            **kwargs
+        )
 
-class Sponsor(BaseEntityComponent, Base413Mixin):
+class Sponsor(BaseEntity):
     caption = models.CharField(max_length=50, default='Not Available')
 
     objects = SponsorManager()
@@ -246,6 +254,7 @@ from django.db.models.signals import post_save
 
 @receiver(post_save, sender=Event)
 @receiver(post_save, sender=Campaign)
+@receiver(post_save, sender=Sponsor)
 @receiver(post_save, sender=VirtualTable)
 def create_engagement_stats(sender, instance, created, **kwargs):
     if created:

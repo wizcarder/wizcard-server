@@ -23,6 +23,7 @@ class RelatedSerializerField(serializers.RelatedField):
 
         ids = data.get('ids', None)
         etype = data.get('type', None)
+        overwrite = data.get('overwrite', False)
 
         # Perform the data validation.
         if ids is None:
@@ -34,10 +35,9 @@ class RelatedSerializerField(serializers.RelatedField):
                 'type': 'This field is required.'
             })
 
-        return {
-            'ids': ids,
-            'type': etype
-        }
+        value_dict = {'ids': ids, 'type': etype, 'overwrite': overwrite} if overwrite else {'ids': ids, 'type': etype}
+
+        return value_dict
 
     def to_representation(self, value):
         pass
@@ -104,7 +104,7 @@ class EntitySerializer(EntitySerializerL0):
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
-        my_fields = ('name', 'address', 'secure', 'description', 'email', 'website', 'phone',
+        my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
                      'category', 'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
                      'engagements', 'creator', 'owners', 'related', 'ext_fields', 'is_activated', 'status')
 
@@ -185,6 +185,8 @@ class EntitySerializer(EntitySerializerL0):
             instance.name = validated_data.pop('name', instance.name)
         if hasattr(instance, 'address'):
             instance.address = validated_data.pop('address', instance.address)
+        if hasattr(instance, 'venue'):
+            instance.address = validated_data.pop('venue', instance.venue)
         if hasattr(instance, 'website'):
             instance.website = validated_data.pop('website', instance.website)
         if hasattr(instance, 'description'):
@@ -204,7 +206,9 @@ class EntitySerializer(EntitySerializerL0):
         sub_entities = validated_data.pop('related', None)
         if sub_entities is not None:
             for s in sub_entities:
-                instance.remove_sub_entities_of_type(s['type'])
+                overwrite = s.pop('overwrite', False)
+                if overwrite:
+                    instance.remove_sub_entities_of_type(s['type'])
                 instance.add_subentities(**s)
 
         location = validated_data.pop('location', None)
