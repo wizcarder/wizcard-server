@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 import base.char_trunc
+from django.utils import timezone
 
 
 class Migration(migrations.Migration):
@@ -56,7 +57,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sponsor',
             name='baseentity_ptr',
-            field=models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, default=1, serialize=False, to='base_entity.BaseEntity'),
+            field=models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, default=0, serialize=False, to='base_entity.BaseEntity'),
             preserve_default=False,
         ),
         migrations.AlterField(
