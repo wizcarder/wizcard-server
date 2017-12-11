@@ -34,7 +34,7 @@ def create_vcard(wizcard):
 
     return v.serialize()
 
-@shared_task
+#@shared_task
 def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
 
     extfields = from_wizcard.get_ext_fields
@@ -72,6 +72,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
         attach_data = {'data':from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
 
     email.send(attach=attach_data)
+    return 0
 
 
 @shared_task

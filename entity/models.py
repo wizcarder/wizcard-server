@@ -38,7 +38,7 @@ class EventManager(BaseEntityManager):
     def users_entities(self, user, **kwargs):
         return super(EventManager, self).users_entities(
             user,
-            kwargs
+            **kwargs
         )
 
     def get_expired(self):
@@ -70,7 +70,7 @@ class CampaignManager(BaseEntityManager):
         kwargs.update(entity_type=BaseEntityComponent.CAMPAIGN)
         return super(CampaignManager, self).users_entities(
             user,
-            kwargs
+            **kwargs
         )
 
 
@@ -90,7 +90,7 @@ class VirtualTableManager(BaseEntityManager):
         kwargs.update(entity_type=BaseEntityComponent.TABLE)
         return super(VirtualTableManager, self).users_entities(
             user,
-            kwargs
+            **kwargs
         )
 
     def lookup(self, lat, lng, n, etype=BaseEntityComponent.TABLE, count_only=False):

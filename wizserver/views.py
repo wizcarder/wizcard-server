@@ -537,9 +537,7 @@ class ParseMsgAndDispatch(object):
         # update location since it may have changed
         if self.msg_has_location() and not self.msg_is_initial() and not settings.DISABLE_LOCATION:
 
-            self.app_userprofile.create_or_update_location(
-            self.lat,
-            self.lng)
+            self.app_userprofile.create_or_update_location(self.lat, self.lng)
 
         # process
         response = msgTypesValidatorsAndHandlers[self.msg_id][HANDLER]()
@@ -1057,6 +1055,7 @@ class ParseMsgAndDispatch(object):
                         recipient=wizcard.user,
                         notif_type=verbs.WIZREQ_T[0],
                         target=admin_user.wizcard,
+                        verb=verbs.WIZREQ_T[1],
                         action_object=rel21
                         )
 
@@ -1077,6 +1076,7 @@ class ParseMsgAndDispatch(object):
             notify.send(self.user,
                         recipient=self.user,
                         notif_type=verbs.WIZCARD_NEW_USER[0],
+                        verb=verbs.WIZCARD_NEW_USER[1],
                         target=wizcard,
                         delivery_method=BaseNotification.EMAIL
                         )
@@ -1167,6 +1167,7 @@ class ParseMsgAndDispatch(object):
                     recipient=self.user,
                     notif_type=verb1,
                     target=wizcard2,
+                    verb=verbs.WIZREQ_T_HALF[1],
                     action_object=rel21
                     )
 
@@ -1176,6 +1177,7 @@ class ParseMsgAndDispatch(object):
                         recipient=self.r_user,
                         notif_type=verb2,
                         target=wizcard1,
+                        verb=verbs.WIZREQ_T[1],
                         action_object=rel12
                         )
 
@@ -1262,6 +1264,7 @@ class ParseMsgAndDispatch(object):
                         notify.send(self.user,
                                     recipient=wizcard2.user,
                                     notif_type=verbs.WIZCARD_REVOKE[0],
+                                    verb=verbs.WIZCARD_REVOKE[1],
                                     target=wizcard1)
         except KeyError:
             self.security_exception()
@@ -1356,6 +1359,7 @@ class ParseMsgAndDispatch(object):
                 notify.send(self.user,
                             recipient=wizcard2.user,
                             notif_type=verbs.WIZCARD_FLICK_PICK[0],
+                            verb=verbs.WIZCARD_FLICK_PICK[1],
                             target=flick_card,
                             action_object=rel)
 
@@ -1383,6 +1387,7 @@ class ParseMsgAndDispatch(object):
                 #Q implicit exchange to flicker
                 notify.send(self.user, recipient=wizcard2.user,
                             notif_type=verbs.WIZREQ_T[0],
+                            verb=verbs.WIZREQ_T[1],
                             target=wizcard1,
                             action_object=rel1)
             return self.response
@@ -1579,13 +1584,13 @@ class ParseMsgAndDispatch(object):
                         connection_mode=receiver_type,
                         location=location_str)
                 rel21 = r_wizcard.get_relationship(wizcard)
-                conn_status = verbs.WIZREQ_U[0]
+                conn_status = verbs.WIZREQ_U
 
                 if rel12:
                     # wizcard->r_wizcard exists previously ?
                     if rel12.status == verbs.ACCEPTED or rel12.status == verbs.PENDING:
                         if rel21 and rel21.status == verbs.PENDING:
-                            conn_status = verbs.WIZREQ_T[0]
+                            conn_status = verbs.WIZREQ_T
                         else:
                             to_notify = False
                     else:
@@ -1599,12 +1604,13 @@ class ParseMsgAndDispatch(object):
                                                    status=verbs.PENDING,
                                                    cctx=cctx1)
                 # Q notif for to_wizcard
-                notif_type = verbs.WIZREQ_T[0] if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T] else conn_status
+                notif_tuple = verbs.WIZREQ_T if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T] else conn_status
                 if to_notify:
                     notify.send(
                             self.user,
                             recipient=r_user,
-                            notif_type=notif_type,
+                            notif_type=notif_tuple[0],
+                            verb=notif_tuple[1],
                             target=wizcard,
                             action_object=rel12
                     )
@@ -1648,6 +1654,7 @@ class ParseMsgAndDispatch(object):
                     notify.send(r_user,
                                 recipient=self.user,
                                 notif_type=conn_status[0],
+                                verb=conn_status[1],
                                 target=r_wizcard,
                                 action_object=rel21
                                 )
@@ -1680,6 +1687,7 @@ class ParseMsgAndDispatch(object):
                 notify.send(self.user,
                             recipient=r_user,
                             notif_type=verbs.WIZCARD_TABLE_INVITE[0],
+                            verb=verbs.WIZCARD_TABLE_INVITE[1],
                             target=table
                             )
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE],
@@ -1715,6 +1723,7 @@ class ParseMsgAndDispatch(object):
                         notify.send(self.user,
                                     recipient=wizcard.user,
                                     notif_type=verbs.WIZREQ_U[0],
+                                    verb=verbs.WIZREQ_U[1],
                                     target=obj,
                                     action_object=rel12
                                     )
@@ -1725,6 +1734,7 @@ class ParseMsgAndDispatch(object):
                         rel12.reset()
                         notify.send(self.user, recipient=wizcard.user,
                                     notif_type=verbs.WIZREQ_U[0],
+                                    verb=verbs.WIZREQ_U[1],
                                     target=obj,
                                     action_object=rel12)
 
@@ -1738,6 +1748,7 @@ class ParseMsgAndDispatch(object):
                                                        cctx=cctx2)
                         notify.send(wizcard.user, recipient=self.user,
                                     notif_type=verbs.WIZREQ_T_HALF[0],
+                                    verb=verbs.WIZREQ_T_HALF[1],
                                     target=wizcard,
                                     action_object=rel21)
 
@@ -1756,6 +1767,7 @@ class ParseMsgAndDispatch(object):
 
                         notify.send(wizcard.user, recipient=self.user,
                                     notif_type=conn_status[0],
+                                    verb=conn_status[1],
                                     target=wizcard,
                                     action_object=rel21)
                     else:
@@ -1770,12 +1782,14 @@ class ParseMsgAndDispatch(object):
                     #Q this to the receiver
                     notify.send(self.user, recipient=wizcard.user,
                                 notif_type=verbs.WIZCARD_TABLE_INVITE[0],
+                                verb=verbs.WIZCARD_TABLE_INVITE[1],
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
                     notify.send(self.user,
                                 recipient=self.user,
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
+                                verb=verbs.WIZCARD_INVITE_USER[1],
                                 target=wizcard,
                                 delivery_method=BaseNotification.EMAIL
                                 )
@@ -1791,6 +1805,7 @@ class ParseMsgAndDispatch(object):
                     notify.send(self.user,
                                 recipient=self.user,
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
+                                verb=verbs.WIZCARD_INVITE_USER[1],
                                 target=fuser[0],
                                 delivery_method=BaseNotification.EMAIL
                                 )
@@ -2083,6 +2098,7 @@ class ParseMsgAndDispatch(object):
                     self.user,
                     recipient=self.user,
                     notif_type=verbs.WIZCARD_SCANNED_USER[0],
+                    verb=verbs.WIZCARD_SCANNED_USER[1],
                     target=deadcard,
                     delivery_method=BaseNotification.EMAIL
                 )
@@ -2289,12 +2305,12 @@ class ParseMsgAndDispatch(object):
                 do_location = False
 
 
-        m_events = Event.objects.users_entities(self.user, {'expired': False})
-        n_events, count = Event.objects.lookup(
+        m_events = Event.objects.users_entities(self.user, expired=False)
+        n_events = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
-        ) if do_location else Event.objects.filter(expired=False, is_activated=True)
+        )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
 
 
         events = list(set(m_events) | set(n_events))
@@ -2408,6 +2424,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
+        # AR: This applies only to EVT
         if entity_type == 'EVT' and entity.secure and not entity.is_joined(self.user):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response

@@ -45,11 +45,19 @@ now = timezone.now()
 class BaseNotificationManager(models.Manager):
     pass
 
+
 class BaseNotification(models.Model):
     EMAIL = 1
     ALERT = 2
     PUSHNOTIF = 3
+    SMS = 4
 
+    DELIVERY_METHOD = (
+        (EMAIL, 'email'),
+        (ALERT, 'alert'),
+        (PUSHNOTIF, 'pushnotif'),
+        (SMS, 'sms')
+    )
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
     actor_object_id = models.CharField(max_length=255)
@@ -76,7 +84,6 @@ class BaseNotification(models.Model):
     notif_type = models.PositiveIntegerField(default=0)
 
     objects = BaseNotificationManager()
-
 
     class Meta:
         ordering = ('timestamp', )
@@ -116,21 +123,9 @@ class NotificationManager(BaseNotificationManager):
 
         return exclude_users
 
-    def get_last_notif(self):
-        last_notif = Notification.objects.latest('id')
-        return last_notif
-
-    def get_async(self):
-        return self.filter(readed=False)
-
-    def get_broadcast(self):
-        return self.filter(readed=False, notif_type=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0])
-
 
 class Notification(BaseNotification):
     # used by Portal. ALERT is also used by app for legacy path
-
-
     # new one to support resync of "un-acted-upon" notifs. We will set this
     # flag to False for user exposed notifs (type 2 currently) when we create
     # those specific notifs. App implicitly lets us know that it has acted on it
@@ -141,7 +136,6 @@ class Notification(BaseNotification):
     readed = models.BooleanField(default=False, blank=False)
 
     objects = NotificationManager()
-
 
     def __unicode__(self):
         ctx = {
@@ -235,10 +229,8 @@ def notify_handler(notif_type, **kwargs):
                                                start_date=start,
                                                end_date=end
                                                )
-
-
     else:
-        do_push = notif_type in verbs.apns_notification_dictionary and do_push
+        do_push = notif_type in verbs.apns_notification_dictionary or do_push
         start = end = timezone.now()
 
         if do_push:
@@ -257,8 +249,6 @@ def notify_handler(notif_type, **kwargs):
                                                    start_date=start,
                                                    end_date=end
                                                    )
-
-
 
         newnotify, created = Notification.objects.get_or_create(
                                 actor_content_type=ContentType.objects.get_for_model(actor),

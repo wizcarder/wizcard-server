@@ -12,6 +12,7 @@
 from django.db import models
 from django.utils import timezone
 from notifications.models import BaseNotification, BaseNotificationManager
+from wizserver import verbs
 import pdb
 
 # Create your models here.
@@ -19,20 +20,12 @@ import pdb
 
 class EmailAndPushManager(BaseNotificationManager):
 
-    def candidates(self, reminder_intervals=[1, 3, 5]):
+    def unread(self):
+        return EmailAndPush.objects.filter(readed=False)
 
-        inst_email_candidates = EmailAndPush.objects.filter(
-            delivery_period=EmailAndPush.INSTANT,
-            status=EmailAndPush.NEW,
-        )
-        inst_notif_candidates = EmailAndPush.objects.filter(
-            delivery_period=EmailAndPush.INSTANT,
-            status=EmailAndPush.NEW,
-        )
+    def get_broadcast(self):
+        return EmailAndPush.objects.filter(readed=False, notif_type=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0])
 
-        # Buffered events requires some timestamp calculations using extra deferring it
-        # for now but is pretty easy to do.
-        return inst_email_candidates, inst_notif_candidates
 
 
 class EmailAndPush(BaseNotification):
@@ -42,10 +35,6 @@ class EmailAndPush(BaseNotification):
     INSTANT = 2
     SCHEDULED = 3
 
-    EMAIL = 1
-    ALERT = 2
-    PUSHNOTIF = 3
-    SMS = 4
 
     DELIVERY_PERIOD = (
         (RECUR, 'RECUR'),
@@ -53,12 +42,6 @@ class EmailAndPush(BaseNotification):
         (SCHEDULED, 'SCHEDULED')
     )
 
-    DELIVERY_METHOD = (
-        (EMAIL, 'email'),
-        (ALERT, 'alert'),
-        (PUSHNOTIF, 'pushnotif'),
-        (SMS, 'sms')
-    )
 
     @property
     def get_delivery_period(self):
@@ -76,7 +59,7 @@ class EmailAndPush(BaseNotification):
     )
 
     delivery_period = models.PositiveSmallIntegerField(choices=DELIVERY_PERIOD, default=INSTANT)
-    delivery_method = models.PositiveSmallIntegerField(choices=DELIVERY_METHOD, default=EMAIL)
+    delivery_method = models.PositiveSmallIntegerField(choices=BaseNotification.DELIVERY_METHOD, default=BaseNotification.EMAIL)
     readed = models.BooleanField(default=False)
     last_tried = models.DateTimeField(blank=True, null=True)
     created = models.DateTimeField(auto_now=True)
@@ -98,4 +81,9 @@ class EmailAndPush(BaseNotification):
     def update_status(self, status):
         self.status = status
         self.save()
+
+    def mark_as_read(self):
+        if not self.readed:
+            self.readed = True
+            self.save()
 

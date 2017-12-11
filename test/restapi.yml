@@ -2,17 +2,17 @@
     - testset: "Portal API Tests"
     - timeout: 100  # Increase timeout from the default 10 seconds
 ## RUN COMMAND: pyresttest --url=http://localhost:8000 --test=test/restapi.yml --verbose
-#- test:
-#    - name: "User Creation"
-#    - url: "/users/registration/"
-#    - expected_status: [201]
-#    - method: 'POST'
-#    - body: '{"username": "kappu.biz", "email": "kappu.biz@gmail.com", "password1": "a1b2c3d4", "first_name": "Karpagam", "last_name": "G", "password2":"a1b2c3d4", "user_type":2}'
-#    - headers: {Content-Type: application/json}
-#    - validators:
-#        - compare: {raw_body: "", comparator: contains, expected: 'key'}
-#    - extract_binds:
-#        - 'token': {'jsonpath_mini': 'key'}
+- test:
+    - name: "User Creation"
+    - url: "/users/registration/"
+    - expected_status: [201]
+    - method: 'POST'
+    - body: '{"username": "kappu.biz", "email": "kappu.biz@gmail.com", "password1": "a1b2c3d4", "first_name": "Karpagam", "last_name": "G", "password2":"a1b2c3d4", "user_type":2}'
+    - headers: {Content-Type: application/json}
+    - validators:
+        - compare: {raw_body: "", comparator: contains, expected: 'key'}
+    - extract_binds:
+        - 'token': {'jsonpath_mini': 'key'}
 
 - test:
     - name: "User Creation"
@@ -181,7 +181,7 @@
     - url: "/entity/notifications/"
     - expected_status: [201]
     - method: 'POST'
-    - body: {template: '{"delivery_method":2, "recipient":2, "actor": { "type": "user", "id": 2 }, "target": {"type": "event", "id": $event1}, "verb": "Get immersed in the devotion of Lord Neminath! Goto Media Section in the App and Listen"}'}
+    - body: {template: '{"delivery_method":2, "recipient":2, "actor": { "type": "user", "id": 2 }, "target": {"type": "event", "id": 53}, "verb": "Get immersed in the devotion of Lord Neminath! Goto Media Section in the App and Listen", "do_push": "True"}'}
     - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
     - extract_binds:
         - 'notif_1': {'jsonpath_mini': 'id'}

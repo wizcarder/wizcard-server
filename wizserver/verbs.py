@@ -268,6 +268,11 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'alert': 'Message from {1.name} - {3}'
+    },
+    WIZCARD_ENTITY_BROADCAST_CREATE[0]: {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'alert': 'Message from {1.name} - {3}'
     }
 
 }
@@ -306,7 +311,11 @@ gcm_notification_dictionary = {
         'body': '{1.name} table has now expired',
     },
     WIZCARD_ENTITY_BROADCAST[0]: {
-        'title': 'Girnar Darshan announcement',
+        'title': 'Event announcement',
+        'body': '{3}',
+    },
+    WIZCARD_ENTITY_BROADCAST_CREATE[0]: {
+        'title': 'Create Broadcast',
         'body': '{3}',
     }
 

@@ -110,12 +110,14 @@ class WizcardManager(PolymorphicManager):
                     notif_type=verbs.WIZREQ_T[0],
                     description=cctx.description,
                     target=wizcard1,
+                    verb=verbs.WIZREQ_T[1],
                     action_object=rel1)
 
         notify.send(wizcard2.user, recipient=wizcard1.user,
                         notif_type=verbs.WIZREQ_T[0],
                         description=cctx.description,
                         target=wizcard2,
+                        verb=verbs.WIZREQ_T[1],
                         action_object=rel2)
 
         return err.OK
@@ -207,13 +209,13 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return self.sms_url
 
     def get_thumbnail_url(self):
-        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_THUMBNAIL]
+        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL]
         if l:
             return l
 
         return ""
 
-    def save_vcard(self,vobj):
+    def save_vcard(self, vobj):
         self.vcard = vobj
         self.save()
 
@@ -240,6 +242,7 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         if qs.exists():
             return qs[0].title
         return None
+
 
 class Wizcard(WizcardBase):
     # TODO move this upstairs
@@ -644,6 +647,7 @@ class WizcardFlick(models.Model):
             notify.send(self.wizcard.user,
                         recipient=self.wizcard.user,
                         notif_type=verbs.WIZCARD_FLICK_TIMEOUT[0],
+                        verb=verbs.WIZCARD_FLICK_TIMEOUT[1],
                         target=self)
         else:
             #withdraw/delete flick case

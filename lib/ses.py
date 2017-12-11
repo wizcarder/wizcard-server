@@ -43,3 +43,4 @@ class Email(object):
             msg.attach(attach['name'],attach['data'], attach['mime'])
 
         msg.send(fail_silently)
+        return 0

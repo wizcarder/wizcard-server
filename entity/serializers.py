@@ -238,7 +238,7 @@ class EventSerializerL1(EntitySerializer):
 
         out = dict(
             count=count,
-            data=WizcardSerializerL0(wizcards, many=True, context={'user':self.context.get('user')}).data
+            data=WizcardSerializerL0(wizcards, many=True, context={'user': self.context.get('user')}).data
         )
         return out
 
@@ -247,6 +247,7 @@ class EventSerializerL1(EntitySerializer):
             obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
             many=True
         ).data
+
 
 # these are used by App.
 class EventSerializerL2(EntitySerializer):
@@ -432,6 +433,7 @@ class TableSerializerL1(EntitySerializer):
 
         return status
 
+
 class TableSerializerL2(EntitySerializer):
     class Meta:
         model = VirtualTable
@@ -471,6 +473,7 @@ class TableSerializer(EntitySerializer):
         self.post_create(obj)
 
         return obj
+
 
 """
 used by portal
@@ -584,7 +587,6 @@ class SponsorSerializerL1(EntitySerializer):
             count=count,
         )
         return out
-
 
 
 class SponsorSerializerL2(EntitySerializer):

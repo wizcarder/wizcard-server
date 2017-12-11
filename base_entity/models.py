@@ -23,7 +23,7 @@ import pdb
 
 class BaseEntityComponentManager(PolymorphicManager):
     def users_entities(self, user, entity_type):
-        return BaseEntity.objects.users_entities(user, entity_type)
+        return BaseEntity.objects.users_entities(user, entity_type=entity_type)
 
     def owners_entities(self, user, entity_type):
         if not entity_type:
@@ -61,12 +61,12 @@ class BaseEntityManager(BaseEntityComponentManager):
         return BaseEntityComponent.objects.owners_entities(user, entity_type)
 
     def users_entities(self, user, **kwargs):
-        entity_type = kwargs.pop('entity_type', None)
+        entity_type = kwargs.get('entity_type', None)
         if not entity_type:
-            return user.users_baseentity_related.filter(kwargs)
+            return user.users_baseentity_related.filter(**kwargs)
 
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
-        return user.users_baseentity_related.filter(kwargs).instance_of(cls)
+        return user.users_baseentity_related.filter(**kwargs).instance_of(cls)
 
     def query(self, query_str):
         # check names
@@ -294,7 +294,7 @@ class BaseEntityComponent(PolymorphicModel):
                     self.notify_all_users(self.get_creator(),
                                           verbs.WIZCARD_NEW_POLL,
                                           obj
-                                        )
+                                          )
         except:
             pass
 
@@ -466,6 +466,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 sender,
                 recipient=u,
                 notif_type=notif_type[0],
+                verb=notif_type[1],
                 target=entity
             )
 
