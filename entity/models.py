@@ -36,6 +36,7 @@ class EventManager(BaseEntityManager):
         )
 
     def users_entities(self, user, **kwargs):
+        kwargs.update(entity_type=BaseEntityComponent.EVENT)
         return super(EventManager, self).users_entities(
             user,
             **kwargs

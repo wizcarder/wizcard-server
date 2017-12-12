@@ -126,6 +126,7 @@ class NotificationManager(BaseNotificationManager):
 
 class Notification(BaseNotification):
     # used by Portal. ALERT is also used by app for legacy path
+
     # new one to support resync of "un-acted-upon" notifs. We will set this
     # flag to False for user exposed notifs (type 2 currently) when we create
     # those specific notifs. App implicitly lets us know that it has acted on it
