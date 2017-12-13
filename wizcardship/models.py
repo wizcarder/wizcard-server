@@ -237,6 +237,10 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
     def get_vcard(self):
         return self.vcard
 
+    @property
+    def get_email(self):
+        return self.email
+
     def get_latest_title(self):
         qs = self.contact_container.all()
         if qs.exists():

@@ -183,6 +183,12 @@ class EventSerializer(EntitySerializer):
     def get_polls(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            many=True
+        ).data
+
 
 # these are used by App.
 class EventSerializerL1(EntitySerializer):
@@ -514,6 +520,12 @@ class SpeakerSerializer(EntitySerializer):
 
         return instance
 
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            many=True
+        ).data
+
 """
 used by App
 """
@@ -562,6 +574,12 @@ class SponsorSerializer(EntitySerializer):
         instance = super(SponsorSerializer, self).update(instance, validated_data)
 
         return instance
+
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            many=True
+        ).data
 
 class SponsorSerializerL1(EntitySerializer):
 
