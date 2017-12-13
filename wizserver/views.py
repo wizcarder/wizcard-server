@@ -2304,14 +2304,12 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-
         m_events = Event.objects.users_entities(self.user, expired=False)
         n_events = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
         )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
-
 
         events = list(set(m_events) | set(n_events))
 
@@ -2401,7 +2399,7 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type')
         cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
-        entities = cls.objects.users_entities(self.user, entity_type=entity_type)
+        entities = cls.objects.users_entities(self.user)
 
         out = s(entities, many=True, **self.user_context).data
         count = entities.count()

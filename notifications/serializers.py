@@ -50,7 +50,6 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
-    # AA Comments: notif_type needn't really be exposed in rest. Leaving it here for now.
     do_push = serializers.BooleanField(required=False, default=True, write_only=True)
     start = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
     end = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
@@ -62,7 +61,6 @@ class NotificationSerializer(serializers.ModelSerializer):
         end = validated_data.pop('end', timezone.now() + timedelta(minutes=1))
         do_push = validated_data.pop('do_push', False)
 
-        # AA: Comments: this was broken
         push_notif = notify.send(
             self.context.get('user'),
             notif_type=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0],

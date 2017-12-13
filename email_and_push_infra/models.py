@@ -30,11 +30,9 @@ class EmailAndPushManager(BaseNotificationManager):
 
 class EmailAndPush(BaseNotification):
 
-
     RECUR = 1
     INSTANT = 2
     SCHEDULED = 3
-
 
     DELIVERY_PERIOD = (
         (RECUR, 'RECUR'),
@@ -42,11 +40,9 @@ class EmailAndPush(BaseNotification):
         (SCHEDULED, 'SCHEDULED')
     )
 
-
     @property
     def get_delivery_period(self):
         return self.delivery_period
-
 
     SUCCESS = 0
     FAILURE = -1
