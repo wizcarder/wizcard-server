@@ -111,7 +111,11 @@ class EntitySerializer(EntitySerializerL0):
         fields = EntitySerializerL0.Meta.fields + my_fields
 
     def get_media(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_MEDIA)
+        return MediaEntitiesSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
+            many=True,
+            context=self.context
+        ).data
 
     def get_users(self, obj):
         return ""

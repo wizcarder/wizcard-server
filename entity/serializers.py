@@ -55,13 +55,6 @@ class AgendaItemSerializerL2(EntitySerializer):
 
     speakers = serializers.SerializerMethodField()
 
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
-            many=True,
-            context=self.context
-        ).data
-
     def get_speakers(self, obj):
         return SpeakerSerializerL2(
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPEAKER),
@@ -105,13 +98,6 @@ class AgendaSerializerL2(EntitySerializer):
         fields = ('id', 'entity_type', 'items', 'media')
 
     items = AgendaItemSerializerL2(many=True)
-
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
-            many=True,
-            context=self.context
-        ).data
 
     def get_speakers(self, obj):
         return SpeakerSerializerL2(
@@ -183,11 +169,6 @@ class EventSerializer(EntitySerializer):
     def get_polls(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
-            many=True
-        ).data
 
 # presently used by portal to show mini-event summary in sub-entity views
 class EventSerializerL0(EntitySerializer):
@@ -332,12 +313,6 @@ class EventSerializerL2(EntitySerializer):
             context=self.context
         ).data
 
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
-            many=True
-        ).data
-
 
 # this is used by App
 class CampaignSerializerL1(EntitySerializer):
@@ -372,12 +347,6 @@ class CampaignSerializerL2(EntitySerializer):
         model = Campaign
         my_fields = ('tags', 'joined', 'like',)
         fields = EntitySerializer.Meta.fields + my_fields
-
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
-            many=True
-        ).data
 
 
 # this is used by portal REST API
@@ -452,12 +421,6 @@ class TableSerializerL2(EntitySerializer):
         model = VirtualTable
         fields = EntitySerializer.Meta.fields
 
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
-            many=True
-        ).data
-
 
 # this is used by portal REST API
 class TableSerializer(EntitySerializer):
@@ -529,11 +492,6 @@ class SpeakerSerializer(EntitySerializer):
 
         return instance
 
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
-            many=True
-        ).data
 
 """
 used by App
@@ -546,12 +504,6 @@ class SpeakerSerializerL2(EntitySerializer):
         model = Speaker
         fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
                   'description', 'ext_fields', 'company', 'title', 'media')
-
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
-            many=True
-        ).data
 
 
 class SponsorSerializer(EntitySerializer):
@@ -587,12 +539,6 @@ class SponsorSerializer(EntitySerializer):
         return instance
 
 
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
-            many=True
-        ).data
-
 class SponsorSerializerL1(EntitySerializer):
 
     class Meta:
@@ -606,7 +552,7 @@ class SponsorSerializerL1(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_SPONSORS_LOGO),
             many=True
         ).data
 
@@ -626,12 +572,6 @@ class SponsorSerializerL2(EntitySerializer):
         fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
                   'description', 'phone', 'caption', 'ext_fields', 'media',
                   'joined', 'like')
-
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_MEDIA),
-            many=True
-        ).data
 
 
 class ExhibitorInviteeSerializer(EntitySerializer):
