@@ -43,7 +43,7 @@ class HtmlGen:
     def welcome_user(self, sender, target):
         wizcard = target
         try:
-            to = target.get_email()
+            to = target.get_email
         except:
             return -1
         email_details = {"template" : "welcome.html", "subject": "Welcome %s to WizCard"}
@@ -53,7 +53,7 @@ class HtmlGen:
     def invite_user(self, sender, target):
         wizcard = sender.wizcard
         try:
-            to = target.get_email()
+            to = target.get_email
         except:
             return -1
         email_details = {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"}
@@ -63,7 +63,7 @@ class HtmlGen:
     def scan_user(self, sender, target):
         wizcard = sender.wizcard
         try:
-            to = target.get_email()
+            to = target.get_email
         except:
             return -1
         email_details = {"template": "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}

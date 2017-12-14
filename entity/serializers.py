@@ -183,6 +183,11 @@ class EventSerializer(EntitySerializer):
     def get_polls(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            many=True
+        ).data
 
 # presently used by portal to show mini-event summary in sub-entity views
 class EventSerializerL0(EntitySerializer):
@@ -524,6 +529,12 @@ class SpeakerSerializer(EntitySerializer):
 
         return instance
 
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            many=True
+        ).data
+
 """
 used by App
 """
@@ -575,6 +586,12 @@ class SponsorSerializer(EntitySerializer):
 
         return instance
 
+
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            many=True
+        ).data
 
 class SponsorSerializerL1(EntitySerializer):
 
