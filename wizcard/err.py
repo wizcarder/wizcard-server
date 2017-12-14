@@ -28,6 +28,9 @@ REVERSE_INVITE = {'errno': 26, 'str': "Invitation expired/revoked, Do you want t
 INVALID_STATE = {'errno': 27, 'str': "Invalid connection state"}
 SELF_INVITE = {'errno': 28, 'str': "Connecting with Yourself - You are well connected;)"}
 EMBED_FAILED = {'errno': 29, 'str': "Couldn't Embed Video"}
+POLL_ID_INVALID = {'errno': 30, 'str': "sorry, we couldn't find this poll"}
+POLL_RESPONSE_INVALID_QUESTION = {'errno': 31, 'str': "sorry, we couldn't find this poll question"}
+POLL_RESPONSE_INVALID_ANSWER = {'errno': 32, 'str': "sorry, this answer choice is invalid"}
 
 
 IGNORE = {'result': 1, 'ignore': 1, 'errStr': ""}

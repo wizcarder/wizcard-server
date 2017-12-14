@@ -1,9 +1,11 @@
 __author__ = 'aammundi'
 
 from rest_framework import serializers
-from polls.models import Poll, Question, QuestionChoicesBase, UserResponse
+from polls.models import Poll, Question, QuestionChoicesBase
 from base_entity.models import BaseEntityComponent
 from entity.serializers import EntitySerializer
+from django.contrib.contenttypes.models import ContentType
+from entity.serializers import EventSerializerL0
 
 import pdb
 
@@ -17,6 +19,19 @@ class QuestionChoicesSerializer(serializers.ModelSerializer):
     question_value = serializers.CharField(required=False)
     low = serializers.CharField(required=False)
     high = serializers.CharField(required=False)
+
+
+class QuestionChoicesResponseSerializer(QuestionChoicesSerializer):
+    class Meta:
+        model = QuestionChoicesBase
+        my_fields = ('answers',)
+        fields = QuestionChoicesSerializer.Meta.fields + my_fields
+
+    answers = serializers.SerializerMethodField(read_only=True)
+
+    @staticmethod
+    def get_answers(self, obj):
+        return obj.answer_stats()
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -42,10 +57,19 @@ class QuestionSerializer(serializers.ModelSerializer):
         return obj
 
 
+class QuestionResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = ('id', 'question_type', 'question', 'choices')
+
+    choices = QuestionChoicesResponseSerializer(many=True)
+
+
+# this is used to create a poll. This is also used to send serialized Poll to App
 class PollSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'questions')
+        fields = ('id', 'description', 'questions', 'state')
 
     questions = QuestionSerializer(many=True)
 
@@ -87,55 +111,22 @@ class PollSerializer(EntitySerializer):
         return instance
 
 
-class PollSerializerL1(EntitySerializer):
+class PollResponseSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'responded', 'num_responders', 'created')
+        fields = ('id', 'event', 'num_responders', 'description', 'questions', 'state')
 
-    responded = serializers.SerializerMethodField()
-    num_responders = serializers.SerializerMethodField()
-    created = serializers.DateTimeField()
+    questions = QuestionResponseSerializer(many=True)
+    event = serializers.SerializerMethodField(read_only=True)
 
-    def get_responded(self, obj):
-        user = self.context.get('user')
-        return UserResponse.objects.has_responded(user, obj)
-
-    def get_num_responders(self, obj):
-        return obj.num_responders()
-
-
-class PollSerializerL2(PollSerializerL1):
-    questions = QuestionSerializer(many=True)
-    response = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Poll
-        fields = PollSerializerL1.Meta.fields + ('questions', 'response')
-
-    def get_response(self, obj):
-        user = self.context.get('user')
-
-        # AR:TODO: Assumes there is no partially complete poll - DANGEROUS
-        user_response = UserResponse.objects.filter(user=user, poll=obj)
-        if user_response:
-            response = UserResponseSerializer(user_response, many=True).data
-        else:
-            response = QuestionSerializer(obj.questions, many=True).data
-
-        return response
-
-
-class UserResponseSerializer(serializers.ModelSerializer):
-    question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-    answer = QuestionChoicesSerializer(read_only=True)
-
-    class Meta:
-        model = UserResponse
-        fields = ('id', 'question', 'answer', 'has_extra_text', 'extra_text', 'has_user_value', 'user_value')
-
-
-
-
+    @staticmethod
+    def get_event(self, obj):
+        # typically expecting one parent only...the Poll UI allows associating with one event only. No issues
+        # if extended to multiple events both in the related_to plumbing and here as well. Here, since we're
+        # passing the whole list, the only difference is that even for a single case, there will be {[]] instead
+        # of {}, in the response
+        event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
+        return EventSerializerL0(event, many=True).data
 
 
 

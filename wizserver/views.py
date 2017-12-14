@@ -2414,7 +2414,6 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type')
         detail = self.sender.get('detail', True)
 
-
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             entity = e.objects.get(id=id)
@@ -2432,32 +2431,36 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    # A response to a poll contains answers to multiple questions that are part
+    # of the poll.
     def PollResponse(self):
         try:
             entity = Poll.objects.get(id=self.sender.pop('entity_id'))
         except:
-            self.response.error_response(err.POLL_RESPONSE_INVALID)
+            self.response.error_response(err.POLL_ID_INVALID)
             return self.response
 
-        try:
-            answer = QuestionChoicesBase.objects.get(id=self.sender.pop('answer_id'))
-            question = Question.objects.get(id=self.sender.pop('question_id'))
-        except:
-            self.response.error_response(err.POLL_RESPONSE_INVALID)
-            return self.response
+        responses = self.sender.pop('responses', [])
 
-        # AA: TODO: remove when app stops sending entity_type
-        self.sender.pop('entity_type', None)
-        self.sender.pop('wizcard_id', None)
-        self.sender.pop('device_type', None)
+        for response in responses:
+            try:
+                question = Question.objects.get(id=response.pop('question_id'))
+            except ObjectDoesNotExist:
+                logger.error(err.POLL_RESPONSE_INVALID_QUESTION['str'].join(' %s'), id )
+                continue
+            try:
+                answer = QuestionChoicesBase.objects.get(id=response.pop('answer_id'))
+            except ObjectDoesNotExist:
+                logger.error(err.POLL_RESPONSE_INVALID_ANSWER['str'].join(' %s'), id)
+                continue
 
-        UserResponse.objects.create(
-            user=self.user,
-            poll=entity,
-            question=question,
-            answer=answer,
-            **self.sender
-        )
+            UserResponse.objects.create(
+                user=self.user,
+                poll=entity,
+                question=question,
+                answer=answer,
+                **self.sender
+            )
 
         return self.response
 

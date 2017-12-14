@@ -1,12 +1,14 @@
-from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework import viewsets, status
+from rest_framework import status
 from base_entity.views import BaseEntityComponentViewSet
-from polls.serializers import PollSerializer, QuestionSerializer, QuestionChoicesSerializer
-from polls.models import Poll, Question, QuestionChoicesBase
+from polls.serializers import PollSerializer, QuestionSerializer, QuestionChoicesSerializer, PollResponseSerializer
+from polls.models import Poll, Question, QuestionChoicesBase, UserResponse
+from rest_framework.decorators import detail_route
+from django.core.exceptions import ObjectDoesNotExist
 
 import pdb
 # Create your views here.
+
 
 class PollViewSet(BaseEntityComponentViewSet):
 
@@ -17,6 +19,13 @@ class PollViewSet(BaseEntityComponentViewSet):
         user = self.request.user
         queryset = Poll.objects.owners_entities(user)
         return queryset
+
+    @detail_route(methods=['get'])
+    def publish_poll(self, request, pk=None):
+        inst = self.get_object_or_404(pk=pk)
+        inst.set_state(Poll.POLL_STATE_ACTIVE)
+
+        return Response("poll id %s activated" % pk, status=status.HTTP_200_OK)
 
 
 class PollQuestionViewSet(BaseEntityComponentViewSet):
@@ -31,7 +40,7 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
     def retrieve(self, request, pk=None, poll_pk=None):
         try:
             poll = Poll.objects.get(id=poll_pk)
-        except:
+        except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if not poll.questions.filter(id=pk).exists():
@@ -45,7 +54,7 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
     def update(self, request, pk=None, poll_pk=None):
         try:
             poll = Poll.objects.get(id=poll_pk)
-        except:
+        except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if not poll.questions.filter(id=pk).exists():
@@ -64,7 +73,7 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
     def partial_update(self, request, pk=None, poll_pk=None):
         try:
             poll = Poll.objects.get(id=poll_pk)
-        except:
+        except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if not poll.questions.filter(id=pk).exists():
@@ -83,7 +92,7 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
     def destroy(self, request, pk=None, poll_pk=None):
         try:
             poll = Poll.objects.get(id=poll_pk)
-        except:
+        except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if not poll.questions.filter(id=pk).exists():
@@ -96,6 +105,21 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
 
         return Response(status=status.HTTP_200_OK)
 
+
 class PollQuestionChoicesViewSet(BaseEntityComponentViewSet):
     queryset = QuestionChoicesBase.objects.all()
     serializer_class = QuestionChoicesSerializer
+
+
+class PollAnswersViewSet(BaseEntityComponentViewSet):
+    queryset = UserResponse.objects.all()
+    serializer_class = PollResponseSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # the answers this user is allowed to access are those associated
+        # with the polls this guy owns
+        poll_ids = Poll.objects.owners_entities(user).values_list('id', flat=True)
+        queryset = UserResponse.objects.filter(poll_id__in=poll_ids)
+        return queryset

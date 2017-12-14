@@ -15,7 +15,6 @@ from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
 from wizserver import verbs
-from django.utils import timezone
 import pdb
 
 # Create your models here.
@@ -193,7 +192,7 @@ class BaseEntityComponent(PolymorphicModel):
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
             ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer
-        from polls.serializers import PollSerializer, PollSerializerL2
+        from polls.serializers import PollSerializer
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
@@ -238,7 +237,7 @@ class BaseEntityComponent(PolymorphicModel):
             s = AgendaItemSerializer
         elif entity_type == cls.POLL:
             c = Poll
-            s = PollSerializerL2 if detail else PollSerializer
+            s = PollSerializer
         else:
             c = BaseEntityComponent
             s = EntitySerializer
@@ -248,7 +247,7 @@ class BaseEntityComponent(PolymorphicModel):
     @classmethod
     def entity_cls_from_subentity_type(cls, entity_type):
         from entity.models import Campaign, VirtualTable, \
-            Speaker, Sponsor, ExhibitorInvitee, CoOwners, Agenda
+            Speaker, Sponsor, CoOwners, Agenda
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
         from polls.models import Poll
@@ -279,23 +278,29 @@ class BaseEntityComponent(PolymorphicModel):
         c = self.entity_cls_from_subentity_type(type)
         int_ids = map(lambda x: int(x), ids)
 
-        # AR: TODO Why try except ? id's should always be correct.
-        # AR: HACK HACK (Add nested serializers for polls)
+        objs = c.objects.filter(id__in=int_ids)
+        for obj in objs:
+            self.add_subentity_obj(obj, alias=type)
 
-        try:
-            objs = c.objects.filter(id__in=int_ids)
-            for obj in objs:
-                self.related.connect(obj, alias=type)
-                if type == BaseEntity.SUB_ENTITY_POLL:
-                    self.notify_all_users(self.get_creator(),
-                                          verbs.WIZCARD_NEW_POLL,
-                                          obj
-                                          )
-        except:
-            pass
+            # AA: Comments: This is bad code. adding if statements is just WRONG.
+            # commenting out. #AR pls avoid these constructs. There is literally no
+            # difference in terms of time and effort in doing it a clean way vs hack.
+            # Think OOP
+
+            # if type == BaseEntity.SUB_ENTITY_POLL:
+            #     self.notify_all_users(
+            #         self.get_creator(),
+            #                           verbs.WIZCARD_NEW_POLL,
+            #                           obj
+            #                           )
 
     def add_subentity_obj(self, obj, alias):
-        return self.related.connect(obj, alias=alias)
+        self.related.connect(obj, alias=alias)
+
+        # @AR: This is one possible way to think about it.
+
+        # run any post connect things that instance might want to do
+        obj.post_connect()
 
     def remove_sub_entities_of_type(self, entity_type):
         self.related.filter(alias=entity_type).delete()
@@ -315,18 +320,10 @@ class BaseEntityComponent(PolymorphicModel):
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
     def get_parent_entities(self):
-        parents = self.related.related_to().generic_objects()
-        if parents:
-            return parents
+        return self.related.related_to().generic_objects()
 
-        return None
-
-    def get_parent_entities_by_type(self, entity_type):
-        parents = self.related.related_to().filter(alias=entity_type).generic_objects()
-        if parents:
-            return parents
-
-        return None
+    def get_parent_entities_by_contenttype_id(self, contenttype_id):
+        return self.related.related_to().filter(parent_type_id=contenttype_id).generic_objects()
 
     def get_creator(self):
         return BaseEntityComponentsOwner.objects.filter(
@@ -339,6 +336,11 @@ class BaseEntityComponent(PolymorphicModel):
 
     def is_owner(self, user):
         return bool(self.owners.all() & user.profile.baseuser.all())
+
+    # when a sub-entity gets related, it might want to do things like sending notifications
+    # override this in the derived classes to achieve the same
+    def post_connect(self):
+        pass
 
 
 class BaseEntityComponentsOwner(models.Model):

@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 from polymorphic.models import PolymorphicModel
 from django.db.models import Count
 
-
 import pdb
+
 # Create your models here.
 
 
@@ -25,8 +25,18 @@ class PollManager(BaseEntityComponentManager):
 
 
 class Poll(BaseEntityComponent):
+    POLL_STATE_UNPUBLISHED = 'UNP'
+    POLL_STATE_ACTIVE = 'ACT'
+    POLL_STATE_EXPIRED = 'EXP'
+
+    POLL_STATE_CHOICES = (
+        (POLL_STATE_UNPUBLISHED, 'unpublished'),
+        (POLL_STATE_ACTIVE, 'active'),
+        (POLL_STATE_EXPIRED, 'expired')
+    )
+
     description = models.CharField(max_length=100)
-    is_published = models.BooleanField(default=False, verbose_name='is published')
+    state = models.CharField(choices=POLL_STATE_CHOICES, default=POLL_STATE_UNPUBLISHED, max_length=3)
     created = models.DateTimeField(auto_now_add=True)
 
     objects = PollManager()
@@ -49,17 +59,15 @@ class Poll(BaseEntityComponent):
             num_responders=Count('user', distinct=True)
         ).get('num_responders')
 
-    """
-    detailed response breakdown of the Poll
-    """
-    def get_poll_responses(self):
-        return None
+    def set_state(self, state):
+        self.state = state
+        self.save()
 
 
 class Question(PolymorphicModel):
 
     """
-    Types of Poll question/answer - Semantics
+    Types of  question/answer within a poll - Semantics
     """
     MULTIPLE_TEXT_CHOICE = 'MCT'
     SCALE_OF_1_X_CHOICE = 'SCL'
@@ -133,10 +141,20 @@ class Question(PolymorphicModel):
 
         super(Question, self).delete(*args, **kwargs)
 
+    def answer_stats(self):
+        out = dict()
+        out.update(total=UserResponse.objects.num_responses_for_question(self))
+        return out
+
 
 class QuestionChoicesBase(PolymorphicModel):
     question = models.ForeignKey(Question, related_name='choices', on_delete=models.CASCADE)
     extra_text = models.BooleanField(default=False)
+
+    def answer_stats(self):
+        out = dict()
+        out.update(total=UserResponse.objects.num_responses_for_question_answer(self))
+        return out
 
 
 class QuestionChoicesText(QuestionChoicesBase):
@@ -150,8 +168,11 @@ class QuestionChoices1ToX(QuestionChoicesBase):
 
 
 class UserResponseManager(models.Manager):
-    def has_responded(self, user, poll):
-        return bool(UserResponse.objects.filter(user=user, poll=poll).exists())
+    def num_responses_for_question(self, question):
+        return self.filter(question=question).count()
+
+    def num_responses_for_question_answer(self, answer):
+        return self.filter(answer=answer).count()
 
 
 class UserResponse(models.Model):
@@ -161,9 +182,15 @@ class UserResponse(models.Model):
     # poll that was taken
     poll = models.ForeignKey(Poll, db_index=True)
     # the question that was answered
-    question = models.ForeignKey(Question)
+    question = models.ForeignKey(
+        Question,
+        related_name="questions_%(class)s_related"
+    )
     # answer that was given
-    answer = models.ForeignKey(QuestionChoicesBase)
+    answer = models.ForeignKey(
+        QuestionChoicesBase,
+        related_name="answers_%(class)s_related"
+    )
 
     has_extra_text = models.BooleanField(default=False)
     extra_text = models.TextField()

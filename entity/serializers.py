@@ -184,8 +184,21 @@ class EventSerializer(EntitySerializer):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
 
+# presently used by portal to show mini-event summary in sub-entity views
+class EventSerializerL0(EntitySerializer):
+    class Meta:
+        model = Event
+        fields = ('name', 'media')
+
+    def get_media(self, obj):
+        return MediaEntitiesSerializer(
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            many=True
+        ).data
+
+
 # these are used by App.
-class EventSerializerL1(EntitySerializer):
+class EventSerializerL1(EventSerializerL0):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
 
@@ -241,12 +254,6 @@ class EventSerializerL1(EntitySerializer):
             data=WizcardSerializerL0(wizcards, many=True, context={'user': self.context.get('user')}).data
         )
         return out
-
-    def get_media(self, obj):
-        return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
-            many=True
-        ).data
 
 
 # these are used by App.
@@ -367,6 +374,7 @@ class CampaignSerializerL2(EntitySerializer):
             many=True
         ).data
 
+
 # this is used by portal REST API
 class CampaignSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
@@ -478,6 +486,8 @@ class TableSerializer(EntitySerializer):
 """
 used by portal
 """
+
+
 class SpeakerSerializer(EntitySerializer):
     class Meta:
         model = Speaker
@@ -517,6 +527,8 @@ class SpeakerSerializer(EntitySerializer):
 """
 used by App
 """
+
+
 class SpeakerSerializerL2(EntitySerializer):
 
     class Meta:
@@ -562,6 +574,7 @@ class SponsorSerializer(EntitySerializer):
         instance = super(SponsorSerializer, self).update(instance, validated_data)
 
         return instance
+
 
 class SponsorSerializerL1(EntitySerializer):
 
