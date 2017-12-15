@@ -105,7 +105,7 @@ class EntitySerializer(EntitySerializerL0):
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
-                     'category', 'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
+                      'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
                      'engagements', 'creator', 'owners', 'related', 'ext_fields', 'is_activated', 'status')
 
         fields = EntitySerializerL0.Meta.fields + my_fields
