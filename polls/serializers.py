@@ -29,7 +29,6 @@ class QuestionChoicesResponseSerializer(QuestionChoicesSerializer):
 
     answers = serializers.SerializerMethodField(read_only=True)
 
-    @staticmethod
     def get_answers(self, obj):
         return obj.answer_stats()
 
@@ -119,7 +118,6 @@ class PollResponseSerializer(EntitySerializer):
     questions = QuestionResponseSerializer(many=True)
     event = serializers.SerializerMethodField(read_only=True)
 
-    @staticmethod
     def get_event(self, obj):
         # typically expecting one parent only...the Poll UI allows associating with one event only. No issues
         # if extended to multiple events both in the related_to plumbing and here as well. Here, since we're
