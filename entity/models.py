@@ -3,7 +3,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from wizcardship.models import Wizcard
-from lib.preserialize.serialize import serialize
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
@@ -11,7 +10,7 @@ from base_entity.models import EntityEngagementStats
 
 
 from notifications.signals import notify
-from base.mixins import Base411Mixin, Base412Mixin, Base413Mixin, CompanyTitleMixin, \
+from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, \
     VcardMixin
 
 from django.utils import timezone

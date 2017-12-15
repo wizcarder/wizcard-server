@@ -98,7 +98,6 @@ class ParseMsgAndDispatch(object):
         self.user_stats = None
         self.global_stats = Stats.objects.get_global_stat()
 
-
     def __repr__(self):
         out = ""
         if self.msg.has_key('header'):

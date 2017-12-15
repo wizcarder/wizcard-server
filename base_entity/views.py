@@ -7,9 +7,6 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
-    def get_object_or_404(self, *args, **kwargs):
-        return get_object_or_404(BaseEntity, *args, **kwargs)
-
     def get_queryset(self):
         user = self.request.user
         queryset = BaseEntity.objects.owners_entities(user)
@@ -48,9 +45,6 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
 
 class BaseEntityComponentViewSet(viewsets.ModelViewSet):
-
-    def get_object_or_404(*args, **kwargs):
-        return get_object_or_404(BaseEntityComponent, *args, **kwargs)
 
     def get_queryset(self):
         user = self.request.user

@@ -1656,78 +1656,78 @@ if TEST_ENTITY:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['lat'] = messages.LAT1
     reqmsg['sender']['lng'] = messages.LNG1
-    reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    entity_list = []
+    event_list = []
     if 'result' in objs['data']:
-        entity_list = [(x['id'], x['entity_type']) for x in objs['data']['result']]
+        event_list = [(x['id'], x['entity_type']) for x in objs['data']['result']]
 
-    if entity_list:
-        reqmsg = messages.entity_join
-        reqmsg['header']['version'] = messages.APP_VERSION
-        reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wizuser_id'] = wuid1
-        reqmsg['sender']['entity_id'] = entity_list[0][0]
-        reqmsg['sender']['entity_type'] = entity_list[0][1]
+    if event_list:
+        for e_id, e_type in event_list:
+            reqmsg = messages.entity_join
+            reqmsg['header']['version'] = messages.APP_VERSION
+            reqmsg['sender']['user_id'] = uid1
+            reqmsg['sender']['wizuser_id'] = wuid1
+            reqmsg['sender']['entity_id'] = e_id
+            reqmsg['sender']['entity_type'] = e_type
 
-        send_request(conn, reqmsg)
-        # Parse and dump the JSON response from server
-        objs = handle_response(conn, reqmsg['header']['msg_type'])
+            send_request(conn, reqmsg)
+            # Parse and dump the JSON response from server
+            objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-        reqmsg = messages.entities_like
-        reqmsg['header']['version'] = messages.APP_VERSION
-        reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wizuser_id'] = wuid1
+            reqmsg = messages.entities_like
+            reqmsg['header']['version'] = messages.APP_VERSION
+            reqmsg['sender']['user_id'] = uid1
+            reqmsg['sender']['wizuser_id'] = wuid1
 
-        likes = []
-        for index, item in enumerate(entity_list):
-            if index > 4:
-                break
-            d = messages.ENTITY_LIKE.copy()
-            d['entity_id'] = item[0]
-            d['entity_type'] = item[1]
-            d['like_level'] = messages.LIKE_LEVELS[index]
-            likes.append(d)
-        reqmsg['sender']['likes'] = likes
+            likes = []
+            for index, item in enumerate(event_list):
+                d = messages.ENTITY_LIKE.copy()
+                d['entity_id'] = item[0]
+                d['entity_type'] = item[1]
+                d['like_level'] = random.choice(messages.LIKE_LEVELS)
+                likes.append(d)
+            reqmsg['sender']['likes'] = likes
 
-        send_request(conn, reqmsg)
-        # Parse and dump the JSON response from server
-        objs = handle_response(conn, reqmsg['header']['msg_type'])
+            send_request(conn, reqmsg)
+            # Parse and dump the JSON response from server
+            objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-        reqmsg = messages.get_events
-        reqmsg['header']['version'] = messages.APP_VERSION
-        reqmsg['sender']['lat'] = messages.LAT1
-        reqmsg['sender']['lng'] = messages.LNG1
-        reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wizuser_id'] = wuid1
+            reqmsg = messages.entity_details
+            reqmsg['header']['version'] = messages.APP_VERSION
+            reqmsg['sender']['user_id'] = uid1
+            reqmsg['sender']['wizuser_id'] = wuid1
+            reqmsg['sender']['entity_id'] = e_id
+            reqmsg['sender']['entity_type'] = e_type
+            reqmsg['sender']['detail'] = True
 
-        send_request(conn, reqmsg)
-        # Parse and dump the JSON response from server
-        objs = handle_response(conn, reqmsg['header']['msg_type'])
+            send_request(conn, reqmsg)
+            # Parse and dump the JSON response from server
+            objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-        reqmsg = messages.entity_leave
-        reqmsg['header']['version'] = messages.APP_VERSION
-        reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wizuser_id'] = wuid1
-        reqmsg['sender']['entity_id'] = entity_list[0][0]
-        reqmsg['sender']['entity_type'] = entity_list[0][1]
+            # polls. Check if any of the objs has a poll
+            poll = libtest.check_obj_for_key(objs, 'polls')
+            if poll:
+                from api_test import Poll
+                for p in poll:
+                    inst = Poll(uid1, wuid1, **p)
+                    inst.prepare_response()
+                    inst.send()
+                    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-        send_request(conn, reqmsg)
-        # Parse and dump the JSON response from server
-        objs = handle_response(conn, reqmsg['header']['msg_type'])
+            reqmsg = messages.entity_leave
+            reqmsg['header']['version'] = messages.APP_VERSION
+            reqmsg['sender']['user_id'] = uid1
+            reqmsg['sender']['wizuser_id'] = wuid1
+            reqmsg['sender']['entity_id'] = e_id
+            reqmsg['sender']['entity_type'] = e_type
 
-        reqmsg = messages.entity_summary
-        reqmsg['header']['version'] = messages.APP_VERSION
-        reqmsg['sender']['user_id'] = uid1
-        reqmsg['sender']['wizuser_id'] = wuid1
-        reqmsg['sender']['entity_id'] = entity_list[0][0]
-        reqmsg['sender']['entity_type'] = entity_list[0][1]
-        reqmsg['sender']['detail'] = True
+            send_request(conn, reqmsg)
+            # Parse and dump the JSON response from server
+            objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-        send_request(conn, reqmsg)
-        # Parse and dump the JSON response from server
-        objs = handle_response(conn, reqmsg['header']['msg_type'])
+

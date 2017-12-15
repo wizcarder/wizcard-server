@@ -6,7 +6,6 @@ import libtest
 from libtest import send_request, handle_response
 import httplib
 import pdb
-from random import sample
 
 SERVER_URL = 'localhost'
 SERVER_PORT = 8000
@@ -21,24 +20,32 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
 
 class Connect(object):
-    def __init__(self, server_url=SERVER_URL, server_port=SERVER_PORT):
+    def __init__(self, server_url=SERVER_URL, server_port=SERVER_PORT, *kwargs):
         self.server_url = server_url
         self.server_port = server_port
         self.conn = httplib.HTTPConnection(SERVER_URL, SERVER_PORT)
+        self.device_id = "DUMMY_DEVICE_ID"
+        self.msg_hdr = dict(header=dict(device_id=self.device_id, hash='DUMMY', version=messages.APP_VERSION))
+        self.reqmsg = {}
+
+    def send(self):
+        self.reqmsg['header'].update(self.msg_hdr['header'])
+        send_request(self.conn, self.reqmsg)
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
+        return objs
 
 
-class User(object):
+
+class User(Connect):
     def __init__(self):
+        super(User, self).__init__()
+
         self.first_name = id_generator()
         self.last_name = id_generator()
         self.username = id_generator()
         self.target = id_generator()
-        self.device_id = "DUMMY_DEVICE_ID"
         self.response_mode = 'sms'
-        self.msg_hdr = dict(header=dict(device_id=self.device_id, hash='DUMMY', version=messages.APP_VERSION))
         self.global_index = len(global_user_list)
-        self.connection = Connect()
-        self.conn = self.connection.conn
 
         self.uid = 0
         self.wuid = 0
@@ -153,40 +160,63 @@ class User(object):
         self.reqmsg['sender']['asset_type'] = "wizcard"
         self.reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
         self.reqmsg['receiver']['receiver_ids'] = valid_users
-        send_request(self.conn, self.reqmsg)
-        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
 
 
+class Poll(Connect):
 
-from threading import Timer
-import time
-import sys
+    TRUE_FALSE_CHOICE = 'TOF'
+    SCALE_OF_1_X_CHOICE = 'SCL'
+    MULTIPLE_CHOICE = 'MCR'
+    QUESTION_ANSWER_TEXT = 'TXT'
 
-def main():
-    num_users = int(sys.argv[1])
+    def __init__(self, *args, **kwargs):
+        super(Poll, self).__init__()
+        self.data = kwargs
+        self.reqmsg = messages.poll_response.copy()
+        self.reqmsg['sender']['user_id'] = args[0]
+        self.reqmsg['sender']['wizuser_id'] = args[1]
+        self.reqmsg['sender']['entity_id'] = self.data['id']
 
-    list_u = []
-    for u in range(num_users):
-        u = User()
-        u.onboard_user()
-        list_u.append(u)
+    def prepare_response(self):
+        for q in self.data['questions']:
+            question_type = q['question_type']
+            choices = q['choices']
+            if question_type == self.TRUE_FALSE_CHOICE:
+                self.true_false_response(q['id'], choices)
+            elif question_type == self.SCALE_OF_1_X_CHOICE:
+                self.one_to_x_response(q['id'], choices)
+            elif question_type == self.MULTIPLE_CHOICE:
+                self.mct_response(q['id'], choices)
+            elif question_type == self.QUESTION_ANSWER_TEXT:
+                self.text_response(q['id'], choices)
 
-    # AA: commenting all this. No point doing it like a test/register manner all over again.
-    # this needs to be done in a better, structured manner. where there is a test.definition and the stuff
-    # here follows that definition
+    def true_false_response(self, qid, choices):
+        response = messages.poll_questions_response.copy()
+        response['question_id'] = qid
+        response['answer_id'] = choices[0]['id']
+        response['has_boolean_value'] = True
+        response['boolean_value'] = random.choice([True, False])
+        self.reqmsg['sender']['responses'].append(response)
 
-    # for u in list_u:
-    #     uids = sample(xrange(1, num_users), int(0.4 * num_users))
-    #     users = map(lambda x:list_u[x], uids)
-    #     u.send_asset_to_xyz(users)
+    def one_to_x_response(self, qid, choices):
+        response = messages.poll_questions_response.copy()
+        response['question_id'] = qid
+        response['answer_id'] = choices[0]['id']
+        response['has_user_value'] = True
+        response['user_value'] = random.choice(range(1, 6))
+        self.reqmsg['sender']['responses'].append(response)
+
+    def mct_response(self, qid, choices):
+        response = messages.poll_questions_response.copy()
+        response['question_id'] = qid
+        response['answer_id'] = choices[random.choice(range(1, len(choices)+1))]['id']
+        self.reqmsg['sender']['responses'].append(response)
+
+    def text_response(self, qid, choices):
+        response = messages.poll_questions_response.copy()
+        response['question_id'] = qid
+        response['has_text'] = True
+        response['text'] = 'Some random text'
+        self.reqmsg['sender']['responses'].append(response)
 
 
-    while True:
-        for u in list_u:
-            Timer(60, u.get_cards())
-
-        time.sleep(60)
-
-if __name__ == '__main__':
-
-    main()

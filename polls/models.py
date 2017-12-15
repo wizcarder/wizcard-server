@@ -69,18 +69,16 @@ class Question(PolymorphicModel):
     """
     Types of  question/answer within a poll - Semantics
     """
-    MULTIPLE_TEXT_CHOICE = 'MCT'
-    SCALE_OF_1_X_CHOICE = 'SCL'
-    ABCD_CHOICE = 'MCR'
     TRUE_FALSE_CHOICE = 'TOF'
-    QUESTION_ANSWER = 'QA'
+    SCALE_OF_1_X_CHOICE = 'SCL'
+    MULTIPLE_CHOICE = 'MCR'
+    QUESTION_ANSWER_TEXT = 'TXT'
 
     QUESTION_CHOICES = (
-        (MULTIPLE_TEXT_CHOICE, 'MultipleChoiceText'),
-        (SCALE_OF_1_X_CHOICE, 'ScaleOf1toX'),
-        (ABCD_CHOICE, 'ChoiceAbcd'),
         (TRUE_FALSE_CHOICE, 'TrueFalse'),
-        (QUESTION_ANSWER, 'QuestionAnswer')
+        (SCALE_OF_1_X_CHOICE, 'ScaleOf1toX'),
+        (MULTIPLE_CHOICE, 'MultipleChoiceText'),
+        (QUESTION_ANSWER_TEXT, 'QuestionAnswerText')
     )
 
     """
@@ -88,6 +86,7 @@ class Question(PolymorphicModel):
     """
     SELECT_OPTION_TYPE = 'SEL'
     GRADED_SLIDER_TYPE = 'SLD'
+    RATING_TYPE = 'RTG'
     RADIO_BUTTON_TYPE = 'RAD'
     DROP_DOWN_TYPE = 'DRP'
     TEXT_AREA = 'TEX'
@@ -97,13 +96,14 @@ class Question(PolymorphicModel):
         (GRADED_SLIDER_TYPE, 'GradedSlider'),
         (RADIO_BUTTON_TYPE, 'RadioButton'),
         (DROP_DOWN_TYPE, 'DropDown'),
-        (TEXT_AREA, 'TextArea')
+        (TEXT_AREA, 'TextArea'),
+        (RATING_TYPE, 'Rating')
     )
 
     question_type = models.CharField(
         max_length=3,
         choices=QUESTION_CHOICES,
-        default=MULTIPLE_TEXT_CHOICE
+        default=MULTIPLE_CHOICE
     )
 
     ui_type = models.CharField(
@@ -127,10 +127,14 @@ class Question(PolymorphicModel):
 
     @classmethod
     def get_choice_cls_from_type(cls, question_type):
-        if question_type == cls.MULTIPLE_TEXT_CHOICE:
-            return QuestionChoicesText
+        if question_type == cls.TRUE_FALSE_CHOICE:
+            return QuestionChoicesTrueFalse
         elif question_type == cls.SCALE_OF_1_X_CHOICE:
             return QuestionChoices1ToX
+        elif question_type == cls.MULTIPLE_CHOICE:
+            return QuestionChoicesMultipleChoice
+        elif question_type == cls.QUESTION_ANSWER_TEXT:
+            return QuestionChoicesText
         else:
             return QuestionChoicesBase
 
@@ -156,16 +160,25 @@ class QuestionChoicesBase(PolymorphicModel):
         out.update(total=UserResponse.objects.num_responses_for_question_answer(self))
         return out
 
-
-class QuestionChoicesText(QuestionChoicesBase):
-    question_key = models.CharField(max_length=1)
-    question_value = models.TextField()
+# empty but distinct objects are required to track the
+# responses against each type of question
+class QuestionChoicesTrueFalse(QuestionChoicesBase):
+    pass
 
 
 class QuestionChoices1ToX(QuestionChoicesBase):
     low = models.IntegerField(default=0)
     high = models.IntegerField(default=10)
 
+
+class QuestionChoicesMultipleChoice(QuestionChoicesBase):
+    question_key = models.CharField(max_length=1)
+    question_value = models.TextField()
+    is_radio = models.BooleanField(default=True)
+
+
+class QuestionChoicesText(QuestionChoicesBase):
+    pass
 
 class UserResponseManager(models.Manager):
     def num_responses_for_question(self, question):
@@ -192,11 +205,14 @@ class UserResponse(models.Model):
         related_name="answers_%(class)s_related"
     )
 
-    has_extra_text = models.BooleanField(default=False)
-    extra_text = models.TextField()
+    has_text = models.BooleanField(default=False)
+    text = models.TextField()
 
     has_user_value = models.BooleanField(default=False)
     user_value = models.IntegerField(blank=True, default=5)
+
+    has_boolean_value = models.BooleanField(default=False)
+    boolean_value = models.BooleanField(default=True)
 
     response_time = models.DateTimeField(auto_now=True)
 

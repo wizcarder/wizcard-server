@@ -1224,6 +1224,29 @@ get_recommendations = {
     },
 }
 
+poll_response = {
+    "header" : {
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "poll_response",
+    },
+    "sender" : {
+        "user_id": "",
+        "wizuser_id": "",
+        "responses": []
+    }
+}
+
+poll_questions_response = {
+    "question_id": "",
+    "answer_id": "",
+    "has_extra_text": False,
+    "extra_text": "",
+    "has_user_value": False,
+    "user_value": ""
+}
+
 # Canned Messages
 ab_list_ananda_1 = {
     u'ab_list':
