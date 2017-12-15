@@ -11,6 +11,7 @@ from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
 from wizserver import verbs
 from email_and_push_infra.models import EmailAndPush
 from notifications.signals import notify
+from django.shortcuts import get_object_or_404
 
 import pdb
 
@@ -30,7 +31,7 @@ class EventViewSet(BaseEntityViewSet):
 
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):
-        inst = self.get_object_or_404(pk=pk)
+        inst = self.get_object_or_404(Event, pk=pk)
 
         exhibitors = request.data
         valid_candidates = ExhibitorInvitee.validate(exhibitors['ids'])
@@ -52,7 +53,7 @@ class EventViewSet(BaseEntityViewSet):
 
     @detail_route(methods=['post'])
     def invite_attendees(self, request, pk=None):
-        inst = self.get_object_or_404(pk=pk)
+        inst = get_object_or_404(AttendeeInvitee, pk=pk)
 
         attendees = request.data
         valid_candidates = AttendeeInvitee.validate(attendees['ids'])
@@ -72,7 +73,7 @@ class EventViewSet(BaseEntityViewSet):
 
     @detail_route(methods=['get'])
     def publish_event(self, request, pk=None):
-        inst = self.get_object_or_404(pk=pk)
+        inst = get_object_or_404(Event, pk=pk)
         inst.make_live()
 
         return Response("event id %s activated" % pk, status=status.HTTP_200_OK)

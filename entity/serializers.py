@@ -13,6 +13,9 @@ from media_components.models import MediaEntities
 from base.mixins import MediaMixin
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from polls.models import Poll, Question
+from polls.serializers import QuestionResponseSerializer, QuestionSerializer
 
 import pdb
 
@@ -250,12 +253,13 @@ class EventSerializerL2(EntitySerializer):
     sponsors = serializers.SerializerMethodField()
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
+    polls = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls')
 
         fields = parent_fields + my_fields
 
@@ -309,6 +313,13 @@ class EventSerializerL2(EntitySerializer):
     def get_agenda(self, obj):
         return AgendaSerializerL2(
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_AGENDA),
+            many=True,
+            context=self.context
+        ).data
+
+    def get_polls(self, obj):
+        return PollSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_POLL),
             many=True,
             context=self.context
         ).data
@@ -647,3 +658,64 @@ class CoOwnersSerializer(EntitySerializer):
 
         return obj
 
+# this is used to create a poll. This is also used to send serialized Poll to App
+class PollSerializer(EntitySerializer):
+    class Meta:
+        model = Poll
+        fields = ('id', 'description', 'questions', 'state')
+
+    questions = QuestionSerializer(many=True)
+
+    def prepare(self, validated_data):
+        self.questions = validated_data.pop('questions', None)
+        super(PollSerializer, self).prepare(validated_data)
+
+    def post_create(self, obj):
+        for q in self.questions:
+            choices = q.pop('choices', [])
+            q_inst = Question.objects.create(poll=obj, **q)
+
+            cls = Question.get_choice_cls_from_type(q['question_type'])
+            for c in choices:
+                cls.objects.create(question=q_inst, **c)
+
+        super(PollSerializer, self).post_create(obj)
+
+    def create(self, validated_data, **kwargs):
+        validated_data.update(entity_type=BaseEntityComponent.POLL)
+
+        self.prepare(validated_data)
+        obj = super(PollSerializer, self).create(validated_data)
+        self.post_create(obj)
+
+        return obj
+
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        super(PollSerializer, self).update(instance, validated_data)
+
+        # clear all questions first. For some reason bulk delete is not working
+        for q in instance.questions.all():
+            q.delete()
+
+        # create the questions and choices
+        self.post_create(instance)
+
+        return instance
+
+
+class PollResponseSerializer(EntitySerializer):
+    class Meta:
+        model = Poll
+        fields = ('id', 'event', 'num_responders', 'description', 'questions', 'state')
+
+    questions = QuestionResponseSerializer(many=True)
+    event = serializers.SerializerMethodField(read_only=True)
+
+    def get_event(self, obj):
+        # typically expecting one parent only...the Poll UI allows associating with one event only. No issues
+        # if extended to multiple events both in the related_to plumbing and here as well. Here, since we're
+        # passing the whole list, the only difference is that even for a single case, there will be {[]] instead
+        # of {}, in the response
+        event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
+        return EventSerializerL0(event, many=True).data

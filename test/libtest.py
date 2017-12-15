@@ -37,3 +37,12 @@ def handle_response(conn, msg_type, err_skip=False):
             exit()
 
     return objs
+
+
+def check_obj_for_key(obj, key):
+    res = obj['data']['result']
+    if key in res:
+        return res[key]
+
+    return None
+

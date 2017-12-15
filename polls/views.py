@@ -1,10 +1,14 @@
 from rest_framework.response import Response
 from rest_framework import status
 from base_entity.views import BaseEntityComponentViewSet
-from polls.serializers import PollSerializer, QuestionSerializer, QuestionChoicesSerializer, PollResponseSerializer
+from polls.serializers import QuestionSerializer, QuestionChoicesSerializer
+from entity.serializers import PollSerializer, PollResponseSerializer
 from polls.models import Poll, Question, QuestionChoicesBase, UserResponse
 from rest_framework.decorators import detail_route
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
+from entity.models import Event
+from base_entity.models import BaseEntityComponent
 
 import pdb
 # Create your views here.
@@ -20,12 +24,20 @@ class PollViewSet(BaseEntityComponentViewSet):
         queryset = Poll.objects.owners_entities(user)
         return queryset
 
-    @detail_route(methods=['get'])
+    @detail_route(methods=['get'], url_path='activate')
     def publish_poll(self, request, pk=None):
-        inst = self.get_object_or_404(pk=pk)
+        inst = get_object_or_404(Poll, pk=pk)
         inst.set_state(Poll.POLL_STATE_ACTIVE)
 
         return Response("poll id %s activated" % pk, status=status.HTTP_200_OK)
+
+    @detail_route(methods=['post'], url_path='attach')
+    def attach_event(self, request, pk=None):
+        event = get_object_or_404(Event, pk=request.POST['event_id'])
+        poll = get_object_or_404(Poll, pk=pk)
+        event.add_subentity_obj(poll, BaseEntityComponent.SUB_ENTITY_POLL)
+
+        return Response("poll  %s attached to event" % poll.description, status=status.HTTP_200_OK)
 
 
 class PollQuestionViewSet(BaseEntityComponentViewSet):
