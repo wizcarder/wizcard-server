@@ -34,8 +34,7 @@ class BaseEntityComponentManager(PolymorphicManager):
 
 class BaseEntityManager(BaseEntityComponentManager):
     def create(self, *args, **kwargs):
-        category = kwargs.pop('category', Taganomy.objects.get_default_category())
-        return super(BaseEntityManager, self).create(*args, category=category, **kwargs)
+        return super(BaseEntityManager, self).create(*args, **kwargs)
 
     def get_location_tree_name(self, etype):
         if etype == BaseEntityComponent.TABLE:
