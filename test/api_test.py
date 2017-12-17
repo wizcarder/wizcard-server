@@ -193,7 +193,6 @@ class Poll(Connect):
     def true_false_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
-        response['answer_id'] = choices[0]['id']
         response['has_boolean_value'] = True
         response['boolean_value'] = random.choice([True, False])
         self.reqmsg['sender']['responses'].append(response)
@@ -209,7 +208,7 @@ class Poll(Connect):
     def mct_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
-        response['answer_id'] = choices[random.choice(range(1, len(choices)+1))]['id']
+        response['answer_id'] = choices[random.choice(range(0, len(choices)))]['id']
         self.reqmsg['sender']['responses'].append(response)
 
     def text_response(self, qid, choices):

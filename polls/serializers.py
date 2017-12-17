@@ -43,9 +43,8 @@ class QuestionSerializer(serializers.ModelSerializer):
         # clear all choices
         instance.choices.all().delete()
 
-        for c in choices:
-            cls = Question.get_choice_cls_from_type(validated_data['question_type'])
-            cls.objects.create(question=instance, **c)
+        cls, choice_needed = Question.get_choice_cls_from_type(validated_data['question_type'])
+        [cls.objects.create(question=instance, **c) for c in choices if choice_needed]
 
         obj = super(QuestionSerializer, self).update(instance, validated_data)
 

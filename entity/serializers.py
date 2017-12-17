@@ -675,9 +675,8 @@ class PollSerializer(EntitySerializer):
             choices = q.pop('choices', [])
             q_inst = Question.objects.create(poll=obj, **q)
 
-            cls = Question.get_choice_cls_from_type(q['question_type'])
-            for c in choices:
-                cls.objects.create(question=q_inst, **c)
+            cls, choice_needed = Question.get_choice_cls_from_type(q['question_type'])
+            [cls.objects.create(question=q_inst, **c) for c in choices if choice_needed]
 
         super(PollSerializer, self).post_create(obj)
 

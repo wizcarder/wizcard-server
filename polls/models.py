@@ -127,16 +127,19 @@ class Question(PolymorphicModel):
 
     @classmethod
     def get_choice_cls_from_type(cls, question_type):
+        choice_needed = True
+        c = None
+
         if question_type == cls.TRUE_FALSE_CHOICE:
-            return QuestionChoicesTrueFalse
+            choice_needed = False
         elif question_type == cls.SCALE_OF_1_X_CHOICE:
-            return QuestionChoices1ToX
+            c = QuestionChoices1ToX
         elif question_type == cls.MULTIPLE_CHOICE:
-            return QuestionChoicesMultipleChoice
+            c = QuestionChoicesMultipleChoice
         elif question_type == cls.QUESTION_ANSWER_TEXT:
-            return QuestionChoicesText
-        else:
-            return QuestionChoicesBase
+            choice_needed = False
+
+        return c, choice_needed
 
     def delete(self, *args, **kwargs):
         # delete questions. Some issue in django polymorphic...bulk delete is not working
@@ -160,10 +163,11 @@ class QuestionChoicesBase(PolymorphicModel):
         out.update(total=UserResponse.objects.num_responses_for_question_answer(self))
         return out
 
-# empty but distinct objects are required to track the
-# responses against each type of question
-class QuestionChoicesTrueFalse(QuestionChoicesBase):
-    pass
+#
+# # empty but distinct objects are required to track the
+# # responses against each type of question
+# class QuestionChoicesTrueFalse(QuestionChoicesBase):
+#     pass
 
 
 class QuestionChoices1ToX(QuestionChoicesBase):
@@ -177,8 +181,8 @@ class QuestionChoicesMultipleChoice(QuestionChoicesBase):
     is_radio = models.BooleanField(default=True)
 
 
-class QuestionChoicesText(QuestionChoicesBase):
-    pass
+# class QuestionChoicesText(QuestionChoicesBase):
+#     pass
 
 class UserResponseManager(models.Manager):
     def num_responses_for_question(self, question):
@@ -202,14 +206,16 @@ class UserResponse(models.Model):
     # answer that was given
     answer = models.ForeignKey(
         QuestionChoicesBase,
-        related_name="answers_%(class)s_related"
+        related_name="answers_%(class)s_related",
+        null=True,
+        blank=True
     )
 
     has_text = models.BooleanField(default=False)
     text = models.TextField()
 
     has_user_value = models.BooleanField(default=False)
-    user_value = models.IntegerField(blank=True, default=5)
+    user_value = models.IntegerField(null=True, blank=True, default=5)
 
     has_boolean_value = models.BooleanField(default=False)
     boolean_value = models.BooleanField(default=True)

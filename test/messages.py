@@ -1241,10 +1241,12 @@ poll_response = {
 poll_questions_response = {
     "question_id": "",
     "answer_id": "",
-    "has_extra_text": False,
-    "extra_text": "",
+    "has_text": False,
+    "text": "",
     "has_user_value": False,
-    "user_value": ""
+    "user_value": 0,
+    "has_boolean_value": False,
+    "boolean_value": False
 }
 
 # Canned Messages
