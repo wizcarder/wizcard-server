@@ -9,6 +9,17 @@
 	"item": [
 		{
 			"name": "2.user type 1 (AppUser) create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"body\"] = responseBody"
+						]
+					}
+				}
+			],
 			"request": {
 				"url": "http://localhost:8000/users/registration/",
 				"method": "POST",
@@ -28,27 +39,18 @@
 			"response": []
 		},
 		{
-			"name": "3.User Type 2 (Organizer) create",
-			"request": {
-				"url": "http://localhost:8000/users/registration/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"username\": \"organizer_user\",\n  \"email\": \"organizer@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
 			"name": "4.User Type 4 (Exhibitor) create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"body\"] = responseBody"
+						]
+					}
+				}
+			],
 			"request": {
 				"url": "http://localhost:8000/users/registration/",
 				"method": "POST",
@@ -62,6 +64,37 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\n   \"username\": \"exhibitor_user\",\n   \"email\": \"exhibitor@getwizcard.com\",\n  \"first_name\":\"Exhibitor\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n   \"user_type\": \"4\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "3.User Type 2 (Organizer) create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"body\"] = responseBody"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/users/registration/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"organizer_user\",\n  \"email\": \"organizer@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
 				},
 				"description": ""
 			},
@@ -311,7 +344,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\",\n    \"owners\": [\n      11\n    ],\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"creator\": 3,\n    \"related\": [\n    \t{\n    \t\t\"ids\": [3], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\",\n    \"owners\": [\n      11\n    ],\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"creator\": 3,\n    \"related\": [\n    \t{\n    \t\t\"ids\": [6], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Test 1: Basic Product  create"
 			},
@@ -336,7 +369,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [3], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [10], \"type\": \"e_campaign\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"highlights\": {\n    \t\"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [12], \"type\": \"e_campaign\"\n    \t}\n    ]\n  }"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -361,16 +394,50 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 2\",\n    \"address\": \"Event Two\",\n    \"website\": \"http://www.eventwo.com\",\n    \"description\": \"event two\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [11], \"type\": \"e_campaign\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"event 2\",\n    \"address\": \"Event Two\",\n    \"website\": \"http://www.eventwo.com\",\n    \"description\": \"event two\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n\t\"highlights\": {\n        \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [11], \"type\": \"e_campaign\"\n    \t}\n    ]\n  }"
 				},
 				"description": "Test 1: Basic entity create"
 			},
 			"response": []
 		},
 		{
+			"name": "14.Event Publish",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/publish_event/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "15.Event Publish",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/publish_event/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "16.Agenda Create",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/agenda/",
+				"url": "http://localhost:8000/entity/events/14/agenda/",
 				"method": "POST",
 				"header": [
 					{
@@ -386,7 +453,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall A\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [6], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2016-10-25 14:30:59\",\n    \t\"end\": \"2016-10-25 14:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall A\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [6], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
 				},
 				"description": ""
 			},
@@ -395,7 +462,7 @@
 		{
 			"name": "19.Agenda Create",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/agenda/",
+				"url": "http://localhost:8000/entity/events/15/agenda/",
 				"method": "POST",
 				"header": [
 					{
@@ -436,7 +503,101 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCT\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t}\n\t]\n}"
+					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCR\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TOF\",\n\t  \t\t\"ui_type\": \"RAD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"True\": \"Yes\",\n\t  \t\t\t\t\"False\": \"No\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TXT\",\n\t  \t\t\"ui_type\": \"TEX\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": []\n\t\t}\n\t]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "22.Poll Publish",
+			"request": {
+				"url": "http://localhost:8000/entity/polls/22/attach/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "event_id",
+							"value": "14",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "22.Poll activate",
+			"request": {
+				"url": "http://localhost:8000/entity/polls/22/activate/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "23.Notification Create",
+			"request": {
+				"url": "http://localhost:8000/entity/notifications/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"delivery_type\": \"1\",\n\t\"recipient\": 2,\n\t\"target\": {\n\t\t\"type\": \"event\", \n\t\t\"id\": 14\n\t}, \n\t\"action_object\": {\n\t\t\"type\": \"agenda\", \n\t\t\"id\": 19\n\t}, \n\t\"verb\": \"Your event is starting now\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "23.GET Notifications",
+			"request": {
+				"url": "http://localhost:8000/entity/notifications/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"delivery_type\": \"1\",\n\t\"recipient\": 2,\n\t\"actor\": {\n\t\t\"type\": \"user\", \n\t\t\"id\": 1\n\t}, \n\t\"target\": {\n\t\t\"type\": \"event\", \n\t\t\"id\": 14\n\t}, \n\t\"action_object\": {\n\t\t\"type\": \"agenda\", \n\t\t\"id\": 19\n\t}, \n\t\"verb\": \"Your event is starting now\"\n}"
 				},
 				"description": ""
 			},
@@ -700,9 +861,31 @@
 			"response": []
 		},
 		{
-			"name": "13.GET Polls",
+			"name": "22.GET Polls",
 			"request": {
 				"url": "http://localhost:8000/entity/polls/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{app_user}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "22.Poll Answers",
+			"request": {
+				"url": "http://localhost:8000/entity/polls/22/answers",
 				"method": "GET",
 				"header": [
 					{
@@ -853,7 +1036,7 @@
 					"formdata": [
 						{
 							"key": "username",
-							"value": "appuser",
+							"value": "exhibitor_user",
 							"type": "text"
 						},
 						{
@@ -920,17 +1103,6 @@
 					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Table Create"
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:8000/users/users/",
-			"request": {
-				"url": "http://localhost:8000/users/users/",
-				"method": "GET",
-				"header": [],
-				"body": {},
-				"description": ""
 			},
 			"response": []
 		}
