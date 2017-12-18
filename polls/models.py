@@ -1,7 +1,7 @@
 from django.db import models
 from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.contrib.auth.models import User
-from polymorphic.models import PolymorphicModel
+from polymorphic.models import PolymorphicModel, PolymorphicManager
 from django.db.models import Count
 
 import pdb
@@ -63,6 +63,19 @@ class Poll(BaseEntityComponent):
         self.state = state
         self.save()
 
+class QuestionManager(PolymorphicManager):
+
+    def get_choice_cls_from_type(self, question_type):
+        if question_type == Question.TRUE_FALSE_CHOICE:
+            c = QuestionChoicesTrueFalse
+        elif question_type == Question.SCALE_OF_1_X_CHOICE:
+            c = QuestionChoices1ToX
+        elif question_type == Question.MULTIPLE_CHOICE:
+            c = QuestionChoicesMultipleChoice
+        elif question_type == Question.QUESTION_ANSWER_TEXT:
+            c = QuestionChoicesText
+
+        return c
 
 class Question(PolymorphicModel):
 
@@ -117,6 +130,9 @@ class Question(PolymorphicModel):
 
     question = models.CharField(max_length=250, verbose_name='question')
     poll = models.ForeignKey(Poll, related_name='questions', on_delete=models.CASCADE)
+    extra_text = models.BooleanField(default=False)
+
+    objects = QuestionManager()
 
     class Meta:
         verbose_name = 'poll'
@@ -124,22 +140,6 @@ class Question(PolymorphicModel):
 
     def __str__(self):
         return self.question
-
-    @classmethod
-    def get_choice_cls_from_type(cls, question_type):
-        choice_needed = True
-        c = None
-
-        if question_type == cls.TRUE_FALSE_CHOICE:
-            choice_needed = False
-        elif question_type == cls.SCALE_OF_1_X_CHOICE:
-            c = QuestionChoices1ToX
-        elif question_type == cls.MULTIPLE_CHOICE:
-            c = QuestionChoicesMultipleChoice
-        elif question_type == cls.QUESTION_ANSWER_TEXT:
-            choice_needed = False
-
-        return c, choice_needed
 
     def delete(self, *args, **kwargs):
         # delete questions. Some issue in django polymorphic...bulk delete is not working
@@ -151,38 +151,73 @@ class Question(PolymorphicModel):
     def answer_stats(self):
         out = dict()
         out.update(total=UserResponse.objects.num_responses_for_question(self))
+
         return out
 
 
 class QuestionChoicesBase(PolymorphicModel):
     question = models.ForeignKey(Question, related_name='choices', on_delete=models.CASCADE)
-    extra_text = models.BooleanField(default=False)
 
     def answer_stats(self):
         out = dict()
         out.update(total=UserResponse.objects.num_responses_for_question_answer(self))
         return out
 
-#
-# # empty but distinct objects are required to track the
-# # responses against each type of question
-# class QuestionChoicesTrueFalse(QuestionChoicesBase):
-#     pass
+
+# empty but distinct objects are required to track the
+# responses against each type of question
+class QuestionChoicesTrueFalse(QuestionChoicesBase):
+    def answer_stats(self):
+        out = super(QuestionChoicesTrueFalse, self).answer_stats()
+
+        total = self.answers_userresponse_related.count()
+
+        t_count = self.answers_userresponse_related.filter(boolean_value=True).aggregate(
+            true=Count('id', distinct=True)
+        ).get('true')
+
+        out.update(true=t_count)
+        out.update(false=total - t_count)
+
+        return out
 
 
 class QuestionChoices1ToX(QuestionChoicesBase):
     low = models.IntegerField(default=0)
     high = models.IntegerField(default=10)
 
+    def answer_stats(self):
+        # AA: genius way :-) to get the stats per 1-x element
+        out = super(QuestionChoices1ToX, self).answer_stats()
+        [
+            out.update(
+                {
+                    k: self.answers_userresponse_related.filter(user_value=v).aggregate(
+                        count=Count('id', distinct=True)
+                    ).get('count')
+                }
+            ) for v, k in enumerate(range(self.low, self.high+1))
+        ]
+
+        return out
 
 class QuestionChoicesMultipleChoice(QuestionChoicesBase):
     question_key = models.CharField(max_length=1)
     question_value = models.TextField()
     is_radio = models.BooleanField(default=True)
 
+    def answer_stats(self):
+        out = super(QuestionChoicesMultipleChoice, self).answer_stats()
 
-# class QuestionChoicesText(QuestionChoicesBase):
-#     pass
+        return out
+
+class QuestionChoicesText(QuestionChoicesBase):
+    def answer_stats(self):
+        out = super(QuestionChoicesText, self).answer_stats()
+
+        # should send a hyperlinked serialized response here.
+        return out
+
 
 class UserResponseManager(models.Manager):
     def num_responses_for_question(self, question):

@@ -177,7 +177,7 @@ class EventSerializer(EntitySerializer):
 class EventSerializerL0(EntitySerializer):
     class Meta:
         model = Event
-        fields = ('name', 'media')
+        fields = ('id', 'name', 'media')
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
@@ -675,8 +675,12 @@ class PollSerializer(EntitySerializer):
             choices = q.pop('choices', [])
             q_inst = Question.objects.create(poll=obj, **q)
 
-            cls, choice_needed = Question.get_choice_cls_from_type(q['question_type'])
-            [cls.objects.create(question=q_inst, **c) for c in choices if choice_needed]
+            cls = Question.objects.get_choice_cls_from_type(q['question_type'])
+
+            if choices:
+                [cls.objects.create(question=q_inst, **c) for c in choices]
+            else:
+                cls.objects.create(question=q_inst)
 
         super(PollSerializer, self).post_create(obj)
 

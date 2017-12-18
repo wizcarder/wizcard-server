@@ -9,7 +9,7 @@ import pdb
 class QuestionChoicesSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionChoicesBase
-        fields = ('id', 'extra_text', 'question_key', 'question_value', 'low', 'high')
+        fields = ('id', 'question_key', 'question_value', 'low', 'high')
 
     question_key = serializers.CharField(required=False)
     question_value = serializers.CharField(required=False)
@@ -32,10 +32,12 @@ class QuestionChoicesResponseSerializer(QuestionChoicesSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ('id', 'question_type', 'ui_type', 'single_answer', 'question', 'poll', 'choices')
+        fields = ('id', 'question_type', 'ui_type', 'single_answer', 'extra_text',
+                  'question', 'poll', 'choices', 'num_responders')
 
     choices = QuestionChoicesSerializer(many=True)
     poll = serializers.PrimaryKeyRelatedField(read_only=True)
+    num_responders = serializers.IntegerField(read_only=True)
 
     def update(self, instance, validated_data):
         choices = validated_data.pop('choices', [])
@@ -43,8 +45,8 @@ class QuestionSerializer(serializers.ModelSerializer):
         # clear all choices
         instance.choices.all().delete()
 
-        cls, choice_needed = Question.get_choice_cls_from_type(validated_data['question_type'])
-        [cls.objects.create(question=instance, **c) for c in choices if choice_needed]
+        cls = Question.objects.get_choice_cls_from_type(validated_data['question_type'])
+        [cls.objects.create(question=instance, **c) for c in choices]
 
         obj = super(QuestionSerializer, self).update(instance, validated_data)
 

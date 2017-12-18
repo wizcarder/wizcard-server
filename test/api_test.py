@@ -193,6 +193,7 @@ class Poll(Connect):
     def true_false_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
+        response['answer_id'] = choices[0].get('id')
         response['has_boolean_value'] = True
         response['boolean_value'] = random.choice([True, False])
         self.reqmsg['sender']['responses'].append(response)
@@ -200,7 +201,7 @@ class Poll(Connect):
     def one_to_x_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
-        response['answer_id'] = choices[0]['id']
+        response['answer_id'] = choices[0].get('id')
         response['has_user_value'] = True
         response['user_value'] = random.choice(range(1, 6))
         self.reqmsg['sender']['responses'].append(response)
@@ -214,6 +215,7 @@ class Poll(Connect):
     def text_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
+        response['answer_id'] = choices[0].get('id')
         response['has_text'] = True
         response['text'] = 'Some random text'
         self.reqmsg['sender']['responses'].append(response)

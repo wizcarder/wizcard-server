@@ -35,6 +35,7 @@ class Migration(migrations.Migration):
                 ('ui_type', models.CharField(default=b'SEL', max_length=3, choices=[(b'SEL', b'Select'), (b'SLD', b'GradedSlider'), (b'RAD', b'RadioButton'), (b'DRP', b'DropDown'), (b'TEX', b'TextArea'), (b'RTG', b'Rating')])),
                 ('single_answer', models.BooleanField(default=True)),
                 ('question', models.CharField(max_length=250, verbose_name=b'question')),
+                ('extra_text', models.BooleanField(default=False)),
                 ('poll', models.ForeignKey(related_name='questions', to='polls.Poll')),
                 ('polymorphic_ctype', models.ForeignKey(related_name='polymorphic_polls.question_set+', editable=False, to='contenttypes.ContentType', null=True)),
             ],
@@ -47,7 +48,6 @@ class Migration(migrations.Migration):
             name='QuestionChoicesBase',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('extra_text', models.BooleanField(default=False)),
             ],
             options={
                 'abstract': False,
@@ -85,6 +85,26 @@ class Migration(migrations.Migration):
                 ('question_key', models.CharField(max_length=1)),
                 ('question_value', models.TextField()),
                 ('is_radio', models.BooleanField(default=True)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('polls.questionchoicesbase',),
+        ),
+        migrations.CreateModel(
+            name='QuestionChoicesText',
+            fields=[
+                ('questionchoicesbase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='polls.QuestionChoicesBase')),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('polls.questionchoicesbase',),
+        ),
+        migrations.CreateModel(
+            name='QuestionChoicesTrueFalse',
+            fields=[
+                ('questionchoicesbase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='polls.QuestionChoicesBase')),
             ],
             options={
                 'abstract': False,
