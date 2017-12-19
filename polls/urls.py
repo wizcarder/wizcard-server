@@ -19,4 +19,6 @@ urlpatterns = patterns(
     url(r'^', include(poll_router.urls)),
     url(r'^', include(questions_router.urls)),
     url(r'^', include(choices_router.urls)),
+    url(r'^', include(answers_router.urls)),
+
 )

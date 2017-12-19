@@ -2442,23 +2442,10 @@ class ParseMsgAndDispatch(object):
         responses = self.sender.pop('responses', [])
 
         for response in responses:
-            try:
-                question = Question.objects.get(id=response.pop('question_id'))
-            except ObjectDoesNotExist:
-                logger.error(err.POLL_RESPONSE_INVALID_QUESTION['str'].join(' %s'), id )
-                continue
-            try:
-                answer = QuestionChoicesBase.objects.get(id=response.pop('answer_id'))
-            except ObjectDoesNotExist:
-                logger.error(err.POLL_RESPONSE_INVALID_ANSWER['str'].join(' %s'), id)
-                continue
-
-            UserResponse.objects.create(
+            u = UserResponse.objects.create(
                 user=self.user,
                 poll=entity,
-                question=question,
-                answer=answer,
-                **self.sender
+                **response
             )
 
         return self.response

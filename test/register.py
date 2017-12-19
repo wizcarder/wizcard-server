@@ -77,6 +77,9 @@ USA_COUNTRY_CODE = '1'
 verify_phones_list = [messages.PHONE1, messages.PHONE2, messages.PHONE3]
 verify_emails_list = [messages.EMAIL1, messages.EMAIL2, messages.EMAIL3, messages.EMAIL4]
 
+uid_list = []
+wuid_list = []
+
 server_url = "localhost"
 #server_url = "ec2-54-219-163-35.us-west-1.compute.amazonaws.com"
 #server_url = "ec2-54-153-11-241.us-west-1.compute.amazonaws.com"
@@ -151,6 +154,7 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     uid1 = objs['data']['user_id']
+    uid_list.append(uid1)
 
     reqmsg = messages.phone_check_req
     reqmsg['header']['device_id'] = DEVICE_ID2
@@ -175,6 +179,7 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     uid2 = objs['data']['user_id']
+    uid_list.append(uid2)
 
     #AnandR: Should check when the response_key doesnt match the sent response_key
 
@@ -202,6 +207,7 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     uid3 = objs['data']['user_id']
+    uid_list.append(uid3)
 
     reqmsg = messages.login
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -214,6 +220,7 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     wuid1 = objs['data']['wizuser_id']
+    wuid_list.append(wuid1)
 
     reqmsg['sender']['username'] = USERNAME2
     reqmsg['sender']['user_id'] = uid2
@@ -224,6 +231,7 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     wuid2 = objs['data']['wizuser_id']
+    wuid_list.append(wuid2)
 
     reqmsg['sender']['username'] = USERNAME3
     reqmsg['sender']['user_id'] = uid3
@@ -234,6 +242,7 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     wuid3 = objs['data']['wizuser_id']
+    wuid_list.append(wuid3)
 
     #send register
 
@@ -1051,19 +1060,19 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    uid1 = objs['data']['user_id']
+    duid1 = objs['data']['user_id']
 
     reqmsg = messages.login
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER1
-    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['user_id'] = duid1
     reqmsg['header']['device_id'] = DEVICE_ID1
-    reqmsg['sender']['password'] = DEVICE_ID1+uid1
+    reqmsg['sender']['password'] = DEVICE_ID1+duid1
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid1 = objs['data']['wizuser_id']
+    dwuid1 = objs['data']['wizuser_id']
 
     reqmsg = messages.phone_check_req
     reqmsg['header']['device_id'] = DEVICE_ID2
@@ -1086,19 +1095,19 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    uid2 = objs['data']['user_id']
+    duid2 = objs['data']['user_id']
 
     reqmsg = messages.login
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER2
-    reqmsg['sender']['user_id'] = uid2
+    reqmsg['sender']['user_id'] = duid2
     reqmsg['header']['device_id'] = DEVICE_ID2
-    reqmsg['sender']['password'] = DEVICE_ID2+uid2
+    reqmsg['sender']['password'] = DEVICE_ID2+duid2
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid2 = objs['data']['wizuser_id']
+    dwuid2 = objs['data']['wizuser_id']
 
     reqmsg = messages.phone_check_req
     reqmsg['header']['device_id'] = DEVICE_ID3
@@ -1121,48 +1130,48 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    uid3 = objs['data']['user_id']
+    duid3 = objs['data']['user_id']
 
     reqmsg = messages.login
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['username'] = DELETE_ROLODEX_USER3
-    reqmsg['sender']['user_id'] = uid3
+    reqmsg['sender']['user_id'] = duid3
     reqmsg['header']['device_id'] = DEVICE_ID3
-    reqmsg['sender']['password'] = DEVICE_ID3+uid3
+    reqmsg['sender']['password'] = DEVICE_ID3+duid3
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    wuid3 = objs['data']['wizuser_id']
+    dwuid3 = objs['data']['wizuser_id']
 
     reqmsg = messages.register1
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id']=uid1
-    reqmsg['sender']['wizuser_id']=wuid1
+    reqmsg['sender']['user_id'] = duid1
+    reqmsg['sender']['wizuser_id'] = dwuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.register2
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id']=uid2
-    reqmsg['sender']['wizuser_id']=wuid2
+    reqmsg['sender']['user_id'] = duid2
+    reqmsg['sender']['wizuser_id'] = dwuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.register3
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id']=uid3
-    reqmsg['sender']['wizuser_id']=wuid3
+    reqmsg['sender']['user_id'] = duid3
+    reqmsg['sender']['wizuser_id'] = dwuid3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.rolodex_edit_card1
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['user_id'] = duid1
+    reqmsg['sender']['wizuser_id'] = dwuid1
     contacts = reqmsg['sender']['contact_container']
 
     send_request(conn, reqmsg)
@@ -1172,8 +1181,8 @@ if not SKIP_BASIC:
 
     reqmsg = messages.rolodex_edit_card2
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['user_id'] = duid2
+    reqmsg['sender']['wizuser_id'] = dwuid2
     contacts = reqmsg['sender']['contact_container']
 
     send_request(conn, reqmsg)
@@ -1183,8 +1192,8 @@ if not SKIP_BASIC:
 
     reqmsg = messages.rolodex_edit_card3
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['user_id'] = duid3
+    reqmsg['sender']['wizuser_id'] = dwuid3
     contacts = reqmsg['sender']['contact_container']
 
     send_request(conn, reqmsg)
@@ -1194,12 +1203,12 @@ if not SKIP_BASIC:
 
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['user_id'] = duid1
+    reqmsg['sender']['wizuser_id'] = dwuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
-    reqmsg['receiver']['receiver_ids'] = [wuid2, wuid3]
+    reqmsg['receiver']['receiver_ids'] = [dwuid2, dwuid3]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1207,8 +1216,8 @@ if not SKIP_BASIC:
     # send get cards to clear readed on one guy
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['user_id'] = duid2
+    reqmsg['sender']['wizuser_id'] = dwuid2
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1217,8 +1226,8 @@ if not SKIP_BASIC:
     # accept/decline
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['user_id'] = duid1
+    reqmsg['sender']['wizuser_id'] = dwuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e2_id, e3_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1227,9 +1236,9 @@ if not SKIP_BASIC:
     # uid2 accept uid1
     reqmsg = messages.accept_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wizuser_id'] = wuid2
-    reqmsg['receiver']['wizuser_id'] = wuid1
+    reqmsg['sender']['user_id'] = duid2
+    reqmsg['sender']['wizuser_id'] = dwuid2
+    reqmsg['receiver']['wizuser_id'] = dwuid1
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1237,12 +1246,12 @@ if not SKIP_BASIC:
     # recreate 1<->3 to test decline path
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['user_id'] = duid1
+    reqmsg['sender']['wizuser_id'] = dwuid1
     reqmsg['sender']['asset_id'] = e1_id
     reqmsg['sender']['asset_type'] = "wizcard"
     reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
-    reqmsg['receiver']['receiver_ids'] = [wuid3]
+    reqmsg['receiver']['receiver_ids'] = [dwuid3]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
@@ -1250,16 +1259,16 @@ if not SKIP_BASIC:
     # send get cards to clear readed on 3
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['user_id'] = duid3
+    reqmsg['sender']['wizuser_id'] = dwuid3
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.delete_rolodex_card
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
+    reqmsg['sender']['user_id'] = duid1
+    reqmsg['sender']['wizuser_id'] = dwuid1
     reqmsg['receiver']['wizcard_ids'] = map(lambda x: {"wizcard_id": x, "dead_card":False}, [e3_id])
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1268,8 +1277,8 @@ if not SKIP_BASIC:
     #uid3 declines uid1
     reqmsg = messages.decline_connection_request
     reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wizuser_id'] = wuid3
+    reqmsg['sender']['user_id'] = duid3
+    reqmsg['sender']['wizuser_id'] = dwuid3
     reqmsg['receiver']['wizcard_id'] = e1_id
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1714,10 +1723,10 @@ if TEST_ENTITY:
             if poll:
                 from api_test import Poll
                 for p in poll:
-                    inst = Poll(uid1, wuid1, **p)
+                    rand = random.choice(range(0, len(uid_list)))
+                    inst = Poll(uid_list[rand], wuid_list[rand], **p)
                     inst.prepare_response()
                     inst.send()
-                    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
             reqmsg = messages.entity_leave
             reqmsg['header']['version'] = messages.APP_VERSION

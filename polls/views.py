@@ -124,14 +124,9 @@ class PollQuestionChoicesViewSet(BaseEntityComponentViewSet):
 
 
 class PollAnswersViewSet(BaseEntityComponentViewSet):
-    queryset = UserResponse.objects.all()
+    queryset = Poll.objects.all()
     serializer_class = PollResponseSerializer
 
-    def get_queryset(self):
-        user = self.request.user
-
-        # the answers this user is allowed to access are those associated
-        # with the polls this guy owns
-        poll_ids = Poll.objects.owners_entities(user).values_list('id', flat=True)
-        queryset = UserResponse.objects.filter(poll_id__in=poll_ids)
-        return queryset
+    def list(self, request, poll_pk=None):
+        poll = Poll.objects.get(id=poll_pk)
+        return Response(PollResponseSerializer(poll).data)
