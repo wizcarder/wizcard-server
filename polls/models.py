@@ -164,9 +164,11 @@ class QuestionChoicesBase(PolymorphicModel):
         return out
 
 
-# empty but distinct objects are required to track the
-# responses against each type of question
 class QuestionChoicesTrueFalse(QuestionChoicesBase):
+    # allow user to select things like "agree/disagree", "yes, no", "true/false" etc
+    true_key = models.CharField(max_length=10, default="Yes")
+    false_key = models.CharField(max_length=10, default="No")
+
     def answer_stats(self):
         out = super(QuestionChoicesTrueFalse, self).answer_stats()
 
@@ -204,7 +206,6 @@ class QuestionChoices1ToX(QuestionChoicesBase):
 class QuestionChoicesMultipleChoice(QuestionChoicesBase):
     question_key = models.CharField(max_length=1)
     question_value = models.TextField()
-    is_radio = models.BooleanField(default=True)
 
     def answer_stats(self):
         out = super(QuestionChoicesMultipleChoice, self).answer_stats()
@@ -215,7 +216,10 @@ class QuestionChoicesText(QuestionChoicesBase):
     def answer_stats(self):
         out = super(QuestionChoicesText, self).answer_stats()
 
-        # should send a hyperlinked serialized response here.
+        out.update(
+            responses=self.answers_userresponse_related.all().values_list('text', flat=True)
+        )
+
         return out
 
 
