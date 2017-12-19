@@ -5,6 +5,7 @@ import messages
 import libtest
 from libtest import send_request, handle_response
 import httplib
+import names
 import pdb
 
 SERVER_URL = 'localhost'
@@ -121,7 +122,8 @@ class User(Connect):
 
         self.reqmsg['sender']['user_id'] = self.uid
         self.reqmsg['sender']['wizuser_id'] = self.wuid
-
+        self.reqmsg['sender']['first_name'] = names.get_first_name()
+        self.reqmsg['sender']['last_name'] = names.get_last_name()
         send_request(self.conn, self.reqmsg)
         objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
 
@@ -162,6 +164,21 @@ class User(Connect):
         self.reqmsg['receiver']['receiver_ids'] = valid_users
 
 
+    def entity_join(self, entity_id, entity_type='EVT'):
+        self.reqmsg = messages.entity_join.copy()
+        self.reqmsg['header'].update(self.msg_hdr['header'])
+
+        self.reqmsg['sender']['user_id'] = self.uid
+        self.reqmsg['sender']['wizuser_id'] = self.wuid
+        self.reqmsg['sender']['entity_id'] = entity_id
+        self.reqmsg['sender']['entity_type'] = entity_type
+
+        send_request(self.conn, self.reqmsg)
+        objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
+
+
+
+
 class Poll(Connect):
 
     TRUE_FALSE_CHOICE = 'TOF'
@@ -193,7 +210,7 @@ class Poll(Connect):
     def true_false_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
-        response['answer_id'] = choices[0].get('id')
+        response['answer_id'] = choices[0]['id']
         response['has_boolean_value'] = True
         response['boolean_value'] = random.choice([True, False])
         self.reqmsg['sender']['responses'].append(response)
@@ -201,7 +218,7 @@ class Poll(Connect):
     def one_to_x_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
-        response['answer_id'] = choices[0].get('id')
+        response['answer_id'] = choices[0]['id']
         response['has_user_value'] = True
         response['user_value'] = random.choice(range(1, 6))
         self.reqmsg['sender']['responses'].append(response)
@@ -209,13 +226,12 @@ class Poll(Connect):
     def mct_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
-        response['answer_id'] = choices[random.choice(range(0, len(choices)))]['id']
+        response['answer_id'] = choices[random.choice(range(1, len(choices)+1))]['id']
         self.reqmsg['sender']['responses'].append(response)
 
     def text_response(self, qid, choices):
         response = messages.poll_questions_response.copy()
         response['question_id'] = qid
-        response['answer_id'] = choices[0].get('id')
         response['has_text'] = True
         response['text'] = 'Some random text'
         self.reqmsg['sender']['responses'].append(response)

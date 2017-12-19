@@ -54,7 +54,7 @@ class Event(BaseEntity):
     def notify_update(self):
         self.notify_all_users(
             self.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE[0],
+            verbs.WIZCARD_ENTITY_UPDATE,
             self
         )
 

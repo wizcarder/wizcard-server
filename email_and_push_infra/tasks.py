@@ -164,7 +164,7 @@ def email_push_handler():
         n.mark_as_read()
         if delivery_method == BaseNotification.EMAIL:
             emailer = HtmlGen(sender=n.actor, trigger=n.notif_type, target=n.target)
-            status = emailer.email_send()
+            #status = emailer.email_send()
             #n.update_status(status)
         elif delivery_method == BaseNotification.PUSHNOTIF:
             pushNotificationToApp.delay(n.actor_object_id,
