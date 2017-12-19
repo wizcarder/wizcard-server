@@ -7,6 +7,9 @@ from wizserver import verbs
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
 from base_entity.models import EntityEngagementStats
+from userprofile.signals import user_type_created
+
+import pdb
 
 
 from notifications.signals import notify
@@ -216,19 +219,6 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
 
     objects = ExhibitorInviteeManager()
 
-    @classmethod
-    def validate(cls, exhibitors):
-        failed_ids = ""
-        valid_emails = []
-        for eid in exhibitors:
-            try:
-                email = ExhibitorInvitee.objects.get(id=eid).email
-                valid_emails.append(email)
-            except:
-                failed_ids = failed_ids + "," + str(eid)
-        return valid_emails, failed_ids
-
-
 class AgendaManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.AGENDA):
         return super(AgendaManager, self).owners_entities(
@@ -261,3 +251,8 @@ def create_engagement_stats(sender, instance, created, **kwargs):
         e = EntityEngagementStats.objects.create()
         instance.engagements = e
         instance.save()
+
+@receiver(user_type_created)
+def connect_subentities(sender, **kwargs):
+    b_usr = sender.get_baseuser_by_type(kwargs.pop('user_type'))
+    b_usr.connect_subentities()
