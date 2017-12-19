@@ -84,7 +84,6 @@ class Migration(migrations.Migration):
                 ('questionchoicesbase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='polls.QuestionChoicesBase')),
                 ('question_key', models.CharField(max_length=1)),
                 ('question_value', models.TextField()),
-                ('is_radio', models.BooleanField(default=True)),
             ],
             options={
                 'abstract': False,
@@ -105,6 +104,8 @@ class Migration(migrations.Migration):
             name='QuestionChoicesTrueFalse',
             fields=[
                 ('questionchoicesbase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='polls.QuestionChoicesBase')),
+                ('true_key', models.CharField(default=b'Yes', max_length=10)),
+                ('false_key', models.CharField(default=b'No', max_length=10)),
             ],
             options={
                 'abstract': False,

@@ -714,6 +714,7 @@ class PollResponseSerializer(EntitySerializer):
 
     questions = QuestionResponseSerializer(many=True)
     event = serializers.SerializerMethodField(read_only=True)
+    num_responders = serializers.IntegerField(read_only=True)
 
     def get_event(self, obj):
         # typically expecting one parent only...the Poll UI allows associating with one event only. No issues
