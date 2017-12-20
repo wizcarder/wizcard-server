@@ -25,6 +25,7 @@ from django.db.models import Q
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
+from userprofile.signals import user_type_created
 import uuid
 import string
 import random
@@ -143,38 +144,54 @@ class UserProfile(models.Model):
         except:
             return None
 
+    def get_baseuser_by_type(self, user_type):
+        if user_type == self.APP_USER:
+            return self.app_user()
+        elif user_type == self.WEB_EXHIBITOR_USER:
+            return self.exhibitor_user()
+        elif user_type == self.organizer_user():
+            return self.organizer_user()
+        else:
+            raise RuntimeError('%r invalid user type' % (user_type))
+
     def create_user_type(self, user_type):
         self.user_type |= user_type
 
         # create the associated user personalities
-        if self.user_type == self.APP_USER:
+        if user_type == self.APP_USER:
             if self.app_user():
                 raise AssertionError
-            user_type = AppUser.objects.create(
+            AppUser.objects.create(
                 profile=self,
                 settings=AppUserSettings.objects.create()
             )
-        elif self.user_type == self.WEB_ORGANIZER_USER:
+        elif user_type == self.WEB_ORGANIZER_USER:
             if self.organizer_user():
                 raise AssertionError
-            user_type = WebOrganizerUser.objects.create(
+            WebOrganizerUser.objects.create(
                 profile=self,
                 settings=WebOrganizerUserSettings.objects.create()
             )
-        elif self.user_type == self.WEB_EXHIBITOR_USER:
+        elif user_type == self.WEB_EXHIBITOR_USER:
             if self.exhibitor_user():
                 raise AssertionError
-            user_type = WebExhibitorUser.objects.create(
+            WebExhibitorUser.objects.create(
                 profile=self,
                 settings=WebExhibitorUserSettings.objects.create()
             )
 
         self.save()
+
+        # things like future user etc can be done here.
+        user_type_created.send(sender=self, user_type=user_type)
         return user_type
 
 
 class BaseUser(PolymorphicModel):
     profile = models.ForeignKey(UserProfile, related_name='%(class)s')
+
+    def connect_subentities(self):
+        pass
 
 
 class AppUser(BaseUser):
@@ -322,6 +339,10 @@ class WebOrganizerUser(BaseUser):
 
 class WebExhibitorUser(BaseUser):
     settings = models.OneToOneField(WebExhibitorUserSettings, related_name='base_user')
+
+    def connect_subentities(self):
+        # need to figure out what to do here
+        pass
 
 
 class FutureUserManager(models.Manager):

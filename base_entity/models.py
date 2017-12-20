@@ -117,6 +117,8 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_COOWNER = 'e_coowner'
     SUB_ENTITY_AGENDA = 'e_agenda'
     SUB_ENTITY_POLL = 'e_poll'
+    SUB_ENTITY_EXHIBITOR_INVITEE = 'e_exhibitor'
+    SUB_ENTITY_ATTENDEE_INVITEE = 'e_attendee'
 
     objects = BaseEntityComponentManager()
 
@@ -247,7 +249,7 @@ class BaseEntityComponent(PolymorphicModel):
     @classmethod
     def entity_cls_from_subentity_type(cls, entity_type):
         from entity.models import Campaign, VirtualTable, \
-            Speaker, Sponsor, CoOwners, Agenda
+            Speaker, Sponsor, CoOwners, Agenda, ExhibitorInvitee, AttendeeInvitee
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
         from polls.models import Poll
@@ -269,6 +271,10 @@ class BaseEntityComponent(PolymorphicModel):
             c = Agenda
         elif entity_type == cls.SUB_ENTITY_POLL:
             c = Poll
+        elif entity_type == cls.SUB_ENTITY_EXHIBITOR_INVITEE:
+            c = ExhibitorInvitee
+        elif entity_type == cls.SUB_ENTITY_ATTENDEE_INVITEE:
+            c = AttendeeInvitee
         else:
             raise AssertionError("Invalid sub_entity %s" % entity_type)
 
@@ -293,6 +299,7 @@ class BaseEntityComponent(PolymorphicModel):
             #                           verbs.WIZCARD_NEW_POLL,
             #                           obj
             #                           )
+        return objs
 
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
@@ -301,6 +308,8 @@ class BaseEntityComponent(PolymorphicModel):
 
         # run any post connect things that instance might want to do
         obj.post_connect()
+
+        return obj
 
     def remove_sub_entities_of_type(self, entity_type):
         self.related.filter(alias=entity_type).delete()

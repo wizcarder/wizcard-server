@@ -12,6 +12,7 @@ from wizserver import verbs
 from notifications.models import BaseNotification
 from notifications.signals import notify
 from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404
 
 import pdb
 
@@ -31,45 +32,29 @@ class EventViewSet(BaseEntityViewSet):
 
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):
-        inst = self.get_object_or_404(Event, pk=pk)
+        inst = get_object_or_404(Event, pk=pk)
 
         exhibitors = request.data
-        valid_candidates = ExhibitorInvitee.validate(exhibitors['ids'])
 
-        for recp in valid_candidates:
+        # set related for these exhibitors. We will related the entity to the ExhibitorInvitee model
+        # and check for those events when the exhibitor comes in, treating the exhibitor email as the
+        # handle within ExhibitorInvitee. Essentially, Exhibitor/AttendeeInvitee becomes the future user construct
 
-            notify.send(self.r_user,
-                        recipient=self.user,
-                        notif_type=verbs.WIZCARD_INVITE_EXHIBITOR[0],
-                        target=recp,
-                        is_async=True,
-                        delivery_type=BaseNotification.EMAIL
-                        )
+        # @AR: the complicated c-type logic is not required. add_subentities already validates with a much more
+        # concise & pythonic query
+        valid_candidates = inst.add_subentities(exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
 
-            #message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_EXHIBITOR, to_email=recp)
-
-        return Response("Exhibitors invited %s" % len(valid_candidates),
-                        status=status.HTTP_200_OK)
+        return Response(ExhibitorInviteeSerializer(valid_candidates, many=True)).data
 
     @detail_route(methods=['post'])
     def invite_attendees(self, request, pk=None):
-        inst = get_object_or_404(AttendeeInvitee, pk=pk)
+        inst = get_object_or_404(Event, pk=pk)
 
         attendees = request.data
-        valid_candidates = AttendeeInvitee.validate(attendees['ids'])
 
-        for recp in valid_candidates:
-            notify.send(self.r_user,
-                        recipient=self.user,
-                        notif_type=verbs.WIZCARD_INVITE_ATTENDEE[0],
-                        target=recp,
-                        is_async=True,
-                        delivery_type=BaseNotification.EMAIL
-                        )
-            #message_trigger.send(inst, source=inst, trigger=EmailEvent.INVITE_ATTENDEE, to_email=recp)
+        valid_candidates = inst.add_subentities(attendees, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
 
-        return Response("Attendees invited %s" % len(valid_candidates),
-                        status=status.HTTP_200_OK)
+        return Response(AttendeeInviteeSerializer(valid_candidates, many=True)).data
 
     @detail_route(methods=['get'])
     def publish_event(self, request, pk=None):
