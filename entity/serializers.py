@@ -590,6 +590,9 @@ class ExhibitorInviteeSerializer(EntitySerializer):
     class Meta:
         model = ExhibitorInvitee
         fields = ('id', 'name', 'email')
+        read_only_fields = ('state',)
+
+    state = serializers.ChoiceField(required=False, read_only=True)
 
     def prepare(self, validated_data):
         super(ExhibitorInviteeSerializer, self).prepare(validated_data)
@@ -614,7 +617,8 @@ class AttendeeInviteeSerializer(EntitySerializer):
 
     class Meta:
         model = AttendeeInvitee
-        fields = ['id', 'name', 'email']
+        fields = ('id', 'name', 'email',)
+        read_only_fields = ('state',)
 
     def prepare(self, validated_data):
         super(AttendeeInviteeSerializer, self).prepare(validated_data)
@@ -635,7 +639,7 @@ class AttendeeInviteeSerializer(EntitySerializer):
 class CoOwnersSerializer(EntitySerializer):
     class Meta:
         model = CoOwners
-        fields = ['id', 'user', 'name', 'email']
+        fields = ('id', 'user', 'name', 'email',)
 
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     name = serializers.SerializerMethodField(read_only=True)
@@ -662,7 +666,8 @@ class CoOwnersSerializer(EntitySerializer):
 class PollSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'questions', 'state')
+        fields = ('id', 'description', 'questions',)
+        read_only_fields = ('state',)
 
     questions = QuestionSerializer(many=True)
 

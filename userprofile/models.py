@@ -11,7 +11,7 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
 from entity.models import VirtualTable
-from entity.models import Campaign
+from entity.models import Campaign, ExhibitorInvitee, AttendeeInvitee
 from entity.serializers import CampaignSerializer, TableSerializerL1, TableSerializerL2
 from wizcardship.serializers import WizcardSerializerL2, DeadCardSerializerL2
 from django.core.exceptions import ObjectDoesNotExist
@@ -341,9 +341,19 @@ class WebExhibitorUser(BaseUser):
     settings = models.OneToOneField(WebExhibitorUserSettings, related_name='base_user')
 
     def connect_subentities(self):
-        # need to figure out what to do here
-        pass
+        pdb.set_trace()
+        # any pending invite ?
+        invite_objs = ExhibitorInvitee.objects.filter(email=self.profile.user.email)
 
+        # each of these invites were related with event when the invite was sent by organizer
+        invited_events = [
+            objs.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event")) for objs in invite_objs
+            ]
+
+        # join this User to the Event. We can retrieve this users Events on the portal. Additionally, we need to be
+        # aware (and potentially filter out) that "joined users" also contain Exhibitor Users.
+        user = self.profile.user
+        [event.join(user) for event in invited_events]
 
 class FutureUserManager(models.Manager):
     def check_future_user(self, email=None, phone=None):

@@ -8,13 +8,12 @@ from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
-
+from notifications.signals import notify
+from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 import pdb
 
 
-from notifications.signals import notify
-from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, \
-    VcardMixin
+
 
 from django.utils import timezone
 now = timezone.now
@@ -174,7 +173,7 @@ class SponsorManager(BaseEntityManager):
             **kwargs
         )
 
-class Sponsor(BaseEntity):
+class Sponsor(BaseEntity, InviteStateMixin):
     caption = models.CharField(max_length=50, default='Not Available')
 
     objects = SponsorManager()
@@ -195,7 +194,7 @@ class CoOwners(BaseEntityComponent):
     objects = CoOwnersManager()
 
 
-class AttendeeInviteeManager(BaseEntityComponentManager):
+class AttendeeInviteeManager(BaseEntityComponentManager, InviteStateMixin):
     def owners_entities(self, user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE):
         return super(AttendeeInviteeManager, self).owners_entities(
             user,
@@ -215,7 +214,7 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
         )
 
 
-class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
+class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     objects = ExhibitorInviteeManager()
 
