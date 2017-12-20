@@ -142,9 +142,6 @@ class BaseEntityComponent(PolymorphicModel):
         related_name="engagements_%(class)s_related"
     )
 
-    def __repr__(self):
-        return self.entity_type
-
     @classmethod
     def create(cls, e, owner, is_creator, **kwargs):
         obj = e.objects.create(**kwargs)

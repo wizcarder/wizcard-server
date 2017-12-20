@@ -45,7 +45,7 @@ class EventViewSet(BaseEntityViewSet):
         # concise & pythonic query
         valid_candidates = inst.add_subentities(exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
 
-        return Response(ExhibitorInviteeSerializer(valid_candidates, many=True)).data
+        return Response(ExhibitorInviteeSerializer(valid_candidates, many=True).data)
 
     @detail_route(methods=['post'])
     def invite_attendees(self, request, pk=None):

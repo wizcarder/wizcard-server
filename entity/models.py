@@ -194,7 +194,7 @@ class CoOwners(BaseEntityComponent):
     objects = CoOwnersManager()
 
 
-class AttendeeInviteeManager(BaseEntityComponentManager, InviteStateMixin):
+class AttendeeInviteeManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE):
         return super(AttendeeInviteeManager, self).owners_entities(
             user,
@@ -202,7 +202,7 @@ class AttendeeInviteeManager(BaseEntityComponentManager, InviteStateMixin):
         )
 
 
-class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
+class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
     objects = AttendeeInviteeManager()
 
 

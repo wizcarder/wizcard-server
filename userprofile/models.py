@@ -341,14 +341,11 @@ class WebExhibitorUser(BaseUser):
     settings = models.OneToOneField(WebExhibitorUserSettings, related_name='base_user')
 
     def connect_subentities(self):
-        pdb.set_trace()
         # any pending invite ?
         invite_objs = ExhibitorInvitee.objects.filter(email=self.profile.user.email)
 
         # each of these invites were related with event when the invite was sent by organizer
-        invited_events = [
-            objs.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event")) for objs in invite_objs
-            ]
+        invited_events = [item for sublist in invite_objs for item in sublist.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))]
 
         # join this User to the Event. We can retrieve this users Events on the portal. Additionally, we need to be
         # aware (and potentially filter out) that "joined users" also contain Exhibitor Users.

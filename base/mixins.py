@@ -44,10 +44,6 @@ class Base411Mixin(models.Model):
     name = TruncatingCharField(max_length=50, default="")
     email = EmailField(blank=True)
 
-    def __repr__(self):
-        return self.name
-
-
 class Base412Mixin(Base411Mixin):
     class Meta:
         abstract = True
@@ -149,6 +145,9 @@ class MediaMixin(models.Model):
 
 
 class InviteStateMixin(models.Model):
+    class Meta:
+        abstract = True
+
     INVITED = "INV"
     ACCEPTED = "ACC"
 
