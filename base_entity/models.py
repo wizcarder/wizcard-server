@@ -15,6 +15,7 @@ from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
 from wizserver import verbs
+import datetime
 import pdb
 
 # Create your models here.
@@ -336,6 +337,7 @@ class BaseEntityComponent(PolymorphicModel):
     def is_owner(self, user):
         return bool(self.owners.all() & user.profile.baseuser.all())
 
+
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
     def post_connect(self):
@@ -498,6 +500,9 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def expire(self):
         self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
+
+    def modified_since(self, timestamp):
+        return self.modified > timestamp
 
 
 # explicit through table since we will want to associate additional
