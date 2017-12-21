@@ -342,7 +342,7 @@ class WebExhibitorUser(BaseUser):
 
     def connect_subentities(self):
         # any pending invite ?
-        invite_objs = ExhibitorInvitee.objects.check_pending_invites(email=self.profile.user.email, )
+        invite_objs = ExhibitorInvitee.objects.check_pending_invites(email=self.profile.user.email)
 
         # each of these invites were related with event when the invite was sent by organizer
         invited_events = [item for sublist in invite_objs for item in sublist.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))]
