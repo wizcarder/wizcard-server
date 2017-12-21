@@ -32,7 +32,6 @@ class EventViewSet(BaseEntityViewSet):
 
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):
-        pdb.set_trace()
         inst = get_object_or_404(Event, pk=pk)
 
         exhibitors = request.data
