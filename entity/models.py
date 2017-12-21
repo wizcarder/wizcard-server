@@ -213,6 +213,22 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
+    # check if invitee_ids is in User based on email.
+    # returns those users
+    def check_existing_users_exhibitors(self, invitee_ids):
+        matched_users = User.objects.filter(
+            email__in=self.objects.filter(
+                id__in=invitee_ids
+            ).values_list('email', flat=True)
+        )
+
+        matched_exhibitors = ExhibitorInvitee.objects.filter(
+            email__in=matched_users.values_list('email', flat=True)
+        )
+
+        return matched_users, matched_exhibitors
+
+
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 

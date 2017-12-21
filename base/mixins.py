@@ -148,10 +148,12 @@ class InviteStateMixin(models.Model):
     class Meta:
         abstract = True
 
+    CREATED = "CRT"
     INVITED = "INV"
     ACCEPTED = "ACC"
 
     INVITE_CHOICES = (
+        (CREATED, "Created"),
         (INVITED, "Invited"),
         (ACCEPTED, "Accepted")
     )
@@ -159,5 +161,5 @@ class InviteStateMixin(models.Model):
     state = models.CharField(
         max_length=3,
         choices=INVITE_CHOICES,
-        default=INVITED
+        default=CREATED
     )
