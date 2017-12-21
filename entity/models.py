@@ -222,13 +222,14 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
             ).values_list('email', flat=True)
         )
 
-        matched_exhibitors = ExhibitorInvitee.objects.filter(
+        matched_exhibitors = self.filter(
             email__in=matched_users.values_list('email', flat=True)
         )
 
         return matched_users, matched_exhibitors
 
-
+    def check_pending_invites(self, email):
+        return self.filter(email=email, state=ExhibitorInvitee.INVITED)
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 

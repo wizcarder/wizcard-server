@@ -59,9 +59,6 @@ class EventViewSet(BaseEntityViewSet):
 
         new_exhibitors = [x for x in exhibitor_invitees if x not in existing_exhibitors.values_list('id', flat=True)]
 
-        # @AR: the complicated c-type logic is not required. add_subentities already validates with a much more
-        # concise & pythonic query
-
         # relate these with Event
         invited_exhibitors = inst.add_subentities(new_exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
         invited_exhibitors.update(state=ExhibitorInvitee.INVITED)
