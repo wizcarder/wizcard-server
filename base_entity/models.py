@@ -287,18 +287,6 @@ class BaseEntityComponent(PolymorphicModel):
         objs = c.objects.filter(id__in=int_ids)
         for obj in objs:
             self.add_subentity_obj(obj, alias=type)
-
-            # AA: Comments: This is bad code. adding if statements is just WRONG.
-            # commenting out. #AR pls avoid these constructs. There is literally no
-            # difference in terms of time and effort in doing it a clean way vs hack.
-            # Think OOP
-
-            # if type == BaseEntity.SUB_ENTITY_POLL:
-            #     self.notify_all_users(
-            #         self.get_creator(),
-            #                           verbs.WIZCARD_NEW_POLL,
-            #                           obj
-            #                           )
         return objs
 
     def add_subentity_obj(self, obj, alias):

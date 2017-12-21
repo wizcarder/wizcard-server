@@ -7,6 +7,7 @@ import phonenumbers
 from pyshorteners import Shortener
 from django.conf import settings
 from django.core.files.storage import default_storage
+from datetime import datetime
 
 
 
@@ -189,3 +190,10 @@ def uploadtoS3(outfile, remote_dir=None):
         return remote_url
     except:
         raise RuntimeError('upload to S3 failed')
+
+
+def get_epoch_time(secs=123456):
+    utc_dt = datetime.utcfromtimestamp(int(secs)).replace(tzinfo=pytz.utc)
+    return utc_dt.strftime("%Y-%m-%d %H:%M:%S %Z%z")
+
+

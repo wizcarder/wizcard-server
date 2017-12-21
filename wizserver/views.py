@@ -2414,16 +2414,14 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type')
         detail = self.sender.get('detail', True)
         # Should be in the format "YYYY-mm-ddTHH-MM-SS-HH:MM"
-        timestamp = self.sender.get('timestamp', None)
+        timestamp = self.sender.get('timestamp', wizlib.get_epoch_time())
 
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             entity = e.objects.get(id=id)
-            if timestamp:
-                c_timestamp = parser.parse(timestamp)
-                if not entity.modified_since(c_timestamp):
-                    self.response.add_data("up_to_date", True)
-                    return self.response
+            c_timestamp = parser.parse(timestamp)
+            if not entity.modified_since(c_timestamp):
+                return self.response
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
