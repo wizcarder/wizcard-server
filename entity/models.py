@@ -8,13 +8,12 @@ from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
-
+from notifications.signals import notify
+from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 import pdb
 
 
-from notifications.signals import notify
-from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, \
-    VcardMixin
+
 
 from django.utils import timezone
 now = timezone.now
@@ -174,7 +173,7 @@ class SponsorManager(BaseEntityManager):
             **kwargs
         )
 
-class Sponsor(BaseEntity):
+class Sponsor(BaseEntity, InviteStateMixin):
     caption = models.CharField(max_length=50, default='Not Available')
 
     objects = SponsorManager()
@@ -203,7 +202,7 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
         )
 
 
-class AttendeeInvitee(BaseEntityComponent, Base411Mixin):
+class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
     objects = AttendeeInviteeManager()
 
 
@@ -214,8 +213,24 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
+    # check if invitee_ids is in User based on email.
+    # returns those users
+    def check_existing_users_exhibitors(self, invitee_ids):
+        matched_users = User.objects.filter(
+            email__in=self.objects.filter(
+                id__in=invitee_ids
+            ).values_list('email', flat=True)
+        )
 
-class ExhibitorInvitee(BaseEntityComponent, Base411Mixin):
+        matched_exhibitors = ExhibitorInvitee.objects.filter(
+            email__in=matched_users.values_list('email', flat=True)
+        )
+
+        return matched_users, matched_exhibitors
+
+
+
+class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     objects = ExhibitorInviteeManager()
 

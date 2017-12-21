@@ -3,7 +3,7 @@ __author__ = 'aammundi'
 from django.conf.urls import url, include, patterns
 from entity.views import EventViewSet, CampaignViewSet, TableViewSet
 from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorViewSet, AttendeeViewSet, \
-    CoOwnersViewSet, AgendaViewSet
+    CoOwnersViewSet, AgendaViewSet, ExhibitorEventViewSet
 from media_components.views import MediaEntitiesViewSet
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
@@ -12,6 +12,7 @@ from notifications.urls import urlpatterns as notification_urlpatterns
 
 router = SimpleRouter()
 router.register(r'events', EventViewSet, base_name='events')
+router.register(r'exhibitor_events', ExhibitorEventViewSet, base_name='exhibitor_events')
 events_router = routers.NestedSimpleRouter(router, r'events', lookup='event')
 events_router.register(r'agenda', AgendaViewSet, base_name='event-agenda')
 router.register(r'campaigns', CampaignViewSet, base_name='campaigns')

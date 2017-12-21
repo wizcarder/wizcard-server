@@ -371,8 +371,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
-
-
     # hashtags.
     tags = TaggableManager()
 

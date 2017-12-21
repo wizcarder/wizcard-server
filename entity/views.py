@@ -8,16 +8,26 @@ from entity.serializers import EventSerializer, CampaignSerializer, \
 from rest_framework.decorators import detail_route
 from rest_framework import status
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
-from wizserver import verbs
-from notifications.models import BaseNotification
-from notifications.signals import notify
 from django.shortcuts import get_object_or_404
-from django.shortcuts import get_object_or_404
+from itertools import chain
+
 
 import pdb
 
 
 # Create your views here.
+
+class ExhibitorEventViewSet(BaseEntityViewSet):
+    serializer_class = EventSerializer
+
+    def get_serializer_class(self):
+        return EventSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Event.objects.users_entities(user)
+        return queryset
+
 
 class EventViewSet(BaseEntityViewSet):
     serializer_class = EventSerializer
@@ -34,17 +44,30 @@ class EventViewSet(BaseEntityViewSet):
     def invite_exhibitors(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
 
-        exhibitors = request.data
+        exhibitor_invitees = request.data
 
-        # set related for these exhibitors. We will related the entity to the ExhibitorInvitee model
+        # set related for these exhibitors. We will relate the entity to the ExhibitorInvitee model
         # and check for those events when the exhibitor comes in, treating the exhibitor email as the
         # handle within ExhibitorInvitee. Essentially, Exhibitor/AttendeeInvitee becomes the future user construct
 
+        # exhibitor may already have an account. if so, join them to event
+        existing_users, existing_exhibitors = ExhibitorInvitee.objects.check_existing_users_exhibitors(
+            exhibitor_invitees
+        )
+        [inst.join(u, notify=False) for u in existing_users]
+        existing_exhibitors.update(state=ExhibitorInvitee.ACCEPTED)
+
+        new_exhibitors = [x for x in exhibitor_invitees if x not in existing_exhibitors.values_list('id', flat=True)]
+
         # @AR: the complicated c-type logic is not required. add_subentities already validates with a much more
         # concise & pythonic query
-        valid_candidates = inst.add_subentities(exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
 
-        return Response(ExhibitorInviteeSerializer(valid_candidates, many=True)).data
+        # relate these with Event
+        invited_exhibitors = inst.add_subentities(new_exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
+        invited_exhibitors.update(state=ExhibitorInvitee.INVITED)
+
+        result_list = list(chain(existing_exhibitors, invited_exhibitors))
+        return Response(ExhibitorInviteeSerializer(result_list, many=True).data)
 
     @detail_route(methods=['post'])
     def invite_attendees(self, request, pk=None):
