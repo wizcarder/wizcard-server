@@ -154,28 +154,28 @@ class UserProfile(models.Model):
         else:
             raise RuntimeError('%r invalid user type' % (user_type))
 
-    def create_user_type(self, user_type):
+    def create_user_type_instance(self, user_type):
         self.user_type |= user_type
 
         # create the associated user personalities
         if user_type == self.APP_USER:
             if self.app_user():
                 raise AssertionError
-            AppUser.objects.create(
+            user_obj = AppUser.objects.create(
                 profile=self,
                 settings=AppUserSettings.objects.create()
             )
         elif user_type == self.WEB_ORGANIZER_USER:
             if self.organizer_user():
                 raise AssertionError
-            WebOrganizerUser.objects.create(
+            user_obj = WebOrganizerUser.objects.create(
                 profile=self,
                 settings=WebOrganizerUserSettings.objects.create()
             )
         elif user_type == self.WEB_EXHIBITOR_USER:
             if self.exhibitor_user():
                 raise AssertionError
-            WebExhibitorUser.objects.create(
+            user_obj = WebExhibitorUser.objects.create(
                 profile=self,
                 settings=WebExhibitorUserSettings.objects.create()
             )
@@ -184,7 +184,7 @@ class UserProfile(models.Model):
 
         # things like future user etc can be done here.
         user_type_created.send(sender=self, user_type=user_type)
-        return user_type
+        return user_obj
 
 
 class BaseUser(PolymorphicModel):
