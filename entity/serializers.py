@@ -363,7 +363,7 @@ class CampaignSerializerL2(EntitySerializer):
 # this is used by portal REST API
 class CampaignSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['joined']
+        remove_fields = ['joined', 'location']
         super(CampaignSerializer, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:

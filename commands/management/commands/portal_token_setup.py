@@ -30,6 +30,6 @@ class Command(BaseCommand):
             username = raw_input('Enter username: ')
             password = raw_input('Enter Password')
             u = User.objects.create(username=username, password=password)
-            u.profile.create_user_type(UserProfile.PORTAL_USER_INTERNAL)
+            u.profile.create_user_type_instance(UserProfile.PORTAL_USER_INTERNAL)
             t = Token.objects.create(user=u)
             self.stdout.write('created Token: "%s"' % t)

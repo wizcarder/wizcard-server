@@ -217,7 +217,7 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
     # returns those users
     def check_existing_users_exhibitors(self, invitee_ids):
         matched_users = User.objects.filter(
-            email__in=self.objects.filter(
+            email__in=self.filter(
                 id__in=invitee_ids
             ).values_list('email', flat=True)
         )

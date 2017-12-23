@@ -43,7 +43,7 @@ class UserRegisterSerializer(RegisterSerializer):
         adapter.save_user(request, user, self)
         setup_user_email(request, user, [])
         user.save()
-        profile = user.profile.create_user_type(int(user_type))
+        profile = user.profile.create_user_type_instance(int(user_type))
         return user
 
 
@@ -79,7 +79,7 @@ class UserSerializerL0(serializers.ModelSerializer):
         user.save()
 
         profile = user.profile
-        profile.create_user_type(user_type)
+        profile.create_user_type_instance(user_type)
 
         return user
 

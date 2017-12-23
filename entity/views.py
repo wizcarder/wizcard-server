@@ -55,13 +55,18 @@ class EventViewSet(BaseEntityViewSet):
             exhibitor_invitees
         )
         [inst.join(u, notify=False) for u in existing_users]
-        existing_exhibitors.update(state=ExhibitorInvitee.ACCEPTED)
+
+        for e in existing_exhibitors:
+            e.state = ExhibitorInvitee.ACCEPTED
+            e.save()
 
         new_exhibitors = [x for x in exhibitor_invitees if x not in existing_exhibitors.values_list('id', flat=True)]
 
         # relate these with Event
         invited_exhibitors = inst.add_subentities(new_exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
-        invited_exhibitors.update(state=ExhibitorInvitee.INVITED)
+        for i in invited_exhibitors:
+            i.state = ExhibitorInvitee.INVITED
+            i.save()
 
         result_list = list(chain(existing_exhibitors, invited_exhibitors))
         return Response(ExhibitorInviteeSerializer(result_list, many=True).data)

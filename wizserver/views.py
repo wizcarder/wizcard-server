@@ -677,7 +677,7 @@ class ParseMsgAndDispatch(object):
             password = UserProfile.objects.gen_password(device_id, str(user.profile.userid))
             user.set_password(password)
             user.save()
-            app_user = user.profile.create_user_type(UserProfile.APP_USER)
+            app_user = user.profile.create_user_type_instance(UserProfile.APP_USER)
             app_user.device_id = device_id
         else:
             app_user = user.profile.app_user()
