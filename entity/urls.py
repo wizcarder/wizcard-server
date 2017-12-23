@@ -8,6 +8,7 @@ from media_components.views import MediaEntitiesViewSet
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
 from polls.urls import urlpatterns as poll_urlpatterns
+from taganomy.views import TaganomyViewSet
 from notifications.urls import urlpatterns as notification_urlpatterns
 
 router = SimpleRouter()
@@ -23,6 +24,7 @@ router.register(r'media', MediaEntitiesViewSet, base_name='media')
 router.register(r'exhibitors', ExhibitorViewSet, base_name='exhibitors')
 router.register(r'attendees', AttendeeViewSet, base_name='attendees')
 router.register(r'owners', CoOwnersViewSet, base_name='owners')
+router.register(r'tags', TaganomyViewSet, base_name='tags')
 
 
 

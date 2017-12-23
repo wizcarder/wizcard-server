@@ -9,7 +9,6 @@ from polymorphic.models import PolymorphicModel, PolymorphicManager
 from rabbit_service import rconfig
 from django.db.models import Q
 from django.conf import settings
-from taganomy.models import Taganomy
 from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
@@ -89,6 +88,7 @@ class BaseEntityComponent(PolymorphicModel):
     AGENDA = 'AGN'
     AGENDA_ITEM = 'AGI'
     POLL = 'POL'
+    CATEGORY = 'CAT'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -104,7 +104,8 @@ class BaseEntityComponent(PolymorphicModel):
         (COOWNER, 'Coowner'),
         (AGENDA, 'Agenda'),
         (AGENDA_ITEM, 'AgendaItem'),
-        (POLL, 'Polls')
+        (POLL, 'Polls'),
+        (CATEGORY, 'Category')
 
     )
 
@@ -119,6 +120,7 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_POLL = 'e_poll'
     SUB_ENTITY_EXHIBITOR_INVITEE = 'e_exhibitor'
     SUB_ENTITY_ATTENDEE_INVITEE = 'e_attendee'
+    SUB_ENTITY_CATEGORY = 'e_category'
 
     objects = BaseEntityComponentManager()
 
@@ -193,8 +195,10 @@ class BaseEntityComponent(PolymorphicModel):
             TableSerializerL1, TableSerializerL2, EntitySerializer, \
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
-            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer 
         from entity.serializers import PollSerializer
+        from taganomy.serializers import TaganomySerializer
+        from taganomy.models import Taganomy
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
@@ -240,6 +244,9 @@ class BaseEntityComponent(PolymorphicModel):
         elif entity_type == cls.POLL:
             c = Poll
             s = PollSerializer
+        elif entity_type == cls.CATEGORY:
+            c = Taganomy
+            s = TaganomySerializer
         else:
             c = BaseEntityComponent
             s = EntitySerializer

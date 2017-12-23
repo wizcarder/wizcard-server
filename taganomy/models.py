@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 from django.db import models
 from taggit.managers import TaggableManager
+from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.conf import settings
@@ -16,7 +17,7 @@ import pdb
 
 # Its a Taxanomy + tags => Taganomy
 
-class TaganomyManager(models.Manager):
+class TaganomyManager(BaseEntityComponentManager):
 
     def get_category(self, tags):
         cats = self.filter(tags__name__in=[tags])
@@ -29,25 +30,19 @@ class TaganomyManager(models.Manager):
             editor=UserProfile.objects.get_admin_user()
         )
 
-class Taganomy(models.Model):
-
-    CATEGORY_OTHERS = "Others"
+class Taganomy(BaseEntityComponent):
 
     category = models.CharField(max_length=100)
     tags = TaggableManager()
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now_add=True)
-    editor = models.ForeignKey(User)
+
 
     objects = TaganomyManager()
 
-    def add_tags(self, tags, editwho):
-        self.tags.add(tags)
-        self.editor = editwho
+    def add_tags(self, tags):
+        self.tags.add(*tags)
 
-    def remove_tags(self, tags, editwho):
-        self.tags.remove(tags)
-        self.editor = editwho
+    def remove_tags(self, tags):
+        self.tags.remove(*tags)
 
     def get_tags(self):
         return self.tags.names()

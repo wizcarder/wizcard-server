@@ -177,6 +177,7 @@ class EntitySerializer(EntitySerializerL0):
                 UserEntity.user_join(u, entity)
 
         # TODO: Handle owners and create linkage to existing owners
+	pdb.set_trace()
 
         # Generate Tags
         if self.tags:

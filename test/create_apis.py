@@ -169,7 +169,7 @@ def create_polls(evt):
             poll_id = post_retrieve(rest_path, poll_template, "id")
             poll_ids.append(poll_id)
 
-#post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, 'id')
+#post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, 'token')
 token = post_retrieve("/users/login/", user_payload, 'token')
 headers['Authorization'] = "Token " + token
 #Create Speakers
