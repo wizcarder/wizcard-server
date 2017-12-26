@@ -145,6 +145,8 @@ class BaseEntityComponent(PolymorphicModel):
         related_name="engagements_%(class)s_related"
     )
 
+    tags = TaggableManager()
+
     @classmethod
     def create(cls, e, owner, is_creator, **kwargs):
         obj = e.objects.create(**kwargs)
@@ -257,6 +259,7 @@ class BaseEntityComponent(PolymorphicModel):
     def entity_cls_from_subentity_type(cls, entity_type):
         from entity.models import Campaign, VirtualTable, \
             Speaker, Sponsor, CoOwners, Agenda, ExhibitorInvitee, AttendeeInvitee
+        from taganomy.models import Taganomy
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
         from polls.models import Poll
@@ -282,6 +285,8 @@ class BaseEntityComponent(PolymorphicModel):
             c = ExhibitorInvitee
         elif entity_type == cls.SUB_ENTITY_ATTENDEE_INVITEE:
             c = AttendeeInvitee
+        elif entity_type == cls.SUB_ENTITY_CATEGORY:
+            c = Taganomy
         else:
             raise AssertionError("Invalid sub_entity %s" % entity_type)
 
@@ -299,11 +304,9 @@ class BaseEntityComponent(PolymorphicModel):
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
 
-        # @AR: This is one possible way to think about it.
-
-        # run any post connect things that instance might want to do
-        obj.post_connect()
-
+        #post_connect needs from and to parts of connection to do something meaningful
+        # even for notification it needs event to send notifications for e.g.
+        obj.post_connect(self)
         return obj
 
     def remove_sub_entities_of_type(self, entity_type):
@@ -344,8 +347,15 @@ class BaseEntityComponent(PolymorphicModel):
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
-    def post_connect(self):
+    def post_connect(self, obj):
         pass
+
+    def add_tags(self, taglist):
+        self.tags.clear()
+        self.tags.add(*taglist)
+
+    def get_tags(self):
+        return self.tags.names()
 
 
 class BaseEntityComponentsOwner(models.Model):
@@ -366,8 +376,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
-    # hashtags.
-    tags = TaggableManager()
+
 
     users = models.ManyToManyField(
         User,
@@ -396,13 +405,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                                     tree=BaseEntity.objects.get_location_tree_name(self.entity_type))
             return updated, l_tuple[0][1]
 
-    def add_tags(self, taglist):
-        self.tags.clear()
-        for tag in taglist:
-            self.tags.add(tag)
-
-    def get_tags(self):
-        return self.tags.names()
 
     # get user's friends within the entity
     def users_friends(self, user, limit=None):

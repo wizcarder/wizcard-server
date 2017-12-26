@@ -145,11 +145,11 @@ class UserProfile(models.Model):
             return None
 
     def get_baseuser_by_type(self, user_type):
-        if user_type == self.APP_USER:
+        if user_type & self.APP_USER:
             return self.app_user()
-        elif user_type == self.WEB_EXHIBITOR_USER:
+        elif user_type & self.WEB_EXHIBITOR_USER:
             return self.exhibitor_user()
-        elif user_type == self.organizer_user():
+        elif user_type & self.WEB_ORGANIZER_USER:
             return self.organizer_user()
         else:
             raise RuntimeError('%r invalid user type' % (user_type))
@@ -158,21 +158,21 @@ class UserProfile(models.Model):
         self.user_type |= user_type
 
         # create the associated user personalities
-        if user_type == self.APP_USER:
+        if user_type & self.APP_USER:
             if self.app_user():
                 raise AssertionError
             user_obj = AppUser.objects.create(
                 profile=self,
                 settings=AppUserSettings.objects.create()
             )
-        elif user_type == self.WEB_ORGANIZER_USER:
+        elif user_type & self.WEB_ORGANIZER_USER:
             if self.organizer_user():
                 raise AssertionError
             user_obj = WebOrganizerUser.objects.create(
                 profile=self,
                 settings=WebOrganizerUserSettings.objects.create()
             )
-        elif user_type == self.WEB_EXHIBITOR_USER:
+        elif user_type & self.WEB_EXHIBITOR_USER:
             if self.exhibitor_user():
                 raise AssertionError
             user_obj = WebExhibitorUser.objects.create(

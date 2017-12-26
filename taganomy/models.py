@@ -23,27 +23,12 @@ class TaganomyManager(BaseEntityComponentManager):
         cats = self.filter(tags__name__in=[tags])
         return cats
 
-    def get_default_category(self):
-        from userprofile.models import UserProfile
-        return Taganomy.objects.get(
-            category=Taganomy.CATEGORY_OTHERS,
-            editor=UserProfile.objects.get_admin_user()
-        )
 
 class Taganomy(BaseEntityComponent):
 
     category = models.CharField(max_length=100)
-    tags = TaggableManager()
-
-
     objects = TaganomyManager()
 
-    def add_tags(self, tags):
-        self.tags.add(*tags)
-
-    def remove_tags(self, tags):
-        self.tags.remove(*tags)
-
-    def get_tags(self):
-        return self.tags.names()
+    def post_connect(self, target):
+        target.add_tags(self.tags.names())
 

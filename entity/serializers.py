@@ -173,11 +173,12 @@ class EventSerializer(EntitySerializer):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
 
+
 # presently used by portal to show mini-event summary in sub-entity views
 class EventSerializerL0(EntitySerializer):
     class Meta:
         model = Event
-        fields = ('id', 'name', 'media')
+        fields = ('id', 'name', 'media', 'tags',)
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
@@ -732,3 +733,4 @@ class PollResponseSerializer(EntitySerializer):
         # of {}, in the response
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
+

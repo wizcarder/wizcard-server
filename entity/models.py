@@ -60,7 +60,6 @@ class Event(BaseEntity):
             self
         )
 
-
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
         return super(CampaignManager, self).owners_entities(
