@@ -352,6 +352,13 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
+    def inc_lead_scan(self, user_stats, global_stats):
+        user_stats.lead_scan += 1
+        global_stats.lead_scan += 1
+
+        user_stats.save()
+        global_stats.save()
+
 
 class Stats(models.Model):
 
@@ -409,6 +416,7 @@ class Stats(models.Model):
     get_events = models.IntegerField(blank=True, default=0)
     entities_engage = models.IntegerField(blank=True, default=0)
     poll_response = models.IntegerField(blank=True, default=0)
+    lead_scan = models.IntegerField(blank=True, default=0)
 
     objects = StatsMgr()
 

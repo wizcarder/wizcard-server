@@ -37,7 +37,7 @@ MSG_GET_RECOMMENDATION  = 34
 MSG_SET_RECO_ACTION     = 35
 MSG_GET_COMMON_CONNECTIONS = 36
 MSG_GET_VIDEO_THUMBNAIL = 37
-MSG_ENTITY_POLL_RESPONSE = 38
+MSG_POLL_RESPONSE       = 38
 MSG_MEISHI_START        = 39
 MSG_MEISHI_FIND         = 40
 MSG_MEISHI_END          = 41
@@ -49,6 +49,7 @@ MSG_MY_FLICKS           = 46
 MSG_FLICK_WITHDRAW      = 47
 MSG_FLICK_EDIT          = 48
 MSG_FLICK_PICKS         = 49
+MSG_LEAD_SCAN           = 50
 
 
 wizcardMsgTypes = {
@@ -99,7 +100,8 @@ wizcardMsgTypes = {
     'set_reco_action'             : MSG_SET_RECO_ACTION,
     'get_common_connections'      : MSG_GET_COMMON_CONNECTIONS,
     'get_video_thumbnail'         : MSG_GET_VIDEO_THUMBNAIL,
-    'poll_response'               : MSG_ENTITY_POLL_RESPONSE
+    'poll_response'               : MSG_POLL_RESPONSE,
+    'lead_scan'                   : MSG_LEAD_SCAN
 }
 
 

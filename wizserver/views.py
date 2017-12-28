@@ -58,7 +58,8 @@ from base_entity.models import EntityUserStats
 from base_entity.models import BaseEntityComponent
 from media_components.models import MediaEntities
 from media_components.signals import media_create
-from polls.models import Poll, UserResponse, QuestionChoicesBase, Question
+from polls.models import Poll, UserResponse
+from scan.serializers import ScannedEntitySerializer
 
 import pdb
 
@@ -242,296 +243,252 @@ class ParseMsgAndDispatch(object):
         return True, self.response
 
     def header_process(self):
-        VALIDATOR = 0
-        HANDLER = 1
-        STATS = 2
+        HANDLER = 0
+        STATS = 1
 
         msgTypesValidatorsAndHandlers = {
             # wizweb messages
             verbs.MSG_LOGIN:
                 (
-                    message_format.LoginSchema,
                     self.Login,
                     Stats.objects.inc_login
                 ),
             verbs.MSG_PHONE_CHECK_REQ:
                 (
-                    message_format.PhoneCheckRequestSchema,
                     self.PhoneCheckRequest,
                     Stats.objects.inc_phone_check_req
                 ),
             verbs.MSG_PHONE_CHECK_RESP:
                 (
-                    message_format.PhoneCheckResponseSchema,
                     self.PhoneCheckResponse,
                     Stats.objects.inc_phone_check_rsp
                 ),
             verbs.MSG_REGISTER:
                 (
-                    message_format.RegisterSchema,
                     self.Register,
                     Stats.objects.inc_register
                  ),
             verbs.MSG_CURRENT_LOCATION:
                 (
-                    message_format.LocationUpdateSchema,
                     self.LocationUpdate,
                     Stats.objects.inc_location_update
                 ),
             verbs.MSG_CONTACTS_UPLOAD:
                 (
-                    message_format.ContactsUploadSchema,
                     self.ContactsUpload,
                     Stats.objects.inc_contacts_upload
                 ),
             verbs.MSG_NOTIFICATIONS_GET:
                 (
-                    message_format.NotificationsGetSchema,
                     self.NotificationsGet,
                     Stats.objects.inc_get_cards,
                 ),
             verbs.MSG_WIZCARD_EDIT:
                 (
-                    message_format.WizcardEditSchema,
                     self.WizcardEdit,
                     Stats.objects.inc_edit_card,
                 ),
             verbs.MSG_WIZCARD_ACCEPT:
                 (
-                    message_format.WizcardAcceptSchema,
                     self.WizcardAccept,
                     Stats.objects.inc_wizcard_accept,
                 ),
             verbs.MSG_WIZCARD_DECLINE:
                 (
-                    message_format.WizConnectionRequestDeclineSchema,
                     self.WizConnectionRequestDecline,
                     Stats.objects.inc_wizcard_decline,
                 ),
             verbs.MSG_ROLODEX_EDIT:
                 (
-                    message_format.RolodexEditSchema,
                     self.RolodexEdit,
                     Stats.objects.inc_rolodex_edit,
                 ),
             verbs.MSG_ROLODEX_DELETE:
                 (
-                    message_format.WizcardRolodexDeleteSchema,
                     self.WizcardRolodexDelete,
                     Stats.objects.inc_rolodex_delete,
                 ),
             verbs.MSG_ARCHIVED_CARDS:
                 (
-                    message_format.WizcardRolodexArchivedCardsSchema,
                     self.WizcardRolodexArchivedCards,
                     Stats.objects.inc_archived_cards,
                 ),
             verbs.MSG_FLICK:
                 (
-                    message_format.WizcardFlickSchema,
                     self.WizcardFlick,
                     None,
                 ),
             verbs.MSG_FLICK_ACCEPT:
                 (
-                    message_format.WizcardFlickPickSchema,
                     self.WizcardFlickPick,
                     None
                 ),
             verbs.MSG_FLICK_ACCEPT_CONNECT:
                 (
-                    message_format.WizcardFlickConnectSchema,
                     self.WizcardFlickConnect,
                     None
                 ),
             verbs.MSG_MY_FLICKS:
                 (
-                    message_format.WizcardMyFlickSchema,
                     self.WizcardMyFlicks,
                     None
                 ),
             verbs.MSG_FLICK_WITHDRAW:
                 (
-                    message_format.WizcardFlickWithdrawSchema,
                     self.WizcardFlickWithdraw,
                     None
                 ),
             verbs.MSG_FLICK_EDIT:
                 (
-                    message_format.WizcardFlickEditSchema,
                     self.WizcardFlickEdit,
                     None
                 ),
             verbs.MSG_FLICK_QUERY:
                 (
-                    message_format.WizcardFlickQuerySchema,
                     self.WizcardFlickQuery,
                     None
                 ),
             verbs.MSG_FLICK_PICKS:
                 (
-                    message_format.WizcardFlickPickersSchema,
                     self.WizcardFlickPickers,
                     None
                 ),
             verbs.MSG_SEND_ASSET_XYZ:
                 (
-                    message_format.WizcardSendAssetToXYZSchema,
                     self.WizcardSendAssetToXYZ,
                     Stats.objects.inc_send_asset_xyz,
                 ),
             verbs.MSG_QUERY_USER:
                 (
-                    message_format.UserQuerySchema,
                     self.UserQuery,
                     Stats.objects.inc_user_query,
                 ),
             verbs.MSG_CARD_DETAILS:
                 (
-                    message_format.WizcardGetDetailSchema,
                     self.WizcardGetDetail,
                     Stats.objects.inc_card_details,
                 ),
             verbs.MSG_SETTINGS:
                 (
-                    message_format.SettingsSchema,
                     self.Settings,
                     Stats.objects.inc_settings,
                 ),
             verbs.MSG_OCR_SELF:
                 (
-                    message_format.OcrRequestSelfSchema,
                     self.OcrReqSelf,
                     Stats.objects.inc_ocr_self,
                 ),
             verbs.MSG_OCR_DEAD_CARD:
                 (
-                    message_format.OcrRequestDeadCardSchema,
                     self.OcrReqDeadCard,
                     Stats.objects.inc_ocr_dead
                 ),
             verbs.MSG_OCR_EDIT:
                 (
-                    message_format.OcrDeadCardEditSchema,
                     self.OcrDeadCardEdit,
                     Stats.objects.inc_ocr_dead_edit
                 ),
             verbs.MSG_MEISHI_START:
                 (
-                    message_format.MeishiStartSchema,
                     self.MeishiStart,
                     None
                 ),
             verbs.MSG_MEISHI_FIND:
                 (
-                    message_format.MeishiFindSchema,
                     self.MeishiFind,
                     None,
                 ),
             verbs.MSG_MEISHI_END:
                 (
-                    message_format.MeishiEndSchema,
                     self.MeishiEnd,
                     None
                 ),
             verbs.MSG_GET_RECOMMENDATION:
                 (
-                    message_format.GetRecommendationsSchema,
                     self.GetRecommendations,
                     Stats.objects.inc_get_recommendation
                 ),
             verbs.MSG_SET_RECO_ACTION:
                 (
-                    message_format.SetRecoActionSchema,
                     self.SetRecoAction,
                     Stats.objects.inc_set_reco,
                 ),
             verbs.MSG_GET_COMMON_CONNECTIONS:
                 (
-                    message_format.GetCommonConnectionsSchema,
                     self.GetCommonConnections,
                     Stats.objects.inc_get_common_connections,
                 ),
             verbs.MSG_GET_VIDEO_THUMBNAIL:
                 (
-                    message_format.GetVideoThumbnailSchema,
                     self.GetVideoThumbnailUrl,
                     Stats.objects.inc_video_thumbnail
                 ),
             verbs.MSG_ENTITY_CREATE:
                 (
-                    message_format.EntityCreateSchema,
                     self.EntityCreate,
                     Stats.objects.inc_entity_create,
                 ),
 
             verbs.MSG_ENTITY_DESTROY:
                 (
-                    message_format.EntityDestroySchema,
                     self.EntityDestroy,
                     Stats.objects.inc_entity_destroy,
                 ),
             verbs.MSG_ENTITY_EDIT:
                 (
-                    message_format.EntityEditSchema,
                     self.EntityEdit,
                     Stats.objects.inc_entity_edit,
                 ),
             verbs.MSG_ENTITY_JOIN:
                 (
-                    message_format.EntityJoinSchema,
                     self.EntityJoin,
                     Stats.objects.inc_entity_join
                 ),
             verbs.MSG_ENTITY_LEAVE:
                 (
-                    message_format.EntityLeaveSchema,
                     self.EntityLeave,
                     Stats.objects.inc_entity_leave
                 ),
             verbs.MSG_ENTITY_QUERY:
                 (
-                    message_format.EntityQuerySchema,
                     self.EntityQuery,
                     Stats.objects.inc_entity_query
                 ),
             verbs.MSG_MY_ENTITIES:
                 (
-                    message_format.MyEntitiesSchema,
                     self.MyEntities,
                     Stats.objects.inc_my_entities
                 ),
             verbs.MSG_ENTITY_SUMMARY:
                 (
-                    message_format.EntityDetailsSchema,
                     self.EntityDetails,
                     Stats.objects.inc_entity_summary
                 ),
             verbs.MSG_ENTITY_DETAILS:
                 (
-                    message_format.EntityDetailsSchema,
                     self.EntityDetails,
                     Stats.objects.inc_entity_details
                 ),
             verbs.MSG_GET_EVENTS:
                 (
-                    message_format.EventsGetSchema,
                     self.EventsGet,
                     Stats.objects.inc_events_get
                 ),
             verbs.MSG_ENTITIES_ENGAGE:
                 (
-                    message_format.EntitiesEngageSchema,
                     self.EntitiesEngage,
                     Stats.objects.inc_entities_engage
                 ),
-            verbs.MSG_ENTITY_POLL_RESPONSE:
+            verbs.MSG_POLL_RESPONSE:
                 (
-                    message_format.PollResponseSchema,
                     self.PollResponse,
                     Stats.objects.inc_poll_response
+                ),
+            verbs.MSG_LEAD_SCAN:
+                (
+                    self.LeadScan,
+                    Stats.objects.inc_poll_response
                 )
-
         }
 
         # update location since it may have changed
@@ -2455,6 +2412,22 @@ class ParseMsgAndDispatch(object):
                 poll=entity,
                 **response
             )
+
+        return self.response
+
+    def LeadScan(self):
+
+        scans = self.sender['scans']
+
+        # AA:TODO check whether this user can scan, and what is the campaign to report against
+
+        # AA: TODO: get the correct owner for user_context
+
+        ser = ScannedEntitySerializer(data=scans, many=True, **self.user_context)
+        if ser.is_valid():
+            ser.save()
+        else:
+            self.response.error_response(err.INVALID_MESSAGE)
 
         return self.response
 

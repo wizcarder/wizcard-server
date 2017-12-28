@@ -9,6 +9,7 @@ from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
 from polls.urls import urlpatterns as poll_urlpatterns
 from notifications.urls import urlpatterns as notification_urlpatterns
+from scan.urls import urlpatterns as scan_urlpatterns
 
 router = SimpleRouter()
 router.register(r'events', EventViewSet, base_name='events')
@@ -33,4 +34,5 @@ urlpatterns = patterns(
 )
 
 urlpatterns += poll_urlpatterns
+urlpatterns += scan_urlpatterns
 urlpatterns += notification_urlpatterns

@@ -5,16 +5,14 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+import pdb
+
 
 class BaseEntityViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = BaseEntity.objects.owners_entities(user)
         return queryset
-
-    def perform_create(self, serializer):
-        instance = serializer.save(creator=self.request.user)
-        instance.join(self.request.user)
 
     def get_serializer_context(self):
         return {'user': self.request.user}
@@ -35,13 +33,12 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         inst = get_object_or_404(BaseEntity, pk=pk)
         ser = self.get_serializer_class()
         serializer = ser(inst, data=request.data, partial=partial)
+
         if serializer.is_valid():
             serializer.save()
-            inst.notify_update()
-        else:
-            raise Http404
+            return Response(serializer.data)
 
-        return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BaseEntityComponentViewSet(viewsets.ModelViewSet):
