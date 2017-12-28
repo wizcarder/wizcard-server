@@ -89,6 +89,8 @@ class BaseEntityComponent(PolymorphicModel):
     AGENDA = 'AGN'
     AGENDA_ITEM = 'AGI'
     POLL = 'POL'
+    BADGE_TEMPLATE = 'BDG'
+    SCANNED_USER = 'SCN'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -104,7 +106,9 @@ class BaseEntityComponent(PolymorphicModel):
         (COOWNER, 'Coowner'),
         (AGENDA, 'Agenda'),
         (AGENDA_ITEM, 'AgendaItem'),
-        (POLL, 'Polls')
+        (POLL, 'Polls'),
+        (BADGE_TEMPLATE, 'Badges'),
+        (SCANNED_USER, 'Scans')
 
     )
 
@@ -119,6 +123,8 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_POLL = 'e_poll'
     SUB_ENTITY_EXHIBITOR_INVITEE = 'e_exhibitor'
     SUB_ENTITY_ATTENDEE_INVITEE = 'e_attendee'
+    SUB_ENTITY_BADGE_TEMPLATE = 'e_badge'
+    SUB_ENTITY_SCANNED_USER = 'e_scan'
 
     objects = BaseEntityComponentManager()
 
@@ -193,13 +199,14 @@ class BaseEntityComponent(PolymorphicModel):
             TableSerializerL1, TableSerializerL2, EntitySerializer, \
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
-            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer
-        from entity.serializers import PollSerializer
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer
+        from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
         from media_components.serializers import MediaEntitiesSerializer
         from polls.models import Poll
+        from scan.models import ScannedEntity, BadgeTemplate
 
         if entity_type == cls.EVENT:
             c = Event
@@ -240,6 +247,12 @@ class BaseEntityComponent(PolymorphicModel):
         elif entity_type == cls.POLL:
             c = Poll
             s = PollSerializer
+        elif entity_type == cls.BADGE_TEMPLATE:
+            c = BadgeTemplate
+            s = BadgeTemplateSerializer
+        elif entity_type == cls.SCANNED_USER:
+            c = ScannedEntity
+            s = ScannedEntitySerializer
         else:
             c = BaseEntityComponent
             s = EntitySerializer
@@ -253,6 +266,7 @@ class BaseEntityComponent(PolymorphicModel):
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
         from polls.models import Poll
+        from scan.models import ScannedEntity, BadgeTemplate
         if entity_type == cls.SUB_ENTITY_CAMPAIGN:
             c = Campaign
         elif type == cls.SUB_ENTITY_TABLE:
@@ -275,6 +289,10 @@ class BaseEntityComponent(PolymorphicModel):
             c = ExhibitorInvitee
         elif entity_type == cls.SUB_ENTITY_ATTENDEE_INVITEE:
             c = AttendeeInvitee
+        elif entity_type == cls.SUB_ENTITY_SCANNED_USER:
+            c = ScannedEntity
+        elif entity_type == cls.SUB_ENTITY_BADGE_TEMPLATE:
+            c = BadgeTemplate
         else:
             raise AssertionError("Invalid sub_entity %s" % entity_type)
 
@@ -288,17 +306,6 @@ class BaseEntityComponent(PolymorphicModel):
         for obj in objs:
             self.add_subentity_obj(obj, alias=type)
 
-            # AA: Comments: This is bad code. adding if statements is just WRONG.
-            # commenting out. #AR pls avoid these constructs. There is literally no
-            # difference in terms of time and effort in doing it a clean way vs hack.
-            # Think OOP
-
-            # if type == BaseEntity.SUB_ENTITY_POLL:
-            #     self.notify_all_users(
-            #         self.get_creator(),
-            #                           verbs.WIZCARD_NEW_POLL,
-            #                           obj
-            #                           )
         return objs
 
     def add_subentity_obj(self, obj, alias):
@@ -345,7 +352,6 @@ class BaseEntityComponent(PolymorphicModel):
 
     def is_owner(self, user):
         return bool(self.owners.all() & user.profile.baseuser.all())
-
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same

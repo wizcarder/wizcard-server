@@ -88,7 +88,6 @@ class EntitySerializer(EntitySerializerL0):
     tags = TagListSerializerField(required=False)
     like = serializers.SerializerMethodField()
     engagements = EntityEngagementSerializer(read_only=True)
-    creator = serializers.SerializerMethodField()
     owners = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=CoOwners.objects.all(),
@@ -105,8 +104,8 @@ class EntitySerializer(EntitySerializerL0):
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
-                      'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
-                     'engagements', 'creator', 'owners', 'related', 'ext_fields', 'is_activated', 'status')
+                     'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
+                     'engagements', 'owners', 'related', 'ext_fields', 'is_activated', 'status')
 
         fields = EntitySerializerL0.Meta.fields + my_fields
 
@@ -147,7 +146,6 @@ class EntitySerializer(EntitySerializerL0):
         self.sub_entities = validated_data.pop('related', None)
         self.location = validated_data.pop('location', None)
         self.users = validated_data.pop('users', None)
-        self.creator = validated_data.pop('creator', None)
 
     def create(self, validated_data):
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(validated_data['entity_type'])
@@ -161,7 +159,7 @@ class EntitySerializer(EntitySerializerL0):
 
         return obj
 
-    def post_create(self, entity):
+    def post_create_update(self, entity):
         if self.owners:
             BaseEntityComponent.add_owners(entity, self.owners)
 
@@ -184,46 +182,11 @@ class EntitySerializer(EntitySerializerL0):
 
         return entity
 
-    def update(self, instance, validated_data):
-        if hasattr(instance, 'name'):
-            instance.name = validated_data.pop('name', instance.name)
-        if hasattr(instance, 'address'):
-            instance.address = validated_data.pop('address', instance.address)
-        if hasattr(instance, 'venue'):
-            instance.address = validated_data.pop('venue', instance.venue)
-        if hasattr(instance, 'website'):
-            instance.website = validated_data.pop('website', instance.website)
-        if hasattr(instance, 'description'):
-            instance.description = validated_data.pop('description', instance.description)
-        if hasattr(instance, 'phone'):
-            instance.phone = validated_data.pop('phone', instance.phone)
-        if hasattr(instance, 'email'):
-            instance.email = validated_data.pop('email', instance.email)
-        if hasattr(instance, 'activated'):
-            instance.is_activated = validated_data.pop('is_activated', instance.is_activated)
-
-        owners = validated_data.pop('owners', None)
-        if owners is not None:
-            for o in owners:
-                instance.add_owner(o)
-
-        sub_entities = validated_data.pop('related', None)
-        if sub_entities is not None:
-            for s in sub_entities:
-                overwrite = s.pop('overwrite', False)
-                if overwrite:
-                    instance.remove_sub_entities_of_type(s['type'])
-                instance.add_subentities(**s)
-
-        location = validated_data.pop('location', None)
-        if location:
-            instance.create_or_update_location(location['lat'], location['lng'])
-
-        tags = validated_data.pop('tags', None)
-        if tags:
-            instance.add_tags(tags)
-
-        instance.save()
-        return instance
+    # def update(self, instance, validated_data):
+    #     for attr, value in validated_data.iteritems():
+    #         setattr(instance, attr, value)
+    #
+    #     instance.save()
+    #     return instance
 
 

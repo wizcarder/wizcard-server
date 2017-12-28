@@ -68,20 +68,6 @@ class Base414Mixin(Base413Mixin):
     venue = models.CharField(max_length=100, blank=True)
 
 
-class OwnersRelationshipMixin(models.Model):
-    class Meta:
-        abstract = True
-
-    # gfk to owner. (assuming it can be OrganizerUser, ExhibitorUser)
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
-
-    def add_owner(self, obj):
-        self. content_type = ContentType.objects.get_for_model(obj)
-        self.object_id = obj.pk
-
-
 class MediaMixin(models.Model):
     class Meta:
         abstract = True

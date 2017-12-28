@@ -39,6 +39,35 @@ class PollViewSet(BaseEntityComponentViewSet):
 
         return Response("poll  %s attached to event" % poll.description, status=status.HTTP_200_OK)
 
+    @detail_route(methods=['post'], url_path='link')
+    def link_to_entity(self, request, pk):
+        poll = get_object_or_404(Poll, pk=pk)
+        entity_type = request.POST['entity_type']
+        entity_id = request.POST['entity_id']
+
+        # maybe we shouldn't attach a poll which is not activated ?
+        if poll.state != Poll.POLL_STATE_ACTIVE:
+            return Response("Please activate poll %s first. " % poll.description, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
+        entity = get_object_or_404(cls, pk=entity_id)
+
+        entity.add_subentity_obj(poll, BaseEntityComponent.POLL)
+
+        return Response("poll %s linked to entity" % poll.description, status=status.HTTP_200_OK)
+
+    @detail_route(methods=['post'], url_path='unlink')
+    def unlink_from_entity(self, request, pk):
+        poll = get_object_or_404(Poll, pk=pk)
+        entity_type = request.POST['entity_type']
+        entity_id = request.POST['entity_id']
+
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
+        entity = get_object_or_404(cls, entity_id)
+
+        entity.remove_sub_entity_of_type(poll.pk, BaseEntityComponent.POLL)
+
+        return Response("poll %s linked to entity" % poll.description, status=status.HTTP_200_OK)
 
 class PollQuestionViewSet(BaseEntityComponentViewSet):
     queryset = Question.objects.all()
@@ -80,7 +109,7 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
             inst = serializer.save()
             return Response(serializer.data)
 
-        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk=None, poll_pk=None):
         try:
@@ -99,7 +128,7 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
             inst = serializer.save()
             return Response(serializer.data)
 
-        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk=None, poll_pk=None):
         try:

@@ -19,6 +19,9 @@ import string
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
+def email_generator():
+    return id_generator() + '@getwizcard.com'
+
 
 class Connect(object):
     def __init__(self, server_url=SERVER_URL, server_port=SERVER_PORT, *kwargs):
@@ -176,6 +179,23 @@ class User(Connect):
         objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])
 
 
+class LeadScan(Connect):
+    def __init__(self, *args, **kwargs):
+        super(LeadScan, self).__init__()
+        self.reqmsg = messages.lead_scan_response.copy()
+        self.kwargs = kwargs
+        self.reqmsg['sender']['user_id'] = args[0]
+        self.reqmsg['sender']['wizuser_id'] = args[1]
+
+    def prepare_response(self):
+        l = messages.scanned_item.copy()
+        l['name'] = id_generator()
+        l['email'] = email_generator()
+        l['company'] = id_generator()
+        l['title'] = id_generator()
+        l.update(self.kwargs)
+
+        self.reqmsg['sender']['scans'].append(l)
 
 
 class Poll(Connect):
