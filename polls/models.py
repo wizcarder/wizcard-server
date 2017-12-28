@@ -56,7 +56,7 @@ class Poll(BaseEntityComponent):
         how many responded to the poll
         """
         return self.userresponse_set.aggregate(
-            num_responders=Count('user', distinct=True)
+            num_responders=Count('id', distinct=True)
         ).get('num_responders')
 
     def set_state(self, state):
@@ -148,9 +148,14 @@ class Question(PolymorphicModel):
 
         super(Question, self).delete(*args, **kwargs)
 
+    def num_responders(self):
+        return self.questions_userresponse_related.aggregate(
+            num_responders=Count('id', distinct=True)
+        ).get('num_responders')
+
     def answer_stats(self):
         out = dict()
-        out.update(total=UserResponse.objects.num_responses_for_question(self))
+        out.update(total=self.num_responders())
 
         return out
 
