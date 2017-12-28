@@ -670,8 +670,8 @@ class CoOwnersSerializer(EntitySerializer):
 class PollSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'questions', 'state',)
-        read_only_fields = ('state',)
+        fields = ('id', 'description', 'questions', 'state', 'num_responders', 'created',)
+        read_only_fields = ('state', 'num_responders', 'created',)
 
     questions = QuestionSerializer(many=True)
 
@@ -720,6 +720,7 @@ class PollResponseSerializer(EntitySerializer):
     class Meta:
         model = Poll
         fields = ('id', 'event', 'num_responders', 'description', 'questions', 'state')
+        read_only_fields = ('state', 'num_responders',)
 
     questions = QuestionResponseSerializer(many=True)
     event = serializers.SerializerMethodField(read_only=True)
