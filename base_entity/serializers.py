@@ -221,7 +221,7 @@ class EntitySerializer(EntitySerializerL0):
 
         tags = validated_data.pop('tags', None)
         if tags:
-            instance.add_tags(tags)
+            instance.update_tags(tags)
 
         instance.save()
         return instance

@@ -36,6 +36,8 @@ class TaganomySerializer(EntitySerializer, TaggitSerializer):
 
     def update(self, instance, validated_data):
         instance.category = validated_data.pop('category', instance.category)
+        tags = validated_data.pop('category', instance.tags)
+        instance.tags.set(*tags)
 
 
 

@@ -351,11 +351,13 @@ class BaseEntityComponent(PolymorphicModel):
         pass
 
     def add_tags(self, taglist):
-        self.tags.clear()
         self.tags.add(*taglist)
 
     def get_tags(self):
         return self.tags.names()
+
+    def update_tags(self, taglist):
+        return self.tags.set(*taglist)
 
 
 class BaseEntityComponentsOwner(models.Model):

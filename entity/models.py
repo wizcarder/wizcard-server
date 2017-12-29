@@ -79,6 +79,11 @@ class Campaign(BaseEntity):
 
     objects = CampaignManager()
 
+    def post_connect(self, obj):
+        taganomy = obj.get_subentities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY)
+        if taganomy:
+            self.add_subentity_obj(taganomy[0], alias=BaseEntityComponent.SUB_ENTITY_CATEGORY)
+
 
 class VirtualTableManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.TABLE):
