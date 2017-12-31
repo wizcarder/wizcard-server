@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 
-from base.mixins import MediaMixin, Base411Mixin, Base412Mixin, CompanyTitleMixin
+from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin
 from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 
 

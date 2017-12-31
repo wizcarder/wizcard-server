@@ -1730,9 +1730,14 @@ if TEST_ENTITY:
                     inst.prepare_response()
                     inst.send()
 
-            lead = LeadScan(uid_list[0], wuid_list[0], event_id=e_id)
+            # LEAD SCAN
+            # AA: TODO. This will not give us the right user. the right user is
+            # app_user, needs to be retrived via get_auth_token call
+            #lead = LeadScan(uid_list[0], wuid_list[0], event_id=e_id)
+            lead = LeadScan('6fa5c716-6d98-4eae-9b85-ec5aaf02fb4f', 2, event_id=14)
+
             lead.prepare_response()
-            lead.send()
+            lead.send(err_skip=True)
 
             reqmsg = messages.entity_leave
             reqmsg['header']['version'] = messages.APP_VERSION

@@ -2379,7 +2379,6 @@ class ParseMsgAndDispatch(object):
             if timestamp:
                 c_timestamp = parser.parse(timestamp)
                 if not entity.modified_since(c_timestamp):
-                    self.response.add_data("up_to_date", True)
                     return self.response
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
@@ -2416,14 +2415,35 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def LeadScan(self):
-
         scans = self.sender['scans']
 
-        # AA:TODO check whether this user can scan, and what is the campaign to report against
+        # get the campaigns this user is owner for
 
-        # AA: TODO: get the correct owner for user_context
+        # AA: TODO filter by active campaigns. For this, need to do the **kwargs thing in owners_entities
+        campaigns = BaseEntityComponent.objects.owners_entities(self.user, BaseEntityComponent.CAMPAIGN)
 
-        ser = ScannedEntitySerializer(data=scans, many=True, **self.user_context)
+        # though this can accept scans in bulk, they all need to have the same event_id, otherwise things
+        # will get wonky. We will just pick the event from the 1st entry
+        try:
+            event = Event.objects.get(id=scans[0]['event_id'])
+        except ObjectDoesNotExist:
+            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+            return self.response
+
+        # get the specific campaign associated with this event.
+        campaign_set = set([c for c in campaigns if event in c.get_parent_entities()])
+        if not bool(campaign_set):
+            self.response.error_response(err.SCAN_USER_AUTH_ERROR)
+            return self.response
+
+        campaign = campaign_set.pop()
+
+        # finally get the (exhibitor portal user) to associate the creator for this scan. We can potentially use
+        # this user itself, but might require a few more hoops...furthermore, this use may just be a low level
+        # guy who may/will not have access to the portal. Safest is to report this against Campaign Creator
+        campaign_owner = campaign.get_creator()
+
+        ser = ScannedEntitySerializer(data=scans, many=True, context={'user': campaign_owner})
         if ser.is_valid():
             ser.save()
         else:
