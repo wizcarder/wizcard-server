@@ -24,7 +24,7 @@ import pdb
 class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media')
 
     speakers = serializers.SerializerMethodField()
 
@@ -55,9 +55,10 @@ class AgendaItemSerializer(EntitySerializer):
 class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'joined', 'users')
 
     speakers = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
 
     def get_speakers(self, obj):
         return SpeakerSerializerL2(
@@ -65,6 +66,11 @@ class AgendaItemSerializerL2(EntitySerializer):
             many=True,
             context=self.context
         ).data
+
+    def get_users(self, obj):
+        qs = obj.users.exclude(wizcard__isnull=True)
+        count = qs.count()
+        return count
 
 
 class AgendaSerializer(EntitySerializer):
@@ -133,7 +139,7 @@ class EventSerializer(EntitySerializer):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls')
+        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls', 'tagset')
         fields = EntitySerializer.Meta.fields + my_fields
 
     def prepare(self, validated_data):

@@ -251,11 +251,10 @@ class Agenda(BaseEntityComponent):
     objects = AgendaManager()
 
 
-class AgendaItem(BaseEntityComponent, Base412Mixin):
+class AgendaItem(BaseEntity):
     agenda = models.ForeignKey(Agenda, related_name='items')
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
-    where = models.CharField(max_length=100, default="")
 
 
 from django.dispatch import receiver
