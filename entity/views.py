@@ -204,7 +204,7 @@ class EventAgendaViewSet(BaseEntityComponentViewSet):
             event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_AGENDA)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, event_pk=None):
         try:
@@ -222,7 +222,7 @@ class EventAgendaViewSet(BaseEntityComponentViewSet):
             inst = serializer.save()
             return Response(serializer.data)
 
-        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk=None, event_pk=None):
         try:
@@ -240,7 +240,7 @@ class EventAgendaViewSet(BaseEntityComponentViewSet):
             inst = serializer.save()
             return Response(serializer.data)
 
-        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk=None, event_pk=None):
         try:

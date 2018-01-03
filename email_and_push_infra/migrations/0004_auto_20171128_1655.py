@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='emailandpush',
             name='basenotification_ptr',
-            field=models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, default=0, serialize=False, to='notifications.BaseNotification'),
+            field=models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='notifications.BaseNotification'),
             preserve_default=False,
         ),
         migrations.AddField(

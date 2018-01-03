@@ -88,6 +88,8 @@ class BaseEntityComponent(PolymorphicModel):
     AGENDA = 'AGN'
     AGENDA_ITEM = 'AGI'
     POLL = 'POL'
+    BADGE_TEMPLATE = 'BDG'
+    SCANNED_USER = 'SCN'
     CATEGORY = 'CAT'
 
     ENTITY_CHOICES = (
@@ -105,8 +107,9 @@ class BaseEntityComponent(PolymorphicModel):
         (AGENDA, 'Agenda'),
         (AGENDA_ITEM, 'AgendaItem'),
         (POLL, 'Polls'),
+        (BADGE_TEMPLATE, 'Badges'),
+        (SCANNED_USER, 'Scans')
         (CATEGORY, 'Category')
-
     )
 
     SUB_ENTITY_CAMPAIGN = 'e_campaign'
@@ -120,6 +123,8 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_POLL = 'e_poll'
     SUB_ENTITY_EXHIBITOR_INVITEE = 'e_exhibitor'
     SUB_ENTITY_ATTENDEE_INVITEE = 'e_attendee'
+    SUB_ENTITY_BADGE_TEMPLATE = 'e_badge'
+    SUB_ENTITY_SCANNED_USER = 'e_scan'
     SUB_ENTITY_CATEGORY = 'e_category'
 
     objects = BaseEntityComponentManager()
@@ -197,8 +202,8 @@ class BaseEntityComponent(PolymorphicModel):
             TableSerializerL1, TableSerializerL2, EntitySerializer, \
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
-            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, \
-            PollSerializer, PollSerializerL1
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
+        from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
         from taganomy.serializers import TaganomySerializer
         from taganomy.models import Taganomy
         from entity.models import Event, Campaign, VirtualTable, \
@@ -206,6 +211,7 @@ class BaseEntityComponent(PolymorphicModel):
         from media_components.models import MediaEntities
         from media_components.serializers import MediaEntitiesSerializer
         from polls.models import Poll
+        from scan.models import ScannedEntity, BadgeTemplate
 
         if entity_type == cls.EVENT:
             c = Event
@@ -246,6 +252,12 @@ class BaseEntityComponent(PolymorphicModel):
         elif entity_type == cls.POLL:
             c = Poll
             s = PollSerializer if detail else PollSerializerL1
+        elif entity_type == cls.BADGE_TEMPLATE:
+            c = BadgeTemplate
+            s = BadgeTemplateSerializer
+        elif entity_type == cls.SCANNED_USER:
+            c = ScannedEntity
+            s = ScannedEntitySerializer
         elif entity_type == cls.CATEGORY:
             c = Taganomy
             s = TaganomySerializer
@@ -263,6 +275,7 @@ class BaseEntityComponent(PolymorphicModel):
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
         from polls.models import Poll
+        from scan.models import ScannedEntity, BadgeTemplate
         if entity_type == cls.SUB_ENTITY_CAMPAIGN:
             c = Campaign
         elif type == cls.SUB_ENTITY_TABLE:
@@ -285,6 +298,10 @@ class BaseEntityComponent(PolymorphicModel):
             c = ExhibitorInvitee
         elif entity_type == cls.SUB_ENTITY_ATTENDEE_INVITEE:
             c = AttendeeInvitee
+        elif entity_type == cls.SUB_ENTITY_SCANNED_USER:
+            c = ScannedEntity
+        elif entity_type == cls.SUB_ENTITY_BADGE_TEMPLATE:
+            c = BadgeTemplate
         elif entity_type == cls.SUB_ENTITY_CATEGORY:
             c = Taganomy
         else:
@@ -299,6 +316,7 @@ class BaseEntityComponent(PolymorphicModel):
         objs = c.objects.filter(id__in=int_ids)
         for obj in objs:
             self.add_subentity_obj(obj, alias=type)
+
         return objs
 
     def add_subentity_obj(self, obj, alias):

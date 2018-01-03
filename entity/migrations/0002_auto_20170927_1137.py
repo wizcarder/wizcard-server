@@ -40,10 +40,10 @@ class Migration(migrations.Migration):
             old_name='Business',
             new_name='Campaign',
         ),
-        migrations.RemoveField(
-            model_name='product',
-            name='baseentity_ptr',
-        ),
+        # migrations.RemoveField(
+        #     model_name='product',
+        #     name='baseentity_ptr',
+        # ),
         migrations.AlterField(
             model_name='attendeeinvitee',
             name='created',

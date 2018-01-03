@@ -5,6 +5,7 @@ from rest_framework import serializers
 from entity.models import Event, Campaign, VirtualTable
 from base_entity.models import UserEntity, BaseEntityComponent, BaseEntity
 from base_entity.serializers import EntitySerializerL0, EntitySerializer
+from scan.serializers import ScannedEntitySerializer
 from entity.models import Speaker, Sponsor, Agenda, AgendaItem, AttendeeInvitee, ExhibitorInvitee, CoOwners
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
@@ -29,28 +30,17 @@ class AgendaItemSerializer(EntitySerializer):
 
     speakers = serializers.SerializerMethodField()
 
-    def prepare(self, validated_data):
-        super(AgendaItemSerializer, self).prepare(validated_data)
-
-    def post_create(self, entity):
-        super(AgendaItemSerializer, self).post_create(entity)
-
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.AGENDA_ITEM)
 
         self.prepare(validated_data)
         obj = super(AgendaItemSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 
     def get_speakers(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
-
-    def update(self, instance, validated_data):
-        instance = super(AgendaItemSerializer, self).update(instance, validated_data)
-
-        return instance
 
 
 class AgendaItemSerializerL2(EntitySerializer):
@@ -81,25 +71,26 @@ class AgendaSerializer(EntitySerializer):
 
     items = AgendaItemSerializer(many=True)
 
-    def prepare(self, validated_data):
-        super(AgendaSerializer, self).prepare(validated_data)
-
-    def post_create(self, entity):
-        super(AgendaSerializer, self).post_create(entity)
-
     def create(self, validated_data, **kwargs):
         items = validated_data.pop('items', [])
         validated_data.update(entity_type=BaseEntityComponent.AGENDA)
 
         self.prepare(validated_data)
         agn = super(AgendaSerializer, self).create(validated_data)
-        self.post_create(agn)
+        self.post_create_update(agn)
 
         for item in items:
             item.update(agenda=agn)
             AgendaItemSerializer(context=self.context).create(item)
 
         return agn
+
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        obj = super(AgendaSerializer, self).update(instance, validated_data)
+        self.post_create_update(instance)
+
+        return obj
 
 
 class AgendaSerializerL2(EntitySerializer):
@@ -127,11 +118,12 @@ class EventSerializer(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
+    badges = serializers.SerializerMethodField()
     taganomy = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
-        remove_fields = ['joined', 'engagements', 'users', 'creator']
+        remove_fields = ['joined', 'engagements', 'users',]
 
         super(EventSerializer, self).__init__(*args, **kwargs)
 
@@ -140,31 +132,30 @@ class EventSerializer(EntitySerializer):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls', 'taganomy')
+        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls', 'badges', 'taganomy',)
         fields = EntitySerializer.Meta.fields + my_fields
 
     def prepare(self, validated_data):
         super(EventSerializer, self).prepare(validated_data)
 
-    def post_create(self, entity):
-        super(EventSerializer, self).post_create(entity)
+    def post_create_update(self, entity):
+        super(EventSerializer, self).post_create_update(entity)
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.EVENT)
 
         self.prepare(validated_data)
         obj = super(EventSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 
     def update(self, instance, validated_data):
-        instance.start = validated_data.pop("start", instance.start)
-        instance.end = validated_data.pop("end", instance.end)
+        self.prepare(validated_data)
+        obj = super(EventSerializer, self).update(instance, validated_data)
+        self.post_create_update(instance)
 
-        instance = super(EventSerializer, self).update(instance, validated_data)
-
-        return instance
+        return obj
 
     def get_campaigns(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_CAMPAIGN)
@@ -181,9 +172,11 @@ class EventSerializer(EntitySerializer):
     def get_polls(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
+    def get_badges(self, obj):
+        return obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_BADGE_TEMPLATE)
+      
     def get_taganomy(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_CATEGORY)
-
 
 
 # presently used by portal to show mini-event summary in sub-entity views
@@ -411,20 +404,30 @@ class CampaignSerializer(EntitySerializer):
 
     class Meta:
         model = Campaign
-        fields = EntitySerializer.Meta.fields
+        my_fields = ('scans',)
+        fields = EntitySerializer.Meta.fields + my_fields
 
-    def prepare(self, validated_data):
-        super(CampaignSerializer, self).prepare(validated_data)
+    scans = serializers.SerializerMethodField()
 
-    def post_create(self, entity):
-        super(CampaignSerializer, self).post_create(entity)
+    def get_scans(self, obj):
+        return ScannedEntitySerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SCANNED_USER),
+            many=True
+        ).data
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)
 
         self.prepare(validated_data)
         obj = super(CampaignSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
+
+        return obj
+
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        obj = super(CampaignSerializer, self).update(instance, validated_data)
+        self.post_create_update(instance)
 
         return obj
 
@@ -486,18 +489,12 @@ class TableSerializer(EntitySerializer):
         model = VirtualTable
         fields = EntitySerializer.Meta.fields
 
-    def prepare(self, validated_data):
-        super(TableSerializer, self).prepare(validated_data)
-
-    def post_create(self, entity):
-        super(TableSerializer, self).post_create(entity)
-
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.TABLE)
 
         self.prepare(validated_data)
         obj = super(TableSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 
@@ -514,34 +511,21 @@ class SpeakerSerializer(EntitySerializer):
                   'description', 'ext_fields', 'company', 'title', 'media', 'related')
         read_only_fields = ('vcard',)
 
-    def prepare(self, validated_data):
-        super(SpeakerSerializer, self).prepare(validated_data)
-
-    def post_create(self, entity):
-        super(SpeakerSerializer, self).post_create(entity)
-
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.SPEAKER)
 
         self.prepare(validated_data)
         obj = super(SpeakerSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.pop('name', instance.name)
-        instance.email = validated_data.pop('email', instance.email)
-        instance.website = validated_data.pop('website', instance.website)
-        instance.vcard = validated_data.pop('vcard', instance.vcard)
-        instance.description = validated_data.pop('description', instance.description)
-        instance.ext_fields = validated_data.pop('ext_fields', instance.ext_fields)
-        instance.company = validated_data.pop('company', instance.company)
-        instance.title = validated_data.pop('title', instance.title)
+        self.prepare(validated_data)
+        obj = super(SpeakerSerializer, self).update(instance, validated_data)
+        self.post_create_update(obj)
 
-        instance = super(SpeakerSerializer, self).update(instance, validated_data)
-
-        return instance
+        return obj
 
 
 """
@@ -563,31 +547,21 @@ class SponsorSerializer(EntitySerializer):
         model = Sponsor
         fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related')
 
-    def prepare(self, validated_data):
-        super(SponsorSerializer, self).prepare(validated_data)
-
-    def post_create(self, entity):
-        super(SponsorSerializer, self).post_create(entity)
-
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.SPONSOR)
 
         self.prepare(validated_data)
         obj = super(SponsorSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.pop('name', instance.name)
-        instance.email = validated_data.pop('email', instance.email)
-        instance.website = validated_data.pop('website', instance.website)
-        instance.caption = validated_data.pop('caption', instance.caption)
-        instance.description = validated_data.pop('description', instance.description)
+        self.prepare(validated_data)
+        obj = super(SponsorSerializer, self).update(instance, validated_data)
+        self.post_create_update(obj)
 
-        instance = super(SponsorSerializer, self).update(instance, validated_data)
-
-        return instance
+        return obj
 
 
 class SponsorSerializerL1(EntitySerializer):
@@ -638,21 +612,14 @@ class ExhibitorInviteeSerializer(EntitySerializer):
         read_only=True,
     )
 
-    def prepare(self, validated_data):
-        super(ExhibitorInviteeSerializer, self).prepare(validated_data)
-
-    def post_create(self, entity):
-        super(ExhibitorInviteeSerializer, self).post_create(entity)
-
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.EXHIBITOR_INVITEE)
 
         self.prepare(validated_data)
         obj = super(ExhibitorInviteeSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
-
 
 class AttendeeInviteeSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
@@ -664,18 +631,12 @@ class AttendeeInviteeSerializer(EntitySerializer):
         fields = ('id', 'name', 'email', 'state',)
         read_only_fields = ('state',)
 
-    def prepare(self, validated_data):
-        super(AttendeeInviteeSerializer, self).prepare(validated_data)
-
-    def post_create(self, entity):
-        super(AttendeeInviteeSerializer, self).post_create(entity)
-
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.ATTENDEE_INVITEE)
 
         self.prepare(validated_data)
         obj = super(AttendeeInviteeSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 
@@ -683,26 +644,27 @@ class AttendeeInviteeSerializer(EntitySerializer):
 class CoOwnersSerializer(EntitySerializer):
     class Meta:
         model = CoOwners
-        fields = ('id', 'user', 'name', 'email',)
+        fields = ('id', 'user', 'name', 'email', 'phone',)
 
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     name = serializers.SerializerMethodField(read_only=True)
     email = serializers.EmailField(read_only=True, source='user.email')
+    phone = serializers.SerializerMethodField()
+
+    def get_phone(self, obj):
+        if hasattr(obj.user, 'wizcard'):
+            return obj.user.wizcard.phone
+
+        return ""
 
     def get_name(self, obj):
         return obj.user.first_name + "" + obj.user.last_name
-
-    def prepare(self, validated_data):
-        super(CoOwnersSerializer, self).prepare(validated_data)
-
-    def post_create(self, entity):
-        super(CoOwnersSerializer, self).post_create(entity)
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.COOWNER)
         self.prepare(validated_data)
         obj = super(CoOwnersSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 
@@ -728,7 +690,7 @@ class PollSerializer(EntitySerializer):
         self.questions = validated_data.pop('questions', None)
         super(PollSerializer, self).prepare(validated_data)
 
-    def post_create(self, obj):
+    def post_create_update(self, obj):
         for q in self.questions:
             choices = q.pop('choices', [])
             q_inst = Question.objects.create(poll=obj, **q)
@@ -740,14 +702,14 @@ class PollSerializer(EntitySerializer):
             else:
                 cls.objects.create(question=q_inst)
 
-        super(PollSerializer, self).post_create(obj)
+        super(PollSerializer, self).post_create_update(obj)
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.POLL)
 
         self.prepare(validated_data)
         obj = super(PollSerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 
@@ -760,7 +722,7 @@ class PollSerializer(EntitySerializer):
             q.delete()
 
         # create the questions and choices
-        self.post_create(instance)
+        self.post_create_update(instance)
 
         return instance
 

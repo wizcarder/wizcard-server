@@ -336,6 +336,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'taganomy',
     'taggit_serializer',
+    'scan',
     'rest_auth',
     'rest_auth.registration',
     'allauth',

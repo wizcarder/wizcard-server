@@ -10,6 +10,7 @@ from rest_framework_nested import routers
 from polls.urls import urlpatterns as poll_urlpatterns
 from taganomy.views import TaganomyViewSet
 from notifications.urls import urlpatterns as notification_urlpatterns
+from scan.urls import urlpatterns as scan_urlpatterns
 from taganomy.urls import urlpatterns as taganomy_urlpatterns
 
 router = SimpleRouter()
@@ -37,5 +38,6 @@ urlpatterns = patterns(
 )
 
 urlpatterns += poll_urlpatterns
+urlpatterns += scan_urlpatterns
 urlpatterns += notification_urlpatterns
 urlpatterns += taganomy_urlpatterns

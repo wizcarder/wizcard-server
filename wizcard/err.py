@@ -31,6 +31,7 @@ EMBED_FAILED = {'errno': 29, 'str': "Couldn't Embed Video"}
 POLL_ID_INVALID = {'errno': 30, 'str': "sorry, we couldn't find this poll"}
 POLL_RESPONSE_INVALID_QUESTION = {'errno': 31, 'str': "sorry, we couldn't find this poll question"}
 POLL_RESPONSE_INVALID_ANSWER = {'errno': 32, 'str': "sorry, this answer choice is invalid"}
+SCAN_USER_AUTH_ERROR = {'errno': 33, 'str': "Couldn't find campaign to attach lead scan"}
 
 
 IGNORE = {'result': 1, 'ignore': 1, 'errStr': ""}

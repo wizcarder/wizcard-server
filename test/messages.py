@@ -786,7 +786,8 @@ decline_connection_request = {
     "sender" : {
         "user_id" : "",
         "wizuser_id" : "",
-        "notif_id": 5
+        # this hardcoding needs to be removed and done the right way
+        "notif_id": 2
 
     },
     "receiver" : {
@@ -1248,6 +1249,27 @@ poll_questions_response = {
     "has_boolean_value": False,
     "boolean_value": False
 }
+
+lead_scan_response = {
+    "header" : {
+        "device_id" : "555C95AE-AEBD-4A9E-9AEA-7A17727BC17D",
+        "hash" : "da0f7402460b85205c85618edf685916",
+        #above 2 fields are not currently used by server
+        "msg_type" : "lead_scan",
+    },
+    "sender": {
+        "scans": []
+    }
+}
+
+scanned_item = {
+    "name": "",
+    "email": "",
+    "company": "",
+    "title": "",
+    "event_id": ""
+}
+
 
 # Canned Messages
 ab_list_ananda_1 = {
