@@ -27,6 +27,8 @@ class TaganomyManager(BaseEntityComponentManager):
         return cats
 
 
+
+
 class Taganomy(BaseEntityComponent):
 
     category = models.CharField(max_length=100)
@@ -34,9 +36,13 @@ class Taganomy(BaseEntityComponent):
     objects = TaganomyManager()
 
     def delete_related_tags(self, tags):
-        related = self.get_parent_entities()
+        related = self.related.all().generic_objects()
         remove_tags = Tag.objects.filter(id__in=tags)
         map(lambda x: x.tags.remove(*remove_tags), related)
+
+    def register_object(self, obj):
+        self.add_subentity_obj(obj, obj.entity_type)
+
 
 
 def tag_signal_handler(sender, **kwargs):

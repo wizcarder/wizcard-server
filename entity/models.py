@@ -60,6 +60,17 @@ class Event(BaseEntity):
             self
         )
 
+    def get_tagged_entities(self, tag, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        sub_entities = self.get_sub_entities_id_of_type(entity_type)
+        # TODO: AR: Get sub entities with a particular tag
+        '''
+        taganomy = self.get_subentity_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY)[0]
+        
+        tagged_entities = taganomy.get_entities(tags__in=tag)
+        '''
+
+
+
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
         return super(CampaignManager, self).owners_entities(
@@ -79,10 +90,12 @@ class Campaign(BaseEntity):
 
     objects = CampaignManager()
 
-    def post_connect(self, obj):
-        taganomy = obj.get_subentities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY)
-        if taganomy:
-            self.add_subentity_obj(taganomy[0], alias=BaseEntityComponent.SUB_ENTITY_CATEGORY)
+    def notify_update(self):
+        self.notify_all_users(
+            self.get_creator(),
+            verbs.WIZCARD_ENTITY_UPDATE,
+            self
+        )
 
 
 class VirtualTableManager(BaseEntityManager):

@@ -2415,6 +2415,7 @@ class ParseMsgAndDispatch(object):
         detail = self.sender.get('detail', True)
         # Should be in the format "YYYY-mm-ddTHH-MM-SS-HH:MM"
         timestamp = self.sender.get('timestamp', wizlib.get_epoch_time())
+        fields = self.sender.get('fields', None)
 
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)

@@ -32,7 +32,7 @@ sponsor_payload = {"name":"", "caption":"", "website": "http://getwizcard.com", 
 agenda_payload = {"items":[]}
 event_payload = {"name":"", "description":"", "venue": "Pragati Maidan", "location":{'lat':"", 'lng':""}, "start":"", "end":"", "related":[], "website":"http://www.getwizcard.com", "email":"a@b.com"}
 event_related_payload = {"related": []}
-tag_payload = {"category": "", "tags": []}
+tag_payload = {"category": "", "tags": {}}
 exhibitor_credentials = []
 #server = "http://test.wizcard.be:8080/"
 server = "http://localhost:8000"
@@ -83,7 +83,7 @@ def create_speakers(num, file):
         speaker_ids.append(speaker_id)
 
 
-def create_sponsors(num, file, type="sponsors"):
+def create_sponsors(num, file, type="sponsor", attach=False):
     f = open(file, "r")
     lines = f.readlines()
     count = len(lines)
@@ -99,11 +99,31 @@ def create_sponsors(num, file, type="sponsors"):
         sponsor_payload['name'] = name
         sponsor_payload['caption'] = caption[:50]
         sponsor_payload['related'] = [{'ids': media_ids, "type": "e_media"}]
-        sponsor_id = post_retrieve("/entity/"+type+"/", sponsor_payload, key="id")
-        if type == 'campaigns':
+        rest_path = "/entity/%ss/" % type
+        sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
+        if type == 'campaign':
             campaign_ids.append(sponsor_id)
         else:
             sponsor_ids.append(sponsor_id)
+
+        if attach:
+            type = "e_" + type
+            event_related_payload["related"] = [{"ids": [sponsor_id], "type": type}]
+            event_id = event_ids[i]
+            rest_path = "/entity/events/" + str(event_id) + "/"
+            event_id = put_retrieve(rest_path, event_related_payload, "id")
+
+            tag_id = get_retrieve(rest_path, 'taganomy')
+            if tag_id:
+                for tid in tag_id:
+                    rest_path = "/entity/tags/" + str(tid) + "/"
+                    tags = get_retrieve(rest_path, 'tags')
+                    random_tags = sample(xrange(1, len(tags)), randint(1, len(tags)))
+                    rest_path = "/entity/campaigns/" + str(sponsor_id) + "/"
+                    taglist = [tags[x] for x in random_tags]
+                    payload = {'tags': taglist, 'taganomy':tid}
+                    campaign_id = put_retrieve(rest_path, payload, "id")
+
 
 def create_events(numevents):
     names = cfg.random_event_names
@@ -204,7 +224,7 @@ def create_taganomy(numevents, attach=True):
             rest_path = "/entity/events/" + str(event_id) + "/"
             event_id = put_retrieve(rest_path, event_related_payload, "id")
 
-def create_exhibitors(numevents, attach=True):
+def create_exhibitors(numevents, attach=False):
     numexb = cfg.create_config['exhibitors']
     totalexb = cfg.random_emails
 
@@ -281,7 +301,7 @@ create_exhibitors(numevents, attach=True)
 
 numcampaigns = cfg.create_config['campaigns']
 campaignfile = cfg.create_config['campaign_file']
-create_sponsors(numcampaigns, campaignfile, type="campaigns")
+create_sponsors(numcampaigns, campaignfile, type="campaign", attach=True)
 
 
 numusers = cfg.create_config['num_users']

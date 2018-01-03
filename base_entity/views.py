@@ -37,7 +37,7 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         serializer = ser(inst, data=request.data, partial=partial)
         if serializer.is_valid():
             serializer.save()
-            inst.notify_update()
+            #TODO : AR: notify_update should be done as part of post_Save probably (will be handled as part of the notification changes)
         else:
             raise Http404
 
