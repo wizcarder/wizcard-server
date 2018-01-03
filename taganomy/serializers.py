@@ -15,13 +15,18 @@ class TaganomySerializer(EntitySerializer, TaggitSerializer):
         model = Taganomy
         fields = ('id', 'tags', 'category',)
 
+    def prepare(self, validated_data):
+        super(TaganomySerializer, self).prepare(validated_data)
+
+    def post_create_update(self, entity):
+        super(TaganomySerializer, self).post_create_update(entity)
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CATEGORY)
 
         self.prepare(validated_data)
         obj = super(TaganomySerializer, self).create(validated_data)
-        self.post_create(obj)
+        self.post_create_update(obj)
 
         return obj
 

@@ -108,7 +108,7 @@ class BaseEntityComponent(PolymorphicModel):
         (AGENDA_ITEM, 'AgendaItem'),
         (POLL, 'Polls'),
         (BADGE_TEMPLATE, 'Badges'),
-        (SCANNED_USER, 'Scans')
+        (SCANNED_USER, 'Scans'),
         (CATEGORY, 'Category')
     )
 
