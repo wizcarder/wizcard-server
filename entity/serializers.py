@@ -15,8 +15,9 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from polls.models import Poll, Question
-from polls.serializers import QuestionResponseSerializer, QuestionSerializer
 from taganomy.serializers import TaganomySerializer, TaganomySerializerL1
+from polls.serializers import QuestionResponseSerializer, QuestionSerializer, QuestionSerializerL1
+
 
 import pdb
 
@@ -705,12 +706,21 @@ class CoOwnersSerializer(EntitySerializer):
 
         return obj
 
+
+class PollSerializerL1(EntitySerializer):
+    class Meta:
+        model = Poll
+        fields = ('id', 'questions', 'num_responders', )
+        read_only_fields = ('num_responders',)
+
+    questions = QuestionSerializerL1(many=True)
+
 # this is used to create a poll. This is also used to send serialized Poll to App
 class PollSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'questions', 'state',)
-        read_only_fields = ('state',)
+        fields = ('id', 'description', 'questions', 'state', 'num_responders', 'created',)
+        read_only_fields = ('state', 'num_responders', 'created',)
 
     questions = QuestionSerializer(many=True)
 
@@ -759,10 +769,10 @@ class PollResponseSerializer(EntitySerializer):
     class Meta:
         model = Poll
         fields = ('id', 'event', 'num_responders', 'description', 'questions', 'state')
+        read_only_fields = ('state', 'num_responders',)
 
     questions = QuestionResponseSerializer(many=True)
     event = serializers.SerializerMethodField(read_only=True)
-    num_responders = serializers.IntegerField(read_only=True)
 
     def get_event(self, obj):
         # typically expecting one parent only...the Poll UI allows associating with one event only. No issues

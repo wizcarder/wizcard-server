@@ -197,8 +197,8 @@ class BaseEntityComponent(PolymorphicModel):
             TableSerializerL1, TableSerializerL2, EntitySerializer, \
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
-            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer 
-        from entity.serializers import PollSerializer
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, \
+            PollSerializer, PollSerializerL1
         from taganomy.serializers import TaganomySerializer
         from taganomy.models import Taganomy
         from entity.models import Event, Campaign, VirtualTable, \
@@ -245,7 +245,7 @@ class BaseEntityComponent(PolymorphicModel):
             s = AgendaItemSerializer
         elif entity_type == cls.POLL:
             c = Poll
-            s = PollSerializer
+            s = PollSerializer if detail else PollSerializerL1
         elif entity_type == cls.CATEGORY:
             c = Taganomy
             s = TaganomySerializer
@@ -343,7 +343,6 @@ class BaseEntityComponent(PolymorphicModel):
 
     def is_owner(self, user):
         return bool(self.owners.all() & user.profile.baseuser.all())
-
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
