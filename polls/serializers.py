@@ -75,15 +75,22 @@ class QuestionChoicesResponseSerializer(QuestionChoicesSerializer):
         return obj.answer_stats()
 
 
+class QuestionSerializerL1(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = ('id', 'num_responders',)
+        read_only_fields = ('num_responders',)
+
+
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ('id', 'question_type', 'ui_type', 'single_answer', 'extra_text',
                   'question', 'poll', 'choices', 'num_responders')
+        read_only_fields = ('num_responders', )
 
     choices = QuestionChoicesSerializer(many=True)
     poll = serializers.PrimaryKeyRelatedField(read_only=True)
-    num_responders = serializers.IntegerField(read_only=True)
 
     def update(self, instance, validated_data):
         choices = validated_data.pop('choices', [])
@@ -102,13 +109,10 @@ class QuestionSerializer(serializers.ModelSerializer):
 class QuestionResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ('id', 'question_type', 'question', 'choices', 'answers')
+        fields = ('id', 'question_type', 'question', 'choices', 'num_responders',)
+        read_only_fields = ('num_responders',)
 
     choices = QuestionChoicesResponseSerializer(many=True)
-    answers = serializers.SerializerMethodField()
-
-    def get_answers(self, obj):
-        return obj.answer_stats()
 
 
 class UserResponseSerializer(serializers.ModelSerializer):

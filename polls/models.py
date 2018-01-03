@@ -38,6 +38,7 @@ class Poll(BaseEntityComponent):
     description = models.CharField(max_length=100)
     state = models.CharField(choices=POLL_STATE_CHOICES, default=POLL_STATE_UNPUBLISHED, max_length=3)
     created = models.DateTimeField(auto_now_add=True)
+    num_responders = models.PositiveIntegerField(default=0)
 
     objects = PollManager()
 
@@ -51,13 +52,13 @@ class Poll(BaseEntityComponent):
     def question_count(self):
         return self.questions.count()
 
-    def num_responders(self):
-        """
-        how many responded to the poll
-        """
-        return self.userresponse_set.aggregate(
-            num_responders=Count('user', distinct=True)
-        ).get('num_responders')
+    # def num_responders(self):
+    #     """
+    #     how many responded to the poll
+    #     """
+    #     return self.userresponse_set.aggregate(
+    #         num_responders=Count('id', distinct=True)
+    #     ).get('num_responders')
 
     def set_state(self, state):
         self.state = state
@@ -132,6 +133,8 @@ class Question(PolymorphicModel):
     poll = models.ForeignKey(Poll, related_name='questions', on_delete=models.CASCADE)
     extra_text = models.BooleanField(default=False)
 
+    num_responders = models.PositiveIntegerField(default=0)
+
     objects = QuestionManager()
 
     class Meta:
@@ -148,11 +151,10 @@ class Question(PolymorphicModel):
 
         super(Question, self).delete(*args, **kwargs)
 
-    def answer_stats(self):
-        out = dict()
-        out.update(total=UserResponse.objects.num_responses_for_question(self))
-
-        return out
+    # def num_responders(self):
+    #     return self.questions_userresponse_related.aggregate(
+    #         num_responders=Count('id', distinct=True)
+    #     ).get('num_responders')
 
 
 class QuestionChoicesBase(PolymorphicModel):
@@ -224,6 +226,17 @@ class QuestionChoicesText(QuestionChoicesBase):
 
 
 class UserResponseManager(models.Manager):
+
+    def create(self, *args, **kwargs):
+        inst = super(UserResponseManager, self).create(*args, **kwargs)
+
+        # update number counts in polls, questions
+        inst.poll.num_responders += 1
+        inst.poll.save()
+
+        inst.question.num_responders += 1
+        inst.question.save()
+
     def num_responses_for_question(self, question):
         return self.filter(question=question).count()
 

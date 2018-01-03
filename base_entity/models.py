@@ -9,7 +9,6 @@ from polymorphic.models import PolymorphicModel, PolymorphicManager
 from rabbit_service import rconfig
 from django.db.models import Q
 from django.conf import settings
-from taganomy.models import Taganomy
 from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
@@ -91,6 +90,7 @@ class BaseEntityComponent(PolymorphicModel):
     POLL = 'POL'
     BADGE_TEMPLATE = 'BDG'
     SCANNED_USER = 'SCN'
+    CATEGORY = 'CAT'
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -109,7 +109,7 @@ class BaseEntityComponent(PolymorphicModel):
         (POLL, 'Polls'),
         (BADGE_TEMPLATE, 'Badges'),
         (SCANNED_USER, 'Scans')
-
+        (CATEGORY, 'Category')
     )
 
     SUB_ENTITY_CAMPAIGN = 'e_campaign'
@@ -125,6 +125,7 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_ATTENDEE_INVITEE = 'e_attendee'
     SUB_ENTITY_BADGE_TEMPLATE = 'e_badge'
     SUB_ENTITY_SCANNED_USER = 'e_scan'
+    SUB_ENTITY_CATEGORY = 'e_category'
 
     objects = BaseEntityComponentManager()
 
@@ -148,6 +149,8 @@ class BaseEntityComponent(PolymorphicModel):
         null=True,
         related_name="engagements_%(class)s_related"
     )
+
+    tags = TaggableManager()
 
     @classmethod
     def create(cls, e, owner, is_creator, **kwargs):
@@ -199,8 +202,10 @@ class BaseEntityComponent(PolymorphicModel):
             TableSerializerL1, TableSerializerL2, EntitySerializer, \
             CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
-            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
         from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
+        from taganomy.serializers import TaganomySerializer
+        from taganomy.models import Taganomy
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
@@ -246,13 +251,16 @@ class BaseEntityComponent(PolymorphicModel):
             s = AgendaItemSerializer
         elif entity_type == cls.POLL:
             c = Poll
-            s = PollSerializer
+            s = PollSerializer if detail else PollSerializerL1
         elif entity_type == cls.BADGE_TEMPLATE:
             c = BadgeTemplate
             s = BadgeTemplateSerializer
         elif entity_type == cls.SCANNED_USER:
             c = ScannedEntity
             s = ScannedEntitySerializer
+        elif entity_type == cls.CATEGORY:
+            c = Taganomy
+            s = TaganomySerializer
         else:
             c = BaseEntityComponent
             s = EntitySerializer
@@ -263,6 +271,7 @@ class BaseEntityComponent(PolymorphicModel):
     def entity_cls_from_subentity_type(cls, entity_type):
         from entity.models import Campaign, VirtualTable, \
             Speaker, Sponsor, CoOwners, Agenda, ExhibitorInvitee, AttendeeInvitee
+        from taganomy.models import Taganomy
         from media_components.models import MediaEntities
         from wizcardship.models import Wizcard
         from polls.models import Poll
@@ -293,6 +302,8 @@ class BaseEntityComponent(PolymorphicModel):
             c = ScannedEntity
         elif entity_type == cls.SUB_ENTITY_BADGE_TEMPLATE:
             c = BadgeTemplate
+        elif entity_type == cls.SUB_ENTITY_CATEGORY:
+            c = Taganomy
         else:
             raise AssertionError("Invalid sub_entity %s" % entity_type)
 
@@ -311,11 +322,9 @@ class BaseEntityComponent(PolymorphicModel):
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
 
-        # @AR: This is one possible way to think about it.
-
-        # run any post connect things that instance might want to do
-        obj.post_connect()
-
+        #post_connect needs from and to parts of connection to do something meaningful
+        # even for notification it needs event to send notifications for e.g.
+        obj.post_connect(self)
         return obj
 
     def remove_sub_entities_of_type(self, entity_type):
@@ -355,8 +364,17 @@ class BaseEntityComponent(PolymorphicModel):
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
-    def post_connect(self):
+    def post_connect(self, obj):
         pass
+
+    def add_tags(self, taglist):
+        self.tags.add(*taglist)
+
+    def get_tags(self):
+        return self.tags.names()
+
+    def update_tags(self, taglist):
+        return self.tags.set(*taglist)
 
 
 class BaseEntityComponentsOwner(models.Model):
@@ -377,8 +395,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     expired = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
-    # hashtags.
-    tags = TaggableManager()
+
 
     users = models.ManyToManyField(
         User,
@@ -407,13 +424,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                                     tree=BaseEntity.objects.get_location_tree_name(self.entity_type))
             return updated, l_tuple[0][1]
 
-    def add_tags(self, taglist):
-        self.tags.clear()
-        for tag in taglist:
-            self.tags.add(tag)
-
-    def get_tags(self):
-        return self.tags.names()
 
     # get user's friends within the entity
     def users_friends(self, user, limit=None):

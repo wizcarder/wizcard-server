@@ -8,6 +8,7 @@ from media_components.signals import media_create
 from location_mgr.serializers import LocationSerializerField
 from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats, UserEntity
 from entity.models import CoOwners
+from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from random import sample
@@ -98,6 +99,13 @@ class EntitySerializer(EntitySerializerL0):
     ext_fields = serializers.DictField(required=False)
     is_activated = serializers.BooleanField(write_only=True, default=False)
     status = serializers.SerializerMethodField()
+    taganomy = serializers.PrimaryKeyRelatedField(
+        queryset=Taganomy.objects.all(),
+        required=False,
+        write_only=True
+    )
+
+
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
@@ -105,7 +113,7 @@ class EntitySerializer(EntitySerializerL0):
         model = BaseEntity
         my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
                      'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
-                     'engagements', 'owners', 'related', 'ext_fields', 'is_activated', 'status')
+                     'engagements', 'owners', 'related', 'ext_fields', 'is_activated', 'status', 'taganomy',)
 
         fields = EntitySerializerL0.Meta.fields + my_fields
 
@@ -142,6 +150,7 @@ class EntitySerializer(EntitySerializerL0):
 
     def prepare(self, validated_data):
         self.tags = validated_data.pop('tags', None)
+        self.taganomy = validated_data.pop("taganomy", None)
         self.owners = validated_data.pop('owners', None)
         self.sub_entities = validated_data.pop('related', None)
         self.location = validated_data.pop('location', None)
@@ -178,15 +187,11 @@ class EntitySerializer(EntitySerializerL0):
 
         # Generate Tags
         if self.tags:
-            entity.add_tags(self.tags)
+            tags = self.tags
+            entity.add_tags(tags)
+
+        if self.taganomy:
+            self.taganomy.register_object(entity)
 
         return entity
-
-    # def update(self, instance, validated_data):
-    #     for attr, value in validated_data.iteritems():
-    #         setattr(instance, attr, value)
-    #
-    #     instance.save()
-    #     return instance
-
-
+      
