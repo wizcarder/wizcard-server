@@ -60,6 +60,16 @@ class Event(BaseEntity):
             self
         )
 
+    def get_tagged_entities(self, tag, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        sub_entities = self.get_sub_entities_id_of_type(entity_type)
+        # TODO: AR: Get sub entities with a particular tag
+        '''
+        taganomy = self.get_subentity_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY)[0]
+        
+        tagged_entities = taganomy.get_entities(tags__in=tag)
+        '''
+
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
@@ -79,6 +89,13 @@ class CampaignManager(BaseEntityManager):
 class Campaign(BaseEntity):
 
     objects = CampaignManager()
+
+    def notify_update(self):
+        self.notify_all_users(
+            self.get_creator(),
+            verbs.WIZCARD_ENTITY_UPDATE,
+            self
+        )
 
 
 class VirtualTableManager(BaseEntityManager):
@@ -247,11 +264,10 @@ class Agenda(BaseEntityComponent):
     objects = AgendaManager()
 
 
-class AgendaItem(BaseEntityComponent, Base412Mixin):
+class AgendaItem(BaseEntity):
     agenda = models.ForeignKey(Agenda, related_name='items')
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
-    where = models.CharField(max_length=100, default="")
 
 
 from django.dispatch import receiver

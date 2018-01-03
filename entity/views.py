@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from base_entity.models import BaseEntityComponent
 from entity.models import Event, Campaign, VirtualTable,\
     Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, CoOwners
-from entity.serializers import EventSerializer, CampaignSerializer, \
+from entity.serializers import EventSerializer, EventSerializerL0, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
     SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
 from rest_framework.decorators import detail_route
@@ -18,10 +18,10 @@ import pdb
 # Create your views here.
 
 class ExhibitorEventViewSet(BaseEntityViewSet):
-    serializer_class = EventSerializer
+    serializer_class = EventSerializerL0
 
     def get_serializer_class(self):
-        return EventSerializer
+        return EventSerializerL0
 
     def get_queryset(self):
         user = self.request.user
@@ -43,8 +43,7 @@ class EventViewSet(BaseEntityViewSet):
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
-
-        exhibitor_invitees = request.data
+        exhibitor_invitees = request.data['ids']
 
         # set related for these exhibitors. We will relate the entity to the ExhibitorInvitee model
         # and check for those events when the exhibitor comes in, treating the exhibitor email as the
@@ -85,7 +84,6 @@ class EventViewSet(BaseEntityViewSet):
     def publish_event(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
         inst.make_live()
-
         return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
 
 class CampaignViewSet(BaseEntityViewSet):
@@ -139,6 +137,18 @@ class ExhibitorViewSet(BaseEntityComponentViewSet):
         queryset = ExhibitorInvitee.objects.owners_entities(user)
         return queryset
 
+class AgendaViewSet(BaseEntityComponentViewSet):
+    queryset = Agenda.objects.all()
+    serializer_class = AgendaSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Agenda.objects.owners_entities(user)
+        return queryset
+
+    def get_serializer_class(self):
+        return AgendaSerializer
+
 
 class AttendeeViewSet(BaseEntityComponentViewSet):
     queryset = AttendeeInvitee.objects.all()
@@ -160,7 +170,7 @@ class CoOwnersViewSet(BaseEntityComponentViewSet):
         return queryset
 
 
-class AgendaViewSet(BaseEntityComponentViewSet):
+class EventAgendaViewSet(BaseEntityComponentViewSet):
     queryset = Agenda.objects.all()
     serializer_class = AgendaSerializer
 

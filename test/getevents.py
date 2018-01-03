@@ -38,7 +38,7 @@ reqmsg['sender']['user_id'] = 'fe73edbd-6825-47a1-9feb-fa8e9750703d'
 reqmsg['sender']['wizuser_id'] = 4
 reqmsg['sender']['entity_id'] =143 
 reqmsg['sender']['entity_type'] ='EVT' 
-reqmsg['sender']['timestamp'] = "2017-12-25T10:00:00-05:30"
+reqmsg['sender']['timestamp'] = "2017-12-25T10:00:00-0530"
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server
 objs = handle_response(conn, reqmsg['header']['msg_type'])

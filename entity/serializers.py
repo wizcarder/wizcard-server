@@ -15,7 +15,9 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from polls.models import Poll, Question
+from taganomy.serializers import TaganomySerializer, TaganomySerializerL1
 from polls.serializers import QuestionResponseSerializer, QuestionSerializer, QuestionSerializerL1
+
 
 import pdb
 
@@ -23,7 +25,7 @@ import pdb
 class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media')
 
     speakers = serializers.SerializerMethodField()
 
@@ -54,9 +56,10 @@ class AgendaItemSerializer(EntitySerializer):
 class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'joined', 'users')
 
     speakers = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
 
     def get_speakers(self, obj):
         return SpeakerSerializerL2(
@@ -64,6 +67,11 @@ class AgendaItemSerializerL2(EntitySerializer):
             many=True,
             context=self.context
         ).data
+
+    def get_users(self, obj):
+        qs = obj.users.exclude(wizcard__isnull=True)
+        count = qs.count()
+        return count
 
 
 class AgendaSerializer(EntitySerializer):
@@ -119,6 +127,7 @@ class EventSerializer(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
+    taganomy = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -131,7 +140,7 @@ class EventSerializer(EntitySerializer):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls')
+        my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls', 'taganomy')
         fields = EntitySerializer.Meta.fields + my_fields
 
     def prepare(self, validated_data):
@@ -172,6 +181,10 @@ class EventSerializer(EntitySerializer):
     def get_polls(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
 
+    def get_taganomy(self, obj):
+        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_CATEGORY)
+
+
 
 # presently used by portal to show mini-event summary in sub-entity views
 class EventSerializerL0(EntitySerializer):
@@ -185,18 +198,31 @@ class EventSerializerL0(EntitySerializer):
             many=True
         ).data
 
+class ExhibitorEventSerializer(EventSerializerL0):
+    class Meta:
+        model = Event
+        fields = ('id', 'name', 'media', 'taganomy')
+
+    taganomy = serializers.SerializerMethodField()
+
+    def get_taganomy(self, obj):
+        return TaganomySerializer(
+            obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
+            many=True
+        ).data
+
 
 # these are used by App.
 class EventSerializerL1(EventSerializerL0):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
-
+    tags = serializers.SerializerMethodField()
     class Meta:
         model = Event
 
         parent_fields = ('id', 'entity_type', 'num_users', 'name', 'address', 'secure', 'description', 'media',
-                         'location', 'users', 'joined', 'friends', 'like', 'tags', 'engagements')
-        my_fields = ('start', 'end', )
+                         'location', 'users', 'joined', 'friends', 'like',  'engagements')
+        my_fields = ('start', 'end', 'tags')
 
         fields = parent_fields + my_fields
 
@@ -244,6 +270,12 @@ class EventSerializerL1(EventSerializerL0):
         )
         return out
 
+    def get_tags(self, obj):
+        return TaganomySerializerL1(
+            obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
+            many=True
+        ).data
+
 
 # these are used by App.
 class EventSerializerL2(EntitySerializer):
@@ -254,12 +286,14 @@ class EventSerializerL2(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
+    # TODO AR: Just return tags instead of taganomy stuff
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'tags')
 
         fields = parent_fields + my_fields
 
@@ -322,6 +356,12 @@ class EventSerializerL2(EntitySerializer):
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_POLL),
             many=True,
             context=self.context
+        ).data
+
+    def get_tags(self, obj):
+        return TaganomySerializerL1(
+            obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
+            many=True
         ).data
 
 
@@ -741,3 +781,4 @@ class PollResponseSerializer(EntitySerializer):
         # of {}, in the response
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
+
