@@ -5,8 +5,8 @@ sys.path.append(".")
 
 from lib.pytrie import SortedStringTrie as trie
 from lib import wizlib
-#from base.db import WizcardDB
-from base.rds_db import WizcardDB
+from base.db import WizcardDB
+#from base.rds_db import WizcardDB
 from rabbit_service.server import RabbitServer
 from wizcard import settings
 from rabbit_service import rconfig
