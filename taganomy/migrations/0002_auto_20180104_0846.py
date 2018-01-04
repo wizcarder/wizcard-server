@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('base_entity', '0012_auto_20171223_2146'),
+        ('base_entity', '0013_auto_20180104_0841'),
         ('taganomy', '0001_initial'),
     ]
 
@@ -26,12 +26,16 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name='taganomy',
+            name='tags',
+        ),
+        migrations.RemoveField(
+            model_name='taganomy',
             name='updated',
         ),
         migrations.AddField(
             model_name='taganomy',
             name='baseentitycomponent_ptr',
-            field=models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, default=1, serialize=False, to='base_entity.BaseEntityComponent'),
+            field=models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='base_entity.BaseEntityComponent'),
             preserve_default=False,
         ),
     ]

@@ -10,7 +10,7 @@ import picklefield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('base_entity', '0012_auto_20171228_2235'),
+        ('base_entity', '0012_auto_20171223_2146'),
     ]
 
     operations = [
