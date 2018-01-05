@@ -21,10 +21,8 @@ class RelatedSerializerField(serializers.RelatedField):
         pass
 
     def to_internal_value(self, data):
-
         ids = data.get('ids', None)
         etype = data.get('type', None)
-        overwrite = data.get('overwrite', False)
 
         # Perform the data validation.
         if ids is None:
@@ -36,7 +34,7 @@ class RelatedSerializerField(serializers.RelatedField):
                 'type': 'This field is required.'
             })
 
-        value_dict = {'ids': ids, 'type': etype, 'overwrite': overwrite} if overwrite else {'ids': ids, 'type': etype}
+        value_dict = {'ids': ids, 'type': etype}
 
         return value_dict
 
@@ -104,8 +102,6 @@ class EntitySerializer(EntitySerializerL0):
         required=False,
         write_only=True
     )
-
-
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
@@ -194,4 +190,3 @@ class EntitySerializer(EntitySerializerL0):
             self.taganomy.register_object(entity)
 
         return entity
-      
