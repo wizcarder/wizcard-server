@@ -157,26 +157,46 @@ class EventSerializer(EntitySerializer):
 
         return obj
 
-    def get_campaigns(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_CAMPAIGN)
-
     def get_speakers(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
+        return SpeakerSerializerL2(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPEAKER),
+            many=True,
+            context=self.context
+        ).data
 
     def get_sponsors(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPONSOR)
+        return SponsorSerializerL2(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPONSOR),
+            many=True,
+            context=self.context
+        ).data
+
+    def get_campaigns(self, obj):
+        return CampaignSerializerL2(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_CAMPAIGN),
+            many=True,
+            context=self.context
+        ).data
 
     def get_agenda(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
+        return AgendaSerializerL2(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_AGENDA),
+            many=True,
+            context=self.context
+        ).data
 
     def get_polls(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
+        return PollSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_POLL),
+            many=True,
+            context=self.context
+        ).data
 
-    def get_badges(self, obj):
-        return obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_BADGE_TEMPLATE)
-      
-    def get_taganomy(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_CATEGORY)
+    def get_tags(self, obj):
+        return TaganomySerializerL1(
+            obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
+            many=True
+        ).data
 
 
 # presently used by portal to show mini-event summary in sub-entity views
@@ -210,6 +230,7 @@ class EventSerializerL1(EventSerializerL0):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
     tags = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
 
@@ -315,47 +336,6 @@ class EventSerializerL2(EntitySerializer):
         out['data'] = WizcardSerializerL1(wizcards, many=True, context={'user': user}).data
 
         return out
-
-    def get_speakers(self, obj):
-        return SpeakerSerializerL2(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPEAKER),
-            many=True,
-            context=self.context
-        ).data
-
-    def get_sponsors(self, obj):
-        return SponsorSerializerL2(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPONSOR),
-            many=True,
-            context=self.context
-        ).data
-
-    def get_campaigns(self, obj):
-        return CampaignSerializerL2(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_CAMPAIGN),
-            many=True,
-            context=self.context
-        ).data
-
-    def get_agenda(self, obj):
-        return AgendaSerializerL2(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_AGENDA),
-            many=True,
-            context=self.context
-        ).data
-
-    def get_polls(self, obj):
-        return PollSerializer(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_POLL),
-            many=True,
-            context=self.context
-        ).data
-
-    def get_tags(self, obj):
-        return TaganomySerializerL1(
-            obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
-            many=True
-        ).data
 
 
 # this is used by App
