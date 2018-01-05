@@ -94,7 +94,7 @@ def create_sponsors(num, file, type="sponsor", attach=False):
         (name,  murl, caption) = rline.split("\t")
         media_ids.append(create_media(murl, media_type='IMG', media_sub_type='LGO'))
         num_media = cfg.create_config['campaign_media']
-        for i in range(0, num_media):
+        for j in range(0, num_media):
             media_ids.append(create_media(murl, media_type='IMG', media_sub_type='ROL'))
         sponsor_payload['name'] = name
         sponsor_payload['caption'] = caption[:50]
@@ -107,8 +107,8 @@ def create_sponsors(num, file, type="sponsor", attach=False):
             sponsor_ids.append(sponsor_id)
 
         if attach:
-            type = "e_" + type
-            event_related_payload["related"] = [{"ids": [sponsor_id], "type": type}]
+            etype = "e_" + type
+            event_related_payload["related"] = [{"ids": [sponsor_id], "type": etype}]
             event_id = event_ids[i]
             rest_path = "/entity/events/" + str(event_id) + "/"
             event_id = put_retrieve(rest_path, event_related_payload, "id")
@@ -184,14 +184,16 @@ def create_agenda(numitems, evt, start_date, end_date, speakers ):
         payload['description'] = payload['name'] + " at " + payload['where']
         rint = randint(0, len(speakers) - 1)
         payload['related'] = [{"ids": [speakers[rint]], "type":"e_speaker"}]
-        agenda_payload["items"].append(payload)
+        agenda_payload["items"].append(payload.copy())
         payload = {}
 
 
-        rest_path = "/entity/events/%d/agenda/" % evt
-        agenda_id = post_retrieve(rest_path, agenda_payload, key="id")
+    rest_path = "/entity/agenda/"
+    agenda_id = post_retrieve(rest_path, agenda_payload, key="id")
+    event_related_payload["related"] = [{"ids": [agenda_id], "type": "e_agenda"}]
+    rest_path = "/entity/events/%s/" % str(evt)
+    event_id = put_retrieve(rest_path, event_related_payload, "id")
 
-        agenda_ids.append(agenda_id)
 
 def create_polls():
     for poll_type in cfg.create_config['polls']:

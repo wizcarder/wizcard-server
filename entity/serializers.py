@@ -93,6 +93,7 @@ class AgendaSerializer(EntitySerializer):
         return obj
 
 
+
 class AgendaSerializerL2(EntitySerializer):
 
     class Meta:
@@ -101,12 +102,7 @@ class AgendaSerializerL2(EntitySerializer):
 
     items = AgendaItemSerializerL2(many=True)
 
-    def get_speakers(self, obj):
-        return SpeakerSerializerL2(
-            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPEAKER),
-            many=True,
-            context=self.context
-        ).data
+
 
 
 # this is used by portal REST API
