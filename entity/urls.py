@@ -3,7 +3,7 @@ __author__ = 'aammundi'
 from django.conf.urls import url, include, patterns
 from entity.views import EventViewSet, CampaignViewSet, TableViewSet
 from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorViewSet, AttendeeViewSet, \
-    CoOwnersViewSet, AgendaViewSet, ExhibitorEventViewSet, EventAgendaViewSet 
+    CoOwnersViewSet, AgendaViewSet, AgendaItemViewSet, EventAgendaViewSet, ExhibitorEventViewSet
 from media_components.views import MediaEntitiesViewSet
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
@@ -28,6 +28,8 @@ router.register(r'attendees', AttendeeViewSet, base_name='attendees')
 router.register(r'owners', CoOwnersViewSet, base_name='owners')
 router.register(r'tags', TaganomyViewSet, base_name='tags')
 router.register(r'agenda', AgendaViewSet, base_name='agenda')
+agenda_item_router = routers.NestedSimpleRouter(router, r'agenda', lookup='agenda')
+agenda_item_router.register(r'agenda_item', AgendaItemViewSet, base_name='agenda-item')
 
 
 
@@ -35,6 +37,7 @@ urlpatterns = patterns(
     '',
     url(r'^', include(router.urls)),
     url(r'^', include(events_router.urls)),
+    url(r'^', include(agenda_item_router.urls)),
 )
 
 urlpatterns += poll_urlpatterns

@@ -26,8 +26,12 @@ import pdb
 class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'agenda', )
 
+    agenda = serializers.PrimaryKeyRelatedField(
+        queryset=Agenda.objects.all(),
+        required=False
+    )
     speakers = serializers.SerializerMethodField()
 
     def create(self, validated_data, **kwargs):
@@ -36,6 +40,13 @@ class AgendaItemSerializer(EntitySerializer):
         self.prepare(validated_data)
         obj = super(AgendaItemSerializer, self).create(validated_data)
         self.post_create_update(obj)
+
+        return obj
+
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        obj = super(AgendaItemSerializer, self).update(instance, validated_data)
+        self.post_create_update(instance)
 
         return obj
 
@@ -93,7 +104,6 @@ class AgendaSerializer(EntitySerializer):
         return obj
 
 
-
 class AgendaSerializerL2(EntitySerializer):
 
     class Meta:
@@ -101,8 +111,6 @@ class AgendaSerializerL2(EntitySerializer):
         fields = ('id', 'entity_type', 'items', 'media')
 
     items = AgendaItemSerializerL2(many=True)
-
-
 
 
 # this is used by portal REST API
@@ -206,6 +214,7 @@ class EventSerializerL1(EventSerializerL0):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
     tags = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
 

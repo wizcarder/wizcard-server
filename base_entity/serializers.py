@@ -105,8 +105,6 @@ class EntitySerializer(EntitySerializerL0):
         write_only=True
     )
 
-
-
     MAX_THUMBNAIL_UI_LIMIT = 4
 
     class Meta(EntitySerializerL0.Meta):
