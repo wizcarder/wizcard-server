@@ -93,7 +93,7 @@ class EntitySerializer(EntitySerializerL0):
         required=False,
         write_only=True
     )
-    related = RelatedSerializerField(write_only=True, required=False, many=True)
+    related = RelatedSerializerField(required=False, many=True)
     ext_fields = serializers.DictField(required=False)
     is_activated = serializers.BooleanField(write_only=True, default=False)
     status = serializers.SerializerMethodField()
