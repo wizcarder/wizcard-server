@@ -21,8 +21,10 @@ class RelatedSerializerField(serializers.RelatedField):
         pass
 
     def to_internal_value(self, data):
+
         ids = data.get('ids', None)
         etype = data.get('type', None)
+        overwrite = data.get('overwrite', False)
 
         # Perform the data validation.
         if ids is None:
@@ -34,7 +36,7 @@ class RelatedSerializerField(serializers.RelatedField):
                 'type': 'This field is required.'
             })
 
-        value_dict = {'ids': ids, 'type': etype}
+        value_dict = {'ids': ids, 'type': etype, 'overwrite': overwrite}
 
         return value_dict
 
@@ -170,14 +172,14 @@ class EntitySerializer(EntitySerializerL0):
 
         if self.sub_entities:
             for s in self.sub_entities:
+                overwrite = s.pop('overwrite')
+                if overwrite:
+                    entity.remove_sub_entities_of_type(s['type'])
+   
                 entity.add_subentities(**s)
 
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])
-
-        if self.users:
-            for u in self.users:
-                UserEntity.user_join(u, entity)
 
         # TODO: Handle owners and create linkage to existing owners
 
