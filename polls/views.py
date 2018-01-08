@@ -67,7 +67,7 @@ class PollViewSet(BaseEntityComponentViewSet):
 
         entity.remove_sub_entity_of_type(poll.pk, BaseEntityComponent.POLL)
 
-        return Response("poll %s linked to entity" % poll.description, status=status.HTTP_200_OK)
+        return Response("poll %s unlinked from entity" % poll.description, status=status.HTTP_200_OK)
 
 class PollQuestionViewSet(BaseEntityComponentViewSet):
     queryset = Question.objects.all()
