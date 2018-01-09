@@ -11,6 +11,7 @@ from entity.models import CoOwners
 from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
+from wizserver import verbs
 from random import sample
 import pdb
 
@@ -175,6 +176,11 @@ class EntitySerializer(EntitySerializerL0):
         if self.sub_entities:
             for s in self.sub_entities:
                 entity.add_subentities(**s)
+
+            entity.notify_all_users( entity.get_creator(),
+                                     verbs.WIZCARD_ENTITY_UPDATE,
+                                     entity
+                                     )
 
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])

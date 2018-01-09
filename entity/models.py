@@ -294,7 +294,7 @@ def create_engagement_stats(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Campaign)
 @receiver(post_save, sender=Speaker)
 @receiver(post_save, sender=Sponsor)
-def notify_suscribers(sender, instance, created, **kwargs):
+def notify_subscribers(sender, instance, created, **kwargs):
     verb = "%s - %s Updated" % (instance.entity_type, instance.name)
     if created:
         return

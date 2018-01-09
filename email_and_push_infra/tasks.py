@@ -155,18 +155,22 @@ class ApnsMsg(object):
 
 
 @task(ignore_result=True)
-def email_push_handler():
+def email_handler():
     logger.debug('Messaging Tick received')
-    notifs = EmailAndPush.objects.unread()
-
+    notifs = EmailAndPush.objects.unread_notifs(delivery_method=BaseNotification.EMAIL)
     for n in notifs:
-        delivery_method = n.delivery_method
         n.mark_as_read()
         if delivery_method == BaseNotification.EMAIL:
             emailer = HtmlGen(sender=n.actor, trigger=n.notif_type, target=n.target)
             #status = emailer.email_send()
             #n.update_status(status)
-        elif delivery_method == BaseNotification.PUSHNOTIF:
+@task(ignore_result=True)
+def push_notif_handler():
+    unread_verbs = EmailAndPush.objects.get_unread_verbs()
+    for verb in unread_verbs:
+        notifs = EmailAndPush.objects.unread_notifs_by_verb(verb=verb)
+
+
             pushNotificationToApp.delay(n.actor_object_id,
                                         n.recipient.id,
                                         n.action_object_object_id,

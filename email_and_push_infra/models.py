@@ -20,8 +20,19 @@ import pdb
 
 class EmailAndPushManager(BaseNotificationManager):
 
-    def unread(self):
-        return EmailAndPush.objects.filter(readed=False)
+    def unread_notifs(self, delivery_method=None):
+        return EmailAndPush.objects.filter(readed=False, delivery_method=delivery_method)
+
+    def unread_notifs_by_verb(self, delivery_method=BaseNotification.PUSHNOTIF, verb=verbs.WIZCARD_ENTITY_UPDATE[1]):
+        qs = self.unread_notifs(delivery_method)
+        qs.filter(verb=verb)
+        return qs
+
+    def get_unread_verbs(self, delivery_method=BaseNotification.PUSHNOTIF):
+        qs = list(self.unread_notifs(delivery_method).values_list('verb', flat=True).distinct())
+        return qs
+
+
 
     def get_broadcast(self):
         return EmailAndPush.objects.filter(readed=False, notif_type=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0])

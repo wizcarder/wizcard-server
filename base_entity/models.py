@@ -324,7 +324,7 @@ class BaseEntityComponent(PolymorphicModel):
 
         #post_connect needs from and to parts of connection to do something meaningful
         # even for notification it needs event to send notifications for e.g.
-        obj.post_connect(self)
+        #obj.post_connect(self)
         return obj
 
     def remove_sub_entities_of_type(self, entity_type):
@@ -378,6 +378,10 @@ class BaseEntityComponent(PolymorphicModel):
 
     def modified_since(self, timestamp):
         return True
+
+    def notify_all_users(self, sender, notif_type, entity, verb=None, exclude_sender=True):
+        return
+
 
 
     def notify_parents(self, verb):
@@ -496,7 +500,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         # send notif to all members, just like join
 
         verb = verb if verb else notif_type[1]
-	print "sender = %s, target=%s, target_id=%d" % (sender, entity, entity.id)
+
 
         qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
         for u in qs:
