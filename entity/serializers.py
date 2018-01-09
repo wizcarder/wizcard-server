@@ -26,7 +26,8 @@ import pdb
 class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'agenda', )
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers',
+                  'media', 'agenda', 'num_users')
 
     agenda = serializers.PrimaryKeyRelatedField(
         queryset=Agenda.objects.all(),

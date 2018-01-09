@@ -399,7 +399,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     is_activated = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
 
-
     users = models.ManyToManyField(
         User,
         through='UserEntity',
