@@ -26,8 +26,12 @@ import pdb
 class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'agenda', )
 
+    agenda = serializers.PrimaryKeyRelatedField(
+        queryset=Agenda.objects.all(),
+        required=False
+    )
     speakers = serializers.SerializerMethodField()
 
     def create(self, validated_data, **kwargs):
@@ -36,6 +40,13 @@ class AgendaItemSerializer(EntitySerializer):
         self.prepare(validated_data)
         obj = super(AgendaItemSerializer, self).create(validated_data)
         self.post_create_update(obj)
+
+        return obj
+
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        obj = super(AgendaItemSerializer, self).update(instance, validated_data)
+        self.post_create_update(instance)
 
         return obj
 
@@ -91,7 +102,6 @@ class AgendaSerializer(EntitySerializer):
         self.post_create_update(instance)
 
         return obj
-
 
 
 class AgendaSerializerL2(EntitySerializer):

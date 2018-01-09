@@ -1,10 +1,10 @@
 from rest_framework.response import Response
 from base_entity.models import BaseEntityComponent
 from entity.models import Event, Campaign, VirtualTable,\
-    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, CoOwners
+    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, AgendaItem, CoOwners
 from entity.serializers import EventSerializer, EventSerializerL0, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
-    SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
+    SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, CoOwnersSerializer
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
 from notifications.models import Notification
@@ -161,6 +161,93 @@ class AgendaViewSet(BaseEntityComponentViewSet):
         return AgendaSerializer
 
 
+class AgendaItemViewSet(BaseEntityComponentViewSet):
+    queryset = AgendaItem.objects.all()
+    serializer_class = AgendaItemSerializer
+
+    def list(self, request, agenda_pk=None):
+        agn = Agenda.objects.get(id=agenda_pk)
+        return Response(AgendaItemSerializer(agn.items.all(), many=True).data)
+
+    def retrieve(self, request, pk=None, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+            agi = AgendaItem.objects.get(id=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if agi not in agn.items.all():
+            return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(AgendaItemSerializer(agi).data)
+
+    def create(self, request, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        request.data.update(agenda=agn.pk)
+        serializer = AgendaItemSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+            agi = AgendaItem.objects.get(id=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if agi not in agn.items.all():
+            return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AgendaItemSerializer(agi, data=request.data)
+        if serializer.is_valid():
+            inst = serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk=None, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+            agi = AgendaItem.objects.get(id=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if agi not in agn.items.all():
+            return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AgendaItemSerializer(agi, data=request.data, partial=True)
+        if serializer.is_valid():
+            inst = serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+            agi = AgendaItem.objects.get(id=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if agi not in agn.items.all():
+            return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        agi.delete()
+
+        return Response(status=status.HTTP_200_OK)
+
+
 class AttendeeViewSet(BaseEntityComponentViewSet):
     queryset = AttendeeInvitee.objects.all()
     serializer_class = AttendeeInviteeSerializer
@@ -203,7 +290,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if cpg not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-            return Response("event id %s not associated with Agenda %s " % (event_pk, pk),
+            return Response("event id %s not associated with Campaign %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
         return Response(CampaignSerializer(cpg).data)
@@ -229,17 +316,12 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if cpg not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-            return Response("event id %s not associated with Agenda %s " % (event_pk, pk),
-                            status=status.HTTP_400_BAD_REQUEST)
+        if cpg in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+            return Response("event %s already  associated with Campaign %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
 
-        serializer = CampaignSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -249,7 +331,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if cpg not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-            return Response("event id %s not associated with Agenda %s " % (event_pk, pk),
+            return Response("event id %s not associated with Campaign %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_of_type(cpg.id, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
@@ -300,17 +382,12 @@ class EventSpeakerViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if spk not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_SPEAKER):
-            return Response("event id %s not associated with spekaer %s " % (event_pk, pk),
-                            status=status.HTTP_400_BAD_REQUEST)
+        if spk in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_SPEAKER):
+            return Response("event %s already  associated with Speaker %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
 
-        serializer = SpeakerSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_SPEAKER)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        event.add_subentity_obj(spk, BaseEntityComponent.SUB_ENTITY_SPEAKER)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -371,17 +448,12 @@ class EventSponsorViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if spn not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_SPONSOR):
-            return Response("event id %s not associated with Sponsor %s " % (event_pk, pk),
-                            status=status.HTTP_400_BAD_REQUEST)
+        if spn in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_SPONSOR):
+            return Response("event %s already  associated with Sponsor %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
 
-        serializer = SponsorSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_SPONSOR)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        event.add_subentity_obj(spn, BaseEntityComponent.SUB_ENTITY_SPONSOR)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -442,17 +514,12 @@ class EventMediaViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if med not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
-            return Response("event id %s not associated with Media %s " % (event_pk, pk),
-                            status=status.HTTP_400_BAD_REQUEST)
+        if med in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
+            return Response("event %s already  associated with Media %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
 
-        serializer = MediaEntitiesSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_MEDIA)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        event.add_subentity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -513,17 +580,12 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if ati not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE):
-            return Response("event id %s not associated with attendee invitee %s " % (event_pk, pk),
-                            status=status.HTTP_400_BAD_REQUEST)
+        if ati in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE):
+            return Response("event %s already  associated with attendee invitee %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
 
-        serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -584,17 +646,12 @@ class EventCoOwnerViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if coo not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
-            return Response("event id %s not associated with Coowner %s " % (event_pk, pk),
-                            status=status.HTTP_400_BAD_REQUEST)
+        if coo in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
+            return Response("event %s already  associated with CoOwner %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
 
-        serializer = CoOwnersSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_COOWNER)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        event.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -655,17 +712,12 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if agn not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA):
-            return Response("event id %s not associated with Agenda %s " % (event_pk, pk),
-                            status=status.HTTP_400_BAD_REQUEST)
+        if agn in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA):
+            return Response("event id %s already associated with agenda %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
 
-        serializer = AgendaSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_AGENDA)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        event.add_subentity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -678,13 +730,8 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Agenda %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = AgendaSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_AGENDA)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        event.remove_sub_entity_of_type(agn.id, BaseEntityComponent.SUB_ENTITY_AGENDA)
+        return Response(status=status.HTTP_200_OK)
 
 
 class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
