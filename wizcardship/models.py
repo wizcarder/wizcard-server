@@ -132,6 +132,7 @@ class WizcardManager(PolymorphicManager):
             notify.send(wizcard1.user,
                         recipient=wizcard2.user,
                         notif_type=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
+                        verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE_HALF[0],
                         target=wizcard1)
 
     def query_users(self, exclude_user, name, phone, email):

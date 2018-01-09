@@ -3,6 +3,7 @@ from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.contrib.auth.models import User
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 from django.db.models import Count
+from wizserver import verbs
 
 import pdb
 
@@ -63,6 +64,14 @@ class Poll(BaseEntityComponent):
     def set_state(self, state):
         self.state = state
         self.save()
+
+    def post_connect(self, parent):
+
+        parent.notify_all_users(
+            parent.get_creator(),
+            verbs.WIZCARD_ENTITY_UPDATE,
+            parent
+        )
 
 class QuestionManager(PolymorphicManager):
 
@@ -275,3 +284,4 @@ class UserResponse(models.Model):
     response_time = models.DateTimeField(auto_now=True)
 
     objects = UserResponseManager()
+

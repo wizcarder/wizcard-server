@@ -53,12 +53,7 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
-    def notify_update(self):
-        self.notify_all_users(
-            self.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE,
-            self
-        )
+
 
     def get_tagged_entities(self, tag, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
         sub_entities = self.get_sub_entities_id_of_type(entity_type)
@@ -90,12 +85,14 @@ class Campaign(BaseEntity):
 
     objects = CampaignManager()
 
-    def notify_update(self):
+
+    def post_connect(self, parent):
         self.notify_all_users(
-            self.get_creator(),
+            parent.get_creator(),
             verbs.WIZCARD_ENTITY_UPDATE,
-            self
+            parent
         )
+
 
 
 class VirtualTableManager(BaseEntityManager):
@@ -140,12 +137,13 @@ class VirtualTable(BaseEntity):
 
     def delete(self, *args, **kwargs):
         # notify members of deletion (including self)
-        verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
+        notif = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY)
         members = self.users.all()
         for member in members:
             notify.send(self.get_creator(),
                         recipient=member,
-                        notif_type=verb,
+                        notif_type=notif[0],
+                        verb=notif[1],
                         target=self
                         )
 
@@ -263,6 +261,13 @@ class AgendaManager(BaseEntityComponentManager):
 class Agenda(BaseEntityComponent):
     objects = AgendaManager()
 
+    def post_connect(self, parent):
+        parent.notify_all_users(
+            parent.get_creator(),
+            verbs.WIZCARD_ENTITY_UPDATE,
+            parent
+        )
+
 
 class AgendaItem(BaseEntity):
     agenda = models.ForeignKey(Agenda, related_name='items')
@@ -283,6 +288,31 @@ def create_engagement_stats(sender, instance, created, **kwargs):
         e = EntityEngagementStats.objects.create()
         instance.engagements = e
         instance.save()
+
+@receiver(post_save, sender=Event)
+@receiver(post_save, sender=AgendaItem)
+@receiver(post_save, sender=Campaign)
+@receiver(post_save, sender=Speaker)
+@receiver(post_save, sender=Sponsor)
+def notify_suscribers(sender, instance, created, **kwargs):
+    verb = "%s - %s Updated" % (instance.entity_type, instance.name)
+    if created:
+        return
+
+    instance.notify_parents(verb)
+
+    if instance.entity_type == BaseEntityComponent.EVENT \
+        or instance.entity_type == BaseEntityComponent.AGENDA_ITEM \
+        or instance.entity_type == BaseEntityComponent.CAMPAIGN :
+        verb = "%s Updated" % instance.entity_type
+        if instance.owners.all().count() == 0 :
+            return
+        instance.notify_all_users(
+            instance.get_creator(),
+            verbs.WIZCARD_ENTITY_UPDATE,
+            instance,
+            verb=verb
+        )
 
 @receiver(user_type_created)
 def connect_subentities(sender, **kwargs):

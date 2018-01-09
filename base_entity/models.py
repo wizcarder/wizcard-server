@@ -380,6 +380,17 @@ class BaseEntityComponent(PolymorphicModel):
         return True
 
 
+    def notify_parents(self, verb):
+        # Assumes all parents are BaseEntity with users
+        parents = self.get_parent_entities()
+        map(lambda x:
+            x.notify_all_users(x.get_creator(),
+                               verbs.WIZCARD_ENTITY_UPDATE,
+                               x,
+                               verb="%s Update - %s" % (x.name, verb)),
+            parents)
+
+
 class BaseEntityComponentsOwner(models.Model):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
     owner = models.ForeignKey(User)
@@ -481,8 +492,11 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         wiz_users = [x for x in users if hasattr(x, 'wizcard')]
         return wiz_users
 
-    def notify_all_users(self, sender, notif_type, entity, exclude_sender=True):
+    def notify_all_users(self, sender, notif_type, entity, verb=None, exclude_sender=True):
         # send notif to all members, just like join
+
+        verb = verb if verb else notif_type[1]
+	print "sender = %s, target=%s, target_id=%d" % (sender, entity, entity.id)
 
         qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
         for u in qs:
@@ -490,8 +504,8 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 sender,
                 recipient=u,
                 notif_type=notif_type[0],
-                verb=notif_type[1],
-                target=entity
+                verb=verb,
+                target=entity,
             )
 
     def get_banner(self):

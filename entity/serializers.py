@@ -39,6 +39,7 @@ class AgendaItemSerializer(EntitySerializer):
 
         return obj
 
+
     def get_speakers(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
 

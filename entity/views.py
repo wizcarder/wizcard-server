@@ -116,7 +116,7 @@ class SpeakerViewSet(BaseEntityComponentViewSet):
         return SpeakerSerializer
 
 
-class SponsorViewSet(BaseEntityComponentViewSet):
+class SponsorViewSet(BaseEntityViewSet):
     queryset = Sponsor.objects.all()
 
     def get_queryset(self):

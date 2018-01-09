@@ -405,6 +405,7 @@ class FutureUser(models.Model):
             notify.send(self.inviter,
                         recipient=real_user,
                         notif_type=verbs.WIZREQ_U[0],
+                        verb=verbs.WIZREQ_U[1],
                         description=cctx.description,
                         target=self.content_object,
                         action_object=rel12)
@@ -413,6 +414,7 @@ class FutureUser(models.Model):
             notify.send(real_user,
                         recipient=self.inviter,
                         notif_type=verbs.WIZREQ_T[0],
+                        verb=verbs.WIZREQ_T[1],
                         description=cctx.description,
                         target=real_user.wizcard,
                         action_object=rel21)
@@ -421,6 +423,7 @@ class FutureUser(models.Model):
             # Q this to the receiver
             notify.send(self.inviter, recipient=real_user,
                         notif_type=verbs.WIZCARD_TABLE_INVITE[0],
+                        verb=verbs.WIZCARD_TABLE_INVITE[1],
                         target=self.content_object)
 
 # Model for Address-Book Support. Standard M2M-through

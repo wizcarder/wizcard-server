@@ -121,12 +121,12 @@ class ApnsMsg(object):
                                                     self.target_object,
                                                     self.action_object
                                                     )
-            alert_msg = self.aps['aps']['body'].format(
-                self.sender,
-                self.target_object,
-                self.action_object,
-                self.message
-            )
+
+            alert_msg = self.message if self.message else self.aps['aps']['body'].format(self.sender,
+                                                                         self.target_object,
+                                                                         self.action_object,
+                                                                         self.message
+                                                                         )
 
             self.aps['aps']['body'] = alert_msg
             self.aps['aps']['title'] = title

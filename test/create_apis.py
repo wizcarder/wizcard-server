@@ -47,8 +47,11 @@ def post_retrieve(rest_path, payload, headers=headers, key="id"):
 def get_retrieve(rest_path, rkey):
     request_url = server + rest_path
     resp = requests.get(request_url, headers=headers, timeout=10)
-    resp_dict = resp.json()
-    return resp_dict[rkey]
+    if rkey:
+        resp_dict = resp.json()
+        return resp_dict[rkey]
+    else:
+        return True
 
 def put_retrieve(rest_path, payload, rkey):
     request_url = server + rest_path
@@ -118,7 +121,7 @@ def create_sponsors(num, file, type="sponsor", attach=False):
                 for tid in tag_id:
                     rest_path = "/entity/tags/" + str(tid) + "/"
                     tags = get_retrieve(rest_path, 'tags')
-                    random_tags = sample(xrange(1, len(tags)), randint(1, len(tags)))
+                    random_tags = sample(xrange(1, len(tags)), randint(1, len(tags)/2))
                     rest_path = "/entity/campaigns/" + str(sponsor_id) + "/"
                     taglist = [tags[x] for x in random_tags]
                     payload = {'tags': taglist, 'taganomy':tid}
@@ -157,14 +160,14 @@ def create_events(numevents):
                           int(cfg.create_config['event_media'] - cfg.create_config['event_media']/2))
         event_media = event_media + [create_media(cfg.random_images[x]) for x in rand_ids]
 
-        related_speakers = {"ids": speaker_ids, "type": "e_speaker"}
-        related_sponsors = {"ids": sponsor_ids, "type": "e_sponsor"}
-        related_campaigns = {"ids": campaign_ids, "type": "e_campaign"}
+
         related_media = {"ids": event_media, "type": "e_media"}
         related_polls = {"ids": poll_ids, "type": "e_poll"}
-        event_payload['related'] = [related_speakers, related_sponsors, related_campaigns, related_media, related_polls]
+        event_payload['related'] = [related_media, related_polls]
 
         event_id = post_retrieve("/entity/events/", event_payload, key="id")
+        publish_path = "/entity/events/%s/publish_event/" % str(event_id)
+        get_retrieve(publish_path,None)
         event_ids.append(event_id)
 
 def create_agenda(numitems, evt, start_date, end_date, speakers ):
@@ -269,6 +272,15 @@ def create_exhibitors(numevents, attach=False):
                 except:
                     print "User Already exists"
 
+def attach_entities():
+    related_speakers = {"ids": speaker_ids, "type": "e_speaker"}
+    related_sponsors = {"ids": sponsor_ids, "type": "e_sponsor"}
+    related_campaigns = {"ids": campaign_ids, "type": "e_campaign"}
+    event_payload['related'] = [related_speakers, related_sponsors, related_campaigns]
+
+    for evt in event_ids:
+        event_id = put_retrieve("/entity/events/"+ str(evt)+"/", event_payload, "id")
+
 
 
 key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
@@ -279,25 +291,18 @@ numspeakers = cfg.create_config['speakers']
 speakerfile = cfg.create_config['speaker_file']
 create_speakers(numspeakers, speakerfile)
 
+
+numevents = cfg.create_config['events']
+create_events(numevents)
+
+create_taganomy(numevents, attach=True)
 numsponsors = cfg.create_config['sponsors']
 sponsorfile = cfg.create_config['sponsor_file']
 create_sponsors(numsponsors, sponsorfile)
 
 create_polls()
 
-numevents = cfg.create_config['events']
-create_events(numevents)
 
-create_taganomy(numevents, attach=True)
-
-
-agenda_items = cfg.create_config['agenda_items']
-for evt in event_ids:
-    rest_path = "/entity/events/" + str(evt)
-    start_date = get_retrieve(rest_path, "start")
-    end_date = get_retrieve(rest_path, "end")
-    speakers = get_retrieve(rest_path, "speakers")
-    create_agenda(agenda_items, evt,start_date, end_date, speakers)
 
 create_exhibitors(numevents, attach=True)
 
@@ -312,6 +317,27 @@ for i in range(numusers):
     u = User()
     u.onboard_user()
     map(lambda x:u.entity_join(x, entity_type='EVT'), event_ids)
+
+
+
+attach_entities()
+
+agenda_items = cfg.create_config['agenda_items']
+for evt in event_ids:
+    rest_path = "/entity/events/" + str(evt)
+    start_date = get_retrieve(rest_path, "start")
+    end_date = get_retrieve(rest_path, "end")
+    speakers = get_retrieve(rest_path, "speakers")
+    create_agenda(agenda_items, evt,start_date, end_date, speakers)
+
+
+#create_polls()
+#create_agenda()
+
+
+
+
+
 
 
 
