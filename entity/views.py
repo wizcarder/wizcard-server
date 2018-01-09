@@ -1,10 +1,10 @@
 from rest_framework.response import Response
 from base_entity.models import BaseEntityComponent
 from entity.models import Event, Campaign, VirtualTable,\
-    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, CoOwners
+    Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, AgendaItem, CoOwners
 from entity.serializers import EventSerializer, EventSerializerL0, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
-    SpeakerSerializer, AgendaSerializer, CoOwnersSerializer
+    SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, CoOwnersSerializer
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
 from notifications.models import Notification
@@ -159,6 +159,93 @@ class AgendaViewSet(BaseEntityComponentViewSet):
 
     def get_serializer_class(self):
         return AgendaSerializer
+
+
+class AgendaItemViewSet(BaseEntityComponentViewSet):
+    queryset = AgendaItem.objects.all()
+    serializer_class = AgendaItemSerializer
+
+    def list(self, request, agenda_pk=None):
+        agn = Agenda.objects.get(id=agenda_pk)
+        return Response(AgendaItemSerializer(agn.items.all(), many=True).data)
+
+    def retrieve(self, request, pk=None, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+            agi = AgendaItem.objects.get(id=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if agi not in agn.items.all():
+            return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(AgendaItemSerializer(agi).data)
+
+    def create(self, request, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        request.data.update(agenda=agn.pk)
+        serializer = AgendaItemSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+            agi = AgendaItem.objects.get(id=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if agi not in agn.items.all():
+            return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AgendaItemSerializer(agi, data=request.data)
+        if serializer.is_valid():
+            inst = serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk=None, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+            agi = AgendaItem.objects.get(id=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if agi not in agn.items.all():
+            return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AgendaItemSerializer(agi, data=request.data, partial=True)
+        if serializer.is_valid():
+            inst = serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None, agenda_pk=None):
+        try:
+            agn = Agenda.objects.get(id=agenda_pk)
+            agi = AgendaItem.objects.get(id=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if agi not in agn.items.all():
+            return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        agi.delete()
+
+        return Response(status=status.HTTP_200_OK)
 
 
 class AttendeeViewSet(BaseEntityComponentViewSet):
