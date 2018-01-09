@@ -123,6 +123,12 @@ class NotificationManager(BaseNotificationManager):
 
         return exclude_users
 
+    def event_notifications(self, event):
+        # this should filter for notifications event.
+        # Imporatant: Several notificationa may be queued for an Event, this one is specifically
+        # those created explicitly by Organizer.
+        pass
+
 
 class Notification(BaseNotification):
     # used by Portal. ALERT is also used by app for legacy path
@@ -201,7 +207,6 @@ def notify_handler(notif_type, **kwargs):
     from email_and_push_infra.models import EmailAndPush
 
     if delivery_method == BaseNotification.EMAIL:
-
 
         # AA: Comments: EmailPush cannot decide whether this is INSTANT or not. It has to come from top
         # It might need additional fields in the REST API. Think about usecases. For example, if the portal

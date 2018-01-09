@@ -87,6 +87,8 @@ class CampaignManager(BaseEntityManager):
 
 
 class Campaign(BaseEntity):
+    # when this is set, it'll s
+    is_sponsored = models.BooleanField(default=False)
 
     objects = CampaignManager()
 

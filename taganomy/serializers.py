@@ -4,7 +4,6 @@ from taganomy.models import Taganomy
 from taggit_serializer.serializers import TagListSerializerField, TaggitSerializer
 from base_entity.serializers import EntitySerializer
 from base_entity.models import BaseEntityComponent
-import pdb
 
 
 class TaganomySerializer(EntitySerializer, TaggitSerializer):
@@ -35,11 +34,10 @@ class TaganomySerializer(EntitySerializer, TaggitSerializer):
         tags = validated_data.pop('category', instance.tags)
         instance.tags.set(*tags)
 
+
 class TaganomySerializerL1(TaggitSerializer):
     tags = TagListSerializerField()
 
     class Meta:
         model = Taganomy
         fields = ('tags', )
-
-

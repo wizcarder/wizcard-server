@@ -535,6 +535,56 @@
 			"response": []
 		},
 		{
+			"name": "16.Agenda Create Standalone",
+			"request": {
+				"url": "http://localhost:8000/entity/agenda/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2016-10-25 14:30:59\",\n    \t\"end\": \"2016-10-25 14:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall A\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [6], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Agenda Item Create",
+			"request": {
+				"url": "http://localhost:8000/entity/agenda/22/agenda_item/24",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n  \t{\n    \t\"start\": \"2016-10-25 14:30:59\",\n    \t\"end\": \"2016-10-25 14:30:59\",\n    \t\"description\": \"Basic Computer Programming.updated\",\n    \t\"venue\": \"venue.updated\",\n    \t\"where\": \"Hall A.updated\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n "
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "19.Agenda Create",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/agenda/",
@@ -816,7 +866,7 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{exhibitor_user}}",
+						"value": "Token {{organizer_user}}",
 						"description": ""
 					}
 				],
@@ -831,7 +881,7 @@
 		{
 			"name": "23. Badge template update",
 			"request": {
-				"url": "http://localhost:8000/entity/badges/21",
+				"url": "http://localhost:8000/entity/badges/23",
 				"method": "PUT",
 				"header": [
 					{
@@ -947,7 +997,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "[38, 39]"
+					"raw": "{\n\t\"ids\": [38, 39]\n}"
 				},
 				"description": ""
 			},
