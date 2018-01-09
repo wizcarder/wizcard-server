@@ -3,7 +3,7 @@ __author__ = 'aammundi'
 from django.conf.urls import url, include, patterns
 from entity.views import EventViewSet, CampaignViewSet, TableViewSet
 from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorViewSet, AttendeeViewSet, \
-    CoOwnersViewSet, AgendaViewSet, AgendaItemViewSet, EventAgendaViewSet, ExhibitorEventViewSet
+    CoOwnerViewSet, AgendaViewSet, AgendaItemViewSet, ExhibitorEventViewSet
 from entity.views import EventCampaignViewSet, EventSpeakerViewSet, EventSponsorViewSet, \
     EventMediaViewSet, EventAttendeeViewSet, EventCoOwnerViewSet, EventAgendaViewSet, \
     EventTagonomyViewSet, EventNotificationViewSet
