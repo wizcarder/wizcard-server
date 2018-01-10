@@ -8,95 +8,113 @@
 	},
 	"item": [
 		{
-			"name": "2.user type 1 (AppUser) create",
+			"name": "http://localhost:8000/get_auth_token/",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"type": "text/javascript",
 						"exec": [
-							"tests[\"body\"] = responseBody"
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"app_user\", jsonData.token);"
 						]
 					}
 				}
 			],
 			"request": {
-				"url": "http://localhost:8000/users/registration/",
+				"url": "http://localhost:8000/get_auth_token/",
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
+				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"username\": \"appuser\",\n  \"email\": \"app.user@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "appuser",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
 				},
-				"description": ""
+				"description": "get auth token"
 			},
 			"response": []
 		},
 		{
-			"name": "3.User Type 2 (Organizer) create",
+			"name": "http://localhost:8000/get_auth_token/ copy copy",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"type": "text/javascript",
 						"exec": [
-							"tests[\"body\"] = responseBody"
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"organizer_user\", jsonData.token);"
 						]
 					}
 				}
 			],
 			"request": {
-				"url": "http://localhost:8000/users/registration/",
+				"url": "http://localhost:8000/get_auth_token/",
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
+				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"username\": \"organizer_user\",\n  \"email\": \"organizer@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "organizer_user",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
 				},
-				"description": ""
+				"description": "get auth token"
 			},
 			"response": []
 		},
 		{
-			"name": "4.User Type 4 (Exhibitor) create",
+			"name": "http://localhost:8000/get_auth_token/ copy",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"type": "text/javascript",
 						"exec": [
-							"tests[\"body\"] = responseBody"
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"exhibitor_user\", jsonData.token);"
 						]
 					}
 				}
 			],
 			"request": {
-				"url": "http://localhost:8000/users/registration/",
+				"url": "http://localhost:8000/get_auth_token/",
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
+				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\n   \"username\": \"exhibitor_user\",\n   \"email\": \"exhibitor@getwizcard.com\",\n  \"first_name\":\"Exhibitor\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n   \"user_type\": \"4\"\n}"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "exhibitor_user",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
 				},
-				"description": ""
+				"description": "get auth token"
 			},
 			"response": []
 		},
@@ -510,7 +528,7 @@
 			"response": []
 		},
 		{
-			"name": "16.Agenda Create",
+			"name": "16.Agenda Create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/agenda/",
 				"method": "POST",
@@ -535,7 +553,7 @@
 			"response": []
 		},
 		{
-			"name": "16.Agenda Create Standalone",
+			"name": "19.Agenda Create Standalone",
 			"request": {
 				"url": "http://localhost:8000/entity/agenda/",
 				"method": "POST",
@@ -560,10 +578,10 @@
 			"response": []
 		},
 		{
-			"name": "Agenda Item Create",
+			"name": "22. Agenda.19 Item Create",
 			"request": {
-				"url": "http://localhost:8000/entity/agenda/22/agenda_item/24",
-				"method": "PUT",
+				"url": "http://localhost:8000/entity/agenda/19/agenda_item/",
+				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
@@ -585,7 +603,7 @@
 			"response": []
 		},
 		{
-			"name": "19.Agenda Create",
+			"name": "23.Agenda Create Nested Event 15",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/agenda/",
 				"method": "POST",
@@ -610,7 +628,7 @@
 			"response": []
 		},
 		{
-			"name": "22 Poll Create",
+			"name": "26 Poll Create",
 			"request": {
 				"url": "http://localhost:8000/entity/polls/",
 				"method": "POST",
@@ -635,9 +653,9 @@
 			"response": []
 		},
 		{
-			"name": "22 Poll Update",
+			"name": "26 Poll Update",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/22/",
+				"url": "http://localhost:8000/entity/polls/26/",
 				"method": "PUT",
 				"header": [
 					{
@@ -660,9 +678,9 @@
 			"response": []
 		},
 		{
-			"name": "22.Poll attach",
+			"name": "26.Poll attach",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/22/attach/",
+				"url": "http://localhost:8000/entity/polls/26/attach/",
 				"method": "POST",
 				"header": [
 					{
@@ -687,9 +705,9 @@
 			"response": []
 		},
 		{
-			"name": "22.Poll activate",
+			"name": "26.Poll activate",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/22/activate/",
+				"url": "http://localhost:8000/entity/polls/26/activate/",
 				"method": "GET",
 				"header": [
 					{
@@ -704,7 +722,7 @@
 			"response": []
 		},
 		{
-			"name": "23.Notification Create",
+			"name": "2.Notification Create",
 			"request": {
 				"url": "http://localhost:8000/entity/notifications/",
 				"method": "POST",
@@ -729,7 +747,7 @@
 			"response": []
 		},
 		{
-			"name": "23.Notification Get",
+			"name": "Notification Get",
 			"request": {
 				"url": "http://localhost:8000/entity/notifications/",
 				"method": "GET",
@@ -754,7 +772,7 @@
 			"response": []
 		},
 		{
-			"name": "23. Badge template create",
+			"name": "27. Badge template create",
 			"request": {
 				"url": "http://localhost:8000/entity/badges/",
 				"method": "POST",
@@ -779,7 +797,32 @@
 			"response": []
 		},
 		{
-			"name": "24. Scans upload",
+			"name": "27. Badge template update",
+			"request": {
+				"url": "http://localhost:8000/entity/badges/27",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"company\": \"WizCard Inc.updated\",\n\t\"title\": \"CEO.updated\",\n\t\"name\": \"Anand Ammundi.updated\",\n\t\"email\": \"anand.ammundi@getwizcardupdated.com\",\n\t\"ext_fields\": {\n\t\t\"key1\": \"value1.updated\",\n\t\t\"key2\": \"value2.updated\"\n\t},\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "28. Scans upload",
 			"request": {
 				"url": "http://localhost:8000/entity/scans/",
 				"method": "POST",
@@ -804,9 +847,9 @@
 			"response": []
 		},
 		{
-			"name": "24. Scans update",
+			"name": "28. Scans update",
 			"request": {
-				"url": "http://localhost:8000/entity/scans/24",
+				"url": "http://localhost:8000/entity/scans/28",
 				"method": "PUT",
 				"header": [
 					{
@@ -829,9 +872,9 @@
 			"response": []
 		},
 		{
-			"name": "24. Scans attach owner",
+			"name": "28. Scans attach owner",
 			"request": {
-				"url": "http://localhost:8000/entity/scans/24",
+				"url": "http://localhost:8000/entity/scans/28",
 				"method": "PUT",
 				"header": [
 					{
@@ -854,7 +897,7 @@
 			"response": []
 		},
 		{
-			"name": "24. Scans Get",
+			"name": "Scans Get",
 			"request": {
 				"url": "http://localhost:8000/entity/scans/",
 				"method": "GET",
@@ -879,57 +922,7 @@
 			"response": []
 		},
 		{
-			"name": "23. Badge template update",
-			"request": {
-				"url": "http://localhost:8000/entity/badges/23",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"company\": \"WizCard Inc.updated\",\n\t\"title\": \"CEO.updated\",\n\t\"name\": \"Anand Ammundi.updated\",\n\t\"email\": \"anand.ammundi@getwizcardupdated.com\",\n\t\"ext_fields\": {\n\t\t\"key1\": \"value1.updated\",\n\t\t\"key2\": \"value2.updated\"\n\t},\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "23.GET Notifications",
-			"request": {
-				"url": "http://localhost:8000/entity/notifications/",
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"delivery_type\": \"1\",\n\t\"recipient\": 2,\n\t\"actor\": {\n\t\t\"type\": \"user\", \n\t\t\"id\": 1\n\t}, \n\t\"target\": {\n\t\t\"type\": \"event\", \n\t\t\"id\": 14\n\t}, \n\t\"action_object\": {\n\t\t\"type\": \"agenda\", \n\t\t\"id\": 19\n\t}, \n\t\"verb\": \"Your event is starting now\"\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "Exhibitor Invitee Create",
+			"name": "29.Exhibitor Invitee Create",
 			"request": {
 				"url": "http://localhost:8000/entity/exhibitors/",
 				"method": "POST",
@@ -979,7 +972,7 @@
 			"response": []
 		},
 		{
-			"name": "14.Event invite exhibitors",
+			"name": "Event.14 invite exhibitors",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/invite_exhibitors/",
 				"method": "POST",
@@ -997,7 +990,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"ids\": [38, 39]\n}"
+					"raw": "{\n\t\"ids\": [29]\n}"
 				},
 				"description": ""
 			},
@@ -1148,9 +1141,9 @@
 			"response": []
 		},
 		{
-			"name": "Speaker Update",
+			"name": "8.Speaker Update",
 			"request": {
-				"url": "http://localhost:8000/entity/speakers/7",
+				"url": "http://localhost:8000/entity/speakers/8",
 				"method": "PUT",
 				"header": [
 					{
@@ -1239,7 +1232,7 @@
 			"response": []
 		},
 		{
-			"name": "12.GET Agenda",
+			"name": "Event 14.GET Agenda",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/agenda/",
 				"method": "GET",
@@ -1261,7 +1254,7 @@
 			"response": []
 		},
 		{
-			"name": "13.GET Agenda",
+			"name": "Event 15.GET Agenda",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/agenda/",
 				"method": "GET",
@@ -1283,7 +1276,7 @@
 			"response": []
 		},
 		{
-			"name": "22.GET Polls",
+			"name": "GET Polls",
 			"request": {
 				"url": "http://localhost:8000/entity/polls/",
 				"method": "GET",
@@ -1307,7 +1300,7 @@
 		{
 			"name": "22.Poll Answers",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/22/answers",
+				"url": "http://localhost:8000/entity/polls/26/answers",
 				"method": "GET",
 				"header": [
 					{
@@ -1327,7 +1320,7 @@
 			"response": []
 		},
 		{
-			"name": "GET CoOwners",
+			"name": "Organizer_user GET CoOwners",
 			"request": {
 				"url": "http://localhost:8000/entity/owners/",
 				"method": "GET",
@@ -1339,7 +1332,32 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{app_user}}",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCT\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t}\n\t]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "exhibitor_user GET CoOwners",
+			"request": {
+				"url": "http://localhost:8000/entity/owners/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
 						"description": ""
 					}
 				],
@@ -1377,39 +1395,6 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:8000/entity",
-			"request": {
-				"url": "http://localhost:8000/entity",
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Token {{token}}",
-						"description": ""
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:8000/users/users/",
-			"request": {
-				"url": "http://localhost:8000/users/",
-				"method": "GET",
-				"header": [],
-				"body": {},
-				"description": "Users"
-			},
-			"response": []
-		},
-		{
 			"name": "http://localhost:8000/schema",
 			"request": {
 				"url": "http://localhost:8000/schema",
@@ -1432,160 +1417,6 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:8000/get_auth_token/",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"var jsonData = JSON.parse(responseBody);",
-							"",
-							"",
-							"",
-							"",
-							"postman.setEnvironmentVariable(\"token\", \"jsonData.token\");"
-						]
-					}
-				}
-			],
-			"request": {
-				"url": "http://localhost:8000/get_auth_token/",
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "username",
-							"value": "appuser",
-							"type": "text"
-						},
-						{
-							"key": "password",
-							"value": "yahoo@123",
-							"type": "text"
-						}
-					]
-				},
-				"description": "get auth token"
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:8000/get_auth_token/ copy",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"var jsonData = JSON.parse(responseBody);",
-							"",
-							"",
-							"",
-							"",
-							"postman.setEnvironmentVariable(\"token\", \"jsonData.token\");"
-						]
-					}
-				}
-			],
-			"request": {
-				"url": "http://localhost:8000/get_auth_token/",
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "username",
-							"value": "exhibitor_user",
-							"type": "text"
-						},
-						{
-							"key": "password",
-							"value": "yahoo@123",
-							"type": "text"
-						}
-					]
-				},
-				"description": "get auth token"
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:8000/get_auth_token/ copy copy",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"var jsonData = JSON.parse(responseBody);",
-							"",
-							"",
-							"",
-							"",
-							"postman.setEnvironmentVariable(\"token\", \"jsonData.token\");"
-						]
-					}
-				}
-			],
-			"request": {
-				"url": "http://localhost:8000/get_auth_token/",
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "username",
-							"value": "organizer_user",
-							"type": "text"
-						},
-						{
-							"key": "password",
-							"value": "yahoo@123",
-							"type": "text"
-						}
-					]
-				},
-				"description": "get auth token"
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:8000/tables/tables/",
-			"request": {
-				"url": "http://localhost:8000/tables/tables/",
-				"method": "GET",
-				"header": [],
-				"body": {},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "Entity Update with Table",
-			"request": {
-				"url": "http://localhost:8000/entity/events/1",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "\n{\n    \"related\": [\n    \t{\n    \t\t\"id\": 4, \"type\": \"e_table\"\n    \t},\n    \t{\n    \t\t\"id\": 5, \"type\": \"e_table\"\n    \t}\n\t]\n}"
-				},
-				"description": "Test 1: Basic entity create"
-			},
-			"response": []
-		},
-		{
 			"name": "Table Create",
 			"request": {
 				"url": "http://localhost:8000/entity/tables/",
@@ -1598,13 +1429,13 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token 3bc158bc4ce1411519e793672931c846aed53274",
+						"value": "Token {{organizer_user}}",
 						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"creator\": 2,\n    \"owners\": [\n      4\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"owners\": [\n      10\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Table Create"
 			},
