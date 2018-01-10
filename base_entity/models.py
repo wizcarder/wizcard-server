@@ -321,10 +321,6 @@ class BaseEntityComponent(PolymorphicModel):
 
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
-
-        #post_connect needs from and to parts of connection to do something meaningful
-        # even for notification it needs event to send notifications for e.g.
-        #obj.post_connect(self)
         return obj
 
     def remove_sub_entities_of_type(self, entity_type):

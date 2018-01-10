@@ -86,14 +86,6 @@ class Campaign(BaseEntity):
     objects = CampaignManager()
 
 
-    def post_connect(self, parent):
-        self.notify_all_users(
-            parent.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE,
-            parent
-        )
-
-
 
 class VirtualTableManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.TABLE):
@@ -262,12 +254,6 @@ class AgendaManager(BaseEntityComponentManager):
 class Agenda(BaseEntityComponent):
     objects = AgendaManager()
 
-    def post_connect(self, parent):
-        parent.notify_all_users(
-            parent.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE,
-            parent
-        )
 
 
 class AgendaItem(BaseEntity):

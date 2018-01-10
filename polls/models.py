@@ -65,13 +65,6 @@ class Poll(BaseEntityComponent):
         self.state = state
         self.save()
 
-    def post_connect(self, parent):
-
-        parent.notify_all_users(
-            parent.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE,
-            parent
-        )
 
 class QuestionManager(PolymorphicManager):
 
