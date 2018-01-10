@@ -727,7 +727,7 @@ class EventCoOwnerViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if coo not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        if coo not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
             return Response("event id %s not associated with CoOwner %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
