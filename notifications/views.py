@@ -10,14 +10,14 @@ import pdb
 
 
 class NotificationViewSet(BaseEntityComponentViewSet):
-    queryset = Notification.objects.filter(notif_type=verbs.NOTIF_ENTITY_BROADCAST_CREATE)
+    queryset = Notification.objects.filter(notif_type=verbs.NOTIF_ENTITY_BROADCAST)
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
         """
         we have to filter on the celery read part of the notif table.
         """
-        return Notification.objects.filter(notif_type=verbs.NOTIF_ENTITY_BROADCAST_CREATE)
+        return Notification.objects.filter(notif_type=verbs.NOTIF_ENTITY_BROADCAST)
 
     def destroy(self, request, *args, **kwargs):
         self.get_object().delete()

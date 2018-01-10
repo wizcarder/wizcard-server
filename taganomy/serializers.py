@@ -9,21 +9,14 @@ import pdb
 
 class TaganomySerializer(EntitySerializer, TaggitSerializer):
     tags = TagListSerializerField()
-    category = serializers.CharField()
 
     class Meta:
         model = Taganomy
-        fields = ('id', 'tags', 'category',)
+        fields = ('id', 'tags', 'name')
 
-    def prepare(self, validated_data):
-        super(TaganomySerializer, self).prepare(validated_data)
-
-    def post_create_update(self, entity):
-        super(TaganomySerializer, self).post_create_update(entity)
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CATEGORY)
-
         self.prepare(validated_data)
         obj = super(TaganomySerializer, self).create(validated_data)
         self.post_create_update(obj)
@@ -31,9 +24,9 @@ class TaganomySerializer(EntitySerializer, TaggitSerializer):
         return obj
 
     def update(self, instance, validated_data):
-        instance.category = validated_data.pop('category', instance.category)
-        tags = validated_data.pop('category', instance.tags)
-        instance.tags.set(*tags)
+        obj = super(TaganomySerializer, self).update(validated_data)
+        self.post_create_update(instance, update=True)
+
 
 class TaganomySerializerL1(TaggitSerializer):
     tags = TagListSerializerField()

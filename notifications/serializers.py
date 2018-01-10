@@ -63,11 +63,12 @@ class NotificationSerializer(serializers.ModelSerializer):
 
         push_notif = notify.send(
             self.context.get('user'),
-            notif_type=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0],
+            notif_type=verbs.WIZCARD_ENTITY_BROADCAST[0],
             do_push=do_push,
             delivery_method=delivery_method,
             start_date=start,
             end_date=end,
+            fanout=True,
             **validated_data
         )
 

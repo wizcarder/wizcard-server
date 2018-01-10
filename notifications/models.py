@@ -10,6 +10,9 @@ import logging
 import pdb
 from datetime import timedelta
 from django.utils import timezone
+from notifications.tasks import fanout_notifs
+
+
 
 now = timezone.now()
 
@@ -197,6 +200,7 @@ def notify_handler(notif_type, **kwargs):
     do_push = kwargs.pop('do_push', True)
     start = kwargs.pop('start_date', timezone.now() + timedelta(minutes=1))
     end = kwargs.pop('end_date', start)
+    fanout = kwargs.pop('fanout', False)
 
     from email_and_push_infra.models import EmailAndPush
 
@@ -235,36 +239,35 @@ def notify_handler(notif_type, **kwargs):
         start = end = timezone.now()
 
         if do_push:
-            push_obj = EmailAndPush.objects.create(actor_content_type=ContentType.objects.get_for_model(actor),
-                                                   actor_object_id=actor.pk,
-                                                   recipient=recipient,
-                                                   readed=False,
-                                                   delivery_method=BaseNotification.PUSHNOTIF,
-                                                   notif_type=notif_type,
-                                                   verb=verb,
-                                                   target_content_type=ContentType.objects.get_for_model(target),
-                                                   target_object_id=target.pk,
-                                                   action_object_content_type=action_object_content_type,
-                                                   action_object_object_id=action_object_object_id,
-                                                   timestamp=kwargs.pop('timestamp', timezone.now()),
-                                                   start_date=start,
-                                                   end_date=end
-                                                   )
 
-        newnotify, created = Notification.objects.get_or_create(
-                                actor_content_type=ContentType.objects.get_for_model(actor),
-                                actor_object_id=actor.pk,
-                                recipient=recipient,
-                                readed=False,
-                                notif_type=notif_type,
-                                verb=verb,
-                                target_content_type=ContentType.objects.get_for_model(target),
-                                target_object_id=target.pk,
-                                action_object_content_type=action_object_content_type,
-                                action_object_object_id=action_object_object_id,
-                                public=bool(kwargs.pop('public', True)),
-                                timestamp=kwargs.pop('timestamp', timezone.now())
-                            )
+            from email_and_push_infra.tasks import pushNotificationToApp
+            pushNotificationToApp.delay(actor.pk,
+                                        recipient.id,
+                                        action_object_object_id,
+                                        action_object_content_type,
+                                        target.pk,
+                                        ContentType.objects.get_for_model(target),
+                                        notif_type,
+                                        verb,
+                                        fanout)
+
+
+
+        newnotify, created = Notification.objects.get_or_create(actor_content_type=ContentType.objects.get_for_model(actor),
+                                                                actor_object_id=actor.pk,
+                                                                recipient=recipient,
+                                                                readed=False,
+                                                                notif_type=notif_type,
+                                                                verb=verb,
+                                                                target_content_type=ContentType.objects.get_for_model(target),
+                                                                target_object_id=target.pk,
+                                                                action_object_content_type=action_object_content_type,
+                                                                action_object_object_id=action_object_object_id,
+                                                                public=bool(kwargs.pop('public', True)),
+                                                                timestamp=kwargs.pop('timestamp', timezone.now())
+                                                                )
+        if fanout and created:
+            fanout_notifs.delay(newnotify)
 
     return newnotify
 

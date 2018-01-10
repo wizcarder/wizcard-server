@@ -135,9 +135,8 @@ NOTIF_SCANNED_USER              = 26
 NOTIF_INVITE_USER               = 27
 NOTIF_ENTITY_REMINDER            = 28
 NOTIF_ENTITY_BROADCAST           = 29
-NOTIF_ENTITY_BROADCAST_CREATE   = 30
-NOTIF_INVITE_EXHIBITOR          = 31
-NOTIF_INVITE_ATTENDEE           = 32
+NOTIF_INVITE_EXHIBITOR          = 30
+NOTIF_INVITE_ATTENDEE           = 31
 
 
 # receiver types
@@ -211,7 +210,7 @@ WIZCARD_INVITE_USER = (NOTIF_INVITE_USER, 'invite_user', 0)
 WIZCARD_INVITE_EXHIBITOR = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', 0)
 WIZCARD_INVITE_ATTENDEE = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', 0)
 WIZCARD_ENTITY_BROADCAST = (NOTIF_ENTITY_BROADCAST, 'event broadcast', 1)
-WIZCARD_ENTITY_BROADCAST_CREATE = (NOTIF_ENTITY_BROADCAST_CREATE, 'event_broadcast_create', 0)
+
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {
@@ -276,11 +275,7 @@ apns_notification_dictionary = {
         'badge': 0,
         'alert': 'Message from {1.name} - {3}'
     },
-    WIZCARD_ENTITY_BROADCAST_CREATE[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'Message from {1.name} - {3}'
-    }
+
 
 }
 
@@ -321,10 +316,6 @@ gcm_notification_dictionary = {
         'title': 'Event announcement',
         'body': '{3}',
     },
-    WIZCARD_ENTITY_BROADCAST_CREATE[0]: {
-        'title': 'Create Broadcast',
-        'body': '{3}',
-    }
 
 }
 

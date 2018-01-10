@@ -6,6 +6,7 @@ from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.db.models.signals import m2m_changed
 from django.contrib.contenttypes.models import ContentType
 from taggit.models import Tag
+from base.mixins import Base411Mixin
 
 import pdb
 
@@ -29,9 +30,8 @@ class TaganomyManager(BaseEntityComponentManager):
 
 
 
-class Taganomy(BaseEntityComponent):
+class Taganomy(BaseEntityComponent, Base411Mixin):
 
-    category = models.CharField(max_length=100)
 
     objects = TaganomyManager()
 

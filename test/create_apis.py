@@ -32,7 +32,7 @@ sponsor_payload = {"name":"", "caption":"", "website": "http://getwizcard.com", 
 agenda_payload = {"items":[]}
 event_payload = {"name":"", "description":"", "venue": "Pragati Maidan", "location":{'lat':"", 'lng':""}, "start":"", "end":"", "related":[], "website":"http://www.getwizcard.com", "email":"a@b.com"}
 event_related_payload = {"related": []}
-tag_payload = {"category": "", "tags": {}}
+tag_payload = {"name": "", "tags": {}}
 exhibitor_credentials = []
 #server = "http://test.wizcard.be:8080/"
 server = "http://localhost:8000"
@@ -218,7 +218,7 @@ def create_taganomy(numevents, attach=True):
         rand_ids = sample(xrange(1, len(totaltags)), numtags)
         event_tags = [totaltags[x] for x in rand_ids]
         rest_path = "/entity/tags/"
-        my_tag_payload['category'] = "Event_" + str(i)
+        my_tag_payload['name'] = "Event_" + str(i)
         my_tag_payload['tags'] = event_tags
         tid = post_retrieve(rest_path, my_tag_payload, key="id")
         taganomy_ids.append(tid)
