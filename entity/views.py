@@ -2,9 +2,10 @@ from rest_framework.response import Response
 from base_entity.models import BaseEntityComponent
 from entity.models import Event, Campaign, VirtualTable,\
     Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, AgendaItem, CoOwners
+from polls.models import Poll
 from entity.serializers import EventSerializer, EventSerializerL0, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
-    SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, CoOwnersSerializer
+    SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, CoOwnersSerializer
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
 from notifications.models import Notification
@@ -87,7 +88,7 @@ class EventViewSet(BaseEntityViewSet):
 
         return Response(AttendeeInviteeSerializer(valid_candidates, many=True)).data
 
-    @detail_route(methods=['get'])
+    @detail_route(methods=['put'])
     def publish_event(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
         inst.make_live()
@@ -138,7 +139,7 @@ class SponsorViewSet(BaseEntityComponentViewSet):
         return SponsorSerializer
 
 
-class ExhibitorViewSet(BaseEntityComponentViewSet):
+class ExhibitorInviteeViewSet(BaseEntityComponentViewSet):
     queryset = ExhibitorInvitee.objects.all()
     serializer_class = ExhibitorInviteeSerializer
 
@@ -326,7 +327,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
     def destroy(self, request, event_pk=None, pk=None):
         try:
             event = Event.objects.get(id=event_pk)
-            cpg = Agenda.objects.get(id=pk)
+            cpg = Campaign.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -458,7 +459,7 @@ class EventSponsorViewSet(viewsets.ModelViewSet):
     def destroy(self, request, event_pk=None, pk=None):
         try:
             event = Event.objects.get(id=event_pk)
-            spn = Agenda.objects.get(id=pk)
+            spn = Sponsor.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -590,7 +591,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
     def destroy(self, request, event_pk=None, pk=None):
         try:
             event = Event.objects.get(id=event_pk)
-            ati = Agenda.objects.get(id=pk)
+            ati = AttendeeInvitee.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -599,6 +600,72 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_of_type(ati.id, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class EventExhibitorViewSet(viewsets.ModelViewSet):
+    queryset = ExhibitorInvitee.objects.all()
+    serializer_class = ExhibitorInviteeSerializer
+
+    def list(self, request, event_pk=None):
+        event = Event.objects.get(id=event_pk)
+        exi = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
+        return Response(ExhibitorInviteeSerializer(exi, many=True).data)
+
+    def retrieve(self, request, pk=None, event_pk=None):
+        try:
+            exi = ExhibitorInvitee.objects.get(id=pk)
+            event = Event.objects.get(id=event_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if exi not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE):
+            return Response("event id %s not associated with invitee %s " % (event_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ExhibitorInviteeSerializer(exi).data)
+
+    def create(self, request, event_pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ExhibitorInviteeSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, event_pk=None, pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+            exi = ExhibitorInvitee.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if exi in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE):
+            return Response("event %s already  associated with exhibitor invitee %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
+
+        event.add_subentity_obj(exi, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, event_pk=None, pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+            exi = ExhibitorInvitee.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if exi not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE):
+            return Response("event id %s not associated with Exhibitor Invitee %s " % (event_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        event.remove_sub_entity_of_type(exi.id, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -731,6 +798,71 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_of_type(agn.id, BaseEntityComponent.SUB_ENTITY_AGENDA)
+        return Response(status=status.HTTP_200_OK)
+
+
+class EventPollViewSet(viewsets.ModelViewSet):
+    queryset = Poll.objects.all()
+    serializer_class = PollSerializer
+
+    def list(self, request, event_pk=None):
+        event = Event.objects.get(id=event_pk)
+        pol = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL)
+        return Response(PollSerializer(pol, many=True).data)
+
+    def retrieve(self, request, pk=None, event_pk=None):
+        try:
+            pol = Poll.objects.get(id=pk)
+            event = Event.objects.get(id=event_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if pol not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
+            return Response("event id %s not associated with Poll %s " % (event_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(PollSerializer(pol).data)
+
+    def create(self, request, event_pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PollSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_POLL)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, event_pk=None, pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+            pol = Poll.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if pol in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
+            return Response("event id %s already associated with poll %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
+
+        event.add_subentity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, event_pk=None, pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+            pol = Poll.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if pol not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
+            return Response("event id %s not associated with Poll %s " % (event_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        event.remove_sub_entity_of_type(pol.id, BaseEntityComponent.SUB_ENTITY_POLL)
         return Response(status=status.HTTP_200_OK)
 
 

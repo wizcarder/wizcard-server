@@ -1,0 +1,636 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Nested Routes",
+		"_postman_id": "1681f141-80c2-7366-417f-e2c87ff5fd6f",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "26.Campaign Create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/campaign/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"Product One Nested\",\n    \"address\": \"Product One Nested\",\n    \"website\": \"http://www.OneNested.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi/nested\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n    \t{\n    \t\t\"ids\": [6], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2018-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\"\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "27.Speaker create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/speaker/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"John Doe Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardnested.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/nested\",\n    \t\"linked\" : \"linkedin.com/john/nested\"\n    },\n    \"description\": \"Nested Campaign\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "28.Sponsor create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/sponsor/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"Cisco Systems Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardNested.com\",\n    \"designation\": \"Nested\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/Nested\",\n    \t\"linked\" : \"linkedin.com/john/Nested\"\n    },\n    \"description\": \"Nested\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [5], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "29.Media create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/media/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"media_element\": \"http://www.eventone.nested.com\",\n\t\"media_iframe\": \"\",\n\t\"media_type\": \"IMG\",\n\t\"media_sub_type\": \"LGO\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "30.Attendee create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/attendee/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"app_user1\",\n    \"email\": \"app_user1@getwizcard.com\"\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "31.Exhibitor create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/exhibitor/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"exhibitor_user1\",\n    \"email\": \"exhibitor1@getwizcard.com\"\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "32.CoOwner create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/coowner/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"user\": 4\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "33.Agenda Create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/agenda/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2016-10-25 14:30:59\",\n    \t\"end\": \"2016-10-25 14:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall A\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [6], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "36.Poll create Nested Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/poll/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"description\": \"Poll 2\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCR\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TOF\",\n\t  \t\t\"ui_type\": \"RAD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"true_key\": \"Yes\",\n\t  \t\t\t\t\"false_key\": \"No\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TXT\",\n\t  \t\t\"ui_type\": \"TEX\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": []\n\t\t}\n\t]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Campaign12 unlink event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/campaign/26/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Campaign12 link event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/campaign/26/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Speaker.27 link event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/speaker/27/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Speaker.27 unlink event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/speaker/27/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Sponsor28 unlink event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/sponsor/28/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Sponsor.28 link event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/sponsor/28/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Media.29 unlink event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/media/29/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Media.29 link event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/media/29/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Attendee.30 unlink event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/attendee/30/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Attendee.30 link event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/attendee/30/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Exhibitor.31 unlink event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/exhibitor/31/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Exhibitor.31 link event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/exhibitor/31/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "CoOwner.32 unlink event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/coowner/32/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "CoOwner.32 link event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/coowner/32/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Agenda.33 unlink event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/agenda/33/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Agenda.33 link event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/agenda/33/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

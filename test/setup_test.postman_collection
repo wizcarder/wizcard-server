@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "2.user type 1 (AppUser) create",
+			"name": "2.user type 1 (AppUser1) create",
 			"event": [
 				{
 					"listen": "test",
@@ -32,14 +32,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"username\": \"appuser\",\n  \"email\": \"app.user@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
+					"raw": "{\n  \"username\": \"appuser1\",\n  \"email\": \"app.user1@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User1\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
 				},
 				"description": ""
 			},
 			"response": []
 		},
 		{
-			"name": "3.User Type 2 (Organizer) create",
+			"name": "3.user type 1 (AppUser2) create",
 			"event": [
 				{
 					"listen": "test",
@@ -63,14 +63,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"username\": \"organizer_user\",\n  \"email\": \"organizer@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
+					"raw": "{\n  \"username\": \"appuser2\",\n  \"email\": \"app.user2@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User2\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
 				},
 				"description": ""
 			},
 			"response": []
 		},
 		{
-			"name": "4.User Type 4 (Exhibitor) create",
+			"name": "4.User Type 2 (Organizer1) create",
 			"event": [
 				{
 					"listen": "test",
@@ -94,7 +94,100 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n   \"username\": \"exhibitor_user\",\n   \"email\": \"exhibitor@getwizcard.com\",\n  \"first_name\":\"Exhibitor\",\n  \"last_name\":\"User\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n   \"user_type\": \"4\"\n}"
+					"raw": "{\n  \"username\": \"organizer_user1\",\n  \"email\": \"organizer1@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User1\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "5.User Type 2 (Organizer2) create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"body\"] = responseBody"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/users/registration/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"organizer_user2\",\n  \"email\": \"organizer2@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User2\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "6.User Type 4 (Exhibitor1) create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"body\"] = responseBody"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/users/registration/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"username\": \"exhibitor_user1\",\n   \"email\": \"exhibitor1@getwizcard.com\",\n  \"first_name\":\"Exhibitor\",\n  \"last_name\":\"User1\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n   \"user_type\": \"4\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "7.User Type 4 (Exhibitor2) create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"body\"] = responseBody"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/users/registration/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"username\": \"exhibitor_user2\",\n   \"email\": \"exhibitor2@getwizcard.com\",\n  \"first_name\":\"Exhibitor\",\n  \"last_name\":\"User2\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n   \"user_type\": \"4\"\n}"
 				},
 				"description": ""
 			},

@@ -24,20 +24,12 @@ class PollViewSet(BaseEntityComponentViewSet):
         queryset = Poll.objects.owners_entities(user)
         return queryset
 
-    @detail_route(methods=['get'], url_path='activate')
+    @detail_route(methods=['post'], url_path='activate')
     def publish_poll(self, request, pk=None):
         inst = get_object_or_404(Poll, pk=pk)
         inst.set_state(Poll.POLL_STATE_ACTIVE)
 
         return Response("poll id %s activated" % pk, status=status.HTTP_200_OK)
-
-    @detail_route(methods=['post'], url_path='attach')
-    def attach_event(self, request, pk=None):
-        event = get_object_or_404(Event, pk=request.POST['event_id'])
-        poll = get_object_or_404(Poll, pk=pk)
-        event.add_subentity_obj(poll, BaseEntityComponent.SUB_ENTITY_POLL)
-
-        return Response("poll  %s attached to event" % poll.description, status=status.HTTP_200_OK)
 
     @detail_route(methods=['post'], url_path='link')
     def link_to_entity(self, request, pk):
