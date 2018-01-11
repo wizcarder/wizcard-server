@@ -171,10 +171,10 @@ def location_timeout_cb(l):
     l.delete()
 
 def virtual_table_timeout_cb(l):
-    l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[0])
+    l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT)
 
 def flicked_card_timeout(l):
-    l.content_object.delete(type=verbs.WIZCARD_FLICK_TIMEOUT[0])
+    l.content_object.delete(type=verbs.WIZCARD_FLICK_TIMEOUT)
 
 def timeout_callback_execute(e):
     timeout_callback = {

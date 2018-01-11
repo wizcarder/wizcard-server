@@ -57,7 +57,10 @@ def put_retrieve(rest_path, payload, rkey):
     request_url = server + rest_path
     resp = requests.put(request_url, json=payload, headers=headers, timeout=10)
     resp_dict = resp.json()
-    return resp_dict[rkey]
+    if rkey:
+        return resp_dict[rkey]
+    else:
+        return
 
 
 def create_media(url, media_type='IMG', media_sub_type='ROL'):
@@ -116,9 +119,13 @@ def create_sponsors(num, file, type="sponsor", attach=False):
             rest_path = "/entity/events/" + str(event_id) + "/"
             event_id = put_retrieve(rest_path, event_related_payload, "id")
 
-            tag_id = get_retrieve(rest_path, 'taganomy')
-            if tag_id:
-                for tid in tag_id:
+            tagsets = get_retrieve(rest_path, 'taganomy')
+            tag_ids = []
+            for tagset in tagsets:
+                tag_ids.append(tagset['id'])
+
+            if tag_ids:
+                for tid in tag_ids:
                     rest_path = "/entity/tags/" + str(tid) + "/"
                     tags = get_retrieve(rest_path, 'tags')
                     random_tags = sample(xrange(1, len(tags)), randint(1, len(tags)/2))
@@ -167,7 +174,7 @@ def create_events(numevents):
 
         event_id = post_retrieve("/entity/events/", event_payload, key="id")
         publish_path = "/entity/events/%s/publish_event/" % str(event_id)
-        get_retrieve(publish_path,None)
+        put_retrieve(publish_path,{}, None)
         event_ids.append(event_id)
 
 def create_agenda(numitems, evt, start_date, end_date, speakers ):
@@ -283,7 +290,7 @@ def attach_entities():
 
 
 
-key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
+#key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
 token = post_retrieve("/users/login/", user_login_payload, key='token')
 headers['Authorization'] = "Token " + token
 #Create Speakers
@@ -328,7 +335,8 @@ for evt in event_ids:
     start_date = get_retrieve(rest_path, "start")
     end_date = get_retrieve(rest_path, "end")
     speakers = get_retrieve(rest_path, "speakers")
-    create_agenda(agenda_items, evt,start_date, end_date, speakers)
+    speaker_ids = map(lambda x:x['id'], speakers)
+    create_agenda(agenda_items, evt,start_date, end_date, speaker_ids)
 
 
 #create_polls()

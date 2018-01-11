@@ -641,10 +641,10 @@ class WizcardFlick(models.Model):
         return loc
 
     def delete(self, *args, **kwargs):
-        verb = kwargs.pop('type', None)
+        notif = kwargs.pop('type', None)
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_FLICK_TIMEOUT[0]:
+        if notif[0] == verbs.WIZCARD_FLICK_TIMEOUT[0]:
             #timeout
             logger.debug('timeout flicked wizcard %s', self.id)
             self.expired = True

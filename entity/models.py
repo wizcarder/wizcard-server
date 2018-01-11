@@ -132,19 +132,20 @@ class VirtualTable(BaseEntity):
     def delete(self, *args, **kwargs):
         # notify members of deletion (including self)
         notif = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY)
+        notif_type = notif[0]
         verb = notif[1]
         members = self.users.all()
         for member in members:
             notify.send(self.get_creator(),
                         recipient=member,
-                        notif_type=notif[0],
-                        verb=notif[1],
+                        notif_type=notif_type,
+                        verb=verb,
                         target=self
                         )
 
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_TABLE_TIMEOUT[0]:
+        if  notif_type == verbs.WIZCARD_TABLE_TIMEOUT[0]:
             self.expired = True
             self.save()
         else:

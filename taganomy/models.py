@@ -23,11 +23,6 @@ class TaganomyManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
-    def get_category(self, tags):
-        cats = self.filter(tags__name__in=[tags])
-        return cats
-
-
 
 
 class Taganomy(BaseEntityComponent, Base411Mixin):

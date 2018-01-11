@@ -78,7 +78,7 @@ def pushNotificationToApp(
 
 
 class ApnsMsg(object):
-    def __init__(self, sender, reg_token, action_object,
+    def __init__(self, sender, reg_tokens, action_object,
                  target_object, apns_args, message, is_ios):
         self.sender = sender
         self.reg_tokens = reg_tokens
@@ -122,14 +122,14 @@ class ApnsMsg(object):
         #TODO AR: Need to check if ios supports multiple recipients
         apns_notify(
             settings.APP_ID,
-            self.reg_token,
+            self.reg_tokens,
             self.aps
         )
         return
 
     def pushAndroid(self):
         return send_gcm_message(settings.GCM_API_KEY,
-                                self.reg_token,
+                                self.reg_tokens,
                                 self.aps['aps'])
 
 
@@ -140,7 +140,7 @@ def email_handler():
     notifs = EmailAndPush.objects.unread_notifs(delivery_method=BaseNotification.EMAIL)
     for n in notifs:
         n.mark_as_read()
-        if delivery_method == BaseNotification.EMAIL:
+        if n.delivery_method == BaseNotification.EMAIL:
             emailer = HtmlGen(sender=n.actor, trigger=n.notif_type, target=n.target)
             #status = emailer.email_send()
             #n.update_status(status)
