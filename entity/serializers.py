@@ -5,7 +5,7 @@ from rest_framework import serializers
 from entity.models import Event, Campaign, VirtualTable
 from base_entity.models import UserEntity, BaseEntityComponent, BaseEntity
 from base_entity.serializers import EntitySerializerL0, EntitySerializer
-from scan.serializers import ScannedEntitySerializer
+from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
 from entity.models import Speaker, Sponsor, Agenda, AgendaItem, AttendeeInvitee, ExhibitorInvitee, CoOwners
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizcardship.models import Wizcard
@@ -26,8 +26,13 @@ import pdb
 class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers',
+                  'media', 'agenda', 'num_users')
 
+    agenda = serializers.PrimaryKeyRelatedField(
+        queryset=Agenda.objects.all(),
+        required=False
+    )
     speakers = serializers.SerializerMethodField()
 
     def create(self, validated_data, **kwargs):
@@ -36,6 +41,14 @@ class AgendaItemSerializer(EntitySerializer):
         self.prepare(validated_data)
         obj = super(AgendaItemSerializer, self).create(validated_data)
         self.post_create_update(obj)
+
+        return obj
+
+
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        obj = super(AgendaItemSerializer, self).update(instance, validated_data)
+        self.post_create_update(instance, update=True)
 
         return obj
 
@@ -95,7 +108,6 @@ class AgendaSerializer(EntitySerializer):
         return obj
 
 
-
 class AgendaSerializerL2(EntitySerializer):
 
     class Meta:
@@ -103,8 +115,6 @@ class AgendaSerializerL2(EntitySerializer):
         fields = ('id', 'entity_type', 'items', 'media')
 
     items = AgendaItemSerializerL2(many=True)
-
-
 
 
 # this is used by portal REST API
@@ -121,7 +131,7 @@ class EventSerializer(EntitySerializer):
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
-        remove_fields = ['joined', 'engagements', 'users',]
+        remove_fields = ['joined', 'engagements', 'users', ]
 
         super(EventSerializer, self).__init__(*args, **kwargs)
 
@@ -150,25 +160,51 @@ class EventSerializer(EntitySerializer):
         return obj
 
     def get_campaigns(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_CAMPAIGN)
+        return CampaignSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_CAMPAIGN),
+            many=True,
+            context=self.context
+        ).data
 
     def get_speakers(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
+        return SpeakerSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPEAKER),
+            many=True,
+            context=self.context
+        ).data
 
     def get_sponsors(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPONSOR)
+        return SponsorSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPONSOR),
+            many=True,
+            context=self.context
+        ).data
 
     def get_agenda(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
+        return AgendaSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_AGENDA),
+            many=True,
+            context=self.context
+        ).data
 
     def get_polls(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_AGENDA)
+        return PollSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_POLL),
+            many=True,
+            context=self.context
+        ).data
+
+    def get_taganomy(self, obj):
+        return TaganomySerializer(
+            obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
+            many=True
+        ).data
 
     def get_badges(self, obj):
-        return obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_BADGE_TEMPLATE)
-      
-    def get_taganomy(self, obj):
-        return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_CATEGORY)
+        return BadgeTemplateSerializer(
+            obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE),
+            many=True
+        ).data
 
 
 # presently used by portal to show mini-event summary in sub-entity views
@@ -202,6 +238,7 @@ class EventSerializerL1(EventSerializerL0):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
     tags = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
 
@@ -272,7 +309,7 @@ class EventSerializerL2(EntitySerializer):
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
     # TODO AR: Just return tags instead of taganomy stuff
-    tags = serializers.SerializerMethodField()
+    taganomy = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -343,7 +380,7 @@ class EventSerializerL2(EntitySerializer):
             context=self.context
         ).data
 
-    def get_tags(self, obj):
+    def get_taganomy(self, obj):
         return TaganomySerializerL1(
             obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
             many=True
@@ -388,7 +425,7 @@ class CampaignSerializerL2(EntitySerializer):
 # this is used by portal REST API
 class CampaignSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['joined', 'location']
+        remove_fields = ['joined', ]
         super(CampaignSerializer, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
@@ -396,7 +433,7 @@ class CampaignSerializer(EntitySerializer):
 
     class Meta:
         model = Campaign
-        my_fields = ('scans',)
+        my_fields = ('scans', 'is_sponsored', )
         fields = EntitySerializer.Meta.fields + my_fields
 
     scans = serializers.SerializerMethodField()

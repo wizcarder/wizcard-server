@@ -37,7 +37,7 @@ class RelatedSerializerField(serializers.RelatedField):
                 'type': 'This field is required.'
             })
 
-        value_dict = {'ids': ids, 'type': etype, 'overwrite': overwrite} if overwrite else {'ids': ids, 'type': etype}
+        value_dict = {'ids': ids, 'type': etype, 'overwrite': overwrite}
 
         return value_dict
 
@@ -106,8 +106,6 @@ class EntitySerializer(EntitySerializerL0):
         write_only=True
     )
 
-
-
     MAX_THUMBNAIL_UI_LIMIT = 4
 
     class Meta(EntitySerializerL0.Meta):
@@ -175,16 +173,16 @@ class EntitySerializer(EntitySerializerL0):
 
         if self.sub_entities:
             for s in self.sub_entities:
+                overwrite = s.pop('overwrite')
+                if overwrite:
+                    entity.remove_sub_entities_of_type(s['type'])
+   
                 entity.add_subentities(**s)
 
             entity.notify_subscribers()
 
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])
-
-        if self.users:
-            for u in self.users:
-                UserEntity.user_join(u, entity)
 
         # TODO: Handle owners and create linkage to existing owners
 
@@ -200,4 +198,5 @@ class EntitySerializer(EntitySerializerL0):
             entity.notify_subscribers()
 
         return entity
+
       
