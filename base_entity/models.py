@@ -376,7 +376,7 @@ class BaseEntityComponent(PolymorphicModel):
         return True
 
     def notify_subscribers(self):
-        verb = "%s - %s Updated" % (self.entity_type, self.name)
+        verb = "%s - %s Updated" % (self.entity_type, str(self.id))
         self.notify_parents(verb)
 
 
