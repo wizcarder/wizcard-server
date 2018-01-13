@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 import signals
 import pdb
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericRelation
 from location_mgr.signals import location
 from location_mgr.models import LocationMgr
 from base.char_trunc import TruncatingCharField
@@ -132,6 +132,7 @@ class WizcardManager(PolymorphicManager):
             notify.send(wizcard1.user,
                         recipient=wizcard2.user,
                         notif_type=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
+                        verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE_HALF[0],
                         target=wizcard1)
 
     def query_users(self, exclude_user, name, phone, email):
@@ -619,7 +620,7 @@ class WizcardFlick(models.Model):
     timeout = models.IntegerField(default=30)
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
-    location = generic.GenericRelation(LocationMgr)
+    location = GenericRelation(LocationMgr)
     expired = models.BooleanField(default=False)
     reverse_geo_name = TruncatingCharField(max_length=100, default=None)
     #who picked my flicked card?
@@ -640,10 +641,10 @@ class WizcardFlick(models.Model):
         return loc
 
     def delete(self, *args, **kwargs):
-        verb = kwargs.pop('type', None)
+        notif = kwargs.pop('type', None)
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_FLICK_TIMEOUT[0]:
+        if notif[0] == verbs.WIZCARD_FLICK_TIMEOUT[0]:
             #timeout
             logger.debug('timeout flicked wizcard %s', self.id)
             self.expired = True

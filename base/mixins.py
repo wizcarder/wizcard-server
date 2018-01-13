@@ -2,8 +2,6 @@ from django.db import models
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
 from picklefield.fields import PickledObjectField
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
 import os

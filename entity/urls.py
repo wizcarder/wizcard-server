@@ -1,6 +1,6 @@
 __author__ = 'aammundi'
 
-from django.conf.urls import url, include, patterns
+from django.conf.urls import url, include
 from entity.views import EventViewSet, CampaignViewSet, TableViewSet
 from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorInviteeViewSet, AttendeeViewSet, \
     CoOwnerViewSet, AgendaViewSet, AgendaItemViewSet, ExhibitorEventViewSet
@@ -54,12 +54,11 @@ events_router.register(r'tagonomy', EventTagonomyViewSet, base_name='event-tagon
 
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^', include(events_router.urls)),
     url(r'^', include(agenda_item_router.urls)),
-)
+]
 
 urlpatterns += poll_urlpatterns
 urlpatterns += scan_urlpatterns

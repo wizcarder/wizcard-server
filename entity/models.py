@@ -10,6 +10,8 @@ from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
 from notifications.signals import notify
 from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
+from taganomy.models import Taganomy
+from django.contrib.contenttypes.models import ContentType
 import pdb
 
 
@@ -46,6 +48,20 @@ class EventManager(BaseEntityManager):
     def get_expired(self):
         return self.filter(end__lt=timezone.now(), expired=False, is_activated=True)
 
+    def get_tagged_entities(self, tags, entity_type=BaseEntityComponent.EVENT):
+        events = []
+        #TODO: Should we just add tags to the events from the taganomy to keep things more uniform??
+        taganomy = Taganomy.objects.get_tagged_entities(tags)
+        contenttype_id = ContentType.objects.get(model="event")
+        for tobj in taganomy:
+            events = events + tobj.get_parent_entities_by_contenttype_id(contenttype_id)
+
+        return events
+
+    def combine_search(self, query, entity_type=BaseEntityComponent.EVENT):
+
+        return super(EventManager, self).combine_search(query, entity_type)
+
 
 class Event(BaseEntity):
     start = models.DateTimeField(default=timezone.now)
@@ -59,15 +75,6 @@ class Event(BaseEntity):
             verbs.WIZCARD_ENTITY_UPDATE,
             self
         )
-
-    def get_tagged_entities(self, tag, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-        sub_entities = self.get_sub_entities_id_of_type(entity_type)
-        # TODO: AR: Get sub entities with a particular tag
-        '''
-        taganomy = self.get_subentity_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY)[0]
-        
-        tagged_entities = taganomy.get_entities(tags__in=tag)
-        '''
 
 
 
@@ -84,6 +91,10 @@ class CampaignManager(BaseEntityManager):
             user,
             **kwargs
         )
+
+    def combine_search(self, query, entity_type=BaseEntityComponent.CAMPAIGN):
+        return super(CampaignManager, self).combine_search(query,entity_type=entity_type)
+
 
 
 class Campaign(BaseEntity):
@@ -122,6 +133,9 @@ class VirtualTableManager(BaseEntityManager):
             etype,
             count_only
         )
+    def combine_search(self, query, entity_type=BaseEntityComponent.TABLE):
+        return super(VirtualTableManager, self).combine_search(query,entity_type=entity_type)
+
 
 
 class VirtualTable(BaseEntity):
@@ -267,7 +281,7 @@ class Agenda(BaseEntityComponent):
 
 
 class AgendaItem(BaseEntity):
-    agenda = models.ForeignKey(Agenda, related_name='items')
+    agenda_key = models.ForeignKey(Agenda, related_name='items')
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
 

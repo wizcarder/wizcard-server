@@ -1,7 +1,7 @@
 __author__ = 'aammundi'
 from userprofile.views import UserViewSet, ProfileView, CustomObtainAuthToken
 from rest_framework.routers import DefaultRouter
-from django.conf.urls import patterns, include, url
+from django.conf.urls import  include, url
 from rest_auth.views import LoginView, LogoutView, UserDetailsView
 
 

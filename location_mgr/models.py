@@ -2,7 +2,7 @@ import logging
 import heapq
 
 from django.db import models
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import  GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from location_mgr.signals import location, location_timeout
 from periodic.models import Periodic
@@ -59,7 +59,7 @@ class LocationMgr(models.Model):
     # GenericForeignKey to objects requiring locationMgr services
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     objects = LocationMgrManager()
 

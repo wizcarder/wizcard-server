@@ -11,7 +11,7 @@ APP_MINOR = 1
 
 DEBUG = False
 if RUNENV != 'prod':
-    DEBUG = False
+    DEBUG = True
 ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
@@ -30,7 +30,7 @@ WIZCARD_SETTINGS = {
             'default': {
                 #'ENGINE': 'django.db.backends.mysql',
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-localhost',
+                'NAME': 'wizcard-dev-master',
                 'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
@@ -298,6 +298,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.postgres',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -442,7 +443,7 @@ MYLOG['dev'] = {
     'handlers': {
         'null': {
             'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'class':'logging.NullHandler',
         },
         'console-simple':{
             'level':'DEBUG',

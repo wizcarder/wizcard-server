@@ -2342,7 +2342,7 @@ class ParseMsgAndDispatch(object):
 
         e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
-        result, count = e.objects.query(query_str)
+        result, count = e.objects.combine_search(query_str)
 
         if count:
             out = s(result, many=True, **self.user_context).data

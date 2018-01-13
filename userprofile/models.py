@@ -7,7 +7,7 @@ from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
 from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
 from entity.models import VirtualTable
@@ -57,7 +57,7 @@ class WebExhibitorUserSettings(models.Model):
     pass
 
 
-class UserProfileManager(models.Manager):
+class UserProfileManager(PolymorphicManager):
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         userid = ''.join(random.choice(chars) for x in range(size))
         try:
@@ -109,7 +109,7 @@ class UserProfileManager(models.Manager):
             if UserProfile.objects.filter(user_type=UserProfile.PORTAL_USER_INTERNAL).exists() else None
 
 
-class UserProfile(models.Model):
+class UserProfile(PolymorphicModel):
     # hacking up bitmaps this way
     BITMAP_BASE = 1
     APP_USER = BITMAP_BASE
@@ -204,7 +204,7 @@ class AppUser(BaseUser):
         (ANDROID, 'Android'),
     )
 
-    location = generic.GenericRelation(LocationMgr)
+    location = GenericRelation(LocationMgr)
     do_sync = models.BooleanField(default=False)
     device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True, max_length=200)
@@ -371,7 +371,7 @@ class FutureUser(models.Model):
     inviter = models.ForeignKey(User, related_name='invitees')
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -405,6 +405,7 @@ class FutureUser(models.Model):
             notify.send(self.inviter,
                         recipient=real_user,
                         notif_type=verbs.WIZREQ_U[0],
+                        verb=verbs.WIZREQ_U[1],
                         description=cctx.description,
                         target=self.content_object,
                         action_object=rel12)
@@ -413,6 +414,7 @@ class FutureUser(models.Model):
             notify.send(real_user,
                         recipient=self.inviter,
                         notif_type=verbs.WIZREQ_T[0],
+                        verb=verbs.WIZREQ_T[1],
                         description=cctx.description,
                         target=real_user.wizcard,
                         action_object=rel21)
@@ -421,6 +423,7 @@ class FutureUser(models.Model):
             # Q this to the receiver
             notify.send(self.inviter, recipient=real_user,
                         notif_type=verbs.WIZCARD_TABLE_INVITE[0],
+                        verb=verbs.WIZCARD_TABLE_INVITE[1],
                         target=self.content_object)
 
 # Model for Address-Book Support. Standard M2M-through

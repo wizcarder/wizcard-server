@@ -27,9 +27,9 @@ class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
         fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers',
-                  'media', 'agenda', 'num_users')
+                  'media', 'agenda_key', 'num_users')
 
-    agenda = serializers.PrimaryKeyRelatedField(
+    agenda_key = serializers.PrimaryKeyRelatedField(
         queryset=Agenda.objects.all(),
         required=False
     )
@@ -92,7 +92,7 @@ class AgendaSerializer(EntitySerializer):
         self.post_create_update(agn)
 
         for item in items:
-            item.update(agenda=agn)
+            item.update(agenda_key=agn)
             AgendaItemSerializer(context=self.context).create(item)
 
         return agn

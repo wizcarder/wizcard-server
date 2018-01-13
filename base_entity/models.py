@@ -1,6 +1,6 @@
 from django.db import models
 from taggit.managers import TaggableManager
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericRelation
 from genericm2m.models import RelatedObjectsDescriptor
 from location_mgr.models import LocationMgr
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,6 +14,8 @@ from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
 from wizserver import verbs
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+import ushlex as shlex
 import datetime
 import pdb
 
@@ -31,6 +33,11 @@ class BaseEntityComponentManager(PolymorphicManager):
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
         return user.owners_baseentitycomponent_related.all().instance_of(cls)
 
+    def get_tagged_entities(self, tags, entity_type):
+        if not entity_type:
+            return BaseEntityComponent.objects.filter(tags__name__in=tags)
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
+        return cls.objects.filter(tags__name__in=tags)
 
 class BaseEntityManager(BaseEntityComponentManager):
     def create(self, *args, **kwargs):
@@ -62,6 +69,9 @@ class BaseEntityManager(BaseEntityComponentManager):
     def users_entities(self, user, **kwargs):
         return user.users_baseentity_related.filter(**kwargs)
 
+    def get_tagged_entities(self, tags, entity_type=None):
+        return BaseEntityComponent.objects.get_tagged_entities(tags, entity_type)
+
     def query(self, query_str):
         # check names
         q1 = Q(name__istartswith=query_str)
@@ -70,6 +80,31 @@ class BaseEntityManager(BaseEntityComponentManager):
         entities = self.filter(q1 | q2)[0: settings.DEFAULT_MAX_LOOKUP_RESULTS]
 
         return entities, entities.count()
+
+    def search_entities(self, query, entity_type=None):
+        q = SearchQuery(query)
+        sv = SearchVector('name',weight='A') + SearchVector('description', weight='B')
+        if not entity_type:
+            return BaseEntity.objects.annotate(rank=SearchRank(sv, q)).order_by('-rank')
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
+        return cls.objects.annotate(rank=SearchRank(sv, q)).order_by('-rank')
+
+    def combine_search(self, query, entity_type=None):
+        rs = []
+        entities = set(list(self.search_entities(query, entity_type)))
+        tags = shlex.split(query)
+        tagged_entities = set(list(self.get_tagged_entities(tags)))
+        # This should rank higher as it has matched tags and name | description
+        common = entities & tagged_entities
+        # Remove entities that are common from entities (this could have matched name | description)
+        res_entities = list(entities - common)
+        # Remove entities that are common from tagged_entities
+        res_tagged = list(tagged_entities - common)
+        # Ranking is common -> entities (could have matched name  \ description) -> entities(that have matched tags)
+        # One downside is that if an entity has matched in description but not in name that will be ranked higher than tag match.
+        rs = list(common) + res_entities + res_tagged
+        return rs, len(rs)
+
 
 
 # everything inherits from this. This holds the relationship
@@ -407,7 +442,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     num_users = models.IntegerField(default=0)
 
-    location = generic.GenericRelation(LocationMgr)
+    location = GenericRelation(LocationMgr)
 
     objects = BaseEntityManager()
 

@@ -11,7 +11,7 @@
 """
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
 from recommendation.signals import genreco
 from wizcardship.models import Wizcard
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 class Recommendation(models.Model):
     reco_content_type = models.ForeignKey(ContentType, related_name="reco")
     reco_object_id = models.PositiveIntegerField()
-    reco = generic.GenericForeignKey('reco_content_type', 'reco_object_id')
+    reco = GenericForeignKey('reco_content_type', 'reco_object_id')
     recommendation_for = models.ManyToManyField(User, through='UserRecommendation', symmetrical=False)
 
     def getRecoObject(self):

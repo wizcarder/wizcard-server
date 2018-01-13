@@ -7,11 +7,13 @@ import time
 import logging
 import daemon
 import re
+import django
 import json
 
 proj_path = "."
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wizcard.settings")
+django.setup()
 sys.path.append(proj_path)
 sys.path.append("..")
 sys.path.append("../location_service")
@@ -305,9 +307,12 @@ class RecoRunner(RabbitServer):
         self.updateRecoTime(tuser)
         self.updateRecoCount(tuser,newreco)
         if newreco >= MIN_RECOS_FOR_PUSH_NOTIF:
-            notify.send(tuser, recipient=tuser,
-                    verb=verbs.WIZCARD_RECO_READY[0],
-                    target=tuser.wizcard,onlypush=True)
+            notify.send(tuser,
+                        notif_type=verbs.WIZCARD_RECO_READY[0],
+                        recipient=tuser,
+                        verb=verbs.WIZCARD_RECO_READY[1],
+                        target=tuser.wizcard
+                        )
 
     def updateRecoCount(self,tuser,recocount):
         au_profile = tuser.profile.app_user()
