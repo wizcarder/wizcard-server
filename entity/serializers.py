@@ -79,7 +79,7 @@ class AgendaItemSerializerL2(EntitySerializer):
 class AgendaSerializer(EntitySerializer):
     class Meta:
         model = Agenda
-        fields = ('id', 'entity_type', 'items', 'media')
+        fields = ('id', 'name', 'description', 'entity_type', 'items', 'media')
 
     items = AgendaItemSerializer(many=True)
 
