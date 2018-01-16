@@ -262,7 +262,7 @@ class AgendaManager(BaseEntityComponentManager):
         )
 
 
-class Agenda(BaseEntityComponent):
+class Agenda(BaseEntityComponent, Base412Mixin):
     objects = AgendaManager()
 
 
