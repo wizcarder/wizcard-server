@@ -108,7 +108,7 @@ wizcardMsgTypes = {
     'entity_unpin'                : MSG_ENTITY_UNPIN
 }
 
-
+# TODO: AR: NOTIF_TYPE should be key to verbs, attributes of the notif (push notif, fanout)
 # notif Types
 NOTIF_NULL          = 0
 NOTIF_ACCEPT_IMPLICIT           = 1

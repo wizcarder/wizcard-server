@@ -94,7 +94,7 @@ class CampaignManager(BaseEntityManager):
         )
 
     def combine_search(self, query, entity_type=BaseEntityComponent.CAMPAIGN):
-        return super(CampaignManager, self).combine_search(query,entity_type=entity_type)
+        return super(CampaignManager, self).combine_search(query, entity_type=entity_type)
 
 
 
@@ -135,7 +135,7 @@ class VirtualTableManager(BaseEntityManager):
             count_only
         )
     def combine_search(self, query, entity_type=BaseEntityComponent.TABLE):
-        return super(VirtualTableManager, self).combine_search(query,entity_type=entity_type)
+        return super(VirtualTableManager, self).combine_search(query, entity_type=entity_type)
 
 
 

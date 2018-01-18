@@ -42,6 +42,7 @@ class Base411Mixin(models.Model):
     name = TruncatingCharField(max_length=50, default="")
     email = EmailField(blank=True)
 
+
 class Base412Mixin(Base411Mixin):
     class Meta:
         abstract = True

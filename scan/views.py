@@ -5,6 +5,7 @@ from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
 
 # Create your views here.
 
+
 class ScannedEntityViewSet(BaseEntityComponentViewSet):
     queryset = ScannedEntity.objects.all()
     serializer_class = ScannedEntitySerializer
@@ -23,3 +24,4 @@ class BadgeTemplateViewSet(BaseEntityComponentViewSet):
         user = self.request.user
         queryset = BadgeTemplate.objects.owners_entities(user)
         return queryset
+
