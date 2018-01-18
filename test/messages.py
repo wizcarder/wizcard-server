@@ -561,6 +561,8 @@ entity_join = {
         "msg_type" : "entity_join",
     },
     "sender" : {
+        "lat" : 37.785838,
+        "lng" : -122.406419,
         "user_id" : "",
         "wizuser_id" : "",
         "table_id": "",
@@ -581,6 +583,8 @@ entity_leave = {
     },
     "sender" : {
         "user_id" : "",
+        "lat" : 37.785838,
+        "lng" : -122.406419,
         "wizuser_id" : "",
         "table_id": "",
         "password" : "test",
@@ -691,6 +695,8 @@ entity_join = {
         "device_type": "android",
         "entity_id" : "",
         "entity_type" : "",
+        "lat" : 37.785834,
+        "lng" : -122.406415,
     }
 }
 
@@ -705,6 +711,8 @@ entity_leave = {
         "device_type": "android",
         "entity_id" : "",
         "entity_type" : "",
+        "lat" : 37.785834,
+        "lng" : -122.406415,
     },
 }
 

@@ -96,26 +96,26 @@ class NotifResponse(ResponseN):
     def __init__(self, notifications):
         ResponseN.__init__(self)
         notifHandler = {
-            verbs.WIZREQ_U[0] 	                : self.notifWizConnectionU,
-            verbs.WIZREQ_T[0]  	                : self.notifWizConnectionT,
-            verbs.WIZREQ_T_HALF[0]              : self.notifWizConnectionH,
-            verbs.WIZREQ_F[0]                   : self.notifWizConnectionF,
-            verbs.WIZCARD_REVOKE[0]	            : self.notifRevokedWizcard,
-            verbs.WIZCARD_WITHDRAW_REQUEST[0]   : self.notifWithdrawRequest,
-            verbs.WIZCARD_DELETE[0]	            : self.notifRevokedWizcard,
-            verbs.WIZCARD_TABLE_TIMEOUT[0]      : self.notifDestroyedTable,
-            verbs.WIZCARD_TABLE_DESTROY[0]      : self.notifDestroyedTable,
-            verbs.WIZCARD_ENTITY_JOIN[0]         : self.notifJoinEntity,
-            verbs.WIZCARD_ENTITY_LEAVE[0]        : self.notifLeaveEntity,
-            verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
-            verbs.WIZCARD_UPDATE_HALF[0]        : self.notifWizcardUpdateH,
-            verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
-            verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
-            verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
-            verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
-            verbs.WIZCARD_ENTITY_UPDATE[0]       : self.notifEventUpdate,
-            verbs.WIZCARD_ENTITY_EXPIRE[0]       : self.notifEventExpire,
-            verbs.WIZCARD_ENTITY_DELETE[0]       : self.notifEventDelete
+            verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX] 	                : self.notifWizConnectionU,
+            verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX]  	                : self.notifWizConnectionT,
+            verbs.WIZREQ_T_HALF[verbs.NOTIF_TYPE_IDX]              : self.notifWizConnectionH,
+            verbs.WIZREQ_F[verbs.NOTIF_TYPE_IDX]                   : self.notifWizConnectionF,
+            verbs.WIZCARD_REVOKE[verbs.NOTIF_TYPE_IDX]	            : self.notifRevokedWizcard,
+            verbs.WIZCARD_WITHDRAW_REQUEST[verbs.NOTIF_TYPE_IDX]   : self.notifWithdrawRequest,
+            verbs.WIZCARD_DELETE[verbs.NOTIF_TYPE_IDX]	            : self.notifRevokedWizcard,
+            verbs.WIZCARD_TABLE_TIMEOUT[verbs.NOTIF_TYPE_IDX]      : self.notifDestroyedTable,
+            verbs.WIZCARD_TABLE_DESTROY[verbs.NOTIF_TYPE_IDX]      : self.notifDestroyedTable,
+            verbs.WIZCARD_ENTITY_JOIN[verbs.NOTIF_TYPE_IDX]         : self.notifJoinEntity,
+            verbs.WIZCARD_ENTITY_LEAVE[verbs.NOTIF_TYPE_IDX]        : self.notifLeaveEntity,
+            verbs.WIZCARD_UPDATE[verbs.NOTIF_TYPE_IDX]             : self.notifWizcardUpdate,
+            verbs.WIZCARD_UPDATE_HALF[verbs.NOTIF_TYPE_IDX]        : self.notifWizcardUpdateH,
+            verbs.WIZCARD_FLICK_TIMEOUT[verbs.NOTIF_TYPE_IDX]      : self.notifWizcardFlickTimeout,
+            verbs.WIZCARD_FLICK_PICK[verbs.NOTIF_TYPE_IDX]         : self.notifWizcardFlickPick,
+            verbs.WIZCARD_TABLE_INVITE[verbs.NOTIF_TYPE_IDX]       : self.notifWizcardTableInvite,
+            verbs.WIZCARD_FORWARD[verbs.NOTIF_TYPE_IDX]            : self.notifWizcardForward,
+            verbs.WIZCARD_ENTITY_UPDATE[verbs.NOTIF_TYPE_IDX]       : self.notifEventUpdate,
+            verbs.WIZCARD_ENTITY_EXPIRE[verbs.NOTIF_TYPE_IDX]       : self.notifEventExpire,
+            verbs.WIZCARD_ENTITY_DELETE[verbs.NOTIF_TYPE_IDX]       : self.notifEventDelete
         }
         for notification in notifications:
             notifHandler[notification.notif_type](notification)

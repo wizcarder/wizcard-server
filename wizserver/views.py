@@ -60,6 +60,7 @@ from media_components.models import MediaEntities
 from media_components.signals import media_create
 from polls.models import Poll, UserResponse
 from scan.serializers import ScannedEntitySerializer
+from base_entity.models import UserEntity
 
 import pdb
 
@@ -1010,9 +1011,9 @@ class ParseMsgAndDispatch(object):
 
             notify.send(admin_user.wizcard.user,
                         recipient=wizcard.user,
-                        notif_type=verbs.WIZREQ_T[0],
+                        notif_type=verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX],
                         target=admin_user.wizcard,
-                        verb=verbs.WIZREQ_T[1],
+                        verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                         action_object=rel21
                         )
 
@@ -1032,8 +1033,8 @@ class ParseMsgAndDispatch(object):
         if created:
             notify.send(self.user,
                         recipient=self.user,
-                        notif_type=verbs.WIZCARD_NEW_USER[0],
-                        verb=verbs.WIZCARD_NEW_USER[1],
+                        notif_type=verbs.WIZCARD_NEW_USER[verbs.NOTIF_TYPE_IDX],
+                        verb=verbs.WIZCARD_NEW_USER[verbs.VERB_IDX],
                         target=wizcard,
                         delivery_method=BaseNotification.EMAIL
                         )
@@ -1046,8 +1047,8 @@ class ParseMsgAndDispatch(object):
     # B has A's wizcard in roldex
     def WizcardAccept(self):
         status = []
-        verb1 = verbs.WIZREQ_T[0]
-        verb2 = verbs.WIZREQ_T[0]
+        verb1 = verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX]
+        verb2 = verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX]
 
         try:
             wizcard1 = self.user.wizcard
@@ -1117,14 +1118,14 @@ class ParseMsgAndDispatch(object):
             Wizcard.objects.becard(wizcard2, wizcard1)
 
         if wizcard1.get_relationship(wizcard2).status != verbs.ACCEPTED:
-            verb1 = verbs.WIZREQ_T_HALF[0]
+            verb1 = verbs.WIZREQ_T_HALF[verbs.NOTIF_TYPE_IDX]
             verb2 = None
         # Q notif to both sides.
         notify.send(self.r_user,
                     recipient=self.user,
                     notif_type=verb1,
                     target=wizcard2,
-                    verb=verbs.WIZREQ_T_HALF[1],
+                    verb=verbs.WIZREQ_T_HALF[verbs.VERB_IDX],
                     action_object=rel21
                     )
 
@@ -1134,7 +1135,7 @@ class ParseMsgAndDispatch(object):
                         recipient=self.r_user,
                         notif_type=verb2,
                         target=wizcard1,
-                        verb=verbs.WIZREQ_T[1],
+                        verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                         action_object=rel12
                         )
 
@@ -1205,7 +1206,7 @@ class ParseMsgAndDispatch(object):
                                 recipient=wizcard2.user,
                                 target_object_id=wizcard1.id,
                                 readed=False,
-                                verb=verbs.WIZREQ_U[0])
+                                notif_type=verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX])
                         if n.count():
                             map(lambda x: x.delete(), n)
                             Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
@@ -1220,8 +1221,8 @@ class ParseMsgAndDispatch(object):
                         # Q a notif to other guy so that the app on the other side can react
                         notify.send(self.user,
                                     recipient=wizcard2.user,
-                                    notif_type=verbs.WIZCARD_REVOKE[0],
-                                    verb=verbs.WIZCARD_REVOKE[1],
+                                    notif_type=verbs.WIZCARD_REVOKE[verbs.NOTIF_TYPE_IDX],
+                                    verb=verbs.WIZCARD_REVOKE[verbs.VERB_IDX],
                                     target=wizcard1)
         except KeyError:
             self.security_exception()
@@ -1315,8 +1316,8 @@ class ParseMsgAndDispatch(object):
                 #Q pick_notif to flicker
                 notify.send(self.user,
                             recipient=wizcard2.user,
-                            notif_type=verbs.WIZCARD_FLICK_PICK[0],
-                            verb=verbs.WIZCARD_FLICK_PICK[1],
+                            notif_type=verbs.WIZCARD_FLICK_PICK[verbs.NOTIF_TYPE_IDX],
+                            verb=verbs.WIZCARD_FLICK_PICK[verbs.VERB_IDX],
                             target=flick_card,
                             action_object=rel)
 
@@ -1343,8 +1344,8 @@ class ParseMsgAndDispatch(object):
 
                 #Q implicit exchange to flicker
                 notify.send(self.user, recipient=wizcard2.user,
-                            notif_type=verbs.WIZREQ_T[0],
-                            verb=verbs.WIZREQ_T[1],
+                            notif_type=verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX],
+                            verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                             target=wizcard1,
                             action_object=rel1)
             return self.response
@@ -1566,8 +1567,8 @@ class ParseMsgAndDispatch(object):
                     notify.send(
                             self.user,
                             recipient=r_user,
-                            notif_type=notif_tuple[0],
-                            verb=notif_tuple[1],
+                            notif_type=notif_tuple[verbs.NOTIF_TYPE_IDX],
+                            verb=notif_tuple[verbs.VERB_IDX],
                             target=wizcard,
                             action_object=rel12
                     )
@@ -1610,8 +1611,8 @@ class ParseMsgAndDispatch(object):
                 if from_notify:
                     notify.send(r_user,
                                 recipient=self.user,
-                                notif_type=conn_status[0],
-                                verb=conn_status[1],
+                                notif_type=conn_status[verbs.NOTIF_TYPE_IDX],
+                                verb=conn_status[verbs.VERB_IDX],
                                 target=r_wizcard,
                                 action_object=rel21
                                 )
@@ -1643,8 +1644,8 @@ class ParseMsgAndDispatch(object):
                 #Q this to the receiver
                 notify.send(self.user,
                             recipient=r_user,
-                            notif_type=verbs.WIZCARD_TABLE_INVITE[0],
-                            verb=verbs.WIZCARD_TABLE_INVITE[1],
+                            notif_type=verbs.WIZCARD_TABLE_INVITE[verbs.NOTIF_TYPE_IDX],
+                            verb=verbs.WIZCARD_TABLE_INVITE[verbs.VERB_IDX],
                             target=table
                             )
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE],
@@ -1679,8 +1680,8 @@ class ParseMsgAndDispatch(object):
                         # Q notif for to_wizcard
                         notify.send(self.user,
                                     recipient=wizcard.user,
-                                    notif_type=verbs.WIZREQ_U[0],
-                                    verb=verbs.WIZREQ_U[1],
+                                    notif_type=verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX],
+                                    verb=verbs.WIZREQ_U[verbs.VERB_IDX],
                                     target=obj,
                                     action_object=rel12
                                     )
@@ -1690,8 +1691,8 @@ class ParseMsgAndDispatch(object):
                         # to this..but better to promote connections
                         rel12.reset()
                         notify.send(self.user, recipient=wizcard.user,
-                                    notif_type=verbs.WIZREQ_U[0],
-                                    verb=verbs.WIZREQ_U[1],
+                                    notif_type=verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX],
+                                    verb=verbs.WIZREQ_U[verbs.VERB_IDX],
                                     target=obj,
                                     action_object=rel12)
 
@@ -1705,7 +1706,7 @@ class ParseMsgAndDispatch(object):
                                                        cctx=cctx2)
                         notify.send(wizcard.user, recipient=self.user,
                                     notif_type=verbs.WIZREQ_T_HALF[0],
-                                    verb=verbs.WIZREQ_T_HALF[1],
+                                    verb=verbs.WIZREQ_T_HALF[verbs.VERB_IDX],
                                     target=wizcard,
                                     action_object=rel21)
 
@@ -1724,7 +1725,7 @@ class ParseMsgAndDispatch(object):
 
                         notify.send(wizcard.user, recipient=self.user,
                                     notif_type=conn_status[0],
-                                    verb=conn_status[1],
+                                    verb=conn_status[verbs.VERB_IDX],
                                     target=wizcard,
                                     action_object=rel21)
                     else:
@@ -1739,14 +1740,14 @@ class ParseMsgAndDispatch(object):
                     #Q this to the receiver
                     notify.send(self.user, recipient=wizcard.user,
                                 notif_type=verbs.WIZCARD_TABLE_INVITE[0],
-                                verb=verbs.WIZCARD_TABLE_INVITE[1],
+                                verb=verbs.WIZCARD_TABLE_INVITE[verbs.VERB_IDX],
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
                     notify.send(self.user,
                                 recipient=self.user,
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
-                                verb=verbs.WIZCARD_INVITE_USER[1],
+                                verb=verbs.WIZCARD_INVITE_USER[verbs.VERB_IDX],
                                 target=wizcard,
                                 delivery_method=BaseNotification.EMAIL
                                 )
@@ -1762,7 +1763,7 @@ class ParseMsgAndDispatch(object):
                     notify.send(self.user,
                                 recipient=self.user,
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
-                                verb=verbs.WIZCARD_INVITE_USER[1],
+                                verb=verbs.WIZCARD_INVITE_USER[verbs.VERB_IDX],
                                 target=fuser[0],
                                 delivery_method=BaseNotification.EMAIL
                                 )
@@ -2055,7 +2056,7 @@ class ParseMsgAndDispatch(object):
                     self.user,
                     recipient=self.user,
                     notif_type=verbs.WIZCARD_SCANNED_USER[0],
-                    verb=verbs.WIZCARD_SCANNED_USER[1],
+                    verb=verbs.WIZCARD_SCANNED_USER[verbs.VERB_IDX],
                     target=deadcard,
                     delivery_method=BaseNotification.EMAIL
                 )
@@ -2184,27 +2185,40 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
+    def EntityPin(self):
+        self.sender['state'] = UserEntity.PIN
+        self.EntityJoin()
+
+    def EntityUnPin(self):
+        self.sender['state'] = UserEntity.UNPIN
+        self.EntityLeave()
+
     def EntityJoin(self):
         id = self.sender.get('entity_id')
         entity_type = self.sender.get('entity_type')
+        state = self.sender.pop('state', UserEntity.JOIN)
+        detail = self.sender.pop('detail', False)
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=True)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        entity.join(self.user)
-
-        out = s(entity, **self.user_context).data
-        self.response.add_data("result", out)
-
-        return self.response
+        entity.user_attach(self.user, state)
+        if detail:
+            out = s(entity, **self.user_context).data
+            self.response.add_data("result", out)
+            return self.response
+        else:
+	    pdb.set_trace()
+            self.EventsGet()
 
     def EntityLeave(self):
         id = self.sender.get('entity_id')
         entity_type = self.sender.get('entity_type')
+        state = self.sender.get('state', UserEntity.LEAVE)
 
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
@@ -2213,7 +2227,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        entity.leave(self.user)
+        entity.user_detach(self.user, state=state)
 
         out = s(entity, **self.user_context).data
         self.response.add_data("result", out)
@@ -2261,23 +2275,44 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        m_events = Event.objects.users_entities(self.user, expired=False)
-        n_events = Event.objects.lookup(
+        pinned_events = Event.objects.users_entities(self.user, state=UserEntity.PIN)
+        nearby_events = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
         )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
+        my_events = Event.objects.users_entities(self.user, state=UserEntity.JOIN)
 
-        events = list(set(m_events) | set(n_events))
 
-        if events:
-            events_serialized = EventSerializerL1(
-                events,
+        recommended = list(set(nearby_events)  - (set(pinned_events) | set(my_events)))
+        # TODO: AR threshold filter NO point in presenting 1 event
+
+        output = dict()
+
+        if recommended:
+            events_recomm = EventSerializerL1(
+                recommended,
                 many=True,
                 **self.user_context
             ).data
+            output['recommended'] = events_recomm
+        if pinned_events:
+            events_pinned = EventSerializerL1(
+                pinned_events,
+                many=True,
+                **self.user_context
+            ).data
+            output['pinned'] = events_pinned
 
-            self.response.add_data("result", events_serialized)
+        if my_events:
+            events_joined = EventSerializerL1(
+                my_events,
+                many=True,
+                **self.user_context
+            ).data
+            output['my_events'] = events_joined
+
+        self.response.add_data("result", output)
 
         return self.response
 

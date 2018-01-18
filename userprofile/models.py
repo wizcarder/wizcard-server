@@ -20,18 +20,19 @@ from notifications.models import Notification
 from base.cctx import ConnectionContext, NotifContext
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
-import operator
 from django.db.models import Q
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
 from userprofile.signals import user_type_created
+from base_entity.models import UserEntity
 import uuid
 import string
 import random
 import pytz
 import datetime
 import logging
+import operator
 import pdb
 
 RECO_DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
@@ -350,7 +351,7 @@ class WebExhibitorUser(BaseUser):
         # join this User to the Event. We can retrieve this users Events on the portal. Additionally, we need to be
         # aware (and potentially filter out) that "joined users" also contain Exhibitor Users.
         user = self.profile.user
-        [event.join(user) for event in invited_events]
+        [event.user_attach(user, state=UserEntity.JOIN) for event in invited_events]
         invite_objs.update(state=ExhibitorInvitee.ACCEPTED)
 
 
@@ -404,8 +405,8 @@ class FutureUser(models.Model):
             # Q notif for to_wizcard
             notify.send(self.inviter,
                         recipient=real_user,
-                        notif_type=verbs.WIZREQ_U[0],
-                        verb=verbs.WIZREQ_U[1],
+                        notif_type=verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX],
+                        verb=verbs.WIZREQ_U[verbs.VERB_IDX],
                         description=cctx.description,
                         target=self.content_object,
                         action_object=rel12)
@@ -413,8 +414,8 @@ class FutureUser(models.Model):
             # Q implicit notif for from_wizcard
             notify.send(real_user,
                         recipient=self.inviter,
-                        notif_type=verbs.WIZREQ_T[0],
-                        verb=verbs.WIZREQ_T[1],
+                        notif_type=verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX],
+                        verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                         description=cctx.description,
                         target=real_user.wizcard,
                         action_object=rel21)
@@ -422,8 +423,8 @@ class FutureUser(models.Model):
                 ContentType.objects.get(model="virtualtable"):
             # Q this to the receiver
             notify.send(self.inviter, recipient=real_user,
-                        notif_type=verbs.WIZCARD_TABLE_INVITE[0],
-                        verb=verbs.WIZCARD_TABLE_INVITE[1],
+                        notif_type=verbs.WIZCARD_TABLE_INVITE[verbs.NOTIF_TYPE_IDX],
+                        verb=verbs.WIZCARD_TABLE_INVITE[verbs.VERB_IDX],
                         target=self.content_object)
 
 # Model for Address-Book Support. Standard M2M-through

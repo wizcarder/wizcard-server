@@ -6,7 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from wizserver import verbs
 from django.utils import timezone
 from datetime import timedelta
-from notifications.models import BaseNotification
+from notifications.models import BaseNotification, Notification
+from notifications.signals import notify
 
 import pdb
 
@@ -51,7 +52,7 @@ class EmailAndPushSerializer(serializers.ModelSerializer):
     start = serializers.DateTimeField(required=False)
     end = serializers.DateTimeField(required=False)
     # AA Comments: notif_type needn't really be exposed in rest. Leaving it here for now.
-    notif_type = serializers.IntegerField(required=False, default=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0])
+    notif_type = serializers.IntegerField(required=False, default=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[verbs.NOTIF_TYPE_IDX])
     do_push = serializers.BooleanField(required=False, default=True, write_only=True)
 
     def create(self, validated_data):

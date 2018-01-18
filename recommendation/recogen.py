@@ -308,9 +308,9 @@ class RecoRunner(RabbitServer):
         self.updateRecoCount(tuser,newreco)
         if newreco >= MIN_RECOS_FOR_PUSH_NOTIF:
             notify.send(tuser,
-                        notif_type=verbs.WIZCARD_RECO_READY[0],
+                        notif_type=verbs.WIZCARD_RECO_READY[verbs.NOTIF_TYPE_IDX],
                         recipient=tuser,
-                        verb=verbs.WIZCARD_RECO_READY[1],
+                        verb=verbs.WIZCARD_RECO_READY[verbs.VERB_IDX],
                         target=tuser.wizcard
                         )
 

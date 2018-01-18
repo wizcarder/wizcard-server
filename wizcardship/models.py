@@ -110,14 +110,14 @@ class WizcardManager(PolymorphicManager):
                     notif_type=verbs.WIZREQ_T[0],
                     description=cctx.description,
                     target=wizcard1,
-                    verb=verbs.WIZREQ_T[1],
+                    verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                     action_object=rel1)
 
         notify.send(wizcard2.user, recipient=wizcard1.user,
                         notif_type=verbs.WIZREQ_T[0],
                         description=cctx.description,
                         target=wizcard2,
-                        verb=verbs.WIZREQ_T[1],
+                        verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                         action_object=rel2)
 
         return err.OK
@@ -652,7 +652,7 @@ class WizcardFlick(models.Model):
             notify.send(self.wizcard.user,
                         recipient=self.wizcard.user,
                         notif_type=verbs.WIZCARD_FLICK_TIMEOUT[0],
-                        verb=verbs.WIZCARD_FLICK_TIMEOUT[1],
+                        verb=verbs.WIZCARD_FLICK_TIMEOUT[verbs.VERB_IDX],
                         target=self)
         else:
             #withdraw/delete flick case

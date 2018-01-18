@@ -169,8 +169,8 @@ def create_events(numevents):
 
 
         related_media = {"ids": event_media, "type": "e_media"}
-        related_polls = {"ids": poll_ids, "type": "e_poll"}
-        event_payload['related'] = [related_media, related_polls]
+        related_speakers = {"ids": speaker_ids, "type": "e_speaker"}
+        event_payload['related'] = [related_media, related_speakers]
 
         event_id = post_retrieve("/entity/events/", event_payload, key="id")
         publish_path = "/entity/events/%s/publish_event/" % str(event_id)
@@ -200,9 +200,7 @@ def create_agenda(numitems, evt, start_date, end_date, speakers ):
 
     rest_path = "/entity/agenda/"
     agenda_id = post_retrieve(rest_path, agenda_payload, key="id")
-    event_related_payload["related"] = [{"ids": [agenda_id], "type": "e_agenda"}]
-    rest_path = "/entity/events/%s/" % str(evt)
-    event_id = put_retrieve(rest_path, event_related_payload, "id")
+    agenda_ids.append(agenda_id)
 
 
 def create_polls():
@@ -225,7 +223,6 @@ def create_taganomy(numevents, attach=True):
         rand_ids = sample(xrange(1, len(totaltags)), numtags)
         event_tags = [totaltags[x] for x in rand_ids]
         rest_path = "/entity/tags/"
-	pdb.set_trace()
         my_tag_payload['name'] = "Event_" + str(i)
         my_tag_payload['tags'] = event_tags
         tid = post_retrieve(rest_path, my_tag_payload, key="id")
@@ -284,14 +281,25 @@ def attach_entities():
     related_speakers = {"ids": speaker_ids, "type": "e_speaker"}
     related_sponsors = {"ids": sponsor_ids, "type": "e_sponsor"}
     related_campaigns = {"ids": campaign_ids, "type": "e_campaign"}
-    event_payload['related'] = [related_speakers, related_sponsors, related_campaigns]
+    related_polls = {"ids": poll_ids, "type": "e_poll"}
+    related_agenda = {"ids": agenda_ids, "type": "e_agenda"}
+    event_payload['related'] = []
+
 
     for evt in event_ids:
+        tmp_id = agenda_ids.pop()
+        related_agenda = {"ids": [tmp_id], "type": "e_agenda"}
+        tmp_id = poll_ids.pop()
+        related_poll = {"ids": [tmp_id], "type": "e_poll"}
+        event_payload['related'] = [related_speakers, related_sponsors, related_campaigns, related_polls,
+                                    related_agenda, related_poll]
+
+
         event_id = put_retrieve("/entity/events/"+ str(evt)+"/", event_payload, "id")
 
 
 
-#key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
+key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
 token = post_retrieve("/users/login/", user_login_payload, key='token')
 headers['Authorization'] = "Token " + token
 #Create Speakers
@@ -326,9 +334,13 @@ for i in range(numusers):
     u.onboard_user()
     map(lambda x:u.entity_join(x, entity_type='EVT'), event_ids)
 
+for i in range(numusers):
+    u = User()
+    u.onboard_user()
+    map(lambda x:u.entity_join(x, entity_type='EVT', state=2), event_ids)
+    map(lambda x:u.entity_leave(x, entity_type='EVT', state=4), event_ids)
 
 
-attach_entities()
 
 agenda_items = cfg.create_config['agenda_items']
 for evt in event_ids:
@@ -338,6 +350,8 @@ for evt in event_ids:
     speakers = get_retrieve(rest_path, "speakers")
     speaker_ids = map(lambda x:x['id'], speakers)
     create_agenda(agenda_items, evt,start_date, end_date, speaker_ids)
+
+attach_entities()
 
 
 #create_polls()

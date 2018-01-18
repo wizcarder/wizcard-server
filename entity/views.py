@@ -1,5 +1,5 @@
 from rest_framework.response import Response
-from base_entity.models import BaseEntityComponent
+from base_entity.models import BaseEntityComponent, UserEntity
 from entity.models import Event, Campaign, VirtualTable,\
     Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, AgendaItem, CoOwners
 from polls.models import Poll
@@ -61,7 +61,7 @@ class EventViewSet(BaseEntityViewSet):
         existing_users, existing_exhibitors = ExhibitorInvitee.objects.check_existing_users_exhibitors(
             exhibitor_invitees
         )
-        [inst.join(u, notify=False) for u in existing_users]
+        [inst.user_attach(u, state=UserEntity.JOIN, notify=False) for u in existing_users]
 
         for e in existing_exhibitors:
             e.state = ExhibitorInvitee.ACCEPTED
@@ -779,6 +779,12 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        parents = agn.get_parent_entities()
+        if parents:
+            return Response("Operation Failed - Detach Agenda %s from  Event - %s and Retry" % (agn.name, event.name),
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
         if agn in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA):
             return Response("event id %s already associated with agenda %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
@@ -843,6 +849,11 @@ class EventPollViewSet(viewsets.ModelViewSet):
             pol = Poll.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+        parents = pol.get_parent_entities()
+        if parents:
+            return Response("Operation Failed - Detach Poll - %s from  Event - %s and Retry" % (pol.name, event.name),
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
 
         if pol in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
             return Response("event id %s already associated with poll %s " % (event_pk, pk),

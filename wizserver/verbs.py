@@ -50,6 +50,8 @@ MSG_FLICK_WITHDRAW      = 47
 MSG_FLICK_EDIT          = 48
 MSG_FLICK_PICKS         = 49
 MSG_LEAD_SCAN           = 50
+MSG_ENTITY_PIN          = 51
+MSG_ENTITY_UNPIN        = 52
 
 
 wizcardMsgTypes = {
@@ -101,7 +103,9 @@ wizcardMsgTypes = {
     'get_common_connections'      : MSG_GET_COMMON_CONNECTIONS,
     'get_video_thumbnail'         : MSG_GET_VIDEO_THUMBNAIL,
     'poll_response'               : MSG_POLL_RESPONSE,
-    'lead_scan'                   : MSG_LEAD_SCAN
+    'lead_scan'                   : MSG_LEAD_SCAN,
+    'entity_pin'                  : MSG_ENTITY_PIN,
+    'entity_unpin'                : MSG_ENTITY_UNPIN
 }
 
 
@@ -179,6 +183,9 @@ FOLLOWER = "follower"
 FOLLOWER_D = "follower-d"
 FOLLOWED = "followed"
 OTHERS = "others"
+
+NOTIF_TYPE_IDX = 0
+VERB_IDX  = 1
 
     # (Verb, APNS_REQUIRED, APNS_TEXT)
 WIZCARD_NULL = (NOTIF_NULL, "Empty notif", 0)

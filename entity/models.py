@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from wizcardship.models import Wizcard
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
+from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager, UserEntity
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
 from notifications.signals import notify
@@ -40,26 +40,27 @@ class EventManager(BaseEntityManager):
 
     def users_entities(self, user, **kwargs):
         kwargs.update(entity_type=BaseEntityComponent.EVENT)
-        return super(EventManager, self).users_entities(
-            user,
-            **kwargs
-        )
+        state = kwargs.get('state',UserEntity.JOIN)
+        kwargs.update(state=state)
+
+        return super(EventManager, self).users_entities(user, **kwargs)
 
     def get_expired(self):
         return self.filter(end__lt=timezone.now(), expired=False, is_activated=True)
 
     def get_tagged_entities(self, tags, entity_type=BaseEntityComponent.EVENT):
-        events = []
-        #TODO: Should we just add tags to the events from the taganomy to keep things more uniform??
+        events = Event.objects.filter(expired=False, is_activated=True)
+        t_events = []
+        # TODO: AR: Find a better way to filter out expired events
         taganomy = Taganomy.objects.get_tagged_entities(tags)
         contenttype_id = ContentType.objects.get(model="event")
-        for tobj in taganomy:
-            events = events + tobj.get_parent_entities_by_contenttype_id(contenttype_id)
+        for t_obj in taganomy:
+            t_events = t_events + t_obj.get_parent_entities_by_contenttype_id(contenttype_id)
 
-        return events
+        return list(set(events) & set(t_events))
+
 
     def combine_search(self, query, entity_type=BaseEntityComponent.EVENT):
-
         return super(EventManager, self).combine_search(query, entity_type)
 
 
@@ -156,7 +157,7 @@ class VirtualTable(BaseEntity):
 
     def delete(self, *args, **kwargs):
         # notify members of deletion (including self)
-        verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
+        verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[verbs.NOTIF_TYPE_IDX])
         members = self.users.all()
         for member in members:
             notify.send(self.get_creator(),
@@ -167,7 +168,7 @@ class VirtualTable(BaseEntity):
 
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_TABLE_TIMEOUT[0]:
+        if verb == verbs.WIZCARD_TABLE_TIMEOUT[verbs.NOTIF_TYPE_IDX]:
             self.expired = True
             self.save()
         else:

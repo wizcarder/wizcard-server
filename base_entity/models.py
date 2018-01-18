@@ -67,7 +67,18 @@ class BaseEntityManager(BaseEntityComponentManager):
 
     # idea of kwargs is that caller can pass additional params to filter within the base_entity
     def users_entities(self, user, **kwargs):
-        return user.users_baseentity_related.filter(**kwargs)
+        # All the kwargs entity_type was meant for the entity_filter now the kwargs is being used for UserEntity
+        # Later if we want to change users_entities to filter by entity attributes this might have to change.
+        # For e.g. give me all users_entities which are expiring soon Something to ponder about
+        entity_type = kwargs.pop('entity_type', BaseEntityComponent.EVENT)
+
+        ue = UserEntity.objects.select_related('entity').filter(entity__entity_type=entity_type, **kwargs)
+        cls,ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
+        ids = map(lambda x:x.entity.id, ue)
+        return cls.objects.filter(id__in=ids)
+
+
+
 
     def get_tagged_entities(self, tags, entity_type=None):
         return BaseEntityComponent.objects.get_tagged_entities(tags, entity_type)
@@ -83,7 +94,7 @@ class BaseEntityManager(BaseEntityComponentManager):
 
     def search_entities(self, query, entity_type=None):
         q = SearchQuery(query)
-        sv = SearchVector('name',weight='A') + SearchVector('description', weight='B')
+        sv = SearchVector('name', weight='A') + SearchVector('description', weight='B')
         if not entity_type:
             return BaseEntity.objects.annotate(rank=SearchRank(sv, q)).order_by('-rank')
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
@@ -470,61 +481,67 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def join(self, user, notify=True):
-        e, created = UserEntity.user_join(user=user, base_entity_obj=self)
-        if created:
-            self.num_users += 1
-            self.save()
+    def user_attach(self, user, state, notify=True):
 
-        if notify:
-            self.notify_all_users(
-                user,
-                verbs.WIZCARD_ENTITY_JOIN,
-                self,
-            )
+        UserEntity.user_attach(user, self, state=state)
+        if notify == True:
+            if state == UserEntity.JOIN:
+                self.num_users += 1
+                self.save()
+                self.notify_all_users(
+                    user,
+                    verbs.WIZCARD_ENTITY_JOIN,
+                    self
+                )
 
         return self
+
+    def user_detach(self, user, state, notify=True):
+        UserEntity.user_detach(user, self)
+        if notify == True:
+            if state == UserEntity.LEAVE:
+                self.num_users -= 1
+                self.save()
+                self.notify_all_users(
+                    user,
+                    verbs.WIZCARD_ENTITY_LEAVE,
+                    self
+                )
+
 
     def is_joined(self, user):
-        return bool(self.users.filter(id=user.id).exists())
+        return bool(user.userentity_set.filter(entity=self, state=UserEntity.JOIN).exists())
 
-    def leave(self, user, notify=True):
-        UserEntity.user_leave(user, self)
-        self.num_users -= 1
-        self.save()
+    def is_pinned(self, user):
+        return bool(user.userentity_set.filter(entity=self, state=UserEntity.PIN).exists())
 
-        if notify:
-            self.notify_all_users(
-                user,
-                verbs.WIZCARD_ENTITY_LEAVE,
-                self,
-            )
 
-        return self
 
     def get_users_after(self, timestamp):
         # AA: REVERT ME. Temp for app testing
-        ue = UserEntity.objects.filter(entity=self)
+        ue = UserEntity.get_entity_members(self)
         # ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
-        users = map(lambda u: u.user, ue)
-
-        return users
+        #users = map(lambda u: u.user, ue)
+        return ue
 
     def get_wizcard_users(self):
-        users = self.users.all()
+        users = UserEntity.get_entity_members(self)
         wiz_users = [x for x in users if hasattr(x, 'wizcard')]
         return wiz_users
 
     def notify_all_users(self, sender, notif_type, entity, exclude_sender=True):
         # send notif to all members, just like join
 
-        qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
-        for u in qs:
+        users = UserEntity.get_entity_members(self)
+
+        for u in users:
+            if exclude_sender and u == sender:
+                continue
             notify.send(
                 sender,
                 recipient=u,
-                notif_type=notif_type[0],
-                verb=notif_type[1],
+                notif_type=notif_type[verbs.NOTIF_TYPE_IDX],
+                verb=notif_type[verbs.VERB_IDX],
                 target=entity
             )
 
@@ -565,30 +582,54 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return self.modified > timestamp
 
 
+
 # explicit through table since we will want to associate additional
 # fields as we go forward.
 class UserEntity(models.Model):
+    JOIN = 1
+    PIN = 2
+    LEAVE=3
+    UNPIN=4
+
+    STATE_CHOICES = (
+        (JOIN, 'Join'),
+        (PIN, 'Pin'),
+    )
+
     user = models.ForeignKey(User)
     entity = models.ForeignKey(BaseEntity)
     last_accessed = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    state = models.PositiveSmallIntegerField(default=0)
+
 
     @classmethod
-    def user_join(cls, user, base_entity_obj):
-        return UserEntity.objects.get_or_create(
+    def user_attach(cls, user, base_entity_obj, state=JOIN):
+        usr_entity, created = UserEntity.objects.get_or_create(
             user=user,
-            entity=base_entity_obj
+            entity=base_entity_obj,
+            defaults={'state': state}
         )
 
-    @classmethod
-    def user_leave(cls, user, base_entity_obj):
-        user.userentity_set.get(entity=base_entity_obj).delete()
+        # Can join a pinned event but cannot pin a joined event.
+
+        if not created:
+            usr_entity.state = state
+            usr_entity.save()
+
+        return usr_entity, created
+
+
 
     @classmethod
-    def user_member(cls, user, entity_obj):
+    def user_detach(cls, user, base_entity_obj):
+        user.userentity_set.filter(entity=base_entity_obj).delete()
+
+    @classmethod
+    def user_member(cls, user, entity_obj, **kwargs):
         try:
-            u = UserEntity.objects.get(user=user, entity=entity_obj)
+            u = UserEntity.objects.get(user=user, entity=entity_obj, state=UserEntity.JOIN, **kwargs)
             return u, True
         except:
             return None, False
@@ -596,6 +637,15 @@ class UserEntity(models.Model):
     def last_accessed_at(self, timestamp):
         self.last_accessed = timestamp
         self.save()
+
+
+
+    @classmethod
+    def get_entity_members(cls, base_entity_obj):
+        users = UserEntity.objects.select_related('user').filter(entity=base_entity_obj,state=UserEntity.JOIN)
+        return map(lambda x:x.user, users)
+
+
 
     # Join Table.
     # this will contain per user level stat

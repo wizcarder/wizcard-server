@@ -1660,7 +1660,6 @@ if OCR_FLAG:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-
 if TEST_ENTITY:
     reqmsg = messages.get_events
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1674,7 +1673,7 @@ if TEST_ENTITY:
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     event_list = []
     if 'result' in objs['data']:
-        event_list = [(x['id'], x['entity_type']) for x in objs['data']['result']]
+        event_list = [(x['id'], x['entity_type']) for x in objs['data']['result']['my_events']]
 
     if event_list:
         for e_id, e_type in event_list:
@@ -1684,10 +1683,25 @@ if TEST_ENTITY:
             reqmsg['sender']['wizuser_id'] = wuid1
             reqmsg['sender']['entity_id'] = e_id
             reqmsg['sender']['entity_type'] = e_type
+            reqmsg['sender']['state'] = 2
 
             send_request(conn, reqmsg)
             # Parse and dump the JSON response from server
             objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            reqmsg = messages.entity_join
+            reqmsg['header']['version'] = messages.APP_VERSION
+            reqmsg['sender']['user_id'] = uid1
+            reqmsg['sender']['wizuser_id'] = wuid1
+            reqmsg['sender']['entity_id'] = e_id
+            reqmsg['sender']['state'] = 1
+            reqmsg['sender']['entity_type'] = e_type
+
+            send_request(conn, reqmsg)
+            # Parse and dump the JSON response from server
+            objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+
 
             reqmsg = messages.entities_like
             reqmsg['header']['version'] = messages.APP_VERSION
@@ -1745,6 +1759,7 @@ if TEST_ENTITY:
             reqmsg['sender']['wizuser_id'] = wuid1
             reqmsg['sender']['entity_id'] = e_id
             reqmsg['sender']['entity_type'] = e_type
+            reqmsg['sender']['state'] = 3
 
             send_request(conn, reqmsg)
             # Parse and dump the JSON response from server
