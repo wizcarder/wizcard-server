@@ -72,7 +72,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         # For e.g. give me all users_entities which are expiring soon Something to ponder about
         entity_type = kwargs.pop('entity_type', BaseEntityComponent.EVENT)
 
-        ue = UserEntity.objects.select_related('entity').filter(entity__entity_type=entity_type, **kwargs)
+        ue = UserEntity.objects.select_related('entity').filter(entity__entity_type=entity_type, user=user, **kwargs)
         cls,ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
         ids = map(lambda x:x.entity.id, ue)
         return cls.objects.filter(id__in=ids)

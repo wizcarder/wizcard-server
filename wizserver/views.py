@@ -440,20 +440,15 @@ class ParseMsgAndDispatch(object):
                     self.EntityEdit,
                     Stats.objects.inc_entity_edit,
                 ),
-            verbs.MSG_ENTITY_JOIN:
-                (
-                    self.EntityJoin,
-                    Stats.objects.inc_entity_join
-                ),
-            verbs.MSG_ENTITY_LEAVE:
-                (
-                    self.EntityLeave,
-                    Stats.objects.inc_entity_leave
-                ),
             verbs.MSG_ENTITY_QUERY:
                 (
                     self.EntityQuery,
                     Stats.objects.inc_entity_query
+                ),
+            verbs.MSG_ENTITY_ACCESS:
+                (
+                    self.EntityAccess,
+                    Stats.objects.inc_entity_access
                 ),
             verbs.MSG_MY_ENTITIES:
                 (
@@ -502,7 +497,7 @@ class ParseMsgAndDispatch(object):
 
         # bump stats
         if msgTypesValidatorsAndHandlers[self.msg_id][STATS]:
-            msgTypesValidatorsAndHandlers[self.msg_id][STATS](self.user_stats, self.global_stats)
+            msgTypesValidatorsAndHandlers[self.msg_id][STATS](self.user_stats, self.global_stats, **self.sender)
 
         self.header_post_process()
         return response
@@ -2185,54 +2180,40 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-    def EntityPin(self):
-        self.sender['state'] = UserEntity.PIN
-        self.EntityJoin()
 
-    def EntityUnPin(self):
-        self.sender['state'] = UserEntity.UNPIN
-        self.EntityLeave()
-
-    def EntityJoin(self):
-        id = self.sender.get('entity_id')
-        entity_type = self.sender.get('entity_type')
-        state = self.sender.pop('state', UserEntity.JOIN)
-        detail = self.sender.pop('detail', False)
+    def EntityAccess(self):
+        id = self.sender.get('entity_id', None)
+        entity_type = self.sender.get('entity_type', None)
+        state = self.sender.get('state', None)
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=True)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        entity.user_attach(self.user, state)
-        if detail:
+        if state == UserEntity.JOIN:
+            entity.user_attach(self.user, state)
             out = s(entity, **self.user_context).data
             self.response.add_data("result", out)
             return self.response
-        else:
-	    pdb.set_trace()
-            self.EventsGet()
 
-    def EntityLeave(self):
-        id = self.sender.get('entity_id')
-        entity_type = self.sender.get('entity_type')
-        state = self.sender.get('state', UserEntity.LEAVE)
-
-        try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
-            entity = e.objects.get(id=id)
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+        if state == UserEntity.LEAVE:
+            entity.user_detach(self.user, state=state)
+            out = s(entity, **self.user_context).data
+            self.response.add_data("result", out)
             return self.response
 
-        entity.user_detach(self.user, state=state)
+        if state == UserEntity.PIN:
+            entity.user_attach(self.user, state)
+            self.EventsGet()
 
-        out = s(entity, **self.user_context).data
-        self.response.add_data("result", out)
 
-        return self.response
+        if state == UserEntity.UNPIN:
+            entity.user_detach(self.user, state=state)
+            self.EventsGet()
+
 
     def EntityEdit(self):
         id = self.sender.get('entity_id')

@@ -1344,28 +1344,30 @@ if TEST_TABLE:
     #join created entity
     print "Joining Table"
 
-    reqmsg = messages.entity_join
+    reqmsg = messages.entity_access
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
     reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = 'TBL'
+    reqmsg['sender']['state'] = 1
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     print "Joining Table with error password"
-    reqmsg = messages.entity_join
+    reqmsg = messages.entity_access
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
     reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = 'TBL'
     reqmsg['sender']['password'] = "xxx"
+    reqmsg['sender']['state'] = 1
     # Parse and dump the JSON response from server
     send_request(conn, reqmsg)
-    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     print "Edit Table"
     reqmsg = messages.entity_edit
@@ -1677,7 +1679,7 @@ if TEST_ENTITY:
 
     if event_list:
         for e_id, e_type in event_list:
-            reqmsg = messages.entity_join
+            reqmsg = messages.entity_access
             reqmsg['header']['version'] = messages.APP_VERSION
             reqmsg['sender']['user_id'] = uid1
             reqmsg['sender']['wizuser_id'] = wuid1
@@ -1689,7 +1691,7 @@ if TEST_ENTITY:
             # Parse and dump the JSON response from server
             objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-            reqmsg = messages.entity_join
+            reqmsg = messages.entity_access
             reqmsg['header']['version'] = messages.APP_VERSION
             reqmsg['sender']['user_id'] = uid1
             reqmsg['sender']['wizuser_id'] = wuid1
@@ -1753,7 +1755,7 @@ if TEST_ENTITY:
             lead.prepare_response()
             lead.send(err_skip=True)
 
-            reqmsg = messages.entity_leave
+            reqmsg = messages.entity_access
             reqmsg['header']['version'] = messages.APP_VERSION
             reqmsg['sender']['user_id'] = uid1
             reqmsg['sender']['wizuser_id'] = wuid1

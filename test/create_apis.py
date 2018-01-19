@@ -332,13 +332,13 @@ userlist = []
 for i in range(numusers):
     u = User()
     u.onboard_user()
-    map(lambda x:u.entity_join(x, entity_type='EVT'), event_ids)
+    map(lambda x:u.entity_access(x, entity_type='EVT', state=1), event_ids)
 
 for i in range(numusers):
     u = User()
     u.onboard_user()
-    map(lambda x:u.entity_join(x, entity_type='EVT', state=2), event_ids)
-    map(lambda x:u.entity_leave(x, entity_type='EVT', state=4), event_ids)
+    map(lambda x:u.entity_access(x, entity_type='EVT', state=2), event_ids)
+    map(lambda x:u.entity_access(x, entity_type='EVT', state=4), event_ids)
 
 
 
