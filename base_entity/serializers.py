@@ -86,6 +86,8 @@ class EntitySerializer(EntitySerializerL0):
     users = serializers.SerializerMethodField()
     friends = serializers.SerializerMethodField()
     joined = serializers.SerializerMethodField()
+    pinned = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
     tags = TagListSerializerField(required=False)
     like = serializers.SerializerMethodField()
     engagements = EntityEngagementSerializer(read_only=True)
@@ -110,7 +112,7 @@ class EntitySerializer(EntitySerializerL0):
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
-                     'media', 'location', 'users', 'joined', 'friends', 'tags', 'like',
+                     'media', 'location', 'users', 'joined', 'pinned', 'state', 'friends', 'tags', 'like',
                      'engagements', 'owners', 'related', 'ext_fields', 'is_activated', 'status', 'taganomy',)
 
         fields = EntitySerializerL0.Meta.fields + my_fields
@@ -133,6 +135,12 @@ class EntitySerializer(EntitySerializerL0):
 
     def get_joined(self, obj):
         return obj.is_joined(self.context.get('user'))
+
+    def get_pinned(self, obj):
+        return obj.is_pinned(self.context.get('user'))
+
+    def get_state(self, obj):
+        return obj.get_state(self.context.get('user'))
 
     def get_like(self, obj):
         liked, level = obj.engagements.user_liked(self.context.get('user'))

@@ -58,7 +58,8 @@ class AgendaItemSerializer(EntitySerializer):
 class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'joined', 'users')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'joined', 'users',
+                  'state')
 
     speakers = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
@@ -253,7 +254,7 @@ class EventSerializerL1(EventSerializerL0):
         model = Event
 
         parent_fields = ('id', 'entity_type', 'num_users', 'name', 'address', 'secure', 'description', 'media',
-                         'location', 'users', 'joined', 'friends', 'like',  'engagements')
+                         'location', 'users', 'joined', 'friends', 'like',  'engagements', 'pinned', 'state')
         my_fields = ('start', 'end', 'tags')
 
         fields = parent_fields + my_fields
@@ -405,7 +406,7 @@ class CampaignSerializerL1(EntitySerializer):
 
         # using L0 fields since not all L1 base class fields are needed
         parent_fields = EntitySerializerL0.Meta.fields
-        my_fields = ('name', 'address', 'tags', 'joined', 'like', 'description',)
+        my_fields = ('name', 'address', 'tags', 'joined', 'like', 'description', 'state')
 
         fields = parent_fields + my_fields
 

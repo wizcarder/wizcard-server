@@ -515,6 +515,16 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def is_pinned(self, user):
         return bool(user.userentity_set.filter(entity=self, state=UserEntity.PIN).exists())
 
+    def get_state(self, user):
+        # There can only be 1 entry per user per entity
+        try:
+            ue = user.userentity_set.get(entity=self, user=user)
+            state = ue.state
+        except:
+            state = None
+
+        return state
+
 
 
     def get_users_after(self, timestamp):

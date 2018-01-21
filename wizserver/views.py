@@ -2199,20 +2199,24 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("result", out)
             return self.response
 
-        if state == UserEntity.LEAVE:
+        elif state == UserEntity.LEAVE:
             entity.user_detach(self.user, state=state)
             out = s(entity, **self.user_context).data
             self.response.add_data("result", out)
             return self.response
 
-        if state == UserEntity.PIN:
+        elif state == UserEntity.PIN:
             entity.user_attach(self.user, state)
             self.EventsGet()
 
 
-        if state == UserEntity.UNPIN:
+        elif state == UserEntity.UNPIN:
             entity.user_detach(self.user, state=state)
             self.EventsGet()
+
+        else:
+            self.response.error_response(err.CRITICAL_ERROR)
+            return self.response
 
 
     def EntityEdit(self):
@@ -2265,33 +2269,14 @@ class ParseMsgAndDispatch(object):
         my_events = Event.objects.users_entities(self.user, state=UserEntity.JOIN)
 
 
-        recommended = list(set(nearby_events)  - (set(pinned_events) | set(my_events)))
+        all_events = list(set(pinned_events) | set(nearby_events) | set(my_events))
         # TODO: AR threshold filter NO point in presenting 1 event
 
-        output = dict()
-
-        if recommended:
-            events_recomm = EventSerializerL1(
-                recommended,
-                many=True,
-                **self.user_context
-            ).data
-            output['recommended'] = events_recomm
-        if pinned_events:
-            events_pinned = EventSerializerL1(
-                pinned_events,
-                many=True,
-                **self.user_context
-            ).data
-            output['pinned'] = events_pinned
-
-        if my_events:
-            events_joined = EventSerializerL1(
-                my_events,
-                many=True,
-                **self.user_context
-            ).data
-            output['my_events'] = events_joined
+        output = EventSerializerL1(
+            all_events,
+            many=True,
+            **self.user_context
+        ).data
 
         self.response.add_data("result", output)
 
