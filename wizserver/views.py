@@ -978,7 +978,6 @@ class ParseMsgAndDispatch(object):
         admin_user = UserProfile.objects.get_admin_user()
         admin_conn = wizcard.get_relationship(admin_user.wizcard)
 
-
         if not admin_conn:
             # connect implicitly with admin wizcard
 
@@ -1008,13 +1007,14 @@ class ParseMsgAndDispatch(object):
             # notify me
             rel21 = admin_user.wizcard.get_relationship(wizcard)
 
-            notify.send(admin_user.wizcard.user,
-                        recipient=wizcard.user,
-                        notif_type=verbs.WIZREQ_T[0],
-                        target=admin_user.wizcard,
-                        verb=verbs.WIZREQ_T[1],
-                        action_object=rel21
-                        )
+            notify.send(
+                admin_user.wizcard.user,
+                recipient=wizcard.user,
+                notif_type=verbs.WIZREQ_T[0],
+                target=admin_user.wizcard,
+                verb=verbs.WIZREQ_T[1],
+                action_object=rel21
+            )
 
         # check if futureUser states exist for this phone or email
         future_users = FutureUser.objects.check_future_user(wizcard.email, wizcard.phone)
@@ -1030,13 +1030,15 @@ class ParseMsgAndDispatch(object):
             wizcard.flood()
 
         if created:
-            notify.send(self.user,
-                        recipient=self.user,
-                        notif_type=verbs.WIZCARD_NEW_USER[0],
-                        verb=verbs.WIZCARD_NEW_USER[1],
-                        target=wizcard,
-                        delivery_method=BaseNotification.EMAIL
-                        )
+            notify.send(
+                self.user,
+                recipient=self.user,
+                notif_type=verbs.WIZCARD_NEW_USER[0],
+                verb=verbs.WIZCARD_NEW_USER[1],
+                target=wizcard,
+                delivery_mode=BaseNotification.EMAIL
+            )
+
         self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
         return self.response
 
@@ -1748,7 +1750,7 @@ class ParseMsgAndDispatch(object):
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
                                 verb=verbs.WIZCARD_INVITE_USER[1],
                                 target=wizcard,
-                                delivery_method=BaseNotification.EMAIL
+                                delivery_mode=BaseNotification.EMAIL
                                 )
             else:
                 fuser = FutureUser.objects.get_or_create(
@@ -1764,7 +1766,7 @@ class ParseMsgAndDispatch(object):
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
                                 verb=verbs.WIZCARD_INVITE_USER[1],
                                 target=fuser[0],
-                                delivery_method=BaseNotification.EMAIL
+                                delivery_mode=BaseNotification.EMAIL
                                 )
 
     def UserQuery(self):
@@ -2057,7 +2059,7 @@ class ParseMsgAndDispatch(object):
                     notif_type=verbs.WIZCARD_SCANNED_USER[0],
                     verb=verbs.WIZCARD_SCANNED_USER[1],
                     target=deadcard,
-                    delivery_method=BaseNotification.EMAIL
+                    delivery_mode=BaseNotification.EMAIL
                 )
 
         # no f_bizCardEdit..for now atleast. This will always come via scan

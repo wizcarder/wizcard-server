@@ -44,14 +44,12 @@ class AgendaItemSerializer(EntitySerializer):
 
         return obj
 
-
     def update(self, instance, validated_data):
         self.prepare(validated_data)
         obj = super(AgendaItemSerializer, self).update(instance, validated_data)
         self.post_create_update(instance, update=True)
 
         return obj
-
 
     def get_speakers(self, obj):
         return obj.get_sub_entities_id_of_type(BaseEntity.SUB_ENTITY_SPEAKER)
@@ -76,7 +74,6 @@ class AgendaItemSerializerL2(EntitySerializer):
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
         return count
-
 
 
 class AgendaSerializer(EntitySerializer):

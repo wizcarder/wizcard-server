@@ -8,11 +8,8 @@ from androidgcm import send_gcm_message
 from django.conf import settings
 from django.contrib.auth.models import User
 import logging
-from notifications.signals import notify
 from notifications.models import BaseNotification
 import pdb
-from celery.utils.log import get_task_logger
-
 from email_and_push_infra.models import EmailAndPush
 from email_and_push_infra.html_gen_methods import HtmlGen
 
@@ -32,22 +29,18 @@ def pushNotificationToApp(
         target_object_id,
         t_content_type,
         notif_type,
-        verb=None,
-        fanout=False):
-
+        verb=None):
     action_object = None
-    target_object = None
 
     if action_object_id:
         action_object = a_content_type.get_object_for_this_type(pk=action_object_id)
-    if target_object_id:
-        target_object = t_content_type.get_object_for_this_type(pk=target_object_id)
+
+    target_object = t_content_type.get_object_for_this_type(pk=target_object_id)
 
     if notif_type not in verbs.apns_notification_dictionary:
         return
 
     if not fanout:
-
         receiver_p = User.objects.get(id=receiver_id).profile
         app_user = receiver_p.app_user()
         if app_user.settings.dnd:
@@ -56,8 +49,8 @@ def pushNotificationToApp(
 
     else:
         users = target_object.get_wizcard_users()
-        app_users = map(lambda x:x.profile.app_user(), users)
-        reg_tokens = [au.regtoken for au in app_users if au.settings.dnd]
+        app_users = map(lambda x: x.profile.app_user(), users)
+        reg_tokens = [au.regtoken for au in app_users if not au.settings.dnd]
 
     apns_dict = verbs.apns_notification_dictionary[verb] if app_user.is_ios() else \
         verbs.gcm_notification_dictionary[notif_type]
@@ -137,10 +130,10 @@ class ApnsMsg(object):
 @task(ignore_result=True)
 def email_handler():
     logger.debug('Messaging Tick received')
-    notifs = EmailAndPush.objects.unread_notifs(delivery_method=BaseNotification.EMAIL)
+    notifs = EmailAndPush.objects.unread_notifs(delivery_mode=BaseNotification.EMAIL)
     for n in notifs:
         n.mark_as_read()
-        if n.delivery_method == BaseNotification.EMAIL:
+        if n.delivery_mode == BaseNotification.EMAIL:
             emailer = HtmlGen(sender=n.actor, trigger=n.notif_type, target=n.target)
             #status = emailer.email_send()
             #n.update_status(status)

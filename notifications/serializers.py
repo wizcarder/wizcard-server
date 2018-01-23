@@ -46,17 +46,17 @@ class GenericSerializerField(serializers.RelatedField):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ('id', 'recipient', 'target', 'action_object', 'verb', 'delivery_method', 'do_push', 'start', 'end')
+        fields = ('id', 'recipient', 'target', 'action_object', 'verb', 'delivery_mode', 'do_push', 'start', 'end')
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
     do_push = serializers.BooleanField(required=False, default=True, write_only=True)
     start = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
     end = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
-    delivery_method = serializers.IntegerField(required=False, default=BaseNotification.ALERT, write_only=True)
+    delivery_mode = serializers.IntegerField(required=False, default=BaseNotification.ALERT, write_only=True)
 
     def create(self, validated_data):
-        delivery_method = validated_data.pop('delivery_method', BaseNotification.ALERT)
+        delivery_mode = validated_data.pop('delivery_mode', BaseNotification.ALERT)
         start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))
         end = validated_data.pop('end', timezone.now() + timedelta(minutes=1))
         do_push = validated_data.pop('do_push', False)
@@ -65,10 +65,10 @@ class NotificationSerializer(serializers.ModelSerializer):
             self.context.get('user'),
             notif_type=verbs.WIZCARD_ENTITY_BROADCAST[0],
             do_push=do_push,
-            delivery_method=delivery_method,
+            delivery_mode=delivery_mode,
+            delivery_type=Notification.DELIVERY_TYPE_ASYNC,
             start_date=start,
             end_date=end,
-            fanout=True,
             **validated_data
         )
 

@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='emailandpush',
-            name='delivery_method',
+            name='delivery_mode',
             field=models.PositiveSmallIntegerField(default=1, choices=[(1, b'email'), (2, b'alert'), (3, b'pushnotif'), (4, b'sms')]),
         ),
         migrations.AddField(

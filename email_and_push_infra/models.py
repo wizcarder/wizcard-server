@@ -20,16 +20,16 @@ import pdb
 
 class EmailAndPushManager(BaseNotificationManager):
 
-    def unread_notifs(self, delivery_method=None):
-        return EmailAndPush.objects.filter(readed=False, delivery_method=delivery_method)
+    def unread_notifs(self, delivery_mode=None):
+        return self.objects.filter(readed=False, delivery_mode=delivery_mode)
 
-    def unread_notifs_by_verb(self, delivery_method=BaseNotification.PUSHNOTIF, verb=verbs.WIZCARD_ENTITY_UPDATE[1]):
-        qs = self.unread_notifs(delivery_method)
+    def unread_notifs_by_verb(self, delivery_mode=BaseNotification.PUSHNOTIF, verb=verbs.WIZCARD_ENTITY_UPDATE[1]):
+        qs = self.unread_notifs(delivery_mode)
         qs.filter(verb=verb)
         return qs
 
-    def get_unread_verbs(self, delivery_method=BaseNotification.PUSHNOTIF):
-        qs = list(self.unread_notifs(delivery_method).values_list('verb', flat=True).distinct())
+    def get_unread_verbs(self, delivery_mode=BaseNotification.PUSHNOTIF):
+        qs = list(self.unread_notifs(delivery_mode).values_list('verb', flat=True).distinct())
         return qs
 
 
@@ -60,8 +60,7 @@ class EmailAndPush(BaseNotification):
     )
 
     delivery_period = models.PositiveSmallIntegerField(choices=DELIVERY_PERIOD, default=INSTANT)
-    delivery_method = models.PositiveSmallIntegerField(choices=BaseNotification.DELIVERY_METHOD, default=BaseNotification.EMAIL)
-    readed = models.BooleanField(default=False)
+    delivery_mode = models.PositiveSmallIntegerField(choices=BaseNotification.DELIVERY_MODE, default=BaseNotification.EMAIL)
     last_tried = models.DateTimeField(blank=True, null=True)
     created = models.DateTimeField(auto_now=True)
     status = models.PositiveSmallIntegerField(choices=STATUS, default=NEW)
@@ -70,10 +69,6 @@ class EmailAndPush(BaseNotification):
 
     # Ideally should add interval fields also (periodicity) hardcoding to 1, 3, 5  from the end_date
     objects = EmailAndPushManager()
-
-    @property
-    def get_to(self):
-        return self.to
 
     def update_last_tried(self, sent_time=timezone.now):
         self.last_tried = sent_time

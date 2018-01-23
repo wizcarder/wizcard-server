@@ -53,8 +53,6 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
-
-
     def get_tagged_entities(self, tag, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
         sub_entities = self.get_sub_entities_id_of_type(entity_type)
         # TODO: AR: Get sub entities with a particular tag
@@ -63,7 +61,6 @@ class Event(BaseEntity):
         
         tagged_entities = taganomy.get_entities(tags__in=tag)
         '''
-
 
 
 class CampaignManager(BaseEntityManager):
@@ -86,7 +83,6 @@ class Campaign(BaseEntity):
     is_sponsored = models.BooleanField(default=False)
 
     objects = CampaignManager()
-
 
 
 class VirtualTableManager(BaseEntityManager):
@@ -145,7 +141,7 @@ class VirtualTable(BaseEntity):
 
         self.location.get().delete()
 
-        if  notif_type == verbs.WIZCARD_TABLE_TIMEOUT[0]:
+        if notif_type == verbs.WIZCARD_TABLE_TIMEOUT[0]:
             self.expired = True
             self.save()
         else:
@@ -183,6 +179,7 @@ class SponsorManager(BaseEntityManager):
             user,
             **kwargs
         )
+
 
 class Sponsor(BaseEntity, InviteStateMixin):
     caption = models.CharField(max_length=50, default='Not Available')
@@ -242,9 +239,11 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
     def check_pending_invites(self, email):
         return self.filter(email=email, state=ExhibitorInvitee.INVITED)
 
+
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     objects = ExhibitorInviteeManager()
+
 
 class AgendaManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.AGENDA):
@@ -256,7 +255,6 @@ class AgendaManager(BaseEntityComponentManager):
 
 class Agenda(BaseEntityComponent):
     objects = AgendaManager()
-
 
 
 class AgendaItem(BaseEntity):

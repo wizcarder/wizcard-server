@@ -181,7 +181,7 @@
     - url: "/entity/notifications/"
     - expected_status: [201]
     - method: 'POST'
-    - body: {template: '{"delivery_method":2, "recipient":2, "actor": { "type": "user", "id": 2 }, "target": {"type": "event", "id": 53}, "verb": "Get immersed in the devotion of Lord Neminath! Goto Media Section in the App and Listen", "do_push": "True"}'}
+    - body: {template: '{"delivery_mode":2, "recipient":2, "actor": { "type": "user", "id": 2 }, "target": {"type": "event", "id": 53}, "verb": "Get immersed in the devotion of Lord Neminath! Goto Media Section in the App and Listen", "do_push": "True"}'}
     - headers: {'template':{Content-Type: application/json, Authorization: Token $token}}
     - extract_binds:
         - 'notif_1': {'jsonpath_mini': 'id'}

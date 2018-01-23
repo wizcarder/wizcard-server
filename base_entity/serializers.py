@@ -198,5 +198,3 @@ class EntitySerializer(EntitySerializerL0):
             entity.notify_subscribers()
 
         return entity
-
-      

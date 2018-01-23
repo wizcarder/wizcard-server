@@ -379,13 +379,11 @@ class BaseEntityComponent(PolymorphicModel):
         verb = "%s - %s Updated" % (self.entity_type, str(self.id))
         self.notify_parents(verb)
 
-
     def notify_parents(self, verb):
         # Is there a possibility of cycle here ??
 
         parents = self.get_parent_entities()
-        map(lambda x: x.notify_subscribers(),
-            parents)
+        map(lambda x: x.notify_subscribers(), parents)
 
 
 class BaseEntityComponentsOwner(models.Model):
@@ -434,7 +432,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                                     tree=BaseEntity.objects.get_location_tree_name(self.entity_type))
             return updated, l_tuple[0][1]
 
-
     # get user's friends within the entity
     def users_friends(self, user, limit=None):
         from wizcardship.models import Wizcard
@@ -454,6 +451,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 user,
                 verbs.WIZCARD_ENTITY_JOIN,
                 self,
+                verb=verbs.WIZCARD_ENTITY_JOIN[1]
             )
 
         return self
@@ -484,32 +482,27 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return users
 
     def get_wizcard_users(self):
-        users = self.users.all()
-        wiz_users = [x for x in users if hasattr(x, 'wizcard')]
-        return wiz_users
+        return [x for x in self.users.all() if hasattr(x, 'wizcard')]
 
     def notify_subscribers(self):
         super(BaseEntity, self).notify_subscribers()
-        verb = "%s Updated" % self.entity_type
-        self.notify_all_users(self.get_creator(),
-                              verbs.WIZCARD_ENTITY_UPDATE,
-                              self,
-                              verb=verb
+        self.notify_all_users(
+            self.get_creator(),
+            verbs.WIZCARD_ENTITY_UPDATE[0],
+            self,
+            verb=verbs.WIZCARD_ENTITY_UPDATE[1]
         )
 
     def notify_all_users(self, sender, notif_type, entity, verb=None, exclude_sender=True):
         # send notif to all members, just like join
-        verb = verb if verb else notif_type[1]
-
         qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
         for u in qs:
             notify.send(
                 sender,
                 recipient=u,
-                notif_type=notif_type[0],
+                notif_type=notif_type,
                 verb=verb,
                 target=entity,
-                fanout=True
             )
 
     def get_banner(self):

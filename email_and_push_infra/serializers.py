@@ -56,7 +56,7 @@ class EmailAndPushSerializer(serializers.ModelSerializer):
     do_push = serializers.BooleanField(required=False, default=True, write_only=True)
 
     def create(self, validated_data):
-        delivery_method = validated_data.pop('delivery_type', Notification.EMAIL)
+        delivery_mode = validated_data.pop('delivery_type', Notification.EMAIL)
         start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))
         end = validated_data.pop('end', timezone.now() + timedelta(minutes=1))
 
@@ -64,7 +64,7 @@ class EmailAndPushSerializer(serializers.ModelSerializer):
         push_notif = notify.send(
             self.context.get('user'),
             do_push=do_push,
-            delivery_type=delivery_method,
+            delivery_type=delivery_mode,
             start_date=start,
             end_date=end,
             **validated_data
