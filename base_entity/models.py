@@ -7,7 +7,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 from rabbit_service import rconfig
-from django.db.models import Q
 from django.conf import settings
 from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
@@ -16,15 +15,14 @@ from notifications.signals import notify
 from wizserver import verbs
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 import ushlex as shlex
-import datetime
-import pdb
+from django.db.models import Q
 
 # Create your models here.
 
 
 class BaseEntityComponentManager(PolymorphicManager):
-    def users_entities(self, user, **kwargs):
-        return BaseEntity.objects.users_entities(user, **kwargs)
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        return BaseEntity.objects.users_entities(user, user_filter=user_filter, entity_filter=entity_filter)
 
     def owners_entities(self, user, entity_type):
         if not entity_type:
@@ -34,10 +32,9 @@ class BaseEntityComponentManager(PolymorphicManager):
         return user.owners_baseentitycomponent_related.all().instance_of(cls)
 
     def get_tagged_entities(self, tags, entity_type):
-        if not entity_type:
-            return BaseEntityComponent.objects.filter(tags__name__in=tags)
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
         return cls.objects.filter(tags__name__in=tags)
+
 
 class BaseEntityManager(BaseEntityComponentManager):
     def create(self, *args, **kwargs):
@@ -66,21 +63,21 @@ class BaseEntityManager(BaseEntityComponentManager):
         return BaseEntityComponent.objects.owners_entities(user, entity_type)
 
     # idea of kwargs is that caller can pass additional params to filter within the base_entity
-    def users_entities(self, user, **kwargs):
-        # All the kwargs entity_type was meant for the entity_filter now the kwargs is being used for UserEntity
-        # Later if we want to change users_entities to filter by entity attributes this might have to change.
-        # For e.g. give me all users_entities which are expiring soon Something to ponder about
-        entity_type = kwargs.pop('entity_type', BaseEntityComponent.EVENT)
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_type = entity_filter.pop('entity_type')
 
-        ue = UserEntity.objects.select_related('entity').filter(entity__entity_type=entity_type, user=user, **kwargs)
-        cls,ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
+        ue = UserEntity.objects.select_related('entity').filter(
+            entity__entity_type=entity_type,
+            user=user,
+            **user_filter
+        )
+        # TODO: AR : Check if this can be optimized further (given select_related, the map thing is
+        # very optimal as entity.id is not accessing DB again.
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
         ids = map(lambda x:x.entity.id, ue)
-        return cls.objects.filter(id__in=ids)
+        return cls.objects.filter(id__in=ids, **entity_filter)
 
-
-
-
-    def get_tagged_entities(self, tags, entity_type=None):
+    def get_tagged_entities(self, tags, entity_type):
         return BaseEntityComponent.objects.get_tagged_entities(tags, entity_type)
 
     def query(self, query_str):
@@ -104,7 +101,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         rs = []
         entities = set(list(self.search_entities(query, entity_type)))
         tags = shlex.split(query)
-        tagged_entities = set(list(self.get_tagged_entities(tags)))
+        tagged_entities = set(list(self.get_tagged_entities(tags, entity_type)))
         # This should rank higher as it has matched tags and name | description
         common = entities & tagged_entities
         # Remove entities that are common from entities (this could have matched name | description)
@@ -115,7 +112,6 @@ class BaseEntityManager(BaseEntityComponentManager):
         # One downside is that if an entity has matched in description but not in name that will be ranked higher than tag match.
         rs = list(common) + res_entities + res_tagged
         return rs, len(rs)
-
 
 
 # everything inherits from this. This holds the relationship
@@ -484,7 +480,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def user_attach(self, user, state, notify=True):
 
         UserEntity.user_attach(user, self, state=state)
-        if notify == True:
+        if notify:
             if state == UserEntity.JOIN:
                 self.num_users += 1
                 self.save()
@@ -498,7 +494,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def user_detach(self, user, state, notify=True):
         UserEntity.user_detach(user, self)
-        if notify == True:
+        if notify:
             if state == UserEntity.LEAVE:
                 self.num_users -= 1
                 self.save()
@@ -512,20 +508,13 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def is_joined(self, user):
         return bool(user.userentity_set.filter(entity=self, state=UserEntity.JOIN).exists())
 
-    def is_pinned(self, user):
-        return bool(user.userentity_set.filter(entity=self, state=UserEntity.PIN).exists())
-
     def get_state(self, user):
         # There can only be 1 entry per user per entity
         try:
             ue = user.userentity_set.get(entity=self, user=user)
             state = ue.state
         except:
-            state = None
-
-        return state
-
-
+            return None
 
     def get_users_after(self, timestamp):
         # AA: REVERT ME. Temp for app testing
@@ -541,9 +530,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def notify_all_users(self, sender, notif_type, entity, exclude_sender=True):
         # send notif to all members, just like join
-
         users = UserEntity.get_entity_members(self)
-
         for u in users:
             if exclude_sender and u == sender:
                 continue
@@ -575,7 +562,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             self,
             exclude_sender=False
         )
-
         self.location.get().delete()
 
         if notif_tuple[0] == verbs.WIZCARD_ENTITY_EXPIRE[0]:
@@ -592,14 +578,13 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return self.modified > timestamp
 
 
-
 # explicit through table since we will want to associate additional
 # fields as we go forward.
 class UserEntity(models.Model):
     JOIN = 1
     PIN = 2
-    LEAVE=3
-    UNPIN=4
+    LEAVE = 3
+    UNPIN = 4
 
     STATE_CHOICES = (
         (JOIN, 'Join'),
@@ -613,7 +598,6 @@ class UserEntity(models.Model):
     modified = models.DateTimeField(auto_now=True)
     state = models.PositiveSmallIntegerField(default=0)
 
-
     @classmethod
     def user_attach(cls, user, base_entity_obj, state=JOIN):
         usr_entity, created = UserEntity.objects.get_or_create(
@@ -621,16 +605,12 @@ class UserEntity(models.Model):
             entity=base_entity_obj,
             defaults={'state': state}
         )
-
         # Can join a pinned event but cannot pin a joined event.
-
         if not created:
             usr_entity.state = state
             usr_entity.save()
 
         return usr_entity, created
-
-
 
     @classmethod
     def user_detach(cls, user, base_entity_obj):
@@ -648,19 +628,14 @@ class UserEntity(models.Model):
         self.last_accessed = timestamp
         self.save()
 
-
-
     @classmethod
     def get_entity_members(cls, base_entity_obj):
-        users = UserEntity.objects.select_related('user').filter(entity=base_entity_obj,state=UserEntity.JOIN)
-        return map(lambda x:x.user, users)
-
+        users = UserEntity.objects.select_related('user').filter(entity=base_entity_obj, state=UserEntity.JOIN)
+        return map(lambda x : x.user, users)
 
 
     # Join Table.
-    # this will contain per user level stat
-
-
+    # this will contain per user level stats
 class EntityUserStats(models.Model):
 
     MIN_ENGAGEMENT_LEVEL = 0

@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from celery import shared_task
 from django.utils import timezone
 from media_components.models import MediaEntities
-from django.template import Template,Context
+from django.template import Context
 from lib.ses import Email
 import vobject
 
@@ -27,15 +27,16 @@ def create_vcard(wizcard):
     v.add('title')
     v.title.value = wizcard.get_latest_title()
     tnurl = wizcard.get_thumbnail_url()
-    for url  in tnurl:
+    for url in tnurl:
         v.add('photo')
         v.photo.value = url
-        v.photo.type_param='jpeg'
+        v.photo.type_param = 'jpeg'
 
     return v.serialize()
 
-#@shared_task
-def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
+
+@shared_task
+def send_wizcard(from_wizcard, to, emaildetails, half_card=False):
 
     extfields = from_wizcard.get_ext_fields
     html = emaildetails['template']
@@ -58,18 +59,18 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
         extfields['sender_video'] = sender_video
 
     subject = subject % extfields['sender_name']
-    if half_card == True:
+    if half_card:
         extfields['sender_phone'] = '***********'
         extfields['sender_email'] = '*****@*****.***'
 
     email = Email(to=to, subject=subject)
     ctx = Context(extfields)
-    email.html(html,ctx)
+    email.html(html, ctx)
     attach_data = None
     vcard = from_wizcard.get_vcard
-    if half_card == False and vcard:
+    if not half_card and vcard:
         attach_name = "%s-%s.vcf" % (from_wizcard.user.first_name, from_wizcard.user.last_name)
-        attach_data = {'data':from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
+        attach_data = {'data' : from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
 
     email.send(attach=attach_data)
     return 0

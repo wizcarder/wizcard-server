@@ -20,10 +20,8 @@ from email_and_push_infra.html_gen_methods import HtmlGen
 
 logger = logging.getLogger(__name__)
 
-
 @task(ignore_result=True)
 def create_notifs():
-
     # AR: TODO: Scaling challenge - Cannot have one task serially run through all notifications
     ns = EmailAndPush.objects.get_broadcast()
 
@@ -40,7 +38,6 @@ def create_notifs():
                 do_push=True,
             )
         n.mark_as_read()
-
 
 
 @shared_task(ignore_result=True)
@@ -176,7 +173,3 @@ def email_push_handler():
                                         n.notif_type,
                                         n.verb
                                         )
-
-
-
-

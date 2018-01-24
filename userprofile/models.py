@@ -11,8 +11,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
 from entity.models import VirtualTable
-from entity.models import Campaign, ExhibitorInvitee, AttendeeInvitee
-from entity.serializers import CampaignSerializer, TableSerializerL1, TableSerializerL2
+from entity.models import Campaign, ExhibitorInvitee
+from entity.serializers import CampaignSerializer, TableSerializerL1
 from wizcardship.serializers import WizcardSerializerL2, DeadCardSerializerL2
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
@@ -39,7 +39,6 @@ RECO_DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
 RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010, 01, 01))
 
 logger = logging.getLogger(__name__)
-
 
 
 class AppUserSettings(models.Model):
@@ -180,9 +179,8 @@ class UserProfile(PolymorphicModel):
                 profile=self,
                 settings=WebExhibitorUserSettings.objects.create()
             )
-
         self.save()
-
+        
         # things like future user etc can be done here.
         user_type_created.send(sender=self, user_type=user_type)
         return user_obj
@@ -246,10 +244,10 @@ class AppUser(BaseUser):
 
     def create_or_update_location(self, lat, lng):
         try:
-            l = self.location.get()
-            updated = l.do_update(lat, lng)
-            l.reset_timer()
-            return l
+            loc = self.location.get()
+            updated = loc.do_update(lat, lng)
+            loc.reset_timer()
+            return loc
         except ObjectDoesNotExist:
             # create
             l_tuple = location.send(sender=self, lat=lat, lng=lng,
@@ -259,11 +257,11 @@ class AppUser(BaseUser):
     def lookup(self, n, count_only=False):
         users = None
         try:
-            l = self.location.get()
+            loc = self.location.get()
         except ObjectDoesNotExist:
             return None, None
 
-        result, count = l.lookup(n)
+        result, count = loc.lookup(n)
         # convert result to query set result
         if count and not count_only:
             users = [AppUser.objects.get(id=x).profile.user for x in result if
@@ -333,6 +331,7 @@ class AppUser(BaseUser):
         # This way, these notifs will be sent natively via get_cards
         Notification.objects.unacted(self.profile.user).update(readed=False)
         return s
+
 
 class WebOrganizerUser(BaseUser):
     settings = models.OneToOneField(WebOrganizerUserSettings, related_name='base_user')
@@ -426,6 +425,7 @@ class FutureUser(models.Model):
                         notif_type=verbs.WIZCARD_TABLE_INVITE[verbs.NOTIF_TYPE_IDX],
                         verb=verbs.WIZCARD_TABLE_INVITE[verbs.VERB_IDX],
                         target=self.content_object)
+
 
 # Model for Address-Book Support. Standard M2M-through
 MIN_MATCHES_FOR_PHONE_DECISION = 3

@@ -1,20 +1,18 @@
 # define all outbound responses here
-import datetime
 from django.contrib.contenttypes.models import ContentType
-from wizcardship.models import  Wizcard, WizcardFlick
+from wizcardship.models import Wizcard, WizcardFlick
 from entity.models import VirtualTable
-from userprofile.models import UserProfile
+
 from base.cctx import NotifContext
 from django.http import HttpResponse
 #from wizcard.celery import client
 from raven.contrib.django.raven_compat.models import client
 import logging
-import fields
 import simplejson as json
 import pdb
 from wizserver import verbs
 from entity.serializers import EntitySerializerL0
-from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1, WizcardSerializerL2
+from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
 from entity.serializers import TableSerializerL1
 from django.utils import timezone
 from django.conf import settings
@@ -62,6 +60,7 @@ class Response:
             return True
         return False
 
+
 #subclass of above. This handles arrays of Data and used by Notifications
 class ResponseN(Response):
     def __init__(self):
@@ -95,7 +94,7 @@ class NotifResponse(ResponseN):
 
     def __init__(self, notifications):
         ResponseN.__init__(self)
-        notifHandler = {
+        notif_handler = {
             verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX] 	                : self.notifWizConnectionU,
             verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX]  	                : self.notifWizConnectionT,
             verbs.WIZREQ_T_HALF[verbs.NOTIF_TYPE_IDX]              : self.notifWizConnectionH,
@@ -118,7 +117,7 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_ENTITY_DELETE[verbs.NOTIF_TYPE_IDX]       : self.notifEventDelete
         }
         for notification in notifications:
-            notifHandler[notification.notif_type](notification)
+            notif_handler[notification.notif_type](notification)
 
     def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
@@ -268,10 +267,9 @@ class NotifResponse(ResponseN):
         return self.response
 
     def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):
-        out = None
         own_wizcard = user.wizcard
         if flicked_wizcards:
-            out = WizcardFlick.objects.serialize_split(user.wizcard,
+            out = WizcardFlick.objects.serialize_split(own_wizcard,
                                                        flicked_wizcards)
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_FLICKED_WIZCARD)
         return self.response

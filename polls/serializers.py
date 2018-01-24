@@ -1,9 +1,8 @@
 __author__ = 'aammundi'
 
 from rest_framework import serializers
-from polls.models import Poll, Question, UserResponse
-from polls.models import QuestionChoicesBase, QuestionChoicesTrueFalse, QuestionChoicesText
-from polls.models import QuestionChoicesMultipleChoice, QuestionChoices1ToX
+from polls.models import Question, UserResponse
+from polls.models import QuestionChoicesBase
 
 import pdb
 

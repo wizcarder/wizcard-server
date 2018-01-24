@@ -24,7 +24,7 @@ def callback(sender, **kwargs):
     email = kwargs.pop('to_email', None)
     target = kwargs.pop('target', None)
 
-    eap = EmailAndPush.objects.pushEvent(sender=sender,event=trigger, to=email, target=target)
+    eap = EmailAndPush.objects.pushEvent(sender=sender, event=trigger, to=email, target=target)
 
     html = HtmlGen(sender, trigger, eap.get_to)
     html.run()

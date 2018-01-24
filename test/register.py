@@ -1441,7 +1441,7 @@ if TEST_TABLE:
     reqmsg['sender']['user_id'] = uid1
     reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['entity_id'] = tid_1
-    reqmsg['sender']['entity_type'] = None
+    reqmsg['sender']['entity_type'] = 'TBL'
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1459,7 +1459,6 @@ if TEST_TABLE:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-
     #t2 -> fu3, fu4 via sms, asset_type = Table
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1675,7 +1674,7 @@ if TEST_ENTITY:
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     event_list = []
     if 'result' in objs['data']:
-        event_list = [(x['id'], x['entity_type']) for x in objs['data']['result']['my_events']]
+        event_list = [(x['id'], x['entity_type']) for x in objs['data']['result']]
 
     if event_list:
         for e_id, e_type in event_list:

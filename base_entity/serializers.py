@@ -1,18 +1,15 @@
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
-from django.contrib.auth.models import User
+
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
-from base.mixins import MediaMixin
-from media_components.signals import media_create
+
 from location_mgr.serializers import LocationSerializerField
-from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats, UserEntity
+from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats
 from entity.models import CoOwners
 from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
-from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
-from random import sample
-import pdb
+
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -85,8 +82,6 @@ class EntitySerializer(EntitySerializerL0):
     location = LocationSerializerField(required=False)
     users = serializers.SerializerMethodField()
     friends = serializers.SerializerMethodField()
-    joined = serializers.SerializerMethodField()
-    pinned = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
     tags = TagListSerializerField(required=False)
     like = serializers.SerializerMethodField()
@@ -112,7 +107,7 @@ class EntitySerializer(EntitySerializerL0):
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
-                     'media', 'location', 'users', 'joined', 'pinned', 'state', 'friends', 'tags', 'like',
+                     'media', 'location', 'users', 'state', 'friends', 'tags', 'like',
                      'engagements', 'owners', 'related', 'ext_fields', 'is_activated', 'status', 'taganomy',)
 
         fields = EntitySerializerL0.Meta.fields + my_fields
@@ -132,12 +127,6 @@ class EntitySerializer(EntitySerializerL0):
 
     def get_friends(self, obj):
         return ""
-
-    def get_joined(self, obj):
-        return obj.is_joined(self.context.get('user'))
-
-    def get_pinned(self, obj):
-        return obj.is_pinned(self.context.get('user'))
 
     def get_state(self, obj):
         return obj.get_state(self.context.get('user'))

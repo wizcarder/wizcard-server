@@ -18,6 +18,8 @@ from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from itertools import chain
+from scan.models import BadgeTemplate
+from scan.serializers import BadgeTemplateSerializer
 
 
 import pdb
@@ -33,7 +35,7 @@ class ExhibitorEventViewSet(BaseEntityViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Event.objects.users_entities(user)
+        queryset = Event.objects.users_entities(user, entity_filter={'expired': False, 'is_activated': True})
         return queryset
 
 
@@ -784,7 +786,6 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
             return Response("Operation Failed - Detach Agenda %s from  Event - %s and Retry" % (agn.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-
         if agn in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA):
             return Response("event id %s already associated with agenda %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
@@ -947,4 +948,75 @@ class EventTagonomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EventBadgeViewSet(viewsets.ModelViewSet):
+    queryset = BadgeTemplate.objects.all()
+    serializer_class = BadgeTemplateSerializer
+
+    def list(self, request, event_pk=None):
+        event = Event.objects.get(id=event_pk)
+        badge = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
+        return Response(BadgeTemplateSerializer(badge, many=True).data)
+
+    def retrieve(self, request, pk=None, event_pk=None):
+        try:
+            badge = BadgeTemplate.objects.get(id=pk)
+            event = Event.objects.get(id=event_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if badge not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE):
+            return Response("event id %s not associated with BadgeTemplate %s " % (event_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(BadgeTemplateSerializer(badge).data)
+
+    def create(self, request, event_pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = BadgeTemplateSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_BADGE)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, event_pk=None, pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+            badge = BadgeTemplate.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        parents = badge.get_parent_entities()
+        if parents:
+            return Response("Operation Failed - Detach Badge - %s from  Event - %s and Retry" % (badge.name, event.name),
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        if badge in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE):
+            return Response("event id %s already associated with badge %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
+
+        event.add_subentity_obj(badge, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, event_pk=None, pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+            badge = BadgeTemplate.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if badge not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE):
+            return Response("event id %s not associated with Badge %s " % (event_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        event.remove_sub_entity_of_type(badge.id, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
+        return Response(status=status.HTTP_200_OK)
+
 

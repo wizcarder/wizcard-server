@@ -46,14 +46,6 @@ events_router.register(r'poll', EventPollViewSet, base_name='event-poll')
 events_router.register(r'notification', EventNotificationViewSet, base_name='event-notification')
 events_router.register(r'tagonomy', EventTagonomyViewSet, base_name='event-tagonomy')
 
-
-
-
-
-
-
-
-
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^', include(events_router.urls)),

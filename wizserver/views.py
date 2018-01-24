@@ -44,7 +44,6 @@ from base_entity.models import BaseEntity
 from entity.models import Event
 from wizserver import fields
 from lib.nexmomessage import NexmoMessage
-from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, genreco
@@ -103,11 +102,11 @@ class ParseMsgAndDispatch(object):
 
     def __repr__(self):
         out = ""
-        if self.msg.has_key('header'):
+        if 'header' in self.msg:
             out += str(self.msg['header'])
-        if self.msg.has_key('sender'):
+        if 'sender' in self.msg:
             out += str(self.msg['sender'])
-        if self.msg.has_key('receiver'):
+        if 'receiver' in self.msg:
             out += str(self.msg['receiver'])
         return out
 
@@ -228,7 +227,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.VERSION_UPGRADE)
             return False, self.response
 
-        if self.msg.has_key('sender') and not self.validate_sender(self.msg['sender']):
+        if 'sender' in self.msg and not self.validate_sender(self.msg['sender']):
             self.security_exception()
             self.response.ignore()
             logger.warning('user failed sender security check on msg {%s}',
@@ -239,7 +238,7 @@ class ParseMsgAndDispatch(object):
 
         #AA:TODO: App to fix - This has to be in header
         self.on_wifi = self.sender['onWifi'] if \
-            self.sender.has_key('onWifi') else False
+            'onWifi' in self.sender else False
 
         return True, self.response
 
@@ -522,7 +521,7 @@ class ParseMsgAndDispatch(object):
         rand_val = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
         d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
 
-        if d.has_key(k_user):
+        if k_user in d:
             # sms/nexmo issues. Lets store upto 3 passcodes
             if len(d[k_rand]) >= 3:
                 self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
@@ -571,7 +570,7 @@ class ParseMsgAndDispatch(object):
                 logger.error('nexmo send via (%s) failed to (%s)', response_mode, response_target)
                 return self.response
 
-        if self.sender.has_key('test_mode'):
+        if 'test_mode' in self.sender:
             #AA TODO: got to make this tighter/secure
             self.response.add_data("challenge_key", d[k_rand])
 
@@ -594,10 +593,10 @@ class ParseMsgAndDispatch(object):
         d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
         logger.info("cached value for phone_check_xx {%s}", d)
 
-        if not (d.has_key(k_user) and
-                    d.has_key(k_rand) and
-                    d.has_key(k_retry) and
-                    d.has_key(k_device_id)):
+        if not (k_user in d and
+                    k_rand in d and
+                    k_retry in d and
+                    k_device_id in d):
             cache.delete_many([k_user, k_rand, k_retry, k_device_id])
             self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
             return self.response
@@ -800,7 +799,7 @@ class ParseMsgAndDispatch(object):
         if not self.userprofile.activated:
             return self.response
 
-        if self.sender.has_key('reco_actions'):
+        if 'reco_actions' in self.sender:
             recoactions = self.sender['reco_actions']
             for rectuple in recoactions:
                 recid = rectuple['reco_id']
@@ -896,7 +895,7 @@ class ParseMsgAndDispatch(object):
 
         #AA:TODO: Change app to call this phone as well
         if 'phone' in self.sender or 'phone1' in self.sender:
-            phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1']
+            phone = self.sender['phone'] if 'phone' in self.sender else self.sender['phone1']
 
             if wizcard.phone != phone:
                 wizcard.phone = phone
@@ -974,10 +973,8 @@ class ParseMsgAndDispatch(object):
         admin_user = UserProfile.objects.get_admin_user()
         admin_conn = wizcard.get_relationship(admin_user.wizcard)
 
-
         if not admin_conn:
             # connect implicitly with admin wizcard
-
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
                     self.app_userprofile.location.get().lat,
@@ -1403,7 +1400,7 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def WizcardFlickQuery(self):
-        if not self.receiver.has_key('name'):
+        if 'name' not in self.receiver:
             self.security_exception()
             self.response.ignore()
             return self.response
@@ -1866,7 +1863,7 @@ class ParseMsgAndDispatch(object):
         s_obj = self.app_settings
 
         if 'media' in self.sender:
-            if self.sender['media'].has_key('wifi_only'):
+            if 'wifi_only' in self.sender['media']:
                 wifi_data = self.sender['media']['wifi_only']
                 if s_obj.is_wifi_data != wifi_data:
                     s_obj.is_wifi_data = wifi_data
@@ -1891,7 +1888,7 @@ class ParseMsgAndDispatch(object):
                     s_obj.block_unsolicited = block_unsolicited
                     modify = True
 
-            if self.sender['privacy'].has_key('public_timeline'):
+            if 'public_timeline' in self.sender['privacy']:
                 profile_private = not(self.sender['privacy']['public_timeline'])
                 if s_obj.is_profile_private != profile_private:
                     s_obj.is_profile_private = profile_private
@@ -1931,7 +1928,7 @@ class ParseMsgAndDispatch(object):
         # Do ocr stuff
         ocr = OCR()
         result = ocr.process(local_path)
-        if result.has_key('errno'):
+        if 'errno' in result:
             self.response.error_response(result)
             logging.error(result['str'])
             return self.response
@@ -2010,11 +2007,11 @@ class ParseMsgAndDispatch(object):
             deadcard.cctx.notes_last_saved = self.sender['notes']['last_saved']
             deadcard.save()
 
-        if self.sender.has_key('first_name'):
+        if 'first_name' in self.sender:
             deadcard.first_name = self.sender['first_name']
-        if self.sender.has_key('last_name'):
+        if 'last_name' in self.sender:
             deadcard.last_name = self.sender['last_name']
-        if self.sender.has_key('phone'):
+        if 'phone' in self.sender:
             deadcard.phone = self.sender['phone']
 
         cc = self.sender.get('contact_container', None)
@@ -2022,15 +2019,15 @@ class ParseMsgAndDispatch(object):
             cc_e = cc[0]
             d_cc = deadcard.contact_container.all()[0]
 
-            if cc_e.has_key('phone'):
+            if 'phone' in cc_e:
                 d_cc.phone = cc_e['phone']
-            if cc_e.has_key('email'):
+            if 'email' in cc_e:
                 d_cc.email = cc_e['email']
-            if cc_e.has_key('company'):
+            if 'company' in cc_e:
                 d_cc.company = cc_e['company']
-            if cc_e.has_key('title'):
+            if 'title' in cc_e:
                 d_cc.title = cc_e['title']
-            if cc_e.has_key('web'):
+            if 'web' in cc_e:
                 d_cc.web = cc_e['web']
 
             d_cc.save()
@@ -2158,8 +2155,8 @@ class ParseMsgAndDispatch(object):
         e, s = BaseEntityComponent.entity_cls_ser_from_type(entity_type=self.sender.get('entity_type'))
         entity = BaseEntityComponent.create(e, owner=self.user, is_creator=True, **self.sender)
 
-        updated, l = entity.create_or_update_location(self.lat, self.lng)
-        l.start_timer(entity.timeout)
+        updated, loc = entity.create_or_update_location(self.lat, self.lng)
+        loc.start_timer(entity.timeout)
 
         out = s(entity, **self.user_context).data
 
@@ -2179,7 +2176,6 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.NOT_AUTHORIZED)
 
         return self.response
-
 
     def EntityAccess(self):
         id = self.sender.get('entity_id', None)
@@ -2260,13 +2256,13 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        pinned_events = Event.objects.users_entities(self.user, state=UserEntity.PIN)
+        pinned_events = Event.objects.users_entities(self.user, user_filter={'state':UserEntity.PIN}, entity_filter={'expired':False})
         nearby_events = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
         )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
-        my_events = Event.objects.users_entities(self.user, state=UserEntity.JOIN)
+        my_events = Event.objects.users_entities(self.user, user_filter={'state': UserEntity.JOIN})
 
 
         all_events = list(set(pinned_events) | set(nearby_events) | set(my_events))
@@ -2354,7 +2350,7 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def MyEntities(self):
-        entity_type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type', BaseEntityComponent.EVENT)
         cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
         entities = cls.objects.users_entities(self.user)
@@ -2455,6 +2451,7 @@ class ParseMsgAndDispatch(object):
 
     def TableJoinByInvite(self):
         return self.EntityJoin()
+
 
 wizrequest_handler = WizRequestHandler.as_view()
 #wizconnection_request = login_required(WizConnectionRequestView.as_view())

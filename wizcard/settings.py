@@ -1,7 +1,6 @@
 # Django settings for wizcard project.
 import os
 
-from kombu import Queue, Exchange
 from wizcard import instances
 
 RUNENV = os.getenv('WIZRUNENV', 'dev')
@@ -256,12 +255,12 @@ EMAIL_TEMPLATE = '/invites/email_templatev4.png'
 EMAIL_FROM_ADDR='WizCard Inc <wizcarder@getwizcard.com>'
 
 PHONE_CHECK_MESSAGE = {
-        'reqtype': 'json',
-        'api_key': NEXMO_API_KEY,
-        'api_secret': NEXMO_API_SECRET,
-        'from': NEXMO_SENDERID,
-        'to':None,
-        'text':""
+        'reqtype' : 'json',
+        'api_key' : NEXMO_API_KEY,
+        'api_secret' : NEXMO_API_SECRET,
+        'from' : NEXMO_SENDERID,
+        'to' : None,
+        'text' : ""
     }
 
 #number of per user notifs we want to process per get
@@ -412,9 +411,6 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 # Use WatchedFileHandler instead, and rotate logs with a cron job or with some other program.
 #
 #... somewhere in settings.py or imported ...
-
-
-
 MYLOG = {}
 MYLOG['dev'] = {
     'version': 1,

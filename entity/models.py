@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 from wizcardship.models import Wizcard
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager, UserEntity
+from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, \
+    BaseEntityComponentManager, UserEntity
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
 from notifications.signals import notify
@@ -14,13 +15,11 @@ from taganomy.models import Taganomy
 from django.contrib.contenttypes.models import ContentType
 import pdb
 
-
-
-
 from django.utils import timezone
 now = timezone.now
 
 # Create your models here.
+
 
 class EventManager(BaseEntityManager):
     def lookup(self, lat, lng, n, etype=BaseEntityComponent.EVENT, count_only=False):
@@ -38,27 +37,27 @@ class EventManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.EVENT)
-        state = kwargs.get('state',UserEntity.JOIN)
-        kwargs.update(state=state)
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.EVENT)
+        state = user_filter.get('state', UserEntity.JOIN)
+        user_filter.update(state=state)
 
-        return super(EventManager, self).users_entities(user, **kwargs)
+        return super(EventManager, self).users_entities(user, user_filter, entity_filter)
 
     def get_expired(self):
         return self.filter(end__lt=timezone.now(), expired=False, is_activated=True)
 
-    def get_tagged_entities(self, tags, entity_type=BaseEntityComponent.EVENT):
+    def get_tagged_entities(self, tags, entity_type):
         events = Event.objects.filter(expired=False, is_activated=True)
         t_events = []
         # TODO: AR: Find a better way to filter out expired events
-        taganomy = Taganomy.objects.get_tagged_entities(tags)
+        taganomy = Taganomy.objects.get_tagged_entities(tags, BaseEntityComponent.CATEGORY)
         contenttype_id = ContentType.objects.get(model="event")
+
         for t_obj in taganomy:
             t_events = t_events + t_obj.get_parent_entities_by_contenttype_id(contenttype_id)
 
         return list(set(events) & set(t_events))
-
 
     def combine_search(self, query, entity_type=BaseEntityComponent.EVENT):
         return super(EventManager, self).combine_search(query, entity_type)
@@ -78,7 +77,6 @@ class Event(BaseEntity):
         )
 
 
-
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
         return super(CampaignManager, self).owners_entities(
@@ -86,16 +84,12 @@ class CampaignManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.CAMPAIGN)
-        return super(CampaignManager, self).users_entities(
-            user,
-            **kwargs
-        )
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.CAMPAIGN)
+        return super(CampaignManager, self).users_entities(user, user_filter=user_filter, entity_filter=entity_filter)
 
     def combine_search(self, query, entity_type=BaseEntityComponent.CAMPAIGN):
         return super(CampaignManager, self).combine_search(query, entity_type=entity_type)
-
 
 
 class Campaign(BaseEntity):
@@ -119,11 +113,12 @@ class VirtualTableManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.TABLE)
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.TABLE)
         return super(VirtualTableManager, self).users_entities(
             user,
-            **kwargs
+            user_filter=user_filter,
+            entity_filter=entity_filter
         )
 
     def lookup(self, lat, lng, n, etype=BaseEntityComponent.TABLE, count_only=False):
@@ -134,9 +129,9 @@ class VirtualTableManager(BaseEntityManager):
             etype,
             count_only
         )
+
     def combine_search(self, query, entity_type=BaseEntityComponent.TABLE):
         return super(VirtualTableManager, self).combine_search(query, entity_type=entity_type)
-
 
 
 class VirtualTable(BaseEntity):
@@ -200,12 +195,10 @@ class SponsorManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.SPONSOR)
-        return super(SponsorManager, self).users_entities(
-            user,
-            **kwargs
-        )
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.SPONSOR)
+        return super(SponsorManager, self).users_entities(user, user_filter=user_filter, entity_filter=entity_filter)
+
 
 class Sponsor(BaseEntity, InviteStateMixin):
     caption = models.CharField(max_length=50, default='Not Available')
@@ -255,19 +248,19 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
                 id__in=invitee_ids
             ).values_list('email', flat=True)
         )
-
         matched_exhibitors = self.filter(
             email__in=matched_users.values_list('email', flat=True)
         )
-
         return matched_users, matched_exhibitors
 
     def check_pending_invites(self, email):
         return self.filter(email=email, state=ExhibitorInvitee.INVITED)
 
+
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     objects = ExhibitorInviteeManager()
+
 
 class AgendaManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.AGENDA):
@@ -300,6 +293,7 @@ def create_engagement_stats(sender, instance, created, **kwargs):
         e = EntityEngagementStats.objects.create()
         instance.engagements = e
         instance.save()
+
 
 @receiver(user_type_created)
 def connect_subentities(sender, **kwargs):

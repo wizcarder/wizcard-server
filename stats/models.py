@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from wizserver import verbs
 from django.db.models.signals import post_save
 from userprofile.models import UserProfile
 import pdb
@@ -319,11 +318,9 @@ class StatsMgr(models.Manager):
         user_stats.save()
         global_stats.save()
 
-
     def inc_entity_query(self, user_stats, global_stats, **kwargs):
         user_stats.entity_query += 1
         global_stats.entity_query += 1
-
         user_stats.save()
         global_stats.save()
 

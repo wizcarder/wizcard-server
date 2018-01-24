@@ -84,11 +84,10 @@ class UserRecommendation(models.Model):
     )
 
     ACTIONS = (
-
         (Viewed, 'VIEWED'), 
         (Acted, 'ACTED'), 
         (Dismissed, 'DISMISSED'), 
-	    (New, 'NEW'), 
+        (New, 'NEW'), 
     )
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User)
@@ -128,9 +127,7 @@ class UserRecommendation(models.Model):
 
         return reco_dict
 
-
     def updateScore(self, adjustsent=False):
-
         if adjustsent:
             self.score = Decimal(0.5) * self.score
         else:

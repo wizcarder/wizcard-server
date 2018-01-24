@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from base_entity.views import BaseEntityComponentViewSet
 from scan.models import ScannedEntity, BadgeTemplate
 from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer

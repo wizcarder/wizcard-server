@@ -8,9 +8,7 @@ logger = logging.getLogger(__name__)
 
 def send_gcm_message(key, reg_token, data):
 	push_service = FCMNotification(api_key=key)
-	
 	# Your api-key can be gotten from:  https://console.firebase.google.com/project/<project-name>/settings/cloudmessaging
-	
 	registration_id = reg_token
 	message_title = data['title']
 	message_body = data['body']
@@ -23,7 +21,7 @@ def send_gcm_message(key, reg_token, data):
 		push_result = result['success']
 	else:
 		push_result = -1
-	
+
 	if push_result > 0:
 		logger.debug("Successfully sent notification for %s",reg_token)
 	else:
