@@ -981,7 +981,7 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
         serializer = BadgeTemplateSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
             inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_BADGE)
+            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

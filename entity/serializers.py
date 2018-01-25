@@ -801,3 +801,6 @@ class PollResponseSerializer(EntitySerializer):
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
 
+    def get_state(self, obj):
+        return obj.state
+

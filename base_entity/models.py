@@ -512,7 +512,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         # There can only be 1 entry per user per entity
         try:
             ue = user.userentity_set.get(entity=self, user=user)
-            state = ue.state
+            return ue.state
         except:
             return None
 
