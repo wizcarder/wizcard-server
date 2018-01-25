@@ -27,11 +27,12 @@ class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
         fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers',
-                  'media', 'agenda_key', 'num_users')
+                  'media', 'agenda', 'num_users')
 
-    agenda_key = serializers.PrimaryKeyRelatedField(
+    agenda = serializers.PrimaryKeyRelatedField(
         queryset=Agenda.objects.all(),
-        required=False
+        required=False,
+        source='agenda_key'
     )
     speakers = serializers.SerializerMethodField()
 
