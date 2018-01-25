@@ -322,12 +322,14 @@ class EventSerializerL2(EntitySerializer):
     polls = serializers.SerializerMethodField()
     # TODO AR: Just return tags instead of taganomy stuff
     taganomy = serializers.SerializerMethodField()
+    tags_campaign = serializers.SerializerMethodField()
+    venue_campaign = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'tags')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'taganomy', 'tags_campaign', 'venue_campaign')
 
         fields = parent_fields + my_fields
 
@@ -398,6 +400,11 @@ class EventSerializerL2(EntitySerializer):
             many=True
         ).data
 
+    def get_tags_campaign(self, obj):
+        return obj.get_sub_entities_by_tags(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+
+    def get_venue_campaign(self, obj):
+        return obj.get_sub_entities_by_venue(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
 
 # this is used by App
 class CampaignSerializerL1(EntitySerializer):
