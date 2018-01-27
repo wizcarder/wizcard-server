@@ -6,6 +6,8 @@ from entity.models import Event
 
 
 logger = logging.getLogger(__name__)
+
+
 @task(ignore_result=True)
 def expire():
     logger.debug('Event Tick received')

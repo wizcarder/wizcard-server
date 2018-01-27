@@ -27,7 +27,6 @@ class EmailAndPushManager(BaseNotificationManager):
         return EmailAndPush.objects.filter(readed=False, notif_type=verbs.WIZCARD_ENTITY_BROADCAST_CREATE[0])
 
 
-
 class EmailAndPush(BaseNotification):
 
     RECUR = 1

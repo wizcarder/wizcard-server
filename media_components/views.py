@@ -1,5 +1,5 @@
 from media_components.models import MediaEntities
-from media_components.serializers import  MediaEntitiesSerializer
+from media_components.serializers import MediaEntitiesSerializer
 from base_entity.views import BaseEntityComponentViewSet
 
 

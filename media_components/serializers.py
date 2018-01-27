@@ -7,6 +7,7 @@ from media_components.models import MediaEntities
 #from entity.serializers import RelatedSerializerField, RelatedSerializerFieldL2
 import pdb
 
+
 class MediaEntitiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaEntities

@@ -1,4 +1,4 @@
-from wizcard.instances  import *
+from wizcard.instances import *
 import os
 
 RUNENV = os.getenv('WIZRUNENV', 'dev')
@@ -19,8 +19,6 @@ TREE_PASSWORD = 'location_pass'
 RECO_VHOST = 'reco_vhost'
 RECO_USER = 'reco_user'
 RECO_PASSWORD = 'reco_pass'
-
-
 
 # URLS
 TREE_HOST =  RUNHOSTS[RUNENV]['LOCATIONSERVER'][0]

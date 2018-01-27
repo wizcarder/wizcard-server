@@ -166,14 +166,15 @@ class User(Connect):
         self.reqmsg['receiver']['receiver_type'] = "wiz_untrusted"
         self.reqmsg['receiver']['receiver_ids'] = valid_users
 
-    def entity_join(self, entity_id, entity_type='EVT'):
-        self.reqmsg = messages.entity_join.copy()
+    def entity_access(self, entity_id, entity_type='EVT', state=1):
+        self.reqmsg = messages.entity_access.copy()
         self.reqmsg['header'].update(self.msg_hdr['header'])
 
         self.reqmsg['sender']['user_id'] = self.uid
         self.reqmsg['sender']['wizuser_id'] = self.wuid
         self.reqmsg['sender']['entity_id'] = entity_id
         self.reqmsg['sender']['entity_type'] = entity_type
+        self.reqmsg['sender']['state'] = state
 
         send_request(self.conn, self.reqmsg)
         objs = handle_response(self.conn, self.reqmsg['header']['msg_type'])

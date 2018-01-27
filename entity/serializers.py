@@ -31,7 +31,8 @@ class AgendaItemSerializer(EntitySerializer):
 
     agenda = serializers.PrimaryKeyRelatedField(
         queryset=Agenda.objects.all(),
-        required=False
+        required=False,
+        source='agenda_key'
     )
     speakers = serializers.SerializerMethodField()
 
@@ -58,7 +59,8 @@ class AgendaItemSerializer(EntitySerializer):
 class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'joined', 'users')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media',  'users',
+                  'state')
 
     speakers = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
@@ -77,9 +79,11 @@ class AgendaItemSerializerL2(EntitySerializer):
 
 
 class AgendaSerializer(EntitySerializer):
+    event = serializers.SerializerMethodField()
+
     class Meta:
         model = Agenda
-        fields = ('id', 'name', 'description', 'entity_type', 'items', 'media')
+        fields = ('id', 'name', 'description', 'entity_type', 'items', 'media', 'event')
 
     items = AgendaItemSerializer(many=True)
 
@@ -92,7 +96,7 @@ class AgendaSerializer(EntitySerializer):
         self.post_create_update(agn)
 
         for item in items:
-            item.update(agenda=agn)
+            item.update(agenda_key=agn)
             AgendaItemSerializer(context=self.context).create(item)
 
         return agn
@@ -103,6 +107,10 @@ class AgendaSerializer(EntitySerializer):
         self.post_create_update(instance)
 
         return obj
+
+    def get_event(self, obj):
+        event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
+        return EventSerializerL0(event, many=True).data
 
 
 class AgendaSerializerL2(EntitySerializer):
@@ -128,7 +136,7 @@ class EventSerializer(EntitySerializer):
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
-        remove_fields = ['joined', 'engagements', 'users', ]
+        remove_fields = ['state', 'engagements', 'users', ]
 
         super(EventSerializer, self).__init__(*args, **kwargs)
 
@@ -222,6 +230,7 @@ class EventSerializerL0(EntitySerializer):
             many=True
         ).data
 
+
 class ExhibitorEventSerializer(EventSerializerL0):
     class Meta:
         model = Event
@@ -246,7 +255,7 @@ class EventSerializerL1(EventSerializerL0):
         model = Event
 
         parent_fields = ('id', 'entity_type', 'num_users', 'name', 'address', 'secure', 'description', 'media',
-                         'location', 'users', 'joined', 'friends', 'like',  'engagements')
+                         'location', 'users', 'friends', 'like',  'engagements', 'state')
         my_fields = ('start', 'end', 'tags')
 
         fields = parent_fields + my_fields
@@ -313,12 +322,14 @@ class EventSerializerL2(EntitySerializer):
     polls = serializers.SerializerMethodField()
     # TODO AR: Just return tags instead of taganomy stuff
     taganomy = serializers.SerializerMethodField()
+    tags_campaign = serializers.SerializerMethodField()
+    venue_campaign = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'tags')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'taganomy', 'tags_campaign', 'venue_campaign')
 
         fields = parent_fields + my_fields
 
@@ -389,6 +400,11 @@ class EventSerializerL2(EntitySerializer):
             many=True
         ).data
 
+    def get_tags_campaign(self, obj):
+        return obj.get_sub_entities_by_tags(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+
+    def get_venue_campaign(self, obj):
+        return obj.get_sub_entities_by_venue(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
 
 # this is used by App
 class CampaignSerializerL1(EntitySerializer):
@@ -398,7 +414,7 @@ class CampaignSerializerL1(EntitySerializer):
 
         # using L0 fields since not all L1 base class fields are needed
         parent_fields = EntitySerializerL0.Meta.fields
-        my_fields = ('name', 'address', 'tags', 'joined', 'like', 'description',)
+        my_fields = ('name', 'address', 'tags', 'like', 'description', 'state')
 
         fields = parent_fields + my_fields
 
@@ -421,14 +437,14 @@ class CampaignSerializerL1(EntitySerializer):
 class CampaignSerializerL2(EntitySerializer):
     class Meta:
         model = Campaign
-        my_fields = ('tags', 'joined', 'like',)
+        my_fields = ('tags', 'like', 'is_sponsored')
         fields = EntitySerializer.Meta.fields + my_fields
 
 
 # this is used by portal REST API
 class CampaignSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['joined', ]
+        remove_fields = ['state', ]
         super(CampaignSerializer, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
@@ -436,16 +452,21 @@ class CampaignSerializer(EntitySerializer):
 
     class Meta:
         model = Campaign
-        my_fields = ('scans', 'is_sponsored', )
+        my_fields = ('scans', 'is_sponsored', 'events')
         fields = EntitySerializer.Meta.fields + my_fields
 
     scans = serializers.SerializerMethodField()
+    events = serializers.SerializerMethodField()
 
     def get_scans(self, obj):
         return ScannedEntitySerializer(
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SCANNED_USER),
             many=True
         ).data
+
+    def get_events(self, obj):
+        parents = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
+        return EventSerializerL0(parents, many=True).data
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)
@@ -511,7 +532,7 @@ class TableSerializerL2(EntitySerializer):
 # this is used by portal REST API
 class TableSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['joined']
+        remove_fields = ['state']
         super(TableSerializer, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
@@ -603,7 +624,7 @@ class SponsorSerializerL1(EntitySerializer):
 
         # using L0 fields since not all L1 base class fields are needed
         parent_fields = EntitySerializerL0.Meta.fields
-        my_fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related', 'joined', 'like')
+        my_fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related', 'like', 'state')
 
         fields = parent_fields + my_fields
 
@@ -628,7 +649,7 @@ class SponsorSerializerL2(EntitySerializer):
         model = Sponsor
         fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
                   'description', 'phone', 'caption', 'ext_fields', 'media',
-                  'joined', 'like')
+                  'state', 'like')
 
 
 class ExhibitorInviteeSerializer(EntitySerializer):
@@ -652,6 +673,7 @@ class ExhibitorInviteeSerializer(EntitySerializer):
         self.post_create_update(obj)
 
         return obj
+
 
 class AttendeeInviteeSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
@@ -709,14 +731,18 @@ class PollSerializerL1(EntitySerializer):
 
     questions = QuestionSerializerL1(many=True)
 
+
 # this is used to create a poll. This is also used to send serialized Poll to App
 class PollSerializer(EntitySerializer):
+    event = serializers.SerializerMethodField()
+
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'questions', 'state', 'num_responders', 'created',)
-        read_only_fields = ('state', 'num_responders', 'created',)
+        fields = ('id', 'description', 'questions', 'state', 'num_responders', 'created', 'event')
+        read_only_fields = ('state', 'num_responders', 'created', 'event')
 
     questions = QuestionSerializer(many=True)
+    state = serializers.SerializerMethodField()
 
     def prepare(self, validated_data):
         self.questions = validated_data.pop('questions', None)
@@ -758,6 +784,13 @@ class PollSerializer(EntitySerializer):
 
         return instance
 
+    def get_event(self, obj):
+        event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
+        return EventSerializerL0(event, many=True).data
+
+    def get_state(self, obj):
+        return obj.state
+
 
 class PollResponseSerializer(EntitySerializer):
     class Meta:
@@ -775,4 +808,7 @@ class PollResponseSerializer(EntitySerializer):
         # of {}, in the response
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
+
+    def get_state(self, obj):
+        return obj.state
 

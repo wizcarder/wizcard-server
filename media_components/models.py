@@ -7,13 +7,14 @@ from base.mixins import MediaMixin
 from entity.models import BaseEntityComponent
 import pdb
 from django.contrib.contenttypes.models import ContentType
+from polymorphic.query import PolymorphicQuerySet
 
 now = timezone.now
 
 
 # Create your models here
 
-class MediaEntitiesQuerySet(models.QuerySet):
+class MediaEntitiesQuerySet(PolymorphicQuerySet):
     def delete(self):
         # TODO: use this to delete s3 assets for app part
         super(MediaEntitiesQuerySet, self).delete()

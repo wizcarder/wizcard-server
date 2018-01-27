@@ -44,7 +44,6 @@ from base_entity.models import BaseEntity
 from entity.models import Event
 from wizserver import fields
 from lib.nexmomessage import NexmoMessage
-from wizcard import message_format as message_format
 from wizserver import verbs
 from base.cctx import ConnectionContext
 from recommendation.models import UserRecommendation, genreco
@@ -60,6 +59,7 @@ from media_components.models import MediaEntities
 from media_components.signals import media_create
 from polls.models import Poll, UserResponse
 from scan.serializers import ScannedEntitySerializer
+from base_entity.models import UserEntity
 
 import pdb
 
@@ -102,11 +102,11 @@ class ParseMsgAndDispatch(object):
 
     def __repr__(self):
         out = ""
-        if self.msg.has_key('header'):
+        if 'header' in self.msg:
             out += str(self.msg['header'])
-        if self.msg.has_key('sender'):
+        if 'sender' in self.msg:
             out += str(self.msg['sender'])
-        if self.msg.has_key('receiver'):
+        if 'receiver' in self.msg:
             out += str(self.msg['receiver'])
         return out
 
@@ -227,7 +227,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.VERSION_UPGRADE)
             return False, self.response
 
-        if self.msg.has_key('sender') and not self.validate_sender(self.msg['sender']):
+        if 'sender' in self.msg and not self.validate_sender(self.msg['sender']):
             self.security_exception()
             self.response.ignore()
             logger.warning('user failed sender security check on msg {%s}',
@@ -238,7 +238,7 @@ class ParseMsgAndDispatch(object):
 
         #AA:TODO: App to fix - This has to be in header
         self.on_wifi = self.sender['onWifi'] if \
-            self.sender.has_key('onWifi') else False
+            'onWifi' in self.sender else False
 
         return True, self.response
 
@@ -439,20 +439,15 @@ class ParseMsgAndDispatch(object):
                     self.EntityEdit,
                     Stats.objects.inc_entity_edit,
                 ),
-            verbs.MSG_ENTITY_JOIN:
-                (
-                    self.EntityJoin,
-                    Stats.objects.inc_entity_join
-                ),
-            verbs.MSG_ENTITY_LEAVE:
-                (
-                    self.EntityLeave,
-                    Stats.objects.inc_entity_leave
-                ),
             verbs.MSG_ENTITY_QUERY:
                 (
                     self.EntityQuery,
                     Stats.objects.inc_entity_query
+                ),
+            verbs.MSG_ENTITY_ACCESS:
+                (
+                    self.EntityAccess,
+                    Stats.objects.inc_entity_access
                 ),
             verbs.MSG_MY_ENTITIES:
                 (
@@ -501,7 +496,7 @@ class ParseMsgAndDispatch(object):
 
         # bump stats
         if msgTypesValidatorsAndHandlers[self.msg_id][STATS]:
-            msgTypesValidatorsAndHandlers[self.msg_id][STATS](self.user_stats, self.global_stats)
+            msgTypesValidatorsAndHandlers[self.msg_id][STATS](self.user_stats, self.global_stats, **self.sender)
 
         self.header_post_process()
         return response
@@ -526,7 +521,7 @@ class ParseMsgAndDispatch(object):
         rand_val = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
         d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
 
-        if d.has_key(k_user):
+        if k_user in d:
             # sms/nexmo issues. Lets store upto 3 passcodes
             if len(d[k_rand]) >= 3:
                 self.response.error_response(err.PHONE_CHECK_RETRY_EXCEEDED)
@@ -575,7 +570,7 @@ class ParseMsgAndDispatch(object):
                 logger.error('nexmo send via (%s) failed to (%s)', response_mode, response_target)
                 return self.response
 
-        if self.sender.has_key('test_mode'):
+        if 'test_mode' in self.sender:
             #AA TODO: got to make this tighter/secure
             self.response.add_data("challenge_key", d[k_rand])
 
@@ -598,10 +593,10 @@ class ParseMsgAndDispatch(object):
         d = cache.get_many([k_user, k_device_id, k_rand, k_retry])
         logger.info("cached value for phone_check_xx {%s}", d)
 
-        if not (d.has_key(k_user) and
-                    d.has_key(k_rand) and
-                    d.has_key(k_retry) and
-                    d.has_key(k_device_id)):
+        if not (k_user in d and
+                    k_rand in d and
+                    k_retry in d and
+                    k_device_id in d):
             cache.delete_many([k_user, k_rand, k_retry, k_device_id])
             self.response.error_response(err.PHONE_CHECK_TIMEOUT_EXCEEDED)
             return self.response
@@ -804,7 +799,7 @@ class ParseMsgAndDispatch(object):
         if not self.userprofile.activated:
             return self.response
 
-        if self.sender.has_key('reco_actions'):
+        if 'reco_actions' in self.sender:
             recoactions = self.sender['reco_actions']
             for rectuple in recoactions:
                 recid = rectuple['reco_id']
@@ -900,7 +895,7 @@ class ParseMsgAndDispatch(object):
 
         #AA:TODO: Change app to call this phone as well
         if 'phone' in self.sender or 'phone1' in self.sender:
-            phone = self.sender['phone'] if self.sender.has_key('phone') else self.sender['phone1']
+            phone = self.sender['phone'] if 'phone' in self.sender else self.sender['phone1']
 
             if wizcard.phone != phone:
                 wizcard.phone = phone
@@ -978,10 +973,8 @@ class ParseMsgAndDispatch(object):
         admin_user = UserProfile.objects.get_admin_user()
         admin_conn = wizcard.get_relationship(admin_user.wizcard)
 
-
         if not admin_conn:
             # connect implicitly with admin wizcard
-
             try:
                 location_str = wizlib.reverse_geo_from_latlng(
                     self.app_userprofile.location.get().lat,
@@ -1010,9 +1003,9 @@ class ParseMsgAndDispatch(object):
 
             notify.send(admin_user.wizcard.user,
                         recipient=wizcard.user,
-                        notif_type=verbs.WIZREQ_T[0],
+                        notif_type=verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX],
                         target=admin_user.wizcard,
-                        verb=verbs.WIZREQ_T[1],
+                        verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                         action_object=rel21
                         )
 
@@ -1032,8 +1025,8 @@ class ParseMsgAndDispatch(object):
         if created:
             notify.send(self.user,
                         recipient=self.user,
-                        notif_type=verbs.WIZCARD_NEW_USER[0],
-                        verb=verbs.WIZCARD_NEW_USER[1],
+                        notif_type=verbs.WIZCARD_NEW_USER[verbs.NOTIF_TYPE_IDX],
+                        verb=verbs.WIZCARD_NEW_USER[verbs.VERB_IDX],
                         target=wizcard,
                         delivery_method=BaseNotification.EMAIL
                         )
@@ -1046,8 +1039,8 @@ class ParseMsgAndDispatch(object):
     # B has A's wizcard in roldex
     def WizcardAccept(self):
         status = []
-        verb1 = verbs.WIZREQ_T[0]
-        verb2 = verbs.WIZREQ_T[0]
+        verb1 = verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX]
+        verb2 = verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX]
 
         try:
             wizcard1 = self.user.wizcard
@@ -1117,14 +1110,14 @@ class ParseMsgAndDispatch(object):
             Wizcard.objects.becard(wizcard2, wizcard1)
 
         if wizcard1.get_relationship(wizcard2).status != verbs.ACCEPTED:
-            verb1 = verbs.WIZREQ_T_HALF[0]
+            verb1 = verbs.WIZREQ_T_HALF[verbs.NOTIF_TYPE_IDX]
             verb2 = None
         # Q notif to both sides.
         notify.send(self.r_user,
                     recipient=self.user,
                     notif_type=verb1,
                     target=wizcard2,
-                    verb=verbs.WIZREQ_T_HALF[1],
+                    verb=verbs.WIZREQ_T_HALF[verbs.VERB_IDX],
                     action_object=rel21
                     )
 
@@ -1134,7 +1127,7 @@ class ParseMsgAndDispatch(object):
                         recipient=self.r_user,
                         notif_type=verb2,
                         target=wizcard1,
-                        verb=verbs.WIZREQ_T[1],
+                        verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                         action_object=rel12
                         )
 
@@ -1205,7 +1198,7 @@ class ParseMsgAndDispatch(object):
                                 recipient=wizcard2.user,
                                 target_object_id=wizcard1.id,
                                 readed=False,
-                                verb=verbs.WIZREQ_U[0])
+                                notif_type=verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX])
                         if n.count():
                             map(lambda x: x.delete(), n)
                             Wizcard.objects.uncardit(wizcard2, wizcard1, soft=False)
@@ -1220,8 +1213,8 @@ class ParseMsgAndDispatch(object):
                         # Q a notif to other guy so that the app on the other side can react
                         notify.send(self.user,
                                     recipient=wizcard2.user,
-                                    notif_type=verbs.WIZCARD_REVOKE[0],
-                                    verb=verbs.WIZCARD_REVOKE[1],
+                                    notif_type=verbs.WIZCARD_REVOKE[verbs.NOTIF_TYPE_IDX],
+                                    verb=verbs.WIZCARD_REVOKE[verbs.VERB_IDX],
                                     target=wizcard1)
         except KeyError:
             self.security_exception()
@@ -1315,8 +1308,8 @@ class ParseMsgAndDispatch(object):
                 #Q pick_notif to flicker
                 notify.send(self.user,
                             recipient=wizcard2.user,
-                            notif_type=verbs.WIZCARD_FLICK_PICK[0],
-                            verb=verbs.WIZCARD_FLICK_PICK[1],
+                            notif_type=verbs.WIZCARD_FLICK_PICK[verbs.NOTIF_TYPE_IDX],
+                            verb=verbs.WIZCARD_FLICK_PICK[verbs.VERB_IDX],
                             target=flick_card,
                             action_object=rel)
 
@@ -1343,8 +1336,8 @@ class ParseMsgAndDispatch(object):
 
                 #Q implicit exchange to flicker
                 notify.send(self.user, recipient=wizcard2.user,
-                            notif_type=verbs.WIZREQ_T[0],
-                            verb=verbs.WIZREQ_T[1],
+                            notif_type=verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX],
+                            verb=verbs.WIZREQ_T[verbs.VERB_IDX],
                             target=wizcard1,
                             action_object=rel1)
             return self.response
@@ -1407,7 +1400,7 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def WizcardFlickQuery(self):
-        if not self.receiver.has_key('name'):
+        if 'name' not in self.receiver:
             self.security_exception()
             self.response.ignore()
             return self.response
@@ -1566,8 +1559,8 @@ class ParseMsgAndDispatch(object):
                     notify.send(
                             self.user,
                             recipient=r_user,
-                            notif_type=notif_tuple[0],
-                            verb=notif_tuple[1],
+                            notif_type=notif_tuple[verbs.NOTIF_TYPE_IDX],
+                            verb=notif_tuple[verbs.VERB_IDX],
                             target=wizcard,
                             action_object=rel12
                     )
@@ -1610,8 +1603,8 @@ class ParseMsgAndDispatch(object):
                 if from_notify:
                     notify.send(r_user,
                                 recipient=self.user,
-                                notif_type=conn_status[0],
-                                verb=conn_status[1],
+                                notif_type=conn_status[verbs.NOTIF_TYPE_IDX],
+                                verb=conn_status[verbs.VERB_IDX],
                                 target=r_wizcard,
                                 action_object=rel21
                                 )
@@ -1643,8 +1636,8 @@ class ParseMsgAndDispatch(object):
                 #Q this to the receiver
                 notify.send(self.user,
                             recipient=r_user,
-                            notif_type=verbs.WIZCARD_TABLE_INVITE[0],
-                            verb=verbs.WIZCARD_TABLE_INVITE[1],
+                            notif_type=verbs.WIZCARD_TABLE_INVITE[verbs.NOTIF_TYPE_IDX],
+                            verb=verbs.WIZCARD_TABLE_INVITE[verbs.VERB_IDX],
                             target=table
                             )
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE],
@@ -1679,8 +1672,8 @@ class ParseMsgAndDispatch(object):
                         # Q notif for to_wizcard
                         notify.send(self.user,
                                     recipient=wizcard.user,
-                                    notif_type=verbs.WIZREQ_U[0],
-                                    verb=verbs.WIZREQ_U[1],
+                                    notif_type=verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX],
+                                    verb=verbs.WIZREQ_U[verbs.VERB_IDX],
                                     target=obj,
                                     action_object=rel12
                                     )
@@ -1690,8 +1683,8 @@ class ParseMsgAndDispatch(object):
                         # to this..but better to promote connections
                         rel12.reset()
                         notify.send(self.user, recipient=wizcard.user,
-                                    notif_type=verbs.WIZREQ_U[0],
-                                    verb=verbs.WIZREQ_U[1],
+                                    notif_type=verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX],
+                                    verb=verbs.WIZREQ_U[verbs.VERB_IDX],
                                     target=obj,
                                     action_object=rel12)
 
@@ -1705,7 +1698,7 @@ class ParseMsgAndDispatch(object):
                                                        cctx=cctx2)
                         notify.send(wizcard.user, recipient=self.user,
                                     notif_type=verbs.WIZREQ_T_HALF[0],
-                                    verb=verbs.WIZREQ_T_HALF[1],
+                                    verb=verbs.WIZREQ_T_HALF[verbs.VERB_IDX],
                                     target=wizcard,
                                     action_object=rel21)
 
@@ -1724,7 +1717,7 @@ class ParseMsgAndDispatch(object):
 
                         notify.send(wizcard.user, recipient=self.user,
                                     notif_type=conn_status[0],
-                                    verb=conn_status[1],
+                                    verb=conn_status[verbs.VERB_IDX],
                                     target=wizcard,
                                     action_object=rel21)
                     else:
@@ -1739,14 +1732,14 @@ class ParseMsgAndDispatch(object):
                     #Q this to the receiver
                     notify.send(self.user, recipient=wizcard.user,
                                 notif_type=verbs.WIZCARD_TABLE_INVITE[0],
-                                verb=verbs.WIZCARD_TABLE_INVITE[1],
+                                verb=verbs.WIZCARD_TABLE_INVITE[verbs.VERB_IDX],
                                 target=obj)
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
                     notify.send(self.user,
                                 recipient=self.user,
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
-                                verb=verbs.WIZCARD_INVITE_USER[1],
+                                verb=verbs.WIZCARD_INVITE_USER[verbs.VERB_IDX],
                                 target=wizcard,
                                 delivery_method=BaseNotification.EMAIL
                                 )
@@ -1762,7 +1755,7 @@ class ParseMsgAndDispatch(object):
                     notify.send(self.user,
                                 recipient=self.user,
                                 notif_type=verbs.WIZCARD_INVITE_USER[0],
-                                verb=verbs.WIZCARD_INVITE_USER[1],
+                                verb=verbs.WIZCARD_INVITE_USER[verbs.VERB_IDX],
                                 target=fuser[0],
                                 delivery_method=BaseNotification.EMAIL
                                 )
@@ -1870,7 +1863,7 @@ class ParseMsgAndDispatch(object):
         s_obj = self.app_settings
 
         if 'media' in self.sender:
-            if self.sender['media'].has_key('wifi_only'):
+            if 'wifi_only' in self.sender['media']:
                 wifi_data = self.sender['media']['wifi_only']
                 if s_obj.is_wifi_data != wifi_data:
                     s_obj.is_wifi_data = wifi_data
@@ -1895,7 +1888,7 @@ class ParseMsgAndDispatch(object):
                     s_obj.block_unsolicited = block_unsolicited
                     modify = True
 
-            if self.sender['privacy'].has_key('public_timeline'):
+            if 'public_timeline' in self.sender['privacy']:
                 profile_private = not(self.sender['privacy']['public_timeline'])
                 if s_obj.is_profile_private != profile_private:
                     s_obj.is_profile_private = profile_private
@@ -1935,7 +1928,7 @@ class ParseMsgAndDispatch(object):
         # Do ocr stuff
         ocr = OCR()
         result = ocr.process(local_path)
-        if result.has_key('errno'):
+        if 'errno' in result:
             self.response.error_response(result)
             logging.error(result['str'])
             return self.response
@@ -2014,11 +2007,11 @@ class ParseMsgAndDispatch(object):
             deadcard.cctx.notes_last_saved = self.sender['notes']['last_saved']
             deadcard.save()
 
-        if self.sender.has_key('first_name'):
+        if 'first_name' in self.sender:
             deadcard.first_name = self.sender['first_name']
-        if self.sender.has_key('last_name'):
+        if 'last_name' in self.sender:
             deadcard.last_name = self.sender['last_name']
-        if self.sender.has_key('phone'):
+        if 'phone' in self.sender:
             deadcard.phone = self.sender['phone']
 
         cc = self.sender.get('contact_container', None)
@@ -2026,15 +2019,15 @@ class ParseMsgAndDispatch(object):
             cc_e = cc[0]
             d_cc = deadcard.contact_container.all()[0]
 
-            if cc_e.has_key('phone'):
+            if 'phone' in cc_e:
                 d_cc.phone = cc_e['phone']
-            if cc_e.has_key('email'):
+            if 'email' in cc_e:
                 d_cc.email = cc_e['email']
-            if cc_e.has_key('company'):
+            if 'company' in cc_e:
                 d_cc.company = cc_e['company']
-            if cc_e.has_key('title'):
+            if 'title' in cc_e:
                 d_cc.title = cc_e['title']
-            if cc_e.has_key('web'):
+            if 'web' in cc_e:
                 d_cc.web = cc_e['web']
 
             d_cc.save()
@@ -2055,7 +2048,7 @@ class ParseMsgAndDispatch(object):
                     self.user,
                     recipient=self.user,
                     notif_type=verbs.WIZCARD_SCANNED_USER[0],
-                    verb=verbs.WIZCARD_SCANNED_USER[1],
+                    verb=verbs.WIZCARD_SCANNED_USER[verbs.VERB_IDX],
                     target=deadcard,
                     delivery_method=BaseNotification.EMAIL
                 )
@@ -2162,8 +2155,8 @@ class ParseMsgAndDispatch(object):
         e, s = BaseEntityComponent.entity_cls_ser_from_type(entity_type=self.sender.get('entity_type'))
         entity = BaseEntityComponent.create(e, owner=self.user, is_creator=True, **self.sender)
 
-        updated, l = entity.create_or_update_location(self.lat, self.lng)
-        l.start_timer(entity.timeout)
+        updated, loc = entity.create_or_update_location(self.lat, self.lng)
+        loc.start_timer(entity.timeout)
 
         out = s(entity, **self.user_context).data
 
@@ -2184,9 +2177,10 @@ class ParseMsgAndDispatch(object):
 
         return self.response
 
-    def EntityJoin(self):
-        id = self.sender.get('entity_id')
-        entity_type = self.sender.get('entity_type')
+    def EntityAccess(self):
+        id = self.sender.get('entity_id', None)
+        entity_type = self.sender.get('entity_type', None)
+        state = self.sender.get('state', None)
 
         try:
             e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=True)
@@ -2195,30 +2189,31 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        entity.join(self.user)
-
-        out = s(entity, **self.user_context).data
-        self.response.add_data("result", out)
-
-        return self.response
-
-    def EntityLeave(self):
-        id = self.sender.get('entity_id')
-        entity_type = self.sender.get('entity_type')
-
-        try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
-            entity = e.objects.get(id=id)
-        except:
-            self.response.error_response(err.OBJECT_DOESNT_EXIST)
+        if state == UserEntity.JOIN:
+            entity.user_attach(self.user, state)
+            out = s(entity, **self.user_context).data
+            self.response.add_data("result", out)
             return self.response
 
-        entity.leave(self.user)
+        elif state == UserEntity.LEAVE:
+            entity.user_detach(self.user, state=state)
+            out = s(entity, **self.user_context).data
+            self.response.add_data("result", out)
+            return self.response
 
-        out = s(entity, **self.user_context).data
-        self.response.add_data("result", out)
+        elif state == UserEntity.PIN:
+            entity.user_attach(self.user, state)
+            self.EventsGet()
 
-        return self.response
+
+        elif state == UserEntity.UNPIN:
+            entity.user_detach(self.user, state=state)
+            self.EventsGet()
+
+        else:
+            self.response.error_response(err.CRITICAL_ERROR)
+            return self.response
+
 
     def EntityEdit(self):
         id = self.sender.get('entity_id')
@@ -2261,23 +2256,25 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        m_events = Event.objects.users_entities(self.user, expired=False)
-        n_events = Event.objects.lookup(
+        pinned_events = Event.objects.users_entities(self.user, user_filter={'state':UserEntity.PIN}, entity_filter={'expired':False})
+        nearby_events = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
         )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
+        my_events = Event.objects.users_entities(self.user, user_filter={'state': UserEntity.JOIN})
 
-        events = list(set(m_events) | set(n_events))
 
-        if events:
-            events_serialized = EventSerializerL1(
-                events,
-                many=True,
-                **self.user_context
-            ).data
+        all_events = list(set(pinned_events) | set(nearby_events) | set(my_events))
+        # TODO: AR threshold filter NO point in presenting 1 event
 
-            self.response.add_data("result", events_serialized)
+        output = EventSerializerL1(
+            all_events,
+            many=True,
+            **self.user_context
+        ).data
+
+        self.response.add_data("result", output)
 
         return self.response
 
@@ -2342,7 +2339,7 @@ class ParseMsgAndDispatch(object):
 
         e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
-        result, count = e.objects.query(query_str)
+        result, count = e.objects.combine_search(query_str)
 
         if count:
             out = s(result, many=True, **self.user_context).data
@@ -2353,7 +2350,7 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def MyEntities(self):
-        entity_type = self.sender.get('entity_type')
+        entity_type = self.sender.get('entity_type', BaseEntityComponent.EVENT)
         cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
         entities = cls.objects.users_entities(self.user)
@@ -2454,6 +2451,7 @@ class ParseMsgAndDispatch(object):
 
     def TableJoinByInvite(self):
         return self.EntityJoin()
+
 
 wizrequest_handler = WizRequestHandler.as_view()
 #wizconnection_request = login_required(WizConnectionRequestView.as_view())

@@ -5,20 +5,21 @@ from django.contrib.auth.models import User
 from wizcardship.models import Wizcard
 from wizserver import verbs
 from base.cctx import ConnectionContext
-from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
+from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, \
+    BaseEntityComponentManager, UserEntity
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
 from notifications.signals import notify
 from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
+from taganomy.models import Taganomy
+from django.contrib.contenttypes.models import ContentType
 import pdb
-
-
-
 
 from django.utils import timezone
 now = timezone.now
 
 # Create your models here.
+
 
 class EventManager(BaseEntityManager):
     def lookup(self, lat, lng, n, etype=BaseEntityComponent.EVENT, count_only=False):
@@ -36,15 +37,30 @@ class EventManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.EVENT)
-        return super(EventManager, self).users_entities(
-            user,
-            **kwargs
-        )
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.EVENT)
+        state = user_filter.get('state', UserEntity.JOIN)
+        user_filter.update(state=state)
+
+        return super(EventManager, self).users_entities(user, user_filter, entity_filter)
 
     def get_expired(self):
         return self.filter(end__lt=timezone.now(), expired=False, is_activated=True)
+
+    def get_tagged_entities(self, tags, entity_type):
+        events = Event.objects.filter(expired=False, is_activated=True)
+        t_events = []
+        # TODO: AR: Find a better way to filter out expired events
+        taganomy = Taganomy.objects.get_tagged_entities(tags, BaseEntityComponent.CATEGORY)
+        contenttype_id = ContentType.objects.get(model="event")
+
+        for t_obj in taganomy:
+            t_events = t_events + t_obj.get_parent_entities_by_contenttype_id(contenttype_id)
+
+        return list(set(events) & set(t_events))
+
+    def combine_search(self, query, entity_type=BaseEntityComponent.EVENT):
+        return super(EventManager, self).combine_search(query, entity_type)
 
 
 class Event(BaseEntity):
@@ -60,14 +76,24 @@ class Event(BaseEntity):
             self
         )
 
-    def get_tagged_entities(self, tag, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-        sub_entities = self.get_sub_entities_id_of_type(entity_type)
-        # TODO: AR: Get sub entities with a particular tag
-        '''
-        taganomy = self.get_subentity_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY)[0]
-        
-        tagged_entities = taganomy.get_entities(tags__in=tag)
-        '''
+    def get_sub_entities_by_tags(self, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        sub_entities = self.get_sub_entities_of_type(entity_type)
+        tag_d = {}
+        for s in sub_entities:
+            tags = s.tags.all()
+            for t in tags:
+                tag_d.setdefault(t.name,[]).append(s.id)
+
+        return tag_d
+
+    def get_sub_entities_by_venue(self, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        sub_entities = self.get_sub_entities_of_type(entity_type)
+        venue_d = {}
+        for s in sub_entities:
+            venue_d.setdefault(s.venue,[]).append(s.id)
+
+        return venue_d
+
 
 
 
@@ -78,12 +104,12 @@ class CampaignManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.CAMPAIGN)
-        return super(CampaignManager, self).users_entities(
-            user,
-            **kwargs
-        )
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.CAMPAIGN)
+        return super(CampaignManager, self).users_entities(user, user_filter=user_filter, entity_filter=entity_filter)
+
+    def combine_search(self, query, entity_type=BaseEntityComponent.CAMPAIGN):
+        return super(CampaignManager, self).combine_search(query, entity_type=entity_type)
 
 
 class Campaign(BaseEntity):
@@ -107,11 +133,12 @@ class VirtualTableManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.TABLE)
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.TABLE)
         return super(VirtualTableManager, self).users_entities(
             user,
-            **kwargs
+            user_filter=user_filter,
+            entity_filter=entity_filter
         )
 
     def lookup(self, lat, lng, n, etype=BaseEntityComponent.TABLE, count_only=False):
@@ -122,6 +149,9 @@ class VirtualTableManager(BaseEntityManager):
             etype,
             count_only
         )
+
+    def combine_search(self, query, entity_type=BaseEntityComponent.TABLE):
+        return super(VirtualTableManager, self).combine_search(query, entity_type=entity_type)
 
 
 class VirtualTable(BaseEntity):
@@ -142,7 +172,7 @@ class VirtualTable(BaseEntity):
 
     def delete(self, *args, **kwargs):
         # notify members of deletion (including self)
-        verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[0])
+        verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[verbs.NOTIF_TYPE_IDX])
         members = self.users.all()
         for member in members:
             notify.send(self.get_creator(),
@@ -153,7 +183,7 @@ class VirtualTable(BaseEntity):
 
         self.location.get().delete()
 
-        if verb == verbs.WIZCARD_TABLE_TIMEOUT[0]:
+        if verb == verbs.WIZCARD_TABLE_TIMEOUT[verbs.NOTIF_TYPE_IDX]:
             self.expired = True
             self.save()
         else:
@@ -185,12 +215,10 @@ class SponsorManager(BaseEntityManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.SPONSOR)
-        return super(SponsorManager, self).users_entities(
-            user,
-            **kwargs
-        )
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.SPONSOR)
+        return super(SponsorManager, self).users_entities(user, user_filter=user_filter, entity_filter=entity_filter)
+
 
 class Sponsor(BaseEntity, InviteStateMixin):
     caption = models.CharField(max_length=50, default='Not Available')
@@ -240,19 +268,19 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
                 id__in=invitee_ids
             ).values_list('email', flat=True)
         )
-
         matched_exhibitors = self.filter(
             email__in=matched_users.values_list('email', flat=True)
         )
-
         return matched_users, matched_exhibitors
 
     def check_pending_invites(self, email):
         return self.filter(email=email, state=ExhibitorInvitee.INVITED)
 
+
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     objects = ExhibitorInviteeManager()
+
 
 class AgendaManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.AGENDA):
@@ -267,7 +295,7 @@ class Agenda(BaseEntityComponent, Base412Mixin):
 
 
 class AgendaItem(BaseEntity):
-    agenda = models.ForeignKey(Agenda, related_name='items')
+    agenda_key = models.ForeignKey(Agenda, related_name='items')
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
 
@@ -285,6 +313,7 @@ def create_engagement_stats(sender, instance, created, **kwargs):
         e = EntityEngagementStats.objects.create()
         instance.engagements = e
         instance.save()
+
 
 @receiver(user_type_created)
 def connect_subentities(sender, **kwargs):

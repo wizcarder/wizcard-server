@@ -5,6 +5,7 @@ from userprofile.models import AB_Candidate_Phones, AB_Candidate_Emails, AB_Cand
 
 logger = logging.getLogger(__name__)
 
+
 @task(ignore_result=True)
 def contacts_upload_task(user, int_prefix, country_code, ab_list):
     emailEntryList = []
@@ -14,7 +15,7 @@ def contacts_upload_task(user, int_prefix, country_code, ab_list):
         do_email = False
         do_phone = False
 
-        if not 'name' in ab_entry:
+        if  'name' not in ab_entry:
             continue
         name = ab_entry.get('name')
         first_name, last_name = wizlib.split_name(name)

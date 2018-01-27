@@ -2,7 +2,7 @@ import logging
 import heapq
 
 from django.db import models
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from location_mgr.signals import location, location_timeout
 from periodic.models import Periodic
@@ -38,7 +38,7 @@ class LocationMgrManager(models.Manager):
 
         h = []
         for l in LocationMgr.objects.filter(id__in=result):
-            distance = int(l.distance_from(lat,lng) / 10000)
+            distance = int(l.distance_from(lat, lng) / 10000)
             if distance < NEARBY_THRESHOLD:
                 heapq.heappush(h, (distance, l.object_id))
 
@@ -47,6 +47,7 @@ class LocationMgrManager(models.Manager):
         if h_result:
             count = len(h_result)
         return [r[1] for r in h_result], count
+
 
 class LocationMgr(models.Model):
     lat = models.DecimalField(null=True, max_digits=20, 
@@ -59,7 +60,7 @@ class LocationMgr(models.Model):
     # GenericForeignKey to objects requiring locationMgr services
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     objects = LocationMgrManager()
 
@@ -70,7 +71,7 @@ class LocationMgr(models.Model):
         super(LocationMgr, self).__init__(*args, **kwargs)
 
     def is_eq_lat_lng(self, lat, lng):
-        return bool( (float(self.lat) == lat and float(self.lng) == lng))
+        return bool((float(self.lat) == lat and float(self.lng) == lng))
 
     def do_update(self, lat, lng):
         updated = False
@@ -161,20 +162,25 @@ def location_create_handler(**kwargs):
     logger.debug("inserted key %s in tree %s", key, tree_type)
     return newlocation
 
+
 def location_timeout_handler(**kwargs):
     ids = kwargs.pop('ids')
     expired = map(lambda x: LocationMgr.objects.get(id=x), ids)
     for e in expired:
         timeout_callback_execute(e)
 
+
 def location_timeout_cb(l):
     l.delete()
 
+
 def virtual_table_timeout_cb(l):
-    l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[0])
+    l.content_object.delete(type=verbs.WIZCARD_TABLE_TIMEOUT[verbs.NOTIF_TYPE_IDX])
+
 
 def flicked_card_timeout(l):
-    l.content_object.delete(type=verbs.WIZCARD_FLICK_TIMEOUT[0])
+    l.content_object.delete(type=verbs.WIZCARD_FLICK_TIMEOUT[verbs.NOTIF_TYPE_IDX])
+
 
 def timeout_callback_execute(e):
     timeout_callback = {
@@ -183,6 +189,7 @@ def timeout_callback_execute(e):
         ContentType.objects.get(app_label="entity", model="virtualtable").id : virtual_table_timeout_cb,
         }
     timeout_callback[e.content_type.id](e)
+
 
 location.connect(location_create_handler, dispatch_uid='location_mgr.models.location_mgr')
 location_timeout.connect(location_timeout_handler, dispatch_uid='location_mgr.models.location_mgr')
