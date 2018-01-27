@@ -561,7 +561,8 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             self,
             exclude_sender=False
         )
-        self.location.get().delete()
+        if self.location.exists():
+            self.location.get().delete()
 
         if notif_tuple[0] == verbs.WIZCARD_ENTITY_EXPIRE[0]:
             self.expired = True
