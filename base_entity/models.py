@@ -504,7 +504,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                     self
                 )
 
-
     def is_joined(self, user):
         return bool(user.userentity_set.filter(entity=self, state=UserEntity.JOIN).exists())
 
@@ -513,7 +512,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         try:
             ue = user.userentity_set.get(entity=self, user=user)
             return ue.state
-        except:
+        except ObjectDoesNotExist:
             return None
 
     def get_users_after(self, timestamp):
