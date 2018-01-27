@@ -8,7 +8,7 @@ from entity.serializers import EventSerializer, EventSerializerL0, CampaignSeria
     SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, CoOwnersSerializer
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
-from notifications.models import Notification
+from notifications.models import SyncNotification
 from notifications.serializers import NotificationSerializer
 from taganomy.models import Taganomy
 from taganomy.serializers import TaganomySerializer
@@ -868,18 +868,18 @@ class EventPollViewSet(viewsets.ModelViewSet):
 
 class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
                                mixins.RetrieveModelMixin, mixins.ListModelMixin):
-    queryset = Notification.objects.all()
+    queryset = SyncNotification.objects.all()
     serializer_class = TaganomySerializer
 
     def list(self, request, event_pk=None):
         event = Event.objects.get(id=event_pk)
-        ntf = Notification.objects.event_notifications(event)
+        ntf = SyncNotification.objects.event_notifications(event)
 
         return Response(NotificationSerializer(ntf, many=True).data)
 
     def retrieve(self, request, pk=None, event_pk=None):
         try:
-            ntf = Notification.objects.get(id=pk)
+            ntf = SyncNotification.objects.get(id=pk)
             event = Event.objects.get(id=event_pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)

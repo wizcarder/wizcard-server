@@ -4,14 +4,9 @@ from django.contrib.contenttypes import generic
 from django.db import models
 from django.conf import settings
 from .utils import id2slug
-from notifications.signals import notify
-from wizserver import verbs
-import logging
-import pdb
-from datetime import timedelta
 from django.utils import timezone
-from notifications.tasks import fanout_notifs
 
+import pdb
 
 
 now = timezone.now()
@@ -52,17 +47,17 @@ class BaseNotificationManager(models.Manager):
 class BaseNotification(models.Model):
     EMAIL = 1
     ALERT = 2
-    PUSHNOTIF = 3
 
     DELIVERY_MODE = (
         (EMAIL, 'email'),
-        (ALERT, 'alert'),
-        (PUSHNOTIF, 'pushnotif'),
+        (ALERT, 'alert')
     )
 
-    # async goes in EmailPush, sync goes in Notification
+    # async goes in EmailPush, sync goes in SyncNotification
     DELIVERY_TYPE_ASYNC = 1
     DELIVERY_TYPE_SYNC = 2
+
+    delivery_mode = models.PositiveSmallIntegerField(choices=DELIVERY_MODE)
 
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
@@ -95,8 +90,66 @@ class BaseNotification(models.Model):
     class Meta:
         ordering = ('timestamp', )
 
+    def update_status(self, status):
+        self.status = status
+        self.save()
 
-class NotificationManager(BaseNotificationManager):
+    def mark_as_read(self):
+        if not self.readed:
+            self.readed = True
+            self.save()
+
+
+class AsyncNotificationManager(BaseNotificationManager):
+
+    def unread_notifs(self, delivery_mode):
+        return self.objects.filter(readed=False, delivery_mode=delivery_mode)
+
+
+# AA: Comment: This should probably be renamed to AsyncNotif
+class AsyncNotification(BaseNotification):
+
+    RECUR = 1
+    INSTANT = 2
+    SCHEDULED = 3
+
+    DELIVERY_PERIOD = (
+        (RECUR, 'RECUR'),
+        (INSTANT, 'INSTANT'),
+        (SCHEDULED, 'SCHEDULED')
+    )
+
+    @property
+    def get_delivery_period(self):
+        return self.delivery_period
+
+    SUCCESS = 0
+    FAILURE = -1
+    NEW = 1
+
+    STATUS = (
+        (SUCCESS, 'success'),
+        (FAILURE, 'failed'),
+        (NEW, 'new')
+    )
+
+    delivery_period = models.PositiveSmallIntegerField(choices=DELIVERY_PERIOD, default=INSTANT)
+    last_tried = models.DateTimeField(blank=True, null=True)
+    created = models.DateTimeField(auto_now=True)
+    status = models.PositiveSmallIntegerField(choices=STATUS, default=NEW)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(default=timezone.now)
+    notifcation_text = models.CharField(max_length=100, default="")
+
+    # Ideally should add interval fields also (periodicity) hardcoding to 1, 3, 5  from the end_date
+    objects = AsyncNotificationManager()
+
+    def update_last_tried(self, sent_time=timezone.now):
+        self.last_tried = sent_time
+        self.save()
+
+
+class SyncNotificationManager(BaseNotificationManager):
     def unread(self, user, count=settings.NOTIF_BATCH_SIZE):
         return list(self.filter(recipient=user, readed=False)[:count])
 
@@ -127,10 +180,10 @@ class NotificationManager(BaseNotificationManager):
         pass
 
 
-class Notification(BaseNotification):
+class SyncNotification(BaseNotification):
     acted_upon = models.BooleanField(default=True, blank=False)
 
-    objects = NotificationManager()
+    objects = SyncNotificationManager()
 
     def __unicode__(self):
         ctx = {
@@ -160,94 +213,6 @@ class Notification(BaseNotification):
     def slug(self):
         return id2slug(self.id)
 
-    def mark_as_read(self):
-        if not self.readed:
-            self.readed = True
-            self.save()
-
     def set_acted(self, flag):
         self.acted_upon = flag
         self.save()
-
-    def update_status(self, status):
-        self.status = status
-        self.save()
-
-
-def notify_handler(notif_type, **kwargs):
-    """
-    Handler function to create Notification instance upon action signal call.
-    """
-
-    kwargs.pop('signal', None)
-    recipient = kwargs.pop('recipient')
-    actor = kwargs.pop('sender')
-    delivery_mode = kwargs.pop('delivery_mode', BaseNotification.ALERT)
-    verb = kwargs.pop('verb', "")
-    target = kwargs.pop('target', None)
-    action_object = kwargs.pop('action_object', None)
-    action_object_content_type = ContentType.objects.get_for_model(action_object) if action_object else None
-    action_object_object_id = action_object.pk if action_object else None
-    do_push = kwargs.pop('do_push', False)
-    start = kwargs.pop('start_date', timezone.now() + timedelta(minutes=1))
-    end = kwargs.pop('end_date', start)
-
-    from email_and_push_infra.models import EmailAndPush
-
-    if delivery_mode == BaseNotification.EMAIL:
-        newnotify = EmailAndPush.objects.create(
-            actor_content_type=ContentType.objects.get_for_model(actor),
-            actor_object_id=actor.pk,
-            recipient=recipient,
-            target_content_type=ContentType.objects.get_for_model(target),
-            target_object_id=target.pk,
-            action_object_content_type=action_object_content_type,
-            action_object_object_id=action_object_object_id,
-            readed=False,
-            delivery_mode=delivery_mode,
-            notif_type=notif_type,
-            verb=verb,
-            timestamp=kwargs.pop('timestamp', timezone.now()),
-            # AA: Comments: EmailPush cannot decide whether this is INSTANT or not.
-            delivery_period=EmailAndPush.INSTANT,
-            start_date=start,
-            end_date=end
-        )
-    else:
-        do_push = notif_type in verbs.apns_notification_dictionary or do_push
-
-        if do_push:
-            from email_and_push_infra.tasks import pushNotificationToApp
-            pushNotificationToApp.delay(
-                actor.pk,
-                recipient.id,
-                action_object_object_id,
-                action_object_content_type,
-                target.pk,
-                ContentType.objects.get_for_model(target),
-                notif_type,
-                verb,
-            )
-
-        newnotify, created = Notification.objects.get_or_create(
-            actor_content_type=ContentType.objects.get_for_model(actor),
-            actor_object_id=actor.pk,
-            recipient=recipient,
-            readed=False,
-            notif_type=notif_type,
-            verb=verb,
-            target_content_type=ContentType.objects.get_for_model(target),
-            target_object_id=target.pk,
-            action_object_content_type=action_object_content_type,
-            action_object_object_id=action_object_object_id,
-            defaults={
-                'public': bool(kwargs.pop('public', True)),
-                'timestamp': kwargs.pop('timestamp', timezone.now())
-            }
-        )
-
-    return newnotify
-
-
-# connect the signal
-notify.connect(notify_handler, dispatch_uid='notifications.models.notification')

@@ -1,6 +1,6 @@
 __author__ = 'aammundi'
 
-from models import EmailAndPush
+from models import AsyncNotification
 from lib.create_share import send_wizcard, send_event
 from wizserver import verbs
 import pdb

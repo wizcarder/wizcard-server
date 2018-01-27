@@ -31,7 +31,7 @@ from converter import Converter
 
 from lib.ocr import OCR
 from wizcardship.models import Wizcard, DeadCard, ContactContainer, WizcardFlick
-from notifications.models import notify, BaseNotification, Notification
+from notifications.models import notify, BaseNotification, SyncNotification
 from entity.models import VirtualTable
 from meishi.models import Meishi
 from response import Response, NotifResponse
@@ -797,10 +797,10 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def NotificationsGet(self):
-        notifications = Notification.objects.unread(self.user)
+        notifications = SyncNotification.objects.unread(self.user)
         notifResponse = NotifResponse(notifications)
 
-        #i will be activated when I have a wizcard
+        # i will be activated when I have a wizcard
         if not self.userprofile.activated:
             return self.response
 
@@ -858,7 +858,7 @@ class ParseMsgAndDispatch(object):
         if count:
             notifResponse.notifTableLookup(self.user, tables)
 
-        Notification.objects.mark_specific_as_read(notifications)
+        SyncNotification.objects.mark_specific_as_read(notifications)
 
         #tickle the timer to keep it going and update the location if required
         if not settings.DISABLE_LOCATION:
@@ -1075,7 +1075,7 @@ class ParseMsgAndDispatch(object):
                 # now we know that the App has acted upon this notification
                 # we will use this flag during resync notifs and send unacted-upon
                 # notifs to user
-                Notification.objects.get(id=self.sender['notif_id']).set_acted(True)
+                SyncNotification.objects.get(id=self.sender['notif_id']).set_acted(True)
 
         rel12 = wizcard1.get_relationship(wizcard2)
         rel21 = wizcard2.get_relationship(wizcard1)
@@ -1168,7 +1168,7 @@ class ParseMsgAndDispatch(object):
             Wizcard.objects.uncard(wizcard2, wizcard1)
 
         n_id = self.sender['notif_id']
-        n = Notification.objects.get(id=n_id)
+        n = SyncNotification.objects.get(id=n_id)
 
         # now we know that the App has acted upon this notification
         #  we will use this flag during resync notifs and send unacted-upon
@@ -1203,7 +1203,7 @@ class ParseMsgAndDispatch(object):
                     # If this is a delete right after an invite was sent by wizcard1 then we have to remove
                     # notif 2 for wizcard2 and set rel to clean state
                     if wizcard1.get_relationship(wizcard2).status == verbs.PENDING:
-                        n = Notification.objects.filter(
+                        n = SyncNotification.objects.filter(
                                 recipient=wizcard2.user,
                                 target_object_id=wizcard1.id,
                                 readed=False,

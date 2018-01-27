@@ -1,7 +1,7 @@
 from django.db import models
 import heapq
 from wizcardship.models import Wizcard
-from notifications.models import Notification
+from notifications.models import SyncNotification
 from lib import wizlib
 from datetime import timedelta
 from django.core.cache import cache

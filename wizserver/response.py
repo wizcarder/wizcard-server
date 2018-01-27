@@ -6,22 +6,20 @@ from entity.models import VirtualTable
 from userprofile.models import UserProfile
 from base.cctx import NotifContext
 from django.http import HttpResponse
-#from wizcard.celery import client
 from raven.contrib.django.raven_compat.models import client
 import logging
-import fields
 import simplejson as json
 import pdb
 from wizserver import verbs
 from entity.serializers import EntitySerializerL0
-from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1, WizcardSerializerL2
+from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
 from entity.serializers import TableSerializerL1
 from django.utils import timezone
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-#This is the basic Response class used to send simple result and data
+# This is the basic Response class used to send simple result and data
 class Response:
     def __init__(self):
         self.response = dict(result=dict(Error=0, Description=""), data=dict())
@@ -62,7 +60,7 @@ class Response:
             return True
         return False
 
-#subclass of above. This handles arrays of Data and used by Notifications
+# subclass of above. This handles arrays of Data and used by Notifications
 class ResponseN(Response):
     def __init__(self):
         Response.__init__(self)
@@ -105,17 +103,17 @@ class NotifResponse(ResponseN):
             verbs.WIZCARD_DELETE[0]	            : self.notifRevokedWizcard,
             verbs.WIZCARD_TABLE_TIMEOUT[0]      : self.notifDestroyedTable,
             verbs.WIZCARD_TABLE_DESTROY[0]      : self.notifDestroyedTable,
-            verbs.WIZCARD_ENTITY_JOIN[0]         : self.notifJoinEntity,
-            verbs.WIZCARD_ENTITY_LEAVE[0]        : self.notifLeaveEntity,
+            verbs.WIZCARD_ENTITY_JOIN[0]        : self.notifJoinEntity,
+            verbs.WIZCARD_ENTITY_LEAVE[0]       : self.notifLeaveEntity,
             verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
             verbs.WIZCARD_UPDATE_HALF[0]        : self.notifWizcardUpdateH,
             verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
             verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
             verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
             verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
-            verbs.WIZCARD_ENTITY_UPDATE[0]       : self.notifEventUpdate,
-            verbs.WIZCARD_ENTITY_EXPIRE[0]       : self.notifEventExpire,
-            verbs.WIZCARD_ENTITY_DELETE[0]       : self.notifEventDelete
+            verbs.WIZCARD_ENTITY_UPDATE[0]      : self.notifEventUpdate,
+            verbs.WIZCARD_ENTITY_EXPIRE[0]      : self.notifEventExpire,
+            verbs.WIZCARD_ENTITY_DELETE[0]      : self.notifEventDelete
         }
         for notification in notifications:
             notifHandler[notification.notif_type](notification)
@@ -133,7 +131,7 @@ class NotifResponse(ResponseN):
         if notif.action_object and notif.action_object.cctx != '':
             cctx = notif.action_object.cctx
 
-            #update the timestamp on the WizConnectionRequest
+            # update the timestamp on the WizConnectionRequest
             notif.action_object.created = timezone.now()
             notif.action_object.save()
 
@@ -142,7 +140,7 @@ class NotifResponse(ResponseN):
                 asset_id=cctx.asset_id,
                 asset_type=cctx.asset_type,
                 connection_mode=cctx.connection_mode,
-                timestamp = notif.action_object.created.strftime("%d. %B %Y")
+                timestamp=notif.action_object.created.strftime("%d. %B %Y")
             )
 
             if cctx.asset_type == ContentType.objects.get(model="virtualtable").name:
@@ -195,7 +193,8 @@ class NotifResponse(ResponseN):
         wizcard=notif.actor.wizcard
         ws = WizcardSerializerL1(wizcard, context={'user': notif.recipient}).data
 
-        if notif.target:  # since there is a possibility that the entity got destroyed in-between
+        # since there is a possibility that the entity got destroyed in-between
+        if notif.target:
             s = EntitySerializerL0(notif.target).data
             out = dict(
                 entity=s,
@@ -208,11 +207,13 @@ class NotifResponse(ResponseN):
 
     def notifEvent(self, notif, notifType):
         event_id = notif.target_object_id
+
         out = dict(
             event=event_id
         )
         self.add_data_and_seq_with_notif(out, notifType, notif.id)
         logger.debug('%s', self.response)
+
         return self.response
 
     def notifEventDelete(self, notif):
@@ -230,12 +231,15 @@ class NotifResponse(ResponseN):
 
         if notif.target:
             s = EntitySerializerL0(notif.target).data
+
             out = dict(
                 entity=s,
                 wizcard=ws
             )
+
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_LEAVE, notif.id)
             logger.debug('%s', self.response)
+
         return self.response
 
     def notifWizcardUpdate(self, notif):

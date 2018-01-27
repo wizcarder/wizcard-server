@@ -16,7 +16,7 @@ from entity.serializers import CampaignSerializer, TableSerializerL1, TableSeria
 from wizcardship.serializers import WizcardSerializerL2, DeadCardSerializerL2
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import notify
-from notifications.models import Notification
+from notifications.models import SyncNotification
 from base.cctx import ConnectionContext, NotifContext
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
@@ -330,7 +330,7 @@ class AppUser(BaseUser):
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
-        Notification.objects.unacted(self.profile.user).update(readed=False)
+        SyncNotification.objects.unacted(self.profile.user).update(readed=False)
         return s
 
 class WebOrganizerUser(BaseUser):

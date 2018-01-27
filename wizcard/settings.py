@@ -324,7 +324,6 @@ INSTALLED_APPS = (
     'recommendation',
     'stats',
     'commands',
-    'email_and_push_infra',
     'base_entity',
     'entity',
     'media_components',

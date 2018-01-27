@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.template import Library
 from django.template.base import TemplateSyntaxError
-from notifications.models import Notification
+from notifications.models import SyncNotification
 from django.template import Node
 
 register = Library()
@@ -21,7 +21,7 @@ class InboxCountNode(Node):
             if user.is_anonymous():
                 count = ''
             else:
-                count = Notification.objects.unread_count(user)
+                count = SyncNotification.objects.unread_count(user)
         except (KeyError, AttributeError):
             count = ''
         if self.asvar:

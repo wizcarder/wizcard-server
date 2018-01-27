@@ -1,6 +1,6 @@
 __author__ = 'aammundi'
 
-from email_and_push_infra.models import EmailEvent
+from notifications.models import EmailEvent
 from django.core.management.base import BaseCommand, CommandError
 
 

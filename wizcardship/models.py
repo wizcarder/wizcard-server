@@ -31,7 +31,7 @@ from django.db.models import Q
 from lib import wizlib
 from wizcard import err
 from wizserver import verbs
-from notifications.models import notify, Notification
+from notifications.models import notify, SyncNotification
 from django.db.models import URLField
 from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
@@ -124,7 +124,7 @@ class WizcardManager(PolymorphicManager):
 
     def update_wizconnection(self, wizcard1, wizcard2, half=False):
         # suppress if unread notif already exists
-        if not Notification.objects.filter(
+        if not SyncNotification.objects.filter(
                 recipient=wizcard2.user,
                 target_object_id=wizcard1.id,
                 readed=False,
