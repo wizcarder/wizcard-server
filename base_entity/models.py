@@ -16,6 +16,9 @@ from wizserver import verbs
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 import ushlex as shlex
 from django.db.models import Q
+from django.contrib.contenttypes.models import ContentType
+from taggit.models import TaggedItem
+import pdb
 
 # Create your models here.
 
@@ -32,8 +35,10 @@ class BaseEntityComponentManager(PolymorphicManager):
         return user.owners_baseentitycomponent_related.all().instance_of(cls)
 
     def get_tagged_entities(self, tags, entity_type):
-        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
-        return cls.objects.filter(tags__name__in=tags)
+        content_type = BaseEntityComponent.content_type_from_entity_type(entity_type)
+        entities = TaggedItem.objects.filter(tag__name__in=tags, content_type_id=content_type.id)
+        ids = [x.object_id for x in entities]
+        return content_type.get_all_objects_for_this_type(id__in=ids)
 
 
 class BaseEntityManager(BaseEntityComponentManager):
@@ -74,7 +79,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         # TODO: AR : Check if this can be optimized further (given select_related, the map thing is
         # very optimal as entity.id is not accessing DB again.
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
-        ids = map(lambda x:x.entity.id, ue)
+        ids = map(lambda x: x.entity.id, ue)
         return cls.objects.filter(id__in=ids, **entity_filter)
 
     def get_tagged_entities(self, tags, entity_type):
@@ -310,6 +315,29 @@ class BaseEntityComponent(PolymorphicModel):
         return c, s
 
     @classmethod
+    def content_type_from_entity_type(cls, entity_type):
+        if entity_type == BaseEntityComponent.EVENT:
+            model = "event"
+        elif entity_type == BaseEntityComponent.CATEGORY or entity_type == BaseEntityComponent.SUB_ENTITY_CATEGORY:
+            model = "taganomy"
+        elif entity_type == BaseEntityComponent.CAMPAIGN or entity_type == BaseEntityComponent.SUB_ENTITY_CAMPAIGN:
+            model = "campaign"
+        elif entity_type == BaseEntityComponent.SPEAKER or entity_type == BaseEntityComponent.SUB_ENTITY_SPEAKER:
+            model = "speaker"
+        elif entity_type == BaseEntityComponent.SPONSOR or entity_type == BaseEntityComponent.SUB_ENTITY_SPONSOR:
+            model = "sponsor"
+        elif entity_type == BaseEntityComponent.MEDIA or entity_type == BaseEntityComponent.SUB_ENTITY_MEDIA:
+            model = "mediaentities"
+        elif entity_type == BaseEntityComponent.AGENDA or entity_type == BaseEntityComponent.SUB_ENTITY_AGENDA:
+            model = "agenda"
+        elif entity_type == BaseEntityComponent.TABLE or entity_type == BaseEntityComponent.SUB_ENTITY_TABLE:
+            model = "virtualtable"
+        elif entity_type == BaseEntityComponent.AGENDA_ITEM:
+            model = "agendaitem"
+
+        return ContentType.objects.get(model=model)
+
+    @classmethod
     def entity_cls_from_subentity_type(cls, entity_type):
         from entity.models import Campaign, VirtualTable, \
             Speaker, Sponsor, CoOwners, Agenda, ExhibitorInvitee, AttendeeInvitee
@@ -364,7 +392,7 @@ class BaseEntityComponent(PolymorphicModel):
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
 
-        #post_connect needs from and to parts of connection to do something meaningful
+        # post_connect needs from and to parts of connection to do something meaningful
         # even for notification it needs event to send notifications for e.g.
         obj.post_connect(self)
         return obj
@@ -467,7 +495,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             l_tuple = location.send(sender=self, lat=lat, lng=lng,
                                     tree=BaseEntity.objects.get_location_tree_name(self.entity_type))
             return updated, l_tuple[0][1]
-
 
     # get user's friends within the entity
     def users_friends(self, user, limit=None):
@@ -631,7 +658,7 @@ class UserEntity(models.Model):
     @classmethod
     def get_entity_members(cls, base_entity_obj):
         users = UserEntity.objects.select_related('user').filter(entity=base_entity_obj, state=UserEntity.JOIN)
-        return map(lambda x : x.user, users)
+        return map(lambda x: x.user, users)
 
 
     # Join Table.

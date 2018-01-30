@@ -60,10 +60,11 @@ class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
         fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media',  'users',
-                  'state')
+                  'state', 'poll')
 
     speakers = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
+    poll = serializers.SerializerMethodField()
 
     def get_speakers(self, obj):
         return SpeakerSerializerL2(
@@ -76,6 +77,13 @@ class AgendaItemSerializerL2(EntitySerializer):
         qs = obj.users.exclude(wizcard__isnull=True)
         count = qs.count()
         return count
+
+    def get_poll(self, obj):
+        user = self.context.get('user')
+        if obj.is_joined(user):
+            poll = obj.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL)[0]
+            return poll.id
+        return None
 
 
 class AgendaSerializer(EntitySerializer):
@@ -226,7 +234,7 @@ class EventSerializerL0(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=[MediaEntities.SUB_TYPE_BANNER, MediaEntities.SUB_TYPE_LOGO]),
             many=True
         ).data
 
@@ -322,14 +330,14 @@ class EventSerializerL2(EntitySerializer):
     polls = serializers.SerializerMethodField()
     # TODO AR: Just return tags instead of taganomy stuff
     taganomy = serializers.SerializerMethodField()
-    tags_campaign = serializers.SerializerMethodField()
-    venue_campaign = serializers.SerializerMethodField()
+    tags_exhibitor = serializers.SerializerMethodField()
+    venue_exhibitor = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'taganomy', 'tags_campaign', 'venue_campaign')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'taganomy', 'tags_exhibitor', 'venue_exhibitor')
 
         fields = parent_fields + my_fields
 
@@ -400,11 +408,12 @@ class EventSerializerL2(EntitySerializer):
             many=True
         ).data
 
-    def get_tags_campaign(self, obj):
+    def get_tags_exhibitor(self, obj):
         return obj.get_sub_entities_by_tags(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
 
-    def get_venue_campaign(self, obj):
+    def get_venue_exhibitor(self, obj):
         return obj.get_sub_entities_by_venue(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+
 
 # this is used by App
 class CampaignSerializerL1(EntitySerializer):
@@ -420,7 +429,7 @@ class CampaignSerializerL1(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
+            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=[MediaEntities.SUB_TYPE_BANNER, MediaEntities.SUB_TYPE_LOGO]),
             many=True
         ).data
 

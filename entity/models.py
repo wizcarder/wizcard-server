@@ -82,7 +82,7 @@ class Event(BaseEntity):
         for s in sub_entities:
             tags = s.tags.all()
             for t in tags:
-                tag_d.setdefault(t.name,[]).append(s.id)
+                tag_d.setdefault(t.name, []).append(s.id)
 
         return tag_d
 
@@ -90,11 +90,9 @@ class Event(BaseEntity):
         sub_entities = self.get_sub_entities_of_type(entity_type)
         venue_d = {}
         for s in sub_entities:
-            venue_d.setdefault(s.venue,[]).append(s.id)
+            venue_d.setdefault(s.venue, []).append(s.id)
 
         return venue_d
-
-
 
 
 class CampaignManager(BaseEntityManager):

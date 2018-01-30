@@ -781,14 +781,14 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        if agn in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA):
+            return Response("event id %s already associated with agenda %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
+
         parents = agn.get_parent_entities()
         if parents:
             return Response("Operation Failed - Detach Agenda %s from  Event - %s and Retry" % (agn.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if agn in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA):
-            return Response("event id %s already associated with agenda %s " % (event_pk, pk),
-                            status=status.HTTP_200_OK)
 
         event.add_subentity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA)
         return Response(status=status.HTTP_201_CREATED)
@@ -851,14 +851,14 @@ class EventPollViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        if pol in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
+            return Response("event id %s already associated with poll %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
+
         parents = pol.get_parent_entities()
         if parents:
             return Response("Operation Failed - Detach Poll - %s from  Event - %s and Retry" % (pol.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if pol in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
-            return Response("event id %s already associated with poll %s " % (event_pk, pk),
-                            status=status.HTTP_200_OK)
 
         event.add_subentity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL)
         return Response(status=status.HTTP_201_CREATED)

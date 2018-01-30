@@ -28,7 +28,7 @@ user_register_payload = {"username": "", "password1": "a1b2c3d4", "password2": "
 
 media_payload = {"media_element": "", "media_type": "", "media_sub_type": ""}
 speaker_payload = {"name":"", "designation":"", "company":"","ext_fields":{}, "email":"a@b.com", "related":[]}
-sponsor_payload = {"name":"", "caption":"", "website": "http://getwizcard.com", "ext_fields":{"linkedin": "http://www.linkedin.com", "twitter": "http://www.twitter.com"}, "phone": "+180090010001", "email":"a@b.com", "description": "Campaign description is here", "address":"1234, Some Lane, Some City, Some Country"}
+sponsor_payload = {"name":"", "caption":"", "website": "http://getwizcard.com", "ext_fields":{"linkedin": "http://www.linkedin.com", "twitter": "http://www.twitter.com"}, "phone": "+180090010001", "email":"a@b.com", "description": "Campaign description is here", "address":"1234, Some Lane, Some City, Some Country", "venue": "Hall "}
 agenda_payload = {"items":[]}
 event_payload = {"name":"", "description":"", "venue": "Pragati Maidan", "location":{'lat':"", 'lng':""}, "start":"", "end":"", "related":[], "website":"http://www.getwizcard.com", "email":"a@b.com"}
 event_related_payload = {"related": []}
@@ -104,6 +104,8 @@ def create_sponsors(num, file, type="sponsor", attach=False):
             media_ids.append(create_media(murl, media_type='IMG', media_sub_type='ROL'))
         sponsor_payload['name'] = name
         sponsor_payload['caption'] = caption[:50]
+        venue = 'A' if i % 2 else 'B'
+        sponsor_payload['venue'] = "Hall " + venue
         sponsor_payload['related'] = [{'ids': media_ids, "type": "e_media"}]
         rest_path = "/entity/%ss/" % type
         sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
@@ -201,6 +203,7 @@ def create_agenda(numitems, evt, start_date, end_date, speakers ):
     rest_path = "/entity/agenda/"
     agenda_id = post_retrieve(rest_path, agenda_payload, key="id")
     agenda_ids.append(agenda_id)
+    agenda_payload["items"] = []
 
 
 def create_polls():
