@@ -7,7 +7,6 @@ from wizserver import verbs
 from wizserver import fields
 from wizcardship.models import WizConnectionRequest
 from notifications.models import EmailEvent
-from email_and_push_infra.signals import email_trigger
 from base.cctx import *
 from lib.preserialize.serialize import serialize
 from lib.create_share import send_wizcard, mass_email

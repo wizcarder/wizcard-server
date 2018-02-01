@@ -1,6 +1,6 @@
 # Create your views here.
 from notifications.models import SyncNotification
-from notifications.serializers import NotificationSerializer
+from notifications.serializers import SyncNotificationSerializer
 from base_entity.views import BaseEntityComponentViewSet
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,7 +11,7 @@ import pdb
 
 class NotificationViewSet(BaseEntityComponentViewSet):
     queryset = SyncNotification.objects.filter(notif_type=verbs.NOTIF_ENTITY_BROADCAST)
-    serializer_class = NotificationSerializer
+    serializer_class = SyncNotificationSerializer
 
     def get_queryset(self):
         """

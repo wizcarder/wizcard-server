@@ -1,3 +1,4 @@
+from django.conf import settings
 
 
 # All message types
@@ -177,8 +178,22 @@ FOLLOWER_D = "follower-d"
 FOLLOWED = "followed"
 OTHERS = "others"
 
-# (NotifType, Verb, APNS_REQUIRED, DO_BROADCAST)
+# (NotifType, Verb, APNS_REQUIRED, IS_ASYNC)
 # Intentionally indenting this way notwithstanding the PEP warning, to improve readability
+
+def get_notif_type(tuple):
+    return tuple[0]
+
+def get_notif_verb(tuple):
+    return tuple[1]
+
+def get_notif_apns_required(tuple):
+    return tuple[2]
+
+def get_notif_is_async(tuple):
+    return tuple[3]
+
+
 WIZCARD_NULL                = (NOTIF_NULL, "Empty notif", False, False)
 WIZREQ_U                    = (NOTIF_ACCEPT_EXPLICIT, 'wizconnection request untrusted', True, False)
 WIZREQ_T                    = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted', True, False)
@@ -210,6 +225,14 @@ WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', 0)
 WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', 0)
 WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', 1)
 
+
+# notify.send sends the whole tuple. Thus for serializer path, we need a mapping
+# from the integer notif_type to tuple. Not all mappings are required, adding in
+# here as needed
+
+notif_type_tuple_dict = {
+    NOTIF_ENTITY_BROADCAST: WIZCARD_ENTITY_BROADCAST
+}
 
 apns_notification_dictionary = {
     WIZREQ_U[0]	: {
@@ -245,6 +268,7 @@ apns_notification_dictionary = {
     WIZCARD_TABLE_DESTROY[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
+        'title': 'Wizcard - Table deleted',
         'alert': '{0.first_name} {0.last_name}  deleted {1.tablename} table',
     },
     WIZCARD_UPDATE[0]: {
@@ -259,16 +283,6 @@ apns_notification_dictionary = {
         'title': 'Updated WizCard',
         'alert': '{0.first_name} {0.last_name} has an updated wizcard',
     },
-    WIZCARD_FLICK_TIMEOUT[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'your flick has expired',
-    },
-    WIZCARD_FLICK_PICK[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': '{0.first_name} {0.last_name} picked up your flicked wizcard',
-    },
     WIZCARD_RECO_READY[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
@@ -282,4 +296,16 @@ apns_notification_dictionary = {
         'alert': 'Message from {1.name} - {3}'
     },
 }
+
+def get_apns_dict(verb, device_type):
+    if device_type == settings.DEVICE_IOS:
+        push_dict = {key: value for key, value in apns_notification_dictionary[verb] if key in ['sound', 'badge', 'alert']}
+    elif device_type == settings.DEVICE_ANDROID:
+        push_dict = {key: value for key, value in apns_notification_dictionary[verb] if key in ['title', 'alert']}
+        # small adjustment for key name for android
+        push_dict['body']=push_dict.pop('alert')
+    else:
+        raise AssertionError("invalid device_type %s" % device_type)
+
+    return push_dict
 

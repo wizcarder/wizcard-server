@@ -9,7 +9,7 @@ from entity.serializers import EventSerializer, EventSerializerL0, CampaignSeria
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
 from notifications.models import SyncNotification
-from notifications.serializers import NotificationSerializer
+from notifications.serializers import SyncNotificationSerializer
 from taganomy.models import Taganomy
 from taganomy.serializers import TaganomySerializer
 from rest_framework.decorators import detail_route
@@ -875,7 +875,7 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         event = Event.objects.get(id=event_pk)
         ntf = SyncNotification.objects.event_notifications(event)
 
-        return Response(NotificationSerializer(ntf, many=True).data)
+        return Response(SyncNotificationSerializer(ntf, many=True).data)
 
     def retrieve(self, request, pk=None, event_pk=None):
         try:
@@ -884,7 +884,7 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        return Response(NotificationSerializer(ntf).data)
+        return Response(SyncNotificationSerializer(ntf).data)
 
     def create(self, request, event_pk=None):
         try:
@@ -892,7 +892,7 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = NotificationSerializer(data=request.data, context={'user': request.user})
+        serializer = SyncNotificationSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
             inst = serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -936,4 +936,3 @@ class EventTagonomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

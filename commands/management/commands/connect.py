@@ -5,8 +5,10 @@ from wizcardship.models import Wizcard
 from userprofile.models import UserProfile
 from django.utils import timezone
 from wizserver import verbs
-from notifications import notify
+from notifications.signals import notify
 from base.cctx import ConnectionContext
+from notifications.models import BaseNotification
+
 import pdb
 
 now = timezone.now
@@ -47,6 +49,8 @@ class Command(BaseCommand):
 
             notify.send(
                 wizcard.user, recipient=w.user,
-                verb=verbs.WIZREQ_T[0],
+                notif_tuple=verbs.WIZREQ_T,
                 target=wizcard,
-                action_object=rel12)
+                action_object=rel12,
+                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+            )

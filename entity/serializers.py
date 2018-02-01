@@ -58,7 +58,8 @@ class AgendaItemSerializer(EntitySerializer):
 class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media', 'joined', 'users')
+        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related',
+                  'speakers', 'media', 'joined', 'users')
 
     speakers = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
@@ -215,6 +216,7 @@ class EventSerializerL0(EntitySerializer):
             obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER),
             many=True
         ).data
+
 
 class ExhibitorEventSerializer(EventSerializerL0):
     class Meta:
@@ -712,6 +714,7 @@ class PollSerializerL1(EntitySerializer):
     questions = QuestionSerializerL1(many=True)
 
 # this is used to create a poll. This is also used to send serialized Poll to App
+
 class PollSerializer(EntitySerializer):
     class Meta:
         model = Poll
@@ -777,4 +780,3 @@ class PollResponseSerializer(EntitySerializer):
         # of {}, in the response
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
-

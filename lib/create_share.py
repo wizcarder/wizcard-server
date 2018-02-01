@@ -58,7 +58,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card = False):
         extfields['sender_video'] = sender_video
 
     subject = subject % extfields['sender_name']
-    if half_card == True:
+    if half_card:
         extfields['sender_phone'] = '***********'
         extfields['sender_email'] = '*****@*****.***'
 

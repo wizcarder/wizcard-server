@@ -180,7 +180,7 @@ def create_events(numevents):
 def create_agenda(numitems, evt, start_date, end_date, speakers ):
 
     start_date = datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
-    start_date = start_date + " 09:00:00"
+    start_date += " 09:00:00"
     payload = dict()
     for item in range(0, numitems):
         payload['start'] = start_date

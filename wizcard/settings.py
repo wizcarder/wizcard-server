@@ -564,3 +564,5 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+DEVICE_IOS = 'ios'
+DEVICE_ANDROID = 'android'

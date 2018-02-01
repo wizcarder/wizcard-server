@@ -1017,6 +1017,18 @@ if not SKIP_BASIC:
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
     reqmsg['sender']['wizuser_id'] = wuid2
+    reqmsg['sender']['wizcard_id'] = e2_id
+    reqmsg['sender']['lat'] = messages.LAT1
+    reqmsg['sender']['lng'] = messages.LNG1
+    send_request(conn, reqmsg)
+    objs = handle_response(conn,reqmsg['header']['msg_type'])
+    mei_id2 = objs['data']['mID']
+    m_nearby = objs['data']['m_nearby']
+
+    reqmsg = messages.meishi_start
+    reqmsg['header']['version'] = messages.APP_VERSION
+    reqmsg['sender']['user_id'] = uid1
+    reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['wizcard_id'] = e1_id
     reqmsg['sender']['lat'] = messages.LAT1
     reqmsg['sender']['lng'] = messages.LNG1

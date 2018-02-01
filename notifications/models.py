@@ -5,6 +5,11 @@ from django.db import models
 from django.conf import settings
 from .utils import id2slug
 from django.utils import timezone
+from datetime import timedelta
+from notifications.signals import notify
+from notifications.push_tasks import push_notification_to_app
+from wizserver.verbs import *
+
 
 import pdb
 
@@ -45,19 +50,19 @@ class BaseNotificationManager(models.Manager):
 
 
 class BaseNotification(models.Model):
-    EMAIL = 1
-    ALERT = 2
+    DELIVERY_MODE_EMAIL = 1
+    DELIVERY_MODE_ALERT = 2
 
     DELIVERY_MODE = (
-        (EMAIL, 'email'),
-        (ALERT, 'alert')
+        (DELIVERY_MODE_EMAIL, 'email'),
+        (DELIVERY_MODE_ALERT, 'alert')
     )
 
     # async goes in EmailPush, sync goes in SyncNotification
     DELIVERY_TYPE_ASYNC = 1
     DELIVERY_TYPE_SYNC = 2
 
-    delivery_mode = models.PositiveSmallIntegerField(choices=DELIVERY_MODE)
+    delivery_mode = models.PositiveSmallIntegerField(choices=DELIVERY_MODE, default=DELIVERY_MODE_ALERT)
 
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
@@ -89,6 +94,22 @@ class BaseNotification(models.Model):
 
     class Meta:
         ordering = ('timestamp', )
+
+    def __unicode__(self):
+        ctx = {
+            'actor': self.actor,
+            'verb': self.verb,
+            'action_object': self.action_object,
+            'target': self.target,
+            'timesince': self.timesince()
+        }
+        if self.target:
+            if self.action_object:
+                return '%(actor)s %(verb)s %(action_object)s on %(target)s %(timesince)s ago' % ctx
+            return '%(actor)s %(verb)s %(target)s %(timesince)s ago' % ctx
+        if self.action_object:
+            return '%(actor)s %(verb)s %(action_object)s %(timesince)s ago' % ctx
+        return '%(actor)s %(verb)s %(timesince)s ago' % ctx
 
     def update_status(self, status):
         self.status = status
@@ -185,22 +206,6 @@ class SyncNotification(BaseNotification):
 
     objects = SyncNotificationManager()
 
-    def __unicode__(self):
-        ctx = {
-            'actor': self.actor,
-            'verb': self.verb,
-            'action_object': self.action_object,
-            'target': self.target,
-            'timesince': self.timesince()
-        }
-        if self.target:
-            if self.action_object:
-                return '%(actor)s %(verb)s %(action_object)s on %(target)s %(timesince)s ago' % ctx
-            return '%(actor)s %(verb)s %(target)s %(timesince)s ago' % ctx
-        if self.action_object:
-            return '%(actor)s %(verb)s %(action_object)s %(timesince)s ago' % ctx
-        return '%(actor)s %(verb)s %(timesince)s ago' % ctx
-
     def timesince(self, now=None):
         """
         Shortcut for the ``django.utils.timesince.timesince`` function of the
@@ -216,3 +221,94 @@ class SyncNotification(BaseNotification):
     def set_acted(self, flag):
         self.acted_upon = flag
         self.save()
+
+
+# Event based Triggers
+TRIGGER_NEW_USER = 1
+TRIGGER_PENDING_INVITE = 2
+TRIGGER_CONNECTION_ACCEPTED = 3
+TRIGGER_RECOMMENDATION_AVAILABLE = 4
+TRIGGER_SCAN_CARD = 5
+
+# Generic Triggers
+TRIGGER_WEEKLY_DIGEST = 11
+
+
+def notify_handler(**kwargs):
+    """
+    Handler function to create SyncNotification instance upon action signal call.
+    """
+
+    kwargs.pop('signal', None)
+    actor = kwargs.pop('sender')
+    recipient = kwargs.pop('recipient')
+    notif_tuple = kwargs.pop('notif_tuple')
+    delivery_mode = kwargs.pop('delivery_mode', BaseNotification.DELIVERY_MODE_ALERT)
+    delivery_type = kwargs.pop('delivery_type')
+    target = kwargs.pop('target', None)
+    action_object = kwargs.pop('action_object', None)
+    action_object_content_type = ContentType.objects.get_for_model(action_object) if action_object else None
+    action_object_object_id = action_object.pk if action_object else None
+    do_push = kwargs.pop('do_push', False)
+    start = kwargs.pop('start_date', timezone.now()+timedelta(minutes=1))
+    end = kwargs.pop('end_date', start)
+
+    """
+    ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
+    """
+
+    if delivery_type == BaseNotification.DELIVERY_TYPE_ASYNC:
+        newnotify = AsyncNotification.objects.create(
+            actor_content_type=ContentType.objects.get_for_model(actor),
+            actor_object_id=actor.pk,
+            recipient=recipient,
+            target_content_type=ContentType.objects.get_for_model(target),
+            target_object_id=target.pk,
+            action_object_content_type=action_object_content_type,
+            action_object_object_id=action_object_object_id,
+            readed=False,
+            delivery_mode=delivery_mode,
+            notif_type=get_notif_type(notif_tuple),
+            verb=get_notif_verb(notif_tuple),
+            timestamp=kwargs.pop('timestamp', timezone.now()),
+            # AA: Comments: EmailPush cannot decide whether this is INSTANT or not.
+            delivery_period=AsyncNotification.INSTANT,
+            start_date=start,
+            end_date=end,
+            **kwargs
+        )
+    elif delivery_type == BaseNotification.DELIVERY_TYPE_SYNC:
+        newnotify, created = SyncNotification.objects.get_or_create(
+            actor_content_type=ContentType.objects.get_for_model(actor),
+            actor_object_id=actor.pk,
+            recipient=recipient,
+            readed=False,
+            notif_type=get_notif_type(notif_tuple),
+            verb=get_notif_verb(notif_tuple),
+            target_content_type=ContentType.objects.get_for_model(target),
+            target_object_id=target.pk,
+            action_object_content_type=action_object_content_type,
+            action_object_object_id=action_object_object_id,
+            defaults={
+                'public': bool(kwargs.pop('public', True)),
+                'timestamp': kwargs.pop('timestamp', timezone.now()),
+            }
+        )
+
+        # push a notification to app from here. Fire and forget
+        if created:
+            push_notification_to_app.delay(
+                newnotify.actor_object_id,
+                newnotify.recipient_id,
+                newnotify.action_object_object_id,
+                newnotify.action_object_content_type,
+                newnotify.target_object_id,
+                newnotify.target_content_type,
+                newnotify.verb
+            )
+    else:
+        raise AssertionError("Invalid delivery type %s" % delivery_type)
+
+    return newnotify
+
+notify.connect(notify_handler, dispatch_uid='notifications.models.SyncNotification')

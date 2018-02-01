@@ -47,13 +47,6 @@ events_router.register(r'notification', EventNotificationViewSet, base_name='eve
 events_router.register(r'tagonomy', EventTagonomyViewSet, base_name='event-tagonomy')
 
 
-
-
-
-
-
-
-
 urlpatterns = patterns(
     '',
     url(r'^', include(router.urls)),

@@ -25,7 +25,7 @@ RECO_QUEUE_NAME = 'reco'
 
 CELERY_ROUTES = {
     'lib.ocr.run_ocr': {'queue': OCR_QUEUE_NAME},
-    'notifications.tasks.push_notification_to_app': {'queue': PUSHNOTIF_QUEUE_NAME},
+    'notifications.push_tasks.push_notification_to_app': {'queue': PUSHNOTIF_QUEUE_NAME},
     'periodic.tasks.tick': {'queue': CELERY_DEFAULT_QUEUE},
     'queued_storage.tasks.Transfer': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
     'queued_storage.tasks.TransferAndDelete': {'queue': IMAGE_UPLOAD_QUEUE_NAME},

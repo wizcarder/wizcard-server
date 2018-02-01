@@ -31,7 +31,8 @@ from django.db.models import Q
 from lib import wizlib
 from wizcard import err
 from wizserver import verbs
-from notifications.models import notify, SyncNotification
+from notifications.signals import notify
+from notifications.models import SyncNotification
 from django.db.models import URLField
 from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
@@ -39,7 +40,7 @@ from base.mixins import MediaMixin
 from lib.ocr import OCR
 from base.mixins import CompanyTitleMixin
 from genericm2m.models import RelatedObjectsDescriptor
-
+from notifications.models import BaseNotification
 
 logger = logging.getLogger(__name__)
 
@@ -106,34 +107,34 @@ class WizcardManager(PolymorphicManager):
         rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
 
         #send Type 1 notification to both
-        notify.send(wizcard1.user, recipient=wizcard2.user,
-                    notif_type=verbs.WIZREQ_T[0],
-                    description=cctx.description,
-                    target=wizcard1,
-                    verb=verbs.WIZREQ_T[1],
-                    action_object=rel1)
+        notify.send(
+            wizcard1.user, recipient=wizcard2.user,
+            notif_tuple=verbs.WIZREQ_T,
+            description=cctx.description,
+            target=wizcard1,
+            action_object=rel1,
+            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+        )
 
-        notify.send(wizcard2.user, recipient=wizcard1.user,
-                        notif_type=verbs.WIZREQ_T[0],
-                        description=cctx.description,
-                        target=wizcard2,
-                        verb=verbs.WIZREQ_T[1],
-                        action_object=rel2)
+        notify.send(
+            wizcard2.user, recipient=wizcard1.user,
+            description=cctx.description,
+            target=wizcard2,
+            notif_tuple=verbs.WIZREQ_T,
+            action_object=rel2,
+            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+        )
 
         return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2, half=False):
-        # suppress if unread notif already exists
-        if not SyncNotification.objects.filter(
-                recipient=wizcard2.user,
-                target_object_id=wizcard1.id,
-                readed=False,
-                notif_type=verbs.WIZCARD_UPDATE[0]).exists():
-            notify.send(wizcard1.user,
-                        recipient=wizcard2.user,
-                        notif_type=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
-                        verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE_HALF[0],
-                        target=wizcard1)
+        notify.send(
+            wizcard1.user,
+            recipient=wizcard2.user,
+            notif_tuple=verbs.WIZCARD_UPDATE_HALF if half else verbs.WIZCARD_UPDATE,
+            target=wizcard1,
+            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+        )
 
     def query_users(self, exclude_user, name, phone, email):
         #name can be first name, last name or even combined
@@ -640,6 +641,7 @@ class WizcardFlick(models.Model):
 
         return loc
 
+    # AA: TODO. The whole flick thing needs to be revisited anyway.
     def delete(self, *args, **kwargs):
         notif = kwargs.pop('type', None)
         self.location.get().delete()
@@ -649,11 +651,13 @@ class WizcardFlick(models.Model):
             logger.debug('timeout flicked wizcard %s', self.id)
             self.expired = True
             self.save()
-            notify.send(self.wizcard.user,
-                        recipient=self.wizcard.user,
-                        notif_type=verbs.WIZCARD_FLICK_TIMEOUT[0],
-                        verb=verbs.WIZCARD_FLICK_TIMEOUT[1],
-                        target=self)
+            notify.send(
+                self.wizcard.user,
+                recipient=self.wizcard.user,
+                notif_tuple=verbs.WIZCARD_FLICK_TIMEOUT,
+                target=self,
+                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+            )
         else:
             #withdraw/delete flick case
             logger.debug('withdraw flicked wizcard %s', self.id)

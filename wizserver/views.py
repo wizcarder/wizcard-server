@@ -31,7 +31,8 @@ from converter import Converter
 
 from lib.ocr import OCR
 from wizcardship.models import Wizcard, DeadCard, ContactContainer, WizcardFlick
-from notifications.models import notify, BaseNotification, SyncNotification
+from notifications.models import BaseNotification, SyncNotification
+from notifications.signals import notify
 from entity.models import VirtualTable
 from meishi.models import Meishi
 from response import Response, NotifResponse
@@ -1010,10 +1011,10 @@ class ParseMsgAndDispatch(object):
             notify.send(
                 admin_user.wizcard.user,
                 recipient=wizcard.user,
-                notif_type=verbs.WIZREQ_T[0],
+                notif_tuple=verbs.WIZREQ_T,
                 target=admin_user.wizcard,
-                verb=verbs.WIZREQ_T[1],
-                action_object=rel21
+                action_object=rel21,
+                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
             )
 
         # check if futureUser states exist for this phone or email
@@ -1033,10 +1034,10 @@ class ParseMsgAndDispatch(object):
             notify.send(
                 self.user,
                 recipient=self.user,
-                notif_type=verbs.WIZCARD_NEW_USER[0],
-                verb=verbs.WIZCARD_NEW_USER[1],
+                notif_tuple=verbs.WIZCARD_NEW_USER,
                 target=wizcard,
-                delivery_mode=BaseNotification.EMAIL
+                delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL,
+                delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
             )
 
         self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
@@ -1048,8 +1049,8 @@ class ParseMsgAndDispatch(object):
     # B has A's wizcard in roldex
     def WizcardAccept(self):
         status = []
-        verb1 = verbs.WIZREQ_T[0]
-        verb2 = verbs.WIZREQ_T[0]
+        ntuple1 = verbs.WIZREQ_T
+        ntuple2 = verbs.WIZREQ_T
 
         try:
             wizcard1 = self.user.wizcard
@@ -1119,26 +1120,29 @@ class ParseMsgAndDispatch(object):
             Wizcard.objects.becard(wizcard2, wizcard1)
 
         if wizcard1.get_relationship(wizcard2).status != verbs.ACCEPTED:
-            verb1 = verbs.WIZREQ_T_HALF[0]
-            verb2 = None
+            ntuple1 = verbs.WIZREQ_T_HALF
+            ntuple2 = None
+
         # Q notif to both sides.
-        notify.send(self.r_user,
-                    recipient=self.user,
-                    notif_type=verb1,
-                    target=wizcard2,
-                    verb=verbs.WIZREQ_T_HALF[1],
-                    action_object=rel21
-                    )
+        notify.send(
+            self.r_user,
+            recipient=self.user,
+            notif_tuple=ntuple1,
+            target=wizcard2,
+            action_object=rel21,
+            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+        )
 
         # Q notif for wizcard2 to change his half card to full
-        if verb2:
-            notify.send(self.user,
-                        recipient=self.r_user,
-                        notif_type=verb2,
-                        target=wizcard1,
-                        verb=verbs.WIZREQ_T[1],
-                        action_object=rel12
-                        )
+        if ntuple2:
+            notify.send(
+                self.user,
+                recipient=self.r_user,
+                notif_tuple=ntuple2,
+                target=wizcard1,
+                action_object=rel12,
+                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+            )
 
         status.append(
             dict(status=Wizcard.objects.get_connection_status(wizcard1, wizcard2),
@@ -1220,11 +1224,13 @@ class ParseMsgAndDispatch(object):
                         # regular case.
                         Wizcard.objects.uncardit(wizcard2, wizcard1)
                         # Q a notif to other guy so that the app on the other side can react
-                        notify.send(self.user,
-                                    recipient=wizcard2.user,
-                                    notif_type=verbs.WIZCARD_REVOKE[0],
-                                    verb=verbs.WIZCARD_REVOKE[1],
-                                    target=wizcard1)
+                        notify.send(
+                            self.user,
+                            recipient=wizcard2.user,
+                            notif_tuple=verbs.WIZCARD_REVOKE,
+                            target=wizcard1,
+                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                        )
         except KeyError:
             self.security_exception()
             self.response.ignore()
@@ -1315,12 +1321,14 @@ class ParseMsgAndDispatch(object):
                 #create wizcard2->wizcard1 relationship and accept
                 rel = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
                 #Q pick_notif to flicker
-                notify.send(self.user,
-                            recipient=wizcard2.user,
-                            notif_type=verbs.WIZCARD_FLICK_PICK[0],
-                            verb=verbs.WIZCARD_FLICK_PICK[1],
-                            target=flick_card,
-                            action_object=rel)
+                notify.send(
+                    self.user,
+                    recipient=wizcard2.user,
+                    notif_tuple=verbs.WIZCARD_FLICK_PICK,
+                    target=flick_card,
+                    action_object=rel,
+                    delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                )
 
             return self.response
         except:
@@ -1344,11 +1352,13 @@ class ParseMsgAndDispatch(object):
                 #rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
 
                 #Q implicit exchange to flicker
-                notify.send(self.user, recipient=wizcard2.user,
-                            notif_type=verbs.WIZREQ_T[0],
-                            verb=verbs.WIZREQ_T[1],
-                            target=wizcard1,
-                            action_object=rel1)
+                notify.send(
+                    self.user, recipient=wizcard2.user,
+                    notif_tuple=verbs.WIZREQ_T,
+                    target=wizcard1,
+                    action_object=rel1,
+                    delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                )
             return self.response
         except KeyError:
             self.security_exception()
@@ -1566,12 +1576,12 @@ class ParseMsgAndDispatch(object):
                 notif_tuple = verbs.WIZREQ_T if receiver_type == verbs.INVITE_VERBS[verbs.WIZCARD_CONNECT_T] else conn_status
                 if to_notify:
                     notify.send(
-                            self.user,
-                            recipient=r_user,
-                            notif_type=notif_tuple[0],
-                            verb=notif_tuple[1],
-                            target=wizcard,
-                            action_object=rel12
+                        self.user,
+                        recipient=r_user,
+                        notif_tuple=notif_tuple,
+                        target=wizcard,
+                        action_object=rel12,
+                        delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
                     )
 
                 # Context should always have the from_wizcard and for the time being sender's location - Still debating
@@ -1610,13 +1620,14 @@ class ParseMsgAndDispatch(object):
                 # Q notif for from_wizcard. While app has (most of) this info, it's missing location. So
                 # let server push this via notif 1.
                 if from_notify:
-                    notify.send(r_user,
-                                recipient=self.user,
-                                notif_type=conn_status[0],
-                                verb=conn_status[1],
-                                target=r_wizcard,
-                                action_object=rel21
-                                )
+                    notify.send(
+                        r_user,
+                        recipient=self.user,
+                        notif_tuple=conn_status,
+                        target=r_wizcard,
+                        action_object=rel21,
+                        delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                    )
 
                 count += 1
                 status.append(dict(
@@ -1643,12 +1654,13 @@ class ParseMsgAndDispatch(object):
                 )
 
                 #Q this to the receiver
-                notify.send(self.user,
-                            recipient=r_user,
-                            notif_type=verbs.WIZCARD_TABLE_INVITE[0],
-                            verb=verbs.WIZCARD_TABLE_INVITE[1],
-                            target=table
-                            )
+                notify.send(
+                    self.user,
+                    recipient=r_user,
+                    notif_tuple=verbs.WIZCARD_TABLE_INVITE,
+                    target=table,
+                    delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                )
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE],
                                verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             # create future user
@@ -1679,23 +1691,26 @@ class ParseMsgAndDispatch(object):
                                                        status=verbs.PENDING,
                                                        cctx=cctx1)
                         # Q notif for to_wizcard
-                        notify.send(self.user,
-                                    recipient=wizcard.user,
-                                    notif_type=verbs.WIZREQ_U[0],
-                                    verb=verbs.WIZREQ_U[1],
-                                    target=obj,
-                                    action_object=rel12
-                                    )
+                        notify.send(
+                            self.user,
+                            recipient=wizcard.user,
+                            notif_tuple=verbs.WIZREQ_U,
+                            target=obj,
+                            action_object=rel12,
+                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                        )
                     elif rel12.status == verbs.DECLINED or \
                                     rel12.status == verbs.DELETED:
                         # reset 2 to pending. Yes there is a potential "don't bother me" angle
                         # to this..but better to promote connections
                         rel12.reset()
-                        notify.send(self.user, recipient=wizcard.user,
-                                    notif_type=verbs.WIZREQ_U[0],
-                                    verb=verbs.WIZREQ_U[1],
-                                    target=obj,
-                                    action_object=rel12)
+                        notify.send(
+                            self.user, recipient=wizcard.user,
+                            notif_tuple=verbs.WIZREQ_U,
+                            target=obj,
+                            action_object=rel12,
+                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                        )
 
                     rel21 = wizcard.get_relationship(obj)
                     cctx2 = ConnectionContext(asset_obj=wizcard, connection_mode=receiver_type)
@@ -1705,11 +1720,14 @@ class ParseMsgAndDispatch(object):
                                                        obj,
                                                        status=verbs.ACCEPTED,
                                                        cctx=cctx2)
-                        notify.send(wizcard.user, recipient=self.user,
-                                    notif_type=verbs.WIZREQ_T_HALF[0],
-                                    verb=verbs.WIZREQ_T_HALF[1],
-                                    target=wizcard,
-                                    action_object=rel21)
+                        notify.send(
+                            wizcard.user,
+                            recipient=self.user,
+                            notif_tuple=verbs.WIZREQ_T_HALF,
+                            target=wizcard,
+                            action_object=rel21,
+                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                        )
 
                     elif rel21.status == verbs.DECLINED or \
                                     rel21.status == verbs.DELETED:
@@ -1724,11 +1742,14 @@ class ParseMsgAndDispatch(object):
                             rel21.accept()
                             conn_status = verbs.WIZREQ_T
 
-                        notify.send(wizcard.user, recipient=self.user,
-                                    notif_type=conn_status[0],
-                                    verb=conn_status[1],
-                                    target=wizcard,
-                                    action_object=rel21)
+                        notify.send(
+                            wizcard.user,
+                            recipient=self.user,
+                            notif_tuple=conn_status,
+                            target=wizcard,
+                            action_object=rel21,
+                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                        )
                     else:
                         # was already in ACCEPTED, leave as-is.
                         # if was in PENDING, it means he has previously sent us a req.
@@ -1739,19 +1760,23 @@ class ParseMsgAndDispatch(object):
                 elif ContentType.objects.get_for_model(obj) == \
                         ContentType.objects.get(model="virtualtable"):
                     #Q this to the receiver
-                    notify.send(self.user, recipient=wizcard.user,
-                                notif_type=verbs.WIZCARD_TABLE_INVITE[0],
-                                verb=verbs.WIZCARD_TABLE_INVITE[1],
-                                target=obj)
+                    notify.send(
+                        self.user,
+                        recipient=wizcard.user,
+                        notif_tuple=verbs.WIZCARD_TABLE_INVITE,
+                        target=obj,
+                        delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                    )
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    notify.send(self.user,
-                                recipient=self.user,
-                                notif_type=verbs.WIZCARD_INVITE_USER[0],
-                                verb=verbs.WIZCARD_INVITE_USER[1],
-                                target=wizcard,
-                                delivery_mode=BaseNotification.EMAIL
-                                )
+                    notify.send(
+                        self.user,
+                        recipient=self.user,
+                        notif_tuple=verbs.WIZCARD_INVITE_USER,
+                        target=wizcard,
+                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL,
+                        delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+                    )
             else:
                 fuser = FutureUser.objects.get_or_create(
                         inviter=self.user,
@@ -1761,13 +1786,14 @@ class ParseMsgAndDispatch(object):
                         email=r if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE] else ""
                 )
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
-                    notify.send(self.user,
-                                recipient=self.user,
-                                notif_type=verbs.WIZCARD_INVITE_USER[0],
-                                verb=verbs.WIZCARD_INVITE_USER[1],
-                                target=fuser[0],
-                                delivery_mode=BaseNotification.EMAIL
-                                )
+                    notify.send(
+                        self.user,
+                        recipient=self.user,
+                        notif_tuple=verbs.WIZCARD_INVITE_USER,
+                        target=fuser[0],
+                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL,
+                        delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+                    )
 
     def UserQuery(self):
         try:
@@ -2047,19 +2073,19 @@ class ParseMsgAndDispatch(object):
             receivers = [deadcard.email]
             if receivers:
                 self.do_future_user(self.user.wizcard, receiver_type, receivers)
-                #send_wizcard.delay(self.user.wizcard, receivers[0], template="emailscaninvite")
                 deadcard.invited = True
             else:
                 self.response.error_response(err.NO_RECEIVER)
+        # AR, pls check logic here...not entirely sure why email goes in the else case
         else:
             if not deadcard.activated:
                 notify.send(
                     self.user,
                     recipient=self.user,
-                    notif_type=verbs.WIZCARD_SCANNED_USER[0],
-                    verb=verbs.WIZCARD_SCANNED_USER[1],
+                    notif_tuple=verbs.WIZCARD_SCANNED_USER,
                     target=deadcard,
-                    delivery_mode=BaseNotification.EMAIL
+                    delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL,
+                    delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
                 )
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
@@ -2094,7 +2120,7 @@ class ParseMsgAndDispatch(object):
             self.response.ignore()
             return self.response
 
-        #Once we find a pairing we exchange wizcards
+        # Once we find a pairing we exchange wizcards
         m_res = m.check_meishi()
         if m_res:
             cctx = ConnectionContext(asset_obj=m)

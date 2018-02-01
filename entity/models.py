@@ -3,22 +3,19 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from wizcardship.models import Wizcard
-from wizserver import verbs
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, BaseEntityComponentManager
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
-from notifications.signals import notify
 from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 import pdb
-
-
 
 
 from django.utils import timezone
 now = timezone.now
 
 # Create your models here.
+
 
 class EventManager(BaseEntityManager):
     def lookup(self, lat, lng, n, etype=BaseEntityComponent.EVENT, count_only=False):
@@ -124,29 +121,6 @@ class VirtualTable(BaseEntity):
             Wizcard.objects.exchange(wizcard1, wizcard2, cctx)
 
         return self
-
-    def delete(self, *args, **kwargs):
-        # notify members of deletion (including self)
-        notif = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY)
-        notif_type = notif[0]
-        verb = notif[1]
-        members = self.users.all()
-        for member in members:
-            notify.send(self.get_creator(),
-                        recipient=member,
-                        notif_type=notif_type,
-                        verb=verb,
-                        target=self
-                        )
-
-        self.location.get().delete()
-
-        if notif_type == verbs.WIZCARD_TABLE_TIMEOUT[0]:
-            self.expired = True
-            self.save()
-        else:
-            self.users.clear()
-            super(VirtualTable, self).delete(*args, **kwargs)
 
     def time_remaining(self):
         if not self.expired:

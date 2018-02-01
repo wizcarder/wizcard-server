@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from wizserver import verbs
 from django.utils import timezone
 from datetime import timedelta
+from userprofile.models import UserProfile
 
 
 import pdb
@@ -46,39 +47,46 @@ class GenericSerializerField(serializers.RelatedField):
 class AsyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SyncNotification
-        fields = ('id', 'delivery_type', 'recipient', 'target', 'action_object', 'verb',
-                  'start', 'end', 'notif_type', 'do_push')
+        fields = ('id', 'delivery_mode', 'recipient', 'target',
+                  'action_object', 'verb', 'start', 'end', 'notif_type', 'do_push')
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
     start = serializers.DateTimeField(required=False)
     end = serializers.DateTimeField(required=False)
     # AA Comments: notif_type needn't really be exposed in rest. Leaving it here for now.
-    notif_type = serializers.IntegerField(required=False, default=verbs.WIZCARD_ENTITY_BROADCAST[0])
+    notif_type = serializers.IntegerField(
+        required=False,
+        default=verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)
+    )
     do_push = serializers.BooleanField(required=False, default=True, write_only=True)
+    delivery_mode = serializers.ChoiceField(BaseNotification.DELIVERY_MODE, write_only=True)
 
     def create(self, validated_data):
-        delivery_mode = validated_data.pop('delivery_type', SyncNotification.EMAIL)
         start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))
         end = validated_data.pop('end', timezone.now() + timedelta(minutes=1))
+        notif_type = validated_data.pop('notif_type')
 
         # AA: Comments: this was broken
         push_notif = notify.send(
             self.context.get('user'),
-            delivery_type=delivery_mode,
+            # recipient is dummy
+            recipient=UserProfile.objects.get_admin_user(),
+            delivery_type=SyncNotification.DELIVERY_TYPE_ASYNC,
             start_date=start,
             end_date=end,
+            notif_tuple=verbs.notif_type_tuple_dict[notif_type],
             **validated_data
         )
 
         return push_notif[0][1]
 
 
-class NotificationSerializer(serializers.ModelSerializer):
+class SyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SyncNotification
-        fields = ('id', 'recipient', 'target', 'action_object', 'verb', 'notif_type', 'delivery_mode',
-                  'do_push', 'notification_text', 'start', 'end')
+        fields = ('id', 'delivery_mode', 'recipient', 'target', 'action_object',
+                  'verb', 'notif_type', 'do_push', 'notification_text', 'start', 'end')
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
@@ -97,9 +105,10 @@ class NotificationSerializer(serializers.ModelSerializer):
         push_notif = notify.send(
             self.context.get('user'),
             notif_type=notif_type,
-            delivery_type=SyncNotification.DELIVERY_TYPE_ASYNC,
+            delivery_type=SyncNotification.DELIVERY_TYPE_SYNC,
             start_date=start,
             end_date=end,
+            notif_tuple=verbs.notif_type_tuple_dict[notif_type],
             **validated_data
         )
 

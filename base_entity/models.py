@@ -13,6 +13,7 @@ from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
+from notifications.models import BaseNotification
 from wizserver import verbs
 import datetime
 import pdb
@@ -126,6 +127,10 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_BADGE_TEMPLATE = 'e_badge'
     SUB_ENTITY_SCANNED_USER = 'e_scan'
     SUB_ENTITY_CATEGORY = 'e_category'
+
+    # use this in overridden delete to know whether to remove or mark-deleted
+    ENTITY_DELETE = 1
+    ENTITY_EXPIRE = 2
 
     objects = BaseEntityComponentManager()
 
@@ -440,18 +445,21 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def join(self, user, notify=True):
+    def join(self, user, do_notify=True):
         e, created = UserEntity.user_join(user=user, base_entity_obj=self)
         if created:
             self.num_users += 1
             self.save()
 
-        if notify:
-            self.notify_all_users(
+        if do_notify:
+            notify.send(
                 user,
-                verbs.WIZCARD_ENTITY_JOIN,
-                self,
-                verb=verbs.WIZCARD_ENTITY_JOIN[1]
+                # recipient is dummy
+                recipient=self.get_creator(),
+                notif_tuple=verbs.WIZCARD_ENTITY_JOIN,
+                target=self,
+                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT,
+                delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
             )
 
         return self
@@ -459,16 +467,19 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def is_joined(self, user):
         return bool(self.users.filter(id=user.id).exists())
 
-    def leave(self, user, notify=True):
+    def leave(self, user, do_notify=True):
         UserEntity.user_leave(user, self)
         self.num_users -= 1
         self.save()
 
-        if notify:
-            self.notify_all_users(
+        if do_notify:
+            notify.send(
                 user,
-                verbs.WIZCARD_ENTITY_LEAVE,
-                self,
+                recipient=self.get_creator(),
+                notif_tuple=verbs.WIZCARD_ENTITY_LEAVE,
+                target=self,
+                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT,
+                delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
             )
 
         return self
@@ -493,18 +504,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             verb=verbs.WIZCARD_ENTITY_UPDATE[1]
         )
 
-    def notify_all_users(self, sender, notif_type, entity, verb=None, exclude_sender=True):
-        # send notif to all members, just like join
-        qs = self.users.exclude(id=sender.pk) if exclude_sender else self.users.all()
-        for u in qs:
-            notify.send(
-                sender,
-                recipient=u,
-                notif_type=notif_type,
-                verb=verb,
-                target=entity,
-            )
-
     def get_banner(self):
         media_row = self.get_sub_entities_of_type(entity_type=BaseEntity.SUB_ENTITY_MEDIA)
         if media_row:
@@ -517,18 +516,19 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.save()
 
     def delete(self, *args, **kwargs):
-        notif_tuple = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE)
+        delete_type = kwargs.pop('type', self.ENTITY_DELETE)
 
-        self.notify_all_users(
+        notify.send(
             self.get_creator(),
-            notif_tuple,
-            self,
-            exclude_sender=False
+            recipient=self.get_creator(),
+            notif_tuple=verbs.WIZCARD_ENTITY_DELETE,
+            target=self,
+            delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
         )
 
         self.location.get().delete()
 
-        if notif_tuple[0] == verbs.WIZCARD_ENTITY_EXPIRE[0]:
+        if delete_type == self.ENTITY_EXPIRE:
             self.expired = True
             self.save()
         else:
@@ -536,7 +536,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             super(BaseEntity, self).delete(*args, **kwargs)
 
     def expire(self):
-        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
+        self.delete(type=self.ENTITY_EXPIRE)
 
     def modified_since(self, timestamp):
         return self.modified > timestamp
