@@ -316,26 +316,8 @@ class BaseEntityComponent(PolymorphicModel):
 
     @classmethod
     def content_type_from_entity_type(cls, entity_type):
-        if entity_type == BaseEntityComponent.EVENT:
-            model = "event"
-        elif entity_type == BaseEntityComponent.CATEGORY or entity_type == BaseEntityComponent.SUB_ENTITY_CATEGORY:
-            model = "taganomy"
-        elif entity_type == BaseEntityComponent.CAMPAIGN or entity_type == BaseEntityComponent.SUB_ENTITY_CAMPAIGN:
-            model = "campaign"
-        elif entity_type == BaseEntityComponent.SPEAKER or entity_type == BaseEntityComponent.SUB_ENTITY_SPEAKER:
-            model = "speaker"
-        elif entity_type == BaseEntityComponent.SPONSOR or entity_type == BaseEntityComponent.SUB_ENTITY_SPONSOR:
-            model = "sponsor"
-        elif entity_type == BaseEntityComponent.MEDIA or entity_type == BaseEntityComponent.SUB_ENTITY_MEDIA:
-            model = "mediaentities"
-        elif entity_type == BaseEntityComponent.AGENDA or entity_type == BaseEntityComponent.SUB_ENTITY_AGENDA:
-            model = "agenda"
-        elif entity_type == BaseEntityComponent.TABLE or entity_type == BaseEntityComponent.SUB_ENTITY_TABLE:
-            model = "virtualtable"
-        elif entity_type == BaseEntityComponent.AGENDA_ITEM:
-            model = "agendaitem"
-
-        return ContentType.objects.get(model=model)
+        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
+        return ContentType.objects.get_for_model(cls)
 
     @classmethod
     def entity_cls_from_subentity_type(cls, entity_type):
