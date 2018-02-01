@@ -181,18 +181,6 @@ OTHERS = "others"
 # (NotifType, Verb, APNS_REQUIRED, IS_ASYNC)
 # Intentionally indenting this way notwithstanding the PEP warning, to improve readability
 
-def get_notif_type(tuple):
-    return tuple[0]
-
-def get_notif_verb(tuple):
-    return tuple[1]
-
-def get_notif_apns_required(tuple):
-    return tuple[2]
-
-def get_notif_is_async(tuple):
-    return tuple[3]
-
 
 WIZCARD_NULL                = (NOTIF_NULL, "Empty notif", False, False)
 WIZREQ_U                    = (NOTIF_ACCEPT_EXPLICIT, 'wizconnection request untrusted', True, False)
@@ -200,30 +188,42 @@ WIZREQ_T                    = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request tru
 WIZREQ_T_HALF               = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted half', False, False)
 WIZREQ_F                    = (NOTIF_FOLLOW_EXPLICIT, 'wizconnection request follow', True, False)
 WIZCARD_ACCEPT              = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', True, False)
-WIZCARD_REVOKE              = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', 0)
-WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', 0)
-WIZCARD_DELETE              = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', 0)
+WIZCARD_REVOKE              = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', False, False)
+WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', False, False)
+WIZCARD_DELETE              = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', False, False)
 WIZCARD_TABLE_TIMEOUT       = (NOTIF_TABLE_TIMEOUT, 'table timeout', True, True)
 WIZCARD_TABLE_DESTROY       = (NOTIF_TABLE_TIMEOUT, 'table destroy', True, True)
-WIZCARD_UPDATE              = (NOTIF_UPDATE_WIZCARD, 'wizcard update', True, False)
+WIZCARD_UPDATE              = (NOTIF_UPDATE_WIZCARD, 'wizcard update', True, True)
 WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD, 'wizcard update half', True, False)
 WIZCARD_FLICK_TIMEOUT       = (NOTIF_FLICK_TIMEOUT, 'flick timeout', True, False)
 WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
 WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
 WIZCARD_FORWARD             = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', True, False)
 WIZCARD_ENTITY_JOIN         = (NOTIF_ENTITY_JOIN, 'entity join', False, True)
-WIZCARD_ENTITY_LEAVE        = (NOTIF_ENTITY_LEAVE, 'entity leave', 0)
-WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', 1)
-WIZCARD_ENTITY_UPDATE       = (NOTIF_ENTITY_UPDATE, 'event_updated', 0)
-WIZCARD_ENTITY_EXPIRE       = (NOTIF_ENTITY_EXPIRE, 'event_expired', 0)
-WIZCARD_ENTITY_DELETE       = (NOTIF_ENTITY_DELETE, 'event_deleted', 0)
-WIZCARD_EVENT_REMINDER      = (NOTIF_ENTITY_REMINDER, 'event_reminder', 1)
-WIZCARD_NEW_USER            = (NOTIF_NEW_WIZUSER, 'new_user', 0)
-WIZCARD_SCANNED_USER        = (NOTIF_SCANNED_USER, 'scanned_user', 0)
-WIZCARD_INVITE_USER         = (NOTIF_INVITE_USER, 'invite_user', 0)
-WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', 0)
-WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', 0)
-WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', 1)
+WIZCARD_ENTITY_LEAVE        = (NOTIF_ENTITY_LEAVE, 'entity leave', False, True)
+WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', True, False)
+WIZCARD_ENTITY_UPDATE       = (NOTIF_ENTITY_UPDATE, 'event_updated', True, True)
+WIZCARD_ENTITY_EXPIRE       = (NOTIF_ENTITY_EXPIRE, 'event_expired', False, True)
+WIZCARD_ENTITY_DELETE       = (NOTIF_ENTITY_DELETE, 'event_deleted', False, True)
+WIZCARD_EVENT_REMINDER      = (NOTIF_ENTITY_REMINDER, 'event_reminder', True, True)
+WIZCARD_NEW_USER            = (NOTIF_NEW_WIZUSER, 'new_user', False, True)
+WIZCARD_SCANNED_USER        = (NOTIF_SCANNED_USER, 'scanned_user', False, True)
+WIZCARD_INVITE_USER         = (NOTIF_INVITE_USER, 'invite_user', False, True)
+WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', False, True)
+WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', False, True)
+WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', True, True)
+
+def get_notif_type(ntuple):
+    return ntuple[0]
+
+def get_notif_verb(ntuple):
+    return ntuple[1]
+
+def get_notif_apns_required(ntuple):
+    return ntuple[2]
+
+def get_notif_is_async(ntuple):
+    return ntuple[3]
 
 
 # notify.send sends the whole tuple. Thus for serializer path, we need a mapping

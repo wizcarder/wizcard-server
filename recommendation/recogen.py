@@ -309,8 +309,7 @@ class RecoRunner(RabbitServer):
                 tuser,
                 notif_tuple=verbs.WIZCARD_RECO_READY,
                 recipient=tuser,
-                target=tuser.wizcard,
-                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                target=tuser.wizcard
             )
 
     def updateRecoCount(self,tuser,recocount):

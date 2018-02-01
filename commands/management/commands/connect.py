@@ -52,5 +52,4 @@ class Command(BaseCommand):
                 notif_tuple=verbs.WIZREQ_T,
                 target=wizcard,
                 action_object=rel12,
-                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
             )

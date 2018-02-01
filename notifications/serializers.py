@@ -72,7 +72,6 @@ class AsyncNotificationSerializer(serializers.ModelSerializer):
             self.context.get('user'),
             # recipient is dummy
             recipient=UserProfile.objects.get_admin_user(),
-            delivery_type=SyncNotification.DELIVERY_TYPE_ASYNC,
             start_date=start,
             end_date=end,
             notif_tuple=verbs.notif_type_tuple_dict[notif_type],
@@ -105,7 +104,6 @@ class SyncNotificationSerializer(serializers.ModelSerializer):
         push_notif = notify.send(
             self.context.get('user'),
             notif_type=notif_type,
-            delivery_type=SyncNotification.DELIVERY_TYPE_SYNC,
             start_date=start,
             end_date=end,
             notif_tuple=verbs.notif_type_tuple_dict[notif_type],

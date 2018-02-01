@@ -400,8 +400,7 @@ class FutureUser(models.Model):
                 notif_tuple=verbs.WIZREQ_U,
                 description=cctx.description,
                 target=self.content_object,
-                action_object=rel12,
-                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                action_object=rel12
             )
 
             # Q implicit notif for from_wizcard
@@ -411,8 +410,7 @@ class FutureUser(models.Model):
                 notif_tuple=verbs.WIZREQ_T,
                 description=cctx.description,
                 target=real_user.wizcard,
-                action_object=rel21,
-                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                action_object=rel21
             )
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
@@ -420,8 +418,7 @@ class FutureUser(models.Model):
             notify.send(
                 self.inviter, recipient=real_user,
                 notif_tuple=verbs.WIZCARD_TABLE_INVITE,
-                target=self.content_object,
-                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC,
+                target=self.content_object
             )
 
 # Model for Address-Book Support. Standard M2M-through

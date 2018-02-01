@@ -8,7 +8,7 @@ from django.utils import timezone
 from datetime import timedelta
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
-from wizserver.verbs import *
+from wizserver import verbs
 
 
 import pdb
@@ -122,9 +122,8 @@ class BaseNotification(models.Model):
 
 
 class AsyncNotificationManager(BaseNotificationManager):
-
-    def unread_notifs(self, delivery_mode):
-        return self.objects.filter(readed=False, delivery_mode=delivery_mode)
+    def unread(self, count=settings.ASYNC_NOTIF_BATCH_SIZE):
+        return list(self.filter(readed=False)[:count])
 
 
 # AA: Comment: This should probably be renamed to AsyncNotif
@@ -171,14 +170,14 @@ class AsyncNotification(BaseNotification):
 
 
 class SyncNotificationManager(BaseNotificationManager):
-    def unread(self, user, count=settings.NOTIF_BATCH_SIZE):
+    def unread(self, user, count=settings.SYNC_NOTIF_BATCH_SIZE):
         return list(self.filter(recipient=user, readed=False)[:count])
 
     def unacted(self, user):
         return self.filter(recipient=user,  acted_upon=False)
 
     def unread_count(self, user):
-        return self.filter(recipient=user,  readed=False).count()
+        return self.filter(recipient=user, readed=False).count()
 
     def mark_specific_as_read(self, notifications):
         count = 0
@@ -244,7 +243,6 @@ def notify_handler(**kwargs):
     recipient = kwargs.pop('recipient')
     notif_tuple = kwargs.pop('notif_tuple')
     delivery_mode = kwargs.pop('delivery_mode', BaseNotification.DELIVERY_MODE_ALERT)
-    delivery_type = kwargs.pop('delivery_type')
     target = kwargs.pop('target', None)
     action_object = kwargs.pop('action_object', None)
     action_object_content_type = ContentType.objects.get_for_model(action_object) if action_object else None
@@ -257,7 +255,8 @@ def notify_handler(**kwargs):
     ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
     """
 
-    if delivery_type == BaseNotification.DELIVERY_TYPE_ASYNC:
+    is_async = verbs.get_notif_is_async(notif_tuple)
+    if is_async:
         newnotify = AsyncNotification.objects.create(
             actor_content_type=ContentType.objects.get_for_model(actor),
             actor_object_id=actor.pk,
@@ -268,8 +267,8 @@ def notify_handler(**kwargs):
             action_object_object_id=action_object_object_id,
             readed=False,
             delivery_mode=delivery_mode,
-            notif_type=get_notif_type(notif_tuple),
-            verb=get_notif_verb(notif_tuple),
+            notif_type=verbs.get_notif_type(notif_tuple),
+            verb=verbs.get_notif_verb(notif_tuple),
             timestamp=kwargs.pop('timestamp', timezone.now()),
             # AA: Comments: EmailPush cannot decide whether this is INSTANT or not.
             delivery_period=AsyncNotification.INSTANT,
@@ -277,14 +276,14 @@ def notify_handler(**kwargs):
             end_date=end,
             **kwargs
         )
-    elif delivery_type == BaseNotification.DELIVERY_TYPE_SYNC:
+    else:
         newnotify, created = SyncNotification.objects.get_or_create(
             actor_content_type=ContentType.objects.get_for_model(actor),
             actor_object_id=actor.pk,
             recipient=recipient,
             readed=False,
-            notif_type=get_notif_type(notif_tuple),
-            verb=get_notif_verb(notif_tuple),
+            notif_type=verbs.get_notif_type(notif_tuple),
+            verb=verbs.get_notif_verb(notif_tuple),
             target_content_type=ContentType.objects.get_for_model(target),
             target_object_id=target.pk,
             action_object_content_type=action_object_content_type,
@@ -296,7 +295,7 @@ def notify_handler(**kwargs):
         )
 
         # push a notification to app from here. Fire and forget
-        if created:
+        if created and verbs.get_notif_apns_required(notif_tuple):
             push_notification_to_app.delay(
                 newnotify.actor_object_id,
                 newnotify.recipient_id,
@@ -306,8 +305,6 @@ def notify_handler(**kwargs):
                 newnotify.target_content_type,
                 newnotify.verb
             )
-    else:
-        raise AssertionError("Invalid delivery type %s" % delivery_type)
 
     return newnotify
 

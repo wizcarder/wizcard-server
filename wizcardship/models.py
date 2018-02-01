@@ -112,8 +112,7 @@ class WizcardManager(PolymorphicManager):
             notif_tuple=verbs.WIZREQ_T,
             description=cctx.description,
             target=wizcard1,
-            action_object=rel1,
-            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+            action_object=rel1
         )
 
         notify.send(
@@ -121,8 +120,7 @@ class WizcardManager(PolymorphicManager):
             description=cctx.description,
             target=wizcard2,
             notif_tuple=verbs.WIZREQ_T,
-            action_object=rel2,
-            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+            action_object=rel2
         )
 
         return err.OK
@@ -132,8 +130,7 @@ class WizcardManager(PolymorphicManager):
             wizcard1.user,
             recipient=wizcard2.user,
             notif_tuple=verbs.WIZCARD_UPDATE_HALF if half else verbs.WIZCARD_UPDATE,
-            target=wizcard1,
-            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+            target=wizcard1
         )
 
     def query_users(self, exclude_user, name, phone, email):
@@ -655,8 +652,7 @@ class WizcardFlick(models.Model):
                 self.wizcard.user,
                 recipient=self.wizcard.user,
                 notif_tuple=verbs.WIZCARD_FLICK_TIMEOUT,
-                target=self,
-                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                target=self
             )
         else:
             #withdraw/delete flick case

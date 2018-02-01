@@ -89,32 +89,30 @@ class ResponseN(Response):
     def add_data_to_dict(self, _dict, k, v):
         _dict[k] = v
 
-class NotifResponse(ResponseN):
+class SyncNotifResponse(ResponseN):
 
     def __init__(self, notifications):
         ResponseN.__init__(self)
         notifHandler = {
-            verbs.WIZREQ_U[0] 	                : self.notifWizConnectionU,
-            verbs.WIZREQ_T[0]  	                : self.notifWizConnectionT,
-            verbs.WIZREQ_T_HALF[0]              : self.notifWizConnectionH,
-            verbs.WIZREQ_F[0]                   : self.notifWizConnectionF,
-            verbs.WIZCARD_REVOKE[0]	            : self.notifRevokedWizcard,
-            verbs.WIZCARD_WITHDRAW_REQUEST[0]   : self.notifWithdrawRequest,
-            verbs.WIZCARD_DELETE[0]	            : self.notifRevokedWizcard,
-            verbs.WIZCARD_TABLE_TIMEOUT[0]      : self.notifDestroyedTable,
-            verbs.WIZCARD_TABLE_DESTROY[0]      : self.notifDestroyedTable,
-            verbs.WIZCARD_ENTITY_JOIN[0]        : self.notifJoinEntity,
-            verbs.WIZCARD_ENTITY_LEAVE[0]       : self.notifLeaveEntity,
-            verbs.WIZCARD_UPDATE[0]             : self.notifWizcardUpdate,
-            verbs.WIZCARD_UPDATE_HALF[0]        : self.notifWizcardUpdateH,
-            verbs.WIZCARD_FLICK_TIMEOUT[0]      : self.notifWizcardFlickTimeout,
-            verbs.WIZCARD_FLICK_PICK[0]         : self.notifWizcardFlickPick,
-            verbs.WIZCARD_TABLE_INVITE[0]       : self.notifWizcardTableInvite,
-            verbs.WIZCARD_FORWARD[0]            : self.notifWizcardForward,
-            verbs.WIZCARD_ENTITY_UPDATE[0]      : self.notifEventUpdate,
-            verbs.WIZCARD_ENTITY_EXPIRE[0]      : self.notifEventExpire,
-            verbs.WIZCARD_ENTITY_DELETE[0]      : self.notifEventDelete
+            verbs.get_notif_type(verbs.WIZREQ_U)                    : self.notifWizConnectionU,
+            verbs.get_notif_type(verbs.WIZREQ_T)  	                : self.notifWizConnectionT,
+            verbs.get_notif_type(verbs.WIZREQ_T_HALF)               : self.notifWizConnectionH,
+            verbs.get_notif_type(verbs.WIZREQ_F)                    : self.notifWizConnectionF,
+            verbs.get_notif_type(verbs.WIZCARD_REVOKE)	            : self.notifRevokedWizcard,
+            verbs.get_notif_type(verbs.WIZCARD_WITHDRAW_REQUEST)    : self.notifWithdrawRequest,
+            verbs.get_notif_type(verbs.WIZCARD_DELETE)	            : self.notifRevokedWizcard,
+            verbs.get_notif_type(verbs.WIZCARD_UPDATE)              : self.notifWizcardUpdate,
+            verbs.get_notif_type(verbs.WIZCARD_UPDATE_HALF)         : self.notifWizcardUpdateH,
+            verbs.get_notif_type(verbs.WIZCARD_FLICK_TIMEOUT)       : self.notifWizcardFlickTimeout,
+            verbs.get_notif_type(verbs.WIZCARD_FLICK_PICK)          : self.notifWizcardFlickPick,
+            verbs.get_notif_type(verbs.WIZCARD_TABLE_INVITE)        : self.notifWizcardTableInvite,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_JOIN)         : self.notifJoinEntity,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_LEAVE)        : self.notifLeaveEntity,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEventUpdate,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEventExpire,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEventDelete
         }
+
         for notification in notifications:
             notifHandler[notification.notif_type](notification)
 
@@ -189,6 +187,17 @@ class NotifResponse(ResponseN):
         logger.debug('%s', self.response)
         return self.response
 
+    def notifEvent(self, notif, notifType):
+        event_id = notif.target_object_id
+
+        out = dict(
+            event=event_id
+        )
+        self.add_data_and_seq_with_notif(out, notifType, notif.id)
+        logger.debug('%s', self.response)
+
+        return self.response
+
     def notifJoinEntity(self, notif):
         wizcard=notif.actor.wizcard
         ws = WizcardSerializerL1(wizcard, context={'user': notif.recipient}).data
@@ -204,26 +213,6 @@ class NotifResponse(ResponseN):
             logger.debug('%s', self.response)
 
         return self.response
-
-    def notifEvent(self, notif, notifType):
-        event_id = notif.target_object_id
-
-        out = dict(
-            event=event_id
-        )
-        self.add_data_and_seq_with_notif(out, notifType, notif.id)
-        logger.debug('%s', self.response)
-
-        return self.response
-
-    def notifEventDelete(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_ENTITY_DELETE)
-
-    def notifEventExpire(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_ENTITY_EXPIRE)
-
-    def notifEventUpdate(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
 
     def notifLeaveEntity(self, notif):
         wizcard=notif.actor.wizcard
@@ -241,6 +230,15 @@ class NotifResponse(ResponseN):
             logger.debug('%s', self.response)
 
         return self.response
+
+    def notifEventDelete(self, notif):
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_DELETE)
+
+    def notifEventExpire(self, notif):
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_EXPIRE)
+
+    def notifEventUpdate(self, notif):
+        self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
 
     def notifWizcardUpdate(self, notif):
         return self.notifWizcard(notif, verbs.NOTIF_UPDATE_WIZCARD)
@@ -268,9 +266,6 @@ class NotifResponse(ResponseN):
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_INVITE, notif.id)
         return self.response
 
-    def notifWizcardForward(self, notif):
-        return self.response
-
     def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):
         out = None
         own_wizcard = user.wizcard
@@ -292,3 +287,63 @@ class NotifResponse(ResponseN):
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_TABLES)
 
         return self.response
+
+
+class AsyncNotifResponse:
+    def __init__(self, notifications):
+        notifHandler = {
+            verbs.get_notif_type(verbs.WIZCARD_EVENT_REMINDER)      : self.notifEventReminder,
+            verbs.get_notif_type(verbs.WIZCARD_NEW_USER)            : self.notifNewUser,
+            verbs.get_notif_type(verbs.WIZCARD_SCANNED_USER)        : self.notifScannedUser,
+            verbs.get_notif_type(verbs.WIZCARD_INVITE_USER)         : self.notifInviteUser,
+            verbs.get_notif_type(verbs.WIZCARD_INVITE_EXHIBITOR)    : self.notifInviteExhibitor,
+            verbs.get_notif_type(verbs.WIZCARD_INVITE_ATTENDEE)     : self.notifInviteAttendee,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)    : self.notifEntityBroadcase,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEventDelete,
+            verbs.get_notif_type(verbs.WIZCARD_UPDATE)              : self.notifWizcardUpdate,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_JOIN)         : self.notifJoinEntity,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_LEAVE)        : self.notifJoinEntity,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEventUpdate,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEventExpire,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEventDelete
+        }
+
+        for notification in notifications:
+            notifHandler[notification.notif_type](notification)
+
+    def notifJoinEntity(self, notif):
+        pass
+
+    def notifWizcardUpdate(self, notif):
+        pass
+
+    def notifEventUpdate(self, notif):
+        pass
+
+    def notifEventExpire(self, notif):
+        pass
+
+    def notifEventDelete(self, notif):
+        pass
+
+    def notifEventReminder(self, notif):
+        pass
+
+    def notifNewUser(self, notif):
+        pass
+
+    def notifScannedUser(self, notif):
+        pass
+
+    def notifInviteUser(self, notif):
+        pass
+
+    def notifInviteExhibitor(self, notif):
+        pass
+
+    def notifInviteAttendee(self, notif):
+        pass
+
+    def notifEntityBroadcase(self, notif):
+        pass
+

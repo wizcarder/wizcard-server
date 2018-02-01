@@ -265,7 +265,10 @@ PHONE_CHECK_MESSAGE = {
     }
 
 #number of per user notifs we want to process per get
-NOTIF_BATCH_SIZE = 10
+SYNC_NOTIF_BATCH_SIZE = 10
+ASYNC_NOTIF_BATCH_SIZE = 10
+
+
 #seperator for modified key
 MKEY_SEP = '.'
 

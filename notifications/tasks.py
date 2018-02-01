@@ -13,14 +13,9 @@ from notifications.models import AsyncNotification
 @task(ignore_result=True)
 def async_handler():
     logger.debug('Messaging Tick received')
-    notifs = AsyncNotification.objects.unread_notifs(delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL)
-    for n in notifs:
-        n.mark_as_read()
-        if n.delivery_mode == BaseNotification.DELIVERY_MODE_EMAIL:
-            # emailer = HtmlGen(sender=n.actor, trigger=n.notif_type, target=n.target)
-            # status = emailer.email_send()
-            # n.update_status(status)
-            pass
+
+    notifs = AsyncNotification.objects.unread()
+
 
 
 @shared_task(ignore_result=True)

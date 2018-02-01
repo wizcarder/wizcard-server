@@ -458,8 +458,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 recipient=self.get_creator(),
                 notif_tuple=verbs.WIZCARD_ENTITY_JOIN,
                 target=self,
-                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT,
-                delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT
             )
 
         return self
@@ -478,8 +477,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 recipient=self.get_creator(),
                 notif_tuple=verbs.WIZCARD_ENTITY_LEAVE,
                 target=self,
-                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT,
-                delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT
             )
 
         return self
@@ -522,8 +520,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             self.get_creator(),
             recipient=self.get_creator(),
             notif_tuple=verbs.WIZCARD_ENTITY_DELETE,
-            target=self,
-            delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+            target=self
         )
 
         self.location.get().delete()

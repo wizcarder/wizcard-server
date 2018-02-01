@@ -35,7 +35,7 @@ from notifications.models import BaseNotification, SyncNotification
 from notifications.signals import notify
 from entity.models import VirtualTable
 from meishi.models import Meishi
-from response import Response, NotifResponse
+from response import Response, SyncNotifResponse
 from userprofile.models import UserProfile
 from userprofile.models import FutureUser
 from lib import wizlib, noembed
@@ -799,7 +799,7 @@ class ParseMsgAndDispatch(object):
 
     def NotificationsGet(self):
         notifications = SyncNotification.objects.unread(self.user)
-        notifResponse = NotifResponse(notifications)
+        notifResponse = SyncNotifResponse(notifications)
 
         # i will be activated when I have a wizcard
         if not self.userprofile.activated:
@@ -1013,8 +1013,7 @@ class ParseMsgAndDispatch(object):
                 recipient=wizcard.user,
                 notif_tuple=verbs.WIZREQ_T,
                 target=admin_user.wizcard,
-                action_object=rel21,
-                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                action_object=rel21
             )
 
         # check if futureUser states exist for this phone or email
@@ -1036,8 +1035,7 @@ class ParseMsgAndDispatch(object):
                 recipient=self.user,
                 notif_tuple=verbs.WIZCARD_NEW_USER,
                 target=wizcard,
-                delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL,
-                delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+                delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
             )
 
         self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
@@ -1129,8 +1127,7 @@ class ParseMsgAndDispatch(object):
             recipient=self.user,
             notif_tuple=ntuple1,
             target=wizcard2,
-            action_object=rel21,
-            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+            action_object=rel21
         )
 
         # Q notif for wizcard2 to change his half card to full
@@ -1140,8 +1137,7 @@ class ParseMsgAndDispatch(object):
                 recipient=self.r_user,
                 notif_tuple=ntuple2,
                 target=wizcard1,
-                action_object=rel12,
-                delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                action_object=rel12
             )
 
         status.append(
@@ -1228,8 +1224,7 @@ class ParseMsgAndDispatch(object):
                             self.user,
                             recipient=wizcard2.user,
                             notif_tuple=verbs.WIZCARD_REVOKE,
-                            target=wizcard1,
-                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                            target=wizcard1
                         )
         except KeyError:
             self.security_exception()
@@ -1326,8 +1321,7 @@ class ParseMsgAndDispatch(object):
                     recipient=wizcard2.user,
                     notif_tuple=verbs.WIZCARD_FLICK_PICK,
                     target=flick_card,
-                    action_object=rel,
-                    delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                    action_object=rel
                 )
 
             return self.response
@@ -1356,8 +1350,7 @@ class ParseMsgAndDispatch(object):
                     self.user, recipient=wizcard2.user,
                     notif_tuple=verbs.WIZREQ_T,
                     target=wizcard1,
-                    action_object=rel1,
-                    delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                    action_object=rel1
                 )
             return self.response
         except KeyError:
@@ -1580,8 +1573,7 @@ class ParseMsgAndDispatch(object):
                         recipient=r_user,
                         notif_tuple=notif_tuple,
                         target=wizcard,
-                        action_object=rel12,
-                        delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                        action_object=rel12
                     )
 
                 # Context should always have the from_wizcard and for the time being sender's location - Still debating
@@ -1625,8 +1617,7 @@ class ParseMsgAndDispatch(object):
                         recipient=self.user,
                         notif_tuple=conn_status,
                         target=r_wizcard,
-                        action_object=rel21,
-                        delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                        action_object=rel21
                     )
 
                 count += 1
@@ -1658,8 +1649,7 @@ class ParseMsgAndDispatch(object):
                     self.user,
                     recipient=r_user,
                     notif_tuple=verbs.WIZCARD_TABLE_INVITE,
-                    target=table,
-                    delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                    target=table
                 )
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE],
                                verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
@@ -1696,8 +1686,7 @@ class ParseMsgAndDispatch(object):
                             recipient=wizcard.user,
                             notif_tuple=verbs.WIZREQ_U,
                             target=obj,
-                            action_object=rel12,
-                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                            action_object=rel12
                         )
                     elif rel12.status == verbs.DECLINED or \
                                     rel12.status == verbs.DELETED:
@@ -1708,8 +1697,7 @@ class ParseMsgAndDispatch(object):
                             self.user, recipient=wizcard.user,
                             notif_tuple=verbs.WIZREQ_U,
                             target=obj,
-                            action_object=rel12,
-                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                            action_object=rel12
                         )
 
                     rel21 = wizcard.get_relationship(obj)
@@ -1725,8 +1713,7 @@ class ParseMsgAndDispatch(object):
                             recipient=self.user,
                             notif_tuple=verbs.WIZREQ_T_HALF,
                             target=wizcard,
-                            action_object=rel21,
-                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                            action_object=rel21
                         )
 
                     elif rel21.status == verbs.DECLINED or \
@@ -1747,8 +1734,7 @@ class ParseMsgAndDispatch(object):
                             recipient=self.user,
                             notif_tuple=conn_status,
                             target=wizcard,
-                            action_object=rel21,
-                            delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                            action_object=rel21
                         )
                     else:
                         # was already in ACCEPTED, leave as-is.
@@ -1764,8 +1750,7 @@ class ParseMsgAndDispatch(object):
                         self.user,
                         recipient=wizcard.user,
                         notif_tuple=verbs.WIZCARD_TABLE_INVITE,
-                        target=obj,
-                        delivery_type=BaseNotification.DELIVERY_TYPE_SYNC
+                        target=obj
                     )
 
                 if receiver_type == verbs.INVITE_VERBS[verbs.EMAIL_INVITE]:
@@ -1774,8 +1759,7 @@ class ParseMsgAndDispatch(object):
                         recipient=self.user,
                         notif_tuple=verbs.WIZCARD_INVITE_USER,
                         target=wizcard,
-                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL,
-                        delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                     )
             else:
                 fuser = FutureUser.objects.get_or_create(
@@ -1791,8 +1775,7 @@ class ParseMsgAndDispatch(object):
                         recipient=self.user,
                         notif_tuple=verbs.WIZCARD_INVITE_USER,
                         target=fuser[0],
-                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL,
-                        delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                     )
 
     def UserQuery(self):
@@ -2084,8 +2067,7 @@ class ParseMsgAndDispatch(object):
                     recipient=self.user,
                     notif_tuple=verbs.WIZCARD_SCANNED_USER,
                     target=deadcard,
-                    delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL,
-                    delivery_type=BaseNotification.DELIVERY_TYPE_ASYNC
+                    delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                 )
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
