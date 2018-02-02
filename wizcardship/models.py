@@ -129,7 +129,7 @@ class WizcardManager(PolymorphicManager):
         notify.send(
             wizcard1.user,
             recipient=wizcard2.user,
-            notif_tuple=verbs.WIZCARD_UPDATE_HALF if half else verbs.WIZCARD_UPDATE,
+            notif_tuple=verbs.WIZCARD_UPDATE_HALF if half else verbs.WIZCARD_UPDATE_FULL,
             target=wizcard1
         )
 
@@ -299,12 +299,31 @@ class Wizcard(WizcardBase):
         return out
 
     def flood(self):
-        # full card for connections and half for followers
-        for wizcard in self.get_connections():
-            Wizcard.objects.update_wizconnection(self, wizcard, half=False)
+        # Q two aync notifs, one for half and one each for full & half
+        notify.send(
+            self.user,
+            # recipient is dummy at this stage
+            recipient=self.user,
+            notif_tuple=verbs.WIZCARD_UPDATE_HALF,
+            target=self
+        )
 
-        for wizcard in self.get_followers_only():
-            Wizcard.objects.update_wizconnection(self, wizcard, half=True)
+        notify.send(
+            self.user,
+            # recipient is dummy at this stage
+            recipient=self.user,
+            notif_tuple=verbs.WIZCARD_UPDATE_FULL,
+            target=self
+        )
+
+    # typically kwargs can contain the notif tuple
+    def flood_set(self, **kwargs):
+
+        # full card for connections and half for followers
+        fs = self.get_connections() if verbs.get_notif_type(kwargs.pop('ntuple')) == verbs.NOTIF_UPDATE_WIZCARD_F \
+            else self.get_followers_only()
+
+        return fs
 
     def check_flick_duplicates(self, lat, lng):
         if not settings.DO_FLICK_AGGLOMERATE:

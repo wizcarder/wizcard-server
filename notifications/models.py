@@ -255,7 +255,7 @@ def notify_handler(**kwargs):
     ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
     """
 
-    is_async = verbs.get_notif_is_async(notif_tuple)
+    is_async = verbs.get_notif_is_async(notif_tuple) or kwargs.pop('force_sync', False)
     if is_async:
         newnotify = AsyncNotification.objects.create(
             actor_content_type=ContentType.objects.get_for_model(actor),

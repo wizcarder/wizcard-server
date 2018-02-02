@@ -490,7 +490,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return users
 
-    def get_wizcard_users(self):
+    def flood_set(self, **kwargs):
         return [x for x in self.users.all() if hasattr(x, 'wizcard')]
 
     def notify_subscribers(self):
@@ -606,17 +606,19 @@ class EntityEngagementStats(models.Model):
         through='EntityUserStats'
     )
 
-    def user_liked(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
+    def user_liked(self, user):
         try:
             user_like = EntityUserStats.objects.get(
                 user=user,
                 stats=self,
             )
-            like_level = user_like.like_level
-            liked = True if like_level else False
-            return liked, user_like.like_level
-        except:
+        except ObjectDoesNotExist:
             return False, 0
+
+        like_level = user_like.like_level
+        liked = True if like_level else False
+
+        return liked, user_like.like_level
 
     def like(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
         stat, created = EntityUserStats.objects.get_or_create(

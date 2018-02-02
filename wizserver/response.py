@@ -16,6 +16,7 @@ from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
 from entity.serializers import TableSerializerL1
 from django.utils import timezone
 from django.conf import settings
+from notifications.signals import notify
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ class SyncNotifResponse(ResponseN):
             verbs.get_notif_type(verbs.WIZCARD_REVOKE)	            : self.notifRevokedWizcard,
             verbs.get_notif_type(verbs.WIZCARD_WITHDRAW_REQUEST)    : self.notifWithdrawRequest,
             verbs.get_notif_type(verbs.WIZCARD_DELETE)	            : self.notifRevokedWizcard,
-            verbs.get_notif_type(verbs.WIZCARD_UPDATE)              : self.notifWizcardUpdate,
+            verbs.get_notif_type(verbs.WIZCARD_UPDATE_FULL)         : self.notifWizcardUpdate,
             verbs.get_notif_type(verbs.WIZCARD_UPDATE_HALF)         : self.notifWizcardUpdateH,
             verbs.get_notif_type(verbs.WIZCARD_FLICK_TIMEOUT)       : self.notifWizcardFlickTimeout,
             verbs.get_notif_type(verbs.WIZCARD_FLICK_PICK)          : self.notifWizcardFlickPick,
@@ -241,10 +242,10 @@ class SyncNotifResponse(ResponseN):
         self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
 
     def notifWizcardUpdate(self, notif):
-        return self.notifWizcard(notif, verbs.NOTIF_UPDATE_WIZCARD)
+        return self.notifWizcard(notif, verbs.NOTIF_UPDATE_WIZCARD_F)
 
     def notifWizcardUpdateH(self, notif):
-        return self.notifWizcard(notif, verbs.NOTIF_UPDATE_WIZCARD, half=True)
+        return self.notifWizcard(notif, verbs.NOTIF_UPDATE_WIZCARD_H, half=True)
 
     def notifWizcardFlickTimeout(self, notif):
         out = dict(flickCardID=notif.target_object_id)
@@ -298,33 +299,37 @@ class AsyncNotifResponse:
             verbs.get_notif_type(verbs.WIZCARD_INVITE_USER)         : self.notifInviteUser,
             verbs.get_notif_type(verbs.WIZCARD_INVITE_EXHIBITOR)    : self.notifInviteExhibitor,
             verbs.get_notif_type(verbs.WIZCARD_INVITE_ATTENDEE)     : self.notifInviteAttendee,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)    : self.notifEntityBroadcase,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEventDelete,
-            verbs.get_notif_type(verbs.WIZCARD_UPDATE)              : self.notifWizcardUpdate,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_JOIN)         : self.notifJoinEntity,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_LEAVE)        : self.notifJoinEntity,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEventUpdate,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEventExpire,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEventDelete
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)    : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_UPDATE_HALF)         : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_UPDATE_FULL)         : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_JOIN)         : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_LEAVE)        : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notif_async_2_sync
         }
 
         for notification in notifications:
             notifHandler[notification.notif_type](notification)
 
-    def notifJoinEntity(self, notif):
-        pass
+    def notif_async_2_sync(self, notif):
 
-    def notifWizcardUpdate(self, notif):
-        pass
+        # get the flood set for this target
+        flood_set = notif.target.flood_set(ntuple=verbs.notif_type_tuple_dict(notif.notif_type))
 
-    def notifEventUpdate(self, notif):
-        pass
-
-    def notifEventExpire(self, notif):
-        pass
-
-    def notifEventDelete(self, notif):
-        pass
+        # Q sync notif for each in flood_set
+        for recipient in flood_set:
+            entity_ct = ContentType.objects.get_for_id(notif.target_content_type)
+            entity = entity_ct.get_object_for_this_type(id=notif.target_object_id)
+            notify.send(
+                notif.sender,
+                recipient=recipient,
+                notif_tuple=verbs.notif_type_tuple_dict[notif.notif_type],
+                target=notif.target,
+                action_object=notif.action_object,
+                force_sync=True
+            )
 
     def notifEventReminder(self, notif):
         pass
@@ -343,7 +348,3 @@ class AsyncNotifResponse:
 
     def notifInviteAttendee(self, notif):
         pass
-
-    def notifEntityBroadcase(self, notif):
-        pass
-
