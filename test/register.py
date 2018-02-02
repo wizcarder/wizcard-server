@@ -26,6 +26,8 @@ TEST_WIZWEB = False
 OEMBED = False
 SKIP_BASIC = False
 TEST_ENTITY = True
+CONTACTS_UPLOAD = False
+DO_RECO = False
 
 
 USERNAME1 = messages.PHONE1+'@wizcard.com'
@@ -196,8 +198,7 @@ if not SKIP_BASIC:
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     response_key = objs['data']['challenge_key']
 
-
-    #resp = objs['data']['key']
+    # resp = objs['data']['key']
     reqmsg = messages.phone_check_resp
     reqmsg['header']['device_id'] = DEVICE_ID3
     reqmsg['header']['hash'] = HASH3
@@ -353,60 +354,63 @@ if not SKIP_BASIC:
     notif = NotifParser(objs['data'], uid3, wuid3)
     nrsp = notif.process()
 
-    #contacts upload user 1
-    reqmsg = messages.contacts_upload
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
-    reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
-    reqmsg['receiver']['ab_list'] = messages.USER1_AB
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    if CONTACTS_UPLOAD:
 
-    #contacts upload user 2
-    reqmsg = messages.contacts_upload
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid2
-    reqmsg['sender']['wizuser_id'] = wuid2
-    reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
-    reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
-    reqmsg['receiver'].update(messages.ab_list_ananda_1)
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+        #contacts upload user 1
+        reqmsg = messages.contacts_upload
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
+        reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+        reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+        reqmsg['receiver']['ab_list'] = messages.USER1_AB
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-    #contacts upload user 3
-    reqmsg = messages.contacts_upload
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wizuser_id'] = wuid3
-    reqmsg['receiver']['prefix'] = INTERNATIONAL_PREFIX
-    reqmsg['receiver'].update(messages.ab_list_baskar_1)
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+        #contacts upload user 2
+        reqmsg = messages.contacts_upload
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid2
+        reqmsg['sender']['wizuser_id'] = wuid2
+        reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+        reqmsg['receiver']['country_code'] = INDIA_COUNTRY_CODE
+        reqmsg['receiver'].update(messages.ab_list_ananda_1)
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-    # get reco for u1
-    reqmsg = messages.get_recommendations
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['sender']['size'] = 5
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+        #contacts upload user 3
+        reqmsg = messages.contacts_upload
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid3
+        reqmsg['sender']['wizuser_id'] = wuid3
+        reqmsg['receiver']['prefix'] = INTERNATIONAL_PREFIX
+        reqmsg['receiver'].update(messages.ab_list_baskar_1)
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-    reqmsg = messages.contacts_upload
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid1
-    reqmsg['sender']['wizuser_id'] = wuid1
-    reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
-    reqmsg['receiver'].update(messages.ab_list_anandr_1)
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+        reqmsg = messages.contacts_upload
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
+        reqmsg['receiver']['prefix'] = INDIA_INTERNATIONAL_PREFIX
+        reqmsg['receiver'].update(messages.ab_list_anandr_1)
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+    if DO_RECO:
+        # get reco for u1
+        reqmsg = messages.get_recommendations
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid1
+        reqmsg['sender']['wizuser_id'] = wuid1
+        reqmsg['sender']['size'] = 5
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     reqmsg = messages.card_details
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -792,7 +796,6 @@ if not SKIP_BASIC:
             # uid1(A)<->uid3(A)
             # uid1(A)<->fuid1(A)
             # uid1(A)<->fuid2(DC)
-
 
     # Do it again (bug test)
     reqmsg = messages.accept_connection_request

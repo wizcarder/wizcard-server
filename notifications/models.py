@@ -122,8 +122,11 @@ class BaseNotification(models.Model):
 
 
 class AsyncNotificationManager(BaseNotificationManager):
-    def unread(self, count=settings.ASYNC_NOTIF_BATCH_SIZE):
-        return list(self.filter(readed=False)[:count])
+    def unread(self, **kwargs):
+        count = kwargs.pop('count', settings.ASYNC_NOTIF_BATCH_SIZE)
+        kwargs.update(readed=False)
+
+        return self.filter(kwargs)[:count]
 
 
 # AA: Comment: This should probably be renamed to AsyncNotif
@@ -170,8 +173,11 @@ class AsyncNotification(BaseNotification):
 
 
 class SyncNotificationManager(BaseNotificationManager):
-    def unread(self, user, count=settings.SYNC_NOTIF_BATCH_SIZE):
-        return list(self.filter(recipient=user, readed=False)[:count])
+    def unread(self, **kwargs):
+        count = kwargs.pop('count', settings.SYNC_NOTIF_BATCH_SIZE)
+        kwargs.update(readed=False)
+
+        return self.filter(kwargs)[:count]
 
     def unacted(self, user):
         return self.filter(recipient=user,  acted_upon=False)
@@ -233,13 +239,13 @@ TRIGGER_SCAN_CARD = 5
 TRIGGER_WEEKLY_DIGEST = 11
 
 
-def notify_handler(**kwargs):
+def notify_handler(sender, **kwargs):
     """
     Handler function to create SyncNotification instance upon action signal call.
     """
 
     kwargs.pop('signal', None)
-    actor = kwargs.pop('sender')
+    actor = sender
     recipient = kwargs.pop('recipient')
     notif_tuple = kwargs.pop('notif_tuple')
     delivery_mode = kwargs.pop('delivery_mode', BaseNotification.DELIVERY_MODE_ALERT)
@@ -255,7 +261,7 @@ def notify_handler(**kwargs):
     ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
     """
 
-    is_async = verbs.get_notif_is_async(notif_tuple)
+    is_async = verbs.get_notif_is_async(notif_tuple) or kwargs.pop('force_sync', False)
     if is_async:
         newnotify = AsyncNotification.objects.create(
             actor_content_type=ContentType.objects.get_for_model(actor),

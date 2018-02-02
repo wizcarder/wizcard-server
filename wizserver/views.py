@@ -798,7 +798,7 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def NotificationsGet(self):
-        notifications = SyncNotification.objects.unread(self.user)
+        notifications = SyncNotification.objects.unread(recipient=self.user)
         notifResponse = SyncNotifResponse(notifications)
 
         # i will be activated when I have a wizcard
@@ -1167,13 +1167,10 @@ class ParseMsgAndDispatch(object):
         else:
             Wizcard.objects.uncard(wizcard2, wizcard1)
 
-        n_id = self.sender['notif_id']
-        n = SyncNotification.objects.get(id=n_id)
-
         # now we know that the App has acted upon this notification
-        #  we will use this flag during resync notifs and send unacted-upon
-        #  notifs to user
-        n.set_acted(True)
+        # we will use this flag during resync notifs and send unacted-upon
+        # notifs to user
+        n = SyncNotification.objects.get(id=self.sender['notif_id']).set_acted(True)
 
         return self.response
 

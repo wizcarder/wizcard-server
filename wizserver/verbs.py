@@ -112,30 +112,31 @@ NOTIF_ACCEPT_IMPLICIT           = 1
 NOTIF_ACCEPT_EXPLICIT           = 2
 NOTIF_DELETE_IMPLICIT           = 3
 NOTIF_TABLE_TIMEOUT             = 4
-NOTIF_UPDATE_WIZCARD            = 5
-NOTIF_NEARBY_FLICKED_WIZCARD    = 6
-NOTIF_NEARBY_USERS              = 7
-NOTIF_NEARBY_TABLES             = 8
-NOTIF_FLICK_TIMEOUT             = 9
-NOTIF_FLICK_PICK                = 10
-NOTIF_WITHDRAW_REQUEST          = 11
-NOTIF_TABLE_INVITE              = 12
-NOTIF_WIZCARD_FORWARD           = 13
-NOTIF_ENTITY_JOIN               = 14
-NOTIF_ENTITY_LEAVE              = 15
-NOTIF_FOLLOW_EXPLICIT           = 16
-NOTIF_ENTITY_UPDATE             = 17
-NOTIF_ENTITY_EXPIRE             = 18
-NOTIF_ENTITY_DELETE             = 19
-NOTIF_ENTITY_CREATE             = 20
-NOTIF_NEW_RECO                  = 21
-NOTIF_NEW_WIZUSER               = 22
-NOTIF_ENTITY_BROADCAST          = 23
-NOTIF_SCANNED_USER              = 24
-NOTIF_INVITE_USER               = 25
-NOTIF_ENTITY_REMINDER           = 26
-NOTIF_INVITE_EXHIBITOR          = 27
-NOTIF_INVITE_ATTENDEE           = 28
+NOTIF_UPDATE_WIZCARD_H          = 5
+NOTIF_UPDATE_WIZCARD_F          = 6
+NOTIF_NEARBY_FLICKED_WIZCARD    = 7
+NOTIF_NEARBY_USERS              = 8
+NOTIF_NEARBY_TABLES             = 9
+NOTIF_FLICK_TIMEOUT             = 10
+NOTIF_FLICK_PICK                = 11
+NOTIF_WITHDRAW_REQUEST          = 12
+NOTIF_TABLE_INVITE              = 13
+NOTIF_WIZCARD_FORWARD           = 14
+NOTIF_ENTITY_JOIN               = 15
+NOTIF_ENTITY_LEAVE              = 16
+NOTIF_FOLLOW_EXPLICIT           = 17
+NOTIF_ENTITY_UPDATE             = 18
+NOTIF_ENTITY_EXPIRE             = 19
+NOTIF_ENTITY_DELETE             = 20
+NOTIF_ENTITY_CREATE             = 21
+NOTIF_NEW_RECO                  = 22
+NOTIF_NEW_WIZUSER               = 23
+NOTIF_ENTITY_BROADCAST          = 24
+NOTIF_SCANNED_USER              = 25
+NOTIF_INVITE_USER               = 26
+NOTIF_ENTITY_REMINDER           = 27
+NOTIF_INVITE_EXHIBITOR          = 28
+NOTIF_INVITE_ATTENDEE           = 29
 
 
 # receiver types
@@ -193,8 +194,8 @@ WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', False
 WIZCARD_DELETE              = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', False, False)
 WIZCARD_TABLE_TIMEOUT       = (NOTIF_TABLE_TIMEOUT, 'table timeout', True, True)
 WIZCARD_TABLE_DESTROY       = (NOTIF_TABLE_TIMEOUT, 'table destroy', True, True)
-WIZCARD_UPDATE              = (NOTIF_UPDATE_WIZCARD, 'wizcard update', True, True)
-WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD, 'wizcard update half', True, False)
+WIZCARD_UPDATE_FULL         = (NOTIF_UPDATE_WIZCARD_F, 'wizcard update', True, True)
+WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD_H, 'wizcard update half', True, True)
 WIZCARD_FLICK_TIMEOUT       = (NOTIF_FLICK_TIMEOUT, 'flick timeout', True, False)
 WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
 WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
@@ -231,7 +232,9 @@ def get_notif_is_async(ntuple):
 # here as needed
 
 notif_type_tuple_dict = {
-    NOTIF_ENTITY_BROADCAST: WIZCARD_ENTITY_BROADCAST
+    NOTIF_ENTITY_BROADCAST: WIZCARD_ENTITY_BROADCAST,
+    NOTIF_UPDATE_WIZCARD_H: WIZCARD_UPDATE_HALF,
+    NOTIF_UPDATE_WIZCARD_F: WIZCARD_UPDATE_FULL
 }
 
 apns_notification_dictionary = {
@@ -271,7 +274,7 @@ apns_notification_dictionary = {
         'title': 'Wizcard - Table deleted',
         'alert': '{0.first_name} {0.last_name}  deleted {1.tablename} table',
     },
-    WIZCARD_UPDATE[0]: {
+    WIZCARD_UPDATE_FULL[0]: {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Updated WizCard',
