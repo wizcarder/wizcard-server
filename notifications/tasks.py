@@ -14,3 +14,6 @@ def async_handler():
 
     AsyncNotifResponse(notifs)
 
+    AsyncNotification.objects.mark_as_read(notifs)
+
+

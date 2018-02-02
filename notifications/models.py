@@ -44,6 +44,11 @@ now = timezone.now()
        <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
    """
+class BaseNotificationManager(models.Manager):
+    def mark_as_read(self, notifications):
+        ids = notifications.values_list('id', flat=True)
+        self.filter(pk__in=list(ids)).update(readed=True)
+
 
 class BaseNotification(models.Model):
     DELIVERY_MODE_EMAIL = 1
@@ -121,13 +126,8 @@ class BaseNotification(models.Model):
         self.status = status
         self.save()
 
-    def mark_as_read(self):
-        if not self.readed:
-            self.readed = True
-            self.save()
 
-
-class AsyncNotificationManager(models.Manager):
+class AsyncNotificationManager(BaseNotificationManager):
     def unread(self, **kwargs):
         count = kwargs.pop('count', settings.ASYNC_NOTIF_BATCH_SIZE)
         kwargs.update(readed=False)
@@ -178,7 +178,7 @@ class AsyncNotification(BaseNotification):
         self.save()
 
 
-class SyncNotificationManager(models.Manager):
+class SyncNotificationManager(BaseNotificationManager):
     def unread(self, **kwargs):
         count = kwargs.pop('count', settings.SYNC_NOTIF_BATCH_SIZE)
         kwargs.update(readed=False)
@@ -190,17 +190,6 @@ class SyncNotificationManager(models.Manager):
 
     def unread_count(self, user):
         return self.filter(recipient=user, readed=False).count()
-
-    def mark_specific_as_read(self, notifications):
-        count = 0
-        for n in notifications:
-            count += 1
-            n.readed = True
-            n.save()
-        return count
-
-    def mark_all_as_read(self, recipient):
-        return self.filter(recipient=recipient, readed=False).update(readed=True)
 
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)

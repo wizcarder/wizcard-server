@@ -859,7 +859,7 @@ class ParseMsgAndDispatch(object):
         if count:
             notifResponse.notifTableLookup(self.user, tables)
 
-        SyncNotification.objects.mark_specific_as_read(notifications)
+        SyncNotification.objects.mark_as_read(notifications)
 
         #tickle the timer to keep it going and update the location if required
         if not settings.DISABLE_LOCATION:
