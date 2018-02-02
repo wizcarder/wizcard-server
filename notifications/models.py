@@ -45,10 +45,6 @@ now = timezone.now()
 
    """
 
-class BaseNotificationManager(models.Manager):
-    pass
-
-
 class BaseNotification(models.Model):
     DELIVERY_MODE_EMAIL = 1
     DELIVERY_MODE_ALERT = 2
@@ -90,8 +86,6 @@ class BaseNotification(models.Model):
     notif_type = models.PositiveIntegerField(default=0)
     readed = models.BooleanField(default=False)
 
-    objects = BaseNotificationManager()
-
     class Meta:
         ordering = ('timestamp', )
 
@@ -111,6 +105,18 @@ class BaseNotification(models.Model):
             return '%(actor)s %(verb)s %(action_object)s %(timesince)s ago' % ctx
         return '%(actor)s %(verb)s %(timesince)s ago' % ctx
 
+    def timesince(self, now=None):
+        """
+        Shortcut for the ``django.utils.timesince.timesince`` function of the
+        current timestamp.
+        """
+        from django.utils.timesince import timesince as timesince_
+        return timesince_(self.timestamp, now)
+
+    @property
+    def slug(self):
+        return id2slug(self.id)
+
     def update_status(self, status):
         self.status = status
         self.save()
@@ -121,12 +127,12 @@ class BaseNotification(models.Model):
             self.save()
 
 
-class AsyncNotificationManager(BaseNotificationManager):
+class AsyncNotificationManager(models.Manager):
     def unread(self, **kwargs):
         count = kwargs.pop('count', settings.ASYNC_NOTIF_BATCH_SIZE)
         kwargs.update(readed=False)
 
-        return self.filter(kwargs)[:count]
+        return self.filter(**kwargs)[:count]
 
 
 # AA: Comment: This should probably be renamed to AsyncNotif
@@ -172,15 +178,15 @@ class AsyncNotification(BaseNotification):
         self.save()
 
 
-class SyncNotificationManager(BaseNotificationManager):
+class SyncNotificationManager(models.Manager):
     def unread(self, **kwargs):
         count = kwargs.pop('count', settings.SYNC_NOTIF_BATCH_SIZE)
         kwargs.update(readed=False)
 
-        return self.filter(kwargs)[:count]
+        return self.filter(**kwargs)[:count]
 
     def unacted(self, user):
-        return self.filter(recipient=user,  acted_upon=False)
+        return self.filter(recipient=user, acted_upon=False)
 
     def unread_count(self, user):
         return self.filter(recipient=user, readed=False).count()
@@ -210,18 +216,6 @@ class SyncNotification(BaseNotification):
     acted_upon = models.BooleanField(default=True, blank=False)
 
     objects = SyncNotificationManager()
-
-    def timesince(self, now=None):
-        """
-        Shortcut for the ``django.utils.timesince.timesince`` function of the
-        current timestamp.
-        """
-        from django.utils.timesince import timesince as timesince_
-        return timesince_(self.timestamp, now)
-
-    @property
-    def slug(self):
-        return id2slug(self.id)
 
     def set_acted(self, flag):
         self.acted_upon = flag
@@ -261,7 +255,11 @@ def notify_handler(sender, **kwargs):
     ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
     """
 
-    is_async = verbs.get_notif_is_async(notif_tuple) or kwargs.pop('force_sync', False)
+    if kwargs.pop('force_sync', False):
+        is_async = False
+    else:
+        is_async = verbs.get_notif_is_async(notif_tuple)
+
     if is_async:
         newnotify = AsyncNotification.objects.create(
             actor_content_type=ContentType.objects.get_for_model(actor),

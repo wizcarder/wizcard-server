@@ -314,19 +314,17 @@ class AsyncNotifResponse:
             notifHandler[notification.notif_type](notification)
 
     def notif_async_2_sync(self, notif):
-        pdb.set_trace()
-
         # get the flood set for this target
-        entity_ct = ContentType.objects.get_for_id(notif.target_content_type)
-        entity = entity_ct.get_object_for_this_type(id=notif.target_object_id)
-        ntuple=verbs.notif_type_tuple_dict(notif.notif_type)
+        target_ct = notif.target_content_type
+        entity = target_ct.get_object_for_this_type(id=notif.target_object_id)
+        ntuple = verbs.notif_type_tuple_dict[notif.notif_type]
 
         flood_set = entity.flood_set(ntuple=ntuple)
 
         # Q sync notif for each in flood_set
         for recipient in flood_set:
             notify.send(
-                notif.sender,
+                notif.actor,
                 recipient=recipient,
                 notif_tuple=ntuple,
                 target=notif.target,

@@ -320,10 +320,11 @@ class Wizcard(WizcardBase):
     def flood_set(self, **kwargs):
 
         # full card for connections and half for followers
-        fs = self.get_connections() if verbs.get_notif_type(kwargs.pop('ntuple')) == verbs.NOTIF_UPDATE_WIZCARD_F \
+        fs_w = self.get_connections() if verbs.get_notif_type(kwargs.pop('ntuple')) == verbs.NOTIF_UPDATE_WIZCARD_F \
             else self.get_followers_only()
 
-        return fs
+        fs_u = [x.user for x in fs_w]
+        return fs_u
 
     def check_flick_duplicates(self, lat, lng):
         if not settings.DO_FLICK_AGGLOMERATE:
