@@ -457,6 +457,8 @@ if not SKIP_BASIC:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
+    pdb.set_trace()
+
             # connection state so far
             # uid1(A)<->uid2(P)
             # uid1(A)<->uid3(P)
@@ -631,6 +633,8 @@ if not SKIP_BASIC:
             # uid1(A)<->fuid1(P)
             # uid1(A)<->fuid2(P)
 
+    pdb.set_trace()
+
     #at this point there should be notifs for this user
     reqmsg = messages.get_cards
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -749,6 +753,8 @@ if not SKIP_BASIC:
             # uid1(A)<->uid3(DC)
             # uid1(A)<->fuid1(A)
             # uid1(A)<->fuid2(DC)
+
+    pdb.set_trace()
 
     #u1 delete U2 rolodex
     reqmsg = messages.delete_rolodex_card
@@ -982,6 +988,7 @@ if not SKIP_BASIC:
             # uid1(DL)->fuid1(A)
             # uid1(DL) fuid2(A)
 
+    pdb.set_trace()
     # u1 edit rolodex card of u3
     print "adding notes to  ", uid3
     reqmsg = messages.edit_rolodex_card
