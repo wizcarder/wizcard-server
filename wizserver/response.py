@@ -110,7 +110,9 @@ class SyncNotifResponse(ResponseN):
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_LEAVE)        : self.notifLeaveEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEntityUpdate,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEntityExpire,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEntityDelete
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEntityDelete,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)    : self.notifEntityBroadcast
+
         }
 
         for notification in notifications:
@@ -230,6 +232,20 @@ class SyncNotifResponse(ResponseN):
 
     def notifEntityUpdate(self, notif):
         self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
+
+    def notifEntityBroadcast(self, notif):
+        if notif.target:
+            out = dict(
+                entity_id=notif.target.id,
+                entity_type=notif.target_content_type.model,
+                sub_entity_id=notif.action_object_object_id,
+                sub_entity_type=notif.action_object_content_type.model if notif.action_object_object_id else "",
+                message=notif.notification_text
+            )
+
+            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_BROADCAST, notif.id)
+
+        return self.response
 
     def notifWizcardUpdate(self, notif):
         return self.notifWizcard(notif, verbs.NOTIF_UPDATE_WIZCARD_F)

@@ -94,6 +94,7 @@ class BaseNotification(models.Model):
     readed = models.BooleanField(default=False)
 
     do_push = models.BooleanField(default=False)
+    notification_text = models.CharField(max_length=254, default="")
 
     class Meta:
         ordering = ('timestamp', )
@@ -172,7 +173,6 @@ class AsyncNotification(BaseNotification):
     status = models.PositiveSmallIntegerField(choices=STATUS, default=NEW)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(default=timezone.now)
-    notification_text = models.CharField(max_length=254, default="")
 
     # Ideally should add interval fields also (periodicity) hardcoding to 1, 3, 5  from the end_date
     objects = AsyncNotificationManager()
