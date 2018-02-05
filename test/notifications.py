@@ -26,7 +26,6 @@ class NotifParser:
             verbs.NOTIF_TABLE_TIMEOUT   :       self.table_timeout,
             verbs.NOTIF_UPDATE_WIZCARD_F  :     self.update_wizcard,
             verbs.NOTIF_UPDATE_WIZCARD_H  :     self.update_wizcard,
-            verbs.NOTIF_NEARBY_FLICKED_WIZCARD :       self.flicked_wizcard,
             verbs.NOTIF_NEARBY_USERS    :       self.nearby_users,
             verbs.NOTIF_NEARBY_TABLES   :       self.nearby_tables,
             verbs.NOTIF_FLICK_TIMEOUT   :       self.flick_timeout,
