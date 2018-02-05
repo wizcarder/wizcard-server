@@ -1,7 +1,7 @@
 __author__ = 'aammundi'
 
 from rest_framework import serializers
-from notifications.models import SyncNotification, BaseNotification
+from notifications.models import AsyncNotification, SyncNotification, BaseNotification
 from notifications.signals import notify
 from rest_framework.validators import ValidationError
 from django.contrib.contenttypes.models import ContentType
@@ -46,7 +46,7 @@ class GenericSerializerField(serializers.RelatedField):
 
 class AsyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SyncNotification
+        model = AsyncNotification
         fields = ('id', 'delivery_mode', 'target', 'action_object', 'notification_text',
                   'start', 'end', 'notif_type', 'do_push')
 
@@ -85,7 +85,7 @@ class SyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SyncNotification
         fields = ('id', 'delivery_mode', 'recipient', 'target', 'action_object',
-                  'verb', 'notif_type', 'do_push', 'notification_text', 'start', 'end')
+                  'verb', 'notif_type', 'do_push', 'start', 'end')
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
@@ -94,7 +94,6 @@ class SyncNotificationSerializer(serializers.ModelSerializer):
     end = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
     notif_type = serializers.IntegerField(required=True)
     delivery_mode = serializers.ChoiceField(BaseNotification.DELIVERY_MODE, write_only=True)
-    notification_text = serializers.CharField(required=False)
 
     def create(self, validated_data):
         start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))
