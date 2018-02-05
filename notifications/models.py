@@ -44,6 +44,8 @@ now = timezone.now()
        <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
 
    """
+
+
 class BaseNotificationManager(models.Manager):
     def mark_as_read(self, notifications):
         ids = notifications.values_list('id', flat=True)

@@ -495,12 +495,12 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def notify_subscribers(self):
         super(BaseEntity, self).notify_subscribers()
-        self.notify_all_users(
-            self.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE[0],
-            self,
-            verb=verbs.WIZCARD_ENTITY_UPDATE[1]
-        )
+        # self.notify_all_users(
+        #     self.get_creator(),
+        #     verbs.WIZCARD_ENTITY_UPDATE[0],
+        #     self,
+        #     verb=verbs.WIZCARD_ENTITY_UPDATE[1]
+        # )
 
     def get_banner(self):
         media_row = self.get_sub_entities_of_type(entity_type=BaseEntity.SUB_ENTITY_MEDIA)
