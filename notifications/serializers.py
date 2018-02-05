@@ -47,8 +47,8 @@ class GenericSerializerField(serializers.RelatedField):
 class AsyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SyncNotification
-        fields = ('id', 'delivery_mode', 'recipient', 'target',
-                  'action_object', 'verb', 'start', 'end', 'notif_type', 'do_push')
+        fields = ('id', 'delivery_mode', 'target', 'action_object', 'notification_text',
+                  'start', 'end', 'notif_type', 'do_push')
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
