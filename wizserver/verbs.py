@@ -114,17 +114,19 @@ NOTIF_DELETE_IMPLICIT           = 3
 NOTIF_TABLE_TIMEOUT             = 4
 NOTIF_UPDATE_WIZCARD_H          = 5
 NOTIF_UPDATE_WIZCARD_F          = 6
-NOTIF_NEARBY_FLICKED_WIZCARD    = 7
-NOTIF_NEARBY_USERS              = 8
-NOTIF_NEARBY_TABLES             = 9
+NOTIF_NEARBY_USERS              = 7
+NOTIF_NEARBY_TABLES             = 8
+
+NOTIF_NEARBY_FLICKED_WIZCARDS   = 9
 NOTIF_FLICK_TIMEOUT             = 10
 NOTIF_FLICK_PICK                = 11
 NOTIF_WITHDRAW_REQUEST          = 12
 NOTIF_TABLE_INVITE              = 13
 NOTIF_WIZCARD_FORWARD           = 14
+
 NOTIF_ENTITY_JOIN               = 15
 NOTIF_ENTITY_LEAVE              = 16
-NOTIF_FOLLOW_EXPLICIT           = 17
+
 NOTIF_ENTITY_UPDATE             = 18
 NOTIF_ENTITY_EXPIRE             = 19
 NOTIF_ENTITY_DELETE             = 20
@@ -187,7 +189,6 @@ WIZCARD_NULL                = (NOTIF_NULL, "Empty notif", False, False)
 WIZREQ_U                    = (NOTIF_ACCEPT_EXPLICIT, 'wizconnection request untrusted', True, False)
 WIZREQ_T                    = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted', True, False)
 WIZREQ_T_HALF               = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted half', False, False)
-WIZREQ_F                    = (NOTIF_FOLLOW_EXPLICIT, 'wizconnection request follow', True, False)
 WIZCARD_ACCEPT              = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', True, False)
 WIZCARD_REVOKE              = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', False, False)
 WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', False, False)
@@ -238,61 +239,55 @@ notif_type_tuple_dict = {
 }
 
 apns_notification_dictionary = {
-    WIZREQ_U[0]	: {
+    get_notif_type(WIZREQ_U)	: {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Connection Request',
         'alert': '{0.first_name} {0.last_name} would like to connect with you',
     },
-    WIZREQ_F[0]	: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'title': 'Follow Request',
-        'alert': '{0.first_name} {0.last_name} would like to follow you',
-    },
-    WIZREQ_T[0]	: {
+    get_notif_type(WIZREQ_T)	: {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Connected',
         'alert': 'you have a new contact {0.first_name} {0.last_name}',
     },
-    WIZCARD_ACCEPT[0]: {
+    get_notif_type(WIZCARD_ACCEPT): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Accepted',
         'alert': '{0.first_name} {0.last_name} accepted your invitation',
     },
-    WIZCARD_TABLE_TIMEOUT[0]: {
+    get_notif_type(WIZCARD_TABLE_TIMEOUT): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Wizcard - Table expired',
         'alert': '{1.name} table has now expired',
     },
-    WIZCARD_TABLE_DESTROY[0]: {
+    get_notif_type(WIZCARD_TABLE_DESTROY): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Wizcard - Table deleted',
         'alert': '{0.first_name} {0.last_name}  deleted {1.tablename} table',
     },
-    WIZCARD_UPDATE_FULL[0]: {
+    get_notif_type(WIZCARD_UPDATE_FULL): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Updated WizCard',
         'alert': '{0.first_name} {0.last_name} has an updated wizcard',
     },
-    WIZCARD_UPDATE_HALF[0]: {
+    get_notif_type(WIZCARD_UPDATE_HALF): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Updated WizCard',
         'alert': '{0.first_name} {0.last_name} has an updated wizcard',
     },
-    WIZCARD_RECO_READY[0]: {
+    get_notif_type(WIZCARD_RECO_READY): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Wizcard - New Recommendations waiting for you',
         'alert': 'New Recommendations',
     },
-    WIZCARD_ENTITY_BROADCAST[0]: {
+    get_notif_type(WIZCARD_ENTITY_BROADCAST): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Event announcement',
@@ -300,11 +295,14 @@ apns_notification_dictionary = {
     },
 }
 
-def get_apns_dict(verb, device_type):
+import pdb
+def get_apns_dict(notif_type, device_type):
+    push_dict = apns_notification_dictionary[notif_type]
+
     if device_type == settings.DEVICE_IOS:
-        push_dict = {key: value for key, value in apns_notification_dictionary[verb] if key in ['sound', 'badge', 'alert']}
+        push_dict = {k: v for (k, v) in push_dict.items() if k in ['sound', 'badge', 'alert']}
     elif device_type == settings.DEVICE_ANDROID:
-        push_dict = {key: value for key, value in apns_notification_dictionary[verb] if key in ['title', 'alert']}
+        push_dict = {k: v for (k, v) in push_dict.items() if k in ['title', 'alert']}
         # small adjustment for key name for android
         push_dict['body']=push_dict.pop('alert')
     else:

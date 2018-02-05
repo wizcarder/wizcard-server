@@ -91,6 +91,8 @@ class BaseNotification(models.Model):
     notif_type = models.PositiveIntegerField(default=0)
     readed = models.BooleanField(default=False)
 
+    do_push = models.BooleanField(default=False)
+
     class Meta:
         ordering = ('timestamp', )
 
@@ -236,9 +238,10 @@ def notify_handler(sender, **kwargs):
     action_object = kwargs.pop('action_object', None)
     action_object_content_type = ContentType.objects.get_for_model(action_object) if action_object else None
     action_object_object_id = action_object.pk if action_object else None
-    do_push = kwargs.pop('do_push', False)
     start = kwargs.pop('start_date', timezone.now()+timedelta(minutes=1))
     end = kwargs.pop('end_date', start)
+    # hidden side-effects of changing do_push to false. Check with me before changing
+    do_push = kwargs.pop('do_push', True)
 
     """
     ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
@@ -267,6 +270,7 @@ def notify_handler(sender, **kwargs):
             delivery_period=AsyncNotification.INSTANT,
             start_date=start,
             end_date=end,
+            do_push=do_push,
             **kwargs
         )
     else:
@@ -287,17 +291,9 @@ def notify_handler(sender, **kwargs):
             }
         )
 
-        # push a notification to app from here. Fire and forget
-        if created and verbs.get_notif_apns_required(notif_tuple):
-            push_notification_to_app.delay(
-                newnotify.actor_object_id,
-                newnotify.recipient_id,
-                newnotify.action_object_object_id,
-                newnotify.action_object_content_type,
-                newnotify.target_object_id,
-                newnotify.target_content_type,
-                newnotify.verb
-            )
+        # push a notification to app from here for sync. Fire and forget
+        if created and verbs.get_notif_apns_required(notif_tuple) and do_push:
+            push_notification_to_app.delay(newnotify, notif_tuple)
 
     return newnotify
 

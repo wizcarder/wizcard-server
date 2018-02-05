@@ -3,7 +3,6 @@ import datetime
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import  Wizcard, WizcardFlick
 from entity.models import VirtualTable
-from userprofile.models import UserProfile
 from base.cctx import NotifContext
 from django.http import HttpResponse
 from raven.contrib.django.raven_compat.models import client
@@ -17,6 +16,7 @@ from entity.serializers import TableSerializerL1
 from django.utils import timezone
 from django.conf import settings
 from notifications.signals import notify
+from notifications.push_tasks import push_notification_to_app
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,6 @@ class SyncNotifResponse(ResponseN):
             verbs.get_notif_type(verbs.WIZREQ_U)                    : self.notifWizConnectionU,
             verbs.get_notif_type(verbs.WIZREQ_T)  	                : self.notifWizConnectionT,
             verbs.get_notif_type(verbs.WIZREQ_T_HALF)               : self.notifWizConnectionH,
-            verbs.get_notif_type(verbs.WIZREQ_F)                    : self.notifWizConnectionF,
             verbs.get_notif_type(verbs.WIZCARD_REVOKE)	            : self.notifRevokedWizcard,
             verbs.get_notif_type(verbs.WIZCARD_WITHDRAW_REQUEST)    : self.notifWithdrawRequest,
             verbs.get_notif_type(verbs.WIZCARD_DELETE)	            : self.notifRevokedWizcard,
@@ -164,9 +163,6 @@ class SyncNotifResponse(ResponseN):
         # via accept/decline_connection req
         notif.set_acted(False)
         return self.notifWizcard(notif, verbs.NOTIF_ACCEPT_EXPLICIT)
-
-    def notifWizConnectionF(self, notif):
-        return self.notifWizcard(notif, verbs.NOTIF_FOLLOW_EXPLICIT)
 
     def notifRevokedWizcard(self, notif):
         #this is a notif to the app B when app A removed B's card
@@ -316,6 +312,8 @@ class AsyncNotifResponse:
     def notif_async_2_sync(self, notif):
         # get the flood set for this target
         target_ct = notif.target_content_type
+
+        # AA: TODO: this might have been expired/deleted in the meantime
         entity = target_ct.get_object_for_this_type(id=notif.target_object_id)
         ntuple = verbs.notif_type_tuple_dict[notif.notif_type]
 
@@ -329,8 +327,13 @@ class AsyncNotifResponse:
                 notif_tuple=ntuple,
                 target=notif.target,
                 action_object=notif.action_object,
-                force_sync=True
+                # tell signal handler explicitly to Q into SyncQ and not use notif_type to decide
+                force_sync=True,
+                # no need to double-push. We'll send bulk push from here itself
+                do_push=False
             )
+
+        push_notification_to_app(notif, ntuple).delay()
 
     def notifEventReminder(self, notif):
         pass

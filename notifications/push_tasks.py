@@ -4,18 +4,62 @@ from pyapns import notify as apns_notify
 from django.conf import settings
 from notifications.androidgcm import send_gcm_message
 from celery import shared_task
+from wizserver import verbs
 
 
 @shared_task(ignore_result=True)
-def push_notification_to_app(notif_obj):
+def push_notification_to_app(notif_obj, ntuple):
 
     # broadcast or targeted
+    if verbs.get_notif_is_async(ntuple):
+        flood_set = notif_obj.target.flood_set()
+        # iOS
+        reg_tokens = [x.profile.app_user().reg_token for x in flood_set if x.profile.app_user().device_type == settings.DEVICE_IOS]
+        apns = ApnsMsg(
+            notif_obj.actor,
+            reg_tokens,
+            notif_obj.action_object,
+            notif_obj.target,
+            verbs.get_apns_dict(notif_obj.notif_type, settings.DEVICE_IOS),
+            verbs.get_notif_verb(ntuple),
+            settings.DEVICE_IOS
+        )
 
-    # if broadcast get iOS reg tokens and android reg_tokens for broadcast subsets
+        apns.format_alert_msg()
+        apns.send()
 
-    # send push
+        # Android
+        reg_tokens = [x.profile.app_user().reg_token for x in flood_set if x.profile.app_user().device_type == settings.DEVICE_ANDROID]
+        apns = ApnsMsg(
+            notif_obj.actor,
+            reg_tokens,
+            notif_obj.action_object,
+            notif_obj.target,
+            verbs.get_apns_dict(notif_obj.notif_type, settings.DEVICE_ANDROID),
+            verbs.get_notif_verb(ntuple),
+            settings.DEVICE_ANDROID
+        )
 
-    pass
+        apns.format_alert_msg()
+        apns.send()
+
+    else:
+        recipient = notif_obj.recipient.profile.app_user()
+        reg_tokens = [recipient.reg_token]
+        device_type = recipient.device_type
+
+        apns = ApnsMsg(
+            notif_obj.actor,
+            reg_tokens,
+            notif_obj.action_object,
+            notif_obj.target,
+            verbs.get_apns_dict(notif_obj.notif_type, device_type),
+            verbs.get_notif_verb(ntuple),
+            device_type
+        )
+
+        apns.format_alert_msg()
+        apns.send()
 
 
 class ApnsMsg(object):
@@ -25,7 +69,7 @@ class ApnsMsg(object):
         self.reg_tokens = reg_tokens
         self.action_object = action_object
         self.target_object = target_object
-        self.aps = dict(aps=apns_args.copy())
+        self.aps = dict(aps=apns_args)
         self.device_type = device_type
         self.message = message
 
@@ -74,6 +118,8 @@ class ApnsMsg(object):
         return
 
     def push_android(self):
-        return send_gcm_message(settings.GCM_API_KEY,
-                                self.reg_tokens,
-                                self.aps['aps'])
+        return send_gcm_message(
+            settings.GCM_API_KEY,
+            self.reg_tokens,
+            self.aps['aps']
+        )
