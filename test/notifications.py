@@ -23,7 +23,7 @@ class NotifParser:
             verbs.NOTIF_ACCEPT_IMPLICIT :       self.accept_implicit,
             verbs.NOTIF_ACCEPT_EXPLICIT :       self.accept_explicit,
             verbs.NOTIF_DELETE_IMPLICIT :       self.delete_implicit,
-            verbs.NOTIF_TABLE_TIMEOUT   :       self.table_timeout,
+            verbs.NOTIF_ENTITY_EXPIRE   :       self.table_timeout,
             verbs.NOTIF_UPDATE_WIZCARD_F  :     self.update_wizcard,
             verbs.NOTIF_UPDATE_WIZCARD_H  :     self.update_wizcard,
             verbs.NOTIF_NEARBY_USERS    :       self.nearby_users,

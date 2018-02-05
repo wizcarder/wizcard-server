@@ -111,7 +111,7 @@ NOTIF_NULL                      = 0
 NOTIF_ACCEPT_IMPLICIT           = 1
 NOTIF_ACCEPT_EXPLICIT           = 2
 NOTIF_DELETE_IMPLICIT           = 3
-NOTIF_TABLE_TIMEOUT             = 4
+
 NOTIF_UPDATE_WIZCARD_H          = 5
 NOTIF_UPDATE_WIZCARD_F          = 6
 NOTIF_NEARBY_USERS              = 7
@@ -193,9 +193,7 @@ WIZCARD_ACCEPT              = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', True, 
 WIZCARD_REVOKE              = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', False, False)
 WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', False, False)
 WIZCARD_DELETE              = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', False, False)
-WIZCARD_TABLE_TIMEOUT       = (NOTIF_TABLE_TIMEOUT, 'table timeout', True, True)
-WIZCARD_TABLE_DESTROY       = (NOTIF_TABLE_TIMEOUT, 'table destroy', True, True)
-WIZCARD_UPDATE_FULL         = (NOTIF_UPDATE_WIZCARD_F, 'wizcard update', True, True)
+WIZCARD_UPDATE_FULL         = (NOTIF_UPDATE_WIZCARD_F, 'wizcard update', False, True)
 WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD_H, 'wizcard update half', True, True)
 WIZCARD_FLICK_TIMEOUT       = (NOTIF_FLICK_TIMEOUT, 'flick timeout', True, False)
 WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
@@ -228,14 +226,19 @@ def get_notif_is_async(ntuple):
     return ntuple[3]
 
 
-# notify.send sends the whole tuple. Thus for serializer path, we need a mapping
-# from the integer notif_type to tuple. Not all mappings are required, adding in
-# here as needed
+# reverse mapping from notif_type to tuple. All Async types will need this mapping
+# notif model stores the denormalized values. We need tuple for push business logic
+# in the handler. Add as needed
 
 notif_type_tuple_dict = {
-    NOTIF_ENTITY_BROADCAST: WIZCARD_ENTITY_BROADCAST,
     NOTIF_UPDATE_WIZCARD_H: WIZCARD_UPDATE_HALF,
-    NOTIF_UPDATE_WIZCARD_F: WIZCARD_UPDATE_FULL
+    NOTIF_UPDATE_WIZCARD_F: WIZCARD_UPDATE_FULL,
+    NOTIF_ENTITY_JOIN: WIZCARD_ENTITY_JOIN,
+    NOTIF_ENTITY_LEAVE: WIZCARD_ENTITY_LEAVE,
+    NOTIF_ENTITY_UPDATE: WIZCARD_ENTITY_UPDATE,
+    NOTIF_ENTITY_EXPIRE: WIZCARD_ENTITY_EXPIRE,
+    NOTIF_ENTITY_DELETE: WIZCARD_ENTITY_DELETE,
+    NOTIF_ENTITY_BROADCAST: WIZCARD_ENTITY_BROADCAST,
 }
 
 apns_notification_dictionary = {
@@ -243,68 +246,68 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Connection Request',
-        'alert': '{0.first_name} {0.last_name} would like to connect with you',
+        'message': '{0.first_name} {0.last_name} would like to connect with you',
     },
     get_notif_type(WIZREQ_T)	: {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Connected',
-        'alert': 'you have a new contact {0.first_name} {0.last_name}',
+        'message': 'you have a new contact {0.first_name} {0.last_name}',
     },
     get_notif_type(WIZCARD_ACCEPT): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Accepted',
-        'alert': '{0.first_name} {0.last_name} accepted your invitation',
+        'message': '{0.first_name} {0.last_name} accepted your invitation',
     },
-    get_notif_type(WIZCARD_TABLE_TIMEOUT): {
+    get_notif_type(WIZCARD_ENTITY_EXPIRE): {
         'sound': 'flynn.caf',
         'badge': 0,
-        'title': 'Wizcard - Table expired',
-        'alert': '{1.name} table has now expired',
+        'title': 'Wizcard - expired',
+        'message': '{1.name} has now expired',
     },
-    get_notif_type(WIZCARD_TABLE_DESTROY): {
+    get_notif_type(WIZCARD_ENTITY_DELETE): {
         'sound': 'flynn.caf',
         'badge': 0,
-        'title': 'Wizcard - Table deleted',
-        'alert': '{0.first_name} {0.last_name}  deleted {1.tablename} table',
+        'title': 'Wizcard -  Deleted',
+        'message': '{0.first_name} {0.last_name}  deleted {1.tablename}',
     },
     get_notif_type(WIZCARD_UPDATE_FULL): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Updated WizCard',
-        'alert': '{0.first_name} {0.last_name} has an updated wizcard',
-    },
-    get_notif_type(WIZCARD_UPDATE_HALF): {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'title': 'Updated WizCard',
-        'alert': '{0.first_name} {0.last_name} has an updated wizcard',
+        'message': '{0.first_name} {0.last_name} has an updated wizcard',
     },
     get_notif_type(WIZCARD_RECO_READY): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Wizcard - New Recommendations waiting for you',
-        'alert': 'New Recommendations',
+        'message': 'New Recommendations',
     },
     get_notif_type(WIZCARD_ENTITY_BROADCAST): {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Event announcement',
-        'alert': 'Message from {1.name} - {3}'
+        'message': 'Message from {1.name} - {3}'
     },
 }
 
-import pdb
-def get_apns_dict(notif_type, device_type):
-    push_dict = apns_notification_dictionary[notif_type]
+def get_apns_dict(notif_type):
+    if notif_type not in apns_notification_dictionary:
+        raise AssertionError("Add notifType to apns_dict %s" % notif_type)
+
+    return apns_notification_dictionary[notif_type]
+
+def get_apns_dict_for_device(notif_type, device_type):
+    push_dict = get_apns_dict(notif_type)
 
     if device_type == settings.DEVICE_IOS:
-        push_dict = {k: v for (k, v) in push_dict.items() if k in ['sound', 'badge', 'alert']}
+        push_dict = {k: v for (k, v) in push_dict.items() if k in ['sound', 'badge', 'message']}
+        # adjustment for key name per device_type
+        push_dict['alert'] = push_dict.pop('message')
     elif device_type == settings.DEVICE_ANDROID:
-        push_dict = {k: v for (k, v) in push_dict.items() if k in ['title', 'alert']}
-        # small adjustment for key name for android
-        push_dict['body']=push_dict.pop('alert')
+        push_dict = {k: v for (k, v) in push_dict.items() if k in ['title', 'message']}
+        push_dict['body'] = push_dict.pop('message')
     else:
         raise AssertionError("invalid device_type %s" % device_type)
 

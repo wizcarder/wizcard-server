@@ -108,9 +108,9 @@ class SyncNotifResponse(ResponseN):
             verbs.get_notif_type(verbs.WIZCARD_TABLE_INVITE)        : self.notifWizcardTableInvite,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_JOIN)         : self.notifJoinEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_LEAVE)        : self.notifLeaveEntity,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEventUpdate,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEventExpire,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEventDelete
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEntityUpdate,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEntityExpire,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEntityDelete
         }
 
         for notification in notifications:
@@ -178,12 +178,6 @@ class SyncNotifResponse(ResponseN):
         logger.debug('%s', self.response)
         return self.response
 
-    def notifDestroyedTable(self, notif):
-        out = dict(tableID=notif.target_object_id)
-        self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_TIMEOUT, notif.id)
-        logger.debug('%s', self.response)
-        return self.response
-
     def notifEvent(self, notif, notifType):
         event_id = notif.target_object_id
 
@@ -228,13 +222,13 @@ class SyncNotifResponse(ResponseN):
 
         return self.response
 
-    def notifEventDelete(self, notif):
+    def notifEntityDelete(self, notif):
         self.notifEvent(notif, verbs.NOTIF_ENTITY_DELETE)
 
-    def notifEventExpire(self, notif):
+    def notifEntityExpire(self, notif):
         self.notifEvent(notif, verbs.NOTIF_ENTITY_EXPIRE)
 
-    def notifEventUpdate(self, notif):
+    def notifEntityUpdate(self, notif):
         self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
 
     def notifWizcardUpdate(self, notif):
@@ -333,7 +327,9 @@ class AsyncNotifResponse:
                 do_push=False
             )
 
-        push_notification_to_app(notif, ntuple).delay()
+        # bulk push
+        if verbs.get_notif_apns_required(ntuple):
+            push_notification_to_app.delay(notif, ntuple)
 
     def notifEventReminder(self, notif):
         pass

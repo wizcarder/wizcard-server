@@ -51,6 +51,9 @@ EMAIL5 = "amnothere@gmail.com"
 ENTITY_TABLE = 'TBL'
 ENTITY_PRODUCT = 'PRD'
 
+REG_TOKEN_AAMMUNDI_ANDROID = 'faumqloUsx0:APA91bGIY0JMniueA2SIODh_H_Zih7sH_BjNbth_TTvfoG3LqJn459BH_CF9-dBzxIUI7hlooJ718ApeSysdIRnDOBIbpscJ9Fa_ZlDbv83t0wBiFE2Vm2PdyVsRDP_J-H2a2sCU9YQg'
+REG_TOKEN_RAMANI_ANDROID = 'faumqloUsx0:APA91bGIY0JMniueA2SIODh_H_Zih7sH_BjNbth_TTvfoG3LqJn459BH_CF9-dBzxIUI7hlooJ718ApeSysdIRnDOBIbpscJ9Fa_ZlDbv83t0wBiFE2Vm2PdyVsRDP_J-H2a2sCU9YQg'
+
 ENTITY_LIKE = {
         "entity_id": "",
         "entity_type": "",
@@ -206,7 +209,7 @@ register_sync = {
         "lat" : 37.785834,
         "lng" : -122.406415,
         "device_type": "android",
-        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
+        "reg_token": REG_TOKEN_AAMMUNDI_ANDROID,
         "user_id" : "2UIPIEPbBk"
 
     },
@@ -223,7 +226,7 @@ register1 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
+        "reg_token": REG_TOKEN_AAMMUNDI_ANDROID,
         "lat" : 37.785835,
         "lng" : -122.406416,
         "device_type": "android",
@@ -242,7 +245,7 @@ register2 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
+        "reg_token": REG_TOKEN_RAMANI_ANDROID,
         "lat" : 37.785837,
         "lng" : -122.406418,
         "device_type": "android",
@@ -261,7 +264,7 @@ register3 = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
+        "reg_token": REG_TOKEN_RAMANI_ANDROID,
         "lat" : 37.785838,
         "lng" : -122.406419,
         "device_type": "android",
@@ -279,7 +282,7 @@ ocr_register = {
     "sender" : {
         #maybe should have a separate data file for lat, lng and read with some
         #random index from there
-        "reg_token": "6c4f3dcb31cb45bdaf399206ea065b9795bee698cd56a60bcd40ee336741d4dd",
+        "reg_token": REG_TOKEN_AAMMUNDI_ANDROID,
         "lat" : 37.785838,
         "lng" : -122.406419,
         "device_type": "android",

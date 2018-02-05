@@ -2185,7 +2185,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if table.get_creator() == self.user:
-            table.delete(type=verbs.WIZCARD_TABLE_DESTROY[0])
+            table.delete(type=verbs.WIZCARD_ENTITY_DELETE[0])
         else:
             self.response.error_response(err.NOT_AUTHORIZED)
 

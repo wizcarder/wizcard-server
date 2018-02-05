@@ -170,7 +170,7 @@ class AsyncNotification(BaseNotification):
     status = models.PositiveSmallIntegerField(choices=STATUS, default=NEW)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(default=timezone.now)
-    notifcation_text = models.CharField(max_length=100, default="")
+    notifcation_text = models.CharField(max_length=254, default="")
 
     # Ideally should add interval fields also (periodicity) hardcoding to 1, 3, 5  from the end_date
     objects = AsyncNotificationManager()
