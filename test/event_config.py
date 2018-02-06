@@ -10,7 +10,17 @@ mcr_poll = { "description" : "Poll %d",
                          {"question_key": "C", "question_value": "could have been better"},
                          {"question_key": "D", "question_value":"Should have gone outside"}
                         ]
-            }]
+            },
+            {
+                "question": "Rate the food today",
+                "question_type" : "SCL",
+                "ui_type": "RTG",
+                "single_answer" : True,
+                "choices" : [{'low':0, 'high': 5}]
+
+            }
+
+             ]
         }
 
 scl_poll = { "description" : "Poll %d",
@@ -49,13 +59,13 @@ txt_poll = {"description" : "Poll %d",
 
 poll_entities = ['breakfast', 'lunch', 'talk', 'panel discussion', 'arrangements']
 create_config = {
-                    'events':  3,
-                    'speakers' : 3,
-                    'sponsors': 3,
-                    'campaigns' : 3,
-                    'exhibitors' : 3,
+                    'events':  4,
+                    'speakers' : 4,
+                    'sponsors': 4,
+                    'campaigns' : 4,
+                    'exhibitors' : 4,
                     'agenda_items': 6,
-                    'event_media' : 4,
+                    'event_media' : 6,
                     'campaign_media': 4,
                     'speaker_file' : './/test/ceos.tsv',
                     'sponsor_file' : './test/sponsors.tsv',
@@ -65,7 +75,7 @@ create_config = {
                         'MCR' : {'count':2, 'template' : mcr_poll},
                         'SCL' : {'count':2, 'template': scl_poll},
                         'TOF' : {'count': 2, 'template' : tof_poll},
-                        'TXT' : {'count': 2, 'template': txt_poll}
+                        'TXT' : {'count': 2, 'template': txt_poll},
                     },
                     'tags_per_event' : 10,
                     'tags_per_campaign' : 3,
@@ -83,6 +93,8 @@ random_event_names = ['10,000 Latkes', '24 Carrot Seven', '25,000 Mile Stones', 
 random_dates = ['2018-01-18', '2018-01-29', '2018-01-30', '2018-01-31', '2018-02-08', '2018-02-15', '2018-03-02', '2018-03-15', '2018-03-21', '2018-03-28']
 
 random_banners = ["https://blog.akshayapatra.org/wp-content/uploads/2016/04/720-X-240-Earth-Day.jpg", "http://www.nissan.com.vn/wp-content/uploads/2016/07/Banner-web-CMTKMT7-AfterSales-Banner-1920x640px-720x240.jpg", "http://aluminiuminsider.com/wp-content/uploads/2017/05/Banner-720x240.jpg", "http://www.malahinisolutions.com/images/cms-banner.jpg"]
+
+random_logos = ["https://medias.audiofanzine.com/images/thumbs3/peavey-rage-158-512316.jpg", "https://i.pinimg.com/736x/11/af/99/11af999d491a4f08c52a4de5071b359b.jpg", "http://wpmedia.theprovince.com/2012/01/beericon3.jpg?quality=60&strip=all&w=142&h=112", "https://i1.wp.com/www.ayudaroot.com/wp-content/uploads/2016/07/sp-flash-tool-elephone3.png?resize=142%2C112"]
 
 random_videos = ["https://www.youtube.com/watch?v=8rRfqWcz-mw",
                  "https://www.youtube.com/watch?v=Kl5B6MBAntI",
