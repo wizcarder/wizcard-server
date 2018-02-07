@@ -4,9 +4,10 @@ from django.db.models.signals import post_save
 from lib.preserialize.serialize import serialize
 from lib import wizlib
 from polymorphic.models import PolymorphicModel
+from polymorphic.manager import PolymorphicManager
 from wizserver import fields, verbs
 from location_mgr.models import location, LocationMgr
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from wizcardship.models import WizConnectionRequest, Wizcard
 from entity.models import VirtualTable
@@ -19,25 +20,25 @@ from notifications.models import BaseNotification, SyncNotification
 from base.cctx import ConnectionContext, NotifContext
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
-import operator
 from django.db.models import Q
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
 from userprofile.signals import user_type_created
+from base_entity.models import UserEntity
 import uuid
 import string
 import random
 import pytz
 import datetime
 import logging
+import operator
 import pdb
 
 RECO_DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
 RECO_DEFAULT_TIME = RECO_DEFAULT_TZ.localize(datetime.datetime(2010, 01, 01))
 
 logger = logging.getLogger(__name__)
-
 
 
 class AppUserSettings(models.Model):
@@ -56,7 +57,7 @@ class WebExhibitorUserSettings(models.Model):
     pass
 
 
-class UserProfileManager(models.Manager):
+class UserProfileManager(PolymorphicManager):
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         userid = ''.join(random.choice(chars) for x in range(size))
         try:
@@ -108,7 +109,7 @@ class UserProfileManager(models.Manager):
             if UserProfile.objects.filter(user_type=UserProfile.PORTAL_USER_INTERNAL).exists() else None
 
 
-class UserProfile(models.Model):
+class UserProfile(PolymorphicModel):
     # hacking up bitmaps this way
     BITMAP_BASE = 0
     APP_USER = 1
@@ -208,7 +209,7 @@ class AppUser(BaseUser):
         (settings.DEVICE_ANDROID, 'Android'),
     )
 
-    location = generic.GenericRelation(LocationMgr)
+    location = GenericRelation(LocationMgr)
     do_sync = models.BooleanField(default=False)
     device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True, max_length=200)
@@ -246,10 +247,10 @@ class AppUser(BaseUser):
 
     def create_or_update_location(self, lat, lng):
         try:
-            l = self.location.get()
-            updated = l.do_update(lat, lng)
-            l.reset_timer()
-            return l
+            loc = self.location.get()
+            updated = loc.do_update(lat, lng)
+            loc.reset_timer()
+            return loc
         except ObjectDoesNotExist:
             # create
             l_tuple = location.send(sender=self, lat=lat, lng=lng,
@@ -259,11 +260,11 @@ class AppUser(BaseUser):
     def lookup(self, n, count_only=False):
         users = None
         try:
-            l = self.location.get()
+            loc = self.location.get()
         except ObjectDoesNotExist:
             return None, None
 
-        result, count = l.lookup(n)
+        result, count = loc.lookup(n)
         # convert result to query set result
         if count and not count_only:
             users = [AppUser.objects.get(id=x).profile.user for x in result if
@@ -334,6 +335,7 @@ class AppUser(BaseUser):
         SyncNotification.objects.unacted(self.profile.user).update(readed=False)
         return s
 
+
 class WebOrganizerUser(BaseUser):
     settings = models.OneToOneField(WebOrganizerUserSettings, related_name='base_user')
 
@@ -351,7 +353,7 @@ class WebExhibitorUser(BaseUser):
         # join this User to the Event. We can retrieve this users Events on the portal. Additionally, we need to be
         # aware (and potentially filter out) that "joined users" also contain Exhibitor Users.
         user = self.profile.user
-        [event.join(user) for event in invited_events]
+        [event.user_attach(user, state=UserEntity.JOIN) for event in invited_events]
         invite_objs.update(state=ExhibitorInvitee.ACCEPTED)
 
 
@@ -372,7 +374,7 @@ class FutureUser(models.Model):
     inviter = models.ForeignKey(User, related_name='invitees')
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -429,6 +431,7 @@ class FutureUser(models.Model):
                 notif_tuple=verbs.WIZCARD_TABLE_INVITE,
                 target=self.content_object
             )
+
 
 # Model for Address-Book Support. Standard M2M-through
 MIN_MATCHES_FOR_PHONE_DECISION = 3

@@ -5,6 +5,7 @@ from kombu import Queue, Exchange
 from wizcard import instances
 
 RUNENV = os.getenv('WIZRUNENV', 'dev')
+BASE_DIR = os.path.dirname(__file__)
 
 APP_MAJOR = 2
 APP_MINOR = 1
@@ -28,13 +29,11 @@ WIZCARD_SETTINGS = {
     'dev': {
         'databases': {
             'default': {
-                'ENGINE': 'django.db.backends.mysql',
-                #'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard',
-                'USER': 'root',
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard-dev-merge',
+                'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
-                 'PORT': '5432',
                 # 'CONN_MAX_AGE' : 60,
             }
         },
@@ -432,7 +431,7 @@ MYLOG['dev'] = {
     'handlers': {
         'null': {
             'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'class':'logging.NullHandler',
         },
         'console-simple':{
             'level':'DEBUG',

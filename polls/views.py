@@ -3,11 +3,10 @@ from rest_framework import status
 from base_entity.views import BaseEntityComponentViewSet
 from polls.serializers import QuestionSerializer, QuestionChoicesSerializer
 from entity.serializers import PollSerializer, PollResponseSerializer
-from polls.models import Poll, Question, QuestionChoicesBase, UserResponse
+from polls.models import Poll, Question, QuestionChoicesBase
 from rest_framework.decorators import detail_route
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
-from entity.models import Event
 from base_entity.models import BaseEntityComponent
 
 import pdb
@@ -60,6 +59,7 @@ class PollViewSet(BaseEntityComponentViewSet):
         entity.remove_sub_entity_of_type(poll.pk, BaseEntityComponent.POLL)
 
         return Response("poll %s unlinked from entity" % poll.description, status=status.HTTP_200_OK)
+
 
 class PollQuestionViewSet(BaseEntityComponentViewSet):
     queryset = Question.objects.all()
@@ -151,3 +151,4 @@ class PollAnswersViewSet(BaseEntityComponentViewSet):
     def list(self, request, poll_pk=None):
         poll = Poll.objects.get(id=poll_pk)
         return Response(PollResponseSerializer(poll).data)
+

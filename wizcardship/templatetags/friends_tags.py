@@ -1,6 +1,6 @@
 from django import template
 from django.contrib.auth.models import User
-from cards.models import WizConnectionRequest, Wizcard, UserBlocks
+from wizcardship.models import WizConnectionRequest, Wizcard, UserBlocks
 
 
 register = template.Library()

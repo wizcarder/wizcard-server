@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import  include, url
 import pdb
 
 # Uncomment the next two lines to enable the admin:
@@ -9,11 +9,11 @@ from rest_framework.authtoken import views as rest_framework_views
 
 schema_view = get_schema_view(title='Entity API')
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Examples:
     # url(r'^$', 'wizcard_schema.views.home', name='home'),
-    url(r'^$', include('wizserver.urls')),
-    url(r'^healthstatus$', include('healthstatus.urls')),
+    url(r'^', include('wizserver.urls')),
+    url(r'^healthstatus', include('healthstatus.urls')),
     url(r'^admin/django-ses/', include('django_ses.urls')),
     url(r'^entity/', include('entity.urls')),
     url(r'^wizcard/', include('wizcardship.urls')),
@@ -25,5 +25,5 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
-)
+    #url(r'^admin/', include(admin.site.urls)),
+]

@@ -23,7 +23,7 @@ taganomy_ids = []
 exb_ids = []
 filemap = {'speaker':'ceos.tsv', 'sponsor': 'companies.tsv', 'campaign':'companies.tsv'}
 #User Login
-user_login_payload = {"username": "wizadm", "password": "a1b2c3d4"}
+user_login_payload = {"username": "kappu.biz", "password": "a1b2c3d4"}
 user_register_payload = {"username": "", "password1": "a1b2c3d4", "password2": "a1b2c3d4", "email": "", "first_name":"AA", "last_name":"BB", "user_type": 2}
 
 media_payload = {"media_element": "", "media_type": "", "media_sub_type": ""}
@@ -142,6 +142,7 @@ def create_events(numevents):
     edates = cfg.random_dates
     eloc = cfg.random_locations
     rbanners = cfg.random_banners
+    rlogos = cfg.random_logos
     event_media = []
     for i in range(0, numevents):
         rint = randint(0,len(names)-1)
@@ -161,9 +162,6 @@ def create_events(numevents):
 
         rand_ids = sample(xrange(1, len(cfg.random_banners)), 3)
         event_media = [create_media(cfg.random_banners[x], media_type='IMG', media_sub_type='BNR') for x in rand_ids]
-	
-	rand_ids = sample(xrange(1, len(cfg.random_logos)), 3)
-        event_media = [create_media(cfg.random_logos[x], media_type='IMG', media_sub_type='LGO') for x in rand_ids]
 
         rand_ids = sample(xrange(1, len(cfg.random_videos)), int(cfg.create_config['event_media']/2))
         event_media = event_media + [create_media(cfg.random_videos[x], media_type='VID') for x in rand_ids]
@@ -172,8 +170,13 @@ def create_events(numevents):
                           int(cfg.create_config['event_media'] - cfg.create_config['event_media']/2))
         event_media = event_media + [create_media(cfg.random_images[x]) for x in rand_ids]
 
+        rand_ids = sample(xrange(1, len(cfg.random_logos)), 1)
+	event_logos = [create_media(cfg.random_logos[x]) for x in rand_ids]
+	event_media = event_media + event_logos
+
 
         related_media = {"ids": event_media, "type": "e_media"}
+        #related_polls = {"ids": poll_ids, "type": "e_poll"}
         related_speakers = {"ids": speaker_ids, "type": "e_speaker"}
         event_payload['related'] = [related_media, related_speakers]
 
@@ -185,7 +188,7 @@ def create_events(numevents):
 def create_agenda(numitems, evt, start_date, end_date, speakers ):
 
     start_date = datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
-    start_date = start_date + " 09:00:00"
+    start_date += " 09:00:00"
     payload = dict()
     for item in range(0, numitems):
         payload['start'] = start_date
@@ -206,7 +209,9 @@ def create_agenda(numitems, evt, start_date, end_date, speakers ):
     rest_path = "/entity/agenda/"
     agenda_id = post_retrieve(rest_path, agenda_payload, key="id")
     agenda_ids.append(agenda_id)
-    agenda_payload["items"] = []
+    #event_related_payload["related"] = [{"ids": [agenda_id], "type": "e_agenda"}]
+    #rest_path = "/entity/events/%s/" % str(evt)
+    #event_id = put_retrieve(rest_path, event_related_payload, "id")
 
 
 def create_polls():
@@ -284,11 +289,9 @@ def create_exhibitors(numevents, attach=False):
                     print "User Already exists"
 
 def attach_entities():
-    related_speakers = {"ids": speaker_ids, "type": "e_speaker"}
     related_sponsors = {"ids": sponsor_ids, "type": "e_sponsor"}
     related_campaigns = {"ids": campaign_ids, "type": "e_campaign"}
     related_polls = {"ids": poll_ids, "type": "e_poll"}
-    related_agenda = {"ids": agenda_ids, "type": "e_agenda"}
     event_payload['related'] = []
 
 
@@ -297,7 +300,7 @@ def attach_entities():
         related_agenda = {"ids": [tmp_id], "type": "e_agenda"}
         tmp_id = poll_ids.pop()
         related_poll = {"ids": [tmp_id], "type": "e_poll"}
-        event_payload['related'] = [related_speakers, related_sponsors, related_campaigns, related_polls,
+        event_payload['related'] = [related_sponsors, related_campaigns, related_polls,
                                     related_agenda, related_poll]
 
 
@@ -305,7 +308,7 @@ def attach_entities():
 
 
 
-key = post_retrieve("/users/registration/",{'username':'wizadm', 'email':'anand@dalchemy.com', 'first_name':'Wizadm', 'last_name':'Wizadm', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
+key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
 token = post_retrieve("/users/login/", user_login_payload, key='token')
 headers['Authorization'] = "Token " + token
 #Create Speakers
@@ -313,18 +316,25 @@ numspeakers = cfg.create_config['speakers']
 speakerfile = cfg.create_config['speaker_file']
 create_speakers(numspeakers, speakerfile)
 
-
-numevents = cfg.create_config['events']
-create_events(numevents)
-
-create_taganomy(numevents, attach=True)
 numsponsors = cfg.create_config['sponsors']
 sponsorfile = cfg.create_config['sponsor_file']
 create_sponsors(numsponsors, sponsorfile)
 
 create_polls()
 
+numevents = cfg.create_config['events']
+create_events(numevents)
 
+create_taganomy(numevents, attach=True)
+
+
+#agenda_items = cfg.create_config['agenda_items']
+#for evt in event_ids:
+#    rest_path = "/entity/events/" + str(evt)
+#    start_date = get_retrieve(rest_path, "start")
+#    end_date = get_retrieve(rest_path, "end")
+#    speakers = get_retrieve(rest_path, "speakers")
+#    create_agenda(agenda_items, evt,start_date, end_date, speakers)
 
 create_exhibitors(numevents, attach=True)
 

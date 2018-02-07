@@ -23,10 +23,11 @@ class TaganomyManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
+    def get_tagged_entities(self, tags, entity_type):
+        return super(TaganomyManager, self).get_tagged_entities(tags, entity_type)
 
 
 class Taganomy(BaseEntityComponent, Base411Mixin):
-
 
     objects = TaganomyManager()
 
@@ -37,7 +38,6 @@ class Taganomy(BaseEntityComponent, Base411Mixin):
 
     def register_object(self, obj):
         self.add_subentity_obj(obj, obj.entity_type)
-
 
 
 def tag_signal_handler(sender, **kwargs):

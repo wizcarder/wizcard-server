@@ -12,6 +12,7 @@ wizcardship_cancelled = Signal()
 
 logger = logging.getLogger(__name__)
 
+
 def create_wizcardship_instance(sender, instance, created, raw, **kwargs):
     from cards.models import Wizcard
     if created and not raw:

@@ -7,11 +7,13 @@ import time
 import logging
 import daemon
 import re
+import django
 import json
 
 proj_path = "."
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wizcard.settings")
+django.setup()
 sys.path.append(proj_path)
 sys.path.append("..")
 sys.path.append("../location_service")

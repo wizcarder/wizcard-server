@@ -1,11 +1,12 @@
 from django.db import models
 import heapq
 from wizcardship.models import Wizcard
-from notifications.models import SyncNotification
+
 from lib import wizlib
 from datetime import timedelta
 from django.core.cache import cache
 import pdb
+import datetime
 
 from django.utils import timezone
 
@@ -17,7 +18,7 @@ except ImportError:
 
 MEISHI_TIME_THRESHOLD = 10
 
-#TODO: Need to see whether lat, lng granularity can be increased
+# TODO: Need to see whether lat, lng granularity can be increased
 MEISHI_DIST_THRESHOLD = 200.00
 
 
@@ -26,7 +27,7 @@ class MeishiMgr(models.Manager):
     # Time interval between 2 gestures in seconds
 
     def get_candidates(self, m):
-        #filter those who are +- 10 seconds ?
+        # filter those who are +- 10 seconds ?
         qs1 = self.exclude(wizcard=m.wizcard).order_by('-timestamp')
         delta = timedelta(seconds=MEISHI_TIME_THRESHOLD)
         end_time = m.timestamp + delta

@@ -1,7 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+from . import views
 
 
-urlpatterns = patterns(
-    'wizserver.views',
-    url(r'^$', 'wizrequest_handler')
-)
+urlpatterns = [
+    url(r'^$', views.wizrequest_handler)
+]

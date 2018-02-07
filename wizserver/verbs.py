@@ -21,36 +21,35 @@ MSG_QUERY_USER          = 16
 MSG_ENTITY_CREATE       = 17
 MSG_ENTITY_DESTROY      = 18
 MSG_ENTITY_EDIT         = 19
-MSG_ENTITY_JOIN         = 20
-MSG_ENTITY_LEAVE        = 21
-MSG_ENTITY_SUMMARY      = 22
-MSG_ENTITY_DETAILS      = 23
-MSG_ENTITY_QUERY        = 24
-MSG_MY_ENTITIES         = 25
-MSG_GET_EVENTS          = 26
-MSG_ENTITIES_ENGAGE     = 28
-MSG_SETTINGS            = 29
-MSG_OCR_SELF            = 30
-MSG_OCR_DEAD_CARD       = 31
-MSG_OCR_EDIT            = 32
-MSG_EMAIL_TEMPLATE      = 33
-MSG_GET_RECOMMENDATION  = 34
-MSG_SET_RECO_ACTION     = 35
-MSG_GET_COMMON_CONNECTIONS = 36
-MSG_GET_VIDEO_THUMBNAIL = 37
-MSG_POLL_RESPONSE       = 38
-MSG_MEISHI_START        = 39
-MSG_MEISHI_FIND         = 40
-MSG_MEISHI_END          = 41
-MSG_FLICK               = 42
-MSG_FLICK_ACCEPT        = 43
-MSG_FLICK_ACCEPT_CONNECT = 44
-MSG_FLICK_QUERY         = 45
-MSG_MY_FLICKS           = 46
-MSG_FLICK_WITHDRAW      = 47
-MSG_FLICK_EDIT          = 48
-MSG_FLICK_PICKS         = 49
-MSG_LEAD_SCAN           = 50
+MSG_ENTITY_ACCESS       = 20
+MSG_ENTITY_SUMMARY      = 21
+MSG_ENTITY_DETAILS      = 22
+MSG_ENTITY_QUERY        = 23
+MSG_MY_ENTITIES         = 24
+MSG_GET_EVENTS          = 25
+MSG_ENTITIES_ENGAGE     = 26
+MSG_SETTINGS            = 27
+MSG_OCR_SELF            = 28
+MSG_OCR_DEAD_CARD       = 29
+MSG_OCR_EDIT            = 30
+MSG_EMAIL_TEMPLATE      = 31
+MSG_GET_RECOMMENDATION  = 32
+MSG_SET_RECO_ACTION     = 33
+MSG_GET_COMMON_CONNECTIONS = 34
+MSG_GET_VIDEO_THUMBNAIL = 35
+MSG_POLL_RESPONSE       = 36
+MSG_MEISHI_START        = 37
+MSG_MEISHI_FIND         = 38
+MSG_MEISHI_END          = 39
+MSG_FLICK               = 40
+MSG_FLICK_ACCEPT        = 41
+MSG_FLICK_ACCEPT_CONNECT = 42
+MSG_FLICK_QUERY         = 43
+MSG_MY_FLICKS           = 44
+MSG_FLICK_WITHDRAW      = 45
+MSG_FLICK_EDIT          = 46
+MSG_FLICK_PICKS         = 47
+MSG_LEAD_SCAN           = 48
 
 
 wizcardMsgTypes = {
@@ -80,8 +79,7 @@ wizcardMsgTypes = {
     'entity_create'               : MSG_ENTITY_CREATE,
     'entity_destroy'              : MSG_ENTITY_DESTROY,
     'entity_edit'                 : MSG_ENTITY_EDIT,
-    'entity_join'                 : MSG_ENTITY_JOIN,
-    'entity_leave'                : MSG_ENTITY_LEAVE,
+    'entity_access'               : MSG_ENTITY_ACCESS,
     'entity_summary'              : MSG_ENTITY_SUMMARY,
     'entity_details'              : MSG_ENTITY_DETAILS,
     'entity_query'                : MSG_ENTITY_QUERY,
@@ -102,7 +100,7 @@ wizcardMsgTypes = {
     'get_common_connections'      : MSG_GET_COMMON_CONNECTIONS,
     'get_video_thumbnail'         : MSG_GET_VIDEO_THUMBNAIL,
     'poll_response'               : MSG_POLL_RESPONSE,
-    'lead_scan'                   : MSG_LEAD_SCAN
+    'lead_scan'                   : MSG_LEAD_SCAN,
 }
 
 
@@ -248,6 +246,15 @@ notif_type_tuple_dict = {
     NOTIF_ENTITY_DELETE: WIZCARD_ENTITY_DELETE,
     NOTIF_ENTITY_BROADCAST: WIZCARD_ENTITY_BROADCAST,
 }
+
+EMAIL_TEMPLATE_MAPPINGS = {
+    NOTIF_NEW_WIZUSER: {"template": "welcome.html", "subject": "Welcome %s to WizCard"},
+    NOTIF_SCANNED_USER: {"template": "emailwizcard.html", "subject": "%s has scanned your card on WizCard"},
+    NOTIF_INVITE_ATTENDEE: {"template": "invite_attendee.html", "subject": "%s - has invited you to Create your Campaign"},
+    NOTIF_INVITE_EXHIBITOR: {"template": "invite_exhibitor.html", "subject": "%s - Welcome to %s"},
+    NOTIF_INVITE_USER: {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"},
+}
+
 
 apns_notification_dictionary = {
     get_notif_type(WIZREQ_U)	: {

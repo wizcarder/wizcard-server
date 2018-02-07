@@ -1,7 +1,6 @@
 # define all outbound responses here
-import datetime
 from django.contrib.contenttypes.models import ContentType
-from wizcardship.models import Wizcard, WizcardFlick
+from wizcardship.models import Wizcard
 from entity.models import VirtualTable
 from base.cctx import NotifContext
 from django.http import HttpResponse
@@ -63,7 +62,8 @@ class Response:
             return True
         return False
 
-# subclass of above. This handles arrays of Data and used by Notifications
+
+#subclass of above. This handles arrays of Data and used by Notifications
 class ResponseN(Response):
     def __init__(self):
         Response.__init__(self)
@@ -96,7 +96,7 @@ class SyncNotifResponse(ResponseN):
 
     def __init__(self, notifications):
         ResponseN.__init__(self)
-        notifHandler = {
+        notif_handler = {
             verbs.get_notif_type(verbs.WIZREQ_U)                    : self.notifWizConnectionU,
             verbs.get_notif_type(verbs.WIZREQ_T)  	                : self.notifWizConnectionT,
             verbs.get_notif_type(verbs.WIZREQ_T_HALF)               : self.notifWizConnectionH,
@@ -118,7 +118,7 @@ class SyncNotifResponse(ResponseN):
         }
 
         for notification in notifications:
-            notifHandler[notification.notif_type](notification)
+            notif_handler[notification.notif_type](notification)
 
     def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
@@ -377,17 +377,22 @@ class AsyncNotifResponse:
         except:
             return -1
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard(wizcard, to, email_details, half_card=True)
+        send_wizcard.delay(wizcard, to, email_details, half_card=True)
         return 0
 
     def notifScannedUser(self, notif):
-        wizcard = notif.sender.wizcard
+        wizcard = notif.sender.wizcard       
         try:
+            # AA: Review: Is get_email a method ?
             to = notif.target.get_email
         except:
+            # AA: Review. AR to fix (and below)
             return -1
+        
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard(wizcard, to, email_details, half_card=True)
+        send_wizcard.delay(wizcard, to, email_details, half_card=True)
+        
+        # AA: Review. PLSSS...enough of C like code.
         return 0
 
     def notifInviteUser(self, notif):
@@ -395,21 +400,26 @@ class AsyncNotifResponse:
         try:
             to = notif.target.get_email
         except:
-            return -1
+            return -1       
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard(wizcard, to, email_details)
+        
+        # AA: Review: Why does this need to be .delay. This caller
+        # is already in celery context
+        send_wizcard.delay(wizcard, to, email_details)
         return 0
 
     def notifInviteExhibitor(self, notif):
         event_organizer = notif.sender
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_event(event_organizer, notif.recipient, email_details)
+        
+        send_event.delay(event_organizer, notif.recipient, email_details)
         return 0
 
     def notifInviteAttendee(self, notif):
         event_organizer = notif.sender
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_event(event_organizer, notif.recipient, email_details)
+        
+        send_event.delay(event_organizer, notif.recipient, email_details)
         return 0
 
 
