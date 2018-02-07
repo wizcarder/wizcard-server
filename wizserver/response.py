@@ -1,7 +1,7 @@
 # define all outbound responses here
 import datetime
 from django.contrib.contenttypes.models import ContentType
-from wizcardship.models import  Wizcard, WizcardFlick
+from wizcardship.models import Wizcard, WizcardFlick
 from entity.models import VirtualTable
 from base.cctx import NotifContext
 from django.http import HttpResponse
@@ -17,8 +17,10 @@ from django.utils import timezone
 from django.conf import settings
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
+from lib.create_share import send_event, send_wizcard
 
 logger = logging.getLogger(__name__)
+
 
 # This is the basic Response class used to send simple result and data
 class Response:
@@ -369,16 +371,45 @@ class AsyncNotifResponse:
         pass
 
     def notifNewUser(self, notif):
-        pass
+        wizcard = notif.target
+        try:
+            to = notif.target.get_email
+        except:
+            return -1
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_wizcard(wizcard, to, email_details, half_card=True)
+        return 0
 
     def notifScannedUser(self, notif):
-        pass
+        wizcard = notif.sender.wizcard
+        try:
+            to = notif.target.get_email
+        except:
+            return -1
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_wizcard(wizcard, to, email_details, half_card=True)
+        return 0
 
     def notifInviteUser(self, notif):
-        pass
+        wizcard = notif.sender.wizcard
+        try:
+            to = notif.target.get_email
+        except:
+            return -1
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_wizcard(wizcard, to, email_details)
+        return 0
 
     def notifInviteExhibitor(self, notif):
-        pass
+        event_organizer = notif.sender
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_event(event_organizer, notif.recipient, email_details)
+        return 0
 
     def notifInviteAttendee(self, notif):
-        pass
+        event_organizer = notif.sender
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_event(event_organizer, notif.recipient, email_details)
+        return 0
+
+

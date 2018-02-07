@@ -81,12 +81,27 @@ class EventViewSet(BaseEntityViewSet):
     @detail_route(methods=['post'])
     def invite_attendees(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
+        attendee_invitees = request.data['ids']
 
-        attendees = request.data
+        existing_users, existing_attendees = ExhibitorInvitee.objects.check_existing_users_attendees(
+            attendee_invitees
+        )
+        [inst.join(u, notify=False) for u in existing_users]
 
-        valid_candidates = inst.add_subentities(attendees, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        for e in existing_attendees:
+            e.state = AttendeeInvitee.ACCEPTED
+            e.save()
 
-        return Response(AttendeeInviteeSerializer(valid_candidates, many=True)).data
+        new_attendees = [x for x in attendee_invitees if x not in existing_attendees.values_list('id', flat=True)]
+
+        # relate these with Event
+        invited_attendees = inst.add_subentities(new_attendees, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        for i in invited_attendees:
+            i.state = AttendeeInvitee.INVITED
+            i.save()
+
+        result_list = list(chain(existing_attendees, invited_attendees))
+        return Response(AttendeeInviteeSerializer(result_list, many=True).data)
 
     @detail_route(methods=['put'])
     def publish_event(self, request, pk=None):

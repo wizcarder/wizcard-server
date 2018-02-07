@@ -169,12 +169,13 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'lj*=)*k$_^rx3bs+22=*og)d=eh)(jdc4df!q5=b!%&amp;0kskuad'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#   'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS' : [os.path.join(BASE_DIR, 'templates'),],
+        'OPTIONS' : { 'context_processors': [ 'django.contrib.auth.context_processors.auth'], },
+    },
+]
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -279,14 +280,6 @@ WSGI_APPLICATION = 'wizcard.wsgi.application'
 
 SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(SETTINGS_PATH, 'templates'),
-
-)
-
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -301,6 +294,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.postgres',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -323,7 +317,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'meishi',
     'healthstatus',
-    'django_ses',
     'recommendation',
     'stats',
     'commands',
@@ -364,16 +357,11 @@ DEFAULT_VIDEO_THUMBNAIL = AWS_STORAGE_BUCKET_NAME+ "/thumbnails/no-video-uploade
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
 
+# SENDGRID SETTINGS
+SENDGRID_API_KEY = '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'
+EMAIL_BACKEND = "sgbackend.SendGridBackend"
 
-#django-ses Settings
-SES_SMTP_USER = 'AKIAJIXICBLUCPSKQPKA'
-SES_SMTP_PASS = 'AgHl9hZWrbH51ur6WorLxNJ7ETxb8fmqHg2OUbkVDKrv'
-AWS_SES_REGION_NAME = 'us-east-1'
-AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
-EMAIL_BACKEND='django_ses.SESBackend'
-#AWS_RETURN_PATH='wizcarder@gmail.com'
 AWS_RETURN_PATH='admin@getwizcard.com'
-SES_RETURN_PATH='admin@getwizcard.com'
 DEFAULT_FROM_EMAIL='admin@getwizcard.com'
 #ACCOUNT_EMAIL_VERIFICATION='mandatory'
 ACCOUNT_EMAIL_REQUIRED=True
