@@ -210,6 +210,18 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
             user,
             entity_type=entity_type
         )
+    def check_existing_users_attendees(self, invitee_ids):
+        matched_users = User.objects.filter(
+            email__in=self.filter(
+                id__in=invitee_ids
+            ).values_list('email', flat=True)
+        )
+
+        matched_attendees = self.filter(
+            email__in=matched_users.values_list('email', flat=True)
+        )
+
+        return matched_users, matched_attendees
 
 
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):

@@ -1473,7 +1473,7 @@ if TEST_TABLE:
     reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_EMAIL3, messages.FUTURE_EMAIL4]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
     #t2 -> fu3, fu4 via sms, asset_type = Table
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1485,7 +1485,7 @@ if TEST_TABLE:
     reqmsg['receiver']['receiver_ids'] = [messages.FUTURE_PHONE3, messages.FUTURE_PHONE4]
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
 
 
 # Flick Tests

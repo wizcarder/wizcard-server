@@ -667,7 +667,6 @@ class ExhibitorInviteeSerializer(EntitySerializer):
     class Meta:
         model = ExhibitorInvitee
         fields = ('id', 'name', 'email', 'state',)
-        read_only_fields = ('state',)
 
     state = serializers.ChoiceField(
         choices=ExhibitorInvitee.INVITE_CHOICES,
@@ -693,7 +692,12 @@ class AttendeeInviteeSerializer(EntitySerializer):
     class Meta:
         model = AttendeeInvitee
         fields = ('id', 'name', 'email', 'state',)
-        read_only_fields = ('state',)
+
+    state = serializers.ChoiceField(
+        choices=AttendeeInvitee.INVITE_CHOICES,
+        required=False,
+        read_only=True,
+    )
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.ATTENDEE_INVITEE)

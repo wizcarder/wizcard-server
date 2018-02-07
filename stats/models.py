@@ -308,12 +308,15 @@ class StatsMgr(models.Manager):
         if state == UserEntity.JOIN:
             user_stats.entity_join += 1
             global_stats.entity_join += 1
-        if state == UserEntity.PIN:
+        elif state == UserEntity.PIN:
             user_stats.entity_pin += 1
-            global_stats.entity_join += 1
-        if state == UserEntity.LEAVE:
-            user_stats.entity_pin += 1
-            global_stats.entity_join += 1
+            global_stats.entity_pin += 1
+        elif state == UserEntity.LEAVE:
+            user_stats.entity_leave += 1
+            global_stats.entity_leave += 1
+        elif state == UserEntity.UNPIN:
+            user_stats.entity_unpin += 1
+            global_stats.entity_unpin += 1
 
         user_stats.save()
         global_stats.save()
@@ -321,6 +324,7 @@ class StatsMgr(models.Manager):
     def inc_entity_query(self, user_stats, global_stats, **kwargs):
         user_stats.entity_query += 1
         global_stats.entity_query += 1
+
         user_stats.save()
         global_stats.save()
 

@@ -10,11 +10,6 @@ from entity.models import CoOwners
 from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
 
-from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
-from wizserver import verbs
-from random import sample
-import pdb
-
 
 class RelatedSerializerField(serializers.RelatedField):
 

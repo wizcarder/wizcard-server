@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.conf import settings
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
+from lib.create_share import send_event, send_wizcard
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,7 @@ class SyncNotifResponse(ResponseN):
 
     def __init__(self, notifications):
         ResponseN.__init__(self)
-        notifHandler = {
+        notif_handler = {
             verbs.get_notif_type(verbs.WIZREQ_U)                    : self.notifWizConnectionU,
             verbs.get_notif_type(verbs.WIZREQ_T)  	                : self.notifWizConnectionT,
             verbs.get_notif_type(verbs.WIZREQ_T_HALF)               : self.notifWizConnectionH,
@@ -342,16 +343,45 @@ class AsyncNotifResponse:
         pass
 
     def notifNewUser(self, notif):
-        pass
+        wizcard = notif.target
+        try:
+            to = notif.target.get_email
+        except:
+            return -1
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_wizcard.delay(wizcard, to, email_details, half_card=True)
+        return 0
 
     def notifScannedUser(self, notif):
-        pass
+        wizcard = notif.sender.wizcard
+        try:
+            to = notif.target.get_email
+        except:
+            return -1
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_wizcard.delay(wizcard, to, email_details, half_card=True)
+        return 0
 
     def notifInviteUser(self, notif):
-        pass
+        wizcard = notif.sender.wizcard
+        try:
+            to = notif.target.get_email
+        except:
+            return -1
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_wizcard.delay(wizcard, to, email_details)
+        return 0
 
     def notifInviteExhibitor(self, notif):
-        pass
+        event_organizer = notif.sender
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_event.delay(event_organizer, notif.recipient, email_details)
+        return 0
 
     def notifInviteAttendee(self, notif):
-        pass
+        event_organizer = notif.sender
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        send_event.delay(event_organizer, notif.recipient, email_details)
+        return 0
+
+
