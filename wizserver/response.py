@@ -225,13 +225,31 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifEntityDelete(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_ENTITY_DELETE)
+        out = dict(
+            entity_id=notif.target.id,
+            entity_type=notif.target_content_type.model,
+            sub_entity_id=notif.action_object_object_id,
+            sub_entity_type=notif.action_object_content_type.model,
+        )
+
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_DELETE, notif.id)
+
+        return self.response
 
     def notifEntityExpire(self, notif):
         self.notifEvent(notif, verbs.NOTIF_ENTITY_EXPIRE)
 
     def notifEntityUpdate(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
+        out = dict(
+            entity_id=notif.target.id,
+            entity_type=notif.target_content_type.model,
+            sub_entity_id=notif.action_object_object_id,
+            sub_entity_type=notif.action_object_content_type.model,
+        )
+
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_UPDATE, notif.id)
+
+        return self.response
 
     def notifEntityBroadcast(self, notif):
         if notif.target:

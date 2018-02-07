@@ -59,6 +59,10 @@ class Event(BaseEntity):
         tagged_entities = taganomy.get_entities(tags__in=tag)
         '''
 
+    def get_parent_entities(self):
+        # no parent for event
+        return [self]
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
@@ -236,6 +240,10 @@ class AgendaItem(BaseEntity):
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
 
+    # override method to skip immediate parent and get agenda's parent
+    def get_parent_entities(self):
+        return self.agenda.get_parent_entities()
+
 
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -254,5 +262,6 @@ def create_engagement_stats(sender, instance, created, **kwargs):
 
 @receiver(user_type_created)
 def connect_subentities(sender, **kwargs):
+    # AA: Review. What happens when multiple user_types exist for User
     b_usr = sender.get_baseuser_by_type(kwargs.pop('user_type'))
     b_usr.connect_subentities()

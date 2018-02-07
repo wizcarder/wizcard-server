@@ -53,19 +53,10 @@ class BaseNotificationManager(models.Manager):
 
 
 class BaseNotification(models.Model):
-    DELIVERY_MODE_EMAIL = 1
-    DELIVERY_MODE_ALERT = 2
-
-    DELIVERY_MODE = (
-        (DELIVERY_MODE_EMAIL, 'email'),
-        (DELIVERY_MODE_ALERT, 'alert')
-    )
 
     # async goes in EmailPush, sync goes in SyncNotification
     DELIVERY_TYPE_ASYNC = 1
     DELIVERY_TYPE_SYNC = 2
-
-    delivery_mode = models.PositiveSmallIntegerField(choices=DELIVERY_MODE, default=DELIVERY_MODE_ALERT)
 
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
@@ -235,7 +226,6 @@ def notify_handler(sender, **kwargs):
     actor = sender
     recipient = kwargs.pop('recipient')
     notif_tuple = kwargs.pop('notif_tuple')
-    delivery_mode = kwargs.pop('delivery_mode', BaseNotification.DELIVERY_MODE_ALERT)
     target = kwargs.pop('target', None)
     action_object = kwargs.pop('action_object', None)
     action_object_content_type = ContentType.objects.get_for_model(action_object) if action_object else None
@@ -264,7 +254,6 @@ def notify_handler(sender, **kwargs):
             action_object_content_type=action_object_content_type,
             action_object_object_id=action_object_object_id,
             readed=False,
-            delivery_mode=delivery_mode,
             notif_type=verbs.get_notif_type(notif_tuple),
             verb=verbs.get_notif_verb(notif_tuple),
             timestamp=kwargs.pop('timestamp', timezone.now()),

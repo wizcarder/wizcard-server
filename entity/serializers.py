@@ -490,6 +490,8 @@ class TableSerializerL1(EntitySerializer):
             status = "creator"
         elif obj.is_joined(user):
             status = "joined"
+        elif not obj.get_creator().profile.is_app_user():
+            status = "others"
         elif Wizcard.objects.are_wizconnections(user.wizcard, obj.get_creator().wizcard):
             status = "connected"
         else:

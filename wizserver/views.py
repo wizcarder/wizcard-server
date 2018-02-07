@@ -1035,7 +1035,6 @@ class ParseMsgAndDispatch(object):
                 recipient=self.user,
                 notif_tuple=verbs.WIZCARD_NEW_USER,
                 target=wizcard,
-                delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
             )
 
         self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
@@ -1756,7 +1755,6 @@ class ParseMsgAndDispatch(object):
                         recipient=self.user,
                         notif_tuple=verbs.WIZCARD_INVITE_USER,
                         target=wizcard,
-                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                     )
             else:
                 fuser = FutureUser.objects.get_or_create(
@@ -1772,7 +1770,6 @@ class ParseMsgAndDispatch(object):
                         recipient=self.user,
                         notif_tuple=verbs.WIZCARD_INVITE_USER,
                         target=fuser[0],
-                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                     )
 
     def UserQuery(self):
@@ -2064,7 +2061,6 @@ class ParseMsgAndDispatch(object):
                     recipient=self.user,
                     notif_tuple=verbs.WIZCARD_SCANNED_USER,
                     target=deadcard,
-                    delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                 )
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
@@ -2202,7 +2198,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        entity.join(self.user)
+        entity.join(self.user, do_notify=True)
 
         out = s(entity, **self.user_context).data
         self.response.add_data("result", out)
@@ -2220,7 +2216,7 @@ class ParseMsgAndDispatch(object):
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
-        entity.leave(self.user)
+        entity.leave(self.user, do_notify=True)
 
         out = s(entity, **self.user_context).data
         self.response.add_data("result", out)
@@ -2371,6 +2367,7 @@ class ParseMsgAndDispatch(object):
         if count:
             self.response.add_data("result", out)
         self.response.add_data("count", count)
+
         return self.response
 
     def EntityDetails(self):

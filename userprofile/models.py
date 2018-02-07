@@ -110,11 +110,11 @@ class UserProfileManager(models.Manager):
 
 class UserProfile(models.Model):
     # hacking up bitmaps this way
-    BITMAP_BASE = 1
-    APP_USER = BITMAP_BASE
-    WEB_ORGANIZER_USER = BITMAP_BASE << 1
-    WEB_EXHIBITOR_USER = BITMAP_BASE << 2
-    PORTAL_USER_INTERNAL = BITMAP_BASE << 6
+    BITMAP_BASE = 0
+    APP_USER = 1
+    WEB_ORGANIZER_USER = APP_USER << 1
+    WEB_EXHIBITOR_USER = APP_USER << 2
+    PORTAL_USER_INTERNAL = APP_USER << 6
 
     # this is the internal userid
     userid = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -178,12 +178,21 @@ class UserProfile(models.Model):
                 profile=self,
                 settings=WebExhibitorUserSettings.objects.create()
             )
+        else:
+            raise AssertionError("Invalid user type %s" % user_type)
 
         self.save()
 
         # things like future user etc can be done here.
         user_type_created.send(sender=self, user_type=user_type)
         return user_obj
+
+    def is_user_of_type(self, user_type):
+        return self.user_type & user_type
+
+    def is_app_user(self):
+        return self.is_user_of_type(self.APP_USER)
+
 
 
 class BaseUser(PolymorphicModel):

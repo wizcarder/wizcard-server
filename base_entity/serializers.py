@@ -10,9 +10,7 @@ from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComp
 from entity.models import CoOwners
 from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
-from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
 from wizserver import verbs
-from random import sample
 import pdb
 
 
@@ -167,7 +165,7 @@ class EntitySerializer(EntitySerializerL0):
 
         return obj
 
-    def post_create_update(self, entity, update=True):
+    def post_create_update(self, entity, update=False):
         if self.owners:
             BaseEntityComponent.add_owners(entity, self.owners)
 
@@ -179,12 +177,8 @@ class EntitySerializer(EntitySerializerL0):
    
                 entity.add_subentities(**s)
 
-            entity.notify_subscribers()
-
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])
-
-        # TODO: Handle owners and create linkage to existing owners
 
         # Generate Tags
         if self.tags:
@@ -194,7 +188,7 @@ class EntitySerializer(EntitySerializerL0):
         if self.taganomy:
             self.taganomy.register_object(entity)
 
-        if update:
-            entity.notify_subscribers()
+        # send entity_update (with sub_entity granularity)
+        BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE)
 
         return entity

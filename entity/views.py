@@ -61,7 +61,7 @@ class EventViewSet(BaseEntityViewSet):
         existing_users, existing_exhibitors = ExhibitorInvitee.objects.check_existing_users_exhibitors(
             exhibitor_invitees
         )
-        [inst.join(u, notify=False) for u in existing_users]
+        [inst.join(u) for u in existing_users]
 
         for e in existing_exhibitors:
             e.state = ExhibitorInvitee.ACCEPTED
@@ -91,7 +91,7 @@ class EventViewSet(BaseEntityViewSet):
     @detail_route(methods=['put'])
     def publish_event(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
-        inst.make_live()
+        inst.activate()
         return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
 
 

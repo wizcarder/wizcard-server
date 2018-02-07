@@ -32,6 +32,22 @@ class BaseEntityComponentManager(PolymorphicManager):
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
         return user.owners_baseentitycomponent_related.all().instance_of(cls)
 
+    def notify_via_entity_parent(self, entity, notif_tuple):
+        # get parent entities
+        parents = entity.get_parent_entities()
+
+        # Q broadcast notif. Target=parent, action_object=sub-entity, notif_type=EntityUpdate
+        [
+            notify.send(
+                parent.get_creator(),
+                # recipient is dummy
+                recipient=parent.get_creator(),
+                notif_tuple=notif_tuple,
+                target=parent,
+                action_object=entity
+            ) for parent in parents if parent.is_active()
+        ]
+
 
 class BaseEntityManager(BaseEntityComponentManager):
     def create(self, *args, **kwargs):
@@ -380,16 +396,6 @@ class BaseEntityComponent(PolymorphicModel):
     def modified_since(self, timestamp):
         return True
 
-    def notify_subscribers(self):
-        verb = "%s - %s Updated" % (self.entity_type, str(self.id))
-        self.notify_parents(verb)
-
-    def notify_parents(self, verb):
-        # Is there a possibility of cycle here ??
-
-        parents = self.get_parent_entities()
-        map(lambda x: x.notify_subscribers(), parents)
-
 
 class BaseEntityComponentsOwner(models.Model):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
@@ -445,7 +451,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def join(self, user, do_notify=True):
+    def join(self, user, do_notify=False):
         e, created = UserEntity.user_join(user=user, base_entity_obj=self)
         if created:
             self.num_users += 1
@@ -458,7 +464,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 recipient=self.get_creator(),
                 notif_tuple=verbs.WIZCARD_ENTITY_JOIN,
                 target=self,
-                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT
             )
 
         return self
@@ -466,7 +471,10 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def is_joined(self, user):
         return bool(self.users.filter(id=user.id).exists())
 
-    def leave(self, user, do_notify=True):
+    def is_active(self):
+        return bool(self.is_activated and not self.expired)
+
+    def leave(self, user, do_notify=False):
         UserEntity.user_leave(user, self)
         self.num_users -= 1
         self.save()
@@ -476,8 +484,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 user,
                 recipient=self.get_creator(),
                 notif_tuple=verbs.WIZCARD_ENTITY_LEAVE,
-                target=self,
-                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT
+                target=self
             )
 
         return self
@@ -493,15 +500,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def flood_set(self, **kwargs):
         return [x for x in self.users.all() if hasattr(x, 'wizcard')]
 
-    def notify_subscribers(self):
-        super(BaseEntity, self).notify_subscribers()
-        # self.notify_all_users(
-        #     self.get_creator(),
-        #     verbs.WIZCARD_ENTITY_UPDATE[0],
-        #     self,
-        #     verb=verbs.WIZCARD_ENTITY_UPDATE[1]
-        # )
-
     def get_banner(self):
         media_row = self.get_sub_entities_of_type(entity_type=BaseEntity.SUB_ENTITY_MEDIA)
         if media_row:
@@ -509,8 +507,12 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return ""
 
-    def make_live(self):
+    def activate(self):
         self.is_activated = True
+        self.save()
+
+    def expire(self):
+        self.expired = True
         self.save()
 
     def delete(self, *args, **kwargs):
@@ -526,13 +528,12 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.location.get().delete()
 
         if delete_type == self.ENTITY_EXPIRE:
-            self.expired = True
-            self.save()
+            self.expire()
         else:
             self.related.all().delete()
             super(BaseEntity, self).delete(*args, **kwargs)
 
-    def expire(self):
+    def do_expire(self):
         self.delete(type=self.ENTITY_EXPIRE)
 
     def modified_since(self, timestamp):
