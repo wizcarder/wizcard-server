@@ -31,7 +31,8 @@ from django.db.models import Q
 from lib import wizlib
 from wizcard import err
 from wizserver import verbs
-from notifications.models import notify, Notification
+from notifications.signals import notify
+from notifications.models import SyncNotification
 from django.db.models import URLField
 from polymorphic.models import PolymorphicModel
 from polymorphic.manager import PolymorphicManager
@@ -39,7 +40,7 @@ from base.mixins import MediaMixin
 from lib.ocr import OCR
 from base.mixins import CompanyTitleMixin
 from genericm2m.models import RelatedObjectsDescriptor
-
+from notifications.models import BaseNotification
 
 logger = logging.getLogger(__name__)
 
@@ -106,34 +107,31 @@ class WizcardManager(PolymorphicManager):
         rel2 = Wizcard.objects.cardit(wizcard2, wizcard1, status=verbs.ACCEPTED, cctx=cctx)
 
         #send Type 1 notification to both
-        notify.send(wizcard1.user, recipient=wizcard2.user,
-                    notif_type=verbs.WIZREQ_T[0],
-                    description=cctx.description,
-                    target=wizcard1,
-                    verb=verbs.WIZREQ_T[verbs.VERB_IDX],
-                    action_object=rel1)
+        notify.send(
+            wizcard1.user, recipient=wizcard2.user,
+            notif_tuple=verbs.WIZREQ_T,
+            description=cctx.description,
+            target=wizcard1,
+            action_object=rel1
+        )
 
-        notify.send(wizcard2.user, recipient=wizcard1.user,
-                        notif_type=verbs.WIZREQ_T[0],
-                        description=cctx.description,
-                        target=wizcard2,
-                        verb=verbs.WIZREQ_T[verbs.VERB_IDX],
-                        action_object=rel2)
+        notify.send(
+            wizcard2.user, recipient=wizcard1.user,
+            description=cctx.description,
+            target=wizcard2,
+            notif_tuple=verbs.WIZREQ_T,
+            action_object=rel2
+        )
 
         return err.OK
 
     def update_wizconnection(self, wizcard1, wizcard2, half=False):
-        # suppress if unread notif already exists
-        if not Notification.objects.filter(
-                recipient=wizcard2.user,
-                target_object_id=wizcard1.id,
-                readed=False,
-                notif_type=verbs.WIZCARD_UPDATE[0]).exists():
-            notify.send(wizcard1.user,
-                        recipient=wizcard2.user,
-                        notif_type=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE[0],
-                        verb=verbs.WIZCARD_UPDATE_HALF[0] if half else verbs.WIZCARD_UPDATE_HALF[0],
-                        target=wizcard1)
+        notify.send(
+            wizcard1.user,
+            recipient=wizcard2.user,
+            notif_tuple=verbs.WIZCARD_UPDATE_HALF if half else verbs.WIZCARD_UPDATE_FULL,
+            target=wizcard1
+        )
 
     def query_users(self, exclude_user, name, phone, email):
         #name can be first name, last name or even combined
@@ -302,12 +300,32 @@ class Wizcard(WizcardBase):
         return out
 
     def flood(self):
-        # full card for connections and half for followers
-        for wizcard in self.get_connections():
-            Wizcard.objects.update_wizconnection(self, wizcard, half=False)
+        # Q two aync notifs, one for half and one each for full & half
+        notify.send(
+            self.user,
+            # recipient is dummy at this stage
+            recipient=self.user,
+            notif_tuple=verbs.WIZCARD_UPDATE_HALF,
+            target=self
+        )
 
-        for wizcard in self.get_followers_only():
-            Wizcard.objects.update_wizconnection(self, wizcard, half=True)
+        notify.send(
+            self.user,
+            # recipient is dummy at this stage
+            recipient=self.user,
+            notif_tuple=verbs.WIZCARD_UPDATE_FULL,
+            target=self
+        )
+
+    # typically kwargs can contain the notif tuple
+    def flood_set(self, **kwargs):
+
+        # full card for connections and half for followers
+        fs_w = self.get_connections() if verbs.get_notif_type(kwargs.pop('ntuple')) == verbs.NOTIF_UPDATE_WIZCARD_F \
+            else self.get_followers_only()
+
+        fs_u = [x.user for x in fs_w]
+        return fs_u
 
     def check_flick_duplicates(self, lat, lng):
         if not settings.DO_FLICK_AGGLOMERATE:
@@ -642,6 +660,7 @@ class WizcardFlick(models.Model):
 
         return loc
 
+    # AA: TODO. The whole flick thing needs to be revisited anyway.
     def delete(self, *args, **kwargs):
         notif = kwargs.pop('type', None)
         self.location.get().delete()
@@ -651,11 +670,12 @@ class WizcardFlick(models.Model):
             logger.debug('timeout flicked wizcard %s', self.id)
             self.expired = True
             self.save()
-            notify.send(self.wizcard.user,
-                        recipient=self.wizcard.user,
-                        notif_type=verbs.WIZCARD_FLICK_TIMEOUT[0],
-                        verb=verbs.WIZCARD_FLICK_TIMEOUT[verbs.VERB_IDX],
-                        target=self)
+            notify.send(
+                self.wizcard.user,
+                recipient=self.wizcard.user,
+                notif_tuple=verbs.WIZCARD_FLICK_TIMEOUT,
+                target=self
+            )
         else:
             #withdraw/delete flick case
             logger.debug('withdraw flicked wizcard %s', self.id)

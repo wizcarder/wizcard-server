@@ -80,7 +80,6 @@ class Meishi(models.Model):
         return wizlib.haversine(self.lng, self.lat, lng, lat)
 
     def satisfies_space_constraint(self, candidate):
-        return True
         meishi_distance = self.distance_from(candidate.lat, candidate.lng)
         if meishi_distance <= MEISHI_DIST_THRESHOLD:
             return True

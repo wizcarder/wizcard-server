@@ -12,6 +12,7 @@ from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
+from notifications.models import BaseNotification
 from wizserver import verbs
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 import ushlex as shlex
@@ -173,6 +174,10 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_BADGE_TEMPLATE = 'e_badge'
     SUB_ENTITY_SCANNED_USER = 'e_scan'
     SUB_ENTITY_CATEGORY = 'e_category'
+
+    # use this in overridden delete to know whether to remove or mark-deleted
+    ENTITY_DELETE = 1
+    ENTITY_EXPIRE = 2
 
     objects = BaseEntityComponentManager()
 
@@ -373,10 +378,6 @@ class BaseEntityComponent(PolymorphicModel):
 
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
-
-        # post_connect needs from and to parts of connection to do something meaningful
-        # even for notification it needs event to send notifications for e.g.
-        obj.post_connect(self)
         return obj
 
     def remove_sub_entities_of_type(self, entity_type):
@@ -430,6 +431,16 @@ class BaseEntityComponent(PolymorphicModel):
 
     def modified_since(self, timestamp):
         return True
+
+    def notify_subscribers(self):
+        verb = "%s - %s Updated" % (self.entity_type, str(self.id))
+        self.notify_parents(verb)
+
+    def notify_parents(self, verb):
+        # Is there a possibility of cycle here ??
+
+        parents = self.get_parent_entities()
+        map(lambda x: x.notify_subscribers(), parents)
 
 
 class BaseEntityComponentsOwner(models.Model):
@@ -486,32 +497,44 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def user_attach(self, user, state, notify=True):
+    def user_attach(self, user, state, do_notify=False):
 
         UserEntity.user_attach(user, self, state=state)
-        if notify:
+
+        if do_notify:
+            notify.send(
+                user,
+                # recipient is dummy
+                recipient=self.get_creator(),
+                notif_tuple=verbs.WIZCARD_ENTITY_JOIN,
+                target=self,
+                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT
+            )
+
             if state == UserEntity.JOIN:
                 self.num_users += 1
                 self.save()
-                self.notify_all_users(
-                    user,
-                    verbs.WIZCARD_ENTITY_JOIN,
-                    self
-                )
 
         return self
 
-    def user_detach(self, user, state, notify=True):
+    def user_detach(self, user, state, do_notify=False):
         UserEntity.user_detach(user, self)
-        if notify:
+
+        if do_notify:
+            notify.send(
+                user,
+                # recipient is dummy
+                recipient=self.get_creator(),
+                notif_tuple=verbs.WIZCARD_ENTITY_LEAVE,
+                target=self,
+                delivery_mode=BaseNotification.DELIVERY_MODE_ALERT
+            )
+
             if state == UserEntity.LEAVE:
                 self.num_users -= 1
                 self.save()
-                self.notify_all_users(
-                    user,
-                    verbs.WIZCARD_ENTITY_LEAVE,
-                    self
-                )
+
+        return self
 
     def is_joined(self, user):
         return bool(user.userentity_set.filter(entity=self, state=UserEntity.JOIN).exists())
@@ -526,29 +549,22 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def get_users_after(self, timestamp):
         # AA: REVERT ME. Temp for app testing
-        ue = UserEntity.get_entity_members(self)
+        ue = UserEntity.objects.select_related('user').filter(entity=self).values_list('user', flat=True)
         # ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
-        #users = map(lambda u: u.user, ue)
+
         return ue
 
-    def get_wizcard_users(self):
-        users = UserEntity.get_entity_members(self)
-        wiz_users = [x for x in users if hasattr(x, 'wizcard')]
-        return wiz_users
+    def flood_set(self, **kwargs):
+        return [x for x in self.users.all() if hasattr(x, 'wizcard')]
 
-    def notify_all_users(self, sender, notif_type, entity, exclude_sender=True):
-        # send notif to all members, just like join
-        users = UserEntity.get_entity_members(self)
-        for u in users:
-            if exclude_sender and u == sender:
-                continue
-            notify.send(
-                sender,
-                recipient=u,
-                notif_type=notif_type[verbs.NOTIF_TYPE_IDX],
-                verb=notif_type[verbs.VERB_IDX],
-                target=entity
-            )
+    def notify_subscribers(self):
+        super(BaseEntity, self).notify_subscribers()
+        # self.notify_all_users(
+        #     self.get_creator(),
+        #     verbs.WIZCARD_ENTITY_UPDATE[0],
+        #     self,
+        #     verb=verbs.WIZCARD_ENTITY_UPDATE[1]
+        # )
 
     def get_banner(self):
         media_row = self.get_sub_entities_of_type(entity_type=BaseEntity.SUB_ENTITY_MEDIA)
@@ -562,18 +578,19 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         self.save()
 
     def delete(self, *args, **kwargs):
-        notif_tuple = kwargs.pop('type', verbs.WIZCARD_ENTITY_DELETE)
+        delete_type = kwargs.pop('type', self.ENTITY_DELETE)
 
-        self.notify_all_users(
+        notify.send(
             self.get_creator(),
-            notif_tuple,
-            self,
-            exclude_sender=False
+            recipient=self.get_creator(),
+            notif_tuple=verbs.WIZCARD_ENTITY_DELETE,
+            target=self
         )
+
         if self.location.exists():
             self.location.get().delete()
 
-        if notif_tuple[0] == verbs.WIZCARD_ENTITY_EXPIRE[0]:
+        if delete_type == self.ENTITY_EXPIRE:
             self.expired = True
             self.save()
         else:
@@ -581,7 +598,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             super(BaseEntity, self).delete(*args, **kwargs)
 
     def expire(self):
-        self.delete(type=verbs.WIZCARD_ENTITY_EXPIRE)
+        self.delete(type=self.ENTITY_EXPIRE)
 
     def modified_since(self, timestamp):
         return self.modified > timestamp
@@ -614,6 +631,7 @@ class UserEntity(models.Model):
             entity=base_entity_obj,
             defaults={'state': state}
         )
+
         # Can join a pinned event but cannot pin a joined event.
         if not created:
             usr_entity.state = state
@@ -637,14 +655,8 @@ class UserEntity(models.Model):
         self.last_accessed = timestamp
         self.save()
 
-    @classmethod
-    def get_entity_members(cls, base_entity_obj):
-        users = UserEntity.objects.select_related('user').filter(entity=base_entity_obj, state=UserEntity.JOIN)
-        return map(lambda x: x.user, users)
-
-
-    # Join Table.
-    # this will contain per user level stats
+# Join Table.
+# this will contain per user level stats
 class EntityUserStats(models.Model):
 
     MIN_ENGAGEMENT_LEVEL = 0
@@ -676,17 +688,19 @@ class EntityEngagementStats(models.Model):
         through='EntityUserStats'
     )
 
-    def user_liked(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
+    def user_liked(self, user):
         try:
             user_like = EntityUserStats.objects.get(
                 user=user,
                 stats=self,
             )
-            like_level = user_like.like_level
-            liked = True if like_level else False
-            return liked, user_like.like_level
-        except:
+        except ObjectDoesNotExist:
             return False, 0
+
+        like_level = user_like.like_level
+        liked = True if like_level else False
+
+        return liked, user_like.like_level
 
     def like(self, user, level=EntityUserStats.MID_ENGAGEMENT_LEVEL):
         stat, created = EntityUserStats.objects.get_or_create(

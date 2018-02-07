@@ -11,7 +11,6 @@ from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
 
 
-
 class RelatedSerializerField(serializers.RelatedField):
 
     def get_queryset(self):
@@ -163,7 +162,7 @@ class EntitySerializer(EntitySerializerL0):
 
         return obj
 
-    def post_create_update(self, entity):
+    def post_create_update(self, entity, update=True):
         if self.owners:
             BaseEntityComponent.add_owners(entity, self.owners)
 
@@ -175,6 +174,8 @@ class EntitySerializer(EntitySerializerL0):
    
                 entity.add_subentities(**s)
 
+            entity.notify_subscribers()
+
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])
 
@@ -183,9 +184,12 @@ class EntitySerializer(EntitySerializerL0):
         # Generate Tags
         if self.tags:
             tags = self.tags
-            entity.add_tags(tags)
+            entity.tags.set(*tags)
 
         if self.taganomy:
             self.taganomy.register_object(entity)
+
+        if update:
+            entity.notify_subscribers()
 
         return entity

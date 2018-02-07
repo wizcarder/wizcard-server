@@ -9,7 +9,7 @@ from django.core.files.storage import default_storage as storage
 from django.template import  Context
 from django.utils.encoding import smart_str
 from wizcardship.models import Wizcard
-from wizcard import settings
+from django.conf import settings
 from PIL import Image, ImageFont, ImageDraw
 from lib.ses import Email
 import pdb

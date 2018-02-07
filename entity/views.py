@@ -8,8 +8,8 @@ from entity.serializers import EventSerializer, EventSerializerL0, CampaignSeria
     SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, CoOwnersSerializer
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
-from notifications.models import Notification
-from notifications.serializers import NotificationSerializer
+from notifications.models import SyncNotification
+from notifications.serializers import SyncNotificationSerializer
 from taganomy.models import Taganomy
 from taganomy.serializers import TaganomySerializer
 from rest_framework.decorators import detail_route
@@ -63,7 +63,7 @@ class EventViewSet(BaseEntityViewSet):
         existing_users, existing_exhibitors = ExhibitorInvitee.objects.check_existing_users_exhibitors(
             exhibitor_invitees
         )
-        [inst.user_attach(u, state=UserEntity.JOIN, notify=False) for u in existing_users]
+        [inst.user_attach(u, state=UserEntity.JOIN, do_notify=False) for u in existing_users]
 
         for e in existing_exhibitors:
             e.state = ExhibitorInvitee.ACCEPTED
@@ -83,12 +83,27 @@ class EventViewSet(BaseEntityViewSet):
     @detail_route(methods=['post'])
     def invite_attendees(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
+        attendee_invitees = request.data['ids']
 
-        attendees = request.data
+        existing_users, existing_attendees = AttendeeInvitee.objects.check_existing_users_attendees(
+            attendee_invitees
+        )
+        [inst.join(u, do_notify=False) for u in existing_users]
 
-        valid_candidates = inst.add_subentities(attendees, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        for e in existing_attendees:
+            e.state = AttendeeInvitee.ACCEPTED
+            e.save()
 
-        return Response(AttendeeInviteeSerializer(valid_candidates, many=True)).data
+        new_attendees = [x for x in attendee_invitees if x not in existing_attendees.values_list('id', flat=True)]
+
+        # relate these with Event
+        invited_attendees = inst.add_subentities(new_attendees, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        for i in invited_attendees:
+            i.state = AttendeeInvitee.INVITED
+            i.save()
+
+        result_list = list(chain(existing_attendees, invited_attendees))
+        return Response(AttendeeInviteeSerializer(result_list, many=True).data)
 
     @detail_route(methods=['put'])
     def publish_event(self, request, pk=None):
@@ -129,7 +144,7 @@ class SpeakerViewSet(BaseEntityComponentViewSet):
         return SpeakerSerializer
 
 
-class SponsorViewSet(BaseEntityComponentViewSet):
+class SponsorViewSet(BaseEntityViewSet):
     queryset = Sponsor.objects.all()
 
     def get_queryset(self):
@@ -880,23 +895,23 @@ class EventPollViewSet(viewsets.ModelViewSet):
 
 class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
                                mixins.RetrieveModelMixin, mixins.ListModelMixin):
-    queryset = Notification.objects.all()
+    queryset = SyncNotification.objects.all()
     serializer_class = TaganomySerializer
 
     def list(self, request, event_pk=None):
         event = Event.objects.get(id=event_pk)
-        ntf = Notification.objects.event_notifications(event)
+        ntf = SyncNotification.objects.event_notifications(event)
 
-        return Response(NotificationSerializer(ntf, many=True).data)
+        return Response(SyncNotificationSerializer(ntf, many=True).data)
 
     def retrieve(self, request, pk=None, event_pk=None):
         try:
-            ntf = Notification.objects.get(id=pk)
+            ntf = SyncNotification.objects.get(id=pk)
             event = Event.objects.get(id=event_pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        return Response(NotificationSerializer(ntf).data)
+        return Response(SyncNotificationSerializer(ntf).data)
 
     def create(self, request, event_pk=None):
         try:
@@ -904,7 +919,7 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = NotificationSerializer(data=request.data, context={'user': request.user})
+        serializer = SyncNotificationSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
             inst = serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

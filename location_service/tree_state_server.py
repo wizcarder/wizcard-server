@@ -8,7 +8,7 @@ from lib import wizlib
 from base.db import WizcardDB
 #from base.rds_db import WizcardDB
 from rabbit_service.server import RabbitServer
-from wizcard import settings
+from django.conf import settings
 from rabbit_service import rconfig
 from rabbit_service.rconfig import TREE_SERVER_CONFIG, TREES
 from raven.contrib.django.raven_compat.models import client

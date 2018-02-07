@@ -3,6 +3,7 @@ from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 from django.contrib.auth.models import User
 from polymorphic.models import PolymorphicModel, PolymorphicManager
 from django.db.models import Count
+from wizserver import verbs
 
 import pdb
 

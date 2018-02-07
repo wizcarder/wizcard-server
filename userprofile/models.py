@@ -15,8 +15,8 @@ from entity.models import Campaign, ExhibitorInvitee
 from entity.serializers import CampaignSerializer, TableSerializerL1
 from wizcardship.serializers import WizcardSerializerL2, DeadCardSerializerL2
 from django.core.exceptions import ObjectDoesNotExist
-from notifications.models import notify
-from notifications.models import Notification
+from notifications.signals import notify
+from notifications.models import BaseNotification, SyncNotification
 from base.cctx import ConnectionContext, NotifContext
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
@@ -179,8 +179,9 @@ class UserProfile(PolymorphicModel):
                 profile=self,
                 settings=WebExhibitorUserSettings.objects.create()
             )
+
         self.save()
-        
+
         # things like future user etc can be done here.
         user_type_created.send(sender=self, user_type=user_type)
         return user_obj
@@ -194,20 +195,16 @@ class BaseUser(PolymorphicModel):
 
 
 class AppUser(BaseUser):
-    UNINITIALIZED = 'unknown'
-    IOS = 'ios'
-    ANDROID = 'android'
-
     DEVICE_CHOICES = (
-        (IOS, 'iPhone'),
-        (ANDROID, 'Android'),
+        (settings.DEVICE_IOS, 'iPhone'),
+        (settings.DEVICE_ANDROID, 'Android'),
     )
 
     location = GenericRelation(LocationMgr)
     do_sync = models.BooleanField(default=False)
     device_id = TruncatingCharField(max_length=100)
     reg_token = models.CharField(db_index=True, max_length=200)
-    device_type = TruncatingCharField(max_length=10, choices=DEVICE_CHOICES, default=UNINITIALIZED)
+    device_type = TruncatingCharField(max_length=10, choices=DEVICE_CHOICES)
     reco_generated_at = models.DateTimeField(default=RECO_DEFAULT_TIME)
     reco_ready = models.PositiveIntegerField(default=0)
     settings = models.OneToOneField(AppUserSettings, related_name='base_user')
@@ -238,9 +235,6 @@ class AppUser(BaseUser):
         if on and (ls < delta):
             return True
         return False
-
-    def is_ios(self):
-        return bool(self.device_type == self.IOS)
 
     def create_or_update_location(self, lat, lng):
         try:
@@ -329,7 +323,7 @@ class AppUser(BaseUser):
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
-        Notification.objects.unacted(self.profile.user).update(readed=False)
+        SyncNotification.objects.unacted(self.profile.user).update(readed=False)
         return s
 
 
@@ -402,29 +396,32 @@ class FutureUser(models.Model):
                                            status=verbs.ACCEPTED,
                                            cctx=cctx)
             # Q notif for to_wizcard
-            notify.send(self.inviter,
-                        recipient=real_user,
-                        notif_type=verbs.WIZREQ_U[verbs.NOTIF_TYPE_IDX],
-                        verb=verbs.WIZREQ_U[verbs.VERB_IDX],
-                        description=cctx.description,
-                        target=self.content_object,
-                        action_object=rel12)
+            notify.send(
+                self.inviter,
+                recipient=real_user,
+                notif_tuple=verbs.WIZREQ_U,
+                description=cctx.description,
+                target=self.content_object,
+                action_object=rel12
+            )
 
             # Q implicit notif for from_wizcard
-            notify.send(real_user,
-                        recipient=self.inviter,
-                        notif_type=verbs.WIZREQ_T[verbs.NOTIF_TYPE_IDX],
-                        verb=verbs.WIZREQ_T[verbs.VERB_IDX],
-                        description=cctx.description,
-                        target=real_user.wizcard,
-                        action_object=rel21)
+            notify.send(
+                real_user,
+                recipient=self.inviter,
+                notif_tuple=verbs.WIZREQ_T,
+                description=cctx.description,
+                target=real_user.wizcard,
+                action_object=rel21
+            )
         elif ContentType.objects.get_for_model(self.content_object) == \
                 ContentType.objects.get(model="virtualtable"):
             # Q this to the receiver
-            notify.send(self.inviter, recipient=real_user,
-                        notif_type=verbs.WIZCARD_TABLE_INVITE[verbs.NOTIF_TYPE_IDX],
-                        verb=verbs.WIZCARD_TABLE_INVITE[verbs.VERB_IDX],
-                        target=self.content_object)
+            notify.send(
+                self.inviter, recipient=real_user,
+                notif_tuple=verbs.WIZCARD_TABLE_INVITE,
+                target=self.content_object
+            )
 
 
 # Model for Address-Book Support. Standard M2M-through

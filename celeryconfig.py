@@ -25,7 +25,7 @@ RECO_QUEUE_NAME = 'reco'
 
 CELERY_ROUTES = {
     'lib.ocr.run_ocr': {'queue': OCR_QUEUE_NAME},
-    'notifications.tasks.pushNotificationToApp': {'queue': PUSHNOTIF_QUEUE_NAME},
+    'notifications.push_tasks.push_notification_to_app': {'queue': PUSHNOTIF_QUEUE_NAME},
     'periodic.tasks.tick': {'queue': CELERY_DEFAULT_QUEUE},
     'queued_storage.tasks.Transfer': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
     'queued_storage.tasks.TransferAndDelete': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
@@ -45,12 +45,8 @@ CELERYBEAT_SCHEDULE = {
         'task' : 'entity.tasks.expire',
         'schedule' : timedelta(seconds=86400),
     },
-    'email_push_handler' : {
-        'task' : 'email_and_push_infra.tasks.email_push_handler',
+    'async_handler' : {
+        'task' : 'notifications.tasks.async_handler',
         'schedule' : timedelta(seconds=60),
-    },
-    'create_notifs' : {
-        'task' : 'email_and_push_infra.tasks.create_notifs',
-        'schedule': timedelta(seconds=60),
     }
 }

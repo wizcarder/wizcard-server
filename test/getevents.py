@@ -34,10 +34,11 @@ objs = handle_response(conn, reqmsg['header']['msgType'])
 
 reqmsg = messages.entity_details
 reqmsg['header']['version'] = APP_VERSION
-reqmsg['sender']['user_id'] = 'fe73edbd-6825-47a1-9feb-fa8e9750703d'
-reqmsg['sender']['wizuser_id'] = 4
-reqmsg['sender']['entity_id'] =143 
-reqmsg['sender']['entity_type'] ='EVT' 
+reqmsg['sender']['user_id'] = 'fee4d25b-45f3-4dff-8d6c-a2f13fbd91ed'
+reqmsg['sender']['wizuser_id'] = 12
+reqmsg['sender']['detail'] = False
+reqmsg['sender']['entity_id'] = 63
+reqmsg['sender']['entity_type'] ='AGN' 
 reqmsg['sender']['timestamp'] = "2017-12-25T10:00:00-0530"
 send_request(conn, reqmsg)
 # Parse and dump the JSON response from server

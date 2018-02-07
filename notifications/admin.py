@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from notifications.models import Notification
+from notifications.models import SyncNotification, AsyncNotification
 
-class NotificationAdmin(admin.ModelAdmin):
+class SyncNotificationAdmin(admin.ModelAdmin):
     pass
 
-admin.site.register(Notification, NotificationAdmin)
+class AsyncNotificationAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(AsyncNotification, AsyncNotificationAdmin)
+admin.site.register(SyncNotification, SyncNotificationAdmin)

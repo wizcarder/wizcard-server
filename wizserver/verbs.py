@@ -1,3 +1,4 @@
+from django.conf import settings
 
 
 # All message types
@@ -102,41 +103,40 @@ wizcardMsgTypes = {
     'lead_scan'                   : MSG_LEAD_SCAN,
 }
 
-# TODO: AR: NOTIF_TYPE should be key to verbs, attributes of the notif (push notif, fanout)
+
 # notif Types
-NOTIF_NULL          = 0
+NOTIF_NULL                      = 0
 NOTIF_ACCEPT_IMPLICIT           = 1
 NOTIF_ACCEPT_EXPLICIT           = 2
 NOTIF_DELETE_IMPLICIT           = 3
-NOTIF_TABLE_TIMEOUT             = 4
-NOTIF_UPDATE_WIZCARD            = 5
-NOTIF_NEARBY_FLICKED_WIZCARD    = 6
+
+NOTIF_UPDATE_WIZCARD_H          = 5
+NOTIF_UPDATE_WIZCARD_F          = 6
 NOTIF_NEARBY_USERS              = 7
 NOTIF_NEARBY_TABLES             = 8
-NOTIF_FLICK_TIMEOUT             = 9
-NOTIF_FLICK_PICK                = 10
-NOTIF_WITHDRAW_REQUEST          = 11
+
+NOTIF_NEARBY_FLICKED_WIZCARDS   = 9
+NOTIF_FLICK_TIMEOUT             = 10
+NOTIF_FLICK_PICK                = 11
+NOTIF_WITHDRAW_REQUEST          = 12
 NOTIF_TABLE_INVITE              = 13
 NOTIF_WIZCARD_FORWARD           = 14
+
 NOTIF_ENTITY_JOIN               = 15
 NOTIF_ENTITY_LEAVE              = 16
-NOTIF_FOLLOW_EXPLICIT           = 17
-NOTIF_ENTITY_UPDATE              = 18
-NOTIF_ENTITY_EXPIRE              = 19
-NOTIF_ENTITY_DELETE              = 20
-NOTIF_ENTITY_CREATE             = 21
-NOTIF_ENTITY_UPDATE             = 22
-NOTIF_NEW_RECO                  = 23
-NOTIF_NEW_WIZUSER               = 24
-NOTIF_ENTITY_BROADCAST          = 25
-NOTIF_SCANNED_USER              = 26
-NOTIF_INVITE_USER               = 27
-NOTIF_ENTITY_REMINDER            = 28
-NOTIF_ENTITY_BROADCAST           = 29
-NOTIF_ENTITY_BROADCAST_CREATE   = 30
-NOTIF_INVITE_EXHIBITOR          = 31
-NOTIF_INVITE_ATTENDEE           = 32
 
+NOTIF_ENTITY_UPDATE             = 18
+NOTIF_ENTITY_EXPIRE             = 19
+NOTIF_ENTITY_DELETE             = 20
+NOTIF_ENTITY_CREATE             = 21
+NOTIF_NEW_RECO                  = 22
+NOTIF_NEW_WIZUSER               = 23
+NOTIF_ENTITY_BROADCAST          = 24
+NOTIF_SCANNED_USER              = 25
+NOTIF_INVITE_USER               = 26
+NOTIF_ENTITY_REMINDER           = 27
+NOTIF_INVITE_EXHIBITOR          = 28
+NOTIF_INVITE_ATTENDEE           = 29
 
 
 # receiver types
@@ -155,7 +155,7 @@ INVITE_VERBS = {
     SMS_INVITE: 'sms',
 }
 
-# Connection Staes
+# Connection States
 PENDING = 1
 ACCEPTED = 2
 DECLINED = 3
@@ -179,154 +179,144 @@ FOLLOWER_D = "follower-d"
 FOLLOWED = "followed"
 OTHERS = "others"
 
-NOTIF_TYPE_IDX = 0
-VERB_IDX  = 1
+# (NotifType, Verb, APNS_REQUIRED, IS_ASYNC)
+# Intentionally indenting this way notwithstanding the PEP warning, to improve readability
 
-    # (Verb, APNS_REQUIRED, APNS_TEXT)
-WIZCARD_NULL = (NOTIF_NULL, "Empty notif", 0)
-WIZREQ_U = (NOTIF_ACCEPT_EXPLICIT, 'wizconnection request untrusted', 1)
-WIZREQ_T = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted', 1)
-WIZREQ_T_HALF = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted half', 0)
-WIZREQ_F = (NOTIF_FOLLOW_EXPLICIT, 'wizconnection request follow', 1)
-WIZCARD_ACCEPT = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', 1)
-WIZCARD_REVOKE = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', 0)
-WIZCARD_WITHDRAW_REQUEST = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', 0)
-WIZCARD_DELETE = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', 0)
-WIZCARD_TABLE_TIMEOUT = (NOTIF_TABLE_TIMEOUT, 'table timeout', 1)
-WIZCARD_TABLE_DESTROY = (NOTIF_TABLE_TIMEOUT, 'table destroy', 1)
-WIZCARD_UPDATE = (NOTIF_UPDATE_WIZCARD, 'wizcard update', 1)
-WIZCARD_UPDATE_HALF = (NOTIF_UPDATE_WIZCARD, 'wizcard update half', 1)
-WIZCARD_FLICK_TIMEOUT = (NOTIF_FLICK_TIMEOUT, 'flick timeout', 1)
-WIZCARD_FLICK_PICK = (NOTIF_FLICK_PICK, 'flick pick', 1)
-WIZCARD_TABLE_INVITE = (NOTIF_TABLE_INVITE, 'table invite', 1)
-WIZCARD_FORWARD = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', 1)
-WIZCARD_ENTITY_JOIN = (NOTIF_ENTITY_JOIN, 'entity join', 0)
-WIZCARD_ENTITY_LEAVE = (NOTIF_ENTITY_LEAVE, 'entity leave', 0)
-WIZCARD_RECO_READY = (NOTIF_NEW_RECO, 'new recommendations ready', 1)
-WIZCARD_ENTITY_UPDATE = (NOTIF_ENTITY_UPDATE, 'event_updated', 0)
-WIZCARD_ENTITY_EXPIRE = (NOTIF_ENTITY_EXPIRE, 'event_expired', 0)
-WIZCARD_ENTITY_DELETE = (NOTIF_ENTITY_DELETE, 'event_deleted', 0)
-WIZCARD_EVENT_REMINDER = (NOTIF_ENTITY_REMINDER, 'event_reminder', 1)
-WIZCARD_NEW_USER = (NOTIF_NEW_WIZUSER, 'new_user', 0)
-WIZCARD_SCANNED_USER = (NOTIF_SCANNED_USER, 'scanned_user', 0)
-WIZCARD_INVITE_USER = (NOTIF_INVITE_USER, 'invite_user', 0)
-WIZCARD_INVITE_EXHIBITOR = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', 0)
-WIZCARD_INVITE_ATTENDEE = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', 0)
-WIZCARD_ENTITY_BROADCAST = (NOTIF_ENTITY_BROADCAST, 'event broadcast', 1)
-WIZCARD_ENTITY_BROADCAST_CREATE = (NOTIF_ENTITY_BROADCAST_CREATE, 'event_broadcast_create', 0)
+
+WIZCARD_NULL                = (NOTIF_NULL, "Empty notif", False, False)
+WIZREQ_U                    = (NOTIF_ACCEPT_EXPLICIT, 'wizconnection request untrusted', True, False)
+WIZREQ_T                    = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted', True, False)
+WIZREQ_T_HALF               = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted half', False, False)
+WIZCARD_ACCEPT              = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', True, False)
+WIZCARD_REVOKE              = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', False, False)
+WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', False, False)
+WIZCARD_DELETE              = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', False, False)
+WIZCARD_UPDATE_FULL         = (NOTIF_UPDATE_WIZCARD_F, 'wizcard update', False, True)
+WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD_H, 'wizcard update half', True, True)
+WIZCARD_FLICK_TIMEOUT       = (NOTIF_FLICK_TIMEOUT, 'flick timeout', True, False)
+WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
+WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
+WIZCARD_FORWARD             = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', True, False)
+WIZCARD_ENTITY_JOIN         = (NOTIF_ENTITY_JOIN, 'entity join', False, True)
+WIZCARD_ENTITY_LEAVE        = (NOTIF_ENTITY_LEAVE, 'entity leave', False, True)
+WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', True, False)
+WIZCARD_ENTITY_UPDATE       = (NOTIF_ENTITY_UPDATE, 'event_updated', True, True)
+WIZCARD_ENTITY_EXPIRE       = (NOTIF_ENTITY_EXPIRE, 'event_expired', False, True)
+WIZCARD_ENTITY_DELETE       = (NOTIF_ENTITY_DELETE, 'event_deleted', False, True)
+WIZCARD_EVENT_REMINDER      = (NOTIF_ENTITY_REMINDER, 'event_reminder', True, True)
+WIZCARD_NEW_USER            = (NOTIF_NEW_WIZUSER, 'new_user', False, True)
+WIZCARD_SCANNED_USER        = (NOTIF_SCANNED_USER, 'scanned_user', False, True)
+WIZCARD_INVITE_USER         = (NOTIF_INVITE_USER, 'invite_user', False, True)
+WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', False, True)
+WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', False, True)
+WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', True, True)
+
+def get_notif_type(ntuple):
+    return ntuple[0]
+
+def get_notif_verb(ntuple):
+    return ntuple[1]
+
+def get_notif_apns_required(ntuple):
+    return ntuple[2]
+
+def get_notif_is_async(ntuple):
+    return ntuple[3]
+
+
+# reverse mapping from notif_type to tuple. All Async types will need this mapping
+# notif model stores the denormalized values. We need tuple for push business logic
+# in the handler. Add as needed
+
+notif_type_tuple_dict = {
+    NOTIF_UPDATE_WIZCARD_H: WIZCARD_UPDATE_HALF,
+    NOTIF_UPDATE_WIZCARD_F: WIZCARD_UPDATE_FULL,
+    NOTIF_ENTITY_JOIN: WIZCARD_ENTITY_JOIN,
+    NOTIF_ENTITY_LEAVE: WIZCARD_ENTITY_LEAVE,
+    NOTIF_ENTITY_UPDATE: WIZCARD_ENTITY_UPDATE,
+    NOTIF_ENTITY_EXPIRE: WIZCARD_ENTITY_EXPIRE,
+    NOTIF_ENTITY_DELETE: WIZCARD_ENTITY_DELETE,
+    NOTIF_ENTITY_BROADCAST: WIZCARD_ENTITY_BROADCAST,
+}
+
+EMAIL_TEMPLATE_MAPPINGS = {
+    NOTIF_NEW_WIZUSER: {"template": "welcome.html", "subject": "Welcome %s to WizCard"},
+    NOTIF_SCANNED_USER: {"template": "emailwizcard.html", "subject": "%s has scanned your card on WizCard"},
+    NOTIF_INVITE_ATTENDEE: {"template": "invite_attendee.html", "subject": "%s - has invited you to Create your Campaign"},
+    NOTIF_INVITE_EXHIBITOR: {"template": "invite_exhibitor.html", "subject": "%s - Welcome to %s"},
+    NOTIF_INVITE_USER: {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"},
+}
+
 
 apns_notification_dictionary = {
-    WIZREQ_U[0]	: {
+    get_notif_type(WIZREQ_U)	: {
         'sound': 'flynn.caf',
         'badge': 0,
-        #AA:TODO: separate verb from push message
-        'alert': '{0.first_name} {0.last_name} would like to connect with you',
+        'title': 'Connection Request',
+        'message': '{0.first_name} {0.last_name} would like to connect with you',
     },
-    WIZREQ_F[0]	: {
+    get_notif_type(WIZREQ_T)	: {
         'sound': 'flynn.caf',
         'badge': 0,
-        #AA:TODO: separate verb from push message
-        'alert': '{0.first_name} {0.last_name} would like to follow you',
-    },
-    WIZREQ_T[0]	: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'you have a new contact {0.first_name} {0.last_name}',
-    },
-    WIZCARD_ACCEPT[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': '{0.first_name} {0.last_name} accepted your invitation',
-    },
-    WIZCARD_TABLE_TIMEOUT[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': '{1.name} table has now expired',
-    },
-    WIZCARD_TABLE_DESTROY[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': '{0.first_name} {0.last_name}  deleted {1.tablename} table',
-    },
-    WIZCARD_UPDATE[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': '{0.first_name} {0.last_name} has an updated wizcard',
-    },
-    WIZCARD_UPDATE_HALF[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': '{0.first_name} {0.last_name} has an updated wizcard',
-    },
-    WIZCARD_FLICK_TIMEOUT[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'your flick has expired',
-    },
-    WIZCARD_FLICK_PICK[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': '{0.first_name} {0.last_name} picked up your flicked wizcard',
-    },
-    WIZCARD_RECO_READY[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'New Reco Ready',
-    },
-    WIZCARD_ENTITY_BROADCAST[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'Message from {1.name} - {3}'
-    },
-    WIZCARD_ENTITY_BROADCAST_CREATE[0]: {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'alert': 'Message from {1.name} - {3}'
-    }
-
-}
-
-gcm_notification_dictionary = {
-    WIZREQ_U[0]	: {
-        'title':'Connection Request',
-        'body': '{0.first_name} {0.last_name} would like to connect with you',
-    },
-    WIZREQ_F[0]	: {
-        'title':'Follow Request',
-        'body': '{0.first_name} {0.last_name} would like to follow you',
-    },
-    WIZREQ_T[0]	: {
         'title': 'Connected',
-        'body': 'you have a new contact {0.first_name} {0.last_name}',
+        'message': 'you have a new contact {0.first_name} {0.last_name}',
     },
-    WIZCARD_ACCEPT[0]: {
+    get_notif_type(WIZCARD_ACCEPT): {
+        'sound': 'flynn.caf',
+        'badge': 0,
         'title': 'Accepted',
-        'body': '{0.first_name} {0.last_name} accepted your invitation',
+        'message': '{0.first_name} {0.last_name} accepted your invitation',
     },
-    WIZCARD_UPDATE[0]: {
+    get_notif_type(WIZCARD_ENTITY_EXPIRE): {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'title': 'Wizcard - expired',
+        'message': '{1.name} has now expired',
+    },
+    get_notif_type(WIZCARD_ENTITY_DELETE): {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'title': 'Wizcard -  Deleted',
+        'message': '{0.first_name} {0.last_name}  deleted {1.tablename}',
+    },
+    get_notif_type(WIZCARD_UPDATE_FULL): {
+        'sound': 'flynn.caf',
+        'badge': 0,
         'title': 'Updated WizCard',
-        'body': '{0.first_name} {0.last_name} has an updated wizcard',
+        'message': '{0.first_name} {0.last_name} has an updated wizcard',
     },
-    WIZCARD_UPDATE_HALF[0]: {
-        'title': 'Updated WizCard',
-        'body': '{0.first_name} {0.last_name} has an updated wizcard',
+    get_notif_type(WIZCARD_RECO_READY): {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'title': 'Wizcard - New Recommendations waiting for you',
+        'message': 'New Recommendations',
     },
-    WIZCARD_RECO_READY[0]: {
-        'title' : 'Wizcard - New Recommendations waiting for you',
-        'body': 'Wizcard - New Recommendations waiting for you ',
-    },
-    WIZCARD_TABLE_TIMEOUT[0]: {
-        'title' : 'Wizcard - Table expired',
-        'body': '{1.name} table has now expired',
-    },
-    WIZCARD_ENTITY_BROADCAST[0]: {
+    get_notif_type(WIZCARD_ENTITY_BROADCAST): {
+        'sound': 'flynn.caf',
+        'badge': 0,
         'title': 'Event announcement',
-        'body': '{3}',
+        'message': 'Message from {1.name} - {3}'
     },
-    WIZCARD_ENTITY_BROADCAST_CREATE[0]: {
-        'title': 'Create Broadcast',
-        'body': '{3}',
-    }
-
 }
+
+def get_apns_dict(notif_type):
+    if notif_type not in apns_notification_dictionary:
+        raise AssertionError("Add notifType to apns_dict %s" % notif_type)
+
+    return apns_notification_dictionary[notif_type]
+
+def get_apns_dict_for_device(notif_type, device_type):
+    push_dict = get_apns_dict(notif_type)
+
+    if device_type == settings.DEVICE_IOS:
+        push_dict = {k: v for (k, v) in push_dict.items() if k in ['sound', 'badge', 'message']}
+        # adjustment for key name per device_type
+        push_dict['alert'] = push_dict.pop('message')
+    elif device_type == settings.DEVICE_ANDROID:
+        push_dict = {k: v for (k, v) in push_dict.items() if k in ['title', 'message']}
+        push_dict['body'] = push_dict.pop('message')
+    else:
+        raise AssertionError("invalid device_type %s" % device_type)
+
+    return push_dict
 

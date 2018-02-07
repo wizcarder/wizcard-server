@@ -48,7 +48,7 @@ class AgendaItemSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         self.prepare(validated_data)
         obj = super(AgendaItemSerializer, self).update(instance, validated_data)
-        self.post_create_update(instance)
+        self.post_create_update(instance, update=True)
 
         return obj
 
@@ -112,7 +112,7 @@ class AgendaSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         self.prepare(validated_data)
         obj = super(AgendaSerializer, self).update(instance, validated_data)
-        self.post_create_update(instance)
+        self.post_create_update(instance, update=True)
 
         return obj
 
@@ -156,12 +156,6 @@ class EventSerializer(EntitySerializer):
         my_fields = ('start', 'end', 'campaigns', 'speakers', 'sponsors', 'agenda', 'polls', 'badges', 'taganomy',)
         fields = EntitySerializer.Meta.fields + my_fields
 
-    def prepare(self, validated_data):
-        super(EventSerializer, self).prepare(validated_data)
-
-    def post_create_update(self, entity):
-        super(EventSerializer, self).post_create_update(entity)
-
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.EVENT)
 
@@ -174,7 +168,7 @@ class EventSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         self.prepare(validated_data)
         obj = super(EventSerializer, self).update(instance, validated_data)
-        self.post_create_update(instance)
+        self.post_create_update(instance, update=True)
 
         return obj
 
@@ -489,7 +483,7 @@ class CampaignSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         self.prepare(validated_data)
         obj = super(CampaignSerializer, self).update(instance, validated_data)
-        self.post_create_update(instance)
+        self.post_create_update(instance, update=True)
 
         return obj
 
@@ -560,6 +554,13 @@ class TableSerializer(EntitySerializer):
 
         return obj
 
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        obj = super(TableSerializer, self).update(instance, validated_data)
+        self.post_create_update(instance, update=True)
+
+        return obj
+
 
 """
 used by portal
@@ -585,7 +586,7 @@ class SpeakerSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         self.prepare(validated_data)
         obj = super(SpeakerSerializer, self).update(instance, validated_data)
-        self.post_create_update(obj)
+        self.post_create_update(obj, update=True)
 
         return obj
 
@@ -621,7 +622,7 @@ class SponsorSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         self.prepare(validated_data)
         obj = super(SponsorSerializer, self).update(instance, validated_data)
-        self.post_create_update(obj)
+        self.post_create_update(obj, update=True)
 
         return obj
 
@@ -666,7 +667,6 @@ class ExhibitorInviteeSerializer(EntitySerializer):
     class Meta:
         model = ExhibitorInvitee
         fields = ('id', 'name', 'email', 'state',)
-        read_only_fields = ('state',)
 
     state = serializers.ChoiceField(
         choices=ExhibitorInvitee.INVITE_CHOICES,
@@ -692,7 +692,12 @@ class AttendeeInviteeSerializer(EntitySerializer):
     class Meta:
         model = AttendeeInvitee
         fields = ('id', 'name', 'email', 'state',)
-        read_only_fields = ('state',)
+
+    state = serializers.ChoiceField(
+        choices=AttendeeInvitee.INVITE_CHOICES,
+        required=False,
+        read_only=True,
+    )
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.ATTENDEE_INVITEE)
@@ -742,6 +747,7 @@ class PollSerializerL1(EntitySerializer):
 
 
 # this is used to create a poll. This is also used to send serialized Poll to App
+
 class PollSerializer(EntitySerializer):
     event = serializers.SerializerMethodField()
 
@@ -757,7 +763,7 @@ class PollSerializer(EntitySerializer):
         self.questions = validated_data.pop('questions', None)
         super(PollSerializer, self).prepare(validated_data)
 
-    def post_create_update(self, obj):
+    def post_create_update(self, obj, update=False):
         for q in self.questions:
             choices = q.pop('choices', [])
             q_inst = Question.objects.create(poll=obj, **q)
@@ -769,7 +775,7 @@ class PollSerializer(EntitySerializer):
             else:
                 cls.objects.create(question=q_inst)
 
-        super(PollSerializer, self).post_create_update(obj)
+        super(PollSerializer, self).post_create_update(obj, update=update)
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.POLL)
@@ -789,7 +795,7 @@ class PollSerializer(EntitySerializer):
             q.delete()
 
         # create the questions and choices
-        self.post_create_update(instance)
+        self.post_create_update(instance, update=True)
 
         return instance
 

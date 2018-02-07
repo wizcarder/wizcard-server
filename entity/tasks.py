@@ -15,5 +15,3 @@ def expire():
     for _e in e:
         logger.info('Expiring event {%s}', _e)
         _e.expire()
-
-

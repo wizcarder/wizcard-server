@@ -1,16 +1,18 @@
 # Django settings for wizcard project.
 import os
 
+from kombu import Queue, Exchange
 from wizcard import instances
 
 RUNENV = os.getenv('WIZRUNENV', 'dev')
+BASE_DIR = os.path.dirname(__file__)
 
 APP_MAJOR = 2
 APP_MINOR = 1
 
 DEBUG = False
 if RUNENV != 'prod':
-    DEBUG = True
+    DEBUG = False
 ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
@@ -27,13 +29,11 @@ WIZCARD_SETTINGS = {
     'dev': {
         'databases': {
             'default': {
-                #'ENGINE': 'django.db.backends.mysql',
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-dev-master',
+                'NAME': 'wizcard-dev-merge',
                 'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
-                 'PORT': '5432',
                 # 'CONN_MAX_AGE' : 60,
             }
         },
@@ -168,12 +168,13 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'lj*=)*k$_^rx3bs+22=*og)d=eh)(jdc4df!q5=b!%&amp;0kskuad'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#   'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS' : [os.path.join(BASE_DIR, 'templates'),],
+        'OPTIONS' : { 'context_processors': [ 'django.contrib.auth.context_processors.auth'], },
+    },
+]
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -255,16 +256,19 @@ EMAIL_TEMPLATE = '/invites/email_templatev4.png'
 EMAIL_FROM_ADDR='WizCard Inc <wizcarder@getwizcard.com>'
 
 PHONE_CHECK_MESSAGE = {
-        'reqtype' : 'json',
-        'api_key' : NEXMO_API_KEY,
-        'api_secret' : NEXMO_API_SECRET,
-        'from' : NEXMO_SENDERID,
-        'to' : None,
-        'text' : ""
+        'reqtype': 'json',
+        'api_key': NEXMO_API_KEY,
+        'api_secret': NEXMO_API_SECRET,
+        'from': NEXMO_SENDERID,
+        'to':None,
+        'text':""
     }
 
 #number of per user notifs we want to process per get
-NOTIF_BATCH_SIZE = 10
+SYNC_NOTIF_BATCH_SIZE = 10
+ASYNC_NOTIF_BATCH_SIZE = 10
+
+
 #seperator for modified key
 MKEY_SEP = '.'
 
@@ -274,14 +278,6 @@ ROOT_URLCONF = 'wizcard.urls'
 WSGI_APPLICATION = 'wizcard.wsgi.application'
 
 SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(SETTINGS_PATH, 'templates'),
-
-)
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
@@ -320,11 +316,9 @@ INSTALLED_APPS = (
     'rest_framework',
     'meishi',
     'healthstatus',
-    'django_ses',
     'recommendation',
     'stats',
     'commands',
-    'email_and_push_infra',
     'base_entity',
     'entity',
     'media_components',
@@ -362,16 +356,11 @@ DEFAULT_VIDEO_THUMBNAIL = AWS_STORAGE_BUCKET_NAME+ "/thumbnails/no-video-uploade
 STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
 
+# SENDGRID SETTINGS
+SENDGRID_API_KEY = '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'
+EMAIL_BACKEND = "sgbackend.SendGridBackend"
 
-#django-ses Settings
-SES_SMTP_USER = 'AKIAJIXICBLUCPSKQPKA'
-SES_SMTP_PASS = 'AgHl9hZWrbH51ur6WorLxNJ7ETxb8fmqHg2OUbkVDKrv'
-AWS_SES_REGION_NAME = 'us-east-1'
-AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
-EMAIL_BACKEND='django_ses.SESBackend'
-#AWS_RETURN_PATH='wizcarder@gmail.com'
 AWS_RETURN_PATH='admin@getwizcard.com'
-SES_RETURN_PATH='admin@getwizcard.com'
 DEFAULT_FROM_EMAIL='admin@getwizcard.com'
 #ACCOUNT_EMAIL_VERIFICATION='mandatory'
 ACCOUNT_EMAIL_REQUIRED=True
@@ -411,6 +400,9 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 # Use WatchedFileHandler instead, and rotate logs with a cron job or with some other program.
 #
 #... somewhere in settings.py or imported ...
+
+
+
 MYLOG = {}
 MYLOG['dev'] = {
     'version': 1,
@@ -562,3 +554,5 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+DEVICE_IOS = 'ios'
+DEVICE_ANDROID = 'android'

@@ -3,13 +3,11 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from wizcardship.models import Wizcard
-from wizserver import verbs
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, \
     BaseEntityComponentManager, UserEntity
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
-from notifications.signals import notify
 from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 from taganomy.models import Taganomy
 from django.contrib.contenttypes.models import ContentType
@@ -39,8 +37,9 @@ class EventManager(BaseEntityManager):
 
     def users_entities(self, user, user_filter={}, entity_filter={}):
         entity_filter.update(entity_type=BaseEntityComponent.EVENT)
-        state = user_filter.get('state', UserEntity.JOIN)
-        user_filter.update(state=state)
+
+        if 'state' not in user_filter:
+            user_filter.update(state=UserEntity.JOIN)
 
         return super(EventManager, self).users_entities(user, user_filter, entity_filter)
 
@@ -68,13 +67,6 @@ class Event(BaseEntity):
     end = models.DateTimeField(default=timezone.now)
 
     objects = EventManager()
-
-    def notify_update(self):
-        self.notify_all_users(
-            self.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE,
-            self
-        )
 
     def get_sub_entities_by_tags(self, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
         sub_entities = self.get_sub_entities_of_type(entity_type)
@@ -115,13 +107,6 @@ class Campaign(BaseEntity):
     is_sponsored = models.BooleanField(default=False)
 
     objects = CampaignManager()
-
-    def notify_update(self):
-        self.notify_all_users(
-            self.get_creator(),
-            verbs.WIZCARD_ENTITY_UPDATE,
-            self
-        )
 
 
 class VirtualTableManager(BaseEntityManager):
@@ -167,26 +152,6 @@ class VirtualTable(BaseEntity):
             Wizcard.objects.exchange(wizcard1, wizcard2, cctx)
 
         return self
-
-    def delete(self, *args, **kwargs):
-        # notify members of deletion (including self)
-        verb = kwargs.pop('type', verbs.WIZCARD_TABLE_DESTROY[verbs.NOTIF_TYPE_IDX])
-        members = self.users.all()
-        for member in members:
-            notify.send(self.get_creator(),
-                        recipient=member,
-                        notif_type=verb,
-                        target=self
-                        )
-
-        self.location.get().delete()
-
-        if verb == verbs.WIZCARD_TABLE_TIMEOUT[verbs.NOTIF_TYPE_IDX]:
-            self.expired = True
-            self.save()
-        else:
-            self.users.clear()
-            super(VirtualTable, self).delete(*args, **kwargs)
 
     def time_remaining(self):
         if not self.expired:
@@ -245,6 +210,18 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
             user,
             entity_type=entity_type
         )
+    def check_existing_users_attendees(self, invitee_ids):
+        matched_users = User.objects.filter(
+            email__in=self.filter(
+                id__in=invitee_ids
+            ).values_list('email', flat=True)
+        )
+
+        matched_attendees = self.filter(
+            email__in=matched_users.values_list('email', flat=True)
+        )
+
+        return matched_users, matched_attendees
 
 
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
@@ -266,9 +243,11 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
                 id__in=invitee_ids
             ).values_list('email', flat=True)
         )
+
         matched_exhibitors = self.filter(
             email__in=matched_users.values_list('email', flat=True)
         )
+
         return matched_users, matched_exhibitors
 
     def check_pending_invites(self, email):
