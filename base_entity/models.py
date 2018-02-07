@@ -40,10 +40,10 @@ class BaseEntityComponentManager(PolymorphicManager):
         entities = TaggedItem.objects.filter(tag__name__in=tags, content_type_id=content_type.id)
         ids = [x.object_id for x in entities]
         return content_type.get_all_objects_for_this_type(id__in=ids)
+
     def notify_via_entity_parent(self, entity, notif_tuple):
         # get parent entities
         parents = entity.get_parent_entities()
-
 
         # Q broadcast notif. Target=parent, action_object=sub-entity, notif_type=EntityUpdate
         [
@@ -626,7 +626,7 @@ class UserEntity(models.Model):
     state = models.PositiveSmallIntegerField(default=0)
 
     @classmethod
-    def user_attach(cls, user, base_entity_obj, state=JOIN):
+    def user_attach(cls, user, base_entity_obj, state):
         usr_entity, created = UserEntity.objects.get_or_create(
             user=user,
             entity=base_entity_obj,
