@@ -28,7 +28,7 @@ user_register_payload = {"username": "", "password1": "a1b2c3d4", "password2": "
 
 media_payload = {"media_element": "", "media_type": "", "media_sub_type": ""}
 speaker_payload = {"name":"", "designation":"", "company":"","ext_fields":{}, "email":"a@b.com", "related":[]}
-sponsor_payload = {"name":"", "caption":"", "website": "http://getwizcard.com", "ext_fields":{"linkedin": "http://www.linkedin.com", "twitter": "http://www.twitter.com"}, "phone": "+180090010001", "email":"a@b.com", "description": "Campaign description is here", "address":"1234, Some Lane, Some City, Some Country"}
+sponsor_payload = {"name":"", "caption":"", "website": "http://getwizcard.com", "ext_fields":{"linkedin": "http://www.linkedin.com", "twitter": "http://www.twitter.com"}, "phone": "+180090010001", "email":"a@b.com", "description": "Campaign description is here", "address":"1234, Some Lane, Some City, Some Country", "venue": "Hall "}
 agenda_payload = {"items":[]}
 event_payload = {"name":"", "description":"", "venue": "Pragati Maidan", "location":{'lat':"", 'lng':""}, "start":"", "end":"", "related":[], "website":"http://www.getwizcard.com", "email":"a@b.com"}
 event_related_payload = {"related": []}
@@ -104,6 +104,8 @@ def create_sponsors(num, file, type="sponsor", attach=False):
             media_ids.append(create_media(murl, media_type='IMG', media_sub_type='ROL'))
         sponsor_payload['name'] = name
         sponsor_payload['caption'] = caption[:50]
+        venue = 'A' if i % 2 else 'B'
+        sponsor_payload['venue'] = "Hall " + venue
         sponsor_payload['related'] = [{'ids': media_ids, "type": "e_media"}]
         rest_path = "/entity/%ss/" % type
         sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
@@ -283,14 +285,25 @@ def attach_entities():
     related_speakers = {"ids": speaker_ids, "type": "e_speaker"}
     related_sponsors = {"ids": sponsor_ids, "type": "e_sponsor"}
     related_campaigns = {"ids": campaign_ids, "type": "e_campaign"}
-    event_payload['related'] = [related_speakers, related_sponsors, related_campaigns]
+    related_polls = {"ids": poll_ids, "type": "e_poll"}
+    related_agenda = {"ids": agenda_ids, "type": "e_agenda"}
+    event_payload['related'] = []
+
 
     for evt in event_ids:
+        tmp_id = agenda_ids.pop()
+        related_agenda = {"ids": [tmp_id], "type": "e_agenda"}
+        tmp_id = poll_ids.pop()
+        related_poll = {"ids": [tmp_id], "type": "e_poll"}
+        event_payload['related'] = [related_speakers, related_sponsors, related_campaigns, related_polls,
+                                    related_agenda, related_poll]
+
+
         event_id = put_retrieve("/entity/events/"+ str(evt)+"/", event_payload, "id")
 
 
 
-#key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
+key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
 token = post_retrieve("/users/login/", user_login_payload, key='token')
 headers['Authorization'] = "Token " + token
 #Create Speakers
@@ -298,18 +311,25 @@ numspeakers = cfg.create_config['speakers']
 speakerfile = cfg.create_config['speaker_file']
 create_speakers(numspeakers, speakerfile)
 
-
-numevents = cfg.create_config['events']
-create_events(numevents)
-
-create_taganomy(numevents, attach=True)
 numsponsors = cfg.create_config['sponsors']
 sponsorfile = cfg.create_config['sponsor_file']
 create_sponsors(numsponsors, sponsorfile)
 
 create_polls()
 
+numevents = cfg.create_config['events']
+create_events(numevents)
 
+create_taganomy(numevents, attach=True)
+
+
+agenda_items = cfg.create_config['agenda_items']
+for evt in event_ids:
+    rest_path = "/entity/events/" + str(evt)
+    start_date = get_retrieve(rest_path, "start")
+    end_date = get_retrieve(rest_path, "end")
+    speakers = get_retrieve(rest_path, "speakers")
+    create_agenda(agenda_items, evt,start_date, end_date, speakers)
 
 create_exhibitors(numevents, attach=True)
 
@@ -323,11 +343,15 @@ userlist = []
 for i in range(numusers):
     u = User()
     u.onboard_user()
-    map(lambda x:u.entity_join(x, entity_type='EVT'), event_ids)
+    map(lambda x:u.entity_access(x, entity_type='EVT', state=1), event_ids)
+
+for i in range(numusers):
+    u = User()
+    u.onboard_user()
+    map(lambda x:u.entity_access(x, entity_type='EVT', state=2), event_ids)
+    map(lambda x:u.entity_access(x, entity_type='EVT', state=4), event_ids)
 
 
-
-attach_entities()
 
 agenda_items = cfg.create_config['agenda_items']
 for evt in event_ids:
@@ -337,6 +361,8 @@ for evt in event_ids:
     speakers = get_retrieve(rest_path, "speakers")
     speaker_ids = map(lambda x:x['id'], speakers)
     create_agenda(agenda_items, evt,start_date, end_date, speaker_ids)
+
+attach_entities()
 
 
 #create_polls()

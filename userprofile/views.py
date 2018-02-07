@@ -10,13 +10,14 @@ from rest_framework import status
 import django_filters
 import pdb
 
+
 class UserQueryFilter(django_filters.rest_framework.FilterSet):
     email = django_filters.CharFilter(name="email")
     username = django_filters.CharFilter(name="username")
 
     class Meta:
         model = User
-        fields = ('id','email', 'username',)
+        fields = ('id', 'email', 'username',)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

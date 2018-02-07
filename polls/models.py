@@ -17,12 +17,9 @@ class PollManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
-    def users_entities(self, user, **kwargs):
-        kwargs.update(entity_type=BaseEntityComponent.POLL)
-        return super(PollManager, self).users_entities(
-            user,
-            **kwargs
-        )
+    def users_entities(self, user, user_filter={}, entity_filter={}):
+        entity_filter.update(entity_type=BaseEntityComponent.POLL)
+        return super(PollManager, self).users_entities(user, user_filter=user_filter, entity_filter=entity_filter)
 
 
 class Poll(BaseEntityComponent):
@@ -79,6 +76,7 @@ class QuestionManager(PolymorphicManager):
             c = QuestionChoicesText
 
         return c
+
 
 class Question(PolymorphicModel):
 
@@ -207,6 +205,7 @@ class QuestionChoices1ToX(QuestionChoicesBase):
 
         return out
 
+
 class QuestionChoicesMultipleChoice(QuestionChoicesBase):
     question_key = models.CharField(max_length=1)
     question_value = models.TextField()
@@ -215,6 +214,7 @@ class QuestionChoicesMultipleChoice(QuestionChoicesBase):
         out = super(QuestionChoicesMultipleChoice, self).answer_stats()
 
         return out
+
 
 class QuestionChoicesText(QuestionChoicesBase):
     def answer_stats(self):

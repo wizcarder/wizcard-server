@@ -2,8 +2,6 @@ from django.db import models
 from base.char_trunc import TruncatingCharField
 from base.emailField import EmailField
 from picklefield.fields import PickledObjectField
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
 from base.custom_storage import WizcardQueuedS3BotoStorage
 from base.custom_field import WizcardQueuedFileField
 import os
@@ -43,6 +41,7 @@ class Base411Mixin(models.Model):
     modified = models.DateTimeField(auto_now=True, null=True)
     name = TruncatingCharField(max_length=50, default="")
     email = EmailField(blank=True)
+
 
 class Base412Mixin(Base411Mixin):
     class Meta:

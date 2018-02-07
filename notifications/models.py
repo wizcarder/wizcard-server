@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
 from django.conf import settings
 from .utils import id2slug
@@ -70,13 +70,13 @@ class BaseNotification(models.Model):
     recipient = models.ForeignKey(User, blank=False, related_name='notifications')
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
     actor_object_id = models.CharField(max_length=255)
-    actor = generic.GenericForeignKey('actor_content_type', 'actor_object_id')
+    actor = GenericForeignKey('actor_content_type', 'actor_object_id')
 
     verb = models.CharField(max_length=255)
 
     target_content_type = models.ForeignKey(ContentType, related_name='notify_target', blank=True, null=True)
     target_object_id = models.CharField(max_length=255, blank=True, null=True)
-    target = generic.GenericForeignKey('target_content_type', 'target_object_id')
+    target = GenericForeignKey('target_content_type', 'target_object_id')
 
     action_object_content_type = models.ForeignKey(
         ContentType,
@@ -85,7 +85,7 @@ class BaseNotification(models.Model):
         null=True
     )
     action_object_object_id = models.CharField(max_length=255, blank=True, null=True)
-    action_object = generic.GenericForeignKey('action_object_content_type', 'action_object_object_id')
+    action_object = GenericForeignKey('action_object_content_type', 'action_object_object_id')
 
     timestamp = models.DateTimeField(default=timezone.now)
 

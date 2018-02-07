@@ -5,6 +5,7 @@ from wizcardship.models import Wizcard, ContactContainer, DeadCard
 from base.cctx import NotifContext
 import pdb
 
+
 class ContactContainerSerializerL1(serializers.ModelSerializer):
     class Meta:
         model = ContactContainer
@@ -107,6 +108,7 @@ class DeadCardSerializerL2(WizcardSerializerL2):
             connection_mode=obj.cctx.connection_mode,
             notes=obj.cctx.notes,
             timestamp=obj.created.strftime("%d %B %Y")).context
+
 
 # not used by App
 class WizcardSerializer(WizcardSerializerL2):

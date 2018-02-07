@@ -4,12 +4,11 @@ from userprofile.models import UserProfile
 from rest_framework.validators import ValidationError
 import hashlib
 
-from allauth.account import app_settings as allauth_settings
-from allauth.utils import email_address_exists
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from rest_auth.registration.serializers import RegisterSerializer
 import pdb
+
 
 class UserRegisterSerializer(RegisterSerializer):
     first_name = serializers.CharField(required=False, write_only=True)
@@ -45,7 +44,6 @@ class UserRegisterSerializer(RegisterSerializer):
         user.save()
         profile = user.profile.create_user_type_instance(int(user_type))
         return user
-
 
 
 class UserSerializerL0(serializers.ModelSerializer):

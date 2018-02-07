@@ -3,7 +3,6 @@
 from base_entity.models import BaseEntity, BaseEntityComponent
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 import pdb
 

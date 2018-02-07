@@ -1359,28 +1359,30 @@ if TEST_TABLE:
     #join created entity
     print "Joining Table"
 
-    reqmsg = messages.entity_join
+    reqmsg = messages.entity_access
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid2
     reqmsg['sender']['wizuser_id'] = wuid2
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = 'TBL'
+    reqmsg['sender']['state'] = 1
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     print "Joining Table with error password"
-    reqmsg = messages.entity_join
+    reqmsg = messages.entity_access
     reqmsg['header']['version'] = messages.APP_VERSION
     reqmsg['sender']['user_id'] = uid3
     reqmsg['sender']['wizuser_id'] = wuid3
     reqmsg['sender']['entity_id'] = tid_1
     reqmsg['sender']['entity_type'] = 'TBL'
     reqmsg['sender']['password'] = "xxx"
+    reqmsg['sender']['state'] = 1
     # Parse and dump the JSON response from server
     send_request(conn, reqmsg)
-    objs = handle_response(conn, reqmsg['header']['msg_type'], err_skip=True)
+    objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     print "Edit Table"
     reqmsg = messages.entity_edit
@@ -1454,7 +1456,7 @@ if TEST_TABLE:
     reqmsg['sender']['user_id'] = uid1
     reqmsg['sender']['wizuser_id'] = wuid1
     reqmsg['sender']['entity_id'] = tid_1
-    reqmsg['sender']['entity_type'] = None
+    reqmsg['sender']['entity_type'] = 'TBL'
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
@@ -1472,7 +1474,6 @@ if TEST_TABLE:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-
     #t2 -> fu3, fu4 via sms, asset_type = Table
     reqmsg = messages.send_asset_to_xyz
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1675,7 +1676,6 @@ if OCR_FLAG:
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
 
-
 if TEST_ENTITY:
     reqmsg = messages.get_events
     reqmsg['header']['version'] = messages.APP_VERSION
@@ -1693,16 +1693,31 @@ if TEST_ENTITY:
 
     if event_list:
         for e_id, e_type in event_list:
-            reqmsg = messages.entity_join
+            reqmsg = messages.entity_access
             reqmsg['header']['version'] = messages.APP_VERSION
             reqmsg['sender']['user_id'] = uid1
             reqmsg['sender']['wizuser_id'] = wuid1
             reqmsg['sender']['entity_id'] = e_id
             reqmsg['sender']['entity_type'] = e_type
+            reqmsg['sender']['state'] = 2
 
             send_request(conn, reqmsg)
             # Parse and dump the JSON response from server
             objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+            reqmsg = messages.entity_access
+            reqmsg['header']['version'] = messages.APP_VERSION
+            reqmsg['sender']['user_id'] = uid1
+            reqmsg['sender']['wizuser_id'] = wuid1
+            reqmsg['sender']['entity_id'] = e_id
+            reqmsg['sender']['state'] = 1
+            reqmsg['sender']['entity_type'] = e_type
+
+            send_request(conn, reqmsg)
+            # Parse and dump the JSON response from server
+            objs = handle_response(conn, reqmsg['header']['msg_type'])
+
+
 
             reqmsg = messages.entities_like
             reqmsg['header']['version'] = messages.APP_VERSION
@@ -1754,12 +1769,13 @@ if TEST_ENTITY:
             lead.prepare_response()
             lead.send(err_skip=True)
 
-            reqmsg = messages.entity_leave
+            reqmsg = messages.entity_access
             reqmsg['header']['version'] = messages.APP_VERSION
             reqmsg['sender']['user_id'] = uid1
             reqmsg['sender']['wizuser_id'] = wuid1
             reqmsg['sender']['entity_id'] = e_id
             reqmsg['sender']['entity_type'] = e_type
+            reqmsg['sender']['state'] = 3
 
             send_request(conn, reqmsg)
             # Parse and dump the JSON response from server

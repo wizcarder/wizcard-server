@@ -1,8 +1,8 @@
 __author__ = 'aammundi'
-from userprofile.views import UserViewSet, ProfileView, CustomObtainAuthToken
+from userprofile.views import UserViewSet, CustomObtainAuthToken
 from rest_framework.routers import DefaultRouter
-from django.conf.urls import patterns, include, url
-from rest_auth.views import LoginView, LogoutView, UserDetailsView
+from django.conf.urls import include, url
+from rest_auth.views import  LogoutView, UserDetailsView
 
 
 router = DefaultRouter()
@@ -17,7 +17,7 @@ urlpatterns = [
     url(r'^login/$', CustomObtainAuthToken.as_view(), name='user_login'),
     url(r'^logout/$', LogoutView.as_view(), name='rest_logout'),
     #url(r'^profile/$', ProfileView.as_view(), name='profile')
-    url(r'^profile/$', UserDetailsView.as_view(), name='profile' )
+    url(r'^profile/$', UserDetailsView.as_view(), name='profile')
 #    url(r'^password/', LogoutView.as_view(), name='rest_logout'),
 #    url(r'^logout/', include('rest_auth.urls')),
 #   # url(r'^rest-auth/facebook/$', FacebookLogin.as_view(), name='fb_login')

@@ -27,6 +27,7 @@ class ScannedEntity(BaseEntityComponent, Base411Mixin, CompanyTitleMixin):
     def lead_score(self):
         return 10
 
+
 class BadgeTemplateManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.BADGE_TEMPLATE):
         return super(BadgeTemplateManager, self).owners_entities(
@@ -40,6 +41,8 @@ class BadgeTemplateManager(BaseEntityComponentManager):
 # inherited will contain all of this.
 # website can be used as is.
 # description can be used as the portal needs based on the UI fields
+
+
 class BadgeTemplate(BaseEntityComponent, Base412Mixin, CompanyTitleMixin):
 
     objects = BadgeTemplateManager()

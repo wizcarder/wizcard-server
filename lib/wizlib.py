@@ -10,14 +10,14 @@ from django.core.files.storage import default_storage
 from datetime import datetime
 import pytz
 
+# general purpose utils
 
-
-#general purpose utils
 def convert_phone(phone):
     import string
     remove = '() -:+'
     remove_map = dict((ord(char), None) for char in remove)
     return phone.translate(remove_map)
+
 
 def queryset_iterator(queryset, chunksize=1000):
     '''
@@ -40,21 +40,25 @@ def queryset_iterator(queryset, chunksize=1000):
             yield row
         gc.collect()
 
-#Geohash related stuff
 
+# Geohash related stuff
 def create_geohash(lat, lng):
     encode = geohash.encode(lat, lng)
-    #print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
+    # print 'geohash encoded [{lat}, {lng}] to {encode}'.format (lat=lat, lng=lng, encode=encode)
     return encode
+
 
 def modified_key(key, val):
     mkey = settings.MKEY_SEP.join((key, str(val)))
     return mkey
 
+
 def demodify_key(key):
     return key.split(settings.MKEY_SEP)[0]
 
+
 from math import radians, cos, sin, asin, sqrt
+
 def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points 
@@ -72,6 +76,7 @@ def haversine(lon1, lat1, lon2, lat2):
 
 #reverse geocoding
 from pygeocoder import Geocoder
+
 def reverse_geo_from_latlng(lat, lng):
     result = Geocoder.reverse_geocode(lat, lng)
 
@@ -94,6 +99,7 @@ def reverse_geo_from_latlng(lat, lng):
 
     return out
 
+
 def format_location_name(location):
     return "@"+location if location else "@location unknown"
 
@@ -102,14 +108,14 @@ def split_name(name):
     return name.split()[:1][0].lower(), " ".join(name.split()[1:]).lower()
 
 #Helper function to avoid nested try-except clauses
-def parse_phone(phone,country=None):
+def parse_phone(phone, country=None):
     try:
-        parsephone = phonenumbers.parse(phone,country)
+        parsephone = phonenumbers.parse(phone, country)
         return parsephone
     except:
         return None
 
-def is_valid_phone(phone,country_prefix="IN"):
+def is_valid_phone(phone, country_prefix="IN"):
     parsephone = parse_phone(phone, country=country_prefix)
     if parsephone:
         return phonenumbers.is_valid_number(parsephone)

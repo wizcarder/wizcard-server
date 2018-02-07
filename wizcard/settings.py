@@ -1,7 +1,6 @@
 # Django settings for wizcard project.
 import os
 
-from kombu import Queue, Exchange
 from wizcard import instances
 
 RUNENV = os.getenv('WIZRUNENV', 'dev')
@@ -11,7 +10,7 @@ APP_MINOR = 1
 
 DEBUG = False
 if RUNENV != 'prod':
-    DEBUG = False
+    DEBUG = True
 ALLOWED_HOSTS = ['*']
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
@@ -28,10 +27,10 @@ WIZCARD_SETTINGS = {
     'dev': {
         'databases': {
             'default': {
-                'ENGINE': 'django.db.backends.mysql',
-                #'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard',
-                'USER': 'root',
+                #'ENGINE': 'django.db.backends.mysql',
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'wizcard-dev-master',
+                'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
                  'PORT': '5432',
@@ -256,12 +255,12 @@ EMAIL_TEMPLATE = '/invites/email_templatev4.png'
 EMAIL_FROM_ADDR='WizCard Inc <wizcarder@getwizcard.com>'
 
 PHONE_CHECK_MESSAGE = {
-        'reqtype': 'json',
-        'api_key': NEXMO_API_KEY,
-        'api_secret': NEXMO_API_SECRET,
-        'from': NEXMO_SENDERID,
-        'to':None,
-        'text':""
+        'reqtype' : 'json',
+        'api_key' : NEXMO_API_KEY,
+        'api_secret' : NEXMO_API_SECRET,
+        'from' : NEXMO_SENDERID,
+        'to' : None,
+        'text' : ""
     }
 
 #number of per user notifs we want to process per get
@@ -301,6 +300,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.postgres',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -413,9 +413,6 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 # Use WatchedFileHandler instead, and rotate logs with a cron job or with some other program.
 #
 #... somewhere in settings.py or imported ...
-
-
-
 MYLOG = {}
 MYLOG['dev'] = {
     'version': 1,
@@ -444,7 +441,7 @@ MYLOG['dev'] = {
     'handlers': {
         'null': {
             'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'class':'logging.NullHandler',
         },
         'console-simple':{
             'level':'DEBUG',

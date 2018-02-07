@@ -10,7 +10,17 @@ mcr_poll = { "description" : "Poll %d",
                          {"question_key": "C", "question_value": "could have been better"},
                          {"question_key": "D", "question_value":"Should have gone outside"}
                         ]
-            }]
+            },
+            {
+                "question": "Rate the food today",
+                "question_type" : "SCL",
+                "ui_type": "RTG",
+                "single_answer" : True,
+                "choices" : [{'low':0, 'high': 5}]
+
+            }
+
+             ]
         }
 
 scl_poll = { "description" : "Poll %d",
@@ -49,13 +59,13 @@ txt_poll = {"description" : "Poll %d",
 
 poll_entities = ['breakfast', 'lunch', 'talk', 'panel discussion', 'arrangements']
 create_config = {
-                    'events':  3,
-                    'speakers' : 3,
-                    'sponsors': 3,
-                    'campaigns' : 3,
-                    'exhibitors' : 3,
+                    'events':  4,
+                    'speakers' : 4,
+                    'sponsors': 4,
+                    'campaigns' : 4,
+                    'exhibitors' : 4,
                     'agenda_items': 6,
-                    'event_media' : 4,
+                    'event_media' : 6,
                     'campaign_media': 4,
                     'speaker_file' : './/test/ceos.tsv',
                     'sponsor_file' : './test/sponsors.tsv',
@@ -65,7 +75,7 @@ create_config = {
                         'MCR' : {'count':2, 'template' : mcr_poll},
                         'SCL' : {'count':2, 'template': scl_poll},
                         'TOF' : {'count': 2, 'template' : tof_poll},
-                        'TXT' : {'count': 2, 'template': txt_poll}
+                        'TXT' : {'count': 2, 'template': txt_poll},
                     },
                     'tags_per_event' : 10,
                     'tags_per_campaign' : 3,

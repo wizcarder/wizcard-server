@@ -1,12 +1,13 @@
 __author__ = 'aammundi'
 
-from django.conf.urls import url, include, patterns
+from django.conf.urls import url, include
 from entity.views import EventViewSet, CampaignViewSet, TableViewSet
 from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorInviteeViewSet, AttendeeViewSet, \
     CoOwnerViewSet, AgendaViewSet, AgendaItemViewSet, ExhibitorEventViewSet
 from entity.views import EventCampaignViewSet, EventSpeakerViewSet, EventSponsorViewSet, \
     EventMediaViewSet, EventAttendeeViewSet, EventExhibitorViewSet, EventCoOwnerViewSet,\
-    EventAgendaViewSet, EventPollViewSet, EventTagonomyViewSet, EventNotificationViewSet
+    EventAgendaViewSet, EventPollViewSet, EventTagonomyViewSet, EventNotificationViewSet, \
+    EventBadgeViewSet
 from media_components.views import MediaEntitiesViewSet
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
@@ -45,14 +46,13 @@ events_router.register(r'agenda', EventAgendaViewSet, base_name='event-agenda')
 events_router.register(r'poll', EventPollViewSet, base_name='event-poll')
 events_router.register(r'notification', EventNotificationViewSet, base_name='event-notification')
 events_router.register(r'tagonomy', EventTagonomyViewSet, base_name='event-tagonomy')
+events_router.register(r'badge', EventBadgeViewSet, base_name='event-badge')
 
-
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^', include(events_router.urls)),
     url(r'^', include(agenda_item_router.urls)),
-)
+]
 
 urlpatterns += poll_urlpatterns
 urlpatterns += scan_urlpatterns

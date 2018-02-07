@@ -556,12 +556,12 @@ entity_create = {
     },
 }
 
-entity_join = {
+entity_access = {
     "header" : {
         "device_id" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f02460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msg_type" : "entity_join",
+        "msg_type" : "entity_access",
     },
     "sender" : {
         "user_id" : "",
@@ -580,10 +580,12 @@ entity_leave = {
         "device_id" : "5AE-AEBD-4A9E-9AEA-7A17727BC17B",
         "hash" : "da0f02460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msg_type" : "entity_join",
+        "msg_type" : "entity_access",
     },
     "sender" : {
         "user_id" : "",
+        "lat" : 37.785838,
+        "lng" : -122.406419,
         "wizuser_id" : "",
         "table_id": "",
         "password" : "test",
@@ -683,17 +685,19 @@ entities_like = {
     },
 }
 
-entity_join = {
+entity_access = {
      "header" : {
         "device_id" : "17b90b2e03dc7b38",
         "hash" : "da0f7402460b85205c85618edf685916",
         #above 2 fields are not currently used by server
-        "msg_type" : "entity_join",
+        "msg_type" : "entity_access",
     },
     "sender" : {
         "device_type": "android",
         "entity_id" : "",
         "entity_type" : "",
+        "lat" : 37.785834,
+        "lng" : -122.406415,
     }
 }
 
@@ -708,6 +712,8 @@ entity_leave = {
         "device_type": "android",
         "entity_id" : "",
         "entity_type" : "",
+        "lat" : 37.785834,
+        "lng" : -122.406415,
     },
 }
 

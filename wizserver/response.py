@@ -1,7 +1,6 @@
 # define all outbound responses here
-import datetime
 from django.contrib.contenttypes.models import ContentType
-from wizcardship.models import  Wizcard, WizcardFlick
+from wizcardship.models import Wizcard, WizcardFlick
 from entity.models import VirtualTable
 from base.cctx import NotifContext
 from django.http import HttpResponse
@@ -61,7 +60,8 @@ class Response:
             return True
         return False
 
-# subclass of above. This handles arrays of Data and used by Notifications
+
+#subclass of above. This handles arrays of Data and used by Notifications
 class ResponseN(Response):
     def __init__(self):
         Response.__init__(self)
@@ -116,7 +116,7 @@ class SyncNotifResponse(ResponseN):
         }
 
         for notification in notifications:
-            notifHandler[notification.notif_type](notification)
+            notif_handler[notification.notif_type](notification)
 
     def notifWizcard(self, notif, notifType, half=False):
         wizcard = notif.target
@@ -272,15 +272,6 @@ class SyncNotifResponse(ResponseN):
         out = dict(sender=s_out, asset=a_out)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_INVITE, notif.id)
         return self.response
-    #
-    # def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):
-    #     out = None
-    #     own_wizcard = user.wizcard
-    #     if flicked_wizcards:
-    #         out = WizcardFlick.objects.serialize_split(user.wizcard,
-    #                                                    flicked_wizcards)
-    #         self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_FLICKED_WIZCARD)
-    #     return self.response
 
     def notifUserLookup(self, me, users):
         wizcards = map(lambda u: u.wizcard, users)

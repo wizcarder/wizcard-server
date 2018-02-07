@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 import signals
 import pdb
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericRelation
 from location_mgr.signals import location
 from location_mgr.models import LocationMgr
 from base.char_trunc import TruncatingCharField
@@ -100,7 +100,7 @@ class WizcardManager(PolymorphicManager):
     #wrapper for 2-way exchanges
     def exchange(self, wizcard1, wizcard2, cctx):
         if self.are_wizconnections(wizcard1, wizcard2):
-            return  err.EXISTING_CONNECTION
+            return err.EXISTING_CONNECTION
 
         #setup bidir relationships
         rel1 = Wizcard.objects.cardit(wizcard1, wizcard2, status=verbs.ACCEPTED, cctx=cctx)
@@ -187,6 +187,7 @@ class WizcardManager(PolymorphicManager):
     def friends_in_wizcards(self, my_wizcard, wizcards):
         return [x for x in wizcards if Wizcard.objects.is_wizcard_following(x, my_wizcard)]
 
+
 class WizcardBase(PolymorphicModel, Base413Mixin):
     sms_url = URLField(blank=True)
     media = RelatedObjectsDescriptor()
@@ -200,7 +201,7 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
     def is_admin_wizcard(self):
         return self.user.profile.is_admin
 
-    def save_sms_url(self,url):
+    def save_sms_url(self, url):
         self.sms_url = wizlib.shorten_url(url)
         self.save()
 
@@ -208,9 +209,9 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return self.sms_url
 
     def get_thumbnail_url(self):
-        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL]
-        if l:
-            return l
+        tn = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type == MediaMixin.SUB_TYPE_THUMBNAIL]
+        if tn:
+            return tn
 
         return ""
 
@@ -222,9 +223,9 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return self.user.first_name + " " + self.user.last_name
 
     def get_video_url(self):
-        l = [(x.media_element, x.media_iframe) for x in self.media.all().generic_objects() if x.media_type==MediaMixin.TYPE_VIDEO]
-        if l:
-            return l
+        vd = [(x.media_element, x.media_iframe) for x in self.media.all().generic_objects() if x.media_type == MediaMixin.TYPE_VIDEO]
+        if vd:
+            return vd
 
         return ""
 
@@ -437,13 +438,14 @@ class Wizcard(WizcardBase):
         return self.get_connected_from(verbs.ACCEPTED).exclude(
             id__in=Wizcard.objects.filter(Q(user__profile__is_admin=True)))
 
+
 class DeadCard(WizcardBase):
     user = models.ForeignKey(User, related_name="dead_cards")
     first_name = TruncatingCharField(max_length=30, default="")
     last_name = TruncatingCharField(max_length=30, default="")
     invited = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
-    cctx = PickledObjectField(blank=True, default = {})
+    cctx = PickledObjectField(blank=True, default={})
 
     def __unicode__(self):
         return _(u'%(user)s\'s deadcard') % {'user': unicode(self.user)}
@@ -465,7 +467,7 @@ class DeadCard(WizcardBase):
 
         c = self.contact_container.get()
         c.company = result.get('company', "")
-        c.title = title=result.get('job', "")
+        c.title = title = result.get('job', "")
 
         c.save()
         self.save()
@@ -491,9 +493,9 @@ class ContactContainer(CompanyTitleMixin):
         ordering = ['id']
 
     def get_fbizcard_url(self):
-        l = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type==MediaMixin.SUB_TYPE_F_BIZCARD]
-        if l:
-            return l
+        bz = [x.media_element for x in self.media.all().generic_objects() if x.media_sub_type == MediaMixin.SUB_TYPE_F_BIZCARD]
+        if bz:
+            return bz
 
         return ""
 
@@ -571,7 +573,7 @@ class WizcardFlickManager(models.Manager):
 
     def lookup(self, lat, lng, n, count_only=False):
         flicked_cards = None
-        result, count =  LocationMgr.objects.lookup(
+        result, count = LocationMgr.objects.lookup(
             "WTREE",
             lat,
             lng,
@@ -638,7 +640,7 @@ class WizcardFlick(models.Model):
     timeout = models.IntegerField(default=30)
     lat = models.FloatField(null=True, default=None)
     lng = models.FloatField(null=True, default=None)
-    location = generic.GenericRelation(LocationMgr)
+    location = GenericRelation(LocationMgr)
     expired = models.BooleanField(default=False)
     reverse_geo_name = TruncatingCharField(max_length=100, default=None)
     #who picked my flicked card?
@@ -654,7 +656,7 @@ class WizcardFlick(models.Model):
                                lng=lng,
                                key=key,
                                tree="WTREE")
-        loc= retval[0][1]
+        loc = retval[0][1]
 
         return loc
 
