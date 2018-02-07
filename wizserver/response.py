@@ -1,6 +1,6 @@
 # define all outbound responses here
 from django.contrib.contenttypes.models import ContentType
-from wizcardship.models import Wizcard, WizcardFlick
+from wizcardship.models import Wizcard
 from entity.models import VirtualTable
 from base.cctx import NotifContext
 from django.http import HttpResponse
@@ -19,6 +19,7 @@ from notifications.push_tasks import push_notification_to_app
 from lib.create_share import send_event, send_wizcard
 
 logger = logging.getLogger(__name__)
+
 
 # This is the basic Response class used to send simple result and data
 class Response:
@@ -226,13 +227,31 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifEntityDelete(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_ENTITY_DELETE)
+        out = dict(
+            entity_id=notif.target.id,
+            entity_type=notif.target_content_type.model,
+            sub_entity_id=notif.action_object_object_id,
+            sub_entity_type=notif.action_object_content_type.model,
+        )
+
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_DELETE, notif.id)
+
+        return self.response
 
     def notifEntityExpire(self, notif):
         self.notifEvent(notif, verbs.NOTIF_ENTITY_EXPIRE)
 
     def notifEntityUpdate(self, notif):
-        self.notifEvent(notif, verbs.NOTIF_ENTITY_UPDATE)
+        out = dict(
+            entity_id=notif.target.id,
+            entity_type=notif.target_content_type.model,
+            sub_entity_id=notif.action_object_object_id,
+            sub_entity_type=notif.action_object_content_type.model,
+        )
+
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_UPDATE, notif.id)
+
+        return self.response
 
     def notifEntityBroadcast(self, notif):
         if notif.target:
@@ -273,6 +292,15 @@ class SyncNotifResponse(ResponseN):
         out = dict(sender=s_out, asset=a_out)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_TABLE_INVITE, notif.id)
         return self.response
+    #
+    # def notifFlickedWizcardsLookup(self, count, user, flicked_wizcards):
+    #     out = None
+    #     own_wizcard = user.wizcard
+    #     if flicked_wizcards:
+    #         out = WizcardFlick.objects.serialize_split(user.wizcard,
+    #                                                    flicked_wizcards)
+    #         self.add_data_and_seq_with_notif(out, verbs.NOTIF_NEARBY_FLICKED_WIZCARD)
+    #     return self.response
 
     def notifUserLookup(self, me, users):
         wizcards = map(lambda u: u.wizcard, users)
@@ -353,13 +381,18 @@ class AsyncNotifResponse:
         return 0
 
     def notifScannedUser(self, notif):
-        wizcard = notif.sender.wizcard
+        wizcard = notif.sender.wizcard       
         try:
+            # AA: Review: Is get_email a method ?
             to = notif.target.get_email
         except:
+            # AA: Review. AR to fix (and below)
             return -1
+        
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
         send_wizcard.delay(wizcard, to, email_details, half_card=True)
+        
+        # AA: Review. PLSSS...enough of C like code.
         return 0
 
     def notifInviteUser(self, notif):
@@ -367,20 +400,25 @@ class AsyncNotifResponse:
         try:
             to = notif.target.get_email
         except:
-            return -1
+            return -1       
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        
+        # AA: Review: Why does this need to be .delay. This caller
+        # is already in celery context
         send_wizcard.delay(wizcard, to, email_details)
         return 0
 
     def notifInviteExhibitor(self, notif):
         event_organizer = notif.sender
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        
         send_event.delay(event_organizer, notif.recipient, email_details)
         return 0
 
     def notifInviteAttendee(self, notif):
         event_organizer = notif.sender
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        
         send_event.delay(event_organizer, notif.recipient, email_details)
         return 0
 

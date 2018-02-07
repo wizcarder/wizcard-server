@@ -4,6 +4,7 @@ from base_entity.models import BaseEntity, BaseEntityComponent
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from wizserver import verbs
 import pdb
 
 
@@ -20,6 +21,9 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         parents = instance.get_parent_entities()
         if len(parents):
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
+
+        # notif stuff
+        BaseEntityComponent.objects.notify_via_entity_parent(instance, verbs.WIZCARD_ENTITY_DELETE)
 
         instance.delete()
         return Response(status=status.HTTP_200_OK)

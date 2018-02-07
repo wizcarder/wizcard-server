@@ -108,7 +108,7 @@ class EventViewSet(BaseEntityViewSet):
     @detail_route(methods=['put'])
     def publish_event(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
-        inst.make_live()
+        inst.activate()
         return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
 
 

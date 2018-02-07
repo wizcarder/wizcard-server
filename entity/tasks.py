@@ -14,4 +14,4 @@ def expire():
     e = Event.objects.get_expired()
     for _e in e:
         logger.info('Expiring event {%s}', _e)
-        _e.expire()
+        _e.do_expire()

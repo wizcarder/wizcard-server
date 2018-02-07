@@ -191,8 +191,8 @@ WIZCARD_ACCEPT              = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', True, 
 WIZCARD_REVOKE              = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', False, False)
 WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', False, False)
 WIZCARD_DELETE              = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', False, False)
-WIZCARD_UPDATE_FULL         = (NOTIF_UPDATE_WIZCARD_F, 'wizcard update', False, True)
-WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD_H, 'wizcard update half', True, True)
+WIZCARD_UPDATE_FULL         = (NOTIF_UPDATE_WIZCARD_F, 'wizcard update', True, True)
+WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD_H, 'wizcard update half', False, True)
 WIZCARD_FLICK_TIMEOUT       = (NOTIF_FLICK_TIMEOUT, 'flick timeout', True, False)
 WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
 WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
@@ -210,6 +210,14 @@ WIZCARD_INVITE_USER         = (NOTIF_INVITE_USER, 'invite_user', False, True)
 WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', False, True)
 WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', False, True)
 WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', True, True)
+
+EMAIL_TEMPLATE_MAPPINGS = {
+    NOTIF_NEW_WIZUSER: {"template": "welcome.html", "subject": "Welcome %s to WizCard"},
+    NOTIF_SCANNED_USER: {"template": "emailwizcard.html", "subject": "%s has scanned your card on WizCard"},
+    NOTIF_INVITE_ATTENDEE: {"template": "invite_attendee.html", "subject": "%s - has invited you to Create your Campaign"},
+    NOTIF_INVITE_EXHIBITOR: {"template": "invite_exhibitor.html", "subject": "%s - Welcome to %s"},
+    NOTIF_INVITE_USER: {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"},
+}
 
 def get_notif_type(ntuple):
     return ntuple[0]
@@ -301,7 +309,7 @@ apns_notification_dictionary = {
 
 def get_apns_dict(notif_type):
     if notif_type not in apns_notification_dictionary:
-        raise AssertionError("Add notifType to apns_dict %s" % notif_type)
+        raise AssertionError("Add notifType %s to apns_dict" % notif_type)
 
     return apns_notification_dictionary[notif_type]
 

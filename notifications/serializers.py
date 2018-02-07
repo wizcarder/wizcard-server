@@ -47,7 +47,7 @@ class GenericSerializerField(serializers.RelatedField):
 class AsyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = AsyncNotification
-        fields = ('id', 'delivery_mode', 'target', 'action_object', 'notification_text',
+        fields = ('id', 'target', 'action_object', 'notification_text',
                   'start', 'end', 'notif_type', 'do_push')
 
     target = GenericSerializerField()
@@ -60,7 +60,6 @@ class AsyncNotificationSerializer(serializers.ModelSerializer):
         default=verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)
     )
     do_push = serializers.BooleanField(required=False, default=True, write_only=True)
-    delivery_mode = serializers.ChoiceField(BaseNotification.DELIVERY_MODE, write_only=True)
 
     def create(self, validated_data):
         start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))
@@ -84,7 +83,7 @@ class AsyncNotificationSerializer(serializers.ModelSerializer):
 class SyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SyncNotification
-        fields = ('id', 'delivery_mode', 'recipient', 'target', 'action_object',
+        fields = ('id', 'recipient', 'target', 'action_object',
                   'verb', 'notif_type', 'do_push', 'start', 'end')
 
     target = GenericSerializerField()
@@ -93,7 +92,6 @@ class SyncNotificationSerializer(serializers.ModelSerializer):
     start = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
     end = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
     notif_type = serializers.IntegerField(required=True)
-    delivery_mode = serializers.ChoiceField(BaseNotification.DELIVERY_MODE, write_only=True)
 
     def create(self, validated_data):
         start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))

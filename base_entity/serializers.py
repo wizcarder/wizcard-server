@@ -1,14 +1,14 @@
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
-
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
-
 from location_mgr.serializers import LocationSerializerField
 from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats
 from entity.models import CoOwners
 from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
+from wizserver import verbs
+import pdb
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -162,7 +162,7 @@ class EntitySerializer(EntitySerializerL0):
 
         return obj
 
-    def post_create_update(self, entity, update=True):
+    def post_create_update(self, entity, update=False):
         if self.owners:
             BaseEntityComponent.add_owners(entity, self.owners)
 
@@ -174,12 +174,8 @@ class EntitySerializer(EntitySerializerL0):
    
                 entity.add_subentities(**s)
 
-            entity.notify_subscribers()
-
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])
-
-        # TODO: Handle owners and create linkage to existing owners
 
         # Generate Tags
         if self.tags:
@@ -189,7 +185,7 @@ class EntitySerializer(EntitySerializerL0):
         if self.taganomy:
             self.taganomy.register_object(entity)
 
-        if update:
-            entity.notify_subscribers()
+        # send entity_update (with sub_entity granularity)
+        BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE)
 
         return entity

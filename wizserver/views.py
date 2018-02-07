@@ -1029,7 +1029,6 @@ class ParseMsgAndDispatch(object):
                 recipient=self.user,
                 notif_tuple=verbs.WIZCARD_NEW_USER,
                 target=wizcard,
-                delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
             )
 
         self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
@@ -1750,7 +1749,6 @@ class ParseMsgAndDispatch(object):
                         recipient=self.user,
                         notif_tuple=verbs.WIZCARD_INVITE_USER,
                         target=wizcard,
-                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                     )
             else:
                 fuser = FutureUser.objects.get_or_create(
@@ -1766,7 +1764,6 @@ class ParseMsgAndDispatch(object):
                         recipient=self.user,
                         notif_tuple=verbs.WIZCARD_INVITE_USER,
                         target=fuser[0],
-                        delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                     )
 
     def UserQuery(self):
@@ -2058,7 +2055,6 @@ class ParseMsgAndDispatch(object):
                     recipient=self.user,
                     notif_tuple=verbs.WIZCARD_SCANNED_USER,
                     target=deadcard,
-                    delivery_mode=BaseNotification.DELIVERY_MODE_EMAIL
                 )
 
         # no f_bizCardEdit..for now atleast. This will always come via scan
@@ -2198,27 +2194,23 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if state == UserEntity.JOIN:
-            entity.user_attach(self.user, state)
+            entity.user_attach(self.user, state, do_notify=True)
             out = s(entity, **self.user_context).data
             self.response.add_data("result", out)
             return self.response
-
         elif state == UserEntity.LEAVE:
             entity.user_detach(self.user, state=state)
             out = s(entity, **self.user_context).data
             self.response.add_data("result", out)
             return self.response
-
         elif state == UserEntity.PIN:
-            entity.user_attach(self.user, state)
+            entity.user_attach(self.user, state, do_notify=True)
             self.EventsGet()
-
-
         elif state == UserEntity.UNPIN:
             entity.user_detach(self.user, state=state)
             self.EventsGet()
-
         else:
+            # AA: Review: there are other better error codes
             self.response.error_response(err.CRITICAL_ERROR)
             return self.response
 
@@ -2275,13 +2267,13 @@ class ParseMsgAndDispatch(object):
         all_events = list(set(pinned_events) | set(nearby_events) | set(my_events))
         # TODO: AR threshold filter NO point in presenting 1 event
 
-        output = EventSerializerL1(
+        out = EventSerializerL1(
             all_events,
             many=True,
             **self.user_context
         ).data
 
-        self.response.add_data("result", output)
+        self.response.add_data("result", out)
 
         return self.response
 
@@ -2368,6 +2360,7 @@ class ParseMsgAndDispatch(object):
         if count:
             self.response.add_data("result", out)
         self.response.add_data("count", count)
+
         return self.response
 
     def EntityDetails(self):

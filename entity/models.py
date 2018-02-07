@@ -86,6 +86,10 @@ class Event(BaseEntity):
 
         return venue_d
 
+    def get_parent_entities(self):
+        # no parent for event
+        return [self]
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
@@ -223,6 +227,19 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 
         return matched_users, matched_attendees
 
+    def check_existing_users_attendees(self, invitee_ids):
+        matched_users = User.objects.filter(
+            email__in=self.filter(
+                id__in=invitee_ids
+            ).values_list('email', flat=True)
+        )
+
+        matched_attendees = self.filter(
+            email__in=matched_users.values_list('email', flat=True)
+        )
+
+        return matched_users, matched_attendees
+
 
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
     objects = AttendeeInviteeManager()
@@ -276,6 +293,10 @@ class AgendaItem(BaseEntity):
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
 
+    # override method to skip immediate parent and get agenda's parent
+    def get_parent_entities(self):
+        return self.agenda.get_parent_entities()
+
 
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -294,5 +315,6 @@ def create_engagement_stats(sender, instance, created, **kwargs):
 
 @receiver(user_type_created)
 def connect_subentities(sender, **kwargs):
+    # AA: Review. What happens when multiple user_types exist for User
     b_usr = sender.get_baseuser_by_type(kwargs.pop('user_type'))
     b_usr.connect_subentities()
