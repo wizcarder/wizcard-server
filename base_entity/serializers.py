@@ -76,6 +76,8 @@ One Serializer with everything in it. This can be subclassed and individual fiel
 can be defined as needed and methods overridden.
 This serializer should not be directly used
 """
+
+
 class EntitySerializer(EntitySerializerL0):
     media = serializers.SerializerMethodField()
     location = LocationSerializerField(required=False)
@@ -186,6 +188,7 @@ class EntitySerializer(EntitySerializerL0):
             self.taganomy.register_object(entity)
 
         # send entity_update (with sub_entity granularity)
-        BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE)
+        if entity.has_subscribers():
+            BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE)
 
         return entity

@@ -419,6 +419,10 @@ class BaseEntityComponent(PolymorphicModel):
     def get_parent_entities_by_contenttype_id(self, contenttype_id):
         return self.related.related_to().filter(parent_type_id=contenttype_id).generic_objects()
 
+    def has_subscribers(self):
+        taganomy_content_type_id = BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.CATEGORY).id
+        return self.related.related_to().exclude(parent_type=taganomy_content_type_id).exists()
+
     def get_creator(self):
         return BaseEntityComponentsOwner.objects.filter(
             base_entity_component=self,
@@ -655,6 +659,7 @@ class UserEntity(models.Model):
     def last_accessed_at(self, timestamp):
         self.last_accessed = timestamp
         self.save()
+
 
 # Join Table.
 # this will contain per user level stats
