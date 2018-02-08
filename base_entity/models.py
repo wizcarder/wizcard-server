@@ -54,7 +54,7 @@ class BaseEntityComponentManager(PolymorphicManager):
                 notif_tuple=notif_tuple,
                 target=parent,
                 action_object=entity
-            ) for parent in parents if parent.is_active()
+            ) for parent in parents if parent.is_active() & parent.has_subscribers()
         ]
 
 
@@ -419,9 +419,9 @@ class BaseEntityComponent(PolymorphicModel):
     def get_parent_entities_by_contenttype_id(self, contenttype_id):
         return self.related.related_to().filter(parent_type_id=contenttype_id).generic_objects()
 
+    # is the instance of the kind that has notifiable users
     def has_subscribers(self):
-        taganomy_content_type_id = BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.CATEGORY).id
-        return self.related.related_to().exclude(parent_type=taganomy_content_type_id).exists()
+        return False
 
     def get_creator(self):
         return BaseEntityComponentsOwner.objects.filter(
@@ -543,6 +543,11 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 self.save()
 
         return self
+
+    # override. BaseEntity derived objects can have subscribers. This can be further
+    # overridden in sub-entities if needed
+    def has_subscribers(self):
+        return True
 
     def is_active(self):
         return bool(self.is_activated and not self.expired)

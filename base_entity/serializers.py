@@ -188,7 +188,6 @@ class EntitySerializer(EntitySerializerL0):
             self.taganomy.register_object(entity)
 
         # send entity_update (with sub_entity granularity)
-        if entity.has_subscribers():
-            BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE)
+        BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE)
 
         return entity
