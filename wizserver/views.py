@@ -2263,7 +2263,11 @@ class ParseMsgAndDispatch(object):
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
         )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
-        my_events = Event.objects.users_entities(self.user, user_filter={'state': UserEntity.JOIN})
+
+        my_events = Event.objects.users_entities(
+            self.user,
+            user_filter={'state': UserEntity.JOIN}
+        )
 
         all_events = list(set(pinned_events) | set(nearby_events) | set(my_events))
         # TODO: AR threshold filter NO point in presenting 1 event
@@ -2353,10 +2357,14 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type')
         cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
 
-        entities = cls.objects.users_entities(self.user)
+        entities = cls.objects.users_entities(
+            self.user,
+            user_filter={'state': UserEntity.JOIN}
+        )
 
         out = s(entities, many=True, **self.user_context).data
-        count = entities.count()
+
+        count = len(entities)
 
         if count:
             self.response.add_data("result", out)

@@ -35,7 +35,11 @@ class ExhibitorEventViewSet(BaseEntityViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Event.objects.users_entities(user, entity_filter={'expired': False, 'is_activated': True})
+        queryset = Event.objects.users_entities(
+            user,
+            user_filter={'state': UserEntity.JOIN},
+            entity_filter={'expired': False, 'is_activated': True}
+        )
         return queryset
 
 

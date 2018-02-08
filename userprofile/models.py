@@ -312,8 +312,13 @@ class AppUser(BaseUser):
             s['context'] = serialize(cctx)
 
         # tables
-        tables = VirtualTable.objects.users_entities(self.profile.user)
-        if tables.count():
+        tables = VirtualTable.objects.users_entities(
+            self.profile.user,
+            user_filter={'state': UserEntity.JOIN},
+            entity_filter={'expired': False}
+        )
+
+        if tables:
             # serialize created and joined tables
             tbls = TableSerializerL1(tables, many=True, context={'user': self.profile.user}).data
             s['tables'] = tbls
@@ -324,8 +329,13 @@ class AppUser(BaseUser):
             dc = DeadCardSerializerL2(deadcards, many=True, context={'user': self.profile.user}).data
             s['deadcards'] = dc
 
-        campaigns = Campaign.objects.users_entities(self.profile.user)
-        if campaigns.count():
+        campaigns = Campaign.objects.users_entities(
+            self.profile.user,
+            user_filter={'state': UserEntity.PIN},
+            entity_filter={'expired': False}
+        )
+
+        if campaigns:
             camp_data = CampaignSerializer(campaigns, many=True, context={'user': self.profile.user}).data
             s['campaigns'] = camp_data
 

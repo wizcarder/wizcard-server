@@ -37,9 +37,12 @@ class BaseEntityComponentManager(PolymorphicManager):
 
     def get_tagged_entities(self, tags, entity_type):
         content_type = BaseEntityComponent.content_type_from_entity_type(entity_type)
-        entities = TaggedItem.objects.filter(tag__name__in=tags, content_type_id=content_type.id)
-        ids = [x.object_id for x in entities]
-        return content_type.get_all_objects_for_this_type(id__in=ids)
+        t_entities = TaggedItem.objects.filter(
+            tag__name__in=tags,
+            content_type_id=content_type.id
+        ).values_list('object_id', flat=True)
+
+        return content_type.get_all_objects_for_this_type(id__in=t_entities)
 
     def notify_via_entity_parent(self, entity, notif_tuple):
         # get parent entities
@@ -88,16 +91,21 @@ class BaseEntityManager(BaseEntityComponentManager):
     def users_entities(self, user, user_filter={}, entity_filter={}):
         entity_type = entity_filter.pop('entity_type')
 
+        # argument expand entity_filter
+        prefix = 'entity__'
+        mod_filter = dict((prefix+k, v) for k, v in entity_filter.items())
+
+        # merge with user_filter
+        mod_filter.update(user_filter)
+
         ue = UserEntity.objects.select_related('entity').filter(
             entity__entity_type=entity_type,
             user=user,
-            **user_filter
+            **mod_filter
         )
-        # TODO: AR : Check if this can be optimized further (given select_related, the map thing is
-        # very optimal as entity.id is not accessing DB again.
-        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
-        ids = map(lambda x: x.entity.id, ue)
-        return cls.objects.filter(id__in=ids, **entity_filter)
+
+        # entity is prefetched, so this should not hit db
+        return map(lambda ue: ue.entity, ue)
 
     def get_tagged_entities(self, tags, entity_type):
         return BaseEntityComponent.objects.get_tagged_entities(tags, entity_type)
@@ -516,7 +524,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 user,
                 # recipient is dummy
                 recipient=self.get_creator(),
-                notif_tuple=verbs.WIZCARD_ENTITY_JOIN,
+                notif_tuple=verbs.WIZCARD_ENTITY_ATTACH,
                 target=self,
             )
 
@@ -534,7 +542,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 user,
                 # recipient is dummy
                 recipient=self.get_creator(),
-                notif_tuple=verbs.WIZCARD_ENTITY_LEAVE,
+                notif_tuple=verbs.WIZCARD_ENTITY_DETACH,
                 target=self
             )
 

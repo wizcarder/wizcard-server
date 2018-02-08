@@ -38,9 +38,6 @@ class EventManager(BaseEntityManager):
     def users_entities(self, user, user_filter={}, entity_filter={}):
         entity_filter.update(entity_type=BaseEntityComponent.EVENT)
 
-        if 'state' not in user_filter:
-            user_filter.update(state=UserEntity.JOIN)
-
         return super(EventManager, self).users_entities(user, user_filter, entity_filter)
 
     def get_expired(self):
