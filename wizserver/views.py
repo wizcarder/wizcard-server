@@ -27,8 +27,6 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.conf import settings
 import colander
-from converter import Converter
-
 from lib.ocr import OCR
 from wizcardship.models import Wizcard, DeadCard, ContactContainer, WizcardFlick
 from notifications.models import BaseNotification, SyncNotification
@@ -1821,31 +1819,31 @@ class ParseMsgAndDispatch(object):
         try:
             resp = noembed.embed(video_url)
             video_thumbnail_url = resp.thumbnail_url
+        # except:
+        #     # Try with ffmpeg
+        #     VIDEO_SEEK_SECONDS = 5
+        #     OUTFILE_PATH = "/tmp/"
+        #     video_url = self.sender['video_url']
+        #     rand_val = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
+        #
+        #     filename = "thumbnail_video-%s.%s.jpg" % (rand_val, now().strftime("%Y-%m-%d %H:%M"))
+        #     outfile = OUTFILE_PATH+filename
+        #
+        #     c = Converter()
+        #     try:
+        #         c.thumbnail(video_url, VIDEO_SEEK_SECONDS, outfile, size='160:120')
+        #     except:
+        #         self.response.error_response(err.EMBED_FAILED)
+        #         return self.response
+        #
+        #     # upload file to aws and get url
+        #     remote_path = '/thumbnails/' + filename
+        #
+        #     try:
+        #         video_thumbnail_url = wizlib.uploadtoS3(outfile, remote_dir=remote_path)
         except:
-            # Try with ffmpeg
-            VIDEO_SEEK_SECONDS = 5
-            OUTFILE_PATH = "/tmp/"
-            video_url = self.sender['video_url']
-            rand_val = random.randint(settings.PHONE_CHECK_RAND_LOW, settings.PHONE_CHECK_RAND_HI)
-
-            filename = "thumbnail_video-%s.%s.jpg" % (rand_val, now().strftime("%Y-%m-%d %H:%M"))
-            outfile = OUTFILE_PATH+filename
-
-            c = Converter()
-            try:
-                c.thumbnail(video_url, VIDEO_SEEK_SECONDS, outfile, size='160:120')
-            except:
-                self.response.error_response(err.EMBED_FAILED)
-                return self.response
-
-            # upload file to aws and get url
-            remote_path = '/thumbnails/' + filename
-
-            try:
-                video_thumbnail_url = wizlib.uploadtoS3(outfile, remote_dir=remote_path)
-            except:
-                self.response.error_response(err.EMBED_FAILED)
-                return self.response
+            self.response.error_response(err.EMBED_FAILED)
+            return self.response
 
         self.response.add_data("video_thumbnail_url", video_thumbnail_url)
 
@@ -2255,14 +2253,17 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        pinned_events = Event.objects.users_entities(self.user, user_filter={'state':UserEntity.PIN}, entity_filter={'expired':False})
+        pinned_events = Event.objects.users_entities(
+            self.user,
+            user_filter={'state': UserEntity.PIN},
+            entity_filter={'expired': False}
+        )
         nearby_events = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
         )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
         my_events = Event.objects.users_entities(self.user, user_filter={'state': UserEntity.JOIN})
-
 
         all_events = list(set(pinned_events) | set(nearby_events) | set(my_events))
         # TODO: AR threshold filter NO point in presenting 1 event

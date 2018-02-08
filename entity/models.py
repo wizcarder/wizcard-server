@@ -282,7 +282,7 @@ class AgendaItem(BaseEntity):
 
     # override method to skip immediate parent and get agenda's parent
     def get_parent_entities(self):
-        return self.agenda.get_parent_entities()
+        return self.agenda_key.get_parent_entities()
 
 
 from django.dispatch import receiver
