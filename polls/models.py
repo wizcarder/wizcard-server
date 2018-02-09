@@ -23,18 +23,7 @@ class PollManager(BaseEntityComponentManager):
 
 
 class Poll(BaseEntityComponent):
-    POLL_STATE_UNPUBLISHED = 'UNP'
-    POLL_STATE_ACTIVE = 'ACT'
-    POLL_STATE_EXPIRED = 'EXP'
-
-    POLL_STATE_CHOICES = (
-        (POLL_STATE_UNPUBLISHED, 'unpublished'),
-        (POLL_STATE_ACTIVE, 'active'),
-        (POLL_STATE_EXPIRED, 'expired')
-    )
-
     description = models.CharField(max_length=100)
-    state = models.CharField(choices=POLL_STATE_CHOICES, default=POLL_STATE_UNPUBLISHED, max_length=3)
     created = models.DateTimeField(auto_now_add=True)
     num_responders = models.PositiveIntegerField(default=0)
 
@@ -57,10 +46,6 @@ class Poll(BaseEntityComponent):
     #     return self.userresponse_set.aggregate(
     #         num_responders=Count('id', distinct=True)
     #     ).get('num_responders')
-
-    def set_state(self, state):
-        self.state = state
-        self.save()
 
 
 class QuestionManager(PolymorphicManager):
@@ -114,6 +99,9 @@ class Question(PolymorphicModel):
         (RATING_TYPE, 'Rating')
     )
 
+    USER_STATUS_RESPONDED = "responded"
+    USER_STATUS_UNRESPONDED = "unresponded"
+
     question_type = models.CharField(
         max_length=3,
         choices=QUESTION_CHOICES,
@@ -155,6 +143,11 @@ class Question(PolymorphicModel):
     #     return self.questions_userresponse_related.aggregate(
     #         num_responders=Count('id', distinct=True)
     #     ).get('num_responders')
+    def user_state(self, user):
+        if UserResponse.objects.filter(user=user, question=self).exists():
+            return Question.USER_STATUS_RESPONDED
+
+        return Question.USER_STATUS_UNRESPONDED
 
 
 class QuestionChoicesBase(PolymorphicModel):

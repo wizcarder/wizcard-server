@@ -834,12 +834,9 @@ class ParseMsgAndDispatch(object):
         #     notifResponse.notifFlickedWizcardsLookup(count,
         #                                              self.user, flicked_wizcards)
         if not settings.DISABLE_LOCATION:
-            users, count = self.app_userprofile.lookup(
-                settings.DEFAULT_MAX_LOOKUP_RESULTS)
+            users, count = self.app_userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
             if count:
-                notifResponse.notifUserLookup(
-                    self.user,
-                    users)
+                notifResponse.notifUserLookup(self.user, users)
 
         reco_count = self.app_userprofile.reco_ready
         if reco_count:
@@ -1610,11 +1607,11 @@ class ParseMsgAndDispatch(object):
 
                 count += 1
                 status.append(dict(
-                    status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
+                    user_state=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
                     wizcard_id=r_wizcard.id)
                 )
             self.response.add_data("count", count)
-            self.response.add_data("status", status)
+            self.response.add_data("user_state", status)
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             # future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
@@ -2256,13 +2253,13 @@ class ParseMsgAndDispatch(object):
         pinned_events = Event.objects.users_entities(
             self.user,
             user_filter={'state': UserEntity.PIN},
-            entity_filter={'expired': False}
+            entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
         )
         nearby_events = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
-        )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
+        )[0] if do_location else Event.objects.filter(entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         my_events = Event.objects.users_entities(
             self.user,

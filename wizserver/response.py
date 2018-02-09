@@ -126,9 +126,9 @@ class SyncNotifResponse(ResponseN):
 
         s = WizcardSerializerL1 if half else WizcardSerializerL2
 
-        status = Wizcard.objects.get_connection_status(r_wizcard, wizcard)
+        user_state = Wizcard.objects.get_connection_status(r_wizcard, wizcard)
 
-        out = s(wizcard, context={'status': status}).data
+        out = s(wizcard, context={'user_state': user_state}).data
 
         if notif.action_object and notif.action_object.cctx != '':
             cctx = notif.action_object.cctx

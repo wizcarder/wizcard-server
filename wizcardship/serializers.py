@@ -30,15 +30,15 @@ class WizcardSerializerL0(serializers.ModelSerializer):
     wizcard_id = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
     wizuser_id = serializers.PrimaryKeyRelatedField(source='user.pk', read_only=True)
     media = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField(read_only=True)
+    user_state = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Wizcard
-        fields = ('wizcard_id', 'wizuser_id', 'media', 'status')
+        fields = ('wizcard_id', 'wizuser_id', 'media', 'user_state')
 
-    def get_status(self, obj):
+    def get_user_state(self, obj):
         user = self.context.get('user', None)
-        status = self.context.get('status', "")
+        status = self.context.get('user_state', "")
 
         if user:
             wizcard = user.wizcard

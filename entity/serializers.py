@@ -144,7 +144,7 @@ class EventSerializer(EntitySerializer):
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
-        remove_fields = ['state', 'engagements', 'users', ]
+        remove_fields = ['user_state', 'engagements', 'users', ]
 
         super(EventSerializer, self).__init__(*args, **kwargs)
 
@@ -447,7 +447,7 @@ class CampaignSerializerL2(EntitySerializer):
 # this is used by portal REST API
 class CampaignSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['state', ]
+        remove_fields = ['user_state', ]
         super(CampaignSerializer, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
@@ -490,11 +490,10 @@ class CampaignSerializer(EntitySerializer):
 
 class TableSerializerL1(EntitySerializer):
     time_remaining = serializers.SerializerMethodField(read_only=True)
-    status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = VirtualTable
-        my_fields = ('created', 'timeout', 'time_remaining', 'status',)
+        my_fields = ('created', 'timeout', 'time_remaining',)
         fields = EntitySerializer.Meta.fields + my_fields
 
     def get_media(self, obj):
@@ -504,31 +503,14 @@ class TableSerializerL1(EntitySerializer):
         ).data
 
     def get_time_remaining(self, obj):
-        if not obj.expired:
+        if not obj.is_expired():
             return obj.location.get().timer.get().time_remaining()
         return 0
 
     def get_creator(self, obj):
         return WizcardSerializerL1(obj.get_creator().wizcard).data
 
-    def get_status(self, obj):
-        user = self.context.get('user')
-
-        if obj.is_creator(user):
-            status = "creator"
-        elif obj.is_joined(user):
-            status = "joined"
-        elif not obj.get_creator().profile.is_app_user():
-            status = "others"
-        elif Wizcard.objects.are_wizconnections(user.wizcard, obj.get_creator().wizcard):
-            status = "connected"
-        else:
-            status = "others"
-
-        return status
-
-
-class TableSerializerL2(EntitySerializer):
+class TableSerializerL2(TableSerializerL1):
     class Meta:
         model = VirtualTable
         fields = EntitySerializer.Meta.fields
@@ -537,7 +519,7 @@ class TableSerializerL2(EntitySerializer):
 # this is used by portal REST API
 class TableSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['state']
+        remove_fields = ['user_state']
         super(TableSerializer, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
@@ -751,15 +733,16 @@ class PollSerializerL1(EntitySerializer):
 # this is used to create a poll. This is also used to send serialized Poll to App
 
 class PollSerializer(EntitySerializer):
-    event = serializers.SerializerMethodField()
-
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'questions', 'state', 'num_responders', 'created', 'event')
-        read_only_fields = ('state', 'num_responders', 'created', 'event')
+        fields = ('id', 'description', 'questions', 'user_state', 'num_responders', 'created', 'event')
+        read_only_fields = ('entity_state', 'num_responders', 'created', 'event',)
 
+    event = serializers.SerializerMethodField()
     questions = QuestionSerializer(many=True)
-    state = serializers.SerializerMethodField()
+
+    def get_user_state(self, obj):
+        return ""
 
     def prepare(self, validated_data):
         self.questions = validated_data.pop('questions', None)
@@ -805,14 +788,11 @@ class PollSerializer(EntitySerializer):
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
 
-    def get_state(self, obj):
-        return obj.state
-
 
 class PollResponseSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('id', 'event', 'num_responders', 'description', 'questions', 'state')
+        fields = ('id', 'event', 'num_responders', 'description', 'questions', 'entity_state')
         read_only_fields = ('state', 'num_responders',)
 
     questions = QuestionResponseSerializer(many=True)
@@ -825,7 +805,4 @@ class PollResponseSerializer(EntitySerializer):
         # of {}, in the response
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
-
-    def get_state(self, obj):
-        return obj.state
 
