@@ -7,6 +7,7 @@ from media_components.models import MediaEntities
 from django.template import Context
 from lib.ses import Email
 import vobject
+import pdb
 
 now = timezone.now
 
@@ -41,6 +42,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card=False):
     extfields = from_wizcard.get_ext_fields
     html = emaildetails['template']
     subject = emaildetails['subject']
+    pdb.set_trace()
 
     if not extfields:
         extfields = {}
@@ -64,7 +66,7 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card=False):
         extfields['sender_email'] = '*****@*****.***'
 
     email = Email(to=to, subject=subject)
-    ctx = Context(extfields)
+    ctx = extfields
     email.html(html, ctx)
     attach_data = None
     vcard = from_wizcard.get_vcard
