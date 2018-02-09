@@ -81,7 +81,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         # AR: TODO: this is getting kludgy with multiple parameters. Best to have
         # REST API filters that portal can use
         if count and not count_only:
-            entities = self.filter(id__in=result, expired=False, is_deleted=False)
+            entities = self.filter(id__in=result, entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
         return entities, count
 
     def owners_entities(self, user, entity_type=None):
@@ -199,6 +199,18 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_SCANNED_USER = 'e_scan'
     SUB_ENTITY_CATEGORY = 'e_category'
 
+    ENTITY_STATE_CREATED = "CRT"
+    ENTITY_STATE_PUBLISHED = "PUB"
+    ENTITY_STATE_EXPIRED = "EXP"
+    ENTITY_STATE_DELETED = "DEL"
+
+    ENTITY_STATE_CHOICES = (
+        (ENTITY_STATE_CREATED, "Created"),
+        (ENTITY_STATE_PUBLISHED, "Published"),
+        (ENTITY_STATE_EXPIRED, "Expired"),
+        (ENTITY_STATE_DELETED, "Deleted")
+    )
+
     # use this in overridden delete to know whether to remove or mark-deleted
     ENTITY_DELETE = 1
     ENTITY_EXPIRE = 2
@@ -227,6 +239,8 @@ class BaseEntityComponent(PolymorphicModel):
     )
 
     tags = TaggableManager()
+
+    entity_state = models.CharField(choices=ENTITY_STATE_CHOICES, default=ENTITY_STATE_CREATED, max_length=3)
 
     @classmethod
     def create(cls, e, owner, is_creator, **kwargs):
@@ -460,6 +474,23 @@ class BaseEntityComponent(PolymorphicModel):
     def modified_since(self, timestamp):
         return True
 
+    def set_entity_state(self, state):
+        self.state = state
+        self.save()
+
+    def is_active(self):
+        return bool(self.entity_state == BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+
+    def is_expired(self):
+        return bool(self.entity_state == BaseEntityComponent.ENTITY_STATE_EXPIRED)
+
+    def is_deleted(self):
+        return bool(self.entity_state == BaseEntityComponent.ENTITY_STATE_DELETED)
+
+    # nothing here, should be overridden in derived classes
+    def user_state(self, user):
+        return ""
+
 
 class BaseEntityComponentsOwner(models.Model):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
@@ -476,8 +507,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     timeout = models.IntegerField(default=30)
 
-    expired = models.BooleanField(default=False)
-    is_activated = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
 
     users = models.ManyToManyField(
@@ -557,19 +586,15 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
     def has_subscribers(self):
         return True
 
-    def is_active(self):
-        return bool(self.is_activated and not self.expired)
-
     def is_joined(self, user):
         return bool(user.userentity_set.filter(entity=self, state=UserEntity.JOIN).exists())
 
-    def get_state(self, user):
+    def user_state(self, user):
         # There can only be 1 entry per user per entity
-        try:
-            ue = user.userentity_set.get(entity=self, user=user)
-            return ue.state
-        except ObjectDoesNotExist:
-            return None
+        if user.userentity_set.filter(entity=self, user=user).exists():
+            return user.userentity_set.get(entity=self, user=user).state
+
+        return ""
 
     def get_users_after(self, timestamp):
         # AA: REVERT ME. Temp for app testing
@@ -588,14 +613,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return ""
 
-    def activate(self):
-        self.is_activated = True
-        self.save()
-
-    def expire(self):
-        self.expired = True
-        self.save()
-
     def delete(self, *args, **kwargs):
         delete_type = kwargs.pop('type', self.ENTITY_DELETE)
 
@@ -610,7 +627,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             self.location.get().delete()
 
         if delete_type == self.ENTITY_EXPIRE:
-            self.expire()
+            self.set_entity_state(BaseEntityComponent.ENTITY_STATE_EXPIRED)
         else:
             self.related.all().delete()
             super(BaseEntity, self).delete(*args, **kwargs)

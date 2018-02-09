@@ -95,21 +95,20 @@ class EntitySerializer(EntitySerializerL0):
     )
     related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
-    is_activated = serializers.BooleanField(write_only=True, default=False)
-    status = serializers.SerializerMethodField()
     taganomy = serializers.PrimaryKeyRelatedField(
         queryset=Taganomy.objects.all(),
         required=False,
         write_only=True
     )
+    user_state = serializers.SerializerMethodField()
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
-                     'media', 'location', 'users', 'state', 'friends', 'tags', 'like',
-                     'engagements', 'owners', 'related', 'ext_fields', 'is_activated', 'status', 'taganomy',)
+                     'media', 'location', 'users', 'friends', 'tags', 'like', 'user_state', 'entity_state',
+                     'engagements', 'owners', 'related', 'ext_fields', 'taganomy',)
 
         fields = EntitySerializerL0.Meta.fields + my_fields
 
@@ -129,20 +128,12 @@ class EntitySerializer(EntitySerializerL0):
     def get_friends(self, obj):
         return ""
 
-    def get_state(self, obj):
-        return obj.get_state(self.context.get('user'))
+    def get_user_state(self, obj):
+        return obj.user_state(self.context.get('user'))
 
     def get_like(self, obj):
         liked, level = obj.engagements.user_liked(self.context.get('user'))
         return dict(liked=liked, like_level=level)
-
-    def get_status(self, obj):
-        if obj.expired:
-            return "expired"
-        elif obj.is_activated:
-            return "live"
-        else:
-            return "unpublished"
 
     def prepare(self, validated_data):
         self.tags = validated_data.pop('tags', None)
