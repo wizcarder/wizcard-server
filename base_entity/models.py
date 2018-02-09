@@ -139,6 +139,11 @@ class BaseEntityManager(BaseEntityComponentManager):
 # everything inherits from this. This holds the relationship
 # end-points for owners and related_entity.
 class BaseEntityComponent(PolymorphicModel):
+
+    STATUS_EXPIRED = 'EXP'
+    STATUS_UNPUBLISHED = 'UNP'
+    STATUS_LIVE = 'LIV'
+
     EVENT = 'EVT'
     CAMPAIGN = 'CMP'
     TABLE = 'TBL'
@@ -582,6 +587,10 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def activate(self):
         self.is_activated = True
+        self.save()
+
+    def deactivate(self):
+        self.is_activated = False
         self.save()
 
     def expire(self):

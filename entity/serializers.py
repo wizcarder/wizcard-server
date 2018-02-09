@@ -224,7 +224,7 @@ class EventSerializer(EntitySerializer):
 class EventSerializerL0(EntitySerializer):
     class Meta:
         model = Event
-        fields = ('id', 'name', 'media')
+        fields = ('id', 'name', 'media', 'status')
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
@@ -755,8 +755,8 @@ class PollSerializer(EntitySerializer):
 
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'questions', 'state', 'num_responders', 'created', 'event')
-        read_only_fields = ('state', 'num_responders', 'created', 'event')
+        fields = ('id', 'description', 'questions', 'status', 'num_responders', 'created', 'event')
+        read_only_fields = ('status' 'num_responders', 'created', 'event')
 
     questions = QuestionSerializer(many=True)
     state = serializers.SerializerMethodField()
@@ -805,15 +805,15 @@ class PollSerializer(EntitySerializer):
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
 
-    def get_state(self, obj):
-        return obj.state
+    def get_status(self, obj):
+        return obj.status
 
 
 class PollResponseSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('id', 'event', 'num_responders', 'description', 'questions', 'state')
-        read_only_fields = ('state', 'num_responders',)
+        fields = ('id', 'event', 'num_responders', 'description', 'questions', 'status')
+        read_only_fields = ('status', 'num_responders',)
 
     questions = QuestionResponseSerializer(many=True)
     event = serializers.SerializerMethodField(read_only=True)
@@ -826,6 +826,6 @@ class PollResponseSerializer(EntitySerializer):
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
 
-    def get_state(self, obj):
-        return obj.state
+    def get_status(self, obj):
+        return obj.status
 

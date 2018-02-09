@@ -23,18 +23,18 @@ class PollManager(BaseEntityComponentManager):
 
 
 class Poll(BaseEntityComponent):
-    POLL_STATE_UNPUBLISHED = 'UNP'
-    POLL_STATE_ACTIVE = 'ACT'
-    POLL_STATE_EXPIRED = 'EXP'
+    POLL_STATUS_UNPUBLISHED = 'UNP'
+    POLL_STATUS_ACTIVE = 'ACT'
+    POLL_STATUS_EXPIRED = 'EXP'
 
-    POLL_STATE_CHOICES = (
-        (POLL_STATE_UNPUBLISHED, 'unpublished'),
-        (POLL_STATE_ACTIVE, 'active'),
-        (POLL_STATE_EXPIRED, 'expired')
+    POLL_STATUS_CHOICES = (
+        (POLL_STATUS_UNPUBLISHED, 'unpublished'),
+        (POLL_STATUS_ACTIVE, 'active'),
+        (POLL_STATUS_EXPIRED, 'expired')
     )
 
     description = models.CharField(max_length=100)
-    state = models.CharField(choices=POLL_STATE_CHOICES, default=POLL_STATE_UNPUBLISHED, max_length=3)
+    status = models.CharField(choices=POLL_STATUS_CHOICES, default=POLL_STATUS_UNPUBLISHED, max_length=3)
     created = models.DateTimeField(auto_now_add=True)
     num_responders = models.PositiveIntegerField(default=0)
 
@@ -58,8 +58,8 @@ class Poll(BaseEntityComponent):
     #         num_responders=Count('id', distinct=True)
     #     ).get('num_responders')
 
-    def set_state(self, state):
-        self.state = state
+    def set_status(self, status):
+        self.status = status
         self.save()
 
 

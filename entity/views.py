@@ -323,6 +323,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             inst = serializer.save()
             event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+            inst.activate()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -339,6 +340,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_200_OK)
 
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        cpg.activate()
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -353,6 +355,9 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_of_type(cpg.id, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        events = cpg.get_parent_entities_by_contenttype_id(BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.EVENT))
+        if not events:
+            cpg.deactivate()
 
         return Response(status=status.HTTP_200_OK)
 

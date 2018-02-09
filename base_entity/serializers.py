@@ -138,11 +138,11 @@ class EntitySerializer(EntitySerializerL0):
 
     def get_status(self, obj):
         if obj.expired:
-            return "expired"
+            return BaseEntityComponent.STATUS_EXPIRED
         elif obj.is_activated:
-            return "live"
+            return BaseEntityComponent.STATUS_LIVE
         else:
-            return "unpublished"
+            return BaseEntityComponent.STATUS_UNPUBLISHED
 
     def prepare(self, validated_data):
         self.tags = validated_data.pop('tags', None)
