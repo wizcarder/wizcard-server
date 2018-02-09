@@ -8,8 +8,8 @@ from entity.serializers import EventSerializer, EventSerializerL0, CampaignSeria
     SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, CoOwnersSerializer
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
-from notifications.models import SyncNotification
-from notifications.serializers import SyncNotificationSerializer
+from notifications.models import AsyncNotification
+from notifications.serializers import AsyncNotificationSerializer
 from taganomy.models import Taganomy
 from taganomy.serializers import TaganomySerializer
 from rest_framework.decorators import detail_route
@@ -38,7 +38,7 @@ class ExhibitorEventViewSet(BaseEntityViewSet):
         queryset = Event.objects.users_entities(
             user,
             user_filter={'state': UserEntity.JOIN},
-            entity_filter={'expired': False, 'is_activated': True}
+            entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
         )
         return queryset
 
@@ -112,8 +112,8 @@ class EventViewSet(BaseEntityViewSet):
     @detail_route(methods=['put'])
     def publish_event(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
-        inst.activate()
-        return Response("event id %s activated" % pk, status=status.HTTP_200_OK)
+        inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+        return Response("event id %s published" % pk, status=status.HTTP_200_OK)
 
 
 class CampaignViewSet(BaseEntityViewSet):
@@ -327,6 +327,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             inst = serializer.save()
             event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+            inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -343,6 +344,8 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_200_OK)
 
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        cpg.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -357,6 +360,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_of_type(cpg.id, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        cpg.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -810,6 +814,8 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         event.add_subentity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA)
+        agn.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -859,6 +865,8 @@ class EventPollViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             inst = serializer.save()
             event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_POLL)
+            inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -880,6 +888,8 @@ class EventPollViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         event.add_subentity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL)
+        pol.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -894,28 +904,30 @@ class EventPollViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_of_type(pol.id, BaseEntityComponent.SUB_ENTITY_POLL)
+        pol.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
+
         return Response(status=status.HTTP_200_OK)
 
 
 class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
                                mixins.RetrieveModelMixin, mixins.ListModelMixin):
-    queryset = SyncNotification.objects.all()
-    serializer_class = TaganomySerializer
+    queryset = AsyncNotification.objects.all()
+    serializer_class = AsyncNotificationSerializer
 
     def list(self, request, event_pk=None):
         event = Event.objects.get(id=event_pk)
-        ntf = SyncNotification.objects.event_notifications(event)
+        ntf = AsyncNotification.objects.event_notifications(event)
 
-        return Response(SyncNotificationSerializer(ntf, many=True).data)
+        return Response(AsyncNotificationSerializer(ntf, many=True).data)
 
     def retrieve(self, request, pk=None, event_pk=None):
         try:
-            ntf = SyncNotification.objects.get(id=pk)
+            ntf = AsyncNotification.objects.get(id=pk)
             event = Event.objects.get(id=event_pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        return Response(SyncNotificationSerializer(ntf).data)
+        return Response(AsyncNotificationSerializer(ntf).data)
 
     def create(self, request, event_pk=None):
         try:
@@ -923,7 +935,7 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = SyncNotificationSerializer(data=request.data, context={'user': request.user})
+        serializer = AsyncNotificationSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
             inst = serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -964,6 +976,8 @@ class EventTagonomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         if serializer.is_valid():
             inst = serializer.save()
             event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+            inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

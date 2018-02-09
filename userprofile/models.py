@@ -25,7 +25,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
 from userprofile.signals import user_type_created
-from base_entity.models import UserEntity
+from base_entity.models import UserEntity, BaseEntityComponent
 import uuid
 import string
 import random
@@ -315,7 +315,7 @@ class AppUser(BaseUser):
         tables = VirtualTable.objects.users_entities(
             self.profile.user,
             user_filter={'state': UserEntity.JOIN},
-            entity_filter={'expired': False}
+            entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
         )
 
         if tables:
@@ -332,7 +332,7 @@ class AppUser(BaseUser):
         campaigns = Campaign.objects.users_entities(
             self.profile.user,
             user_filter={'state': UserEntity.PIN},
-            entity_filter={'expired': False}
+            entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
         )
 
         if campaigns:
