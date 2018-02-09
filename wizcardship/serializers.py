@@ -38,7 +38,7 @@ class WizcardSerializerL0(serializers.ModelSerializer):
 
     def get_user_state(self, obj):
         user = self.context.get('user', None)
-        status = self.context.get('status', "")
+        status = self.context.get('user_state', "")
 
         if user:
             wizcard = user.wizcard
