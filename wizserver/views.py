@@ -1607,11 +1607,11 @@ class ParseMsgAndDispatch(object):
 
                 count += 1
                 status.append(dict(
-                    status=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
+                    user_state=Wizcard.objects.get_connection_status(wizcard, r_wizcard),
                     wizcard_id=r_wizcard.id)
                 )
             self.response.add_data("count", count)
-            self.response.add_data("status", status)
+            self.response.add_data("user_state", status)
         elif receiver_type in [verbs.INVITE_VERBS[verbs.SMS_INVITE], verbs.INVITE_VERBS[verbs.EMAIL_INVITE]]:
             # future user handling
             self.do_future_user(wizcard, receiver_type, receivers)
