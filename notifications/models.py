@@ -130,6 +130,13 @@ class AsyncNotificationManager(BaseNotificationManager):
 
         return self.filter(**kwargs)[:count]
 
+    def event_notifications(self, event):
+        # this should filter for notifications event.
+        # Important: Several notifications may be queued for an Event, this one is specifically
+        # those created explicitly by Organizer.
+        pass
+
+
 
 # AA: Comment: This should probably be renamed to AsyncNotif
 class AsyncNotification(BaseNotification):
@@ -188,12 +195,6 @@ class SyncNotificationManager(BaseNotificationManager):
 
     def migrate_future_user(self, future, current):
         return self.filter(recipient=future.pk).update(recipient=current.pk)
-
-    def event_notifications(self, event):
-        # this should filter for notifications event.
-        # Important: Several notifications may be queued for an Event, this one is specifically
-        # those created explicitly by Organizer.
-        pass
 
 
 class SyncNotification(BaseNotification):

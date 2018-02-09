@@ -8,7 +8,7 @@ TIME_RECURRING = 2
 
 class PeriodicManager(models.Manager):
     def get_expired(self):
-        return self.filter(expires_at__lt = timezone.now())
+        return self.filter(expires_at__lt=timezone.now())
 
     def clear_expired(self, e):
         map(lambda x: x.delete(), e)

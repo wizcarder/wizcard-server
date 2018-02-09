@@ -41,12 +41,12 @@ class EventManager(BaseEntityManager):
         return super(EventManager, self).users_entities(user, user_filter, entity_filter)
 
     def get_expired(self):
-        return self.filter(end__lt=timezone.now(), expired=False, is_activated=True)
+        return self.filter(end__lt=timezone.now(), entity_stae=BaseEntityComponent.ENTITY_STATE_EXPIRED)
 
     def get_tagged_entities(self, tags, entity_type):
-        events = Event.objects.filter(expired=False, is_activated=True)
+        events = Event.objects.filter(entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
         t_events = []
-        # TODO: AR: Find a better way to filter out expired events
+
         taganomy = Taganomy.objects.get_tagged_entities(tags, BaseEntityComponent.CATEGORY)
         contenttype_id = ContentType.objects.get(model="event")
 
@@ -104,7 +104,7 @@ class CampaignManager(BaseEntityManager):
 
 
 class Campaign(BaseEntity):
-    # when this is set, it'll s
+    # when this is set, it'll show on the landing screen
     is_sponsored = models.BooleanField(default=False)
 
     objects = CampaignManager()
@@ -155,7 +155,7 @@ class VirtualTable(BaseEntity):
         return self
 
     def time_remaining(self):
-        if not self.expired:
+        if not self.is_expired():
             return self.location.get().timer.get().time_remaining()
         return 0
 

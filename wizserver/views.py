@@ -834,12 +834,9 @@ class ParseMsgAndDispatch(object):
         #     notifResponse.notifFlickedWizcardsLookup(count,
         #                                              self.user, flicked_wizcards)
         if not settings.DISABLE_LOCATION:
-            users, count = self.app_userprofile.lookup(
-                settings.DEFAULT_MAX_LOOKUP_RESULTS)
+            users, count = self.app_userprofile.lookup(settings.DEFAULT_MAX_LOOKUP_RESULTS)
             if count:
-                notifResponse.notifUserLookup(
-                    self.user,
-                    users)
+                notifResponse.notifUserLookup(self.user, users)
 
         reco_count = self.app_userprofile.reco_ready
         if reco_count:
@@ -2256,13 +2253,13 @@ class ParseMsgAndDispatch(object):
         pinned_events = Event.objects.users_entities(
             self.user,
             user_filter={'state': UserEntity.PIN},
-            entity_filter={'expired': False}
+            entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
         )
         nearby_events = Event.objects.lookup(
             self.lat,
             self.lng,
             settings.DEFAULT_MAX_LOOKUP_RESULTS
-        )[0] if do_location else Event.objects.filter(expired=False, is_activated=True)
+        )[0] if do_location else Event.objects.filter(entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         my_events = Event.objects.users_entities(
             self.user,

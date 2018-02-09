@@ -26,9 +26,9 @@ class PollViewSet(BaseEntityComponentViewSet):
     @detail_route(methods=['post'], url_path='activate')
     def publish_poll(self, request, pk=None):
         inst = get_object_or_404(Poll, pk=pk)
-        inst.set_state(Poll.POLL_STATE_ACTIVE)
+        inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
-        return Response("poll id %s activated" % pk, status=status.HTTP_200_OK)
+        return Response("poll id %s published" % pk, status=status.HTTP_200_OK)
 
     @detail_route(methods=['post'], url_path='link')
     def link_to_entity(self, request, pk):
@@ -37,7 +37,7 @@ class PollViewSet(BaseEntityComponentViewSet):
         entity_id = request.POST['entity_id']
 
         # maybe we shouldn't attach a poll which is not activated ?
-        if poll.state != Poll.POLL_STATE_ACTIVE:
+        if not poll.is_active():
             return Response("Please activate poll %s first. " % poll.description, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
