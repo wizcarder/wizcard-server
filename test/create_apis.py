@@ -34,8 +34,8 @@ event_payload = {"name":"", "description":"", "venue": "Pragati Maidan", "locati
 event_related_payload = {"related": []}
 tag_payload = {"name": "", "tags": {}}
 exhibitor_credentials = []
-#server = "http://test.wizcard.be:8080/"
-server = "http://172.31.25.248:8080"
+server = "http://test.wizcard.be:8080"
+#server = "http://172.31.25.248:8080"
 
 def post_retrieve(rest_path, payload, headers=headers, key="id"):
 
@@ -189,24 +189,25 @@ def create_events(numevents):
 
 def create_agenda(numitems, evt, start_date, end_date, speakers ):
 
-    start_date = datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
-    start_date += " 09:00:00"
     payload = dict()
     agenda_payload={"items":[]}
-    for item in range(0, numitems):
-        payload['start'] = start_date
-        end_date =  datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)
-        end_date = end_date.strftime("%Y-%m-%d %H:%M:%S")
-        payload["end"] = end_date
-        start_date = end_date
-        rint = randint(0, len(cfg.random_event_names) - 1)
-        payload['name'] = "Talk on %s" % cfg.random_event_names[rint]
-        payload['where'] = "Conference Hall %s" % str(item)
-        payload['description'] = payload['name'] + " at " + payload['where']
-        rint = randint(0, len(speakers) - 1)
-        payload['related'] = [{"ids": [speakers[rint]], "type":"e_speaker"}]
-        agenda_payload["items"].append(payload.copy())
-        payload = {}
+    for dates in (start_date, end_date):
+    	    start_time = datetime.strptime(dates, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
+            start_time += " 09:00:00"
+	    for item in range(0, numitems):
+	        payload['start'] = start_time
+	        end_time =  datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)
+	        end_time = end_time.strftime("%Y-%m-%d %H:%M:%S")
+	        payload["end"] = end_time
+	        start_time = end_time
+	        rint = randint(0, len(cfg.random_event_names) - 1)
+	        payload['name'] = "Talk on %s" % cfg.random_event_names[rint]
+	        payload['where'] = "Conference Hall %s" % str(item)
+	        payload['description'] = payload['name'] + " at " + payload['where']
+	        rint = randint(0, len(speakers) - 1)
+	        payload['related'] = [{"ids": [speakers[rint]], "type":"e_speaker"}]
+	        agenda_payload["items"].append(payload.copy())
+	        payload = {}
 
 
     rest_path = "/entity/agenda/"
@@ -299,11 +300,11 @@ def attach_entities():
 
 
     for evt in event_ids:
-        tmp_id = agenda_ids.pop()
-        related_agenda = {"ids": [tmp_id], "type": "e_agenda"}
-        tmp_id = poll_ids.pop()
-        related_poll = {"ids": [tmp_id], "type": "e_poll"}
-        event_rel_payload['related'] = [related_sponsors, related_campaigns, related_polls,
+        agn_id = agenda_ids.pop()
+        related_agenda = {"ids": [agn_id], "type": "e_agenda"}
+        pol_id = poll_ids.pop()
+        related_poll = {"ids": [pol_id], "type": "e_poll"}
+        event_rel_payload['related'] = [related_sponsors, related_campaigns,
                                     related_agenda, related_poll]
 
 
