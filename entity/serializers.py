@@ -8,7 +8,6 @@ from base_entity.serializers import EntitySerializerL0, EntitySerializer
 from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
 from entity.models import Speaker, Sponsor, Agenda, AgendaItem, AttendeeInvitee, ExhibitorInvitee, CoOwners
 from wizcardship.serializers import WizcardSerializerL0, WizcardSerializerL1
-from wizcardship.models import Wizcard
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
 from base.mixins import MediaMixin
@@ -19,8 +18,6 @@ from polls.models import Poll, Question
 from taganomy.serializers import TaganomySerializer, TaganomySerializerL1
 from polls.serializers import QuestionResponseSerializer, QuestionSerializer, QuestionSerializerL1
 
-
-import pdb
 
 
 class AgendaItemSerializer(EntitySerializer):
@@ -60,7 +57,7 @@ class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
         fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media',  'users',
-                  'state', 'poll')
+                  'poll')
 
     speakers = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
@@ -257,7 +254,7 @@ class EventSerializerL1(EventSerializerL0):
         model = Event
 
         parent_fields = ('id', 'entity_type', 'num_users', 'name', 'address', 'secure', 'description', 'media',
-                         'location', 'users', 'friends', 'like',  'engagements', 'state')
+                         'location', 'users', 'friends', 'like',  'engagements')
         my_fields = ('start', 'end', 'tags')
 
         fields = parent_fields + my_fields
@@ -331,7 +328,8 @@ class EventSerializerL2(EntitySerializer):
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda', 'polls', 'taganomy', 'tags_exhibitor', 'venue_exhibitor')
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda',
+                     'polls', 'taganomy', 'tags_exhibitor', 'venue_exhibitor')
 
         fields = parent_fields + my_fields
 
@@ -417,7 +415,7 @@ class CampaignSerializerL1(EntitySerializer):
 
         # using L0 fields since not all L1 base class fields are needed
         parent_fields = EntitySerializerL0.Meta.fields
-        my_fields = ('name', 'address', 'tags', 'like', 'description', 'state')
+        my_fields = ('name', 'address', 'tags', 'like', 'description')
 
         fields = parent_fields + my_fields
 
@@ -509,6 +507,7 @@ class TableSerializerL1(EntitySerializer):
 
     def get_creator(self, obj):
         return WizcardSerializerL1(obj.get_creator().wizcard).data
+
 
 class TableSerializerL2(TableSerializerL1):
     class Meta:
@@ -618,7 +617,7 @@ class SponsorSerializerL1(EntitySerializer):
 
         # using L0 fields since not all L1 base class fields are needed
         parent_fields = EntitySerializerL0.Meta.fields
-        my_fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related', 'like', 'state')
+        my_fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related', 'like')
 
         fields = parent_fields + my_fields
 
@@ -643,7 +642,7 @@ class SponsorSerializerL2(EntitySerializer):
         model = Sponsor
         fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
                   'description', 'phone', 'caption', 'ext_fields', 'media',
-                  'state', 'like')
+                  'like')
 
 
 class ExhibitorInviteeSerializer(EntitySerializer):
@@ -793,7 +792,7 @@ class PollResponseSerializer(EntitySerializer):
     class Meta:
         model = Poll
         fields = ('id', 'event', 'num_responders', 'description', 'questions', 'entity_state')
-        read_only_fields = ('state', 'num_responders',)
+        read_only_fields = ('entity_state', 'num_responders',)
 
     questions = QuestionResponseSerializer(many=True)
     event = serializers.SerializerMethodField(read_only=True)

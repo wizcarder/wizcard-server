@@ -943,7 +943,7 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class EventTagonomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
+class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
                            mixins.RetrieveModelMixin, mixins.ListModelMixin):
     queryset = Taganomy.objects.all()
     serializer_class = TaganomySerializer

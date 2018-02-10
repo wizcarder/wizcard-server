@@ -21,8 +21,10 @@ class TaganomySerializer(EntitySerializer, TaggitSerializer):
         return obj
 
     def update(self, instance, validated_data):
-        obj = super(TaganomySerializer, self).update(validated_data)
-        self.post_create_update(instance, update=True)
+        self.prepare(validated_data)
+        obj = super(TaganomySerializer, self).update(instance, validated_data)
+        self.post_create_update(obj, update=True)
+        return obj 
 
 
 class TaganomySerializerL1(TaggitSerializer):

@@ -70,7 +70,7 @@ create_config = {
                     'speaker_file' : './/test/ceos.tsv',
                     'sponsor_file' : './test/sponsors.tsv',
                     'campaign_file' : './test/sponsors.tsv',
-                    'event_interval' : 2,
+                    'event_interval' : 1,
                     'polls' : {
                         'MCR' : {'count':2, 'template' : mcr_poll},
                         'SCL' : {'count':2, 'template': scl_poll},
@@ -90,7 +90,7 @@ random_locations = [{'venue': 'JW Marriot, Bangalore', 'lat':12.9720112,'lng': 7
 
 random_event_names = ['10,000 Latkes', '24 Carrot Seven', '25,000 Mile Stones', '29 Psalms for 29 Palms', 'A Gathering of Hunters', 'Act Out Your Age', 'Adventure Camping', 'Advertising Nauseum', 'Aesthetic Bug Gloss', 'Air Fair', 'Alanonymous', 'Amagansett Go Around', 'Amateur Barber Night', 'An Arbor Day to Remember', 'Antisocial Darwinism', 'Apathesis', 'Apocalypso', 'Aria Safari', 'Arise and Shinola', 'Aromastotle', 'Ass Texas', 'Attila the Humm', 'Aurora Tori Spelling', 'Away we golf']
 
-random_dates = ['2018-01-18', '2018-01-29', '2018-01-30', '2018-01-31', '2018-02-08', '2018-02-15', '2018-03-02', '2018-03-15', '2018-03-21', '2018-03-28']
+random_dates = ['2018-04-18', '2018-05-29', '2018-06-30', '2018-08-31', '2018-09-08', '2018-09-15', '2018-10-02', '2018-10-15', '2018-11-21', '2018-11-28']
 
 random_banners = ["https://blog.akshayapatra.org/wp-content/uploads/2016/04/720-X-240-Earth-Day.jpg", "http://www.nissan.com.vn/wp-content/uploads/2016/07/Banner-web-CMTKMT7-AfterSales-Banner-1920x640px-720x240.jpg", "http://aluminiuminsider.com/wp-content/uploads/2017/05/Banner-720x240.jpg", "http://www.malahinisolutions.com/images/cms-banner.jpg"]
 

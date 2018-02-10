@@ -6,7 +6,7 @@ from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorInviteeViewSet
     CoOwnerViewSet, AgendaViewSet, AgendaItemViewSet, ExhibitorEventViewSet
 from entity.views import EventCampaignViewSet, EventSpeakerViewSet, EventSponsorViewSet, \
     EventMediaViewSet, EventAttendeeViewSet, EventExhibitorViewSet, EventCoOwnerViewSet,\
-    EventAgendaViewSet, EventPollViewSet, EventTagonomyViewSet, EventNotificationViewSet, \
+    EventAgendaViewSet, EventPollViewSet, EventTaganomyViewSet, EventNotificationViewSet, \
     EventBadgeViewSet
 from media_components.views import MediaEntitiesViewSet
 from rest_framework.routers import SimpleRouter
@@ -29,7 +29,7 @@ router.register(r'media', MediaEntitiesViewSet, base_name='media')
 router.register(r'exhibitors', ExhibitorInviteeViewSet, base_name='exhibitors')
 router.register(r'attendees', AttendeeViewSet, base_name='attendees')
 router.register(r'owners', CoOwnerViewSet, base_name='owners')
-router.register(r'tags', TaganomyViewSet, base_name='tags')
+router.register(r'taganomy', TaganomyViewSet, base_name='taganomy')
 router.register(r'agenda', AgendaViewSet, base_name='agenda')
 agenda_item_router = routers.NestedSimpleRouter(router, r'agenda', lookup='agenda')
 agenda_item_router.register(r'agenda_item', AgendaItemViewSet, base_name='agenda-item')
@@ -45,7 +45,7 @@ events_router.register(r'coowner', EventCoOwnerViewSet, base_name='event-coowner
 events_router.register(r'agenda', EventAgendaViewSet, base_name='event-agenda')
 events_router.register(r'poll', EventPollViewSet, base_name='event-poll')
 events_router.register(r'notification', EventNotificationViewSet, base_name='event-notification')
-events_router.register(r'tagonomy', EventTagonomyViewSet, base_name='event-tagonomy')
+events_router.register(r'taganomy', EventTaganomyViewSet, base_name='event-tagonomy')
 events_router.register(r'badge', EventBadgeViewSet, base_name='event-badge')
 
 urlpatterns = [

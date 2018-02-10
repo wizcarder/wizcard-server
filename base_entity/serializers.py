@@ -1,14 +1,13 @@
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
-from taggit_serializer.serializers import (TagListSerializerField,
-                                           TaggitSerializer)
+from taggit_serializer.serializers import TagListSerializerField
+
 from location_mgr.serializers import LocationSerializerField
 from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats
 from entity.models import CoOwners
 from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
 from wizserver import verbs
-import pdb
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -83,7 +82,6 @@ class EntitySerializer(EntitySerializerL0):
     location = LocationSerializerField(required=False)
     users = serializers.SerializerMethodField()
     friends = serializers.SerializerMethodField()
-    state = serializers.SerializerMethodField()
     tags = TagListSerializerField(required=False)
     like = serializers.SerializerMethodField()
     engagements = EntityEngagementSerializer(read_only=True)
