@@ -287,15 +287,15 @@ class Wizcard(WizcardBase):
         # method is called only in the resync path
         from wizcardship.serializers import WizcardSerializerL1, WizcardSerializerL2
         admin = self.get_admin_wizcard()
-        out.append(WizcardSerializerL2(admin, many=True, context={'status': verbs.ADMIN}).data)
+        out.append(WizcardSerializerL2(admin, many=True, context={'user_state': verbs.ADMIN}).data)
 
         connected = self.get_connections_without_admin()
         if connected:
-            out.append(WizcardSerializerL2(connected, many=True, context={'status': verbs.CONNECTED}).data)
+            out.append(WizcardSerializerL2(connected, many=True, context={'user_state': verbs.CONNECTED}).data)
 
         following = self.get_following_only()
         if following:
-            out.append(WizcardSerializerL1(following, many=True, context={'status': verbs.FOLLOWED}).data)
+            out.append(WizcardSerializerL1(following, many=True, context={'user_state': verbs.FOLLOWED}).data)
 
         return out
 

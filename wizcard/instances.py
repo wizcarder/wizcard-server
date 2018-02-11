@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-TEST_AWSHOSTS = ['ec2-13-127-6-255.ap-south-1.compute.amazonaws.com']
+TEST_AWSHOSTS = ['ec2-13-126-206-254.ap-south-1.compute.amazonaws.com']
 DEV_AWSHOSTS = ['localhost']
 PROD_AWSHOSTS = ['ec2-35-154-204-254.ap-south-1.compute.amazonaws.com',
                  'ec2-13-126-102-44.ap-south-1.compute.amazonaws.com']
