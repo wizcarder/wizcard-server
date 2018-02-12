@@ -475,7 +475,7 @@ class BaseEntityComponent(PolymorphicModel):
         return True
 
     def set_entity_state(self, state):
-        self.state = state
+        self.entity_state = state
         self.save()
 
     def is_active(self):
