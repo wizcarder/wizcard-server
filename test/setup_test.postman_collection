@@ -32,7 +32,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"username\": \"appuser1\",\n  \"email\": \"app.user1@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User1\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
+					"raw": "{\n  \"username\": \"app_user1\",\n  \"email\": \"app.user1@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User1\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
 				},
 				"description": ""
 			},
@@ -63,7 +63,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"username\": \"appuser2\",\n  \"email\": \"app.user2@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User2\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
+					"raw": "{\n  \"username\": \"app_user2\",\n  \"email\": \"app.user2@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User2\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
 				},
 				"description": ""
 			},
