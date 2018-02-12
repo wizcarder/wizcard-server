@@ -122,6 +122,14 @@ class BaseNotification(models.Model):
         self.status = status
         self.save()
 
+    def build_response_dict(self):
+        return dict(
+            entity_id=self.target.id,
+            entity_type=self.target_content_type.model,
+            sub_entity_id=self.action_object_object_id if self.action_object_object_id else "",
+            sub_entity_type=self.action_object_content_type.model if self.action_object_content_type else "",
+            message=self.notification_text
+        )
 
 class AsyncNotificationManager(BaseNotificationManager):
     def unread(self, **kwargs):

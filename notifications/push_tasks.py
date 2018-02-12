@@ -9,13 +9,10 @@ from celery.contrib import rdb
 
 
 @task(ignore_result=True)
-def push_notification_to_app(notif_obj, ntuple):
+def push_notification_to_app(notif_obj, ntuple, flood_set=None):
 
     # broadcast or targeted
     if verbs.get_notif_is_async(ntuple):
-        # recipients
-        flood_set = notif_obj.target.flood_set(ntuple=ntuple)
-
         # iOS recipients
         reg_tokens = [x.profile.app_user().reg_token for x in flood_set if x.profile.app_user().device_type == settings.DEVICE_IOS]
 

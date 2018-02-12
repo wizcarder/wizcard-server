@@ -269,14 +269,11 @@ class BaseEntityComponent(PolymorphicModel):
     @classmethod
     def add_owners(cls, obj, owners):
         for o in owners:
-            inst, created = BaseEntityComponentsOwner.objects.get_or_create(
+            BaseEntityComponentsOwner.objects.get_or_create(
                 base_entity_component=obj,
                 owner=o.user,
                 defaults={'is_creator': False}
             )
-
-            if inst.is_creator:
-                raise AssertionError("user %s is already owner of %s" % (o.user, obj))
 
     @classmethod
     def remove_owners(cls, obj, owners):
