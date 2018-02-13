@@ -78,8 +78,8 @@ class AgendaItemSerializerL2(EntitySerializer):
     def get_poll(self, obj):
         user = self.context.get('user')
         if obj.is_joined(user):
-            poll = obj.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL)[0]
-            return poll.id
+            poll = obj.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL)
+            return poll[0].id if poll else None
         return None
 
 
