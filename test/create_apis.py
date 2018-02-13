@@ -34,7 +34,7 @@ event_payload = {"name":"", "description":"", "venue": "Pragati Maidan", "locati
 event_related_payload = {"related": []}
 tag_payload = {"name": "", "tags": {}}
 exhibitor_credentials = []
-server = "http://test.wizcard.be:8080"
+server = "http://localhost:8000"
 #server = "http://172.31.25.248:8080"
 
 def post_retrieve(rest_path, payload, headers=headers, key="id"):
@@ -56,8 +56,9 @@ def get_retrieve(rest_path, rkey):
 def put_retrieve(rest_path, payload, rkey):
     request_url = server + rest_path
     resp = requests.put(request_url, json=payload, headers=headers, timeout=10)
-    resp_dict = resp.json()
+
     if rkey:
+        resp_dict = resp.json()
         return resp_dict[rkey]
     else:
         return
@@ -89,7 +90,7 @@ def create_speakers(num, file):
         speaker_ids.append(speaker_id)
 
 
-def create_sponsors(num, file, type="sponsor", attach=False):
+def create_sponsors(num, file, type="sponsor"):
     f = open(file, "r")
     lines = f.readlines()
     count = len(lines)
@@ -98,43 +99,44 @@ def create_sponsors(num, file, type="sponsor", attach=False):
         rint = randint(0, count-1)
         rline = lines[rint].rstrip()
         (name,  murl, caption) = rline.split("\t")
-        media_ids.append(create_media(murl, media_type='IMG', media_sub_type='LGO'))
-        num_media = cfg.create_config['campaign_media']
-        for j in range(0, num_media):
-            media_ids.append(create_media(murl, media_type='IMG', media_sub_type='ROL'))
+        if type != 'exhibits':
+            media_ids.append(create_media(murl, media_type='IMG', media_sub_type='LGO'))
+            num_media = cfg.create_config['campaign_media']
+            for j in range(0, num_media):
+                media_ids.append(create_media(murl, media_type='IMG', media_sub_type='ROL'))
         sponsor_payload['name'] = name
         sponsor_payload['caption'] = caption[:50]
-        venue = 'A' if i % 2 else 'B'
-        sponsor_payload['venue'] = "Hall " + venue
-        sponsor_payload['related'] = [{'ids': media_ids, "type": "e_media"}]
-        rest_path = "/entity/%ss/" % type
-        sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
+        if i % 2:
+            venue = 'A'
+        elif i % 3:
+            venue = 'B'
+        elif i % 5:
+            venue = 'C'
+        elif i % 7:
+            venue = 'D'
+        else:
+            venue = 'E'
+
+
         if type == 'campaign':
+            sponsor_payload['venue'] = "Hall " + venue
+            sponsor_payload['related'] = [{'ids': media_ids, "type": "e_media"}]
+            sponsor_payload['is_sponsored'] = True
+            rest_path = "/entity/%ss/" % type
+            sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
+            campaign_ids.append(sponsor_id)
+        elif type == 'exhibits':
+            etype = 'campaign'
+            sponsor_payload['venue'] = "Hall " + venue
+            rest_path = "/entity/%ss/" % etype
+            sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
             campaign_ids.append(sponsor_id)
         else:
+            sponsor_payload['venue'] = "Hall " + venue
+            rest_path = "/entity/%ss/" % type
+            sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
             sponsor_ids.append(sponsor_id)
 
-        if attach:
-            etype = "e_" + type
-            event_related_payload["related"] = [{"ids": [sponsor_id], "type": etype}]
-            event_id = event_ids[i]
-            rest_path = "/entity/events/" + str(event_id) + "/"
-            event_id = put_retrieve(rest_path, event_related_payload, "id")
-
-            tagsets = get_retrieve(rest_path, 'taganomy')
-            tag_ids = []
-            for tagset in tagsets:
-                tag_ids.append(tagset['id'])
-
-            if tag_ids:
-                for tid in tag_ids:
-                    rest_path = "/entity/taganomy/" + str(tid) + "/"
-                    tags = get_retrieve(rest_path, 'tags')
-                    random_tags = sample(xrange(1, len(tags)), randint(1, len(tags)/2))
-                    rest_path = "/entity/campaigns/" + str(sponsor_id) + "/"
-                    taglist = [tags[x] for x in random_tags]
-                    payload = {'tags': taglist, 'taganomy':tid}
-                    campaign_id = put_retrieve(rest_path, payload, "id")
 
 
 def create_events(numevents):
@@ -147,7 +149,7 @@ def create_events(numevents):
     skip_ints = []
     for i in range(0, numevents):
         rint = randint(0,len(names)-1)
-	#rint = rint + 1 if rint in skip_ints and rint < len(names) else rint
+        #rint = rint + 1 if rint in skip_ints and rint < len(names) else rint
         event_payload['name'] = names[rint]
         event_payload['description'] = names[rint] + ". " + names[rint]
 
@@ -173,8 +175,8 @@ def create_events(numevents):
         event_media = event_media + [create_media(cfg.random_images[x]) for x in rand_ids]
 
         rand_ids = sample(xrange(1, len(cfg.random_logos)), 1)
-	event_logos = [create_media(cfg.random_logos[x], media_type='IMG', media_sub_type='LGO') for x in rand_ids]
-	event_media = event_media + event_logos
+        event_logos = [create_media(cfg.random_logos[x], media_type='IMG', media_sub_type='LGO') for x in rand_ids]
+        event_media = event_media + event_logos
 
 
         related_media = {"ids": event_media, "type": "e_media"}
@@ -192,22 +194,22 @@ def create_agenda(numitems, evt, start_date, end_date, speakers ):
     payload = dict()
     agenda_payload={"items":[]}
     for dates in (start_date, end_date):
-    	    start_time = datetime.strptime(dates, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
-            start_time += " 09:00:00"
-	    for item in range(0, numitems):
-	        payload['start'] = start_time
-	        end_time =  datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)
-	        end_time = end_time.strftime("%Y-%m-%d %H:%M:%S")
-	        payload["end"] = end_time
-	        start_time = end_time
-	        rint = randint(0, len(cfg.random_event_names) - 1)
-	        payload['name'] = "Talk on %s" % cfg.random_event_names[rint]
-	        payload['where'] = "Conference Hall %s" % str(item)
-	        payload['description'] = payload['name'] + " at " + payload['where']
-	        rint = randint(0, len(speakers) - 1)
-	        payload['related'] = [{"ids": [speakers[rint]], "type":"e_speaker"}]
-	        agenda_payload["items"].append(payload.copy())
-	        payload = {}
+        start_time = datetime.strptime(dates, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
+        start_time += " 09:00:00"
+        for item in range(0, numitems):
+            payload['start'] = start_time
+            end_time =  datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)
+            end_time = end_time.strftime("%Y-%m-%d %H:%M:%S")
+            payload["end"] = end_time
+            start_time = end_time
+            rint = randint(0, len(cfg.random_event_names) - 1)
+            payload['name'] = "Talk on %s" % cfg.random_event_names[rint]
+            payload['where'] = "Conference Hall %s" % str(item)
+            payload['description'] = payload['name'] + " at " + payload['where']
+            rint = randint(0, len(speakers) - 1)
+            payload['related'] = [{"ids": [speakers[rint]], "type":"e_speaker"}]
+            agenda_payload["items"].append(payload.copy())
+            payload = {}
 
 
     rest_path = "/entity/agenda/"
@@ -294,7 +296,6 @@ def create_exhibitors(numevents, attach=False):
 
 def attach_entities():
     related_sponsors = {"ids": sponsor_ids, "type": "e_sponsor"}
-    related_campaigns = {"ids": campaign_ids, "type": "e_campaign"}
     related_polls = {"ids": poll_ids, "type": "e_poll"}
     event_rel_payload = {}
 
@@ -304,12 +305,26 @@ def attach_entities():
         related_agenda = {"ids": [agn_id], "type": "e_agenda"}
         pol_id = poll_ids.pop()
         related_poll = {"ids": [pol_id], "type": "e_poll"}
-        event_rel_payload['related'] = [related_sponsors, related_campaigns,
-                                    related_agenda, related_poll]
+        event_rel_payload['related'] = [related_sponsors, related_agenda, related_poll]
+        event_id = put_retrieve("/entity/events/" + str(evt) + "/", event_rel_payload, "id")
+        for c in campaign_ids:
+            camp_payload = {"ids": [c], "type": "e_campaign"}
+            event_id = put_retrieve("/entity/events/" + str(evt) + "/" + "campaign/" + str(c) + "/", camp_payload, None)
+            rest_path = "/entity/events/" + str(evt) + "/"
+            tagsets = get_retrieve(rest_path, 'taganomy')
+            tag_ids = []
+            for tagset in tagsets:
+                tag_ids.append(tagset['id'])
 
-
-        event_id = put_retrieve("/entity/events/"+ str(evt)+"/", event_rel_payload, "id")
-
+            if tag_ids:
+                for tid in tag_ids:
+                    rest_path = "/entity/taganomy/" + str(tid) + "/"
+                    tags = get_retrieve(rest_path, 'tags')
+                    random_tags = sample(xrange(1, len(tags)), randint(1, len(tags) / 2))
+                    rest_path = "/entity/campaigns/" + str(c) + "/"
+                    taglist = [tags[x] for x in random_tags]
+                    payload = {'tags': taglist, 'taganomy': tid}
+                    campaign_id = put_retrieve(rest_path, payload, "id")
 
 
 key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
@@ -344,7 +359,10 @@ create_exhibitors(numevents, attach=True)
 
 numcampaigns = cfg.create_config['campaigns']
 campaignfile = cfg.create_config['campaign_file']
-create_sponsors(numcampaigns, campaignfile, type="campaign", attach=True)
+numexhibits = cfg.create_config['exhibits']
+create_sponsors(numcampaigns, campaignfile, type="campaign")
+
+create_sponsors(numexhibits, campaignfile, type='exhibits')
 
 
 numusers = cfg.create_config['num_users']
@@ -354,12 +372,11 @@ for i in range(numusers):
     u.onboard_user()
     map(lambda x:u.entity_access(x, entity_type='EVT', state=1), event_ids)
 
-for i in range(numusers):
-    u = User()
-    u.onboard_user()
-    map(lambda x:u.entity_access(x, entity_type='EVT', state=2), event_ids)
-    map(lambda x:u.entity_access(x, entity_type='EVT', state=4), event_ids)
-
+#for i in range(numusers):
+#    u = User()
+#    u.onboard_user()
+#    map(lambda x:u.entity_access(x, entity_type='EVT', state=2), event_ids)
+#    map(lambda x:u.entity_access(x, entity_type='EVT', state=4), event_ids)
 
 agenda_items = cfg.create_config['agenda_items']
 for evt in event_ids:

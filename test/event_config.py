@@ -59,10 +59,11 @@ txt_poll = {"description" : "Poll %d",
 
 poll_entities = ['breakfast', 'lunch', 'talk', 'panel discussion', 'arrangements']
 create_config = {
-                    'events':  4,
-                    'speakers' : 4,
-                    'sponsors': 4,
-                    'campaigns' : 4,
+                    'events':  2,
+                    'speakers' : 10,
+                    'sponsors': 10,
+                    'campaigns' : 10,
+                    'exhibits' : 50,
                     'exhibitors' : 4,
                     'agenda_items': 6,
                     'event_media' : 6,
@@ -77,8 +78,8 @@ create_config = {
                         'TOF' : {'count': 2, 'template' : tof_poll},
                         'TXT' : {'count': 2, 'template': txt_poll},
                     },
-                    'tags_per_event' : 10,
-                    'tags_per_campaign' : 3,
+                    'tags_per_event' : 100,
+                    'tags_per_campaign' : 30,
                     'num_users' : 2
 }
 
