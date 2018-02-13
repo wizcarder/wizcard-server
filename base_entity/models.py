@@ -595,10 +595,13 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def get_users_after(self, timestamp):
         # AA: REVERT ME. Temp for app testing
-        ue = UserEntity.objects.select_related('user').filter(entity=self).values_list('user', flat=True)
+        ue = UserEntity.objects.select_related('user').filter(entity=self)
         # ue = UserEntity.objects.filter(entity=self, created__gte=timestamp)
 
-        return ue
+        # this won't (shouldn't cause db lookup since user is prefetched.
+        users = map(lambda x: x.user, ue)
+
+        return users
 
     def flood_set(self, **kwargs):
         return [x for x in self.users.all() if hasattr(x, 'wizcard')]

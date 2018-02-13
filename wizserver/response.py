@@ -27,7 +27,7 @@ class Response:
         self.response = dict(result=dict(Error=0, Description=""), data=dict())
 
     def __repr__(self):
-        return "Sending Response" + json.dumps(self.response)
+        return "Sending Response" + json.dumps(self.response, indent=4)
 
     def respond(self):
         ret = json.dumps(self.response) if self.response else None

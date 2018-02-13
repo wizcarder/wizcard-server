@@ -816,8 +816,8 @@ class ParseMsgAndDispatch(object):
 
         if self.lat is None and self.lng is None:
             try:
-                self.lat = self.userprofile.location.get().lat
-                self.lng = self.userprofile.location.get().lng
+                self.lat = self.userprofile.app_user().location.get().lat
+                self.lng = self.userprofile.app_user().location.get().lng
             except:
                 #maybe location timedout. Shouldn't happen if messages from app
                 #are coming correctly...
@@ -2255,6 +2255,7 @@ class ParseMsgAndDispatch(object):
             user_filter={'state': UserEntity.PIN},
             entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
         )
+
         nearby_events = Event.objects.lookup(
             self.lat,
             self.lng,
