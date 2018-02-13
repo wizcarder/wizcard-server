@@ -108,8 +108,8 @@ class SyncNotifResponse(ResponseN):
             verbs.get_notif_type(verbs.WIZCARD_FLICK_TIMEOUT)       : self.notifWizcardFlickTimeout,
             verbs.get_notif_type(verbs.WIZCARD_FLICK_PICK)          : self.notifWizcardFlickPick,
             verbs.get_notif_type(verbs.WIZCARD_TABLE_INVITE)        : self.notifWizcardTableInvite,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_ATTACH)         : self.notifJoinEntity,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DETACH)        : self.notifLeaveEntity,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_ATTACH)       : self.notifJoinEntity,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DETACH)       : self.notifLeaveEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEntityUpdate,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEntityExpire,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEntityDelete,
@@ -210,31 +210,23 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifLeaveEntity(self, notif):
-        wizcard=notif.actor.wizcard
+        wizcard = notif.actor.wizcard
         ws = WizcardSerializerL1(wizcard).data
 
-        if notif.target:
-            s = EntitySerializerL0(notif.target).data
+        s = EntitySerializerL0(notif.target).data
 
-            out = dict(
-                entity=s,
-                wizcard=ws
-            )
+        out = dict(
+            entity=s,
+            wizcard=ws
+        )
 
-            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_LEAVE, notif.id)
-            logger.debug('%s', self.response)
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_LEAVE, notif.id)
+        logger.debug('%s', self.response)
 
         return self.response
 
     def notifEntityDelete(self, notif):
-        # AA: TODO: Need to DRY
-        out = dict(
-            entity_id=notif.target.id,
-            entity_type=notif.target_content_type.model,
-            sub_entity_id=notif.action_object_object_id,
-            sub_entity_type=notif.action_object_content_type.model,
-        )
-
+        out = notif.build_response_dict()
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_DELETE, notif.id)
 
         return self.response
@@ -255,16 +247,8 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifEntityBroadcast(self, notif):
-        if notif.target:
-            out = dict(
-                entity_id=notif.target.id,
-                entity_type=notif.target_content_type.model,
-                sub_entity_id=notif.action_object_object_id,
-                sub_entity_type=notif.action_object_content_type.model if notif.action_object_object_id else "",
-                message=notif.notification_text
-            )
-
-            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_BROADCAST, notif.id)
+        out = notif.build_response_dict()
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_BROADCAST, notif.id)
 
         return self.response
 
@@ -350,6 +334,12 @@ class AsyncNotifResponse:
 
         flood_set = entity.flood_set(ntuple=ntuple)
 
+        # remove sender
+        if ntuple in [verbs.WIZCARD_ENTITY_ATTACH, verbs.WIZCARD_ENTITY_DETACH]:
+            flood_set.remove(notif.actor)
+        if not flood_set:
+            return
+
         # Q sync notif for each in flood_set
         for recipient in flood_set:
             notify.send(
@@ -366,7 +356,7 @@ class AsyncNotifResponse:
 
         # bulk push
         if verbs.get_notif_apns_required(ntuple):
-            push_notification_to_app.delay(notif, ntuple)
+            push_notification_to_app.delay(notif, ntuple, flood_set)
 
     def notifEventReminder(self, notif):
         pass

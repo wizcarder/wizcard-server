@@ -197,8 +197,8 @@ WIZCARD_FLICK_TIMEOUT       = (NOTIF_FLICK_TIMEOUT, 'flick timeout', True, False
 WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
 WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
 WIZCARD_FORWARD             = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', True, False)
-WIZCARD_ENTITY_ATTACH         = (NOTIF_ENTITY_JOIN, 'entity join', False, True)
-WIZCARD_ENTITY_DETACH        = (NOTIF_ENTITY_LEAVE, 'entity leave', False, True)
+WIZCARD_ENTITY_ATTACH       = (NOTIF_ENTITY_JOIN, 'entity join', False, True)
+WIZCARD_ENTITY_DETACH       = (NOTIF_ENTITY_LEAVE, 'entity leave', False, True)
 WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', True, False)
 WIZCARD_ENTITY_UPDATE       = (NOTIF_ENTITY_UPDATE, 'event_updated', True, True)
 WIZCARD_ENTITY_EXPIRE       = (NOTIF_ENTITY_EXPIRE, 'event_expired', False, True)
@@ -266,6 +266,12 @@ apns_notification_dictionary = {
         'badge': 0,
         'title': 'Accepted',
         'message': '{0.first_name} {0.last_name} accepted your invitation',
+    },
+    get_notif_type(WIZCARD_ENTITY_UPDATE): {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'title': 'Event Updated',
+        'message': 'Event {1.name} has an update',
     },
     get_notif_type(WIZCARD_ENTITY_EXPIRE): {
         'sound': 'flynn.caf',
