@@ -116,7 +116,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 class QuestionResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ('id', 'question_type', 'question', 'choices', 'num_responders',)
+        fields = ('id', 'question_type', 'question', 'choices', 'num_responders', 'ui_type')
         read_only_fields = ('num_responders',)
 
     choices = QuestionChoicesResponseSerializer(many=True)
