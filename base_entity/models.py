@@ -604,7 +604,17 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return users
 
     def flood_set(self, **kwargs):
-        return [x for x in self.users.all() if hasattr(x, 'wizcard')]
+        ntuple = kwargs.pop('ntuple')
+        sender = kwargs.pop('sender')
+
+        flood_list = [x for x in self.users.all() if hasattr(x, 'wizcard')]
+
+        if verbs.get_notif_type(ntuple) == verbs.NOTIF_ENTITY_JOIN:
+            # remove sender
+            if sender in flood_list:
+                flood_list.remove(sender)
+
+        return flood_list
 
     def get_banner(self):
         media_row = self.get_sub_entities_of_type(entity_type=BaseEntity.SUB_ENTITY_MEDIA)

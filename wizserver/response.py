@@ -322,6 +322,9 @@ class AsyncNotifResponse:
         }
 
         for notification in notifications:
+            # AA: TODO: IMPORTANT: before prod, put a try except here and raise
+            # any errors so that the loop is not interrupted by some bug in a
+            # particular notif handling.
             notifHandler[notification.notif_type](notification)
 
     def notif_async_2_sync(self, notif):
@@ -332,11 +335,8 @@ class AsyncNotifResponse:
         entity = target_ct.get_object_for_this_type(id=notif.target_object_id)
         ntuple = verbs.notif_type_tuple_dict[notif.notif_type]
 
-        flood_set = entity.flood_set(ntuple=ntuple)
+        flood_set = entity.flood_set(ntuple=ntuple, sender=notif.actor)
 
-        # remove sender
-        if ntuple in [verbs.WIZCARD_ENTITY_ATTACH, verbs.WIZCARD_ENTITY_DETACH]:
-            flood_set.remove(notif.actor)
         if not flood_set:
             return
 
