@@ -15,9 +15,46 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from polls.models import Poll, Question
-from taganomy.serializers import TaganomySerializer, TaganomySerializerL1
 from polls.serializers import QuestionResponseSerializer, QuestionSerializer, QuestionSerializerL1
+from taggit_serializer.serializers import TagListSerializerField, TaggitSerializer
+from taganomy.serializers import TaganomySerializerField
+from taganomy.models import Taganomy
+import pdb
 
+
+class TaganomySerializer(TaggitSerializer, EntitySerializer):
+    tags = TagListSerializerField()
+
+    class Meta:
+        model = Taganomy
+        fields = ('id', 'tags', 'name')
+
+    def create(self, validated_data, **kwargs):
+
+        # prepare for this is not required. it messes with the tags by
+        # popping them out.
+        validated_data.update(entity_type=BaseEntityComponent.CATEGORY)
+        obj = super(TaganomySerializer, self).create(validated_data)
+        self.post_create_update(obj)
+
+        return obj
+
+
+class TaganomySerializerL2(TaggitSerializer):
+    class Meta:
+        model = Taganomy
+        fields = ('id', 'tags', 'tags_exhibitor', 'venue_exhibitor')
+
+    tags = TagListSerializerField()
+    tags_exhibitor = serializers.SerializerMethodField()
+    venue_exhibitor = serializers.SerializerMethodField()
+
+    def get_tags_exhibitor(self, obj):
+        pdb.set_trace()
+        return obj.get_sub_entities_by_tags(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+
+    def get_venue_exhibitor(self, obj):
+        return obj.get_sub_entities_by_venue(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
 
 
 class AgendaItemSerializer(EntitySerializer):
@@ -233,7 +270,8 @@ class EventSerializerL0(EntitySerializer):
 class ExhibitorEventSerializer(EventSerializerL0):
     class Meta:
         model = Event
-        fields = ('id', 'name', 'media', 'taganomy')
+        my_fields = ('taganomy',)
+        fields = EventSerializerL0.Meta.fields + my_fields
 
     taganomy = serializers.SerializerMethodField()
 
@@ -248,14 +286,13 @@ class ExhibitorEventSerializer(EventSerializerL0):
 class EventSerializerL1(EventSerializerL0):
     start = serializers.DateTimeField(read_only=True)
     end = serializers.DateTimeField(read_only=True)
-    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = ('id', 'entity_type', 'num_users', 'name', 'address', 'secure', 'description', 'media',
                          'location', 'users', 'friends', 'like',  'engagements', 'user_state')
-        my_fields = ('start', 'end', 'tags')
+        my_fields = ('start', 'end',)
 
         fields = parent_fields + my_fields
 
@@ -303,12 +340,6 @@ class EventSerializerL1(EventSerializerL0):
         )
         return out
 
-    def get_tags(self, obj):
-        return TaganomySerializerL1(
-            obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
-            many=True
-        ).data
-
 
 # these are used by App.
 class EventSerializerL2(EntitySerializer):
@@ -319,17 +350,14 @@ class EventSerializerL2(EntitySerializer):
     campaigns = serializers.SerializerMethodField()
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
-    # TODO AR: Just return tags instead of taganomy stuff
     taganomy = serializers.SerializerMethodField()
-    tags_exhibitor = serializers.SerializerMethodField()
-    venue_exhibitor = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
         my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda',
-                     'polls', 'taganomy', 'tags_exhibitor', 'venue_exhibitor')
+                     'polls', 'taganomy',)
 
         fields = parent_fields + my_fields
 
@@ -395,16 +423,10 @@ class EventSerializerL2(EntitySerializer):
         ).data
 
     def get_taganomy(self, obj):
-        return TaganomySerializerL1(
+        return TaganomySerializerL2(
             obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
             many=True
         ).data
-
-    def get_tags_exhibitor(self, obj):
-        return obj.get_sub_entities_by_tags(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
-
-    def get_venue_exhibitor(self, obj):
-        return obj.get_sub_entities_by_venue(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
 
 
 # this is used by App
@@ -415,7 +437,7 @@ class CampaignSerializerL1(EntitySerializer):
 
         # using L0 fields since not all L1 base class fields are needed
         parent_fields = EntitySerializerL0.Meta.fields
-        my_fields = ('name', 'address', 'tags', 'like', 'description')
+        my_fields = ('name', 'address', 'like', 'description')
 
         fields = parent_fields + my_fields
 
@@ -441,6 +463,8 @@ class CampaignSerializerL2(EntitySerializer):
         my_fields = ('tags', 'like', 'is_sponsored')
         fields = EntitySerializer.Meta.fields + my_fields
 
+    tags = TagListSerializerField()
+
 
 # this is used by portal REST API
 class CampaignSerializer(EntitySerializer):
@@ -453,11 +477,15 @@ class CampaignSerializer(EntitySerializer):
 
     class Meta:
         model = Campaign
-        my_fields = ('scans', 'is_sponsored', 'events')
+        my_fields = ('scans', 'is_sponsored', 'events', 'tags', 'taganomy')
         fields = EntitySerializer.Meta.fields + my_fields
 
     scans = serializers.SerializerMethodField()
     events = serializers.SerializerMethodField()
+    # this is write tags
+    taganomy = TaganomySerializerField(required=False, write_only=True)
+    # this is to read tags
+    tags = TagListSerializerField()
 
     def get_scans(self, obj):
         return ScannedEntitySerializer(
@@ -467,7 +495,7 @@ class CampaignSerializer(EntitySerializer):
 
     def get_events(self, obj):
         parents = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
-        return EventSerializerL0(parents, many=True).data
+        return ExhibitorEventSerializer(parents, many=True).data
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)

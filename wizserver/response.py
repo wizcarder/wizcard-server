@@ -328,15 +328,13 @@ class AsyncNotifResponse:
             notifHandler[notification.notif_type](notification)
 
     def notif_async_2_sync(self, notif):
-        # get the flood set for this target
         target_ct = notif.target_content_type
-
         # AA: TODO: this might have been expired/deleted in the meantime
         entity = target_ct.get_object_for_this_type(id=notif.target_object_id)
         ntuple = verbs.notif_type_tuple_dict[notif.notif_type]
 
+        # get the flood set for this target
         flood_set = entity.flood_set(ntuple=ntuple, sender=notif.actor)
-
         if not flood_set:
             return
 

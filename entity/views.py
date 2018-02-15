@@ -11,7 +11,7 @@ from media_components.models import MediaEntities
 from notifications.models import AsyncNotification
 from notifications.serializers import AsyncNotificationSerializer
 from taganomy.models import Taganomy
-from taganomy.serializers import TaganomySerializer
+from entity.serializers import TaganomySerializer
 from rest_framework.decorators import detail_route
 from rest_framework import viewsets, status, mixins
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
@@ -981,6 +981,27 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, event_pk=None, pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+            taganomy = Taganomy.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if taganomy in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
+            return Response("event id %s already associated with taganomy %s " % (event_pk, pk),
+                            status=status.HTTP_200_OK)
+
+        parents = taganomy.get_parent_entities()
+        if parents:
+            return Response("Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, event.name),
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+        taganomy.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class EventBadgeViewSet(viewsets.ModelViewSet):

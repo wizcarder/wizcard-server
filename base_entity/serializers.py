@@ -1,13 +1,11 @@
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
-from taggit_serializer.serializers import TagListSerializerField
-
 from location_mgr.serializers import LocationSerializerField
 from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComponent, EntityUserStats
 from entity.models import CoOwners
-from taganomy.models import Taganomy
 from media_components.serializers import MediaEntitiesSerializer
 from wizserver import verbs
+import pdb
 
 
 class RelatedSerializerField(serializers.RelatedField):
@@ -82,7 +80,6 @@ class EntitySerializer(EntitySerializerL0):
     location = LocationSerializerField(required=False)
     users = serializers.SerializerMethodField()
     friends = serializers.SerializerMethodField()
-    tags = TagListSerializerField(required=False)
     like = serializers.SerializerMethodField()
     engagements = EntityEngagementSerializer(read_only=True)
     owners = serializers.PrimaryKeyRelatedField(
@@ -93,11 +90,6 @@ class EntitySerializer(EntitySerializerL0):
     )
     related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
-    taganomy = serializers.PrimaryKeyRelatedField(
-        queryset=Taganomy.objects.all(),
-        required=False,
-        write_only=True
-    )
     user_state = serializers.SerializerMethodField()
 
     MAX_THUMBNAIL_UI_LIMIT = 4
@@ -105,8 +97,8 @@ class EntitySerializer(EntitySerializerL0):
     class Meta(EntitySerializerL0.Meta):
         model = BaseEntity
         my_fields = ('name', 'address', 'venue',  'secure', 'description', 'email', 'website', 'phone',
-                     'media', 'location', 'users', 'friends', 'tags', 'like', 'user_state', 'entity_state',
-                     'engagements', 'owners', 'related', 'ext_fields', 'taganomy',)
+                     'media', 'location', 'users', 'friends', 'like', 'user_state', 'entity_state',
+                     'engagements', 'owners', 'related', 'ext_fields',)
 
         fields = EntitySerializerL0.Meta.fields + my_fields
 
@@ -134,12 +126,11 @@ class EntitySerializer(EntitySerializerL0):
         return dict(liked=liked, like_level=level)
 
     def prepare(self, validated_data):
-        self.tags = validated_data.pop('tags', None)
-        self.taganomy = validated_data.pop("taganomy", None)
         self.owners = validated_data.pop('owners', None)
         self.sub_entities = validated_data.pop('related', None)
         self.location = validated_data.pop('location', None)
         self.users = validated_data.pop('users', None)
+        self.tags = validated_data.pop('tags', None)
 
     def create(self, validated_data):
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(validated_data['entity_type'])
@@ -168,13 +159,11 @@ class EntitySerializer(EntitySerializerL0):
         if self.location:
             entity.create_or_update_location(self.location['lat'], self.location['lng'])
 
-        # Generate Tags
-        if self.tags:
-            tags = self.tags
+        if hasattr(self, 'tags'):
+            taganomy = self.tags['taganomy']
+            tags = self.tags['tags']
+            taganomy.register_object(entity)
             entity.tags.set(*tags)
-
-        if self.taganomy:
-            self.taganomy.register_object(entity)
 
         # send entity_update (with sub_entity granularity)
         BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE)

@@ -291,7 +291,7 @@ class BaseEntityComponent(PolymorphicModel):
             SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
             ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
         from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
-        from taganomy.serializers import TaganomySerializer
+        from entity.serializers import TaganomySerializer, TaganomySerializerL2
         from taganomy.models import Taganomy
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
@@ -347,7 +347,7 @@ class BaseEntityComponent(PolymorphicModel):
             s = ScannedEntitySerializer
         elif entity_type == cls.CATEGORY:
             c = Taganomy
-            s = TaganomySerializer
+            s = TaganomySerializerL2 if detail else TaganomySerializer
         else:
             c = BaseEntityComponent
             s = EntitySerializer

@@ -65,24 +65,6 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
-    def get_sub_entities_by_tags(self, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-        sub_entities = self.get_sub_entities_of_type(entity_type)
-        tag_d = {}
-        for s in sub_entities:
-            tags = s.tags.all()
-            for t in tags:
-                tag_d.setdefault(t.name, []).append(s.id)
-
-        return tag_d
-
-    def get_sub_entities_by_venue(self, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-        sub_entities = self.get_sub_entities_of_type(entity_type)
-        venue_d = {}
-        for s in sub_entities:
-            venue_d.setdefault(s.venue, []).append(s.id)
-
-        return venue_d
-
     def get_parent_entities(self):
         # no parent for event
         return [self]
