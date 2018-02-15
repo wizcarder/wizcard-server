@@ -210,7 +210,6 @@ class EventSerializer(EntitySerializer):
 
         return obj
 
-
     def get_speakers(self, obj):
         return SpeakerSerializer(
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_SPEAKER),
