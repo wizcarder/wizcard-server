@@ -37,7 +37,25 @@ class Taganomy(BaseEntityComponent, Base411Mixin):
         map(lambda x: x.tags.remove(*remove_tags), related)
 
     def register_object(self, obj):
-        self.add_subentity_obj(obj, obj.entity_type)
+        self.add_subentity_obj(obj, BaseEntityComponent.sub_entity_type_from_entity_type(obj.entity_type))
+
+    def get_sub_entities_by_tags(self, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        sub_entities = self.get_sub_entities_of_type(entity_type)
+        tag_d = {}
+        for s in sub_entities:
+            tags = s.tags.all()
+            for t in tags:
+                tag_d.setdefault(t.name, []).append(s.id)
+
+        return tag_d
+
+    def get_sub_entities_by_venue(self, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        sub_entities = self.get_sub_entities_of_type(entity_type)
+        venue_d = {}
+        for s in sub_entities:
+            venue_d.setdefault(s.venue, []).append(s.id)
+
+        return venue_d
 
 
 def tag_signal_handler(sender, **kwargs):

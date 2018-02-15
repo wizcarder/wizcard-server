@@ -17,6 +17,7 @@ from django.conf import settings
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
 from lib.create_share import send_event, send_wizcard
+from base_entity.models import BaseEntityComponent
 
 logger = logging.getLogger(__name__)
 
@@ -237,9 +238,9 @@ class SyncNotifResponse(ResponseN):
     def notifEntityUpdate(self, notif):
         out = dict(
             entity_id=notif.target.id,
-            entity_type=notif.target_content_type.model,
+            entity_type=BaseEntityComponent.sub_entity_type_from_entity_type(notif.target.entity_type),
             sub_entity_id=notif.action_object_object_id,
-            sub_entity_type=notif.action_object_content_type.model,
+            sub_entity_type=BaseEntityComponent.sub_entity_type_from_entity_type(notif.action_object.entity_type),
         )
 
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_UPDATE, notif.id)
@@ -328,15 +329,13 @@ class AsyncNotifResponse:
             notifHandler[notification.notif_type](notification)
 
     def notif_async_2_sync(self, notif):
-        # get the flood set for this target
         target_ct = notif.target_content_type
-
         # AA: TODO: this might have been expired/deleted in the meantime
         entity = target_ct.get_object_for_this_type(id=notif.target_object_id)
         ntuple = verbs.notif_type_tuple_dict[notif.notif_type]
 
+        # get the flood set for this target
         flood_set = entity.flood_set(ntuple=ntuple, sender=notif.actor)
-
         if not flood_set:
             return
 

@@ -42,7 +42,6 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card=False):
     extfields = from_wizcard.get_ext_fields
     html = emaildetails['template']
     subject = emaildetails['subject']
-    pdb.set_trace()
 
     if not extfields:
         extfields = {}
