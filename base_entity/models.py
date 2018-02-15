@@ -421,8 +421,10 @@ class BaseEntityComponent(PolymorphicModel):
     def remove_sub_entity_of_type(self, id, entity_type):
         self.related.filter(object_id=id, alias=entity_type).delete()
 
-    def get_sub_entities_of_type(self, entity_type):
-        return self.related.filter(alias=entity_type).generic_objects()
+    def get_sub_entities_of_type(self, entity_type, exclude=[BaseEntityComponent.ENTITY_STATE_DELETED]):
+        subent = self.related.filter(alias=entity_type).generic_objects()
+        return [se for se in subent if se.entity_state not in exclude] if exclude \
+            else subent
 
     def get_sub_entities_id_of_type(self, entity_type):
         return list(self.related.filter(alias=entity_type).values_list('object_id', flat=True))
@@ -432,11 +434,16 @@ class BaseEntityComponent(PolymorphicModel):
 
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
-    def get_parent_entities(self):
-        return self.related.related_to().generic_objects()
+    def get_parent_entities(self, exclude=[BaseEntityComponent.ENTITY_STATE_DELETED]):
+        parents = self.related.related_to().generic_objects()
+        return [p for p in parents if p.entity_state not in exclude] if exclude \
+            else parents
 
-    def get_parent_entities_by_contenttype_id(self, contenttype_id):
-        return self.related.related_to().filter(parent_type_id=contenttype_id).generic_objects()
+
+    def get_parent_entities_by_contenttype_id(self, contenttype_id, exclude_deleted=True):
+        parents = self.related.related_to().filter(parent_type_id=contenttype_id).generic_objects()
+        return [p for p in parents if p.entity_state != BaseEntityComponent.ENTITY_STATE_DELETED] if exclude_deleted \
+            else parents
 
     # is the instance of the kind that has notifiable users
     def has_subscribers(self):
@@ -487,6 +494,9 @@ class BaseEntityComponent(PolymorphicModel):
     # nothing here, should be overridden in derived classes
     def user_state(self, user):
         return ""
+
+    def delete(self, *args, **kwargs):
+       self.set_entity_state(BaseEntityComponent.ENTITY_STATE_DELETED)
 
 
 class BaseEntityComponentsOwner(models.Model):
@@ -629,7 +639,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         if delete_type == self.ENTITY_EXPIRE:
             self.set_entity_state(BaseEntityComponent.ENTITY_STATE_EXPIRED)
         else:
-            self.related.all().delete()
             super(BaseEntity, self).delete(*args, **kwargs)
 
     def do_expire(self):
