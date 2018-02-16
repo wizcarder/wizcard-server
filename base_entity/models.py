@@ -12,7 +12,6 @@ from base.char_trunc import TruncatingCharField
 from base.mixins import Base414Mixin
 from django.contrib.auth.models import User
 from notifications.signals import notify
-from notifications.models import BaseNotification
 from wizserver import verbs
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 import ushlex as shlex
@@ -211,6 +210,24 @@ class BaseEntityComponent(PolymorphicModel):
         (ENTITY_STATE_DELETED, "Deleted")
     )
 
+    entity_types_mapping = {
+        CAMPAIGN: SUB_ENTITY_CAMPAIGN,
+        TABLE: SUB_ENTITY_TABLE,
+        WIZCARD: SUB_ENTITY_WIZCARD,
+        SPEAKER: SUB_ENTITY_SPEAKER,
+        SPONSOR: SUB_ENTITY_SPONSOR,
+        MEDIA: SUB_ENTITY_MEDIA,
+        ATTENDEE_INVITEE: SUB_ENTITY_ATTENDEE_INVITEE,
+        EXHIBITOR_INVITEE: EXHIBITOR_INVITEE,
+        COOWNER: SUB_ENTITY_COOWNER,
+        AGENDA: SUB_ENTITY_AGENDA,
+        AGENDA_ITEM: SUB_ENTITY_AGENDA,
+        POLL: SUB_ENTITY_POLL,
+        BADGE_TEMPLATE: SUB_ENTITY_BADGE_TEMPLATE,
+        SCANNED_USER: SUB_ENTITY_SCANNED_USER,
+        CATEGORY: SUB_ENTITY_CATEGORY
+    }
+
     # use this in overridden delete to know whether to remove or mark-deleted
     ENTITY_DELETE = 1
     ENTITY_EXPIRE = 2
@@ -291,7 +308,7 @@ class BaseEntityComponent(PolymorphicModel):
             SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
             ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
         from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
-        from taganomy.serializers import TaganomySerializer
+        from entity.serializers import TaganomySerializer, TaganomySerializerL2
         from taganomy.models import Taganomy
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
@@ -347,7 +364,7 @@ class BaseEntityComponent(PolymorphicModel):
             s = ScannedEntitySerializer
         elif entity_type == cls.CATEGORY:
             c = Taganomy
-            s = TaganomySerializer
+            s = TaganomySerializerL2 if detail else TaganomySerializer
         else:
             c = BaseEntityComponent
             s = EntitySerializer
@@ -358,6 +375,10 @@ class BaseEntityComponent(PolymorphicModel):
     def content_type_from_entity_type(cls, entity_type):
         _cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
         return ContentType.objects.get_for_model(_cls)
+
+    @classmethod
+    def sub_entity_type_from_entity_type(cls, entity_type):
+        return cls.entity_types_mapping[entity_type]
 
     @classmethod
     def entity_cls_from_subentity_type(cls, entity_type):

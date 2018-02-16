@@ -1,6 +1,6 @@
 
 from taganomy.models import Taganomy
-from taganomy.serializers import TaganomySerializer
+from entity.serializers import TaganomySerializer
 from base_entity.views import BaseEntityComponentViewSet
 
 

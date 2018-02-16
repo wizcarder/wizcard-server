@@ -1,35 +1,35 @@
 
 from taganomy.models import Taganomy
-from taggit_serializer.serializers import TagListSerializerField, TaggitSerializer
-from base_entity.serializers import EntitySerializer
-from base_entity.models import BaseEntityComponent
+from taggit_serializer.serializers import TagListSerializerField
+from rest_framework.validators import ValidationError
 
 
-class TaganomySerializer(EntitySerializer, TaggitSerializer):
-    tags = TagListSerializerField()
+class TaganomySerializerField(TagListSerializerField):
+    def to_internal_value(self, value):
+        taganomy_id = value.pop('taganomy_id', None)
+        tags = value.pop('tags', None)
 
-    class Meta:
-        model = Taganomy
-        fields = ('id', 'tags', 'name')
+        # Perform the data validation.
+        if taganomy_id is None:
+            raise ValidationError({
+                'id': 'This field is required.'
+            })
 
-    def create(self, validated_data, **kwargs):
-        validated_data.update(entity_type=BaseEntityComponent.CATEGORY)
-        self.prepare(validated_data)
-        obj = super(TaganomySerializer, self).create(validated_data)
-        self.post_create_update(obj)
+        try:
+            taganomy_inst = Taganomy.objects.get(id=taganomy_id)
+        except:
+            raise ValidationError({
+                'id': 'Invalid Taganomy instance'
+            })
 
-        return obj
+        if tags is None:
+            raise ValidationError({
+                'tags': 'This field is required.'
+            })
 
-    def update(self, instance, validated_data):
-        self.prepare(validated_data)
-        obj = super(TaganomySerializer, self).update(instance, validated_data)
-        self.post_create_update(obj, update=True)
-        return obj 
+        tags = super(TaganomySerializerField, self).to_internal_value(tags)
 
+        out = dict(taganomy=taganomy_inst, tags=tags)
 
-class TaganomySerializerL1(TaggitSerializer):
-    tags = TagListSerializerField()
+        return out
 
-    class Meta:
-        model = Taganomy
-        fields = ('tags', )
