@@ -1,11 +1,16 @@
-
 from taganomy.models import Taganomy
 from taggit_serializer.serializers import TagListSerializerField
 from rest_framework.validators import ValidationError
 
 
 class TaganomySerializerField(TagListSerializerField):
+
     def to_internal_value(self, value):
+        if not isinstance(value, dict):
+            raise ValidationError({
+                'expected dict, got {value}'.format(value=value.__class__.__name__)
+            })
+
         taganomy_id = value.pop('taganomy_id', None)
         tags = value.pop('tags', None)
 

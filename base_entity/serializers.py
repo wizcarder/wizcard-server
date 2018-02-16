@@ -157,7 +157,7 @@ class EntitySerializer(EntitySerializerL0):
                 entity.add_subentities(**s)
 
         if hasattr(self, '_location') and self._location:
-            entity.create_or_update_location(self.location['lat'], self.location['lng'])
+            entity.create_or_update_location(self._location['lat'], self._location['lng'])
 
         if hasattr(self, '_tags') and self._tags:
             taganomy = self._tags['taganomy']

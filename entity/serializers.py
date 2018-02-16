@@ -479,7 +479,7 @@ class CampaignSerializer(EntitySerializer):
     # this is write tags
     taganomy = TaganomySerializerField(required=False, write_only=True)
     # this is to read tags
-    tags = TagListSerializerField()
+    tags = TagListSerializerField(required=False)
 
     def get_scans(self, obj):
         return ScannedEntitySerializer(
