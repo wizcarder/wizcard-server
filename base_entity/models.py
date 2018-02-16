@@ -421,12 +421,12 @@ class BaseEntityComponent(PolymorphicModel):
     def remove_sub_entity_of_type(self, id, entity_type):
         self.related.filter(object_id=id, alias=entity_type).delete()
 
-    def get_sub_entities_of_type(self, entity_type, exclude=[BaseEntityComponent.ENTITY_STATE_DELETED]):
+    def get_sub_entities_of_type(self, entity_type, exclude=[ENTITY_STATE_DELETED]):
         subent = self.related.filter(alias=entity_type).generic_objects()
         return [se for se in subent if se.entity_state not in exclude] if exclude \
             else subent
 
-    def get_sub_entities_id_of_type(self, entity_type, exclude=[BaseEntityComponent.ENTITY_STATE_DELETED]):
+    def get_sub_entities_id_of_type(self, entity_type, exclude=[ENTITY_STATE_DELETED]):
         # Ideally we could have avoided the 2 iterations, but this is to ensure that the logic is consistent across 2 functions
         subent = self.get_sub_entities_of_type(entity_type, exclude)
         return [se.id for se in subent]
@@ -436,12 +436,12 @@ class BaseEntityComponent(PolymorphicModel):
 
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
-    def get_parent_entities(self, exclude=[BaseEntityComponent.ENTITY_STATE_DELETED]):
+    def get_parent_entities(self, exclude=[ENTITY_STATE_DELETED]):
         parents = self.related.related_to().generic_objects()
         return [p for p in parents if p.entity_state not in exclude] if exclude \
             else parents
 
-    def get_parent_entities_by_contenttype_id(self, contenttype_id, exclude=[BaseEntityComponent.ENTITY_STATE_DELETED]):
+    def get_parent_entities_by_contenttype_id(self, contenttype_id, exclude=[ENTITY_STATE_DELETED]):
         parents = self.related.related_to().filter(parent_type_id=contenttype_id).generic_objects()
         return [p for p in parents if p.entity_state not in exclude] if exclude \
             else parents
@@ -627,13 +627,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 flood_list.remove(sender)
 
         return flood_list
-
-    def get_banner(self):
-        media_row = self.get_sub_entities_of_type(entity_type=BaseEntity.SUB_ENTITY_MEDIA)
-        if media_row:
-            return media_row.media_element
-
-        return ""
 
     def delete(self, *args, **kwargs):
         delete_type = kwargs.pop('type', self.ENTITY_DELETE)
