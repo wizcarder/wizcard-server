@@ -1003,6 +1003,22 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
 
         return Response(status=status.HTTP_201_CREATED)
 
+    def destroy(self, request, event_pk=None, pk=None):
+        try:
+            event = Event.objects.get(id=event_pk)
+            tgn = Taganomy.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if tgn not in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY):
+            return Response("event id %s not associated with Taganomy %s " % (event_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        event.remove_sub_entity_of_type(tgn.id, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+        tgn.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
+
+        return Response(status=status.HTTP_200_OK)
+
 
 class EventBadgeViewSet(viewsets.ModelViewSet):
     queryset = BadgeTemplate.objects.all()
