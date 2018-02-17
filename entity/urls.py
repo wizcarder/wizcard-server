@@ -7,7 +7,7 @@ from entity.views import SpeakerViewSet, SponsorViewSet, ExhibitorInviteeViewSet
 from entity.views import EventCampaignViewSet, EventSpeakerViewSet, EventSponsorViewSet, \
     EventMediaViewSet, EventAttendeeViewSet, EventExhibitorViewSet, EventCoOwnerViewSet,\
     EventAgendaViewSet, EventPollViewSet, EventTaganomyViewSet, EventNotificationViewSet, \
-    EventBadgeViewSet
+    EventBadgeViewSet, CampaignMediaViewSet
 from media_components.views import MediaEntitiesViewSet
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
@@ -48,10 +48,15 @@ events_router.register(r'notification', EventNotificationViewSet, base_name='eve
 events_router.register(r'taganomy', EventTaganomyViewSet, base_name='event-tagonomy')
 events_router.register(r'badge', EventBadgeViewSet, base_name='event-badge')
 
+campaigns_router = routers.NestedSimpleRouter(router, r'campaigns', lookup='campaigns')
+campaigns_router.register(r'media', CampaignMediaViewSet, base_name='campaign-media')
+
+
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^', include(events_router.urls)),
     url(r'^', include(agenda_item_router.urls)),
+    url(r'^', include(campaigns_router.urls)),
 ]
 
 urlpatterns += poll_urlpatterns

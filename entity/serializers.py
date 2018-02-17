@@ -457,7 +457,7 @@ class CampaignSerializerL2(EntitySerializer):
         my_fields = ('tags', 'like', 'is_sponsored')
         fields = EntitySerializer.Meta.fields + my_fields
 
-    tags = TagListSerializerField()
+    tags = TagListSerializerField(required=False)
 
 
 # this is used by portal REST API

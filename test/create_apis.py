@@ -323,7 +323,7 @@ def attach_entities():
                     random_tags = sample(xrange(1, len(tags)), randint(1, len(tags) / 2))
                     rest_path = "/entity/campaigns/" + str(c) + "/"
                     taglist = [tags[x] for x in random_tags]
-                    payload = {'tags': taglist, 'taganomy': tid}
+                    payload = {'taganomy': {'taganomy_id': tid, 'tags': taglist}}
                     campaign_id = put_retrieve(rest_path, payload, "id")
 
 
