@@ -1090,3 +1090,69 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
+class CampaignMediaViewSet(viewsets.ModelViewSet):
+    queryset = MediaEntities.objects.all()
+    serializer_class = MediaEntitiesSerializer
+
+    def list(self, request, campaigns_pk=None):
+        campaign = Campaign.objects.get(id=campaigns_pk)
+        med = campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA)
+        return Response(MediaEntitiesSerializer(med, many=True).data)
+
+    def retrieve(self, request, pk=None, campaigns_pk=None):
+        try:
+            med = MediaEntities.objects.get(id=pk)
+            campaign = Campaign.objects.get(id=campaigns_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if med not in campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
+            return Response("campaign id %s not associated with Media %s " % (campaigns_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(SponsorSerializer(med).data)
+
+    def create(self, request, campaigns_pk=None):
+        try:
+            campaign = Campaign.objects.get(id=campaigns_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MediaEntitiesSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            campaign.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_MEDIA)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, campaigns_pk=None, pk=None):
+        try:
+            campaign = Campaign.objects.get(id=campaigns_pk)
+            med = MediaEntities.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if med in campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
+            return Response("campaign %s already  associated with Media %s " % (campaigns_pk, pk),
+                            status=status.HTTP_200_OK)
+
+        campaign.add_subentity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, campaigns_pk=None, pk=None):
+        try:
+            campaign = Campaign.objects.get(id=campaigns_pk)
+            med = MediaEntities.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if med not in campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
+            return Response("campaign id %s not associated with Media %s " % (campaigns_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        campaign.remove_sub_entity_of_type(med.id, BaseEntityComponent.SUB_ENTITY_MEDIA)
+
+        return Response(status=status.HTTP_200_OK)
+
+
