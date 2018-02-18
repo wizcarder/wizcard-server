@@ -238,9 +238,9 @@ class SyncNotifResponse(ResponseN):
     def notifEntityUpdate(self, notif):
         out = dict(
             entity_id=notif.target.id,
-            entity_type=BaseEntityComponent.sub_entity_type_from_entity_type(notif.target.entity_type),
+            entity_type=notif.target.entity_type,
             sub_entity_id=notif.action_object_object_id,
-            sub_entity_type=BaseEntityComponent.sub_entity_type_from_entity_type(notif.action_object.entity_type),
+            sub_entity_type=notif.action_object.entity_type,
         )
 
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_UPDATE, notif.id)

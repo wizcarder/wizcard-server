@@ -46,12 +46,13 @@ class TaganomySerializer(TaggitSerializer, EntitySerializer):
         return obj
 
 
-class TaganomySerializerL2(TaggitSerializer):
+class TaganomySerializerL2(TaganomySerializer):
     class Meta:
         model = Taganomy
-        fields = ('id', 'tags', 'tags_exhibitor', 'venue_exhibitor')
 
-    tags = TagListSerializerField()
+        my_fields = ('tags_exhibitor', 'venue_exhibitor',)
+        fields = TaganomySerializer.Meta.fields + my_fields
+
     tags_exhibitor = serializers.SerializerMethodField()
     venue_exhibitor = serializers.SerializerMethodField()
 
