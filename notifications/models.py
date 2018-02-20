@@ -244,6 +244,7 @@ def notify_handler(sender, **kwargs):
     end = kwargs.pop('end_date', start)
     # hidden side-effects of changing do_push to false. Check with me before changing
     do_push = kwargs.pop('do_push', True)
+    notif_operation = kwargs.pop('notif_operation', "")
 
     """
     ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
@@ -267,6 +268,7 @@ def notify_handler(sender, **kwargs):
             notif_type=verbs.get_notif_type(notif_tuple),
             verb=verbs.get_notif_verb(notif_tuple),
             timestamp=kwargs.pop('timestamp', timezone.now()),
+            notif_operation=notif_operation,
             # AA: Comments: EmailPush cannot decide whether this is INSTANT or not.
             delivery_period=AsyncNotification.INSTANT,
             start_date=start,
@@ -286,6 +288,7 @@ def notify_handler(sender, **kwargs):
             target_object_id=target.pk,
             action_object_content_type=action_object_content_type,
             action_object_object_id=action_object_object_id,
+            notif_operation=notif_operation,
             defaults={
                 'public': bool(kwargs.pop('public', True)),
                 'timestamp': kwargs.pop('timestamp', timezone.now()),

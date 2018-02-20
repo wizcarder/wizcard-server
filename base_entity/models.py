@@ -55,7 +55,8 @@ class BaseEntityComponentManager(PolymorphicManager):
                 recipient=parent.get_creator(),
                 notif_tuple=notif_tuple,
                 target=parent,
-                action_object=entity
+                action_object=entity,
+                notif_operation=verbs.NOTIF_OPERATION_UPDATE
             ) for parent in parents if parent.is_active() & parent.has_subscribers()
         ]
 
