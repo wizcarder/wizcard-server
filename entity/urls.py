@@ -35,7 +35,7 @@ agenda_item_router = routers.NestedSimpleRouter(router, r'agenda', lookup='agend
 agenda_item_router.register(r'agenda_item', AgendaItemViewSet, base_name='agenda-item')
 
 # nested end-points for all applicable sub-entities
-events_router.register(r'campaign', EventCampaignViewSet, base_name='event-campaign')
+events_router.register(r'campaigns', EventCampaignViewSet, base_name='event-campaigns')
 events_router.register(r'speaker', EventSpeakerViewSet, base_name='event-speaker')
 events_router.register(r'sponsor', EventSponsorViewSet, base_name='event-sponsor')
 events_router.register(r'media', EventMediaViewSet, base_name='event-media')

@@ -348,6 +348,7 @@ class AsyncNotifResponse:
                 notif_tuple=ntuple,
                 target=notif.target,
                 action_object=notif.action_object,
+                notif_operation=notif.notif_operation,
                 # tell signal handler explicitly to Q into SyncQ and not use notif_type to decide
                 force_sync=True,
                 # no need to double-push. We'll send bulk push from here itself
