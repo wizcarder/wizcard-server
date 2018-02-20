@@ -20,6 +20,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from itertools import chain
 from scan.models import BadgeTemplate
 from scan.serializers import BadgeTemplateSerializer
+from wizserver import verbs
 
 
 import pdb
@@ -343,7 +344,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with Campaign %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         cpg.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -359,7 +360,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Campaign %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(cpg.id, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        event.remove_sub_entity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
         cpg.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
 
         return Response(status=status.HTTP_200_OK)
@@ -412,7 +413,7 @@ class EventSpeakerViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with Speaker %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(spk, BaseEntityComponent.SUB_ENTITY_SPEAKER)
+        event.add_subentity_obj(spk, BaseEntityComponent.SUB_ENTITY_SPEAKER, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -426,7 +427,7 @@ class EventSpeakerViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Speaker %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(spk.id, BaseEntityComponent.SUB_ENTITY_SPEAKER)
+        event.remove_sub_entity_obj(spk, BaseEntityComponent.SUB_ENTITY_SPEAKER)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -478,7 +479,7 @@ class EventSponsorViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with Sponsor %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(spn, BaseEntityComponent.SUB_ENTITY_SPONSOR)
+        event.add_subentity_obj(spn, BaseEntityComponent.SUB_ENTITY_SPONSOR, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -492,7 +493,7 @@ class EventSponsorViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Sponsor %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(spn.id, BaseEntityComponent.SUB_ENTITY_SPONSOR)
+        event.remove_sub_entity_obj(spn, BaseEntityComponent.SUB_ENTITY_SPONSOR)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -540,7 +541,7 @@ class EventMediaViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if med in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
+        if med in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA, notif_operation=verbs.NOTIF_OPERATION_UPDATE):
             return Response("event %s already  associated with Media %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
@@ -558,7 +559,7 @@ class EventMediaViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Media %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(med.id, BaseEntityComponent.SUB_ENTITY_MEDIA)
+        event.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -610,7 +611,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with attendee invitee %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -624,7 +625,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Attendee Invitee %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(ati.id, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        event.remove_sub_entity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -676,7 +677,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with exhibitor invitee %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(exi, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
+        event.add_subentity_obj(exi, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -690,7 +691,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Exhibitor Invitee %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(exi.id, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
+        event.remove_sub_entity_obj(exi, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -742,7 +743,7 @@ class EventCoOwnerViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with CoOwner %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
+        event.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -756,7 +757,7 @@ class EventCoOwnerViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with CoOwner %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(coo.id, BaseEntityComponent.SUB_ENTITY_COOWNER)
+        event.remove_sub_entity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -813,7 +814,7 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
             return Response("Operation Failed - Detach Agenda %s from  Event - %s and Retry" % (agn.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        event.add_subentity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA)
+        event.add_subentity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         agn.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -829,7 +830,7 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Agenda %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(agn.id, BaseEntityComponent.SUB_ENTITY_AGENDA)
+        event.remove_sub_entity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA)
         return Response(status=status.HTTP_200_OK)
 
 
@@ -887,7 +888,7 @@ class EventPollViewSet(viewsets.ModelViewSet):
             return Response("Operation Failed - Detach Poll - %s from  Event - %s and Retry" % (pol.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        event.add_subentity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL)
+        event.add_subentity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         pol.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -903,7 +904,7 @@ class EventPollViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Poll %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(pol.id, BaseEntityComponent.SUB_ENTITY_POLL)
+        event.remove_sub_entity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL)
         pol.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
 
         return Response(status=status.HTTP_200_OK)
@@ -998,7 +999,7 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
             return Response("Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+        event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         taganomy.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -1014,7 +1015,7 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
             return Response("event id %s not associated with Taganomy %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(tgn.id, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+        event.remove_sub_entity_obj(tgn, BaseEntityComponent.SUB_ENTITY_CATEGORY)
         tgn.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
 
         return Response(status=status.HTTP_200_OK)
@@ -1072,7 +1073,7 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
             return Response("event id %s already associated with badge %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(badge, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
+        event.add_subentity_obj(badge, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -1086,7 +1087,7 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Badge %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_of_type(badge.id, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
+        event.remove_sub_entity_obj(badge, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
         return Response(status=status.HTTP_200_OK)
 
 
@@ -1151,7 +1152,7 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
             return Response("campaign id %s not associated with Media %s " % (campaigns_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        campaign.remove_sub_entity_of_type(med.id, BaseEntityComponent.SUB_ENTITY_MEDIA)
+        campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
 
         return Response(status=status.HTTP_200_OK)
 

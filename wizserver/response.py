@@ -241,6 +241,7 @@ class SyncNotifResponse(ResponseN):
             entity_type=BaseEntityComponent.sub_entity_type_from_entity_type(notif.target.entity_type),
             sub_entity_id=notif.action_object_object_id,
             sub_entity_type=BaseEntityComponent.sub_entity_type_from_entity_type(notif.action_object.entity_type),
+            operation=notif.notif_operation
         )
 
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_UPDATE, notif.id)

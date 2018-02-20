@@ -56,7 +56,7 @@ class PollViewSet(BaseEntityComponentViewSet):
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
         entity = get_object_or_404(cls, entity_id)
 
-        entity.remove_sub_entity_of_type(poll.pk, BaseEntityComponent.POLL)
+        entity.remove_sub_entity_obj(poll, BaseEntityComponent.POLL)
 
         return Response("poll %s unlinked from entity" % poll.description, status=status.HTTP_200_OK)
 

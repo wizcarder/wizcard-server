@@ -86,6 +86,7 @@ class BaseNotification(models.Model):
 
     do_push = models.BooleanField(default=False)
     notification_text = models.CharField(max_length=254, default="")
+    notif_operation = models.CharField(max_length=1, default="")
 
     class Meta:
         ordering = ('timestamp', )
@@ -131,6 +132,7 @@ class BaseNotification(models.Model):
             message=self.notification_text
         )
 
+
 class AsyncNotificationManager(BaseNotificationManager):
     def unread(self, **kwargs):
         count = kwargs.pop('count', settings.ASYNC_NOTIF_BATCH_SIZE)
@@ -143,7 +145,6 @@ class AsyncNotificationManager(BaseNotificationManager):
         # Important: Several notifications may be queued for an Event, this one is specifically
         # those created explicitly by Organizer.
         pass
-
 
 
 # AA: Comment: This should probably be renamed to AsyncNotif
@@ -296,5 +297,6 @@ def notify_handler(sender, **kwargs):
             push_notification_to_app.delay(newnotify, notif_tuple)
 
     return newnotify
+
 
 notify.connect(notify_handler, dispatch_uid='notifications.models.SyncNotification')

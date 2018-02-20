@@ -11,6 +11,8 @@ from userprofile.signals import user_type_created
 from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 from taganomy.models import Taganomy
 from django.contrib.contenttypes.models import ContentType
+from notifications.signals import notify
+from wizserver import verbs
 import pdb
 
 from django.utils import timezone
@@ -69,6 +71,19 @@ class Event(BaseEntity):
         # no parent for event
         return [self]
 
+    def post_connect(self, obj, **kwargs):
+        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
+        if not self.notif_worthy(obj):
+            return
+
+        notify.send(self.get_creator(),
+                    recipient=self.get_creator(),
+                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
+                    target=self,
+                    action_object=obj,
+                    notif_operation=notif_operation
+                    )
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
@@ -90,6 +105,19 @@ class Campaign(BaseEntity):
     is_sponsored = models.BooleanField(default=False)
 
     objects = CampaignManager()
+
+    def post_connect(self, obj, **kwargs):
+        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
+        if not self.notif_worthy(obj):
+            return
+
+        notify.send(self.get_creator(),
+                    recipient=self.get_creator(),
+                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
+                    target=self,
+                    action_object=obj,
+                    notif_operation=notif_operation
+                    )
 
 
 class VirtualTableManager(BaseEntityManager):
@@ -207,6 +235,7 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 
         return matched_users, matched_attendees
 
+
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
     objects = AttendeeInviteeManager()
 
@@ -263,6 +292,19 @@ class AgendaItem(BaseEntity):
     def get_parent_entities(self):
         return self.agenda_key.get_parent_entities()
 
+    def post_connect(self, obj, **kwargs):
+        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
+        if not self.notif_worthy(obj):
+            return
+
+        notify.send(self.get_creator(),
+                    recipient=self.get_creator(),
+                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
+                    target=self,
+                    action_object=obj,
+                    notif_operation=notif_operation
+                    )
+
 
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -284,3 +326,4 @@ def connect_subentities(sender, **kwargs):
     # AA: Review. What happens when multiple user_types exist for User
     b_usr = sender.get_baseuser_by_type(kwargs.pop('user_type'))
     b_usr.connect_subentities()
+

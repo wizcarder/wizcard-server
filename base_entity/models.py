@@ -432,15 +432,17 @@ class BaseEntityComponent(PolymorphicModel):
 
         return objs
 
-    def add_subentity_obj(self, obj, alias):
+    def add_subentity_obj(self, obj, alias, notif_operation=verbs.NOTIF_OPERATION_CREATE):
         self.related.connect(obj, alias=alias)
+        self.post_connect(obj, notif_operation=notif_operation)
         return obj
 
     def remove_sub_entities_of_type(self, entity_type):
         self.related.filter(alias=entity_type).delete()
 
-    def remove_sub_entity_of_type(self, id, entity_type):
-        self.related.filter(object_id=id, alias=entity_type).delete()
+    def remove_sub_entity_obj(self, obj, entity_type):
+        self.related.filter(object_id=obj.id, alias=entity_type).delete()
+        self.post_connect(obj, notif_operation=verbs.NOTIF_OPERATION_DELETE)
 
     def get_sub_entities_of_type(self, entity_type, exclude=[ENTITY_STATE_DELETED]):
         subent = self.related.filter(alias=entity_type).generic_objects()
@@ -485,8 +487,13 @@ class BaseEntityComponent(PolymorphicModel):
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
-    def post_connect(self, obj):
+    def post_connect(self, obj, **kwargs):
         pass
+
+    def is_notif_worthy(self, obj):
+        notif_qualifiers = {BaseEntityComponent.MEDIA, BaseEntityComponent.SPEAKER, BaseEntityComponent.SPONSOR,
+                            BaseEntityComponent.CAMPAIGN, BaseEntityComponent.POLL, BaseEntityComponent.CATEGORY}
+        return True if obj.entity_type in notif_qualifiers else False
 
     def add_tags(self, taglist):
         self.tags.add(*taglist)
