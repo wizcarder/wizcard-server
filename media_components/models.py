@@ -20,7 +20,7 @@ class MediaEntitiesQuerySet(PolymorphicQuerySet):
         super(MediaEntitiesQuerySet, self).delete()
 
     def users_media(self, user):
-        umedia = user.owners_baseentitycomponent_related.all().instance_of(MediaEntities)
+        umedia = user.owners_baseentitycomponent_related.all().instance_of(MediaEntities).exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
         return umedia
 
 
