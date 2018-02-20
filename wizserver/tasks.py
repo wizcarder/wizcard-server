@@ -2,12 +2,15 @@ from celery import task
 from lib import wizlib
 import logging
 from userprofile.models import AB_Candidate_Phones, AB_Candidate_Emails, AB_Candidate_Names, AB_User, AddressBook
+from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
 
 
 @task(ignore_result=True)
-def contacts_upload_task(user, int_prefix, country_code, ab_list):
+def contacts_upload_task(user_pk, int_prefix, country_code, ab_list):
+
+    user = User.objects.get(id=user_pk)
     emailEntryList = []
     phoneEntryList = []
 

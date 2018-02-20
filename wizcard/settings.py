@@ -30,10 +30,10 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-dev-merge',
+                'NAME': 'wizcard-dev-celery',
                 'USER': 'kappu',
                 'PASSWORD': '',
-                'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+                'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
                 # 'CONN_MAX_AGE' : 60,
             }
         },
@@ -477,7 +477,7 @@ MYLOG['dev'] = {
     'loggers': {
         'django': {
             'level':'DEBUG',
-            'handlers': ['timed-log-file'],
+            'handlers': ['console', 'timed-log-file'],
             'propagate': False,
         },
         'wizserver': {

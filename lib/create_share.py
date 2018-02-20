@@ -7,6 +7,8 @@ from media_components.models import MediaEntities
 from django.template import Context
 from lib.ses import Email
 import vobject
+from wizcardship.models import Wizcard
+from entity.models import Event
 import pdb
 
 now = timezone.now
@@ -37,7 +39,8 @@ def create_vcard(wizcard):
 
 
 @shared_task
-def send_wizcard(from_wizcard, to, emaildetails, half_card=False):
+def send_wizcard(from_wizcard_id, to, emaildetails, half_card=False):
+    from_wizcard = Wizcard.objects.get(id=from_wizcard_id)
 
     extfields = from_wizcard.get_ext_fields
     html = emaildetails['template']
@@ -78,7 +81,8 @@ def send_wizcard(from_wizcard, to, emaildetails, half_card=False):
 
 
 @shared_task
-def send_event(event, to, emaildetails):
+def send_event(event_id, to, emaildetails):
+    event = Event.objects.get(id=event_id)
     email_dict = dict()
     html = emaildetails['template']
     email_dict['event_name'] = event.name

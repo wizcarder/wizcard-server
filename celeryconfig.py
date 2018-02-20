@@ -8,38 +8,39 @@ RUNENV = os.getenv('WIZRUNENV', 'dev')
 APP_MAJOR = 1
 APP_MINOR = 6
 
-CELERY_RESULT_BACKEND = 'rpc'
+result_backend = 'rpc'
 from rabbit_service import rconfig
-BROKER_URL = rconfig.AMPQ_DEFAULT_URL
+task_serializer = 'json'
+broker_url = rconfig.AMPQ_DEFAULT_URL
 
-EMAIL_TEMPLATE = '/invites/email_templatev4.png'
-EMAIL_FROM_ADDR = 'wizcarder@getwizcard.com'
+email_template = '/invites/email_templatev4.png'
+email_from_addr = 'wizcarder@getwizcard.com'
 
-OCR_QUEUE_NAME = 'ocr'
-PUSHNOTIF_QUEUE_NAME = 'pushnotif'
-CELERY_DEFAULT_QUEUE = 'default'
-CELERY_BEAT_QUEUE_NAME = 'beat'
-IMAGE_UPLOAD_QUEUE_NAME = 'image_upload'
-RECO_QUEUE_NAME = 'reco'
+ocr_queue_name = 'ocr'
+pushnotif_queue_name = 'pushnotif'
+celery_default_queue = 'default'
+celery_beat_queue_name = 'beat'
+image_upload_queue_name = 'image_upload'
+reco_queue_name = 'reco'
 
 
-CELERY_ROUTES = {
-    'lib.ocr.run_ocr': {'queue': OCR_QUEUE_NAME},
-    'notifications.push_tasks.push_notification_to_app': {'queue': PUSHNOTIF_QUEUE_NAME},
-    'periodic.tasks.tick': {'queue': CELERY_DEFAULT_QUEUE},
-    'queued_storage.tasks.Transfer': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
-    'queued_storage.tasks.TransferAndDelete': {'queue': IMAGE_UPLOAD_QUEUE_NAME},
-    'wizcard.celery.debug_task': {'queue': CELERY_DEFAULT_QUEUE},
+task_routes = {
+    'lib.ocr.run_ocr': {'queue': ocr_queue_name},
+    'notifications.push_tasks.push_notification_to_app': {'queue': pushnotif_queue_name},
+    'periodic.tasks.tick': {'queue': celery_default_queue},
+    'queued_storage.tasks.Transfer': {'queue': image_upload_queue_name},
+    'queued_storage.tasks.TransferAndDelete': {'queue': image_upload_queue_name},
+    'wizcard.celery.debug_task': {'queue': celery_default_queue},
 }
 
-CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
+accept_content = ['pickle', 'json', 'msgpack', 'yaml']
 
 from datetime import timedelta
-CELERYBEAT_SCHEDULE = {
+celerybeat_schedule = {
     'tick': {
         'task': 'periodic.tasks.tick',
         'schedule': timedelta(seconds=60),
-#       'options': {'queue': CELERY_BEAT_QUEUE_NAME}
+#       'options': {'queue': celery_beat_queue_name}
     },
     'expire_events' : {
         'task' : 'entity.tasks.expire',

@@ -8,8 +8,11 @@ from wizserver import verbs
 from celery.contrib import rdb
 
 
+
 @task(ignore_result=True)
-def push_notification_to_app(notif_obj, ntuple, flood_set=None):
+def push_notification_to_app(notif_obj_pk, ntuple, flood_set=None):
+    from notifications.models import SyncNotification, AsyncNotification
+    notif_obj = SyncNotification.objects.get(id=notif_obj_pk)
 
     # broadcast or targeted
     if verbs.get_notif_is_async(ntuple):
