@@ -73,7 +73,7 @@ class Event(BaseEntity):
 
     def post_connect(self, obj, **kwargs):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
-        if not self.notif_worthy(obj):
+        if not self.is_notif_worthy(obj):
             return
 
         notify.send(self.get_creator(),
@@ -108,7 +108,7 @@ class Campaign(BaseEntity):
 
     def post_connect(self, obj, **kwargs):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
-        if not self.notif_worthy(obj):
+        if not self.is_notif_worthy(obj):
             return
 
         notify.send(self.get_creator(),
@@ -294,7 +294,7 @@ class AgendaItem(BaseEntity):
 
     def post_connect(self, obj, **kwargs):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
-        if not self.notif_worthy(obj):
+        if not self.is_notif_worthy(obj):
             return
 
         notify.send(self.get_creator(),
