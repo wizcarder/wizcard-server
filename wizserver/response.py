@@ -371,7 +371,7 @@ class AsyncNotifResponse:
             return -1
 
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard.delay(wizcard, to, email_details, half_card=True)
+        send_wizcard.delay(wizcard.id, to, email_details, half_card=True)
 
         return 0
 
@@ -388,7 +388,7 @@ class AsyncNotifResponse:
             return -1
         
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard.delay(wizcard, to, email_details, half_card=True)
+        send_wizcard.delay(wizcard.id, to, email_details, half_card=True)
         
         # AA: Review. PLSSS...enough of C like code.
         return 0
@@ -405,7 +405,7 @@ class AsyncNotifResponse:
         
         # AA: Review: Why does this need to be .delay. This caller
         # is already in celery context
-        send_wizcard.delay(wizcard, to, email_details)
+        send_wizcard.delay(wizcard.id, to, email_details)
 
         return 0
 
