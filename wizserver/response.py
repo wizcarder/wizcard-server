@@ -236,12 +236,21 @@ class SyncNotifResponse(ResponseN):
         self.notifEvent(notif, verbs.NOTIF_ENTITY_EXPIRE)
 
     def notifEntityUpdate(self, notif):
+        sub_entity_type = notif.action_object.entity_type
+        operation = notif.notif_operation
+        sub_entity_data = ""
+
+        if operation != verbs.NOTIF_OPERATION_DELETE:
+            cls, ser = BaseEntityComponent.entity_cls_ser_from_type(sub_entity_type, detail=True)
+            sub_entity_data = ser(notif.action_object).data
+
         out = dict(
             entity_id=notif.target.id,
             entity_type=notif.target.entity_type,
             sub_entity_id=notif.action_object_object_id,
-            sub_entity_type=notif.action_object.entity_type,
-            operation=notif.notif_operation
+            sub_entity_type=sub_entity_type,
+            operation=notif.notif_operation,
+            sub_entity_data=sub_entity_data
         )
 
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_UPDATE, notif.id)
@@ -357,7 +366,7 @@ class AsyncNotifResponse:
 
         # bulk push
         if verbs.get_notif_apns_required(ntuple):
-            push_notification_to_app.delay(notif, ntuple, flood_set)
+            push_notification_to_app.delay(notif.id, ntuple, flood_set)
 
     def notifEventReminder(self, notif):
         pass
@@ -371,7 +380,7 @@ class AsyncNotifResponse:
             return -1
 
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard.delay(wizcard, to, email_details, half_card=True)
+        send_wizcard.delay(wizcard.id, to, email_details, half_card=True)
 
         return 0
 
@@ -388,8 +397,8 @@ class AsyncNotifResponse:
             return -1
         
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard.delay(wizcard, to, email_details, half_card=True)
-        
+        send_wizcard.delay(wizcard.id, to, email_details, half_card=True)
+
         # AA: Review. PLSSS...enough of C like code.
         return 0
 
@@ -405,7 +414,7 @@ class AsyncNotifResponse:
         
         # AA: Review: Why does this need to be .delay. This caller
         # is already in celery context
-        send_wizcard.delay(wizcard, to, email_details)
+        send_wizcard.delay(wizcard.id, to, email_details)
 
         return 0
 
