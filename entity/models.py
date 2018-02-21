@@ -43,7 +43,7 @@ class EventManager(BaseEntityManager):
         return super(EventManager, self).users_entities(user, user_filter, entity_filter)
 
     def get_expired(self):
-        return self.filter(end__lt=timezone.now(), entity_stae=BaseEntityComponent.ENTITY_STATE_EXPIRED)
+        return self.filter(end__lt=timezone.now(), entity_state=BaseEntityComponent.ENTITY_STATE_EXPIRED)
 
     def get_tagged_entities(self, tags, entity_type):
         events = Event.objects.filter(entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
