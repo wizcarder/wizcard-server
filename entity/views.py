@@ -541,11 +541,11 @@ class EventMediaViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if med in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA, notif_operation=verbs.NOTIF_OPERATION_UPDATE):
+        if med in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
             return Response("event %s already  associated with Media %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
+        event.add_subentity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
