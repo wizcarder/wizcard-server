@@ -242,7 +242,7 @@ class SyncNotifResponse(ResponseN):
 
         if operation != verbs.NOTIF_OPERATION_DELETE:
             cls, ser = BaseEntityComponent.entity_cls_ser_from_type(sub_entity_type, detail=True)
-            sub_entity_data = ser(notif.action_object).data
+            sub_entity_data = ser(notif.action_object, context={'user': notif.recipient}).data
 
         out = dict(
             entity_id=notif.target.id,

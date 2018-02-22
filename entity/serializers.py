@@ -665,7 +665,7 @@ class SponsorSerializerL2(EntitySerializer):
         model = Sponsor
         fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
                   'description', 'phone', 'caption', 'ext_fields', 'media',
-                  'like')
+                  'like', 'user_state')
 
 
 class ExhibitorInviteeSerializer(EntitySerializer):
