@@ -2250,11 +2250,13 @@ class ParseMsgAndDispatch(object):
                 logger.warning('No location information available')
                 do_location = False
 
-        pinned_events = Event.objects.users_entities(
+        my_events = Event.objects.users_entities(
             self.user,
-            user_filter={'state': UserEntity.PIN},
             entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
         )
+
+        # TODO: AR: Move this to a recommender function and that can do nearby or other things as well.
+        # Ideally should be recommended = Event.objects.get_recommended(lat, lng, max_results)
 
         nearby_events = Event.objects.lookup(
             self.lat,
@@ -2262,21 +2264,26 @@ class ParseMsgAndDispatch(object):
             settings.DEFAULT_MAX_LOOKUP_RESULTS
         )[0] if do_location else Event.objects.filter(entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
-        my_events = Event.objects.users_entities(
-            self.user,
-            user_filter={'state': UserEntity.JOIN}
-        )
+        nearby_set = set(nearby_events)
 
-        all_events = list(set(pinned_events) | set(nearby_events) | set(my_events))
+        nearby_events = list(nearby_set - (nearby_set & set(my_events)))
+
         # TODO: AR threshold filter NO point in presenting 1 event
 
-        out = EventSerializerL1(
-            all_events,
+        recommended = EventSerializerL1(
+            nearby_events,
             many=True,
             **self.user_context
         ).data
 
-        self.response.add_data("result", out)
+        user_events = EventSerializerL1(
+            my_events,
+            many=True,
+            **self.user_context
+        ).data
+
+        self.response.add_data("recommended", recommended)
+        self.response.add_data("my_events", user_events)
 
         return self.response
 

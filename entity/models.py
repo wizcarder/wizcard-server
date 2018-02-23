@@ -71,18 +71,11 @@ class Event(BaseEntity):
         # no parent for event
         return [self]
 
-    def post_connect(self, obj, **kwargs):
-        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
-        if not self.is_notif_worthy(obj):
-            return
-
-        notify.send(self.get_creator(),
-                    recipient=self.get_creator(),
-                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
-                    target=self,
-                    action_object=obj,
-                    notif_operation=notif_operation
-                    )
+    def is_notif_worthy(self, obj):
+        notif_qualifiers = {BaseEntityComponent.MEDIA, BaseEntityComponent.CATEGORY, BaseEntityComponent.SPEAKER,
+                            BaseEntityComponent.SPONSOR, BaseEntityComponent.AGENDA, BaseEntityComponent.CAMPAIGN,
+                            BaseEntityComponent.POLL}
+        return True if obj.entity_type in notif_qualifiers else False
 
 
 class CampaignManager(BaseEntityManager):
@@ -105,19 +98,6 @@ class Campaign(BaseEntity):
     is_sponsored = models.BooleanField(default=False)
 
     objects = CampaignManager()
-
-    def post_connect(self, obj, **kwargs):
-        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
-        if not self.is_notif_worthy(obj):
-            return
-
-        notify.send(self.get_creator(),
-                    recipient=self.get_creator(),
-                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
-                    target=self,
-                    action_object=obj,
-                    notif_operation=notif_operation
-                    )
 
 
 class VirtualTableManager(BaseEntityManager):
@@ -291,19 +271,6 @@ class AgendaItem(BaseEntity):
     # override method to skip immediate parent and get agenda's parent
     def get_parent_entities(self):
         return self.agenda_key.get_parent_entities()
-
-    def post_connect(self, obj, **kwargs):
-        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
-        if not self.is_notif_worthy(obj):
-            return
-
-        notify.send(self.get_creator(),
-                    recipient=self.get_creator(),
-                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
-                    target=self,
-                    action_object=obj,
-                    notif_operation=notif_operation
-                    )
 
 
 from django.dispatch import receiver

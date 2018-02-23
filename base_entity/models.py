@@ -32,7 +32,7 @@ class BaseEntityComponentManager(PolymorphicManager):
             return user.owners_baseentitycomponent_related.all()
 
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
-        return user.owners_baseentitycomponent_related.all().instance_of(cls)
+        return user.owners_baseentitycomponent_related.all().instance_of(cls).exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
 
     def get_tagged_entities(self, tags, entity_type):
         content_type = BaseEntityComponent.content_type_from_entity_type(entity_type)
@@ -433,9 +433,9 @@ class BaseEntityComponent(PolymorphicModel):
 
         return objs
 
-    def add_subentity_obj(self, obj, alias, notif_operation=verbs.NOTIF_OPERATION_CREATE):
+    def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
-        self.post_connect(obj, notif_operation=notif_operation)
+        self.post_connect(obj)
         return obj
 
     def remove_sub_entities_of_type(self, entity_type):
@@ -489,12 +489,20 @@ class BaseEntityComponent(PolymorphicModel):
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
     def post_connect(self, obj, **kwargs):
-        pass
+        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_UPDATE)
+        if not self.is_notif_worthy(obj):
+            return
+
+        notify.send(self.get_creator(),
+                    recipient=self.get_creator(),
+                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
+                    target=self,
+                    action_object=obj,
+                    notif_operation=notif_operation
+                    )
 
     def is_notif_worthy(self, obj):
-        notif_qualifiers = {BaseEntityComponent.MEDIA, BaseEntityComponent.SPEAKER, BaseEntityComponent.SPONSOR,
-                            BaseEntityComponent.CAMPAIGN, BaseEntityComponent.POLL, BaseEntityComponent.CATEGORY}
-        return True if obj.entity_type in notif_qualifiers else False
+        return True
 
     def add_tags(self, taglist):
         self.tags.add(*taglist)
