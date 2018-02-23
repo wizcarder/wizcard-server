@@ -29,7 +29,7 @@ class BaseEntityComponentManager(PolymorphicManager):
 
     def owners_entities(self, user, entity_type):
         if not entity_type:
-            return user.owners_baseentitycomponent_related.all()
+            return user.owners_baseentitycomponent_related.all().distinct()
 
         cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
         return user.owners_baseentitycomponent_related.all().instance_of(cls).exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
@@ -39,7 +39,7 @@ class BaseEntityComponentManager(PolymorphicManager):
         t_entities = TaggedItem.objects.filter(
             tag__name__in=tags,
             content_type_id=content_type.id
-        ).values_list('object_id', flat=True)
+        ).distinct().values_list('object_id', flat=True)
 
         return content_type.get_all_objects_for_this_type(id__in=t_entities)
 
@@ -102,7 +102,7 @@ class BaseEntityManager(BaseEntityComponentManager):
             entity__entity_type=entity_type,
             user=user,
             **mod_filter
-        )
+        ).distinct()
 
         # entity is prefetched, so this should not hit db
         return map(lambda ue: ue.entity, ue)
