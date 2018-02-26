@@ -104,8 +104,9 @@ class BaseEntityManager(BaseEntityComponentManager):
             **mod_filter
         ).distinct()
 
-        # entity is prefetched, so this should not hit db
-        return map(lambda ue: ue.entity, ue)
+        # when the param to get_real_instances is empty, it returns everything hence the if else:(
+        entities = BaseEntity.objects.get_real_instances(map(lambda x:x.entity, ue)) if ue else []
+        return entities
 
     def get_tagged_entities(self, tags, entity_type):
         return BaseEntityComponent.objects.get_tagged_entities(tags, entity_type)
@@ -302,11 +303,11 @@ class BaseEntityComponent(PolymorphicModel):
             ).delete()
 
     @classmethod
-    def entity_cls_ser_from_type(cls, entity_type=None, detail=False):
-        from entity.serializers import EventSerializerL2, EventSerializerL1, \
-            TableSerializerL1, TableSerializerL2, EntitySerializer, \
-            CampaignSerializerL1, CampaignSerializerL2, CoOwnersSerializer, \
-            SpeakerSerializerL2, SponsorSerializerL2, SponsorSerializerL1, AttendeeInviteeSerializer, \
+    def entity_cls_ser_from_type(cls, entity_type=None, detail=False, create=False):
+        from entity.serializers import EventSerializerL2, EventSerializer, EventSerializerL1, \
+            TableSerializerL1, TableSerializerL2, TableSerializer, EntitySerializer, \
+            CampaignSerializerL1, CampaignSerializer, CampaignSerializerL2, CoOwnersSerializer, \
+            SpeakerSerializerL2, SpeakerSerializer, SponsorSerializerL2, SponsorSerializerL1, SponsorSerializer, AttendeeInviteeSerializer, \
             ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
         from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
         from entity.serializers import TaganomySerializer, TaganomySerializerL2
@@ -321,56 +322,72 @@ class BaseEntityComponent(PolymorphicModel):
         if entity_type == cls.EVENT:
             c = Event
             s = EventSerializerL2 if detail else EventSerializerL1
+            cr = EventSerializer
         elif entity_type == cls.CAMPAIGN:
             c = Campaign
             s = CampaignSerializerL2 if detail else CampaignSerializerL1
+            cr = CampaignSerializer
         elif entity_type == cls.TABLE:
             c = VirtualTable
             s = TableSerializerL2 if detail else TableSerializerL1
+            cr = TableSerializer
         elif entity_type == cls.ATTENDEE_INVITEE:
             c = AttendeeInvitee
             s = AttendeeInviteeSerializer
+            cr = s
         elif entity_type == cls.EXHIBITOR_INVITEE:
             c = ExhibitorInvitee
             s = ExhibitorInviteeSerializer
+            cr = s
         elif entity_type == cls.MEDIA:
             c = MediaEntities
             s = MediaEntitiesSerializer
         elif entity_type == cls.COOWNER:
             c = CoOwners
             s = CoOwnersSerializer
+            cr = s
         elif entity_type == cls.SPEAKER:
             c = Speaker
             s = SpeakerSerializerL2
+            cr = SpeakerSerializer
         elif entity_type == cls.SPONSOR:
             c = Sponsor
             s = SponsorSerializerL2 if detail else SponsorSerializerL1
+            cr = SponsorSerializer
         elif entity_type == cls.MEDIA:
             c = MediaEntities
             s = MediaEntitiesSerializer
+            cr = s
         elif entity_type == cls.AGENDA:
             c = Agenda
             s = AgendaSerializer
+            cr = s
         elif entity_type == cls.AGENDA_ITEM:
             c = AgendaItem
             s = AgendaItemSerializer
+            cr = s
         elif entity_type == cls.POLL:
             c = Poll
             s = PollSerializer if detail else PollSerializerL1
         elif entity_type == cls.BADGE_TEMPLATE:
             c = BadgeTemplate
             s = BadgeTemplateSerializer
+            cr = s
         elif entity_type == cls.SCANNED_USER:
             c = ScannedEntity
             s = ScannedEntitySerializer
+            cr = s
         elif entity_type == cls.CATEGORY:
             c = Taganomy
             s = TaganomySerializerL2 if detail else TaganomySerializer
+            cr = TaganomySerializer
         else:
             c = BaseEntityComponent
             s = EntitySerializer
+            cr = s
 
-        return c, s
+        return (c, cr) if create else (c, s)
+
 
     @classmethod
     def content_type_from_entity_type(cls, entity_type):

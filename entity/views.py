@@ -12,8 +12,8 @@ from notifications.models import AsyncNotification
 from notifications.serializers import AsyncNotificationSerializer
 from taganomy.models import Taganomy
 from entity.serializers import TaganomySerializer
-from rest_framework.decorators import detail_route
-from rest_framework import viewsets, status, mixins
+from rest_framework.decorators import detail_route, list_route
+from rest_framework import viewsets, status, mixins, views
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,6 +21,9 @@ from itertools import chain
 from scan.models import BadgeTemplate
 from scan.serializers import BadgeTemplateSerializer
 from wizserver import verbs
+from rest_framework.parsers import FileUploadParser, MultiPartParser, JSONParser
+from entity.tasks import create_entities
+
 
 
 import pdb
@@ -344,7 +347,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with Campaign %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
         cpg.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -413,7 +416,7 @@ class EventSpeakerViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with Speaker %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(spk, BaseEntityComponent.SUB_ENTITY_SPEAKER, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(spk, BaseEntityComponent.SUB_ENTITY_SPEAKER)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -479,7 +482,7 @@ class EventSponsorViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with Sponsor %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(spn, BaseEntityComponent.SUB_ENTITY_SPONSOR, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(spn, BaseEntityComponent.SUB_ENTITY_SPONSOR)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -545,7 +548,7 @@ class EventMediaViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with Media %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -611,7 +614,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with attendee invitee %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -677,7 +680,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with exhibitor invitee %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(exi, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(exi, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -743,7 +746,7 @@ class EventCoOwnerViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with CoOwner %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -814,7 +817,7 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
             return Response("Operation Failed - Detach Agenda %s from  Event - %s and Retry" % (agn.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        event.add_subentity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA)
         agn.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -888,7 +891,7 @@ class EventPollViewSet(viewsets.ModelViewSet):
             return Response("Operation Failed - Detach Poll - %s from  Event - %s and Retry" % (pol.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        event.add_subentity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL)
         pol.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -999,7 +1002,7 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
             return Response("Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, event.name),
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)
         taganomy.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -1073,7 +1076,7 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
             return Response("event id %s already associated with badge %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(badge, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE, notif_operation=verbs.NOTIF_OPERATION_UPDATE)
+        event.add_subentity_obj(badge, BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -1155,5 +1158,19 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
         campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
 
         return Response(status=status.HTTP_200_OK)
+
+
+class FileUploader(views.APIView):
+    parser_classes = (MultiPartParser,)
+
+    def post(self, request, filename, format=None):
+        file_obj = request.data['file']
+        type = request.data['data_type']
+        user = request.user
+        result = create_entities(file_obj, type, user)
+        returnmesg = "All records uploaded successfully" if not result[1] \
+            else "%s Succeeded, Check Lines %s that Failed" % (str(result[0]), result[1])
+        return Response(returnmesg, status=201)
+
 
 
