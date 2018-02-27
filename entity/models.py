@@ -67,15 +67,9 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
-    def get_parent_entities(self):
+    def get_parent_entities(self, **kwargs):
         # no parent for event
         return [self]
-
-    def is_notif_worthy(self, obj):
-        notif_qualifiers = {BaseEntityComponent.MEDIA, BaseEntityComponent.CATEGORY, BaseEntityComponent.SPEAKER,
-                            BaseEntityComponent.SPONSOR, BaseEntityComponent.AGENDA, BaseEntityComponent.CAMPAIGN,
-                            BaseEntityComponent.POLL}
-        return True if obj.entity_type in notif_qualifiers else False
 
 
 class CampaignManager(BaseEntityManager):
@@ -194,6 +188,10 @@ class CoOwners(BaseEntityComponent):
 
     objects = CoOwnersManager()
 
+    # no notifs required for this one
+    def post_connect(self, parent, **kwargs):
+        return
+
 
 class AttendeeInviteeManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE):
@@ -218,6 +216,10 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
     objects = AttendeeInviteeManager()
+
+    # no notifs required for this one
+    def post_connect(self, parent, **kwargs):
+        return
 
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
@@ -250,6 +252,10 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     objects = ExhibitorInviteeManager()
 
+    # no notifs required for this one
+    def post_connect(self, parent, **kwargs):
+        return
+
 
 class AgendaManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.AGENDA):
@@ -269,8 +275,8 @@ class AgendaItem(BaseEntity):
     end = models.DateTimeField(default=timezone.now)
 
     # override method to skip immediate parent and get agenda's parent
-    def get_parent_entities(self):
-        return self.agenda_key.get_parent_entities()
+    def get_parent_entities(self, **kwargs):
+        return self.agenda_key.get_parent_entities(**kwargs)
 
 
 from django.dispatch import receiver

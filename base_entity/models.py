@@ -43,7 +43,7 @@ class BaseEntityComponentManager(PolymorphicManager):
 
         return content_type.get_all_objects_for_this_type(id__in=t_entities)
 
-    def notify_via_entity_parent(self, entity, notif_tuple):
+    def notify_via_entity_parent(self, entity, notif_tuple, notif_operation):
         # get parent entities
         parents = entity.get_parent_entities()
 
@@ -56,7 +56,7 @@ class BaseEntityComponentManager(PolymorphicManager):
                 notif_tuple=notif_tuple,
                 target=parent,
                 action_object=entity,
-                notif_operation=verbs.NOTIF_OPERATION_UPDATE
+                notif_operation=notif_operation
             ) for parent in parents if parent.is_active() & parent.has_subscribers()
         ]
 
@@ -105,7 +105,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         ).distinct()
 
         # entity is prefetched, so this should not hit db
-        return map(lambda ue: ue.entity, ue)
+        return BaseEntity.objects.get_real_instances(map(lambda ue: ue.entity, ue))
 
     def get_tagged_entities(self, tags, entity_type):
         return BaseEntityComponent.objects.get_tagged_entities(tags, entity_type)
@@ -435,7 +435,7 @@ class BaseEntityComponent(PolymorphicModel):
 
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
-        self.post_connect(obj)
+        obj.post_connect(self)
         return obj
 
     def remove_sub_entities_of_type(self, entity_type):
@@ -443,16 +443,17 @@ class BaseEntityComponent(PolymorphicModel):
 
     def remove_sub_entity_obj(self, obj, entity_type):
         self.related.filter(object_id=obj.id, alias=entity_type).delete()
-        self.post_connect(obj, notif_operation=verbs.NOTIF_OPERATION_DELETE)
+        obj.post_connect(self, notif_operation=verbs.NOTIF_OPERATION_DELETE)
 
-    def get_sub_entities_of_type(self, entity_type, exclude=[ENTITY_STATE_DELETED]):
+    def get_sub_entities_of_type(self, entity_type, **kwargs):
+        exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])
+
         subent = self.related.filter(alias=entity_type).generic_objects()
-        return [se for se in subent if se.entity_state not in exclude] if exclude \
-            else subent
+        return [se for se in subent if se.entity_state not in exclude]
 
-    def get_sub_entities_id_of_type(self, entity_type, exclude=[ENTITY_STATE_DELETED]):
+    def get_sub_entities_id_of_type(self, entity_type, **kwargs):
         # Ideally we could have avoided the 2 iterations, but this is to ensure that the logic is consistent across 2 functions
-        subent = self.get_sub_entities_of_type(entity_type, exclude)
+        subent = self.get_sub_entities_of_type(entity_type, **kwargs)
         return [se.id for se in subent]
 
     def get_media_filter(self, type, sub_type):
@@ -460,15 +461,17 @@ class BaseEntityComponent(PolymorphicModel):
 
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
-    def get_parent_entities(self, exclude=[ENTITY_STATE_DELETED]):
-        parents = self.related.related_to().generic_objects()
-        return [p for p in parents if p.entity_state not in exclude] if exclude \
-            else parents
+    def get_parent_entities(self, **kwargs):
+        exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])
 
-    def get_parent_entities_by_contenttype_id(self, contenttype_id, exclude=[ENTITY_STATE_DELETED]):
+        parents = self.related.related_to().generic_objects()
+        return [p for p in parents if p.entity_state not in exclude]
+
+    def get_parent_entities_by_contenttype_id(self, contenttype_id, **kwargs):
+        exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])
+
         parents = self.related.related_to().filter(parent_type_id=contenttype_id).generic_objects()
-        return [p for p in parents if p.entity_state not in exclude] if exclude \
-            else parents
+        return [p for p in parents if p.entity_state not in exclude]
 
     # is the instance of the kind that has notifiable users
     def has_subscribers(self):
@@ -488,21 +491,18 @@ class BaseEntityComponent(PolymorphicModel):
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
-    def post_connect(self, obj, **kwargs):
-        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_UPDATE)
-        if not self.is_notif_worthy(obj):
-            return
+    def post_connect(self, parent, **kwargs):
+        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
 
-        notify.send(self.get_creator(),
-                    recipient=self.get_creator(),
-                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
-                    target=self,
-                    action_object=obj,
-                    notif_operation=notif_operation
-                    )
-
-    def is_notif_worthy(self, obj):
-        return True
+        notify.send(
+            self.get_creator(),
+            # recipient is dummy
+            recipient=self.get_creator(),
+            notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
+            target=parent,
+            action_object=self,
+            notif_operation=notif_operation
+        )
 
     def add_tags(self, taglist):
         self.tags.add(*taglist)

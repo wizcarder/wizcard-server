@@ -27,6 +27,10 @@ class ScannedEntity(BaseEntityComponent, Base411Mixin, CompanyTitleMixin):
     def lead_score(self):
         return 10
 
+    # no notifs required for this one
+    def post_connect(self, parent, **kwargs):
+        return
+
 
 class BadgeTemplateManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.BADGE_TEMPLATE):
@@ -46,3 +50,7 @@ class BadgeTemplateManager(BaseEntityComponentManager):
 class BadgeTemplate(BaseEntityComponent, Base412Mixin, CompanyTitleMixin):
 
     objects = BadgeTemplateManager()
+
+    # no notifs required for this one
+    def post_connect(self, parent, **kwargs):
+        return

@@ -109,6 +109,7 @@ NOTIF_NULL                      = 0
 NOTIF_ACCEPT_IMPLICIT           = 1
 NOTIF_ACCEPT_EXPLICIT           = 2
 NOTIF_DELETE_IMPLICIT           = 3
+NOTIF_ACCEPT_IMPLICIT_H         = 4
 
 NOTIF_UPDATE_WIZCARD_H          = 5
 NOTIF_UPDATE_WIZCARD_F          = 6
@@ -139,7 +140,6 @@ NOTIF_INVITE_EXHIBITOR          = 28
 NOTIF_INVITE_ATTENDEE           = 29
 
 NOTIF_OPERATION_CREATE = 'C'
-NOTIF_OPERATION_UPDATE = 'U'
 NOTIF_OPERATION_DELETE = 'D'
 
 
@@ -190,7 +190,7 @@ OTHERS = "others"
 WIZCARD_NULL                = (NOTIF_NULL, "Empty notif", False, False)
 WIZREQ_U                    = (NOTIF_ACCEPT_EXPLICIT, 'wizconnection request untrusted', True, False)
 WIZREQ_T                    = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted', True, False)
-WIZREQ_T_HALF               = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted half', False, False)
+WIZREQ_T_HALF               = (NOTIF_ACCEPT_IMPLICIT_H, 'wizconnection request trusted half', False, False)
 WIZCARD_ACCEPT              = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', True, False)
 WIZCARD_REVOKE              = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', False, False)
 WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', False, False)

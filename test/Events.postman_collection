@@ -248,7 +248,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"media_element\": \"http://www.eventone.updated.com\",\n\t\"media_iframe\": \"\",\n\t\"media_type\": \"IMG\",\n\t\"media_sub_type\": \"THB\"\n}"
+					"raw": "{\n  \"media_element\": \"http://www.eventone.updated.com\",\n  \"media_iframe\": \"\",\n  \"media_type\": \"IMG\",\n  \"media_sub_type\": \"THB\"\n}"
 				},
 				"description": ""
 			},
@@ -273,7 +273,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"media_element\": \"http://www.eventone.updated.com\",\n\t\"media_iframe\": \"\",\n\t\"media_type\": \"IMG\",\n\t\"media_sub_type\": \"BNR\"\n}"
+					"raw": "{\n  \"media_element\": \"http://www.eventone.updated.com\",\n  \"media_iframe\": \"\",\n  \"media_type\": \"IMG\",\n  \"media_sub_type\": \"BNR\"\n}"
 				},
 				"description": ""
 			},
@@ -298,7 +298,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"media_element\": \"http://www.eventone.updated.com\",\n\t\"media_iframe\": \"\",\n\t\"media_type\": \"IMG\",\n\t\"media_sub_type\": \"ROL\"\n}"
+					"raw": "{\n  \"media_element\": \"http://www.eventone.updated.com\",\n  \"media_iframe\": \"\",\n  \"media_type\": \"IMG\",\n  \"media_sub_type\": \"ROL\"\n}"
 				},
 				"description": ""
 			},
@@ -323,7 +323,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"John Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc\",\n    \"title\": \"Speaker in Chief\",\n    \"website\": \"http://www.getwizcard.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john\",\n    \t\"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"John Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc\",\n    \"title\": \"Speaker in Chief\",\n    \"website\": \"http://www.getwizcard.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john\",\n      \"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
 				"description": ""
 			},
@@ -348,9 +348,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"John Doe\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc Updated\",\n    \"title\": \"Speaker in Chief Updated\",\n    \"website\": \"http://www.getwizcardupdated.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/updated\",\n    \t\"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"Updated\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [5], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"John Doe\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc Updated\",\n    \"title\": \"Speaker in Chief Updated\",\n    \"website\": \"http://www.getwizcardupdated.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/updated\",\n      \"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"Updated\",\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -373,7 +373,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Jane Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc\",\n    \"title\": \"Speaker in Chief\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john\",\n    \t\"linkedin\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"Jane Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc\",\n    \"title\": \"Speaker in Chief\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john\",\n      \"linkedin\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
 				"description": ""
 			},
@@ -398,7 +398,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Cisco Systems\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems\",\n    \"title\": \"Speaker in Chief\",\n    \"website\": \"http://www.getwizcard.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john\",\n    \t\"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [5], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"Cisco Systems\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems\",\n    \"title\": \"Speaker in Chief\",\n    \"website\": \"http://www.getwizcard.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john\",\n      \"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
 				"description": ""
 			},
@@ -423,9 +423,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Cisco Systems.updated\",\n    \"phone\": \"4084641727\",\n    \"email\": \"updated@gmail.com\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems.updated\",\n    \"title\": \"Speaker in Chief.updated\",\n    \"website\": \"http://www.getwizcardupdated.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/updaed\",\n    \t\"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"Updated\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"Cisco Systems.updated\",\n    \"phone\": \"4084641727\",\n    \"email\": \"updated@gmail.com\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems.updated\",\n    \"title\": \"Speaker in Chief.updated\",\n    \"website\": \"http://www.getwizcardupdated.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/updaed\",\n      \"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"Updated\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -448,7 +448,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"user\": 2\n}"
+					"raw": "{\n  \"user\": 2\n}"
 				},
 				"description": ""
 			},
@@ -473,7 +473,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"user\": 3\n}"
+					"raw": "{\n  \"user\": 3\n}"
 				},
 				"description": ""
 			},
@@ -498,7 +498,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n    \t{\n    \t\t\"ids\": [6], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Test 1: Basic Product  create"
 			},
@@ -523,7 +523,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One Updated\",\n    \"address\": \"Product One Updated\",\n    \"website\": \"http://www.OneUpdated.com\",\n    \"description\": \"One Updated\",\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundiUpdated\"\n    },\n    \"owners\": [\n      10, 11\n    ],\n    \"related\": [\n    \t{\n    \t\t\"ids\": [6, 5], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product One Updated\",\n    \"address\": \"Product One Updated\",\n    \"website\": \"http://www.OneUpdated.com\",\n    \"description\": \"One Updated\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundiUpdated\"\n    },\n    \"owners\": [\n      10, 11\n    ],\n    \"related\": [\n      {\n        \"ids\": [6, 5], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Test 1: Basic Product  create"
 			},
@@ -548,7 +548,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\",\n    \"owners\": [\n      11\n    ],\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"related\": [\n    \t{\n    \t\t\"ids\": [6], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\",\n    \"owners\": [\n      11\n    ],\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Test 1: Basic Product  create"
 			},
@@ -573,7 +573,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"highlights\": {\n    \t\"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [12], \"type\": \"e_campaign\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"highlights\": {\n      \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      },\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      }\n    ]\n  }"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -598,7 +598,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 2\",\n    \"address\": \"Event Two\",\n    \"website\": \"http://www.eventwo.com\",\n    \"description\": \"event two\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n\t\"highlights\": {\n        \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [13], \"type\": \"e_campaign\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"event 2\",\n    \"address\": \"Event Two\",\n    \"website\": \"http://www.eventwo.com\",\n    \"description\": \"event two\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n  \"highlights\": {\n        \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      },\n      {\n        \"ids\": [13], \"type\": \"e_campaign\"\n      }\n    ]\n  }"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -617,7 +617,7 @@
 					}
 				],
 				"body": {},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -634,7 +634,7 @@
 					}
 				],
 				"body": {},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -657,9 +657,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2016-10-25 14:30:59\",\n    \t\"end\": \"2016-10-25 14:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall A\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [6], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": "  {\n    \"items\" : [\n    {\n      \"start\": \"2016-10-25 14:30:59\",\n      \"end\": \"2016-10-25 14:30:59\",\n      \"description\": \"Basic Computer Programming\",\n      \"where\": \"Hall A\",\n      \"related\": [\n        {\n          \"ids\": [5], \"type\": \"e_media\"\n        }\n      ]\n  },\n    {\n      \"start\": \"2017-10-25 14:30:59\",\n      \"end\": \"2017-10-25 19:30:59\",\n      \"description\": \"Basic Computer Programming\",\n      \"where\": \"Hall B\",\n      \"related\": [\n        {\n          \"ids\": [6], \"type\": \"e_media\"\n        }\n      ]\n  }\n  ]\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -682,9 +682,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n  \t{\n    \t\"start\": \"2016-10-25 14:30:59\",\n    \t\"end\": \"2016-10-25 14:30:59\",\n    \t\"description\": \"Basic Computer Programming.updated\",\n    \t\"venue\": \"venue.updated\",\n    \t\"where\": \"Hall A.updated\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n "
+					"raw": "\n    {\n      \"start\": \"2016-10-25 14:30:59\",\n      \"end\": \"2016-10-25 14:30:59\",\n      \"description\": \"Basic Computer Programming.updated\",\n      \"venue\": \"venue.updated\",\n      \"where\": \"Hall A.updated\",\n      \"related\": [\n        {\n          \"ids\": [5], \"type\": \"e_media\"\n        }\n      ]\n  }\n "
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -707,9 +707,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n  \t{\n    \t\"start\": \"2016-10-25 14:30:59\",\n    \t\"end\": \"2016-10-25 14:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"venue\": \"venue\",\n    \t\"where\": \"Hall A\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n "
+					"raw": "\n    {\n      \"start\": \"2016-10-25 14:30:59\",\n      \"end\": \"2016-10-25 14:30:59\",\n      \"description\": \"Basic Computer Programming\",\n      \"venue\": \"venue\",\n      \"where\": \"Hall A\",\n      \"related\": [\n        {\n          \"ids\": [5], \"type\": \"e_media\"\n        }\n      ]\n  }\n "
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -732,7 +732,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCR\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TOF\",\n\t  \t\t\"ui_type\": \"RAD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"true_key\": \"Yes\",\n\t  \t\t\t\t\"false_key\": \"No\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TXT\",\n\t  \t\t\"ui_type\": \"TEX\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": []\n\t\t}\n\t]\n}"
+					"raw": "{\n  \"description\": \"Poll 1\",\n  \"questions\": [\n    {\n      \"question_type\": \"MCR\",\n      \"ui_type\": \"SEL\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"question_key\": \"A\",\n            \"question_value\": \"Anand\"\n          },\n          {\n            \"question_key\": \"B\",\n            \"question_value\": \"Ablu\"\n          },\n          {\n            \"question_key\": \"C\",\n            \"question_value\": \"Ammundi\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"SCL\",\n        \"ui_type\": \"SLD\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"low\": \"1\",\n            \"high\": \"5\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TOF\",\n        \"ui_type\": \"RAD\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"true_key\": \"Yes\",\n            \"false_key\": \"No\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TXT\",\n        \"ui_type\": \"TEX\",\n        \"question\": \"What is your name\",\n        \"choices\": []\n    }\n  ]\n}"
 				},
 				"description": ""
 			},
@@ -757,9 +757,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCR\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Dnana\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ulab\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"idnummA\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"Rate Me\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"10\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TOF\",\n\t  \t\t\"ui_type\": \"RAD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"Say Yes on No\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"true_key\": \"Yes\",\n\t  \t\t\t\t\"false_key\": \"No\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TXT\",\n\t  \t\t\"ui_type\": \"TEX\",\n\t  \t\t\"question\": \"Type what's your mind\",\n\t  \t\t\"choices\": []\n\t\t}\n\t]\n}"
+					"raw": "{\n  \"description\": \"Poll 1\",\n  \"questions\": [\n    {\n      \"question_type\": \"MCR\",\n      \"ui_type\": \"SEL\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"question_key\": \"A\",\n            \"question_value\": \"Dnana\"\n          },\n          {\n            \"question_key\": \"B\",\n            \"question_value\": \"Ulab\"\n          },\n          {\n            \"question_key\": \"C\",\n            \"question_value\": \"idnummA\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"SCL\",\n        \"ui_type\": \"SLD\",\n        \"single_answer\": \"True\",\n        \"question\": \"Rate Me\",\n        \"choices\": [\n          {\n            \"low\": \"1\",\n            \"high\": \"10\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TOF\",\n        \"ui_type\": \"RAD\",\n        \"single_answer\": \"True\",\n        \"question\": \"Say Yes on No\",\n        \"choices\": [\n          {\n            \"true_key\": \"Yes\",\n            \"false_key\": \"No\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TXT\",\n        \"ui_type\": \"TEX\",\n        \"question\": \"Type what's your mind\",\n        \"choices\": []\n    }\n  ]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -776,7 +776,7 @@
 					}
 				],
 				"body": {},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -799,7 +799,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"delivery_type\": \"1\",\n\t\"recipient\": 2,\n\t\"target\": {\n\t\t\"type\": \"event\", \n\t\t\"id\": 14\n\t}, \n\t\"action_object\": {\n\t\t\"type\": \"agenda\", \n\t\t\"id\": 16\n\t},\n\t\"delivery_mode\": 1,\n\t\"notification_text\": \"Your event is starting now\"\n}"
+					"raw": "{\n  \"delivery_type\": \"1\",\n  \"recipient\": 2,\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 16\n  },\n  \"delivery_mode\": 1,\n  \"notification_text\": \"Your event is starting now\"\n}"
 				},
 				"description": ""
 			},
@@ -824,9 +824,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"delivery_type\": \"1\",\n\t\"recipient\": 2,\n\t\"target\": {\n\t\t\"type\": \"event\", \n\t\t\"id\": 14\n\t}, \n\t\"action_object\": {\n\t\t\"type\": \"agenda\", \n\t\t\"id\": 16\n\t},\n\t\"delivery_mode\": 1,\n\t\"notification_text\": \"Your event is starting now\"\n}"
+					"raw": "{\n  \"delivery_type\": \"1\",\n  \"recipient\": 2,\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 16\n  },\n  \"delivery_mode\": 1,\n  \"notification_text\": \"Your event is starting now\"\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -849,9 +849,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"company\": \"WizCard Inc\",\n\t\"title\": \"CEO\",\n\t\"name\": \"Anand Ammundi\",\n\t\"email\": \"anand.ammundi@getwizcard.com\",\n\t\"ext_fields\": {\n\t\t\"key1\": \"value1\",\n\t\t\"key2\": \"value2\"\n\t},\n    \"related\": [\n    \t{\n    \t\t\"ids\": [5], \"type\": \"e_media\"\n    \t}\n    ]\n}"
+					"raw": "{\n  \"company\": \"WizCard Inc\",\n  \"title\": \"CEO\",\n  \"name\": \"Anand Ammundi\",\n  \"email\": \"anand.ammundi@getwizcard.com\",\n  \"ext_fields\": {\n    \"key1\": \"value1\",\n    \"key2\": \"value2\"\n  },\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -874,9 +874,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"company\": \"WizCard Inc.updated\",\n\t\"title\": \"CEO.updated\",\n\t\"name\": \"Anand Ammundi.updated\",\n\t\"email\": \"anand.ammundi@getwizcardupdated.com\",\n\t\"ext_fields\": {\n\t\t\"key1\": \"value1.updated\",\n\t\t\"key2\": \"value2.updated\"\n\t},\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n}"
+					"raw": "{\n  \"company\": \"WizCard Inc.updated\",\n  \"title\": \"CEO.updated\",\n  \"name\": \"Anand Ammundi.updated\",\n  \"email\": \"anand.ammundi@getwizcardupdated.com\",\n  \"ext_fields\": {\n    \"key1\": \"value1.updated\",\n    \"key2\": \"value2.updated\"\n  },\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -899,9 +899,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n\t\"company\": \"WizCard Inc\",\n\t\"title\": \"CEO\",\t\t\n\t\"name\": \"Anand Ammundi\",\n\t\"email\": \"anand.ammundi@getwizcard.com\"\n}"
+					"raw": "\n{\n  \"company\": \"WizCard Inc\",\n  \"title\": \"CEO\",    \n  \"name\": \"Anand Ammundi\",\n  \"email\": \"anand.ammundi@getwizcard.com\",\n  \"event_id\": 14\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -924,9 +924,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n\t\"company\": \"WizCard Inc.updated\",\n\t\"title\": \"CEO.updated\",\t\t\n\t\"name\": \"Anand Ammundi.updated\",\n\t\"email\": \"anand.ammundi.updated@getwizcard.com\"\n}"
+					"raw": "\n{\n  \"company\": \"WizCard Inc.updated\",\n  \"title\": \"CEO.updated\",    \n  \"name\": \"Anand Ammundi.updated\",\n  \"email\": \"anand.ammundi.updated@getwizcard.com\"\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -951,7 +951,7 @@
 					"mode": "raw",
 					"raw": "{\n    \"owners\": [\n      10\n    ]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -976,7 +976,7 @@
 					"mode": "raw",
 					"raw": "  {\n    \"name\": \"exhibitor_user1\",\n    \"email\": \"exhibitor1@getwizcard.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1001,7 +1001,7 @@
 					"mode": "raw",
 					"raw": "  {\n    \"name\": \"app_user\",\n    \"email\": \"app_user@getwizcard.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1024,9 +1024,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Tag Set 1 from Tagnomy End point create\",\n\t\"tags\": [\"one\", \"two\", \"three\", \"four\", \"five\", \"six\"]\n}"
+					"raw": "{\n  \"name\": \"Tag Set 1 from Tagnomy End point create\",\n  \"tags\": [\"one\", \"two\", \"three\", \"four\", \"five\", \"six\"]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1038,13 +1038,11 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
+						"value": "Token {{organizer_user1}}"
 					}
 				],
 				"body": {
@@ -1063,20 +1061,18 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
+						"value": "Token {{organizer_user1}}"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Tag Set 2 from Tagnomy End point create\",\n\t\"tags\": [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"]\n}"
+					"raw": "{\n  \"name\": \"Tag Set 2 from Tagnomy End point create\",\n  \"tags\": [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1088,13 +1084,11 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
+						"value": "Token {{organizer_user1}}"
 					}
 				],
 				"body": {
@@ -1124,7 +1118,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"taganomy\": {\n\t\t\"taganomy_id\": 25,\n\t\t\"tags\": [\"one\", \"two\", \"three\"]\n\t}\n}"
+					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 25,\n    \"tags\": [\"one\", \"two\", \"three\"]\n  }\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1149,7 +1143,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"taganomy\": {\n\t\t\"taganomy_id\": 26,\n\t\t\"tags\": [\"4\", \"5\", \"6\"]\n\t}\n}"
+					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 26,\n    \"tags\": [\"4\", \"5\", \"6\"]\n  }\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1163,20 +1157,18 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
+						"value": "Token {{organizer_user1}}"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Tag Set 1 from Tagnomy End point create.updated\",\n\t\"tags\": [\"one\", \"2\", \"three\", \"4\", \"five\", \"6\"]\n}"
+					"raw": "{\n  \"name\": \"Tag Set 1 from Tagnomy End point create.updated\",\n  \"tags\": [\"one\", \"2\", \"three\", \"4\", \"five\", \"6\"]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1188,20 +1180,18 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
+						"value": "Token {{organizer_user1}}"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Tag Set 1 from Tagnomy End point create.updated\",\n\t\"tags\": [\"one\", \"2\", \"three\", \"4\", \"five\", \"6\"]\n}"
+					"raw": "{\n  \"name\": \"Tag Set 1 from Tagnomy End point create.updated\",\n  \"tags\": [\"one\", \"2\", \"three\", \"4\", \"five\", \"6\"]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1224,9 +1214,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"ids\": [23]\n}"
+					"raw": "{\n  \"ids\": [23]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1249,7 +1239,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [12], \"type\": \"e_campaign\"\n    \t},\n    \t{\n    \t\t\"ids\": [7], \"type\": \"e_speaker\"\n    \t},\n    \t{\n    \t\t\"ids\": [4, 5], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [9], \"type\": \"e_sponsor\"\n    \t},\n    \t{\n    \t\t\"ids\": [16], \"type\": \"e_agenda\"\n    \t},\n    \t{\n    \t\t\"ids\": [22], \"type\": \"e_poll\"\n    \t}\n\t],\n\t\"users\": [2, 3, 4]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [7], \"type\": \"e_speaker\"\n      },\n      {\n        \"ids\": [4, 5], \"type\": \"e_media\"\n      },\n      {\n        \"ids\": [9], \"type\": \"e_sponsor\"\n      },\n      {\n        \"ids\": [16], \"type\": \"e_agenda\"\n      },\n      {\n        \"ids\": [22], \"type\": \"e_poll\"\n      }\n  ],\n  \"users\": [2, 3, 4]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1274,7 +1264,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [12, 13], \"type\": \"e_campaign\"\n    \t},\n    \t{\n    \t\t\"ids\": [8], \"type\": \"e_speaker\"\n    \t}\n\t]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12, 13], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [8], \"type\": \"e_speaker\"\n      }\n  ]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1299,7 +1289,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [12], \"type\": \"e_campaign\"\n    \t},\n    \t{\n    \t\t\"ids\": [8], \"type\": \"e_speaker\"\n    \t},\n    \t{\n    \t\t\"ids\": [5, 6], \"type\": \"e_media\"\n    \t},\n    \t{\n    \t\t\"ids\": [9], \"type\": \"e_sponsor\"\n    \t}\n\t],\n\t\"users\": [2, 3, 4]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [8], \"type\": \"e_speaker\"\n      },\n      {\n        \"ids\": [5, 6], \"type\": \"e_media\"\n      },\n      {\n        \"ids\": [9], \"type\": \"e_sponsor\"\n      }\n  ],\n  \"users\": [2, 3, 4]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1324,7 +1314,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    \t{\n    \t\t\"ids\": [12], \"type\": \"e_campaign\"\n    \t},\n    \t{\n    \t\t\"ids\": [7, 8], \"type\": \"e_speaker\"\n    \t}\n\t],\n\t\"users\": [3, 4]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [7, 8], \"type\": \"e_speaker\"\n      }\n  ],\n  \"users\": [3, 4]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1338,20 +1328,18 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
+						"value": "Token {{organizer_user1}}"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"first_name\": \"Doe\",\n    \"last_name\": \"John\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"org\": \"\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/updated\",\n    \t\"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"UPdated\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4, 5], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"first_name\": \"Doe\",\n    \"last_name\": \"John\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"org\": \"\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/updated\",\n      \"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"UPdated\",\n    \"related\": [\n      {\n        \"ids\": [4, 5], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1374,7 +1362,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"first_name\": \"Doe\",\n    \"last_name\": \"John\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"org\": \"\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/updated\",\n    \t\"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"UPdated\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4, 5], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"first_name\": \"Doe\",\n    \"last_name\": \"John\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"org\": \"\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/updated\",\n      \"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"UPdated\",\n    \"related\": [\n      {\n        \"ids\": [4, 5], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
 				"description": ""
 			},
@@ -1399,7 +1387,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"owners\": [\n      10\n    ],\n    \"speakers\": [1],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"owners\": [\n      10\n    ],\n    \"speakers\": [1],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Table Create"
 			},
@@ -1424,9 +1412,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"delivery_type\": \"1\",\n\t\"recipient\": 2,\n\t\"target\": {\n\t\t\"type\": \"event\", \n\t\t\"id\": 14\n\t}, \n\t\"action_object\": {\n\t\t\"type\": \"agenda\", \n\t\t\"id\": 19\n\t}, \n\t\"verb\": \"Your event is starting now\"\n}"
+					"raw": "{\n  \"delivery_type\": \"1\",\n  \"recipient\": 2,\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 19\n  }, \n  \"verb\": \"Your event is starting now\"\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1449,9 +1437,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"delivery_type\": \"1\",\n\t\"recipient\": 2,\n\t\"target\": {\n\t\t\"type\": \"event\", \n\t\t\"id\": 14\n\t}, \n\t\"action_object\": {\n\t\t\"type\": \"agenda\", \n\t\t\"id\": 19\n\t}, \n\t\"verb\": \"Your event is starting now\"\n}"
+					"raw": "{\n  \"delivery_type\": \"1\",\n  \"recipient\": 2,\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 19\n  }, \n  \"verb\": \"Your event is starting now\"\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1476,7 +1464,7 @@
 					"mode": "raw",
 					"raw": "  {\n    \"name\": \"1\",\n    \"email\": \"1@gmail.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1501,7 +1489,7 @@
 					"mode": "raw",
 					"raw": "  {\n    \"name\": \"1\",\n    \"email\": \"1@gmail.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1526,7 +1514,7 @@
 					"mode": "raw",
 					"raw": "  {\n    \"name\": \"1\",\n    \"email\": \"1@gmail.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1570,7 +1558,7 @@
 					}
 				],
 				"body": {},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1636,12 +1624,12 @@
 					}
 				],
 				"body": {},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
 		{
-			"name": "GET Events",
+			"name": "GET Campaigns copy",
 			"request": {
 				"url": "http://localhost:8000/entity/events/",
 				"method": "GET",
@@ -1680,7 +1668,7 @@
 					}
 				],
 				"body": {},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1746,7 +1734,7 @@
 					}
 				],
 				"body": {},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1769,7 +1757,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCT\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t}\n\t]\n}"
+					"raw": "{\n  \"description\": \"Poll 1\",\n  \"questions\": [\n    {\n      \"question_type\": \"MCT\",\n      \"ui_type\": \"SEL\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"question_key\": \"A\",\n            \"question_value\": \"Anand\"\n          },\n          {\n            \"question_key\": \"B\",\n            \"question_value\": \"Ablu\"\n          },\n          {\n            \"question_key\": \"C\",\n            \"question_value\": \"Ammundi\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"SCL\",\n        \"ui_type\": \"SLD\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"low\": \"1\",\n            \"high\": \"5\"\n          }\n        ]\n    }\n  ]\n}"
 				},
 				"description": ""
 			},
@@ -1794,9 +1782,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"description\": \"Poll 1\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCT\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t}\n\t]\n}"
+					"raw": "{\n  \"description\": \"Poll 1\",\n  \"questions\": [\n    {\n      \"question_type\": \"MCT\",\n      \"ui_type\": \"SEL\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"question_key\": \"A\",\n            \"question_value\": \"Anand\"\n          },\n          {\n            \"question_key\": \"B\",\n            \"question_value\": \"Ablu\"\n          },\n          {\n            \"question_key\": \"C\",\n            \"question_value\": \"Ammundi\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"SCL\",\n        \"ui_type\": \"SLD\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"low\": \"1\",\n            \"high\": \"5\"\n          }\n        ]\n    }\n  ]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -1805,6 +1793,31 @@
 			"request": {
 				"url": "http://localhost:8000/entity/speakers/",
 				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "14.DELETE Event",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/",
+				"method": "DELETE",
 				"header": [
 					{
 						"key": "Content-Type",

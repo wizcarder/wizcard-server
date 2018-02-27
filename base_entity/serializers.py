@@ -166,6 +166,6 @@ class EntitySerializer(EntitySerializerL0):
             entity.tags.set(*tags)
 
         # send entity_update (with sub_entity granularity)
-        BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE)
+        BaseEntityComponent.objects.notify_via_entity_parent(entity, verbs.WIZCARD_ENTITY_UPDATE, verbs.NOTIF_OPERATION_CREATE)
 
         return entity

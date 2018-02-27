@@ -331,7 +331,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
     notif = NotifParser(objs['data'], uid1, wuid1)
     nrsp = notif.process()
 
@@ -342,7 +341,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
     notif = NotifParser(objs['data'], uid2, wuid2)
     nrsp = notif.process()
 
@@ -353,7 +351,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
     notif = NotifParser(objs['data'], uid3, wuid3)
     nrsp = notif.process()
 
@@ -642,7 +639,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
     notif = NotifParser(objs['data'], uid1, wuid1)
     nrsp = notif.process()
 
@@ -653,7 +649,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
 
     notif = NotifParser(objs['data'], uid2, wuid2)
     nrsp = notif.process()
@@ -665,7 +660,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
 
     notif = NotifParser(objs['data'], uid3, wuid3)
     nrsp = notif.process()
@@ -677,7 +671,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
     notif = NotifParser(objs['data'], fuid1, fwuid1)
     nrsp = notif.process()
 
@@ -688,7 +681,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
     notif = NotifParser(objs['data'], fuid2, fwuid2)
     nrsp = notif.process()
 
@@ -1245,7 +1237,6 @@ if not SKIP_BASIC:
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
     objs = handle_response(conn, reqmsg['header']['msg_type'])
-    pdb.set_trace()
 
     # delete. Expect 3 to go back to new state, and 2 will follow error 24 path upon
     # accept/decline
@@ -1419,14 +1410,14 @@ if TEST_TABLE:
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     tid_3 = objs['data']['result']['id']
 
-    # entity query
-    print "sending entity query"
-    reqmsg = messages.entity_query
-    reqmsg['header']['version'] = messages.APP_VERSION
-    reqmsg['sender']['user_id'] = uid3
-    reqmsg['sender']['wizuser_id'] = wuid3
-    reqmsg['sender']['query_str'] = TABLENAME_Q
-    reqmsg['sender']['entity_type'] = 'TBL'
+    # # entity query
+    # print "sending entity query"
+    # reqmsg = messages.entity_query
+    # reqmsg['header']['version'] = messages.APP_VERSION
+    # reqmsg['sender']['user_id'] = uid3
+    # reqmsg['sender']['wizuser_id'] = wuid3
+    # reqmsg['sender']['query_str'] = TABLENAME_Q
+    # reqmsg['sender']['entity_type'] = 'TBL'
 
     send_request(conn, reqmsg)
     # Parse and dump the JSON response from server
