@@ -18,6 +18,8 @@ import ushlex as shlex
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from taggit.models import TaggedItem
+import itertools
+
 import pdb
 
 # Create your models here.
@@ -424,6 +426,9 @@ class BaseEntityComponent(PolymorphicModel):
         return c
 
     def add_subentities(self, ids, type):
+        if not ids:
+            return []
+
         c = self.entity_cls_from_subentity_type(type)
         int_ids = map(lambda x: int(x), ids)
 
@@ -438,12 +443,38 @@ class BaseEntityComponent(PolymorphicModel):
         obj.post_connect(self)
         return obj
 
-    def remove_sub_entities_of_type(self, entity_type):
-        self.related.filter(alias=entity_type).delete()
+    # kind of tagonomy's pattern. add any new ones, remove those not in the list
+    def add_remove_sub_entities_of_type(self, ids, type):
+        to_be_deleted_gfk_objs = self.get_gfk_sub_entities_of_type(type)
+        to_be_deleted_objs = to_be_deleted_gfk_objs.generic_objects()
+        to_be_deleted_ids = map(lambda x: x.id, to_be_deleted_objs)
+        new_obj_ids = []
 
-    def remove_sub_entity_obj(self, obj, entity_type):
-        self.related.filter(object_id=obj.id, alias=entity_type).delete()
+        for id in ids:
+            if id in to_be_deleted_ids:
+                idx = to_be_deleted_ids.index(id)
+                to_be_deleted_ids.remove(id)
+                del list(to_be_deleted_gfk_objs)[idx]
+                del to_be_deleted_objs[idx]
+            else:
+                new_obj_ids.append(id)
+
+        # add the new ones
+        self.add_subentities(new_obj_ids, type)
+
+        # delete the rest
+        for obj, gfk_obj in itertools.izip(to_be_deleted_objs, to_be_deleted_gfk_objs):
+            self.remove_sub_entity_obj(obj, gfk_obj)
+
+    def remove_sub_entity_obj(self, obj, entity_type, gfk_obj=None):
+        if not gfk_obj:
+            gfk_obj = self.related.filter(object_id=obj.id, alias=entity_type)
+        gfk_obj.delete()
+
         obj.post_connect(self, notif_operation=verbs.NOTIF_OPERATION_DELETE)
+
+    def get_gfk_sub_entities_of_type(self, entity_type):
+        return self.related.filter(alias=entity_type)
 
     def get_sub_entities_of_type(self, entity_type, **kwargs):
         exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])

@@ -17,7 +17,6 @@ class RelatedSerializerField(serializers.RelatedField):
 
         ids = data.get('ids', None)
         etype = data.get('type', None)
-        overwrite = data.get('overwrite', False)
 
         # Perform the data validation.
         if ids is None:
@@ -29,7 +28,7 @@ class RelatedSerializerField(serializers.RelatedField):
                 'type': 'This field is required.'
             })
 
-        value_dict = {'ids': ids, 'type': etype, 'overwrite': overwrite}
+        value_dict = {'ids': ids, 'type': etype}
 
         return value_dict
 
@@ -150,11 +149,7 @@ class EntitySerializer(EntitySerializerL0):
 
         if hasattr(self, '_sub_entities') and self._sub_entities:
             for s in self._sub_entities:
-                overwrite = s.pop('overwrite')
-                if overwrite:
-                    entity.remove_sub_entities_of_type(s['type'])
-   
-                entity.add_subentities(**s)
+                entity.add_remove_sub_entities_of_type(s.get('ids'), s.get('type'))
 
         if hasattr(self, '_location') and self._location:
             entity.create_or_update_location(self._location['lat'], self._location['lng'])
