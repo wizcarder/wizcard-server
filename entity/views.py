@@ -12,8 +12,8 @@ from notifications.models import AsyncNotification
 from notifications.serializers import AsyncNotificationSerializer
 from taganomy.models import Taganomy
 from entity.serializers import TaganomySerializer
-from rest_framework.decorators import detail_route
-from rest_framework import viewsets, status, mixins
+from rest_framework.decorators import detail_route, list_route
+from rest_framework import viewsets, status, mixins, views
 from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,6 +21,9 @@ from itertools import chain
 from scan.models import BadgeTemplate
 from scan.serializers import BadgeTemplateSerializer
 from wizserver import verbs
+from rest_framework.parsers import FileUploadParser, MultiPartParser, JSONParser
+from entity.tasks import create_entities
+
 
 
 import pdb
@@ -1155,5 +1158,20 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
         campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
 
         return Response(status=status.HTTP_200_OK)
+
+
+class FileUploader(views.APIView):
+    parser_classes = (MultiPartParser,)
+
+    def post(self, request, filename, format=None):
+        file_obj = request.data['file']
+        type = request.data['data_type']
+        user = request.user
+        result = create_entities(file_obj, type, user)
+
+        returnmesg = "All records uploaded successfully" if not result[1] \
+            else "%s Succeeded, Check Lines %s that Failed" % (str(result[0]), result[1])
+        return Response(returnmesg, status=201)
+
 
 
