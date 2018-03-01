@@ -29,7 +29,7 @@ class ScannedEntity(BaseEntityComponent, Base411Mixin, CompanyTitleMixin):
 
     # no notifs required for this one
     def post_connect(self, parent, **kwargs):
-        return
+        return False
 
 
 class BadgeTemplateManager(BaseEntityComponentManager):
@@ -53,4 +53,4 @@ class BadgeTemplate(BaseEntityComponent, Base412Mixin, CompanyTitleMixin):
 
     # no notifs required for this one
     def post_connect(self, parent, **kwargs):
-        return
+        return False

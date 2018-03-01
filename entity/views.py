@@ -77,7 +77,7 @@ class EventViewSet(BaseEntityViewSet):
         new_exhibitors = [x for x in exhibitor_invitees if x not in existing_exhibitors.values_list('id', flat=True)]
 
         # relate these with Event
-        invited_exhibitors = inst.add_subentities(new_exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
+        invited_exhibitors, notif_sent = inst.add_subentities(new_exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
         for i in invited_exhibitors:
             i.state = ExhibitorInvitee.INVITED
             i.save()
@@ -102,7 +102,7 @@ class EventViewSet(BaseEntityViewSet):
         new_attendees = [x for x in attendee_invitees if x not in existing_attendees.values_list('id', flat=True)]
 
         # relate these with Event
-        invited_attendees = inst.add_subentities(new_attendees, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        invited_attendees, notif_sent = inst.add_subentities(new_attendees, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
         for i in invited_attendees:
             i.state = AttendeeInvitee.INVITED
             i.save()

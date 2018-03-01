@@ -190,7 +190,7 @@ class CoOwners(BaseEntityComponent):
 
     # no notifs required for this one
     def post_connect(self, parent, **kwargs):
-        return
+        return False
 
 
 class AttendeeInviteeManager(BaseEntityComponentManager):
@@ -219,7 +219,7 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     # no notifs required for this one
     def post_connect(self, parent, **kwargs):
-        return
+        return False
 
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
@@ -254,7 +254,7 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     # no notifs required for this one
     def post_connect(self, parent, **kwargs):
-        return
+        return False
 
 
 class AgendaManager(BaseEntityComponentManager):

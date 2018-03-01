@@ -426,22 +426,23 @@ class BaseEntityComponent(PolymorphicModel):
         return c
 
     def add_subentities(self, ids, type):
+        notif_sent = False
+
         if not ids:
-            return []
+            return [], notif_sent
 
         c = self.entity_cls_from_subentity_type(type)
         int_ids = map(lambda x: int(x), ids)
 
         objs = c.objects.filter(id__in=int_ids)
         for obj in objs:
-            self.add_subentity_obj(obj, alias=type)
+            notif_sent |= self.add_subentity_obj(obj, alias=type)
 
-        return objs
+        return objs, notif_sent
 
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
-        obj.post_connect(self)
-        return obj
+        return obj.post_connect(self)
 
     # kind of tagonomy's pattern. add any new ones, remove those not in the list
     def add_remove_sub_entities_of_type(self, ids, type):
@@ -460,18 +461,20 @@ class BaseEntityComponent(PolymorphicModel):
                 new_obj_ids.append(id)
 
         # add the new ones
-        self.add_subentities(new_obj_ids, type)
+        objs, notif_sent = self.add_subentities(new_obj_ids, type)
 
         # delete the rest
         for obj, gfk_obj in itertools.izip(to_be_deleted_objs, to_be_deleted_gfk_objs):
-            self.remove_sub_entity_obj(obj, gfk_obj)
+            notif_sent |= self.remove_sub_entity_obj(obj, type, gfk_obj)
 
-    def remove_sub_entity_obj(self, obj, entity_type, gfk_obj=None):
+        return notif_sent
+
+    def remove_sub_entity_obj(self, obj, subentity_type, gfk_obj=None):
         if not gfk_obj:
-            gfk_obj = self.related.filter(object_id=obj.id, alias=entity_type)
+            gfk_obj = self.related.filter(object_id=obj.id, alias=subentity_type)
         gfk_obj.delete()
 
-        obj.post_connect(self, notif_operation=verbs.NOTIF_OPERATION_DELETE)
+        return obj.post_connect(self, notif_operation=verbs.NOTIF_OPERATION_DELETE)
 
     def get_gfk_sub_entities_of_type(self, entity_type):
         return self.related.filter(alias=entity_type)
@@ -534,6 +537,8 @@ class BaseEntityComponent(PolymorphicModel):
             action_object=self,
             notif_operation=notif_operation
         )
+
+        return True
 
     def add_tags(self, taglist):
         self.tags.add(*taglist)
