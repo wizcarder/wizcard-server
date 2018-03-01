@@ -556,3 +556,10 @@ AUTHENTICATION_BACKENDS = (
 
 DEVICE_IOS = 'ios'
 DEVICE_ANDROID = 'android'
+
+# UPLOAD Schema
+
+feed_schemas = {
+    "CMP": ["name", "email", "phone", "website", "venue"],
+    "ATI": ["name", "email", "company" , "title"],
+}
