@@ -5,7 +5,7 @@ from celery import task
 from entity.models import Event
 from entity.models import Campaign
 from entity.serializers import CampaignSerializer
-from wizcard.settings import feed_schemas
+from wizserver.verbs import feed_schemas, FEED_SEPERATOR
 from base_entity.models import BaseEntityComponent
 import pdb
 
@@ -25,11 +25,10 @@ def expire():
 def create_entities(file, entity_type, owner):
     record_no = 0
     problematic_records = []
-    cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type, create=True)
+    cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type, detail=BaseEntityComponent.SERIALIZER_CREATE)
 
     schema = feed_schemas[entity_type]
     schema_fields_len = len(schema)
-
 
     for line in file:
         # CLeanup and validations
@@ -41,7 +40,7 @@ def create_entities(file, entity_type, owner):
 
         record_no += 1
         ser_data = dict()
-        arr = line.split('\t')
+        arr = line.split(FEED_SEPERATOR)
 
         # If arr has less fields than what schema needs then flag it
         if len(arr) < schema_fields_len:
@@ -53,7 +52,7 @@ def create_entities(file, entity_type, owner):
 
         # Ideally we can do many=True but we also want to point out faulty records
 
-        s = ser(data=ser_data, context={'user':owner})
+        s = ser(data=ser_data, context={'user': owner})
         if s.is_valid():
             s.save()
         else:

@@ -1168,6 +1168,7 @@ class FileUploader(views.APIView):
         type = request.data['data_type']
         user = request.user
         result = create_entities(file_obj, type, user)
+
         returnmesg = "All records uploaded successfully" if not result[1] \
             else "%s Succeeded, Check Lines %s that Failed" % (str(result[0]), result[1])
         return Response(returnmesg, status=201)
