@@ -214,7 +214,7 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
         return matched_users, matched_attendees
 
 
-class AttendeeInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
+class AttendeeInvitee(BaseEntityComponent, Base411Mixin, CompanyTitleMixin, InviteStateMixin):
     objects = AttendeeInviteeManager()
 
     # no notifs required for this one
