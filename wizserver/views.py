@@ -2182,7 +2182,7 @@ class ParseMsgAndDispatch(object):
         state = self.sender.get('state', None)
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=True)
+            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=BaseEntityComponent.SERIALIZER_L2)
             entity = e.objects.get(id=id)
         except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)

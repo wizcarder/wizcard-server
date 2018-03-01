@@ -16,6 +16,7 @@ from taganomy.views import TaganomyViewSet
 from notifications.urls import urlpatterns as notification_urlpatterns
 from scan.urls import urlpatterns as scan_urlpatterns
 from taganomy.urls import urlpatterns as taganomy_urlpatterns
+from entity.views import FileUploader
 
 router = SimpleRouter()
 router.register(r'events', EventViewSet, base_name='events')
@@ -57,6 +58,7 @@ urlpatterns = [
     url(r'^', include(events_router.urls)),
     url(r'^', include(agenda_item_router.urls)),
     url(r'^', include(campaigns_router.urls)),
+    url(r'^upload/(?P<filename>[^/]+)$', FileUploader.as_view())
 ]
 
 urlpatterns += poll_urlpatterns
