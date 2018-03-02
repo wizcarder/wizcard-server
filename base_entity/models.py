@@ -59,7 +59,7 @@ class BaseEntityComponentManager(PolymorphicManager):
                 target=parent,
                 action_object=entity,
                 notif_operation=notif_operation
-            ) for parent in parents if parent.is_active() & parent.has_subscribers()
+            ) for parent in parents if parent.is_active() & parent.is_floodable()
         ]
 
 
@@ -539,7 +539,7 @@ class BaseEntityComponent(PolymorphicModel):
         return [p for p in parents if p.entity_state not in exclude]
 
     # is the instance of the kind that has notifiable users
-    def has_subscribers(self):
+    def is_floodable(self):
         return False
 
     def get_creator(self):
@@ -696,7 +696,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     # override. BaseEntity derived objects can have subscribers. This can be further
     # overridden in sub-entities if needed
-    def has_subscribers(self):
+    def is_floodable(self):
         return True
 
     def is_joined(self, user):
@@ -720,12 +720,15 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return users
 
     def flood_set(self, **kwargs):
-        ntuple = kwargs.pop('ntuple')
-        sender = kwargs.pop('sender')
+        ntuple = kwargs.pop('ntuple', None)
+        sender = kwargs.pop('sender', None)
 
         flood_list = [x for x in self.users.all() if hasattr(x, 'wizcard')]
 
-        if verbs.get_notif_type(ntuple) == verbs.NOTIF_ENTITY_JOIN:
+        # special case. Not nice. This (supress notif to sender) is the only
+        # case presently (for NOTIF_ATTACH). If there are more, we should move
+        # this to the ntuple dict.
+        if ntuple and verbs.get_notif_type(ntuple) == verbs.NOTIF_ENTITY_ATTACH:
             # remove sender
             if sender in flood_list:
                 flood_list.remove(sender)

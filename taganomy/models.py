@@ -57,6 +57,22 @@ class Taganomy(BaseEntityComponent, Base411Mixin):
 
         return venue_d
 
+    # not sending tag level notif. Only at Taganomy level
+    def post_connect(self, parent, **kwargs):
+        return False
+
+    def is_floodable(self):
+        return True
+
+    def flood_set(self, **kwargs):
+        flood_list = []
+        # this will be the flood_set of it's parent entities. Assumption is that only 1-parent entity
+        parent = self.get_parent_entities(exclude=[self.ENTITY_STATE_DELETED, self.ENTITY_STATE_EXPIRED]).pop()
+        if not parent:
+            return flood_list
+
+        return parent.flood_set(**kwargs)
+
 
 def tag_signal_handler(sender, **kwargs):
 

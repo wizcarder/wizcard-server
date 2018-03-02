@@ -144,6 +144,8 @@ class EntitySerializer(EntitySerializerL0):
         return obj
 
     def post_create_update(self, entity, update=False):
+        # update arg is not really used. Leaving it here in case we need it down the line
+
         notif_sent = False
         if hasattr(self, '_owners') and self._owners:
             BaseEntityComponent.add_owners(entity, self._owners)

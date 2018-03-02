@@ -34,8 +34,8 @@ class NotifParser:
             verbs.NOTIF_WITHDRAW_REQUEST:       self.withdraw_request,
             verbs.NOTIF_TABLE_INVITE:           self.table_invite,
             verbs.NOTIF_WIZCARD_FORWARD:        self.wizcard_forward,
-            verbs.NOTIF_ENTITY_JOIN:            self.table_join,
-            verbs.NOTIF_ENTITY_LEAVE:           self.table_leave,
+            verbs.NOTIF_ENTITY_ATTACH:          self.table_join,
+            verbs.NOTIF_ENTITY_DETACH:          self.table_leave,
         }
 
         if self.count:

@@ -265,8 +265,12 @@ def notify_handler(sender, **kwargs):
     else:
         is_async = verbs.get_notif_is_async(notif_tuple)
 
-    # also check if there is someone to flood to. No point creating notif if no one
-    if is_async and target.flood_set(ntuple=notif_tuple, sender=actor):
+    if is_async:
+
+        # also check if there is someone to flood to. No point creating notif if no one
+        if not target.flood_set(ntuple=notif_tuple, sender=actor):
+            return None
+
         newnotify = AsyncNotification.objects.create(
             actor_content_type=ContentType.objects.get_for_model(actor),
             actor_object_id=actor.pk,

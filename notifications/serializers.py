@@ -66,7 +66,6 @@ class AsyncNotificationSerializer(serializers.ModelSerializer):
         end = validated_data.pop('end', timezone.now() + timedelta(minutes=1))
         notif_type = validated_data.pop('notif_type')
 
-        # AA: Comments: this was broken
         push_notif = notify.send(
             self.context.get('user'),
             # recipient is dummy
@@ -77,7 +76,11 @@ class AsyncNotificationSerializer(serializers.ModelSerializer):
             **validated_data
         )
 
-        return push_notif[0][1]
+        obj = push_notif[0][1]
+        if not obj:
+            raise serializers.ValidationError("No subscribers to notify")
+
+        return obj
 
 
 class SyncNotificationSerializer(serializers.ModelSerializer):

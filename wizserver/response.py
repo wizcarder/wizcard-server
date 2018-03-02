@@ -185,7 +185,7 @@ class SyncNotifResponse(ResponseN):
                 entity=s,
                 wizcard=ws
             )
-            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_JOIN, notif.id)
+            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_ATTACH, notif.id)
             logger.debug('%s', self.response)
 
         return self.response
@@ -201,7 +201,7 @@ class SyncNotifResponse(ResponseN):
             wizcard=ws
         )
 
-        self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_LEAVE, notif.id)
+        self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_DETACH, notif.id)
         logger.debug('%s', self.response)
 
         return self.response
