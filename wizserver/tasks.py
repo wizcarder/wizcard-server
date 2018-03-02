@@ -8,9 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 @task(ignore_result=True)
-def contacts_upload_task(user_pk, int_prefix, country_code, ab_list):
-
-    user = User.objects.get(id=user_pk)
+def contacts_upload_task(user, int_prefix, country_code, ab_list):
     emailEntryList = []
     phoneEntryList = []
 

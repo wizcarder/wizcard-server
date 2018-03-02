@@ -718,7 +718,7 @@ class ParseMsgAndDispatch(object):
         country_code = self.receiver.get('country_code', None)
         ab_list = self.receiver.get('ab_list')
 
-        contacts_upload_task.delay(self.user.id, int_prefix, country_code, ab_list)
+        contacts_upload_task.delay(self.user, int_prefix, country_code, ab_list)
 
         # AA:TODO ideally this would be better is signal is sent after above task finishes
         # for that we'll need to chain tasks and wrap this signal sending in a task as well

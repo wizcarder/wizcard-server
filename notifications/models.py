@@ -308,7 +308,7 @@ def notify_handler(sender, **kwargs):
 
         # push a notification to app from here for sync. Fire and forget
         if created and verbs.get_notif_apns_required(notif_tuple) and do_push:
-            push_notification_to_app.delay(newnotify.id, notif_tuple)
+            push_notification_to_app.delay(newnotify, notif_tuple)
 
     return newnotify
 

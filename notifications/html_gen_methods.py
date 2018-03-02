@@ -44,9 +44,12 @@ class HtmlGen:
         try:
             to = target.get_email
         except:
+            # AA: Review
             return -1
-        email_details = {"template" : "welcome.html", "subject": "Welcome %s to WizCard"}
+
+        email_details = {"template": "welcome.html", "subject": "Welcome %s to WizCard"}
         send_wizcard(wizcard, to, email_details, half_card=True)
+
         return 0
 
     def invite_user(self, sender, target):
@@ -55,8 +58,10 @@ class HtmlGen:
             to = target.get_email
         except:
             return -1
+
         email_details = {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"}
         send_wizcard(wizcard, to,  email_details)
+
         return 0
 
     def scan_user(self, sender, target):
@@ -65,26 +70,22 @@ class HtmlGen:
             to = target.get_email
         except:
             return -1
+
         email_details = {"template": "emailwizcard.html", "subject": "%s has Scanned your Card on WizCard"}
-        send_wizcard(wizcard, to, email_details, half_card = True)
+        send_wizcard(wizcard, to, email_details, half_card=True)
+
         return 0
 
     def invite_exhibitor(self, sender, target):
         event_organizer = sender
         email_details = {"template": "invite_exhibitor.html", "subject": "%s - has invited you to Create your Campaign"}
+
         send_event(event_organizer, to, email_details)
         return 0
 
     def invite_attendee(self, sender, target):
         event_organizer = sender
-        email_details = {"template" : "invite_attendee.html", "subject": "%s - Welcome to %s"}
+        email_details = {"template": "invite_attendee.html", "subject": "%s - Welcome to %s"}
+
         send_event(event_organizer, to, email_details)
         return 0
-
-
-
-
-
-
-
-

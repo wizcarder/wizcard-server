@@ -30,6 +30,7 @@ def create_vcard(wizcard):
     v.add('title')
     v.title.value = wizcard.get_latest_title()
     tnurl = wizcard.get_thumbnail_url()
+
     for url in tnurl:
         v.add('photo')
         v.photo.value = url
@@ -39,12 +40,11 @@ def create_vcard(wizcard):
 
 
 @shared_task
-def send_wizcard(from_wizcard_id, to, emaildetails, half_card=False):
-    from_wizcard = Wizcard.objects.get(id=from_wizcard_id)
+def send_wizcard(from_wizcard, to, email_details, half_card=False):
 
     extfields = from_wizcard.get_ext_fields
-    html = emaildetails['template']
-    subject = emaildetails['subject']
+    html = email_details['template']
+    subject = email_details['subject']
 
     if not extfields:
         extfields = {}
@@ -72,6 +72,7 @@ def send_wizcard(from_wizcard_id, to, emaildetails, half_card=False):
     email.html(html, ctx)
     attach_data = None
     vcard = from_wizcard.get_vcard
+
     if not half_card and vcard:
         attach_name = "%s-%s.vcf" % (from_wizcard.user.first_name, from_wizcard.user.last_name)
         attach_data = {'data' : from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
@@ -81,13 +82,15 @@ def send_wizcard(from_wizcard_id, to, emaildetails, half_card=False):
 
 
 @shared_task
-def send_event(event_id, to, emaildetails):
-    event = Event.objects.get(id=event_id)
+def send_event(event, to, email_details):
     email_dict = dict()
-    html = emaildetails['template']
+    html = email_details['template']
     email_dict['event_name'] = event.name
     event_media = event.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER)[0]
+
+    # AA: Review. Fix this so we don't forget before production
     email_dict['banner'] = 'http://PlaceholderImage.com'
+
     if event_media:
         email_dict['banner'] = event_media.media_element
     if html == 'invite_exhibitor.html':

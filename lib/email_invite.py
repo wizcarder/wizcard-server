@@ -17,34 +17,33 @@ now = timezone.now
 
 
 @shared_task
-def create_template(wizcard_id):
-
+def create_template(wizcard):
     resource = storage.open(settings.EMAIL_TEMPLATE)
-
-    wizcard = Wizcard.objects.get(id=wizcard_id)
 
     data = {"name": smart_str(wizcard.user.first_name) + " " + smart_str(wizcard.user.last_name),
             "company": smart_str(wizcard.get_latest_company()),
-            "title" : smart_str(wizcard.get_latest_title()),
-            "email" : smart_str(wizcard.email),
-            "phone" : smart_str(wizcard.phone)
+            "title": smart_str(wizcard.get_latest_title()),
+            "email": smart_str(wizcard.email),
+            "phone": smart_str(wizcard.phone)
             }
     data["invite_name"] = data["name"]
-
 
     position = {'email': '296, 275',
                 'title': '254, 245',
                 'phone': '143, 275',
                 'name': '250, 182',
                 'company': '252, 216',
-                'invite_name':'207, 370'}
-    fonts = {'email': ImageFont.truetype('Roboto-Regular.ttf', 12),
-             'title': ImageFont.truetype('Roboto-Regular.ttf', 16),
-             'phone': ImageFont.truetype('Roboto-Regular.ttf', 12), 
-             'name': ImageFont.truetype('Roboto-Regular.ttf', 22),
-             'invite_name': ImageFont.truetype('Roboto-Regular.ttf', 23),
-             'company': ImageFont.truetype('Roboto-Regular.ttf', 18)
-             }
+                'invite_name': '207, 370'}
+
+    fonts = {
+        'email': ImageFont.truetype('Roboto-Regular.ttf', 12),
+        'title': ImageFont.truetype('Roboto-Regular.ttf', 16),
+        'phone': ImageFont.truetype('Roboto-Regular.ttf', 12),
+        'name': ImageFont.truetype('Roboto-Regular.ttf', 22),
+        'invite_name': ImageFont.truetype('Roboto-Regular.ttf', 23),
+        'company': ImageFont.truetype('Roboto-Regular.ttf', 18)
+    }
+
     im = Image.open(resource)
     im_sz = im.size
     im_bg = Image.new(mode='RGBA', size=im_sz, color=(255, 255, 255, 230))
