@@ -66,7 +66,7 @@ class NotifParser:
         pass
 
     def delete_implicit(self, data):
-        print "received delete implicit from", data['wizuser_id']
+        print "received delete implicit from", data['wizcard_id']
         pass
 
     def table_timeout(self, data):
