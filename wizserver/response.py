@@ -175,7 +175,7 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifJoinEntity(self, notif):
-        wizcard=notif.actor.wizcard
+        wizcard=notif.action_object.wizcard
         ws = WizcardSerializerL1(wizcard, context={'user': notif.recipient}).data
 
         # since there is a possibility that the entity got destroyed in-between
@@ -191,7 +191,7 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifLeaveEntity(self, notif):
-        wizcard = notif.actor.wizcard
+        wizcard = notif.action_object.wizcard
         ws = WizcardSerializerL1(wizcard).data
 
         s = EntitySerializerL0(notif.target).data

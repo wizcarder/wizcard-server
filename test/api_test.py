@@ -43,9 +43,6 @@ class Connect(object):
 class User(Connect):
     def __init__(self):
         super(User, self).__init__()
-
-        self.first_name = id_generator()
-        self.last_name = id_generator()
         self.username = id_generator()
         self.target = id_generator()
         self.response_mode = 'sms'

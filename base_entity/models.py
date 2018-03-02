@@ -668,6 +668,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 recipient=self.get_creator(),
                 notif_tuple=verbs.WIZCARD_ENTITY_ATTACH,
                 target=self,
+                action_object=user
             )
 
             if state == UserEntity.JOIN:
@@ -685,7 +686,8 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 # recipient is dummy
                 recipient=self.get_creator(),
                 notif_tuple=verbs.WIZCARD_ENTITY_DETACH,
-                target=self
+                target=self,
+                action_object=user
             )
 
             if state == UserEntity.LEAVE:
