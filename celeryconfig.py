@@ -1,6 +1,5 @@
 
 from __future__ import absolute_import
-
 import os
 
 RUNENV = os.getenv('WIZRUNENV', 'dev')
@@ -10,7 +9,8 @@ APP_MINOR = 6
 
 result_backend = 'rpc'
 from rabbit_service import rconfig
-task_serializer = 'json'
+
+task_serializer = 'pickle'
 broker_url = rconfig.AMPQ_DEFAULT_URL
 
 email_template = '/invites/email_templatev4.png'
@@ -33,21 +33,22 @@ task_routes = {
     'wizcard.celery.debug_task': {'queue': celery_default_queue},
 }
 
-accept_content = ['pickle', 'json', 'msgpack', 'yaml']
+accept_content = ['pickle', 'json']
 
 from datetime import timedelta
-celerybeat_schedule = {
+
+beat_schedule = {
     'tick': {
         'task': 'periodic.tasks.tick',
         'schedule': timedelta(seconds=60),
 #       'options': {'queue': celery_beat_queue_name}
     },
-    'expire_events' : {
-        'task' : 'entity.tasks.expire',
-        'schedule' : timedelta(seconds=86400),
+    'expire_events': {
+        'task': 'entity.tasks.expire',
+        'schedule': timedelta(seconds=86400),
     },
-    'async_handler' : {
-        'task' : 'notifications.tasks.async_handler',
-        'schedule' : timedelta(seconds=60),
+    'async_handler': {
+        'task': 'notifications.tasks.async_handler',
+        'schedule': timedelta(seconds=60),
     }
 }
