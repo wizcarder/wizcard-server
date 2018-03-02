@@ -321,6 +321,7 @@ class AsyncNotifResponse:
         try:
             to = notif.target.get_email
         except:
+            # AA: Review. No c-like returns
             return -1
 
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
@@ -329,7 +330,7 @@ class AsyncNotifResponse:
         return 0
 
     def notifScannedUser(self, notif):
-        wizcard = notif.sender.wizcard
+        wizcard = notif.actor.wizcard
 
         # AA: Review. Why should this be in try_except. This is an internal method being called.
         # if there is an exception, it means it's a bug. Why mask it ?? If the reasoning is that
@@ -347,7 +348,7 @@ class AsyncNotifResponse:
         return 0
 
     def notifInviteUser(self, notif):
-        wizcard = notif.sender.wizcard
+        wizcard = notif.actor.wizcard
 
         try:
             to = notif.target.get_email
@@ -363,7 +364,7 @@ class AsyncNotifResponse:
         return 0
 
     def notifInviteExhibitor(self, notif):
-        event_organizer = notif.sender
+        event_organizer = notif.actor
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
 
         send_event.delay(event_organizer, notif.recipient, email_details)
@@ -371,7 +372,7 @@ class AsyncNotifResponse:
         return 0
 
     def notifInviteAttendee(self, notif):
-        event_organizer = notif.sender
+        event_organizer = notif.actor
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
         
         send_event.delay(event_organizer, notif.recipient, email_details)

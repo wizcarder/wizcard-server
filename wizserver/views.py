@@ -1158,7 +1158,8 @@ class ParseMsgAndDispatch(object):
         # now we know that the App has acted upon this notification
         # we will use this flag during resync notifs and send unacted-upon
         # notifs to user
-        n = SyncNotification.objects.get(id=self.sender['notif_id']).set_acted(True)
+        if 'notif_id' in self.sender:
+            SyncNotification.objects.get(id=self.sender['notif_id']).set_acted(True)
 
         return self.response
 

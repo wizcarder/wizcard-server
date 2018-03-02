@@ -20,7 +20,7 @@ class Periodic(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(default=timezone.now, blank=False)
     timer_type = models.IntegerField(default=TIMER_ONE_SHOT)
-    location = models.ForeignKey('location_mgr.LocationMgr', related_name="timer")
+    location = models.ForeignKey('location_mgr.LocationMgr', related_name="timer", on_delete=models.CASCADE)
 
     objects = PeriodicManager()
 

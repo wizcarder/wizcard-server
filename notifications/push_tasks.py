@@ -11,7 +11,7 @@ from celery.contrib import rdb
 
 @task(ignore_result=True)
 def push_notification_to_app(notif_obj_pk, ntuple, flood_set=None):
-    from notifications.models import SyncNotification, AsyncNotification
+    from notifications.models import SyncNotification
     notif_obj = SyncNotification.objects.get(id=notif_obj_pk)
 
     # broadcast or targeted

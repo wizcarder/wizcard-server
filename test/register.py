@@ -19,7 +19,7 @@ from api_test import LeadScan
 
 
 TEST_IMAGE=True
-OCR_FLAG = False
+OCR_FLAG = True
 TEST_TABLE = True
 TEST_FLICK = False
 TEST_WIZWEB = False
@@ -28,6 +28,7 @@ SKIP_BASIC = False
 TEST_ENTITY = True
 CONTACTS_UPLOAD = False
 DO_RECO = False
+PGSQL_QUERY = False
 
 
 USERNAME1 = messages.PHONE1+'@wizcard.com'
@@ -1410,18 +1411,19 @@ if TEST_TABLE:
     objs = handle_response(conn, reqmsg['header']['msg_type'])
     tid_3 = objs['data']['result']['id']
 
-    # # entity query
-    # print "sending entity query"
-    # reqmsg = messages.entity_query
-    # reqmsg['header']['version'] = messages.APP_VERSION
-    # reqmsg['sender']['user_id'] = uid3
-    # reqmsg['sender']['wizuser_id'] = wuid3
-    # reqmsg['sender']['query_str'] = TABLENAME_Q
-    # reqmsg['sender']['entity_type'] = 'TBL'
-
-    send_request(conn, reqmsg)
-    # Parse and dump the JSON response from server
-    objs = handle_response(conn, reqmsg['header']['msg_type'])
+    if PGSQL_QUERY:
+        # entity query
+        print "sending entity query"
+        reqmsg = messages.entity_query
+        reqmsg['header']['version'] = messages.APP_VERSION
+        reqmsg['sender']['user_id'] = uid3
+        reqmsg['sender']['wizuser_id'] = wuid3
+        reqmsg['sender']['query_str'] = TABLENAME_Q
+        reqmsg['sender']['entity_type'] = 'TBL'
+        
+        send_request(conn, reqmsg)
+        # Parse and dump the JSON response from server
+        objs = handle_response(conn, reqmsg['header']['msg_type'])
 
     # entity summary
     print "sending entity summary"
