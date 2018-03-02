@@ -10,7 +10,7 @@
 		{
 			"name": "28.Campaign Create Nested Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/campaign/",
+				"url": "http://localhost:8000/entity/events/14/campaigns/",
 				"method": "POST",
 				"header": [
 					{
@@ -26,9 +26,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One Nested\",\n    \"address\": \"Product One Nested\",\n    \"website\": \"http://www.OneNested.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n    \t\"linkedIn\": \"www.linkedin.com/aammundi/nested\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n    \t{\n    \t\t\"ids\": [6], \"type\": \"e_media\"\n    \t}\n    ],\n    \"location\": {\n    \t\"lat\": 37.885938,\n    \t\"lng\": -122.506419\t\n    },\n    \"start\": \"2018-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product One Nested\",\n    \"address\": \"Product One Nested\",\n    \"website\": \"http://www.OneNested.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi/nested\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2018-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -51,9 +51,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"John Doe Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardnested.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/nested\",\n    \t\"linked\" : \"linkedin.com/john/nested\"\n    },\n    \"description\": \"Nested Campaign\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [4], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"John Doe Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardnested.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/nested\",\n      \"linked\" : \"linkedin.com/john/nested\"\n    },\n    \"description\": \"Nested Campaign\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -76,9 +76,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Cisco Systems Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardNested.com\",\n    \"designation\": \"Nested\",\n    \"ext_fields\": {\n    \t\"twitter\": \"twitter.com/john/Nested\",\n    \t\"linked\" : \"linkedin.com/john/Nested\"\n    },\n    \"description\": \"Nested\",\n    \"related\": [\n    \t{\n    \t\t\"ids\": [5], \"type\": \"e_media\"\n    \t}\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"Cisco Systems Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardNested.com\",\n    \"designation\": \"Nested\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/Nested\",\n      \"linked\" : \"linkedin.com/john/Nested\"\n    },\n    \"description\": \"Nested\",\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -101,9 +101,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"media_element\": \"http://www.eventone.nested.com\",\n\t\"media_iframe\": \"\",\n\t\"media_type\": \"IMG\",\n\t\"media_sub_type\": \"LGO\"\n}"
+					"raw": "{\n  \"media_element\": \"http://www.eventone.nested.com\",\n  \"media_iframe\": \"\",\n  \"media_type\": \"IMG\",\n  \"media_sub_type\": \"LGO\"\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -128,7 +128,7 @@
 					"mode": "raw",
 					"raw": "  {\n    \"name\": \"app_user1\",\n    \"email\": \"app_user1@getwizcard.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -153,7 +153,7 @@
 					"mode": "raw",
 					"raw": "  {\n    \"name\": \"exhibitor_user1\",\n    \"email\": \"exhibitor1@getwizcard.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -176,9 +176,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"user\": 4\n}"
+					"raw": "{\n  \"user\": 4\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -201,9 +201,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2016-10-25 14:30:59\",\n    \t\"end\": \"2016-10-25 14:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall A\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [6], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": "  {\n    \"items\" : [\n    {\n      \"start\": \"2016-10-25 14:30:59\",\n      \"end\": \"2016-10-25 14:30:59\",\n      \"description\": \"Basic Computer Programming\",\n      \"where\": \"Hall A\",\n      \"related\": [\n        {\n          \"ids\": [5], \"type\": \"e_media\"\n        }\n      ]\n  },\n    {\n      \"start\": \"2017-10-25 14:30:59\",\n      \"end\": \"2017-10-25 19:30:59\",\n      \"description\": \"Basic Computer Programming\",\n      \"where\": \"Hall B\",\n      \"related\": [\n        {\n          \"ids\": [6], \"type\": \"e_media\"\n        }\n      ]\n  }\n  ]\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -226,9 +226,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"description\": \"Poll 2\",\n\t\"questions\": [\n\t\t{\n\t\t\t\"question_type\": \"MCR\",\n\t\t\t\"ui_type\": \"SEL\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"A\",\n\t  \t\t\t\t\"question_value\": \"Anand\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"B\",\n\t  \t\t\t\t\"question_value\": \"Ablu\"\n\t  \t\t\t},\n\t  \t\t\t{\n\t  \t\t\t\t\"question_key\": \"C\",\n\t  \t\t\t\t\"question_value\": \"Ammundi\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"SCL\",\n\t  \t\t\"ui_type\": \"SLD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"low\": \"1\",\n\t  \t\t\t\t\"high\": \"5\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TOF\",\n\t  \t\t\"ui_type\": \"RAD\",\n\t  \t\t\"single_answer\": \"True\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": [\n\t  \t\t\t{\n\t  \t\t\t\t\"true_key\": \"Yes\",\n\t  \t\t\t\t\"false_key\": \"No\"\n\t  \t\t\t}\n\t  \t\t]\n\t\t},\n\t\t{\n\t\t\t\"question_type\": \"TXT\",\n\t  \t\t\"ui_type\": \"TEX\",\n\t  \t\t\"question\": \"What is your name\",\n\t  \t\t\"choices\": []\n\t\t}\n\t]\n}"
+					"raw": "{\n  \"description\": \"Poll 2\",\n  \"questions\": [\n    {\n      \"question_type\": \"MCR\",\n      \"ui_type\": \"SEL\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"question_key\": \"A\",\n            \"question_value\": \"Anand\"\n          },\n          {\n            \"question_key\": \"B\",\n            \"question_value\": \"Ablu\"\n          },\n          {\n            \"question_key\": \"C\",\n            \"question_value\": \"Ammundi\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"SCL\",\n        \"ui_type\": \"SLD\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"low\": \"1\",\n            \"high\": \"5\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TOF\",\n        \"ui_type\": \"RAD\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"true_key\": \"Yes\",\n            \"false_key\": \"No\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TXT\",\n        \"ui_type\": \"TEX\",\n        \"question\": \"What is your name\",\n        \"choices\": []\n    }\n  ]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -236,6 +236,29 @@
 			"name": "39.Taganomy Nested Create Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/taganomy/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Tag Set 3 from nested created\",\n  \"tags\": [\"1.nested\", \"2.nested\", \"3.nested\", \"4.nested\", \"5.nested\", \"6.nested\"]\n}"
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "40.BadgeTemplate Nested Create Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/badge/",
 				"method": "POST",
 				"header": [
 					{
@@ -251,16 +274,16 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Tag Set 3 from nested created\",\n\t\"tags\": [\"1.nested\", \"2.nested\", \"3.nested\", \"4.nested\", \"5.nested\", \"6.nested\"]\n}"
+					"raw": "{\n  \"company\": \"WizCard Inc Nested\",\n  \"title\": \"CEO Nested\",\n  \"name\": \"Anand Ammundi Nested\",\n  \"email\": \"anand.ammundi@getwizcard.com\",\n  \"ext_fields\": {\n    \"key1\": \"value1 Nested\",\n    \"key2\": \"value2 Nested\"\n  },\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ]\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
 		{
 			"name": "Campaign28 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/campaign/28/",
+				"url": "http://localhost:8000/entity/events/14/campaigns/28/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -278,14 +301,14 @@
 					"mode": "raw",
 					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
 		{
 			"name": "Campaign28 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/campaign/28/",
+				"url": "http://localhost:8000/entity/events/14/campaigns/28/",
 				"method": "PUT",
 				"header": [
 					{
@@ -303,7 +326,7 @@
 					"mode": "raw",
 					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -328,7 +351,7 @@
 					"mode": "raw",
 					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -353,7 +376,7 @@
 					"mode": "raw",
 					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -376,9 +399,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -401,9 +424,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -426,9 +449,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -451,9 +474,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -476,9 +499,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -501,9 +524,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -526,9 +549,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -551,9 +574,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -576,9 +599,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -601,9 +624,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -626,9 +649,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -651,9 +674,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -676,9 +699,9 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -701,9 +724,59 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n  \t\"items\" : [\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall C\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [4], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t},\n  \t{\n    \t\"start\": \"2017-10-25 14:30:59\",\n    \t\"end\": \"2017-10-25 19:30:59\",\n    \t\"description\": \"Basic Computer Programming\",\n    \t\"where\": \"Hall B\",\n    \t\"related\": [\n    \t\t{\n    \t\t\t\"ids\": [5], \"type\": \"e_media\"\n    \t\t}\n    \t]\n\t}\n\t]\n  }"
+					"raw": ""
 				},
-				"description": ""
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "BadgeTemplate.40 unlink Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/badge/40/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "BadgeTemplate.40 link Event 14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/badge/40/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": null
 			},
 			"response": []
 		}

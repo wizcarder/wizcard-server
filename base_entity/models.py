@@ -18,6 +18,8 @@ import ushlex as shlex
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from taggit.models import TaggedItem
+import itertools
+
 import pdb
 
 # Create your models here.
@@ -43,7 +45,7 @@ class BaseEntityComponentManager(PolymorphicManager):
 
         return content_type.get_all_objects_for_this_type(id__in=t_entities)
 
-    def notify_via_entity_parent(self, entity, notif_tuple):
+    def notify_via_entity_parent(self, entity, notif_tuple, notif_operation):
         # get parent entities
         parents = entity.get_parent_entities()
 
@@ -56,7 +58,7 @@ class BaseEntityComponentManager(PolymorphicManager):
                 notif_tuple=notif_tuple,
                 target=parent,
                 action_object=entity,
-                notif_operation=verbs.NOTIF_OPERATION_UPDATE
+                notif_operation=notif_operation
             ) for parent in parents if parent.is_active() & parent.has_subscribers()
         ]
 
@@ -455,35 +457,68 @@ class BaseEntityComponent(PolymorphicModel):
         return c
 
     def add_subentities(self, ids, type):
+        notif_sent = False
+
+        if not ids:
+            return [], notif_sent
+
         c = self.entity_cls_from_subentity_type(type)
         int_ids = map(lambda x: int(x), ids)
 
         objs = c.objects.filter(id__in=int_ids)
         for obj in objs:
-            self.add_subentity_obj(obj, alias=type)
+            notif_sent |= self.add_subentity_obj(obj, alias=type)
 
-        return objs
+        return objs, notif_sent
 
     def add_subentity_obj(self, obj, alias):
         self.related.connect(obj, alias=alias)
-        self.post_connect(obj)
-        return obj
+        return obj.post_connect(self)
 
-    def remove_sub_entities_of_type(self, entity_type):
-        self.related.filter(alias=entity_type).delete()
+    # kind of tagonomy's pattern. add any new ones, remove those not in the list
+    def add_remove_sub_entities_of_type(self, ids, type):
+        to_be_deleted_gfk_objs = self.get_gfk_sub_entities_of_type(type)
+        to_be_deleted_objs = to_be_deleted_gfk_objs.generic_objects()
+        to_be_deleted_ids = map(lambda x: x.id, to_be_deleted_objs)
+        new_obj_ids = []
 
-    def remove_sub_entity_obj(self, obj, entity_type):
-        self.related.filter(object_id=obj.id, alias=entity_type).delete()
-        self.post_connect(obj, notif_operation=verbs.NOTIF_OPERATION_DELETE)
+        for id in ids:
+            if id in to_be_deleted_ids:
+                idx = to_be_deleted_ids.index(id)
+                to_be_deleted_ids.remove(id)
+                del list(to_be_deleted_gfk_objs)[idx]
+                del to_be_deleted_objs[idx]
+            else:
+                new_obj_ids.append(id)
 
-    def get_sub_entities_of_type(self, entity_type, exclude=[ENTITY_STATE_DELETED]):
+        # add the new ones
+        objs, notif_sent = self.add_subentities(new_obj_ids, type)
+
+        # delete the rest
+        for obj, gfk_obj in itertools.izip(to_be_deleted_objs, to_be_deleted_gfk_objs):
+            notif_sent |= self.remove_sub_entity_obj(obj, type, gfk_obj)
+
+        return notif_sent
+
+    def remove_sub_entity_obj(self, obj, subentity_type, gfk_obj=None):
+        if not gfk_obj:
+            gfk_obj = self.related.filter(object_id=obj.id, alias=subentity_type)
+        gfk_obj.delete()
+
+        return obj.post_connect(self, notif_operation=verbs.NOTIF_OPERATION_DELETE)
+
+    def get_gfk_sub_entities_of_type(self, entity_type):
+        return self.related.filter(alias=entity_type)
+
+    def get_sub_entities_of_type(self, entity_type, **kwargs):
+        exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])
+
         subent = self.related.filter(alias=entity_type).generic_objects()
-        return [se for se in subent if se.entity_state not in exclude] if exclude \
-            else subent
+        return [se for se in subent if se.entity_state not in exclude]
 
-    def get_sub_entities_id_of_type(self, entity_type, exclude=[ENTITY_STATE_DELETED]):
+    def get_sub_entities_id_of_type(self, entity_type, **kwargs):
         # Ideally we could have avoided the 2 iterations, but this is to ensure that the logic is consistent across 2 functions
-        subent = self.get_sub_entities_of_type(entity_type, exclude)
+        subent = self.get_sub_entities_of_type(entity_type, **kwargs)
         return [se.id for se in subent]
 
     def get_media_filter(self, type, sub_type):
@@ -491,15 +526,17 @@ class BaseEntityComponent(PolymorphicModel):
 
         return [m for m in media if m.media_type in type and m.media_sub_type in sub_type]
 
-    def get_parent_entities(self, exclude=[ENTITY_STATE_DELETED]):
-        parents = self.related.related_to().generic_objects()
-        return [p for p in parents if p.entity_state not in exclude] if exclude \
-            else parents
+    def get_parent_entities(self, **kwargs):
+        exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])
 
-    def get_parent_entities_by_contenttype_id(self, contenttype_id, exclude=[ENTITY_STATE_DELETED]):
+        parents = self.related.related_to().generic_objects()
+        return [p for p in parents if p.entity_state not in exclude]
+
+    def get_parent_entities_by_contenttype_id(self, contenttype_id, **kwargs):
+        exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])
+
         parents = self.related.related_to().filter(parent_type_id=contenttype_id).generic_objects()
-        return [p for p in parents if p.entity_state not in exclude] if exclude \
-            else parents
+        return [p for p in parents if p.entity_state not in exclude]
 
     # is the instance of the kind that has notifiable users
     def has_subscribers(self):
@@ -519,20 +556,19 @@ class BaseEntityComponent(PolymorphicModel):
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
-    def post_connect(self, obj, **kwargs):
-        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_UPDATE)
-        if not self.is_notif_worthy(obj):
-            return
+    def post_connect(self, parent, **kwargs):
+        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
 
-        notify.send(self.get_creator(),
-                    recipient=self.get_creator(),
-                    notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
-                    target=self,
-                    action_object=obj,
-                    notif_operation=notif_operation
-                    )
+        notify.send(
+            self.get_creator(),
+            # recipient is dummy
+            recipient=self.get_creator(),
+            notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
+            target=parent,
+            action_object=self,
+            notif_operation=notif_operation
+        )
 
-    def is_notif_worthy(self, obj):
         return True
 
     def add_tags(self, taglist):

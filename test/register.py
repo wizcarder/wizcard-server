@@ -1420,7 +1420,7 @@ if TEST_TABLE:
         reqmsg['sender']['wizuser_id'] = wuid3
         reqmsg['sender']['query_str'] = TABLENAME_Q
         reqmsg['sender']['entity_type'] = 'TBL'
-
+        
         send_request(conn, reqmsg)
         # Parse and dump the JSON response from server
         objs = handle_response(conn, reqmsg['header']['msg_type'])

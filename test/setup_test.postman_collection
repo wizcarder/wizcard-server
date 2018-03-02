@@ -26,15 +26,14 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"username\": \"app_user1\",\n  \"email\": \"app.user1@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User1\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -57,15 +56,14 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"username\": \"app_user2\",\n  \"email\": \"app.user2@getwizcard.com\",\n  \"first_name\":\"App\",\n  \"last_name\":\"User2\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 1\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -88,15 +86,14 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"username\": \"organizer_user1\",\n  \"email\": \"organizer1@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User1\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -119,15 +116,14 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"username\": \"organizer_user2\",\n  \"email\": \"organizer2@getwizcard.com\",\n  \"first_name\":\"Organizer\",\n  \"last_name\":\"User2\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n  \"user_type\": 2\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -150,15 +146,14 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n   \"username\": \"exhibitor_user1\",\n   \"email\": \"exhibitor1@getwizcard.com\",\n  \"first_name\":\"Exhibitor\",\n  \"last_name\":\"User1\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n   \"user_type\": \"4\"\n}"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
@@ -181,15 +176,236 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
+						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n   \"username\": \"exhibitor_user2\",\n   \"email\": \"exhibitor2@getwizcard.com\",\n  \"first_name\":\"Exhibitor\",\n  \"last_name\":\"User2\",\n  \"password1\": \"yahoo@123\",\n  \"password2\": \"yahoo@123\",\n   \"user_type\": \"4\"\n}"
 				},
-				"description": ""
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/get_auth_token/",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"app_user1\", jsonData.token);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/get_auth_token/",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "app_user1",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
+				},
+				"description": "get auth token"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/get_auth_token/ copy copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"app_user2\", jsonData.token);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/get_auth_token/",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "app_user2",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
+				},
+				"description": "get auth token"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/get_auth_token/ copy copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"organizer_user1\", jsonData.token);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/get_auth_token/",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "organizer_user1",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
+				},
+				"description": "get auth token"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/get_auth_token/ copy copy copy copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"organizer_user2\", jsonData.token);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/get_auth_token/",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "organizer_user2",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
+				},
+				"description": "get auth token"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/get_auth_token/ copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"exhibitor_user1\", jsonData.token);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/get_auth_token/",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "exhibitor_user1",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
+				},
+				"description": "get auth token"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/get_auth_token/ copy copy copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"exhibitor_user2\", jsonData.token);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/get_auth_token/",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "exhibitor_user2",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yahoo@123",
+							"type": "text"
+						}
+					]
+				},
+				"description": "get auth token"
 			},
 			"response": []
 		}

@@ -22,8 +22,13 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
         if len(parents):
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
 
-        # notif stuff
-        BaseEntityComponent.objects.notify_via_entity_parent(instance, verbs.WIZCARD_ENTITY_DELETE)
+        # notif stuff. Doesn't look like this path will ever be exersised though since we don't allow
+        # delete of instance when it's linked.
+        BaseEntityComponent.objects.notify_via_entity_parent(
+            instance,
+            verbs.WIZCARD_ENTITY_DELETE,
+            verbs.NOTIF_OPERATION_DELETE
+        )
 
         instance.delete()
         return Response(status=status.HTTP_200_OK)

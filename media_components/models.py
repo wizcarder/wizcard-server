@@ -20,7 +20,9 @@ class MediaEntitiesQuerySet(PolymorphicQuerySet):
         super(MediaEntitiesQuerySet, self).delete()
 
     def users_media(self, user):
-        umedia = user.owners_baseentitycomponent_related.all().instance_of(MediaEntities).exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
+        umedia = user.owners_baseentitycomponent_related.all().instance_of(MediaEntities).exclude(
+            entity_state=BaseEntityComponent.ENTITY_STATE_DELETED
+        )
         return umedia
 
 
@@ -40,6 +42,9 @@ class MediaEntities(BaseEntityComponent, MediaMixin):
 
     def related_connect(self, owner_obj):
         owner_obj.connect(self, alias=ContentType.objects.get_for_model(self).name)
+
+    def post_connect(self, parent, **kwargs):
+        return False
 
 
 def media_create_handler(**kwargs):

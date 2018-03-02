@@ -20,21 +20,22 @@ class NotifParser:
 
     def process_one(self):
         notifTableHandler = {
-            verbs.NOTIF_ACCEPT_IMPLICIT :       self.accept_implicit,
-            verbs.NOTIF_ACCEPT_EXPLICIT :       self.accept_explicit,
-            verbs.NOTIF_DELETE_IMPLICIT :       self.delete_implicit,
-            verbs.NOTIF_ENTITY_EXPIRE   :       self.table_timeout,
-            verbs.NOTIF_UPDATE_WIZCARD_F  :     self.update_wizcard,
-            verbs.NOTIF_UPDATE_WIZCARD_H  :     self.update_wizcard,
-            verbs.NOTIF_NEARBY_USERS    :       self.nearby_users,
-            verbs.NOTIF_NEARBY_TABLES   :       self.nearby_tables,
-            verbs.NOTIF_FLICK_TIMEOUT   :       self.flick_timeout,
-            verbs.NOTIF_FLICK_PICK      :       self.flick_pick,
-            verbs.NOTIF_WITHDRAW_REQUEST   :    self.withdraw_request,
-            verbs.NOTIF_TABLE_INVITE    :       self.table_invite,
-            verbs.NOTIF_WIZCARD_FORWARD :       self.wizcard_forward,
-            verbs.NOTIF_ENTITY_JOIN :           self.table_join,
-            verbs.NOTIF_ENTITY_LEAVE :          self.table_leave,
+            verbs.NOTIF_ACCEPT_IMPLICIT:        self.accept_implicit,
+            verbs.NOTIF_ACCEPT_IMPLICIT_H:      self.accept_implicit_h,
+            verbs.NOTIF_ACCEPT_EXPLICIT:        self.accept_explicit,
+            verbs.NOTIF_DELETE_IMPLICIT:        self.delete_implicit,
+            verbs.NOTIF_ENTITY_EXPIRE:          self.table_timeout,
+            verbs.NOTIF_UPDATE_WIZCARD_F:       self.update_wizcard,
+            verbs.NOTIF_UPDATE_WIZCARD_H:       self.update_wizcard,
+            verbs.NOTIF_NEARBY_USERS:           self.nearby_users,
+            verbs.NOTIF_NEARBY_TABLES:          self.nearby_tables,
+            verbs.NOTIF_FLICK_TIMEOUT:          self.flick_timeout,
+            verbs.NOTIF_FLICK_PICK:             self.flick_pick,
+            verbs.NOTIF_WITHDRAW_REQUEST:       self.withdraw_request,
+            verbs.NOTIF_TABLE_INVITE:           self.table_invite,
+            verbs.NOTIF_WIZCARD_FORWARD:        self.wizcard_forward,
+            verbs.NOTIF_ENTITY_JOIN:            self.table_join,
+            verbs.NOTIF_ENTITY_LEAVE:           self.table_leave,
         }
 
         if self.count:
@@ -52,6 +53,10 @@ class NotifParser:
 
     def accept_implicit(self, data):
         print "received accept implicit from", data['wizuser_id']
+        pass
+
+    def accept_implicit_h(self, data):
+        print "received accept implicit half from", data['wizuser_id']
         pass
 
     def accept_explicit(self, data):

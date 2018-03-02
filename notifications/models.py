@@ -9,6 +9,7 @@ from datetime import timedelta
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
 from wizserver import verbs
+from base_entity.models import BaseEntityComponent
 
 
 import pdb
@@ -124,11 +125,20 @@ class BaseNotification(models.Model):
         self.save()
 
     def build_response_dict(self):
+        sub_entity_data = ""
+        operation=self.notif_operation
+
+        if operation == verbs.NOTIF_OPERATION_CREATE:
+            cls, ser = BaseEntityComponent.entity_cls_ser_from_type(self.sub_entity_type, detail=True)
+            sub_entity_data = ser(self.action_object, context={'user': self.recipient}).data
+
         return dict(
             entity_id=self.target.id,
-            entity_type=self.target_content_type.model,
+            entity_type=self.target.entity_type,
             sub_entity_id=self.action_object_object_id if self.action_object_object_id else "",
-            sub_entity_type=self.action_object_content_type.model if self.action_object_content_type else "",
+            sub_entity_type=self.action_object.entity_type if self.action_object else "",
+            operation=operation,
+            sub_entity_data=sub_entity_data,
             message=self.notification_text
         )
 
@@ -255,7 +265,8 @@ def notify_handler(sender, **kwargs):
     else:
         is_async = verbs.get_notif_is_async(notif_tuple)
 
-    if is_async:
+    # also check if there is someone to flood to. No point creating notif if no one
+    if is_async and target.flood_set(ntuple=notif_tuple, sender=actor):
         newnotify = AsyncNotification.objects.create(
             actor_content_type=ContentType.objects.get_for_model(actor),
             actor_object_id=actor.pk,
