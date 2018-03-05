@@ -27,10 +27,12 @@ reco_queue_name = 'reco'
 task_routes = {
     'lib.ocr.run_ocr': {'queue': ocr_queue_name},
     'notifications.push_tasks.push_notification_to_app': {'queue': pushnotif_queue_name},
-    'periodic.tasks.tick': {'queue': celery_default_queue},
+    'periodic.tasks.tick': {'queue': celery_beat_queue_name},
     'queued_storage.tasks.Transfer': {'queue': image_upload_queue_name},
     'queued_storage.tasks.TransferAndDelete': {'queue': image_upload_queue_name},
     'wizcard.celery.debug_task': {'queue': celery_default_queue},
+    'notifications.tasks.async_handler': {'queue': celery_beat_queue_name},
+    'entity.tasks.expire': {'queue': celery_beat_queue_name}
 }
 
 accept_content = ['pickle', 'json']
@@ -41,14 +43,16 @@ beat_schedule = {
     'tick': {
         'task': 'periodic.tasks.tick',
         'schedule': timedelta(seconds=60),
-#       'options': {'queue': celery_beat_queue_name}
+        'options': {'queue': celery_beat_queue_name}
     },
     'expire_events': {
         'task': 'entity.tasks.expire',
         'schedule': timedelta(seconds=86400),
+        'options': {'queue': celery_beat_queue_name}
     },
     'async_handler': {
         'task': 'notifications.tasks.async_handler',
         'schedule': timedelta(seconds=60),
+        'options': {'queue': celery_beat_queue_name}
     }
 }
