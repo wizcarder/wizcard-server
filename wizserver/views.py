@@ -2152,7 +2152,10 @@ class ParseMsgAndDispatch(object):
 
     # Entity Api's for App
     def EntityCreate(self):
-        e, s = BaseEntityComponent.entity_cls_ser_from_type(entity_type=self.sender.get('entity_type'))
+        e, s = BaseEntityComponent.entity_cls_ser_from_type_level(
+            entity_type=self.sender.get('entity_type'),
+            level=BaseEntityComponent.SERIALIZER_FULL
+        )
         entity = BaseEntityComponent.create(e, owner=self.user, is_creator=True, **self.sender)
 
         updated, loc = entity.create_or_update_location(self.lat, self.lng)
@@ -2182,10 +2185,14 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type', None)
         state = self.sender.get('state', None)
 
+        e, s = BaseEntity.entity_cls_ser_from_type_level(
+            entity_type=entity_type,
+            level=BaseEntityComponent.SERIALIZER_L2
+        )
+
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=BaseEntityComponent.SERIALIZER_L2)
             entity = e.objects.get(id=id)
-        except:
+        except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
@@ -2214,10 +2221,14 @@ class ParseMsgAndDispatch(object):
         id = self.sender.get('entity_id')
         entity_type = self.sender.get('entity_type')
 
+        e, s = BaseEntity.entity_cls_ser_from_type_level(
+            entity_type=entity_type,
+            level=BaseEntityComponent.SERIALIZER_L2
+        )
+
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
             entity = e.objects.get(id=id)
-        except:
+        except ObjectDoesNotExist:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 
@@ -2277,14 +2288,7 @@ class ParseMsgAndDispatch(object):
             **self.user_context
         ).data
 
-        user_events = EventSerializerL1(
-            my_events,
-            many=True,
-            **self.user_context
-        ).data
-
         self.response.add_data("recommended", recommended)
-        self.response.add_data("my_events", user_events)
 
         return self.response
 
@@ -2347,7 +2351,10 @@ class ParseMsgAndDispatch(object):
         query_str = self.sender['query_str']
         entity_type = self.sender.get('entity_type')
 
-        e, s = BaseEntity.entity_cls_ser_from_type(entity_type)
+        e, s = BaseEntity.entity_cls_ser_from_type_level(
+            entity_type=entity_type,
+            level=BaseEntityComponent.SERIALIZER_L2
+        )
 
         result, count = e.objects.combine_search(query_str)
 
@@ -2361,7 +2368,10 @@ class ParseMsgAndDispatch(object):
 
     def MyEntities(self):
         entity_type = self.sender.get('entity_type')
-        cls, s = BaseEntity.entity_cls_ser_from_type(entity_type)
+        cls, s = BaseEntity.entity_cls_ser_from_type_level(
+            entity_type=entity_type,
+            level=BaseEntityComponent.SERIALIZER_L2
+        )
 
         entities = cls.objects.users_entities(
             self.user,
@@ -2381,13 +2391,16 @@ class ParseMsgAndDispatch(object):
     def EntityDetails(self):
         id = self.sender.get('entity_id')
         entity_type = self.sender.get('entity_type')
-        detail = self.sender.get('detail', True)
+        level = self.sender.get('level')
         # Should be in the format "YYYY-mm-ddTHH-MM-SS-HH:MM"
         timestamp = self.sender.get('timestamp', wizlib.get_epoch_time())
         fields = self.sender.get('fields', None)
 
         try:
-            e, s = BaseEntity.entity_cls_ser_from_type(entity_type, detail=detail)
+            e, s = BaseEntity.entity_cls_ser_from_type_level(
+                entity_type=entity_type,
+                level=level
+            )
             entity = e.objects.get(id=id)
 
             c_timestamp = parser.parse(timestamp)

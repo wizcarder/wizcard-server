@@ -93,6 +93,13 @@ class Campaign(BaseEntity):
 
     objects = CampaignManager()
 
+    def post_connect(self, parent, **kwargs):
+        # don't send notif here if is parent is Taganomy.
+        if parent.entity_type == BaseEntityComponent.CATEGORY:
+            return False
+
+        return super(Campaign, self).post_connect(parent, **kwargs)
+
 
 class VirtualTableManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.TABLE):
