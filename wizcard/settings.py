@@ -48,7 +48,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-test',
+                'NAME': 'wizcard-marathon-test',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
                 'HOST': 'wizcard-prod-live.cn2wvth0wbg5.ap-south-1.rds.amazonaws.com',
@@ -175,6 +175,8 @@ TEMPLATES = [
         'OPTIONS' : { 'context_processors': [ 'django.contrib.auth.context_processors.auth'], },
     },
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
