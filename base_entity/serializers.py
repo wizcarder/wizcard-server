@@ -132,7 +132,7 @@ class EntitySerializer(EntitySerializerL0):
         self._tags = validated_data.pop('taganomy', None)
 
     def create(self, validated_data):
-        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(validated_data['entity_type'])
+        cls = BaseEntityComponent.entity_cls_from_type(validated_data['entity_type'])
 
         obj = BaseEntityComponent.create(
             cls,

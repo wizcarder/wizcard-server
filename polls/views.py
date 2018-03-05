@@ -40,8 +40,8 @@ class PollViewSet(BaseEntityComponentViewSet):
         if not poll.is_active():
             return Response("Please activate poll %s first. " % poll.description, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
-        entity = get_object_or_404(cls, pk=entity_id)
+        c = BaseEntityComponent.entity_cls_from_type(entity_type)
+        entity = get_object_or_404(c, pk=entity_id)
 
         entity.add_subentity_obj(poll, BaseEntityComponent.POLL)
 
@@ -53,8 +53,8 @@ class PollViewSet(BaseEntityComponentViewSet):
         entity_type = request.POST['entity_type']
         entity_id = request.POST['entity_id']
 
-        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type)
-        entity = get_object_or_404(cls, entity_id)
+        c = BaseEntityComponent.entity_cls_from_type(entity_type)
+        entity = get_object_or_404(c, entity_id)
 
         entity.remove_sub_entity_obj(poll, BaseEntityComponent.POLL)
 

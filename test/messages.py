@@ -640,7 +640,7 @@ entity_summary = {
         "user_id" : "",
         "wizuser_id" : "",
         "entity_id": "",
-        "detail": 1
+        "level": 1
     }
 }
 
@@ -655,7 +655,7 @@ entity_details = {
         "user_id" : "",
         "wizuser_id" : "",
         "entity_id": "",
-        "detail": 2
+        "level": 2
     }
 }
 

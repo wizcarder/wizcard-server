@@ -33,7 +33,7 @@ class BaseEntityComponentManager(PolymorphicManager):
         if not entity_type:
             return user.owners_baseentitycomponent_related.all().distinct()
 
-        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
+        cls = BaseEntityComponent.entity_cls_from_type(entity_type=entity_type)
         return user.owners_baseentitycomponent_related.all().instance_of(cls).exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
 
     def get_tagged_entities(self, tags, entity_type):
@@ -127,7 +127,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         sv = SearchVector('name', weight='A') + SearchVector('description', weight='B')
         if not entity_type:
             return BaseEntity.objects.annotate(rank=SearchRank(sv, q)).order_by('-rank')
-        cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
+        cls = BaseEntityComponent.entity_cls_from_type(entity_type=entity_type)
         return cls.objects.annotate(rank=SearchRank(sv, q)).order_by('-rank')
 
     def combine_search(self, query, entity_type=None):
@@ -170,7 +170,7 @@ class BaseEntityComponent(PolymorphicModel):
     SERIALIZER_L0 = 0
     SERIALIZER_L1 = 1
     SERIALIZER_L2 = 2
-    SERIALIZER_CREATE = 3
+    SERIALIZER_FULL = 3
 
     ENTITY_CHOICES = (
         (EVENT, 'Event'),
@@ -310,14 +310,7 @@ class BaseEntityComponent(PolymorphicModel):
             ).delete()
 
     @classmethod
-    def entity_cls_ser_from_type(cls, entity_type=None, detail=SERIALIZER_L1):
-        from entity.serializers import EventSerializerL2, EventSerializer, EventSerializerL0, EventSerializerL1, \
-            TableSerializerL1, TableSerializerL2, TableSerializer, EntitySerializer, \
-            CampaignSerializerL1, CampaignSerializer, CampaignSerializerL2, CoOwnersSerializer, \
-            SpeakerSerializerL2, SpeakerSerializer, SponsorSerializerL2, SponsorSerializerL1, SponsorSerializer, AttendeeInviteeSerializer, \
-            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
-        from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
-        from entity.serializers import TaganomySerializer, TaganomySerializerL2
+    def entity_cls_from_type(cls, entity_type):
         from taganomy.models import Taganomy
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
@@ -327,88 +320,136 @@ class BaseEntityComponent(PolymorphicModel):
         from scan.models import ScannedEntity, BadgeTemplate
 
         if entity_type == cls.EVENT:
-            c = Event
-            if detail == BaseEntityComponent.SERIALIZER_L0:
-                s = EventSerializerL0
-            elif detail == BaseEntityComponent.SERIALIZER_L2:
-                s = EventSerializerL2
-            elif detail == BaseEntityComponent.SERIALIZER_CREATE:
-                s = EventSerializer
-            else:
-                s = EventSerializerL1
+            return Event
         elif entity_type == cls.CAMPAIGN:
-            c = Campaign
-            if detail == BaseEntityComponent.SERIALIZER_L2:
-                s = CampaignSerializerL2
-            elif detail == BaseEntityComponent.SERIALIZER_CREATE:
-                s = CampaignSerializer
-            else:
-                s = CampaignSerializerL1
+            return Campaign
         elif entity_type == cls.TABLE:
-            c = VirtualTable
-            if detail == BaseEntityComponent.SERIALIZER_L1:
-                s = TableSerializerL1
-            elif detail == BaseEntityComponent.SERIALIZER_L2:
-                s = TableSerializerL2
-            elif detail == BaseEntityComponent.SERIALIZER_CREATE:
-                s = TableSerializer
+            return VirtualTable
         elif entity_type == cls.ATTENDEE_INVITEE:
-            c = AttendeeInvitee
-            s = AttendeeInviteeSerializer
+            return AttendeeInvitee
         elif entity_type == cls.EXHIBITOR_INVITEE:
-            c = ExhibitorInvitee
-            s = ExhibitorInviteeSerializer
+            return ExhibitorInvitee
         elif entity_type == cls.MEDIA:
-            c = MediaEntities
-            s = MediaEntitiesSerializer
+            return MediaEntities
         elif entity_type == cls.COOWNER:
-            c = CoOwners
-            s = CoOwnersSerializer
+            return CoOwners
         elif entity_type == cls.SPEAKER:
-            c = Speaker
-            s = SpeakerSerializer if detail == BaseEntityComponent.SERIALIZER_CREATE else SpeakerSerializerL2
+            return Speaker
         elif entity_type == cls.SPONSOR:
-            c = Sponsor
-            if detail == BaseEntityComponent.SERIALIZER_L2:
-                s = SponsorSerializerL2
-            elif detail == BaseEntityComponent.SERIALIZER_CREATE:
-                s = SponsorSerializer
-            else:
-                s = SponsorSerializerL1
+            return Sponsor
         elif entity_type == cls.MEDIA:
-            c = MediaEntities
-            s = MediaEntitiesSerializer
-            cr = s
+            return MediaEntities
         elif entity_type == cls.AGENDA:
-            c = Agenda
-            s = AgendaSerializer
-            cr = s
+            return Agenda
         elif entity_type == cls.AGENDA_ITEM:
-            c = AgendaItem
-            s = AgendaItemSerializer
-            cr = s
+            return AgendaItem
         elif entity_type == cls.POLL:
-            c = Poll
-            s = PollSerializerL1 if detail == BaseEntityComponent.SERIALIZER_L1 else PollSerializer
+            return Poll
         elif entity_type == cls.BADGE_TEMPLATE:
-            c = BadgeTemplate
-            s = BadgeTemplateSerializer
+            return BadgeTemplate
         elif entity_type == cls.SCANNED_USER:
-            c = ScannedEntity
-            s = ScannedEntitySerializer
+            return ScannedEntity
         elif entity_type == cls.CATEGORY:
-            c = Taganomy
-            s = TaganomySerializerL2 if detail == BaseEntityComponent.SERIALIZER_L2 else TaganomySerializer
+            return Taganomy
         else:
-            c = BaseEntityComponent
-            s = EntitySerializer
+            raise RuntimeError('invalid entity_type: %s', entity_type)
+
+    @classmethod
+    def entity_ser_from_type_and_level(cls, entity_type, level=SERIALIZER_FULL):
+        from entity.serializers import EventSerializerL2, EventSerializer, EventSerializerL0, EventSerializerL1, \
+            TableSerializerL1, TableSerializerL2, TableSerializer, EntitySerializer, \
+            CampaignSerializerL1, CampaignSerializer, CampaignSerializerL2, CoOwnersSerializer, \
+            SpeakerSerializerL2, SpeakerSerializer, SponsorSerializerL2, SponsorSerializerL1, SponsorSerializer, AttendeeInviteeSerializer, \
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
+        from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
+        from entity.serializers import TaganomySerializer, TaganomySerializerL2
+        from media_components.serializers import MediaEntitiesSerializer
+
+        ser_mapping = {
+            cls.EVENT: {
+                cls.SERIALIZER_L0: EventSerializerL0,
+                cls.SERIALIZER_L1: EventSerializerL1,
+                cls.SERIALIZER_L2: EventSerializerL2,
+                cls.SERIALIZER_FULL: EventSerializerL2
+            },
+            cls.CAMPAIGN: {
+                cls.SERIALIZER_L0: CampaignSerializerL1,
+                cls.SERIALIZER_L1: CampaignSerializerL1,
+                cls.SERIALIZER_L2: CampaignSerializerL2,
+                cls.SERIALIZER_FULL: CampaignSerializer
+            },
+            cls.TABLE: {
+                cls.SERIALIZER_L0: TableSerializerL1,
+                cls.SERIALIZER_L1: TableSerializerL1,
+                cls.SERIALIZER_L2: TableSerializerL2,
+                cls.SERIALIZER_FULL: TableSerializer
+            },
+            cls.ATTENDEE_INVITEE: {
+                cls.SERIALIZER_FULL: AttendeeInviteeSerializer
+            },
+            cls.EXHIBITOR_INVITEE: {
+                cls.SERIALIZER_FULL: ExhibitorInviteeSerializer
+            },
+            cls.MEDIA: {
+                cls.SERIALIZER_FULL: MediaEntitiesSerializer
+            },
+            cls.COOWNER: {
+                cls.SERIALIZER_FULL: CoOwnersSerializer
+            },
+            cls.SPEAKER: {
+                cls.SERIALIZER_L0: SpeakerSerializerL2,
+                cls.SERIALIZER_L1: SpeakerSerializerL2,
+                cls.SERIALIZER_L2: SpeakerSerializerL2,
+                cls.SERIALIZER_FULL: SpeakerSerializer
+            },
+            cls.SPONSOR: {
+                cls.SERIALIZER_L0: SponsorSerializerL1,
+                cls.SERIALIZER_L1: SponsorSerializerL1,
+                cls.SERIALIZER_L2: SponsorSerializerL2,
+                cls.SERIALIZER_FULL: SponsorSerializer
+            },
+            cls.AGENDA: {
+                cls.SERIALIZER_L0: AgendaSerializer,
+                cls.SERIALIZER_L1: AgendaSerializer,
+                cls.SERIALIZER_L2: AgendaSerializer,
+                cls.SERIALIZER_FULL: AgendaSerializer
+            },
+            cls.AGENDA_ITEM: {
+                cls.SERIALIZER_L0: AgendaItemSerializer,
+                cls.SERIALIZER_L1: AgendaItemSerializer,
+                cls.SERIALIZER_L2: AgendaItemSerializer,
+                cls.SERIALIZER_FULL: AgendaItemSerializer
+            },
+            cls.POLL: {
+                cls.SERIALIZER_L0: PollSerializerL1,
+                cls.SERIALIZER_L1: PollSerializerL1,
+                cls.SERIALIZER_L2: PollSerializer,
+                cls.SERIALIZER_FULL: PollSerializer
+            },
+            cls.SCANNED_USER: {
+                cls.SERIALIZER_FULL: ScannedEntitySerializer
+            },
+            cls.CATEGORY: {
+                cls.SERIALIZER_L0: TaganomySerializerL2,
+                cls.SERIALIZER_L1: TaganomySerializerL2,
+                cls.SERIALIZER_L2: TaganomySerializerL2,
+                cls.SERIALIZER_FULL: TaganomySerializer
+            }
+        }
+
+        return ser_mapping[entity_type][level]
+
+    @classmethod
+    def entity_cls_ser_from_type_level(cls, entity_type=None, level=SERIALIZER_FULL):
+        c = cls.entity_cls_from_type(entity_type)
+        s = cls.entity_ser_from_type_and_level(entity_type, level)
 
         return c, s
 
     @classmethod
     def content_type_from_entity_type(cls, entity_type):
-        _cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type=entity_type)
-        return ContentType.objects.get_for_model(_cls)
+        c = BaseEntityComponent.entity_cls_from_type(entity_type=entity_type)
+        return ContentType.objects.get_for_model(c)
 
     @classmethod
     def sub_entity_type_from_entity_type(cls, entity_type):

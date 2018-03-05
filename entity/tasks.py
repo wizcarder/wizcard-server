@@ -25,7 +25,10 @@ def expire():
 def create_entities(file, entity_type, owner):
     record_no = 0
     problematic_records = []
-    cls, ser = BaseEntityComponent.entity_cls_ser_from_type(entity_type, detail=BaseEntityComponent.SERIALIZER_CREATE)
+    ser = BaseEntityComponent.entity_ser_from_type_and_level(
+        entity_type,
+        level=BaseEntityComponent.SERIALIZER_FULL
+    )
 
     schema = feed_schemas[entity_type]
     schema_fields_len = len(schema)

@@ -9,7 +9,6 @@ from datetime import timedelta
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
 from wizserver import verbs
-from base_entity.models import BaseEntityComponent
 
 
 import pdb
@@ -129,7 +128,11 @@ class BaseNotification(models.Model):
         operation=self.notif_operation
 
         if operation == verbs.NOTIF_OPERATION_CREATE:
-            cls, ser = BaseEntityComponent.entity_cls_ser_from_type(self.sub_entity_type, detail=True)
+            from base_entity.models import BaseEntityComponent
+            ser = BaseEntityComponent.entity_ser_from_type_and_level(
+                self.action_object.entity_type,
+                level=BaseEntityComponent.SERIALIZER_FULL
+            )
             sub_entity_data = ser(self.action_object, context={'user': self.recipient}).data
 
         return dict(
