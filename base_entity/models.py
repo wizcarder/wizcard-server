@@ -317,7 +317,6 @@ class BaseEntityComponent(PolymorphicModel):
         from entity.models import Event, Campaign, VirtualTable, \
             Speaker, Sponsor, AttendeeInvitee, ExhibitorInvitee, CoOwners, Agenda, AgendaItem
         from media_components.models import MediaEntities
-        from media_components.serializers import MediaEntitiesSerializer
         from polls.models import Poll
         from scan.models import ScannedEntity, BadgeTemplate
 
@@ -359,7 +358,7 @@ class BaseEntityComponent(PolymorphicModel):
     @classmethod
     def entity_ser_from_type_and_level(cls, entity_type, level=SERIALIZER_FULL):
         from entity.serializers import EventSerializerL2, EventSerializer, EventSerializerL0, EventSerializerL1, \
-            TableSerializerL1, TableSerializerL2, TableSerializer, EntitySerializer, \
+            TableSerializerL1, TableSerializerL2, TableSerializer, \
             CampaignSerializerL1, CampaignSerializer, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SpeakerSerializer, SponsorSerializerL2, SponsorSerializerL1, SponsorSerializer, AttendeeInviteeSerializer, \
             ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
@@ -372,7 +371,7 @@ class BaseEntityComponent(PolymorphicModel):
                 cls.SERIALIZER_L0: EventSerializerL0,
                 cls.SERIALIZER_L1: EventSerializerL1,
                 cls.SERIALIZER_L2: EventSerializerL2,
-                cls.SERIALIZER_FULL: EventSerializerL2
+                cls.SERIALIZER_FULL: EventSerializer
             },
             cls.CAMPAIGN: {
                 cls.SERIALIZER_L0: CampaignSerializerL1,
@@ -436,6 +435,9 @@ class BaseEntityComponent(PolymorphicModel):
                 cls.SERIALIZER_L1: TaganomySerializerL2,
                 cls.SERIALIZER_L2: TaganomySerializerL2,
                 cls.SERIALIZER_FULL: TaganomySerializer
+            },
+            cls.BADGE_TEMPLATE: {
+                cls.SERIALIZER_FULL: BadgeTemplateSerializer
             }
         }
 

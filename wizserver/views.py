@@ -2185,10 +2185,7 @@ class ParseMsgAndDispatch(object):
         entity_type = self.sender.get('entity_type', None)
         state = self.sender.get('state', None)
 
-        e, s = BaseEntity.entity_cls_ser_from_type_level(
-            entity_type=entity_type,
-            level=BaseEntityComponent.SERIALIZER_L2
-        )
+        e = BaseEntity.entity_cls_from_type(entity_type)
 
         try:
             entity = e.objects.get(id=id)
@@ -2198,12 +2195,16 @@ class ParseMsgAndDispatch(object):
 
         if state == UserEntity.JOIN:
             entity.user_attach(self.user, state, do_notify=True)
+            s = BaseEntity.entity_ser_from_type_and_level(
+                entity_type=entity_type,
+                level=BaseEntityComponent.SERIALIZER_L2
+            )
             out = s(entity, **self.user_context).data
             self.response.add_data("result", out)
             return self.response
         elif state == UserEntity.LEAVE:
             entity.user_detach(self.user, state=state)
-            out = s(entity, **self.user_context).data
+            out = dict(entity_id=entity.id)
             self.response.add_data("result", out)
             return self.response
         elif state == UserEntity.PIN:
@@ -2213,8 +2214,7 @@ class ParseMsgAndDispatch(object):
             entity.user_detach(self.user, state=state)
             self.EventsGet()
         else:
-            # AA: Review: there are other better error codes
-            self.response.error_response(err.CRITICAL_ERROR)
+            self.response.error_response(err.INVALID_MESSAGE)
             return self.response
 
     def EntityEdit(self):
