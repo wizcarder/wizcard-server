@@ -84,7 +84,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         # REST API filters that portal can use
         if count and not count_only:
             entities = self.filter(id__in=result, entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
-        return entities, count
+        return entities, entities.count()
 
     def owners_entities(self, user, entity_type=None):
         return BaseEntityComponent.objects.owners_entities(user, entity_type)
