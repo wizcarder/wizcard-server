@@ -70,6 +70,13 @@ class Event(BaseEntity):
         # no parent for event
         return [self]
 
+    def delete(self, *args, **kwargs):
+        self.related.all().delete()
+        if self.location.exists():
+            self.location.get().delete()
+
+        super(Event, self).delete(*args, **kwargs)
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):

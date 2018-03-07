@@ -58,6 +58,10 @@ class EventViewSet(BaseEntityViewSet):
         queryset = Event.objects.owners_entities(user)
         return queryset
 
+    def perform_destroy(self, instance):
+        instance.delete()
+        return Response(status=status.HTTP_200_OK)
+
     @detail_route(methods=['post'])
     def invite_exhibitors(self, request, pk=None):
         inst = get_object_or_404(Event, pk=pk)
