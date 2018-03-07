@@ -73,10 +73,10 @@ class Event(BaseEntity):
 
     def delete(self, *args, **kwargs):
         self.related.all().delete()
-        self.location.all().delete()
+        if self.location.exists():
+            self.location.get().delete()
 
-        super(Event, self).delete()
-
+        super(Event, self).delete(*args, **kwargs)
 
 
 class CampaignManager(BaseEntityManager):
