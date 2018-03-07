@@ -501,59 +501,58 @@ class BaseEntityComponent(PolymorphicModel):
 
         return c
 
+    # this does not send notif
     def add_subentities(self, ids, type):
-        notif_sent = False
-
         if not ids:
-            return [], notif_sent
+            return []
 
         c = self.entity_cls_from_subentity_type(type)
         int_ids = map(lambda x: int(x), ids)
 
         objs = c.objects.filter(id__in=int_ids)
         for obj in objs:
-            notif_sent |= self.add_subentity_obj(obj, alias=type)
+            self.related.connect(obj, alias=type)
 
-        return objs, notif_sent
+        return objs
 
-    def add_subentity_obj(self, obj, alias):
-        self.related.connect(obj, alias=alias)
-        return obj.post_connect(self)
+    # this does not send notif
+    def remove_subentities(self, ids, type):
+        if not ids:
+            return
+
+        int_ids = map(lambda x: int(x), ids)
+
+        self.related.filter(object_id__in=int_ids, alias=type).delete()
 
     # kind of tagonomy's pattern. add any new ones, remove those not in the list
+    # this does not send notif
     def add_remove_sub_entities_of_type(self, ids, type):
-        to_be_deleted_gfk_objs = self.get_gfk_sub_entities_of_type(type)
-        to_be_deleted_objs = to_be_deleted_gfk_objs.generic_objects()
-        to_be_deleted_ids = map(lambda x: x.id, to_be_deleted_objs)
+        to_be_deleted_ids_qs = self.related.filter(alias=type)
         new_obj_ids = []
 
         for id in ids:
-            if id in to_be_deleted_ids:
-                idx = to_be_deleted_ids.index(id)
-                to_be_deleted_ids.remove(id)
-                del list(to_be_deleted_gfk_objs)[idx]
-                del to_be_deleted_objs[idx]
+            if to_be_deleted_ids_qs.filter(object_id=id).exists():
+                to_be_deleted_ids_qs = to_be_deleted_ids_qs.exclude(object_id=id)
             else:
                 new_obj_ids.append(id)
 
         # add the new ones
-        objs, notif_sent = self.add_subentities(new_obj_ids, type)
+        self.add_subentities(new_obj_ids, type)
 
         # delete the rest
-        for obj, gfk_obj in itertools.izip(to_be_deleted_objs, to_be_deleted_gfk_objs):
-            notif_sent |= self.remove_sub_entity_obj(obj, type, gfk_obj)
+        to_be_deleted_ids_qs.delete()
 
-        return notif_sent
+    def add_subentity_obj(self, obj, alias, **kwargs):
+        self.related.connect(obj, alias=alias)
+        kwargs.update(notif_operation=verbs.NOTIF_OPERATION_CREATE)
 
-    def remove_sub_entity_obj(self, obj, subentity_type, gfk_obj=None):
-        if not gfk_obj:
-            gfk_obj = self.related.filter(object_id=obj.id, alias=subentity_type)
-        gfk_obj.delete()
+        return obj.post_connect(self, **kwargs)
 
-        return obj.post_connect(self, notif_operation=verbs.NOTIF_OPERATION_DELETE)
+    def remove_sub_entity_obj(self, obj, subentity_type, **kwargs):
+        self.related.filter(object_id=obj.id, alias=subentity_type).delete()
+        kwargs.update(notif_operation=verbs.NOTIF_OPERATION_DELETE)
 
-    def get_gfk_sub_entities_of_type(self, entity_type):
-        return self.related.filter(alias=entity_type)
+        return obj.post_connect(self, **kwargs)
 
     def get_sub_entities_of_type(self, entity_type, **kwargs):
         exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])
@@ -603,18 +602,20 @@ class BaseEntityComponent(PolymorphicModel):
     # override this in the derived classes to achieve the same
     def post_connect(self, parent, **kwargs):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
+        send_notif = kwargs.pop('send_notif', True)
 
-        notify.send(
-            self.get_creator(),
-            # recipient is dummy
-            recipient=self.get_creator(),
-            notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
-            target=parent,
-            action_object=self,
-            notif_operation=notif_operation
-        )
+        if send_notif:
+            notify.send(
+                self.get_creator(),
+                # recipient is dummy
+                recipient=self.get_creator(),
+                notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
+                target=parent,
+                action_object=self,
+                notif_operation=notif_operation
+            )
 
-        return True
+        return send_notif
 
     def add_tags(self, taglist):
         self.tags.add(*taglist)

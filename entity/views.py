@@ -80,7 +80,10 @@ class EventViewSet(BaseEntityViewSet):
         new_exhibitors = [x for x in exhibitor_invitees if x not in existing_exhibitors.values_list('id', flat=True)]
 
         # relate these with Event
-        invited_exhibitors, notif_sent = inst.add_subentities(new_exhibitors, BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
+        invited_exhibitors = inst.add_subentities(
+            new_exhibitors,
+            BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE
+        )
         for i in invited_exhibitors:
             i.state = ExhibitorInvitee.INVITED
             i.save()
@@ -105,7 +108,10 @@ class EventViewSet(BaseEntityViewSet):
         new_attendees = [x for x in attendee_invitees if x not in existing_attendees.values_list('id', flat=True)]
 
         # relate these with Event
-        invited_attendees, notif_sent = inst.add_subentities(new_attendees, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        invited_attendees = inst.add_subentities(
+            new_attendees,
+            BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE
+        )
         for i in invited_attendees:
             i.state = AttendeeInvitee.INVITED
             i.save()
@@ -562,7 +568,7 @@ class EventMediaViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Media %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        event.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
+        event.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA, send_notif=True)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -1155,7 +1161,7 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
             return Response("campaign id %s not associated with Media %s " % (campaigns_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
+        campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA, send_notif=True)
 
         return Response(status=status.HTTP_200_OK)
 
