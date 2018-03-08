@@ -317,66 +317,33 @@ class AsyncNotifResponse:
 
     def notifNewUser(self, notif):
         wizcard = notif.target
-
-        try:
-            to = notif.target.get_email
-        except:
-            # AA: Review. No c-like returns
-            return -1
-
+        to = notif.target.get_email
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard.delay(wizcard, to, email_details, half_card=True)
+        send_wizcard(wizcard, to, email_details, half_card=True)
 
         return 0
 
     def notifScannedUser(self, notif):
         wizcard = notif.actor.wizcard
-
-        # AA: Review. Why should this be in try_except. This is an internal method being called.
-        # if there is an exception, it means it's a bug. Why mask it ?? If the reasoning is that
-        # this is a scanned user, hence email may not be valid - Then the try_except doesn't help anyway
-        try:
-            to = notif.target.get_email
-        except:
-            # AA: Review. AR to fix (and below, above)
-            return -1
-        
+        to = notif.target.get_email
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_wizcard.delay(wizcard, to, email_details, half_card=True)
-
-        # AA: Review. PLSSS...enough of C like code.
-        return 0
+        send_wizcard(wizcard, to, email_details, half_card=True)
 
     def notifInviteUser(self, notif):
         wizcard = notif.actor.wizcard
-
-        try:
-            to = notif.target.get_email
-        except:
-            return -1
-
+        to = notif.target.email
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        
-        # AA: Review: Why does this need to be .delay. This caller
-        # is already in celery context
-        send_wizcard.delay(wizcard, to, email_details)
+        send_wizcard(wizcard, to, email_details)
 
-        return 0
 
     def notifInviteExhibitor(self, notif):
         event_organizer = notif.actor
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-
-        send_event.delay(event_organizer, notif.recipient, email_details)
-
-        return 0
+        send_event(event_organizer, notif.recipient, email_details)
 
     def notifInviteAttendee(self, notif):
         event_organizer = notif.actor
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        
-        send_event.delay(event_organizer, notif.recipient, email_details)
-
-        return 0
+        send_event(event_organizer, notif.recipient, email_details)
 
 

@@ -442,6 +442,9 @@ class FutureUser(models.Model):
                 target=self.content_object
             )
 
+    def flood_set(self, **kwargs):
+        return True
+
 
 # Model for Address-Book Support. Standard M2M-through
 MIN_MATCHES_FOR_PHONE_DECISION = 3

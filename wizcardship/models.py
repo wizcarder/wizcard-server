@@ -320,9 +320,15 @@ class Wizcard(WizcardBase):
     # typically kwargs can contain the notif tuple
     def flood_set(self, **kwargs):
 
-        # full card for connections and half for followers
-        fs_w = self.get_connections() if verbs.get_notif_type(kwargs.pop('ntuple')) == verbs.NOTIF_UPDATE_WIZCARD_F \
-            else self.get_followers_only()
+        notif_type = verbs.get_notif_type(kwargs.pop('ntuple', verbs.WIZCARD_NULL))
+
+        # full card for connections and half for followers and self in case of NEW USER
+        if notif_type == verbs.NOTIF_UPDATE_WIZCARD_F:
+            fs_w = self.get_connections()
+        elif notif_type == verbs.NOTIF_NEW_WIZUSER:
+            fs_w = [self]
+        else:
+            fs_w = self.get_followers_only()
 
         fs_u = [x.user for x in fs_w]
         return fs_u
@@ -478,6 +484,9 @@ class DeadCard(WizcardBase):
 
     def get_context(self):
         return self.cctx
+
+    def flood_set(self, **kwargs):
+        return True
 
 
 class ContactContainer(CompanyTitleMixin):
