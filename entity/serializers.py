@@ -253,7 +253,7 @@ class EventSerializer(EntitySerializer):
 class EventSerializerL0(EntitySerializer):
     class Meta:
         model = Event
-        fields = ('id', 'name', 'media', 'start', 'end')
+        fields = ('id', 'name', 'media', 'start', 'end', 'user_state',)
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(

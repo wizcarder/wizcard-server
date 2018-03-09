@@ -342,7 +342,7 @@ class AppUser(BaseUser):
         # events. Using L1 serializer. App will call detail on these events when needed.
         cls, s = BaseEntityComponent.entity_cls_ser_from_type_level(
             entity_type=BaseEntityComponent.EVENT,
-            level=BaseEntityComponent.SERIALIZER_L1
+            level=BaseEntityComponent.SERIALIZER_L0
         )
 
         events = cls.objects.users_entities(
@@ -350,7 +350,7 @@ class AppUser(BaseUser):
             user_filter={'state__in': [UserEntity.JOIN, UserEntity.PIN]}
         )
 
-        if events.count():
+        if len(events):
             evts = s(events, many=True, **self.user_context).data
             s['events'] = evts
 
