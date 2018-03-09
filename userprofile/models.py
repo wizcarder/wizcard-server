@@ -339,6 +339,21 @@ class AppUser(BaseUser):
             camp_data = CampaignSerializer(campaigns, many=True, context={'user': self.profile.user}).data
             s['campaigns'] = camp_data
 
+        # events. Using L1 serializer. App will call detail on these events when needed.
+        cls, s = BaseEntityComponent.entity_cls_ser_from_type_level(
+            entity_type=BaseEntityComponent.EVENT,
+            level=BaseEntityComponent.SERIALIZER_L1
+        )
+
+        events = cls.objects.users_entities(
+            self.user,
+            user_filter={'state__in': [UserEntity.JOIN, UserEntity.PIN]}
+        )
+
+        if events.count():
+            evts = s(events, many=True, **self.user_context).data
+            s['events'] = evts
+
         # notifications. This is done by simply setting readed=False for
         # those user.notifs which have acted=False
         # This way, these notifs will be sent natively via get_cards
