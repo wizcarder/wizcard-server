@@ -351,7 +351,7 @@ class AppUser(BaseUser):
         )
 
         if len(events):
-            evts = s(events, many=True, **self.user_context).data
+            evts = s(events, many=True, context={'user': self.profile.user}).data
             s['events'] = evts
 
         # notifications. This is done by simply setting readed=False for
