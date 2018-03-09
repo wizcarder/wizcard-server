@@ -340,18 +340,18 @@ class AppUser(BaseUser):
             s['campaigns'] = camp_data
 
         # events. Using L1 serializer. App will call detail on these events when needed.
-        cls, s = BaseEntityComponent.entity_cls_ser_from_type_level(
+        _cls, _ser = BaseEntityComponent.entity_cls_ser_from_type_level(
             entity_type=BaseEntityComponent.EVENT,
             level=BaseEntityComponent.SERIALIZER_L0
         )
 
-        events = cls.objects.users_entities(
+        events = _cls.objects.users_entities(
             self.profile.user,
             user_filter={'state__in': [UserEntity.JOIN, UserEntity.PIN]}
         )
 
         if len(events):
-            evts = s(events, many=True, context={'user': self.profile.user}).data
+            evts = _ser(events, many=True, context={'user': self.profile.user}).data
             s['events'] = evts
 
         # notifications. This is done by simply setting readed=False for
