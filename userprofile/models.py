@@ -346,7 +346,7 @@ class AppUser(BaseUser):
         )
 
         events = cls.objects.users_entities(
-            self.user,
+            self.profile.user,
             user_filter={'state__in': [UserEntity.JOIN, UserEntity.PIN]}
         )
 
