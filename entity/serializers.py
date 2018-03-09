@@ -253,7 +253,7 @@ class EventSerializer(EntitySerializer):
 class EventSerializerL0(EntitySerializer):
     class Meta:
         model = Event
-        fields = ('id', 'name', 'media', 'start', 'end', 'user_state',)
+        fields = ('id', 'name', 'media', 'start', 'end',)
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
@@ -808,8 +808,7 @@ class PollSerializer(EntitySerializer):
 
     def get_event(self, obj):
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
-        user = self.context.get('user')
-        return EventSerializerL0(event, many=True, context={'user':user}).data
+        return EventSerializerL0(event, many=True).data
 
 
 class PollResponseSerializer(EntitySerializer):

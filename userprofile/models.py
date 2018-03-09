@@ -349,7 +349,7 @@ class AppUser(BaseUser):
         if len(events):
             _ser = BaseEntityComponent.entity_ser_from_type_and_level(
                 entity_type=BaseEntityComponent.EVENT,
-                level=BaseEntityComponent.SERIALIZER_L0
+                level=BaseEntityComponent.SERIALIZER_L1
             )
             evts = _ser(events, many=True, context={'user': self.profile.user}).data
             s['events'] = evts
