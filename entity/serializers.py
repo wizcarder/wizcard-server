@@ -808,7 +808,8 @@ class PollSerializer(EntitySerializer):
 
     def get_event(self, obj):
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
-        return EventSerializerL0(event, many=True).data
+        user = self.context.get('user')
+        return EventSerializerL0(event, many=True, context={'user':user}).data
 
 
 class PollResponseSerializer(EntitySerializer):
