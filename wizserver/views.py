@@ -684,8 +684,9 @@ class ParseMsgAndDispatch(object):
         if self.app_userprofile.do_sync:
             #sync all syncables
             s = self.app_userprofile.do_resync()
+
+            # not sure why this is all required...don't want to mess with it presently.
             if 'wizcard' in s:
-                self.response.add_data("wizcard", s['wizcard'])
                 self.response.add_data("wizcard", s['wizcard'])
                 if 'wizconnections' in s:
                     self.response.add_data("rolodex", s['wizconnections'])
@@ -699,6 +700,10 @@ class ParseMsgAndDispatch(object):
                     self.response.add_data("flick_picks", s["flick_picks"])
                 if 'deadcards' in s:
                     self.response.add_data("deadcards", s["deadcards"])
+                if 'campaigns' in s:
+                    self.response.add_data("campaigns", s["campaigns"])
+                if 'events' in s:
+                    self.response.add_data("events", s["events"])
 
                 self.userprofile.activated = True
             self.app_userprofile.do_sync = False
