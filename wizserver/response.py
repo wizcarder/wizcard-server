@@ -269,8 +269,8 @@ class AsyncNotifResponse:
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notif_async_2_sync,
             verbs.get_notif_type(verbs.WIZCARD_UPDATE_HALF)         : self.notif_async_2_sync,
             verbs.get_notif_type(verbs.WIZCARD_UPDATE_FULL)         : self.notif_async_2_sync,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_ATTACH)         : self.notif_async_2_sync,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DETACH)        : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_ATTACH)       : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DETACH)       : self.notif_async_2_sync,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notif_async_2_sync,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notif_async_2_sync,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notif_async_2_sync

@@ -146,14 +146,14 @@ class EntitySerializer(EntitySerializerL0):
     def post_create_update(self, entity, update=False):
         # update arg is not really used. Leaving it here in case we need it down the line
 
-        notif_sent = False
         if hasattr(self, '_owners') and self._owners:
             BaseEntityComponent.add_owners(entity, self._owners)
 
         if hasattr(self, '_sub_entities') and self._sub_entities:
             for s in self._sub_entities:
                 # looks like only media is the sub-entity here. The rest come via nested
-                notif_sent |= entity.add_remove_sub_entities_of_type(s.get('ids'), s.get('type'))
+                # this path will not result in notifs.
+                entity.add_remove_sub_entities_of_type(s.get('ids'), s.get('type'))
 
         if hasattr(self, '_location') and self._location:
             entity.create_or_update_location(self._location['lat'], self._location['lng'])
@@ -164,13 +164,10 @@ class EntitySerializer(EntitySerializerL0):
             taganomy.register_object(entity)
             entity.tags.set(*tags)
 
-        # send entity_update (with sub_entity granularity). Check notif_sent because if this came in via
-        # related, notif would already have been via the add_remove_subentities path
-        if not notif_sent:
-            BaseEntityComponent.objects.notify_via_entity_parent(
-                entity,
-                verbs.WIZCARD_ENTITY_UPDATE,
-                verbs.NOTIF_OPERATION_CREATE
-            )
+        BaseEntityComponent.objects.notify_via_entity_parent(
+            entity,
+            verbs.WIZCARD_ENTITY_UPDATE,
+            verbs.NOTIF_OPERATION_CREATE
+        )
 
         return entity

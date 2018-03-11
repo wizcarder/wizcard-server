@@ -5,14 +5,13 @@ from django.contrib.auth.models import User
 from wizcardship.models import Wizcard
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, \
-    BaseEntityComponentManager, UserEntity
+    BaseEntityComponentManager
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
 from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 from taganomy.models import Taganomy
 from django.contrib.contenttypes.models import ContentType
-from notifications.signals import notify
-from wizserver import verbs
+
 import pdb
 
 from django.utils import timezone
@@ -103,7 +102,7 @@ class Campaign(BaseEntity):
     def post_connect(self, parent, **kwargs):
         # don't send notif here if is parent is Taganomy.
         if parent.entity_type == BaseEntityComponent.CATEGORY:
-            return False
+            kwargs.update(send_notif=False)
 
         return super(Campaign, self).post_connect(parent, **kwargs)
 
@@ -204,8 +203,8 @@ class CoOwners(BaseEntityComponent):
 
     # no notifs required for this one
     def post_connect(self, parent, **kwargs):
-        return False
-
+        kwargs.update(send_notif=False)
+        return super(CoOwners, self).post_connect(parent, **kwargs)
 
 class AttendeeInviteeManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE):
@@ -233,7 +232,8 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, CompanyTitleMixin, Invi
 
     # no notifs required for this one
     def post_connect(self, parent, **kwargs):
-        return False
+        kwargs.update(send_notif=False)
+        return super(AttendeeInvitee, self).post_connect(parent, **kwargs)
 
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
@@ -268,7 +268,8 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
 
     # no notifs required for this one
     def post_connect(self, parent, **kwargs):
-        return False
+        kwargs.update(send_notif=False)
+        return super(ExhibitorInvitee, self).post_connect(parent, **kwargs)
 
 
 class AgendaManager(BaseEntityComponentManager):

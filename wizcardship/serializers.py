@@ -80,7 +80,7 @@ class WizcardSerializerL2(WizcardSerializerL1):
 
 class DeadCardSerializerL2(WizcardSerializerL2):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['wizuser_id']
+        remove_fields = ['wizuser_id', 'user_state']
         super(DeadCardSerializerL2, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
