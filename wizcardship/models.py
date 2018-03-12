@@ -485,9 +485,6 @@ class DeadCard(WizcardBase):
     def get_context(self):
         return self.cctx
 
-    def flood_set(self, **kwargs):
-        return True
-
 
 class ContactContainer(CompanyTitleMixin):
     wizcard = models.ForeignKey(WizcardBase, related_name="contact_container")
