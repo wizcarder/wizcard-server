@@ -702,19 +702,20 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def user_attach(self, user, state, do_notify=False):
+    def user_attach(self, user, state, do_notify=True):
 
         UserEntity.user_attach(user, self, state=state)
 
         if do_notify:
-            notify.send(
-                user,
-                # recipient is dummy
-                recipient=self.get_creator(),
-                notif_tuple=verbs.WIZCARD_ENTITY_ATTACH,
-                target=self,
-                action_object=user
-            )
+            if hasattr(user, 'wizcard'):
+                notify.send(
+                    user,
+                    # recipient is dummy
+                    recipient=self.get_creator(),
+                    notif_tuple=verbs.WIZCARD_ENTITY_ATTACH,
+                    target=self,
+                    action_object=user
+                )
 
             if state == UserEntity.JOIN:
                 self.num_users += 1
@@ -722,18 +723,19 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return self
 
-    def user_detach(self, user, state, do_notify=False):
+    def user_detach(self, user, state, do_notify=True):
         UserEntity.user_detach(user, self)
 
         if do_notify:
-            notify.send(
-                user,
-                # recipient is dummy
-                recipient=self.get_creator(),
-                notif_tuple=verbs.WIZCARD_ENTITY_DETACH,
-                target=self,
-                action_object=user
-            )
+            if hasattr(user, 'wizcard'):
+                notify.send(
+                    user,
+                    # recipient is dummy
+                    recipient=self.get_creator(),
+                    notif_tuple=verbs.WIZCARD_ENTITY_DETACH,
+                    target=self,
+                    action_object=user
+                )
 
             if state == UserEntity.LEAVE:
                 self.num_users -= 1

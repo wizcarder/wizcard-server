@@ -378,7 +378,7 @@ class WebExhibitorUser(BaseUser):
         # join this User to the Event. We can retrieve this users Events on the portal. Additionally, we need to be
         # aware (and potentially filter out) that "joined users" also contain Exhibitor Users.
         user = self.profile.user
-        [event.user_attach(user, state=UserEntity.JOIN) for event in invited_events]
+        [event.user_attach(user, state=UserEntity.JOIN, do_notify=False) for event in invited_events]
         invite_objs.update(state=ExhibitorInvitee.ACCEPTED)
 
 
