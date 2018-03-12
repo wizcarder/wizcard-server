@@ -75,7 +75,7 @@ class EventViewSet(BaseEntityViewSet):
         existing_users, existing_exhibitors = ExhibitorInvitee.objects.check_existing_users_exhibitors(
             exhibitor_invitees
         )
-        [inst.user_attach(u, state=UserEntity.JOIN, do_notify=True) for u in existing_users]
+        [inst.user_attach(u, state=UserEntity.JOIN) for u in existing_users]
 
         for e in existing_exhibitors:
             e.state = ExhibitorInvitee.ACCEPTED
@@ -103,7 +103,7 @@ class EventViewSet(BaseEntityViewSet):
         existing_users, existing_attendees = AttendeeInvitee.objects.check_existing_users_attendees(
             attendee_invitees
         )
-        [inst.user_attach(u, state=UserEntity.JOIN, do_notify=True) for u in existing_users]
+        [inst.user_attach(u, state=UserEntity.JOIN) for u in existing_users]
 
         for e in existing_attendees:
             e.state = AttendeeInvitee.ACCEPTED

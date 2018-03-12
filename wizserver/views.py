@@ -2199,7 +2199,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if state == UserEntity.JOIN:
-            entity.user_attach(self.user, state, do_notify=True)
+            entity.user_attach(self.user, state)
             s = BaseEntity.entity_ser_from_type_and_level(
                 entity_type=entity_type,
                 level=BaseEntityComponent.SERIALIZER_L2
@@ -2213,10 +2213,10 @@ class ParseMsgAndDispatch(object):
             self.response.add_data("result", out)
             return self.response
         elif state == UserEntity.PIN:
-            entity.user_attach(self.user, state, do_notify=True)
+            entity.user_attach(self.user, state, do_notify=False)
             self.EventsGet()
         elif state == UserEntity.UNPIN:
-            entity.user_detach(self.user, state=state)
+            entity.user_detach(self.user, state=state, do_notify=False)
             self.EventsGet()
         else:
             self.response.error_response(err.INVALID_MESSAGE)

@@ -335,7 +335,6 @@ class AsyncNotifResponse:
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
         send_wizcard(wizcard, to, email_details)
 
-
     def notifInviteExhibitor(self, notif):
         event_organizer = notif.actor
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
