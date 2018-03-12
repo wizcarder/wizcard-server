@@ -59,15 +59,15 @@ txt_poll = {"description" : "Poll %d",
 
 poll_entities = ['breakfast', 'lunch', 'talk', 'panel discussion', 'arrangements']
 create_config = {
-                    'events':  2,
+                    'events':  1,
                     'speakers' : 10,
                     'sponsors': 10,
                     'campaigns' : 10,
-                    'exhibits' : 50,
+                    'exhibits' : 100,
                     'exhibitors' : 4,
                     'agenda_items': 6,
                     'event_media' : 6,
-                    'campaign_media': 4,
+                    'campaign_media': 6,
                     'speaker_file' : './/test/ceos.tsv',
                     'sponsor_file' : './test/sponsors.tsv',
                     'campaign_file' : './test/sponsors.tsv',

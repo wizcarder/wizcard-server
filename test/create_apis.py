@@ -181,10 +181,11 @@ def create_events(numevents):
 
         related_media = {"ids": event_media, "type": "e_media"}
         #related_polls = {"ids": poll_ids, "type": "e_poll"}
-        related_speakers = {"ids": speaker_ids, "type": "e_speaker"}
-        event_payload['related'] = [related_media, related_speakers]
+        event_payload['related'] = [related_media]
 
         event_id = post_retrieve("/entity/events/", event_payload, key="id")
+	for speaker_id in speaker_ids:
+	        put_retrieve("/entity/events/%s/speaker/%s" % (str(event_id), str(speaker_id)),{}, None)
         publish_path = "/entity/events/%s/publish_event/" % str(event_id)
         put_retrieve(publish_path,{}, None)
         event_ids.append(event_id)
@@ -309,7 +310,7 @@ def attach_entities():
         event_id = put_retrieve("/entity/events/" + str(evt) + "/", event_rel_payload, "id")
         for c in campaign_ids:
             camp_payload = {"ids": [c], "type": "e_campaign"}
-            event_id = put_retrieve("/entity/events/" + str(evt) + "/" + "campaign/" + str(c) + "/", camp_payload, None)
+            event_id = put_retrieve("/entity/events/" + str(evt) + "/" + "campaigns/" + str(c) + "/", camp_payload, None)
             rest_path = "/entity/events/" + str(evt) + "/"
             tagsets = get_retrieve(rest_path, 'taganomy')
             tag_ids = []
@@ -327,7 +328,7 @@ def attach_entities():
                     campaign_id = put_retrieve(rest_path, payload, "id")
 
 
-key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'kappu.biz@gmail.com', 'first_name':'Kappu', 'last_name':'Biz', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
+key = post_retrieve("/users/registration/",{'username':'kappu.biz', 'email':'r_anand98@outlook.com', 'first_name':'Anand', 'last_name':'Outlook', 'password1':'a1b2c3d4', 'password2': 'a1b2c3d4', 'user_type':2}, key="key")
 token = post_retrieve("/users/login/", user_login_payload, key='token')
 headers['Authorization'] = "Token " + token
 #Create Speakers
@@ -385,6 +386,7 @@ for evt in event_ids:
     end_date = get_retrieve(rest_path, "end")
     speakers = get_retrieve(rest_path, "speakers")
     speaker_ids = map(lambda x:x['id'], speakers)
+    pdb.set_trace()
     create_agenda(agenda_items, evt,start_date, end_date, speaker_ids)
 
 attach_entities()

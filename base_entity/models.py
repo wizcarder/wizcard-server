@@ -531,10 +531,9 @@ class BaseEntityComponent(PolymorphicModel):
         new_obj_ids = []
 
         for id in ids:
-            if to_be_deleted_ids_qs.filter(object_id=id).exists():
-                to_be_deleted_ids_qs = to_be_deleted_ids_qs.exclude(object_id=id)
-            else:
+            if not to_be_deleted_ids_qs.filter(object_id=id).exists():
                 new_obj_ids.append(id)
+            to_be_deleted_ids_qs = to_be_deleted_ids_qs.exclude(object_id=id)
 
         # add the new ones
         self.add_subentities(new_obj_ids, type)
