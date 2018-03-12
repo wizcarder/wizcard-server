@@ -80,7 +80,7 @@ class WizcardSerializerL2(WizcardSerializerL1):
 
 class DeadCardSerializerL2(WizcardSerializerL2):
     def __init__(self, *args, **kwargs):
-        remove_fields = ['wizuser_id', 'user_state']
+        remove_fields = ['wizuser_id',]
         super(DeadCardSerializerL2, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
@@ -95,7 +95,7 @@ class DeadCardSerializerL2(WizcardSerializerL2):
         my_fields = ('invited', 'activated', 'context',)
         fields = WizcardSerializerL2.Meta.fields + my_fields
 
-    def get_status(self, obj):
+    def get_user_state(self, obj):
         return "dead_card"
 
     def get_context(self, obj):
