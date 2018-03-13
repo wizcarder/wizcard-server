@@ -269,7 +269,6 @@ def notify_handler(sender, **kwargs):
         is_async = verbs.get_notif_is_async(notif_tuple)
 
     if is_async:
-
         # also check if there is someone to flood to. No point creating notif if no one
         if hasattr(target, 'flood_set') and not target.flood_set(ntuple=notif_tuple, sender=actor):
             return None

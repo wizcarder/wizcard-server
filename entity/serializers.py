@@ -257,7 +257,10 @@ class EventSerializerL0(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=[MediaEntities.SUB_TYPE_BANNER, MediaEntities.SUB_TYPE_LOGO]),
+            obj.get_media_filter(
+                type=MediaEntities.TYPE_IMAGE,
+                sub_type=[MediaEntities.SUB_TYPE_BANNER, MediaEntities.SUB_TYPE_LOGO]
+            ),
             many=True
         ).data
 
