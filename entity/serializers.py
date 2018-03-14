@@ -19,6 +19,8 @@ from polls.serializers import QuestionResponseSerializer, QuestionSerializer, Qu
 from taggit_serializer.serializers import TagListSerializerField, TaggitSerializer
 from taganomy.serializers import TaganomySerializerField
 from taganomy.models import Taganomy
+from lib.wizlib import get_dates_between
+from time import strftime
 import pdb
 
 
@@ -128,9 +130,10 @@ class AgendaSerializer(EntitySerializer):
 
     class Meta:
         model = Agenda
-        fields = ('id', 'name', 'description', 'entity_type', 'items', 'media', 'event', 'entity_state')
+        fields = ('id', 'name', 'description', 'entity_type', 'items', 'media', 'event', 'entity_state', 'agenda_items')
 
-    items = AgendaItemSerializer(many=True)
+    items = AgendaItemSerializer(many=True, write_only=True)
+    agenda_items = serializers.SerializerMethodField(read_only=True)
 
     def create(self, validated_data, **kwargs):
         items = validated_data.pop('items', [])
@@ -157,6 +160,24 @@ class AgendaSerializer(EntitySerializer):
         event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return EventSerializerL0(event, many=True).data
 
+    def get_agenda_items(self, obj):
+        event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))[0]
+        event_start = event.start
+        event_end = event.end
+        date_dict = dict()
+        for dt in get_dates_between(event_start, event_end):
+            str_dt = strftime("%Y-%m-%dT%H:%M%Z")
+            date_dict[str_dt] = AgendaItemSerializer(obj.items.filter(start__year=dt.year, start__month=dt.month, start__day=dt.day), many=True).data
+        return date_dict
+
+
+class AgendaSerializerL1(EntitySerializer):
+
+    class Meta:
+        model=Agenda
+        fields = ('id', 'entity_type', 'items', 'media')
+
+    items = AgendaItemSerializer(many=True)
 
 class AgendaSerializerL2(EntitySerializer):
 
