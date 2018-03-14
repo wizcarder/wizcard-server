@@ -283,6 +283,11 @@ class AgendaManager(BaseEntityComponentManager):
 class Agenda(BaseEntityComponent, Base412Mixin):
     objects = AgendaManager()
 
+    def post_connect_remove(self, parent, **kwargs):
+        self.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
+        if parent.is_active():
+            super(Agenda, self).post_connect_remove(parent, **kwargs)
+
 
 class AgendaItem(BaseEntity):
     agenda_key = models.ForeignKey(Agenda, related_name='items')

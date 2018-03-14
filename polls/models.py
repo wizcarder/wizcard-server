@@ -39,6 +39,11 @@ class Poll(BaseEntityComponent):
     def question_count(self):
         return self.questions.count()
 
+    def post_connect_remove(self, parent, **kwargs):
+        self.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
+        if parent.is_active():
+            super(Poll, self).post_connect_remove(parent, **kwargs)
+
     # def num_responders(self):
     #     """
     #     how many responded to the poll

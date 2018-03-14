@@ -161,14 +161,21 @@ class AgendaSerializer(EntitySerializer):
         return EventSerializerL0(event, many=True).data
 
     def get_agenda_items(self, obj):
-        event = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))[0]
-        event_start = event.start
-        event_end = event.end
-        date_dict = dict()
-        for dt in get_dates_between(event_start, event_end):
-            str_dt = strftime("%Y-%m-%dT%H:%M%Z")
-            date_dict[str_dt] = AgendaItemSerializer(obj.items.filter(start__year=dt.year, start__month=dt.month, start__day=dt.day), many=True).data
-        return date_dict
+        agenda_dates = obj.items.all().order_by('start').values_list('start', flat=True)
+        date_list = []
+        if not agenda_dates:
+            return date_list
+
+        lowest = agenda_dates[0]
+        highest = agenda_dates[agenda_dates.count()-1]
+
+        for dt in get_dates_between(lowest, highest):
+            str_dt = dt.strftime("%Y-%m-%dT%H:%M%Z")
+            date_list.append({"date":str_dt,
+                              "items": AgendaItemSerializer(obj.items.filter(start__year=dt.year, start__month=dt.month, start__day=dt.day), many=True).data
+                              })
+        return date_list
+
 
 
 class AgendaSerializerL1(EntitySerializer):

@@ -551,7 +551,7 @@ class BaseEntityComponent(PolymorphicModel):
         self.related.filter(object_id=obj.id, alias=subentity_type).delete()
         kwargs.update(notif_operation=verbs.NOTIF_OPERATION_DELETE)
 
-        return obj.post_connect(self, **kwargs)
+        return obj.post_connect_remove(self, **kwargs)
 
     def get_sub_entities_of_type(self, entity_type, **kwargs):
         exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])
@@ -615,6 +615,22 @@ class BaseEntityComponent(PolymorphicModel):
             )
 
         return send_notif
+
+    def post_connect_remove(self, parent, **kwargs):
+        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_DELETE)
+        send_notif = kwargs.pop('send_notif', True)
+
+        if send_notif:
+            notify.send(
+                self.get_creator(),
+                # recipient is dummy
+                recipient=self.get_creator(),
+                notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
+                target=parent,
+                action_object=self,
+                notif_operation=notif_operation
+            )
+
 
     def add_tags(self, taglist):
         self.tags.add(*taglist)
