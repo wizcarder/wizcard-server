@@ -2443,6 +2443,10 @@ class ParseMsgAndDispatch(object):
                 **response
             )
 
+        s = BaseEntityComponent.entity_ser_from_type_and_level(entity.entity_type, level=BaseEntityComponent.SERIALIZER_L2)
+        out = s(entity, **self.user_context).data
+        self.response.add_data("result", out)
+
         return self.response
 
     def LeadScan(self):
