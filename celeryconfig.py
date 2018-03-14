@@ -39,20 +39,25 @@ accept_content = ['pickle', 'json']
 
 from datetime import timedelta
 
+# Review for prod
+BEAT_SCHEDULE_ASYNC = 10
+BEAT_SCHEDULE_SYNC  = 60
+BEAT_SCHEDULE_EVENT = 86400
+
 beat_schedule = {
     'tick': {
         'task': 'periodic.tasks.tick',
-        'schedule': timedelta(seconds=60),
+        'schedule': timedelta(seconds=BEAT_SCHEDULE_SYNC),
         'options': {'queue': celery_beat_queue_name}
     },
     'expire_events': {
         'task': 'entity.tasks.expire',
-        'schedule': timedelta(seconds=86400),
+        'schedule': timedelta(seconds=BEAT_SCHEDULE_EVENT),
         'options': {'queue': celery_beat_queue_name}
     },
     'async_handler': {
         'task': 'notifications.tasks.async_handler',
-        'schedule': timedelta(seconds=60),
+        'schedule': timedelta(seconds=BEAT_SCHEDULE_ASYNC),
         'options': {'queue': celery_beat_queue_name}
     }
 }
