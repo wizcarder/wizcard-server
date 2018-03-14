@@ -361,7 +361,7 @@ class BaseEntityComponent(PolymorphicModel):
             TableSerializerL1, TableSerializerL2, TableSerializer, \
             CampaignSerializerL1, CampaignSerializer, CampaignSerializerL2, CoOwnersSerializer, \
             SpeakerSerializerL2, SpeakerSerializer, SponsorSerializerL2, SponsorSerializerL1, SponsorSerializer, AttendeeInviteeSerializer, \
-            ExhibitorInviteeSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, PollSerializerL1
+            ExhibitorInviteeSerializer, AgendaSerializer, AgendaSerializerL1, AgendaItemSerializer, PollSerializer, PollSerializerL1
         from scan.serializers import ScannedEntitySerializer, BadgeTemplateSerializer
         from entity.serializers import TaganomySerializer, TaganomySerializerL2
         from media_components.serializers import MediaEntitiesSerializer
@@ -411,9 +411,9 @@ class BaseEntityComponent(PolymorphicModel):
             },
             cls.AGENDA: {
                 cls.SERIALIZER_L0: AgendaSerializer,
-                cls.SERIALIZER_L1: AgendaSerializer,
-                cls.SERIALIZER_L2: AgendaSerializer,
-                cls.SERIALIZER_FULL: AgendaSerializer
+                cls.SERIALIZER_L1: AgendaSerializerL1,
+                cls.SERIALIZER_L2: AgendaSerializerL1,
+                cls.SERIALIZER_FULL: AgendaSerializerL1,
             },
             cls.AGENDA_ITEM: {
                 cls.SERIALIZER_L0: AgendaItemSerializer,

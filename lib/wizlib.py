@@ -9,6 +9,8 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from datetime import datetime
 import pytz
+from datetime import timedelta
+from dateutil import parser
 
 # general purpose utils
 
@@ -203,4 +205,7 @@ def get_epoch_time(secs=123456):
     utc_dt = datetime.utcfromtimestamp(int(secs)).replace(tzinfo=pytz.utc)
     return utc_dt.strftime("%Y-%m-%d %H:%M:%S %Z%z")
 
+def get_dates_between(start, end):
+    for n in range(0, 1 + int((end - start).days)):
+        yield start + timedelta(n)
 
