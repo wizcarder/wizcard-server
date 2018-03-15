@@ -1,387 +1,12 @@
 {
 	"variables": [],
 	"info": {
-		"name": "Events",
-		"_postman_id": "70486c5f-13fe-dcb1-82b6-ce4b779251e0",
+		"name": "Events Part 2",
+		"_postman_id": "df64ac19-aa82-55d5-acdb-888d3f9434a1",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
-		{
-			"name": "4.Media Create IMG.THB",
-			"request": {
-				"url": "http://localhost:8000/entity/media/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"media_element\": \"http://www.eventone.updated.com\",\n  \"media_iframe\": \"\",\n  \"media_type\": \"IMG\",\n  \"media_sub_type\": \"THB\"\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "5.Media Create IMG.BNR",
-			"request": {
-				"url": "http://localhost:8000/entity/media/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"media_element\": \"http://www.eventone.updated.com\",\n  \"media_iframe\": \"\",\n  \"media_type\": \"IMG\",\n  \"media_sub_type\": \"BNR\"\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "6.Media Create IMG.ROL",
-			"request": {
-				"url": "http://localhost:8000/entity/media/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"media_element\": \"http://www.eventone.updated.com\",\n  \"media_iframe\": \"\",\n  \"media_type\": \"IMG\",\n  \"media_sub_type\": \"ROL\"\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "7.Speaker Create 1",
-			"request": {
-				"url": "http://localhost:8000/entity/speakers/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"John Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc\",\n    \"title\": \"Speaker in Chief\",\n    \"website\": \"http://www.getwizcard.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john\",\n      \"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "7.Speaker Partial Update",
-			"request": {
-				"url": "http://localhost:8000/entity/speakers/7/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"John Doe\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc Updated\",\n    \"title\": \"Speaker in Chief Updated\",\n    \"website\": \"http://www.getwizcardupdated.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/updated\",\n      \"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"Updated\",\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ]\n  }"
-				},
-				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "8.Speaker Create 2",
-			"request": {
-				"url": "http://localhost:8000/entity/speakers/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user2}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Jane Doe\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc\",\n    \"title\": \"Speaker in Chief\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john\",\n      \"linkedin\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "9.Sponsor Create 1",
-			"request": {
-				"url": "http://localhost:8000/entity/sponsors/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Cisco Systems\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems\",\n    \"title\": \"Speaker in Chief\",\n    \"website\": \"http://www.getwizcard.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john\",\n      \"linked\" : \"linkedin.com/john\"\n    },\n    \"description\": \"Not Available\",\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ]\n  }"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "9.Sponsor 1 Update 1",
-			"request": {
-				"url": "http://localhost:8000/entity/sponsors/9/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Cisco Systems.updated\",\n    \"phone\": \"4084641727\",\n    \"email\": \"updated@gmail.com\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems.updated\",\n    \"title\": \"Speaker in Chief.updated\",\n    \"website\": \"http://www.getwizcardupdated.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/updaed\",\n      \"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"Updated\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
-				},
-				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "10.Coowner.1 Create",
-			"request": {
-				"url": "http://localhost:8000/entity/owners/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"user\": 2\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "11.Coowner.2 Create",
-			"request": {
-				"url": "http://localhost:8000/entity/owners/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user2}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"user\": 3\n}"
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "12.Basic Campaign Create 1",
-			"request": {
-				"url": "http://localhost:8000/entity/campaigns/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{exhibitor_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
-				},
-				"description": "Test 1: Basic Product  create"
-			},
-			"response": []
-		},
-		{
-			"name": "12.Basic Campaign Update 1",
-			"request": {
-				"url": "http://localhost:8000/entity/campaigns/12/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{exhibitor_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One Updated\",\n    \"address\": \"Product One Updated\",\n    \"website\": \"http://www.OneUpdated.com\",\n    \"description\": \"One Updated\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundiUpdated\"\n    },\n    \"owners\": [\n      10, 11\n    ],\n    \"related\": [\n      {\n        \"ids\": [6, 5], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
-				},
-				"description": "Test 1: Basic Product  create"
-			},
-			"response": []
-		},
-		{
-			"name": "13.Basic Campaign Create 2",
-			"request": {
-				"url": "http://localhost:8000/entity/campaigns/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{exhibitor_user2}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\",\n    \"owners\": [\n      11\n    ],\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
-				},
-				"description": "Test 1: Basic Product  create"
-			},
-			"response": []
-		},
-		{
-			"name": "14.Basic Event Create One",
-			"request": {
-				"url": "http://localhost:8000/entity/events/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"highlights\": {\n      \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
-				},
-				"description": "Test 1: Basic entity create"
-			},
-			"response": []
-		},
-		{
-			"name": "15.Basic Event Create two",
-			"request": {
-				"url": "http://localhost:8000/entity/events/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user2}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 2\",\n    \"address\": \"Event Two\",\n    \"website\": \"http://www.eventwo.com\",\n    \"description\": \"event two\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n  \"highlights\": {\n        \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
-				},
-				"description": "Test 1: Basic entity create"
-			},
-			"response": []
-		},
 		{
 			"name": "14.Event Publish",
 			"request": {
@@ -417,7 +42,7 @@
 			"response": []
 		},
 		{
-			"name": "16.Agenda Create",
+			"name": "22.Agenda Create",
 			"request": {
 				"url": "http://localhost:8000/entity/agenda/",
 				"method": "POST",
@@ -442,9 +67,9 @@
 			"response": []
 		},
 		{
-			"name": "19. Agenda.16 Item Create",
+			"name": "25. Agenda.22 Item Create",
 			"request": {
-				"url": "http://localhost:8000/entity/agenda/16/agenda_item/",
+				"url": "http://localhost:8000/entity/agenda/22/agenda_item/",
 				"method": "POST",
 				"header": [
 					{
@@ -467,9 +92,9 @@
 			"response": []
 		},
 		{
-			"name": "19. Agenda.16 Item update",
+			"name": "25. Agenda.22 Item update",
 			"request": {
-				"url": "http://localhost:8000/entity/agenda/16/agenda_item/19/",
+				"url": "http://localhost:8000/entity/agenda/22/agenda_item/25/",
 				"method": "PUT",
 				"header": [
 					{
@@ -492,7 +117,7 @@
 			"response": []
 		},
 		{
-			"name": "20 Poll Create",
+			"name": "26 Poll Create",
 			"request": {
 				"url": "http://localhost:8000/entity/polls/",
 				"method": "POST",
@@ -517,9 +142,9 @@
 			"response": []
 		},
 		{
-			"name": "20 Poll Update",
+			"name": "26 Poll Update",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/20/",
+				"url": "http://localhost:8000/entity/polls/26/",
 				"method": "PUT",
 				"header": [
 					{
@@ -542,9 +167,9 @@
 			"response": []
 		},
 		{
-			"name": "20.Poll activate",
+			"name": "26.Poll activate",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/20/activate/",
+				"url": "http://localhost:8000/entity/polls/26/activate/",
 				"method": "POST",
 				"header": [
 					{
@@ -559,7 +184,7 @@
 			"response": []
 		},
 		{
-			"name": "2.Notification Create",
+			"name": "7.Notification Create",
 			"request": {
 				"url": "http://localhost:8000/entity/notifications/",
 				"method": "POST",
@@ -577,14 +202,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 16\n  },\n  \"notification_text\": \"Your event is starting now\"\n}"
+					"raw": "{\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 22\n  },\n  \"notification_text\": \"Your event is starting now\"\n}"
 				},
 				"description": ""
 			},
 			"response": []
 		},
 		{
-			"name": "21. Badge template create",
+			"name": "27. Badge template create",
 			"request": {
 				"url": "http://localhost:8000/entity/badges/",
 				"method": "POST",
@@ -611,7 +236,7 @@
 		{
 			"name": "21. Badge template update",
 			"request": {
-				"url": "http://localhost:8000/entity/badges/21/",
+				"url": "http://localhost:8000/entity/badges/27/",
 				"method": "PUT",
 				"header": [
 					{
@@ -634,7 +259,7 @@
 			"response": []
 		},
 		{
-			"name": "22. Scans upload",
+			"name": "28. Scans upload",
 			"request": {
 				"url": "http://localhost:8000/entity/scans/",
 				"method": "POST",
@@ -659,9 +284,9 @@
 			"response": []
 		},
 		{
-			"name": "22. Scans update",
+			"name": "28. Scans update",
 			"request": {
-				"url": "http://localhost:8000/entity/scans/22/",
+				"url": "http://localhost:8000/entity/scans/28/",
 				"method": "PUT",
 				"header": [
 					{
@@ -684,9 +309,9 @@
 			"response": []
 		},
 		{
-			"name": "22. Scans attach owner",
+			"name": "28. Scans attach owner",
 			"request": {
-				"url": "http://localhost:8000/entity/scans/22/",
+				"url": "http://localhost:8000/entity/scans/28/",
 				"method": "PUT",
 				"header": [
 					{
@@ -709,7 +334,7 @@
 			"response": []
 		},
 		{
-			"name": "23.Exhibitor Invitee Create",
+			"name": "29.Exhibitor Invitee Create",
 			"request": {
 				"url": "http://localhost:8000/entity/exhibitors/",
 				"method": "POST",
@@ -734,7 +359,7 @@
 			"response": []
 		},
 		{
-			"name": "24.Attendee Invitee Create",
+			"name": "30.Attendee Invitee Create",
 			"request": {
 				"url": "http://localhost:8000/entity/attendees/",
 				"method": "POST",
@@ -759,7 +384,7 @@
 			"response": []
 		},
 		{
-			"name": "25.Taganomy 1 Create",
+			"name": "31.Taganomy 1 Create",
 			"request": {
 				"url": "http://localhost:8000/entity/taganomy/",
 				"method": "POST",
@@ -786,16 +411,18 @@
 		{
 			"name": "14.Event Link with Taganomy 1",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/taganomy/25/",
+				"url": "http://localhost:8000/entity/events/14/taganomy/31/",
 				"method": "PUT",
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/json",
+						"description": ""
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}"
+						"value": "Token {{organizer_user1}}",
+						"description": ""
 					}
 				],
 				"body": {
@@ -807,7 +434,7 @@
 			"response": []
 		},
 		{
-			"name": "26.Taganomy 2 Create",
+			"name": "32.Taganomy 2 Create",
 			"request": {
 				"url": "http://localhost:8000/entity/taganomy/",
 				"method": "POST",
@@ -832,16 +459,18 @@
 		{
 			"name": "15.Event Link with Taganomy 2",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/taganomy/26/",
+				"url": "http://localhost:8000/entity/events/15/taganomy/32/",
 				"method": "PUT",
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/json",
+						"description": ""
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}"
+						"value": "Token {{organizer_user1}}",
+						"description": ""
 					}
 				],
 				"body": {
@@ -853,7 +482,7 @@
 			"response": []
 		},
 		{
-			"name": "12.Campaign Update with Taganomy.25 tags",
+			"name": "12.Campaign Update with Taganomy 1 tags",
 			"request": {
 				"url": "http://localhost:8000/entity/campaigns/12/",
 				"method": "PUT",
@@ -871,14 +500,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 25,\n    \"tags\": [\"one\", \"two\", \"three\"]\n  }\n}"
+					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 31,\n    \"tags\": [\"one\", \"two\", \"three\"]\n  }\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
 			"response": []
 		},
 		{
-			"name": "13.Campaign Update with taganomy.26 tags",
+			"name": "13.Campaign Update with taganomy 2 tags",
 			"request": {
 				"url": "http://localhost:8000/entity/campaigns/13/",
 				"method": "PUT",
@@ -896,25 +525,27 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 26,\n    \"tags\": [\"4\", \"5\", \"6\"]\n  }\n}"
+					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 32,\n    \"tags\": [\"4\", \"5\", \"6\"]\n  }\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
 			"response": []
 		},
 		{
-			"name": "Taganomy.25 Update",
+			"name": "Taganomy 1 Update",
 			"request": {
-				"url": "http://localhost:8000/entity/taganomy/25/",
+				"url": "http://localhost:8000/entity/taganomy/31/",
 				"method": "PUT",
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/json",
+						"description": ""
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}"
+						"value": "Token {{organizer_user1}}",
+						"description": ""
 					}
 				],
 				"body": {
@@ -926,18 +557,20 @@
 			"response": []
 		},
 		{
-			"name": "Taganomy.26 Update",
+			"name": "Taganomy 2 Update",
 			"request": {
-				"url": "http://localhost:8000/entity/taganomy/26/",
+				"url": "http://localhost:8000/entity/taganomy/32/",
 				"method": "PUT",
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/json",
+						"description": ""
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user1}}"
+						"value": "Token {{organizer_user1}}",
+						"description": ""
 					}
 				],
 				"body": {
@@ -967,7 +600,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"ids\": [23]\n}"
+					"raw": "{\n  \"ids\": [29]\n}"
 				},
 				"description": null
 			},
@@ -992,7 +625,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [4, 5], \"type\": \"e_media\"\n      }\n  ],\n  \"users\": [2, 3, 4]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [7], \"type\": \"e_speaker\"\n      },\n      {\n        \"ids\": [4, 5], \"type\": \"e_media\"\n      },\n      {\n        \"ids\": [9], \"type\": \"e_sponsor\"\n      },\n      {\n        \"ids\": [22], \"type\": \"e_agenda\"\n      },\n      {\n        \"ids\": [26], \"type\": \"e_poll\"\n      }\n  ],\n  \"users\": [2, 3, 4]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1017,7 +650,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\"\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12, 13], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [8], \"type\": \"e_speaker\"\n      }\n  ]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1042,7 +675,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 2.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"users\": [2, 3, 4]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 2.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [8], \"type\": \"e_speaker\"\n      },\n      {\n        \"ids\": [5, 6], \"type\": \"e_media\"\n      },\n      {\n        \"ids\": [9], \"type\": \"e_sponsor\"\n      }\n  ],\n  \"users\": [2, 3, 4]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1067,7 +700,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n  \"users\": [3, 4]\n}"
+					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [7, 8], \"type\": \"e_speaker\"\n      }\n  ],\n  \"users\": [3, 4]\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -1122,7 +755,7 @@
 			"response": []
 		},
 		{
-			"name": "Table Create",
+			"name": "33.Table Create",
 			"request": {
 				"url": "http://localhost:8000/entity/tables/",
 				"method": "POST",
@@ -1140,7 +773,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"owners\": [\n      10\n    ],\n    \"speakers\": [1],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Table One\",\n    \"address\": \"Buckingham Palace\",\n    \"website\": \"http://www.tableone.com\",\n    \"description\": \"Table one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"IMG\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n    ],\n    \"owners\": [\n      10\n    ],\n    \"speakers\": [1],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Table Create"
 			},
@@ -1197,7 +830,7 @@
 			"response": []
 		},
 		{
-			"name": "16.Agenda Get",
+			"name": "22.Agenda Get",
 			"request": {
 				"url": "http://localhost:8000/entity/agenda/",
 				"method": "GET",
@@ -1472,7 +1105,7 @@
 		{
 			"name": "20.Poll Answers",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/20/answers/",
+				"url": "http://localhost:8000/entity/polls/26/answers/",
 				"method": "GET",
 				"header": [
 					{
