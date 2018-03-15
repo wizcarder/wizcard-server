@@ -171,9 +171,15 @@ class AgendaSerializer(EntitySerializer):
 
         for dt in get_dates_between(lowest, highest):
             str_dt = dt.strftime("%Y-%m-%dT%H:%M%Z")
-            date_list.append({"date":str_dt,
-                              "items": AgendaItemSerializer(obj.items.filter(start__year=dt.year, start__month=dt.month, start__day=dt.day), many=True).data
-                              })
+            date_list.append(
+                {
+                    "date":str_dt,
+                    "items": AgendaItemSerializer(
+                        obj.items.filter(start__year=dt.year, start__month=dt.month, start__day=dt.day),
+                        many=True
+                    ).data
+                }
+            )
         return date_list
 
 
