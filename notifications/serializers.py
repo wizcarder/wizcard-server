@@ -86,14 +86,11 @@ class AsyncNotificationSerializer(serializers.ModelSerializer):
 class SyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SyncNotification
-        fields = ('id', 'recipient', 'target', 'action_object',
-                  'verb', 'notif_type', 'do_push', 'start', 'end')
+        fields = ('id', 'target', 'action_object',
+                  'verb', 'notif_type', 'notification_text')
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
-    do_push = serializers.BooleanField(required=False, default=False, write_only=True)
-    start = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
-    end = serializers.DateTimeField(required=False, default=timezone.now(), write_only=True)
     notif_type = serializers.IntegerField(required=True)
 
     def create(self, validated_data):

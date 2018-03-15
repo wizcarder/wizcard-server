@@ -9,6 +9,7 @@ from datetime import timedelta
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
 from wizserver import verbs
+from celery.contrib import rdb
 
 
 import pdb
@@ -258,6 +259,7 @@ def notify_handler(sender, **kwargs):
     # hidden side-effects of changing do_push to false. Check with me before changing
     do_push = kwargs.pop('do_push', True)
     notif_operation = kwargs.pop('notif_operation', "")
+    notification_text = kwargs.pop('notification_text', "")
 
     """
     ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
@@ -306,6 +308,7 @@ def notify_handler(sender, **kwargs):
             action_object_content_type=action_object_content_type,
             action_object_object_id=action_object_object_id,
             notif_operation=notif_operation,
+            notification_text=notification_text,
             defaults={
                 'public': bool(kwargs.pop('public', True)),
                 'timestamp': kwargs.pop('timestamp', timezone.now()),

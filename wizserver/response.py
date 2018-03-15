@@ -17,8 +17,7 @@ from django.conf import settings
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
 from lib.create_share import send_event, send_wizcard
-from notifications.serializers import AsyncNotificationSerializer
-from base_entity.models import BaseEntityComponent
+from notifications.serializers import SyncNotificationSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +205,7 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifEntityBroadcast(self, notif):
-        out = AsyncNotificationSerializer(notif).data
+        out = SyncNotificationSerializer(notif).data
         self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
 
         return self.response
@@ -304,6 +303,7 @@ class AsyncNotifResponse:
                 target=notif.target,
                 action_object=notif.action_object,
                 notif_operation=notif.notif_operation,
+                notification_text=notif.notification_text,
                 # tell signal handler explicitly to Q into SyncQ and not use notif_type to decide
                 force_sync=True,
                 # no need to double-push. We'll send bulk push from here itself
