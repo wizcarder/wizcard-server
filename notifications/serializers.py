@@ -47,8 +47,8 @@ class GenericSerializerField(serializers.RelatedField):
 class AsyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = AsyncNotification
-        fields = ('id', 'target', 'action_object', 'notification_text',
-                  'start', 'end', 'notif_type', 'do_push')
+        fields = ('id', 'target', 'action_object', 'notif_type', 'verb', 'notification_text',
+                  'start', 'end',  'do_push')
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
@@ -59,6 +59,7 @@ class AsyncNotificationSerializer(serializers.ModelSerializer):
         required=False,
         default=verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)
     )
+    verb = serializers.CharField(required=False)
     do_push = serializers.BooleanField(required=False, default=True, write_only=True)
 
     def create(self, validated_data):
@@ -86,8 +87,7 @@ class AsyncNotificationSerializer(serializers.ModelSerializer):
 class SyncNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SyncNotification
-        fields = ('id', 'target', 'action_object',
-                  'verb', 'notif_type', 'notification_text')
+        fields = ('id', 'target', 'action_object', 'notif_type', 'verb', 'notification_text')
 
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)

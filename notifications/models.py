@@ -260,6 +260,7 @@ def notify_handler(sender, **kwargs):
     do_push = kwargs.pop('do_push', True)
     notif_operation = kwargs.pop('notif_operation', "")
     notification_text = kwargs.pop('notification_text', "")
+    verb = kwargs.pop('verb', verbs.get_notif_verb(notif_tuple))
 
     """
     ASYNC goes in AsyncNotification. SYNC goes in SyncNotification
@@ -285,9 +286,10 @@ def notify_handler(sender, **kwargs):
             action_object_object_id=action_object_object_id,
             readed=False,
             notif_type=verbs.get_notif_type(notif_tuple),
-            verb=verbs.get_notif_verb(notif_tuple),
+            verb=verb,
             timestamp=kwargs.pop('timestamp', timezone.now()),
             notif_operation=notif_operation,
+            notification_text=notification_text,
             # AA: Comments: EmailPush cannot decide whether this is INSTANT or not.
             delivery_period=AsyncNotification.INSTANT,
             start_date=start,
@@ -302,7 +304,7 @@ def notify_handler(sender, **kwargs):
             recipient=recipient,
             readed=False,
             notif_type=verbs.get_notif_type(notif_tuple),
-            verb=verbs.get_notif_verb(notif_tuple),
+            verb=verb,
             target_content_type=ContentType.objects.get_for_model(target),
             target_object_id=target.pk,
             action_object_content_type=action_object_content_type,

@@ -577,7 +577,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 16\n  },\n  \"notification_text\": \"Your event is starting now\"\n}"
+					"raw": "{\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 16\n  },\n  \"verb\": \"Agenda Update\",\n  \"notification_text\": \"Your event is starting now\"\n}"
 				},
 				"description": ""
 			},
