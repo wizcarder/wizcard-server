@@ -17,6 +17,7 @@ from django.conf import settings
 from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
 from lib.create_share import send_event, send_wizcard
+from notifications.serializers import AsyncNotificationSerializer
 from base_entity.models import BaseEntityComponent
 
 logger = logging.getLogger(__name__)
@@ -114,7 +115,7 @@ class SyncNotifResponse(ResponseN):
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEntity,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)    : self.notifEntity,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)    : self.notifEntityBroadcast,
         }
 
         for notification in notifications:
@@ -186,7 +187,6 @@ class SyncNotifResponse(ResponseN):
                 wizcard=ws
             )
             self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_ATTACH, notif.id)
-            logger.debug('%s', self.response)
 
         return self.response
 
@@ -202,27 +202,29 @@ class SyncNotifResponse(ResponseN):
         )
 
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_DETACH, notif.id)
-        logger.debug('%s', self.response)
+
+        return self.response
+
+    def notifEntityBroadcast(self, notif):
+        out = AsyncNotificationSerializer(notif).data
+        self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
 
         return self.response
 
     def notifEntity(self, notif):
         out = notif.build_response_dict()
         self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
-        logger.debug('%s', self.response)
 
         return self.response
 
     def notifWizcardFlickTimeout(self, notif):
         out = dict(flickCardID=notif.target_object_id)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_FLICK_TIMEOUT, notif.id)
-        logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardFlickPick(self, notif):
         out = dict(wizCardID=notif.actor.wizcard.id, flickCardID=notif.target_object_id)
         self.add_data_and_seq_with_notif(out, verbs.NOTIF_FLICK_PICK, notif.id)
-        logger.debug('%s', self.response)
         return self.response
 
     def notifWizcardTableInvite(self, notif):
