@@ -68,7 +68,7 @@ class TaganomySerializerL2(TaganomySerializer):
 class AgendaItemSerializer(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers',
+        fields = ('id', 'name', 'description', 'start', 'end', 'where', 'related', 'speakers',
                   'media', 'agenda', 'num_users')
 
     agenda = serializers.PrimaryKeyRelatedField(
@@ -101,7 +101,7 @@ class AgendaItemSerializer(EntitySerializer):
 class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
-        fields = ('id', 'name', 'description', 'start', 'end', 'venue', 'related', 'speakers', 'media',  'users',
+        fields = ('id', 'name', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media',  'users',
                   'poll')
 
     speakers = serializers.SerializerMethodField()
@@ -166,8 +166,8 @@ class AgendaSerializer(EntitySerializer):
         if not agenda_dates:
             return date_list
 
-        lowest = agenda_dates[0]
-        highest = agenda_dates[agenda_dates.count()-1]
+	lowest = agenda_dates[0].replace(hour=0, minute=0, second=0)
+        highest = agenda_dates[agenda_dates.count()-1].replace(hour=0, minute=0, second=0)
 
         for dt in get_dates_between(lowest, highest):
             str_dt = dt.strftime("%Y-%m-%dT%H:%M%Z")
