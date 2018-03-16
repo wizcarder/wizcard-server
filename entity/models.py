@@ -293,6 +293,7 @@ class AgendaItem(BaseEntity):
     agenda_key = models.ForeignKey(Agenda, related_name='items')
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
+    where = models.CharField(max_length=100, blank=True)
 
     # override method to skip immediate parent and get agenda's parent
     def get_parent_entities(self, **kwargs):
