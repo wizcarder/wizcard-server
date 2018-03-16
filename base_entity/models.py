@@ -34,7 +34,9 @@ class BaseEntityComponentManager(PolymorphicManager):
             return user.owners_baseentitycomponent_related.all().distinct()
 
         cls = BaseEntityComponent.entity_cls_from_type(entity_type=entity_type)
-        return user.owners_baseentitycomponent_related.all().instance_of(cls).exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
+        return user.owners_baseentitycomponent_related.all().instance_of(cls).exclude(
+            entity_state=BaseEntityComponent.ENTITY_STATE_DELETED
+        )
 
     def get_tagged_entities(self, tags, entity_type):
         content_type = BaseEntityComponent.content_type_from_entity_type(entity_type)
