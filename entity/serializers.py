@@ -167,7 +167,7 @@ class AgendaSerializer(EntitySerializer):
         if not agenda_dates:
             return date_list
 
-	lowest = agenda_dates[0].replace(hour=0, minute=0, second=0)
+        lowest = agenda_dates[0].replace(hour=0, minute=0, second=0)
         highest = agenda_dates[agenda_dates.count()-1].replace(hour=0, minute=0, second=0)
 
         for dt in get_dates_between(lowest, highest):
@@ -181,6 +181,7 @@ class AgendaSerializer(EntitySerializer):
                     ).data
                 }
             )
+
         return date_list
 
 
