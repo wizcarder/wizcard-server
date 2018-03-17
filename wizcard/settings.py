@@ -48,7 +48,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-marathon-test',
+                'NAME': 'wizcard-marathon-check',
                 'USER': 'wizuser',
                 'PASSWORD': 'gowizcard',
                 'HOST': 'wizcard-prod-live.cn2wvth0wbg5.ap-south-1.rds.amazonaws.com',
@@ -172,6 +172,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS' : [os.path.join(BASE_DIR, 'templates'),],
+        'APP_DIRS' : True,
         'OPTIONS' : { 'context_processors': [ 'django.contrib.auth.context_processors.auth'], },
     },
 ]
@@ -180,6 +181,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'silk.middleware.SilkyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -339,6 +341,7 @@ INSTALLED_APPS = (
     'allauth.account',
     'allauth.socialaccount',
     'corsheaders',
+    'silk',
 )
 
 #django-storage settings
@@ -359,8 +362,8 @@ STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
 
 # SENDGRID SETTINGS
-SENDGRID_API_KEY = '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'
 EMAIL_BACKEND = "sgbackend.SendGridBackend"
+SENDGRID_API_KEY = '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'
 
 AWS_RETURN_PATH='admin@getwizcard.com'
 DEFAULT_FROM_EMAIL='admin@getwizcard.com'
