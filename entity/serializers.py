@@ -102,11 +102,12 @@ class AgendaItemSerializerL2(EntitySerializer):
     class Meta:
         model = AgendaItem
         fields = ('id', 'name', 'description', 'start', 'end', 'where', 'related', 'speakers', 'media',  'users',
-                  'poll')
+                  'poll', 'user_state')
 
     speakers = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
     poll = serializers.SerializerMethodField()
+    user_state = serializers.SerializerMethodField()
 
     def get_speakers(self, obj):
         return SpeakerSerializerL2(
