@@ -171,9 +171,9 @@ SECRET_KEY = 'lj*=)*k$_^rx3bs+22=*og)d=eh)(jdc4df!q5=b!%&amp;0kskuad'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS' : [os.path.join(BASE_DIR, 'templates'),],
-        'APP_DIRS' : True,
-        'OPTIONS' : { 'context_processors': [ 'django.contrib.auth.context_processors.auth'], },
+        'DIRS': [os.path.join(BASE_DIR, 'templates'),],
+        'APP_DIRS': True,
+        'OPTIONS': {'context_processors': ['django.contrib.auth.context_processors.auth'], },
     },
 ]
 
