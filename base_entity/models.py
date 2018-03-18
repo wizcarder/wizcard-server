@@ -603,10 +603,10 @@ class BaseEntityComponent(PolymorphicModel):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
         send_notif = kwargs.pop('send_notif', True)
 
-        if notif_operation == verbs.NOTIF_OPERATION_DELETE:
-            self.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
-        else:
-            self.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+        entity_state = BaseEntityComponent.ENTITY_STATE_CREATED if notif_operation == verbs.NOTIF_OPERATION_DELETE \
+            else BaseEntityComponent.ENTITY_STATE_PUBLISHED
+
+        self.set_entity_state(entity_state)
 
         if send_notif and parent.is_active():
             notify.send(
@@ -799,13 +799,15 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         if self.location.exists():
             self.location.get().delete()
 
-        if delete_type == self.ENTITY_DELETE:
-            notify.send(
-                self.get_creator(),
-                recipient=self.get_creator(),
-                notif_tuple=verbs.WIZCARD_ENTITY_DELETE,
-                target=self
-            )
+        notif_tuple = verbs.WIZCARD_ENTITY_DELETE if delete_type == self.ENTITY_DELETE else verbs.WIZCARD_ENTITY_EXPIRE
+
+
+        notify.send(
+            self.get_creator(),
+            recipient=self.get_creator(),
+            notif_tuple=notif_tuple,
+            target=self
+        )
 
         super(BaseEntity, self).delete(*args, **kwargs)
 

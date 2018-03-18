@@ -290,11 +290,9 @@ class Agenda(BaseEntityComponent, Base412Mixin):
 
     def delete(self, *args, **kwargs):
         type = kwargs.get('type', BaseEntityComponent.ENTITY_DELETE)
-        if type == BaseEntityComponent.ENTITY_EXPIRE:
-            for item in self.items.all():
-                item.delete(*args, **kwargs)
-        else:
-            self.items.all().delete()
+
+        for item in self.items.all():
+            item.delete(*args, **kwargs)
 
         super(Agenda, self).delete(*args, **kwargs)
 

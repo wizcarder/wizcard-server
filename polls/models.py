@@ -29,14 +29,6 @@ class Poll(BaseEntityComponent):
 
     objects = PollManager()
 
-    def delete(self, *args, **kwargs):
-        type = kwargs.get('type', BaseEntityComponent.ENTITY_DELETE)
-        # delete questions. Some issue in django polymorphic...bulk delete is not working
-        if type == BaseEntityComponent.ENTITY_EXPIRE:
-            super(Poll, self).delete(*args, **kwargs)
-        else:
-            for q in self.questions.all():
-                q.delete()
 
     def question_count(self):
         return self.questions.count()
