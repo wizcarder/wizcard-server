@@ -23,10 +23,10 @@ CRITICAL_ERROR = {'errno': 21, 'str': "something went wrong...please delete and 
 LIB_OCR_ERROR = {'errno': 22, 'str': "OCR lib error"}
 LIB_OCR_CELERY_TIMEOUT = {'errno': 23, 'str': "OCR response delayed"}
 
-# 24 should not be changed...ever.
-REVERSE_INVITE = {'errno': 24, 'str': "Invitation expired/revoked, Do you want to invite?"}
+# 24, 25 should not be changed...ever.
+VERSION_UPGRADE = {'errno': 24, 'str': "We have a better version of WizCard, Upgrade to Continue"}
+REVERSE_INVITE = {'errno': 25, 'str': "Invitation expired/revoked, Do you want to invite?"}
 
-VERSION_UPGRADE = {'errno': 25, 'str': "We have a better version of WizCard, Upgrade to Continue"}
 NO_RECEIVER = {'errno': 26, 'str': "No receiver in the request"}
 INVALID_STATE = {'errno': 27, 'str': "Invalid connection state"}
 SELF_INVITE = {'errno': 28, 'str': "Connecting with Yourself - You are well connected;)"}
