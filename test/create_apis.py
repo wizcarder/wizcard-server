@@ -386,7 +386,6 @@ for evt in event_ids:
     end_date = get_retrieve(rest_path, "end")
     speakers = get_retrieve(rest_path, "speakers")
     speaker_ids = map(lambda x:x['id'], speakers)
-    pdb.set_trace()
     create_agenda(agenda_items, evt,start_date, end_date, speaker_ids)
 
 attach_entities()

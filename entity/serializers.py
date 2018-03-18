@@ -166,14 +166,14 @@ class AgendaSerializer(EntitySerializer):
         if not agenda_dates:
             return date_list
 
-        lowest = agenda_dates[0]
-        highest = agenda_dates[agenda_dates.count()-1]
+        lowest = agenda_dates[0].replace(hour=0, minute=0, second=0)
+        highest = agenda_dates[agenda_dates.count()-1].replace(hour=0, minute=0, second=0)
 
         for dt in get_dates_between(lowest, highest):
             str_dt = dt.strftime("%Y-%m-%dT%H:%M%Z")
             date_list.append(
                 {
-                    "date":str_dt,
+                    "date": str_dt,
                     "items": AgendaItemSerializer(
                         obj.items.filter(start__year=dt.year, start__month=dt.month, start__day=dt.day),
                         many=True
@@ -183,14 +183,14 @@ class AgendaSerializer(EntitySerializer):
         return date_list
 
 
-
 class AgendaSerializerL1(EntitySerializer):
 
     class Meta:
-        model=Agenda
+        model = Agenda
         fields = ('id', 'entity_type', 'items', 'media')
 
     items = AgendaItemSerializer(many=True)
+
 
 class AgendaSerializerL2(EntitySerializer):
 
@@ -475,7 +475,10 @@ class CampaignSerializerL1(EntitySerializer):
 
     def get_media(self, obj):
         return MediaEntitiesSerializer(
-            obj.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=[MediaEntities.SUB_TYPE_BANNER, MediaEntities.SUB_TYPE_LOGO]),
+            obj.get_media_filter(
+                type=MediaEntities.TYPE_IMAGE,
+                sub_type=[MediaEntities.SUB_TYPE_BANNER, MediaEntities.SUB_TYPE_LOGO]
+            ),
             many=True
         ).data
 
