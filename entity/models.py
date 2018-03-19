@@ -71,9 +71,13 @@ class Event(BaseEntity):
         return [self]
 
     def delete(self, *args, **kwargs):
-        self.related.all().delete()
-        if self.location.exists():
-            self.location.get().delete()
+        type = kwargs.get('type', BaseEntityComponent.ENTITY_DELETE)
+
+        if type == BaseEntityComponent.ENTITY_EXPIRE:
+            for subent in self.related.all().generic_objects():
+                subent.delete(*args, **kwargs)
+        else:
+            self.related.all().delete()
 
         super(Event, self).delete(*args, **kwargs)
 
@@ -99,12 +103,12 @@ class Campaign(BaseEntity):
 
     objects = CampaignManager()
 
-    def post_connect(self, parent, **kwargs):
+    def post_connect_remove(self, parent, **kwargs):
         # don't send notif here if is parent is Taganomy.
         if parent.entity_type == BaseEntityComponent.CATEGORY:
             kwargs.update(send_notif=False)
 
-        return super(Campaign, self).post_connect(parent, **kwargs)
+        return super(Campaign, self).post_connect_remove(parent, **kwargs)
 
 
 class VirtualTableManager(BaseEntityManager):
@@ -206,6 +210,7 @@ class CoOwners(BaseEntityComponent):
         kwargs.update(send_notif=False)
         return super(CoOwners, self).post_connect(parent, **kwargs)
 
+
 class AttendeeInviteeManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE):
         return super(AttendeeInviteeManager, self).owners_entities(
@@ -283,10 +288,13 @@ class AgendaManager(BaseEntityComponentManager):
 class Agenda(BaseEntityComponent, Base412Mixin):
     objects = AgendaManager()
 
-    def post_connect_remove(self, parent, **kwargs):
-        self.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
-        if parent.is_active():
-            super(Agenda, self).post_connect_remove(parent, **kwargs)
+    def delete(self, *args, **kwargs):
+        type = kwargs.get('type', BaseEntityComponent.ENTITY_DELETE)
+
+        for item in self.items.all():
+            item.delete(*args, **kwargs)
+
+        super(Agenda, self).delete(*args, **kwargs)
 
 
 class AgendaItem(BaseEntity):

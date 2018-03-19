@@ -28,9 +28,10 @@ class ScannedEntity(BaseEntityComponent, Base411Mixin, CompanyTitleMixin):
         return 10
 
     # no notifs required for this one
-    def post_connect(self, parent, **kwargs):
+    def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)
-        return super(ScannedEntity, self).post_connect(parent, **kwargs)
+        return super(ScannedEntity, self).post_connect_remove(parent, **kwargs)
+
 
 class BadgeTemplateManager(BaseEntityComponentManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.BADGE_TEMPLATE):

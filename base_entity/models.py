@@ -111,7 +111,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         ).distinct()
 
         # when the param to get_real_instances is empty, it returns everything hence the if else:(
-        entities = BaseEntity.objects.get_real_instances(map(lambda x : x.entity, ue)) if ue else []
+        entities = BaseEntity.objects.get_real_instances(map(lambda x: x.entity, ue)) if ue else []
         return entities
 
     def get_tagged_entities(self, tags, entity_type):
@@ -547,7 +547,7 @@ class BaseEntityComponent(PolymorphicModel):
         self.related.connect(obj, alias=alias)
         kwargs.update(notif_operation=verbs.NOTIF_OPERATION_CREATE)
 
-        return obj.post_connect(self, **kwargs)
+        return obj.post_connect_remove(self, **kwargs)
 
     def remove_sub_entity_obj(self, obj, subentity_type, **kwargs):
         self.related.filter(object_id=obj.id, alias=subentity_type).delete()
@@ -601,11 +601,16 @@ class BaseEntityComponent(PolymorphicModel):
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same
-    def post_connect(self, parent, **kwargs):
+    def post_connect_remove(self, parent, **kwargs):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
         send_notif = kwargs.pop('send_notif', True)
 
-        if send_notif:
+        entity_state = BaseEntityComponent.ENTITY_STATE_CREATED if notif_operation == verbs.NOTIF_OPERATION_DELETE \
+            else BaseEntityComponent.ENTITY_STATE_PUBLISHED
+
+        self.set_entity_state(entity_state)
+
+        if send_notif and parent.is_active():
             notify.send(
                 self.get_creator(),
                 # recipient is dummy
@@ -617,22 +622,6 @@ class BaseEntityComponent(PolymorphicModel):
             )
 
         return send_notif
-
-    def post_connect_remove(self, parent, **kwargs):
-        notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_DELETE)
-        send_notif = kwargs.pop('send_notif', True)
-
-        if send_notif:
-            notify.send(
-                self.get_creator(),
-                # recipient is dummy
-                recipient=self.get_creator(),
-                notif_tuple=verbs.WIZCARD_ENTITY_UPDATE,
-                target=parent,
-                action_object=self,
-                notif_operation=notif_operation
-            )
-
 
     def add_tags(self, taglist):
         self.tags.add(*taglist)
@@ -664,8 +653,12 @@ class BaseEntityComponent(PolymorphicModel):
         return ""
 
     def delete(self, *args, **kwargs):
-        # The idea is to preserve entities and purge/archive it later
-        self.set_entity_state(BaseEntityComponent.ENTITY_STATE_DELETED)
+        type = kwargs.pop("type", BaseEntityComponent.ENTITY_DELETE)
+
+        if type == BaseEntityComponent.ENTITY_EXPIRE:
+            self.set_entity_state(BaseEntityComponent.ENTITY_STATE_EXPIRED)
+        else:
+            self.set_entity_state(BaseEntityComponent.ENTITY_STATE_DELETED)
 
 
 class BaseEntityComponentsOwner(models.Model):
@@ -803,25 +796,26 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return flood_list
 
     def delete(self, *args, **kwargs):
-        delete_type = kwargs.pop('type', self.ENTITY_DELETE)
-
-        notify.send(
-            self.get_creator(),
-            recipient=self.get_creator(),
-            notif_tuple=verbs.WIZCARD_ENTITY_DELETE,
-            target=self
-        )
+        delete_type = kwargs.get('type', self.ENTITY_DELETE)
 
         if self.location.exists():
             self.location.get().delete()
 
-        if delete_type == self.ENTITY_EXPIRE:
-            self.set_entity_state(BaseEntityComponent.ENTITY_STATE_EXPIRED)
-        else:
-            super(BaseEntity, self).delete(*args, **kwargs)
+        notif_tuple = verbs.WIZCARD_ENTITY_DELETE if delete_type == self.ENTITY_DELETE else verbs.WIZCARD_ENTITY_EXPIRE
 
-    def do_expire(self):
-        self.delete(type=self.ENTITY_EXPIRE)
+
+        notify.send(
+            self.get_creator(),
+            recipient=self.get_creator(),
+            notif_tuple=notif_tuple,
+            target=self
+        )
+
+        super(BaseEntity, self).delete(*args, **kwargs)
+
+    def do_expire(self, *args, **kwargs):
+        kwargs.update(type=self.ENTITY_EXPIRE)
+        self.delete(*args, **kwargs)
 
     def modified_since(self, timestamp):
         return self.modified > timestamp
