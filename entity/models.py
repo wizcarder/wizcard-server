@@ -206,9 +206,9 @@ class CoOwners(BaseEntityComponent):
     objects = CoOwnersManager()
 
     # no notifs required for this one
-    def post_connect(self, parent, **kwargs):
+    def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)
-        return super(CoOwners, self).post_connect(parent, **kwargs)
+        return super(CoOwners, self).post_connect_remove(parent, **kwargs)
 
 
 class AttendeeInviteeManager(BaseEntityComponentManager):
@@ -236,9 +236,9 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, CompanyTitleMixin, Invi
     objects = AttendeeInviteeManager()
 
     # no notifs required for this one
-    def post_connect(self, parent, **kwargs):
+    def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)
-        return super(AttendeeInvitee, self).post_connect(parent, **kwargs)
+        return super(AttendeeInvitee, self).post_connect_remove(parent, **kwargs)
 
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
@@ -272,9 +272,9 @@ class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
     objects = ExhibitorInviteeManager()
 
     # no notifs required for this one
-    def post_connect(self, parent, **kwargs):
+    def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)
-        return super(ExhibitorInvitee, self).post_connect(parent, **kwargs)
+        return super(ExhibitorInvitee, self).post_connect_remove(parent, **kwargs)
 
 
 class AgendaManager(BaseEntityComponentManager):

@@ -58,9 +58,9 @@ class Taganomy(BaseEntityComponent, Base411Mixin):
         return venue_d
 
     # not sending tag level notif. Only at Taganomy level
-    def post_connect(self, parent, **kwargs):
+    def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)
-        return super(Taganomy, self).post_connect(parent, **kwargs)
+        return super(Taganomy, self).post_connect_remove(parent, **kwargs)
 
     def is_floodable(self):
         return True
