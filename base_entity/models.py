@@ -660,6 +660,19 @@ class BaseEntityComponent(PolymorphicModel):
         else:
             self.set_entity_state(BaseEntityComponent.ENTITY_STATE_DELETED)
 
+    @property
+    def push_name_str(self):
+        entity_to_push_name_str = {
+            self.EVENT: ' ',
+            self.CAMPAIGN: ' Campaign ',
+            self.TABLE: ' Table ',
+            self.SPEAKER: ' Speaker ',
+            self.SPONSOR: ' Sponsor ',
+            self.MEDIA: ' Media ',
+            self.AGENDA: ' Agenda ',
+            self.POLL: ' Poll ',
+        }
+        return entity_to_push_name_str[self.entity_type] if self.entity_type in entity_to_push_name_str else " "
 
 class BaseEntityComponentsOwner(models.Model):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
@@ -802,7 +815,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
             self.location.get().delete()
 
         notif_tuple = verbs.WIZCARD_ENTITY_DELETE if delete_type == self.ENTITY_DELETE else verbs.WIZCARD_ENTITY_EXPIRE
-
 
         notify.send(
             self.get_creator(),

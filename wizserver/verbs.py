@@ -275,7 +275,7 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Event Updated',
-        'message': 'Event {1.name} has an update',
+        'message': 'Event {1.name}{2.push_name_str}updated',
     },
     get_notif_type(WIZCARD_ENTITY_EXPIRE): {
         'sound': 'flynn.caf',
@@ -286,8 +286,8 @@ apns_notification_dictionary = {
     get_notif_type(WIZCARD_ENTITY_DELETE): {
         'sound': 'flynn.caf',
         'badge': 0,
-        'title': 'Wizcard -  Deleted',
-        'message': '{0.first_name} {0.last_name}  deleted {1.tablename}',
+        'title': 'Event Deleted',
+        'message': 'Event {1.name} has an update',
     },
     get_notif_type(WIZCARD_UPDATE_FULL): {
         'sound': 'flynn.caf',
@@ -323,7 +323,7 @@ def get_apns_dict_for_device(notif_type, device_type):
         # adjustment for key name per device_type
         push_dict['alert'] = push_dict.pop('message')
     elif device_type == settings.DEVICE_ANDROID:
-        push_dict = {k: v for (k, v) in push_dict.items() if k in ['title', 'message']}
+        push_dict = {k: v for (k, v) in push_dict.items() if k in ['title', 'message', 'data']}
         push_dict['body'] = push_dict.pop('message')
     else:
         raise AssertionError("invalid device_type %s" % device_type)

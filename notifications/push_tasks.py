@@ -47,7 +47,6 @@ def push_notification_to_app(notif_obj, ntuple, flood_set=None):
 
             apns.format_alert_msg()
             apns.send()
-
     else:
         recipient = notif_obj.recipient.profile.app_user()
         reg_tokens = [recipient.reg_token]
@@ -73,7 +72,7 @@ class ApnsMsg(object):
         self.reg_tokens = reg_tokens
         self.action_object = action_object
         self.target_object = target_object
-        self.aps = dict(aps=apns_args)
+        self.aps = dict(aps=apns_args.copy())
         self.device_type = device_type
         self.message = custom_message
 
@@ -104,6 +103,15 @@ class ApnsMsg(object):
 
             self.aps['aps']['body'] = alert_msg
             self.aps['aps']['title'] = title
+
+            # fill in entity, sub_entity data
+            self.aps['aps']['data'] = dict()
+            if hasattr(self.target_object, 'entity_type'):
+                self.aps['aps']['data']['entity_type'] = self.target_object.entity_type
+                self.aps['aps']['data']['entity_id'] = self.target_object.id
+            if hasattr(self.action_object, 'entity_type'):
+                self.aps['aps']['data']['sub_entity_type'] = self.action_object.entity_type
+                self.aps['aps']['data']['sub_entity_id'] = self.action_object.id
 
     def send(self):
         if self.device_type == settings.DEVICE_IOS:
