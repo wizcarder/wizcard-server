@@ -466,7 +466,7 @@ class DeadCard(WizcardBase):
 
         c = self.contact_container.get()
         c.company = result.get('company', "")
-        c.title = title = result.get('job', "")
+        c.title = result.get('job', "")
 
         c.save()
         self.save()

@@ -71,14 +71,14 @@ class EventViewSet(BaseEntityViewSet):
         # and check for those events when the exhibitor comes in, treating the exhibitor email as the
         # handle within ExhibitorInvitee. Essentially, Exhibitor/AttendeeInvitee becomes the future user construct
 
-        # exhibitor may already have an account. if so, join them to event
+        # exhibitor may already have an account via wizcard user (AppUser). if so, join them to event
         existing_users, existing_exhibitors = ExhibitorInvitee.objects.check_existing_users_exhibitors(
             exhibitor_invitees
         )
         [inst.user_attach(u, state=UserEntity.JOIN) for u in existing_users]
 
         for e in existing_exhibitors:
-            e.state = ExhibitorInvitee.ACCEPTED
+            e.state = ExhibitorInvitee.INVITED
             e.save()
 
         new_exhibitors = [x for x in exhibitor_invitees if x not in existing_exhibitors.values_list('id', flat=True)]

@@ -42,14 +42,19 @@ class Base411Mixin(models.Model):
     name = TruncatingCharField(max_length=50, default="")
     email = EmailField(blank=True)
 
+class ExtFieldsMixin(models.Model):
+    class Meta:
+        abstract = True
 
-class Base412Mixin(Base411Mixin):
+    ext_fields = PickledObjectField(default={}, blank=True)
+
+
+class Base412Mixin(Base411Mixin, ExtFieldsMixin):
     class Meta:
         abstract = True
 
     website = models.URLField(blank=True)
     description = models.CharField(max_length=2000, blank=True)
-    ext_fields = PickledObjectField(default={}, blank=True)
 
 
 class Base413Mixin(Base412Mixin, VcardMixin):

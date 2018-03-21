@@ -251,11 +251,11 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
     # check if invitee_ids is in User based on email.
     # returns those users
     def check_existing_users_exhibitors(self, invitee_ids):
-        matched_users = User.objects.filter(
+        matched_users = Wizcard.objects.filter(
             email__in=self.filter(
                 id__in=invitee_ids
             ).values_list('email', flat=True)
-        )
+        ).values_list('user', flat=True)
 
         matched_exhibitors = self.filter(
             email__in=matched_users.values_list('email', flat=True)
