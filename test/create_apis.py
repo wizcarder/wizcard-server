@@ -95,6 +95,7 @@ def create_sponsors(num, file, type="sponsor"):
     lines = f.readlines()
     count = len(lines)
     media_ids = []
+    mysponsor_payload = deepcopy(sponsor_payload)
     for i in range(0, num):
         rint = randint(0, count-1)
         rline = lines[rint].rstrip()
@@ -104,8 +105,8 @@ def create_sponsors(num, file, type="sponsor"):
             num_media = cfg.create_config['campaign_media']
             for j in range(0, num_media):
                 media_ids.append(create_media(murl, media_type='IMG', media_sub_type='ROL'))
-        sponsor_payload['name'] = name
-        sponsor_payload['caption'] = caption[:50]
+        mysponsor_payload['name'] = name
+        mysponsor_payload['caption'] = caption[:50]
         if i % 2:
             venue = 'A'
         elif i % 3:
@@ -119,22 +120,22 @@ def create_sponsors(num, file, type="sponsor"):
 
 
         if type == 'campaign':
-            sponsor_payload['venue'] = "Hall " + venue
-            sponsor_payload['related'] = [{'ids': media_ids, "type": "e_media"}]
-            sponsor_payload['is_sponsored'] = True
+            mysponsor_payload['venue'] = "Hall " + venue
+            mysponsor_payload['related'] = [{'ids': media_ids, "type": "e_media"}]
+            mysponsor_payload['is_sponsored'] = True
             rest_path = "/entity/%ss/" % type
-            sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
+            sponsor_id = post_retrieve(rest_path, mysponsor_payload, key="id")
             campaign_ids.append(sponsor_id)
         elif type == 'exhibits':
             etype = 'campaign'
-            sponsor_payload['venue'] = "Hall " + venue
+            mysponsor_payload['venue'] = "Hall " + venue
             rest_path = "/entity/%ss/" % etype
-            sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
+            sponsor_id = post_retrieve(rest_path, mysponsor_payload, key="id")
             campaign_ids.append(sponsor_id)
         else:
-            sponsor_payload['venue'] = "Hall " + venue
+            mysponsor_payload['venue'] = "Hall " + venue
             rest_path = "/entity/%ss/" % type
-            sponsor_id = post_retrieve(rest_path, sponsor_payload, key="id")
+            sponsor_id = post_retrieve(rest_path, mysponsor_payload, key="id")
             sponsor_ids.append(sponsor_id)
 
 
@@ -362,7 +363,7 @@ numcampaigns = cfg.create_config['campaigns']
 campaignfile = cfg.create_config['campaign_file']
 numexhibits = cfg.create_config['exhibits']
 create_sponsors(numcampaigns, campaignfile, type="campaign")
-
+pdb.set_trace()
 create_sponsors(numexhibits, campaignfile, type='exhibits')
 
 
