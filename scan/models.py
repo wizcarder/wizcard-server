@@ -53,6 +53,6 @@ class BadgeTemplate(BaseEntityComponent, Base412Mixin, CompanyTitleMixin):
     objects = BadgeTemplateManager()
 
     # no notifs required for this one
-    def post_connect(self, parent, **kwargs):
+    def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)
-        return super(BadgeTemplate, self).post_connect(parent, **kwargs)
+        return super(BadgeTemplate, self).post_connect_remove(parent, **kwargs)
