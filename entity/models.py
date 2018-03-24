@@ -81,6 +81,16 @@ class Event(BaseEntity):
 
         super(Event, self).delete(*args, **kwargs)
 
+    def get_sub_entities_by_venue(self, type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        sub_entities = self.get_sub_entities_gfk_of_type(type)
+        venue_d = {}
+
+        for s in sub_entities:
+            if s.object.entity_state != BaseEntityComponent.ENTITY_STATE_DELETED:
+                venue_d.setdefault(s.join_fields['venue'], []).append(s.id)
+
+        return venue_d
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):

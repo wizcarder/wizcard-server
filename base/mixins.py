@@ -48,6 +48,12 @@ class ExtFieldsMixin(models.Model):
 
     ext_fields = PickledObjectField(default={}, blank=True)
 
+class JoinFieldsMixin(models.Model):
+    class Meta:
+        abstract = True
+
+    join_fields = PickledObjectField(default={}, blank=True)
+
 
 class Base412Mixin(Base411Mixin, ExtFieldsMixin):
     class Meta:

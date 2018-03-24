@@ -49,14 +49,6 @@ class Taganomy(BaseEntityComponent, Base411Mixin):
 
         return tag_d
 
-    def get_sub_entities_by_venue(self, entity_type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-        sub_entities = self.get_sub_entities_of_type(entity_type)
-        venue_d = {}
-        for s in sub_entities:
-            venue_d.setdefault(s.venue, []).append(s.id)
-
-        return venue_d
-
     # not sending tag level notif. Only at Taganomy level
     def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)

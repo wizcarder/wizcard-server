@@ -48,7 +48,7 @@ class BadgeTemplateManager(BaseEntityComponentManager):
 # description can be used as the portal needs based on the UI fields
 
 
-class BadgeTemplate(BaseEntityComponent, ExtFieldsMixin, CompanyTitleMixin):
+class BadgeTemplate(BaseEntityComponent, Base411Mixin, ExtFieldsMixin, CompanyTitleMixin):
 
     objects = BadgeTemplateManager()
 
