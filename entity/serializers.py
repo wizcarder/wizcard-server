@@ -52,17 +52,13 @@ class TaganomySerializerL2(TaganomySerializer):
     class Meta:
         model = Taganomy
 
-        my_fields = ('tags_exhibitor', 'venue_exhibitor',)
+        my_fields = ('tags_exhibitor',)
         fields = TaganomySerializer.Meta.fields + my_fields
 
     tags_exhibitor = serializers.SerializerMethodField()
-    venue_exhibitor = serializers.SerializerMethodField()
 
     def get_tags_exhibitor(self, obj):
         return obj.get_sub_entities_by_tags(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
-
-    def get_venue_exhibitor(self, obj):
-        return obj.get_sub_entities_by_venue(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
 
 
 class AgendaItemSerializer(EntitySerializer):
@@ -385,13 +381,14 @@ class EventSerializerL2(EntitySerializer):
     agenda = serializers.SerializerMethodField()
     polls = serializers.SerializerMethodField()
     taganomy = serializers.SerializerMethodField()
+    venue_exhibitor = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
 
         parent_fields = EntitySerializer.Meta.fields
         my_fields = ('start', 'end', 'speakers', 'sponsors', 'campaigns', 'agenda',
-                     'polls', 'taganomy',)
+                     'polls', 'taganomy', 'venue_exhibitor')
 
         fields = parent_fields + my_fields
 
@@ -461,6 +458,9 @@ class EventSerializerL2(EntitySerializer):
             obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_CATEGORY),
             many=True
         ).data
+
+    def get_venue_exhibitor(self, obj):
+        return obj.get_sub_entities_by_venue()
 
 
 # this is used by App

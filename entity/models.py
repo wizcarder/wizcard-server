@@ -81,6 +81,16 @@ class Event(BaseEntity):
 
         super(Event, self).delete(*args, **kwargs)
 
+    def get_sub_entities_by_venue(self, type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
+        sub_entities = self.get_sub_entities_gfk_of_type(type)
+        venue_d = {}
+
+        for s in sub_entities:
+            if s.object.entity_state != BaseEntityComponent.ENTITY_STATE_DELETED:
+                venue_d.setdefault(s.join_fields['venue'], []).append(s.id)
+
+        return venue_d
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
@@ -251,11 +261,11 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
     # check if invitee_ids is in User based on email.
     # returns those users
     def check_existing_users_exhibitors(self, invitee_ids):
-        matched_users = User.objects.filter(
+        matched_users = Wizcard.objects.filter(
             email__in=self.filter(
                 id__in=invitee_ids
             ).values_list('email', flat=True)
-        )
+        ).values_list('user', flat=True)
 
         matched_exhibitors = self.filter(
             email__in=matched_users.values_list('email', flat=True)

@@ -1,5 +1,5 @@
 from rest_framework.response import Response
-from base_entity.models import BaseEntityComponent, UserEntity
+from base_entity.models import BaseEntityComponent, BaseEntity, UserEntity
 from entity.models import Event, Campaign, VirtualTable,\
     Speaker, Sponsor, ExhibitorInvitee, AttendeeInvitee, Agenda, AgendaItem, CoOwners
 from polls.models import Poll
@@ -71,14 +71,14 @@ class EventViewSet(BaseEntityViewSet):
         # and check for those events when the exhibitor comes in, treating the exhibitor email as the
         # handle within ExhibitorInvitee. Essentially, Exhibitor/AttendeeInvitee becomes the future user construct
 
-        # exhibitor may already have an account. if so, join them to event
+        # exhibitor may already have an account via wizcard user (AppUser). if so, join them to event
         existing_users, existing_exhibitors = ExhibitorInvitee.objects.check_existing_users_exhibitors(
             exhibitor_invitees
         )
         [inst.user_attach(u, state=UserEntity.JOIN) for u in existing_users]
 
         for e in existing_exhibitors:
-            e.state = ExhibitorInvitee.ACCEPTED
+            e.state = ExhibitorInvitee.INVITED
             e.save()
 
         new_exhibitors = [x for x in exhibitor_invitees if x not in existing_exhibitors.values_list('id', flat=True)]
@@ -337,11 +337,13 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        join_fields = request.data.pop('join_fields', {})
+
         serializer = CampaignSerializer(data=request.data, context={'user': request.user})
+
         if serializer.is_valid():
             inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
-            inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -353,14 +355,12 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if cpg in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-            return Response("event %s already  associated with Campaign %s " % (event_pk, pk),
-                            status=status.HTTP_200_OK)
+        #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
+        join_fields = request.data.pop('join_fields', {})
+        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
 
-        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
-        cpg.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+        return Response(status=status.HTTP_200_OK)
 
-        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -374,7 +374,6 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
-        cpg.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -828,7 +827,6 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         event.add_subentity_obj(agn, BaseEntityComponent.SUB_ENTITY_AGENDA)
-        agn.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
 
@@ -879,8 +877,6 @@ class EventPollViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             inst = serializer.save()
             event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_POLL)
-            inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
-
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -902,7 +898,6 @@ class EventPollViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         event.add_subentity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL)
-        pol.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
 
@@ -918,7 +913,6 @@ class EventPollViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_obj(pol, BaseEntityComponent.SUB_ENTITY_POLL)
-        pol.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -990,7 +984,6 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         if serializer.is_valid():
             inst = serializer.save()
             event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CATEGORY)
-            inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -1013,7 +1006,6 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)
-        taganomy.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
         return Response(status=status.HTTP_201_CREATED)
 
@@ -1029,7 +1021,6 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_obj(tgn, BaseEntityComponent.SUB_ENTITY_CATEGORY)
-        tgn.set_entity_state(BaseEntityComponent.ENTITY_STATE_CREATED)
 
         return Response(status=status.HTTP_200_OK)
 

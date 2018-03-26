@@ -1,7 +1,7 @@
 from django.db import models
 from taggit.managers import TaggableManager
 from django.contrib.contenttypes.fields import GenericRelation
-from genericm2m.models import RelatedObjectsDescriptor
+from genericm2m.models import RelatedObjectsDescriptor, RelatedObject
 from location_mgr.models import LocationMgr
 from django.core.exceptions import ObjectDoesNotExist
 from location_mgr.signals import location
@@ -18,11 +18,18 @@ import ushlex as shlex
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from taggit.models import TaggedItem
+from base.mixins import JoinFieldsMixin
+
 import itertools
 
 import pdb
 
 # Create your models here.
+
+
+class WizcardRelatedField(RelatedObject, JoinFieldsMixin):
+    def __unicode__(self):
+        return unicode(u'%s related to %s ("%s:%s")' % (self.parent, self.object, self.alias, self.join_fields))
 
 
 class BaseEntityComponentManager(PolymorphicManager):
@@ -260,7 +267,7 @@ class BaseEntityComponent(PolymorphicModel):
     )
 
     # sub-entities. using django-generic-m2m package
-    related = RelatedObjectsDescriptor()
+    related = RelatedObjectsDescriptor(WizcardRelatedField)
 
     engagements = models.OneToOneField(
         "EntityEngagementStats",
@@ -544,7 +551,11 @@ class BaseEntityComponent(PolymorphicModel):
         to_be_deleted_ids_qs.delete()
 
     def add_subentity_obj(self, obj, alias, **kwargs):
-        self.related.connect(obj, alias=alias)
+        join_fields = kwargs.pop('join_fields', {})
+        connection = self.related.connect(obj, alias=alias)
+
+        connection.join_fields = join_fields
+        connection.save()
         kwargs.update(notif_operation=verbs.NOTIF_OPERATION_CREATE)
 
         return obj.post_connect_remove(self, **kwargs)
@@ -554,6 +565,9 @@ class BaseEntityComponent(PolymorphicModel):
         kwargs.update(notif_operation=verbs.NOTIF_OPERATION_DELETE)
 
         return obj.post_connect_remove(self, **kwargs)
+
+    def get_sub_entities_gfk_of_type(self, entity_type, **kwargs):
+        return self.related.filter(alias=entity_type)
 
     def get_sub_entities_of_type(self, entity_type, **kwargs):
         exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])

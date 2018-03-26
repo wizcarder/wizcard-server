@@ -2465,7 +2465,7 @@ class ParseMsgAndDispatch(object):
         # will get wonky. We will just pick the event from the 1st entry
         try:
             event = Event.objects.get(id=scans[0]['event_id'])
-        except ObjectDoesNotExist:
+        except:
             self.response.error_response(err.OBJECT_DOESNT_EXIST)
             return self.response
 

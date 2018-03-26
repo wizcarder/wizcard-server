@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 
-from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin
+from base.mixins import Base411Mixin, ExtFieldsMixin, CompanyTitleMixin
 from base_entity.models import BaseEntityComponent, BaseEntityComponentManager
 
 
@@ -48,7 +48,7 @@ class BadgeTemplateManager(BaseEntityComponentManager):
 # description can be used as the portal needs based on the UI fields
 
 
-class BadgeTemplate(BaseEntityComponent, Base412Mixin, CompanyTitleMixin):
+class BadgeTemplate(BaseEntityComponent, Base411Mixin, ExtFieldsMixin, CompanyTitleMixin):
 
     objects = BadgeTemplateManager()
 
