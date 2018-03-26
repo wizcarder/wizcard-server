@@ -1,8 +1,9 @@
 __author__ = 'aammundi'
 
 from rest_framework import serializers
-from polls.models import Question, UserResponse
+from polls.models import Question, UserResponse, Poll
 from polls.models import QuestionChoicesBase
+from base_entity.models import BaseEntityComponent
 
 import pdb
 
@@ -89,7 +90,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         read_only_fields = ('num_responders',)
 
     choices = QuestionChoicesSerializer(many=True)
-    poll = serializers.PrimaryKeyRelatedField(read_only=True)
+    poll = serializers.PrimaryKeyRelatedField(queryset=Poll.objects.all(), required=False)
 
     # not elegant. Have to do this since:
     # 1. This is not inheriting from EntitySerializer
@@ -99,16 +100,38 @@ class QuestionSerializer(serializers.ModelSerializer):
     def get_user_state(self, obj):
         return obj.user_state(self.context.get('user', None))
 
-    def update(self, instance, validated_data):
-        choices = validated_data.pop('choices', [])
+    def prepare(self, validated_data):
+        self.choices = validated_data.pop('choices', [])
 
+    def post_create_update(self, obj, update=False):
+        c_cls = Question.objects.get_choice_cls_from_type(obj.question_type)
+
+        if self.choices:
+            [c_cls.objects.create(question=obj, **c) for c in self.choices]
+        else:
+            c_cls.objects.create(question=obj)
+
+        return obj
+
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        obj = super(QuestionSerializer, self).create(validated_data)
+        self.post_create_update(obj)
+
+        return obj
+
+    def update(self, instance, validated_data):
+        parents = instance.objects.get_parent_entities()
+        for e in parents:
+            if e.state != BaseEntityComponent.ENTITY_STATE_CREATED:
+                error = {'message': " Poll cannot be edited once live"}
+                raise serializers.ValidationError(error)
+
+        self.prepare(validated_data)
         # clear all choices
         instance.choices.all().delete()
-
-        cls = Question.objects.get_choice_cls_from_type(validated_data['question_type'])
-        [cls.objects.create(question=instance, **c) for c in choices]
-
         obj = super(QuestionSerializer, self).update(instance, validated_data)
+        self.post_create_update(obj)
 
         return obj
 

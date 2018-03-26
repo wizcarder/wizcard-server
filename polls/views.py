@@ -60,13 +60,26 @@ class PollViewSet(BaseEntityComponentViewSet):
 
         return Response("poll %s unlinked from entity" % poll.description, status=status.HTTP_200_OK)
 
+    def update(self, request, *args, **kwargs):
+        try:
+            poll = Poll.objects.get(id=kwargs.get('pk'))
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PollSerializer(poll, request.data)
+        if serializer.is_valid():
+            inst = serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PollQuestionViewSet(BaseEntityComponentViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
 
-    def list(self, request, poll_pk=None):
-        poll = Poll.objects.get(id=poll_pk)
+    def list(self, request, **kwargs):
+        poll = Poll.objects.get(id=kwargs.get('poll_pk'))
         questions = poll.questions.all()
         return Response(QuestionSerializer(questions, many=True).data)
 
@@ -84,6 +97,21 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
 
         return Response(QuestionSerializer(question).data)
 
+    def create(self, request, **kwargs):
+        try:
+            poll = Poll.objects.get(id=kwargs.get('poll_pk'))
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        request.data.update(poll=poll)
+
+        serializer = QuestionSerializer(data=request.data)
+        if serializer.is_valid():
+            inst = serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def update(self, request, pk=None, poll_pk=None):
         try:
             poll = Poll.objects.get(id=poll_pk)
@@ -95,6 +123,7 @@ class PollQuestionViewSet(BaseEntityComponentViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         question = poll.questions.get(id=pk)
+        request.data.update(poll=poll)
 
         serializer = QuestionSerializer(question, data=request.data)
         if serializer.is_valid():
@@ -148,7 +177,7 @@ class PollAnswersViewSet(BaseEntityComponentViewSet):
     queryset = Poll.objects.all()
     serializer_class = PollResponseSerializer
 
-    def list(self, request, poll_pk=None):
-        poll = Poll.objects.get(id=poll_pk)
+    def list(self, request, **kwargs):
+        poll = Poll.objects.get(id=kwargs.get('poll_pk'))
         return Response(PollResponseSerializer(poll).data)
 

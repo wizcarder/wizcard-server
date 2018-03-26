@@ -517,6 +517,31 @@
 			"response": []
 		},
 		{
+			"name": "20 Poll  5.Question Create",
+			"request": {
+				"url": "http://localhost:8000/entity/polls/20/question/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"question_type\": \"MCR\",\n\t\"ui_type\": \"RAD\",\n    \"single_answer\": \"True\",\n    \"question\": \"What is your name.new\",\n    \"choices\": [\n    \t{\n    \t\t\"question_key\": \"A\",\n    \t\t\"question_value\": \"Anand.new\"\n    \t},\n    \t{\n    \t\t\"question_key\": \"B\",\n    \t\t\"question_value\": \"Ablu.new\"\n    \t},\n    \t{\n    \t\t\"question_key\": \"C\",\n    \t\t\"question_value\": \"Ammundi.new\"\n    \t}\n    ]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "20 Poll Update",
 			"request": {
 				"url": "http://localhost:8000/entity/polls/20/",
@@ -535,7 +560,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"description\": \"Poll 1\",\n  \"questions\": [\n    {\n      \"question_type\": \"MCR\",\n      \"ui_type\": \"SEL\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"question_key\": \"A\",\n            \"question_value\": \"Dnana\"\n          },\n          {\n            \"question_key\": \"B\",\n            \"question_value\": \"Ulab\"\n          },\n          {\n            \"question_key\": \"C\",\n            \"question_value\": \"idnummA\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"SCL\",\n        \"ui_type\": \"SLD\",\n        \"single_answer\": \"True\",\n        \"question\": \"Rate Me\",\n        \"choices\": [\n          {\n            \"low\": \"1\",\n            \"high\": \"10\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TOF\",\n        \"ui_type\": \"RAD\",\n        \"single_answer\": \"True\",\n        \"question\": \"Say Yes on No\",\n        \"choices\": [\n          {\n            \"true_key\": \"Yes\",\n            \"false_key\": \"No\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TXT\",\n        \"ui_type\": \"TEX\",\n        \"question\": \"Type what's your mind\",\n        \"choices\": []\n    }\n  ]\n}"
+					"raw": "{\n  \"description\": \"Poll 1.updated\",\n  \"questions\": [\n    {\n      \"question_type\": \"MCR\",\n      \"ui_type\": \"SEL\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name\",\n        \"choices\": [\n          {\n            \"question_key\": \"A\",\n            \"question_value\": \"Dnana\"\n          },\n          {\n            \"question_key\": \"B\",\n            \"question_value\": \"Ulab\"\n          },\n          {\n            \"question_key\": \"C\",\n            \"question_value\": \"idnummA\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"SCL\",\n        \"ui_type\": \"SLD\",\n        \"single_answer\": \"True\",\n        \"question\": \"Rate Me\",\n        \"choices\": [\n          {\n            \"low\": \"1\",\n            \"high\": \"10\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TOF\",\n        \"ui_type\": \"RAD\",\n        \"single_answer\": \"True\",\n        \"question\": \"Say Yes on No\",\n        \"choices\": [\n          {\n            \"true_key\": \"Yes\",\n            \"false_key\": \"No\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TXT\",\n        \"ui_type\": \"TEX\",\n        \"question\": \"Type what's your mind\",\n        \"choices\": []\n    }\n  ]\n}"
 				},
 				"description": null
 			},

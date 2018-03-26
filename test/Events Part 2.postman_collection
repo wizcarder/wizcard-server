@@ -184,6 +184,31 @@
 			"response": []
 		},
 		{
+			"name": "26 Poll Update",
+			"request": {
+				"url": "http://localhost:8000/entity/polls/26/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"description\": \"Poll 1.updated\",\n  \"questions\": [\n    {\n      \"question_type\": \"MCR\",\n      \"ui_type\": \"SEL\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name.updated\",\n        \"choices\": [\n          {\n            \"question_key\": \"A\",\n            \"question_value\": \"Anand.updated\"\n          },\n          {\n            \"question_key\": \"B\",\n            \"question_value\": \"Ablu.updated\"\n          },\n          {\n            \"question_key\": \"C\",\n            \"question_value\": \"Ammundi\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"SCL\",\n        \"ui_type\": \"SLD\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name.updated\",\n        \"choices\": [\n          {\n            \"low\": \"1\",\n            \"high\": \"5\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TOF\",\n        \"ui_type\": \"RAD\",\n        \"single_answer\": \"True\",\n        \"question\": \"What is your name.updated\",\n        \"choices\": [\n          {\n            \"true_key\": \"Yes\",\n            \"false_key\": \"No\"\n          }\n        ]\n    },\n    {\n      \"question_type\": \"TXT\",\n        \"ui_type\": \"TEX\",\n        \"question\": \"What is your name.updated\",\n        \"choices\": []\n    }\n  ]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "7.Notification Create",
 			"request": {
 				"url": "http://localhost:8000/entity/notifications/",
