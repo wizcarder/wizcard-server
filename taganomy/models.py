@@ -54,6 +54,7 @@ class Taganomy(BaseEntityComponent, Base411Mixin):
         kwargs.update(send_notif=False)
         return super(Taganomy, self).post_connect_remove(parent, **kwargs)
 
+    @property
     def is_floodable(self):
         return True
 

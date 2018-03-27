@@ -91,6 +91,10 @@ class Event(BaseEntity):
 
         return venue_d
 
+    @property
+    def send_wizcard_on_access(self):
+        return True
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):

@@ -68,7 +68,7 @@ class BaseEntityComponentManager(PolymorphicManager):
                 target=parent,
                 action_object=entity,
                 notif_operation=notif_operation
-            ) for parent in parents if parent.is_active() & parent.is_floodable()
+            ) for parent in parents if parent.is_active() & parent.is_floodable
         ]
 
 
@@ -598,6 +598,7 @@ class BaseEntityComponent(PolymorphicModel):
         return [p for p in parents if p.entity_state not in exclude]
 
     # is the instance of the kind that has notifiable users
+    @property
     def is_floodable(self):
         return False
 
@@ -752,7 +753,8 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                     recipient=self.get_creator(),
                     notif_tuple=verbs.WIZCARD_ENTITY_ATTACH,
                     target=self,
-                    action_object=user
+                    action_object=user,
+                    do_push=False
                 )
 
             if state == UserEntity.JOIN:
@@ -772,7 +774,8 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                     recipient=self.get_creator(),
                     notif_tuple=verbs.WIZCARD_ENTITY_DETACH,
                     target=self,
-                    action_object=user
+                    action_object=user,
+                    do_push=False
                 )
 
             if state == UserEntity.LEAVE:
@@ -783,8 +786,16 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     # override. BaseEntity derived objects can have subscribers. This can be further
     # overridden in sub-entities if needed
+    @property
     def is_floodable(self):
         return True
+
+    # This is used to control if the entity needs to send serialized wizcards
+    # as part of the serialized output. Presently we want to do this only for
+    # Event.
+    @property
+    def send_wizcard_on_access(self):
+        return False
 
     def is_joined(self, user):
         return bool(user.userentity_set.filter(entity=self, state=UserEntity.JOIN).exists())

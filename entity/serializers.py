@@ -471,7 +471,7 @@ class CampaignSerializerL1(EntitySerializer):
 
         # using L0 fields since not all L1 base class fields are needed
         parent_fields = EntitySerializerL0.Meta.fields
-        my_fields = ('name', 'address', 'like', 'description')
+        my_fields = ('name', 'address', 'like', 'description', 'user_state')
 
         fields = parent_fields + my_fields
 

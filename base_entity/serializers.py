@@ -55,12 +55,7 @@ class EntityEngagementSerializer(serializers.Serializer):
 class EntitySerializerL0(serializers.ModelSerializer):
     class Meta:
         model = BaseEntity
-        fields = ('id', 'entity_type', 'num_users', 'user_state')
-
-    user_state = serializers.SerializerMethodField()
-
-    def get_user_state(self, obj):
-        return obj.user_state(self.context.get('user'))
+        fields = ('id', 'entity_type', 'num_users')
 
 
 class EntityEngagementSerializerL1(EntityEngagementSerializer):
@@ -94,6 +89,7 @@ class EntitySerializer(EntitySerializerL0):
     )
     related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
+    user_state = serializers.SerializerMethodField()
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
@@ -120,6 +116,9 @@ class EntitySerializer(EntitySerializerL0):
 
     def get_friends(self, obj):
         return ""
+
+    def get_user_state(self, obj):
+        return obj.user_state(self.context.get('user'))
 
     def get_like(self, obj):
         liked, level = obj.engagements.user_liked(self.context.get('user'))
