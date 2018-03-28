@@ -87,7 +87,7 @@ class Event(BaseEntity):
 
         for s in sub_entities:
             if s.object.entity_state != BaseEntityComponent.ENTITY_STATE_DELETED:
-                venue_d.setdefault(s.join_fields['venue'], []).append(s.id)
+                venue_d.setdefault(s.join_fields['venue'], []).append(s.object.id)
 
         return venue_d
 
