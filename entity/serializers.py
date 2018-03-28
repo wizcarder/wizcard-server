@@ -797,7 +797,7 @@ class PollSerializerL1(EntitySerializer):
 class PollSerializer(EntitySerializer):
     class Meta:
         model = Poll
-        fields = ('id', 'description', 'questions', 'user_state', 'num_responders', 'created', 'event')
+        fields = ('id', 'description', 'questions', 'user_state', 'num_responders', 'created', 'event', 'entity_state')
         read_only_fields = ('entity_state', 'num_responders', 'created', 'event',)
 
     event = serializers.SerializerMethodField()
