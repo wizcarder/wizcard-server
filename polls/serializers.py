@@ -121,11 +121,17 @@ class QuestionSerializer(serializers.ModelSerializer):
         return obj
 
     def update(self, instance, validated_data):
-        parents = instance.objects.get_parent_entities()
-        for e in parents:
-            if e.state != BaseEntityComponent.ENTITY_STATE_CREATED:
-                error = {'message': " Poll cannot be edited once live"}
-                raise serializers.ValidationError(error)
+
+        # check if associated poll is linked to any active event
+        parents = instance.poll.get_parent_entities(
+            exclude=[
+                BaseEntityComponent.ENTITY_STATE_DELETED,
+                BaseEntityComponent.ENTITY_STATE_CREATED,
+                BaseEntityComponent.ENTITY_STATE_EXPIRED
+            ]
+        )
+        if parents:
+            raise serializers.ValidationError({'message': " Poll cannot be edited once live"})
 
         self.prepare(validated_data)
         # clear all choices
