@@ -209,6 +209,31 @@
 			"response": []
 		},
 		{
+			"name": "26 Poll  5.Question Create",
+			"request": {
+				"url": "http://localhost:8000/entity/polls/26/question/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"question_type\": \"MCR\",\n\t\"ui_type\": \"RAD\",\n    \"single_answer\": \"True\",\n    \"question\": \"What is your name.new\",\n    \"choices\": [\n    \t{\n    \t\t\"question_key\": \"A\",\n    \t\t\"question_value\": \"Anand.new\"\n    \t},\n    \t{\n    \t\t\"question_key\": \"B\",\n    \t\t\"question_value\": \"Ablu.new\"\n    \t},\n    \t{\n    \t\t\"question_key\": \"C\",\n    \t\t\"question_value\": \"Ammundi.new\"\n    \t}\n    ]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "7.Notification Create",
 			"request": {
 				"url": "http://localhost:8000/entity/notifications/",

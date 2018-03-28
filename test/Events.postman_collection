@@ -542,6 +542,31 @@
 			"response": []
 		},
 		{
+			"name": "20 Poll  5.Question Update",
+			"request": {
+				"url": "http://localhost:8000/entity/polls/20/question/5/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"question_type\": \"MCR\",\n\t\"ui_type\": \"RAD\",\n    \"single_answer\": \"True\",\n    \"question\": \"What is your name.new\",\n    \"choices\": [\n    \t{\n    \t\t\"question_key\": \"A\",\n    \t\t\"question_value\": \"Anand.new.updated\"\n    \t},\n    \t{\n    \t\t\"question_key\": \"B\",\n    \t\t\"question_value\": \"Ablu.new.updated\"\n    \t},\n    \t{\n    \t\t\"question_key\": \"C\",\n    \t\t\"question_value\": \"Ammundi.new\"\n    \t}\n    ]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "20 Poll Update",
 			"request": {
 				"url": "http://localhost:8000/entity/polls/20/",
