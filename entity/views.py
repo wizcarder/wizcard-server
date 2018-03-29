@@ -23,6 +23,10 @@ from scan.serializers import BadgeTemplateSerializer
 from wizserver import verbs
 from rest_framework.parsers import FileUploadParser, MultiPartParser, JSONParser
 from entity.tasks import create_entities
+from time import strftime
+from wsgiref.util import FileWrapper
+from django.utils import timezone
+from django.http import HttpResponse
 
 
 
@@ -138,6 +142,27 @@ class CampaignViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = Campaign.objects.owners_entities(user)
         return queryset
+
+    @list_route()
+    def download_exhibitors(self, request, pk=None):
+        pdb.set_trace()
+
+        queryset = self.get_queryset()
+        fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
+        header = "id\tname\temail\tphone\twebsite\tvenue\ttags\n"
+        sample_record = "83\tAny Name\ta@b.com\t9009009009\thttp://www.anyname.com\tHall A\ttag1, tag2, tag3\n"
+        f = open(fname, "w")
+        f.write(header)
+        f.write(sample_record)
+        for q in queryset:
+            record = '\t'.join([q.name, q.email, q.phone, q.website])
+            record = record + "\n"
+            f.write(record)
+        f.close()
+        f = open(fname, "r")
+
+        return HttpResponse(FileWrapper(f), content_type='text/tsv')
+
 
 
 class TableViewSet(BaseEntityViewSet):
