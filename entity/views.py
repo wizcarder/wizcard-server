@@ -145,27 +145,23 @@ class CampaignViewSet(BaseEntityViewSet):
 
     @list_route()
     def download_exhibitors(self, request, pk=None):
-        file_data = []
-
         queryset = self.get_queryset()
         fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
         header = "id\tname\temail\tphone\twebsite\tvenue\ttags\n"
         sample_record = "83\tAny Name\ta@b.com\t9009009009\thttp://www.anyname.com\tHall A\ttag1, tag2, tag3\n"
-        #f = open(fname, "w")
-        #f.write(header)
-        #f.write(sample_record)
-        file_data.append(header)
-        file_data.append(sample_record)
+        f = open(fname, "w")
+        f.write(header)
+        f.write(sample_record)
         for q in queryset:
             record = '\t'.join([q.name, q.email, q.phone, q.website])
             record = record + "\n"
-            #f.write(record)
-            file_data.append(record)
-        #f.close()
-        #f = open(fname, "r")
+            f.write(record)
 
-        response = HttpResponse(file_data, content_type='text/tab-separated-values')
-        response['Content-Disposition'] = 'attachment; filename="exhibitors.tsv"'
+        f.close()
+        f = open(fname, "rb")
+
+        response = HttpResponse(FileWrapper(f), content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="exhibitors.xls"'
         return response
 
 
@@ -385,10 +381,17 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        if event in cpg.get_parent_entities():
+            is_related_update = True
+
+
         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
         join_fields = request.data.pop('join_fields', {})
-        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
-
+        event.add_subentity_obj(cpg,
+                                BaseEntityComponent.SUB_ENTITY_CAMPAIGN,
+                                join_fields=join_fields,
+                                related_update=is_related_update
+                                )
         return Response(status=status.HTTP_200_OK)
 
 

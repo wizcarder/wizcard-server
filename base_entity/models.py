@@ -619,6 +619,11 @@ class BaseEntityComponent(PolymorphicModel):
     def post_connect_remove(self, parent, **kwargs):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
         send_notif = kwargs.pop('send_notif', True)
+        related_update = kwargs.pop('related_update', False)
+
+        # Assumption is parent will encompass the child when the link/related_field is updated
+        # So make the action_object the parent here so the right serializers can be invoked
+        action_object = parent if related_update else self
 
         entity_state = BaseEntityComponent.ENTITY_STATE_CREATED if notif_operation == verbs.NOTIF_OPERATION_DELETE \
             else BaseEntityComponent.ENTITY_STATE_PUBLISHED
