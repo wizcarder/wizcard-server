@@ -335,7 +335,7 @@ def get_apns_dict_for_device(notif_type, device_type):
 FEED_SEPERATOR = "\t"
 
 feed_schemas = {
-    "CMP": ["name", "email", "phone", "website", "venue"],
+    "CMP": ["name", "email", "phone", "website"],
     "ATI": ["name", "email", "company" , "title"],
 }
 

@@ -145,23 +145,28 @@ class CampaignViewSet(BaseEntityViewSet):
 
     @list_route()
     def download_exhibitors(self, request, pk=None):
-        pdb.set_trace()
+        file_data = []
 
         queryset = self.get_queryset()
         fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
         header = "id\tname\temail\tphone\twebsite\tvenue\ttags\n"
         sample_record = "83\tAny Name\ta@b.com\t9009009009\thttp://www.anyname.com\tHall A\ttag1, tag2, tag3\n"
-        f = open(fname, "w")
-        f.write(header)
-        f.write(sample_record)
+        #f = open(fname, "w")
+        #f.write(header)
+        #f.write(sample_record)
+        file_data.append(header)
+        file_data.append(sample_record)
         for q in queryset:
             record = '\t'.join([q.name, q.email, q.phone, q.website])
             record = record + "\n"
-            f.write(record)
-        f.close()
-        f = open(fname, "r")
+            #f.write(record)
+            file_data.append(record)
+        #f.close()
+        #f = open(fname, "r")
 
-        return HttpResponse(FileWrapper(f), content_type='text/tsv')
+        response = HttpResponse(file_data, content_type='text/tab-separated-values')
+        response['Content-Disposition'] = 'attachment; filename="exhibitors.tsv"'
+        return response
 
 
 
