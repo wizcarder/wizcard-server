@@ -1029,7 +1029,7 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if taganomy in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
+        if taganomy in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY):
             return Response("event id %s already associated with taganomy %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
