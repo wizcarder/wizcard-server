@@ -375,6 +375,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, event_pk=None, pk=None):
+        is_related_update = False
         try:
             event = Event.objects.get(id=event_pk)
             cpg = Campaign.objects.get(id=pk)
