@@ -431,6 +431,10 @@ class EventSerializerL2(EntitySerializer):
         ).data
 
     def get_campaigns(self, obj):
+        self.context.update(
+            parent_type=ContentType.objects.get_for_model(model=obj)
+        )
+
         return CampaignSerializerL2(
             obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_CAMPAIGN),
             many=True,
@@ -499,6 +503,10 @@ class CampaignSerializerL2(EntitySerializer):
         fields = EntitySerializer.Meta.fields + my_fields
 
     tags = TagListSerializerField(required=False)
+    venue = serializers.SerializerMethodField()
+
+    def get_venue(self, obj):
+        return self.get_join_fields(obj)['venue']
 
 
 # this is used by portal REST API
@@ -517,6 +525,8 @@ class CampaignSerializer(EntitySerializer):
 
     scans = serializers.SerializerMethodField()
     events = serializers.SerializerMethodField()
+    venue = serializers.SerializerMethodField()
+
     # this is write tags
     taganomy = TaganomySerializerField(required=False, write_only=True)
     # this is to read tags
@@ -531,6 +541,9 @@ class CampaignSerializer(EntitySerializer):
     def get_events(self, obj):
         parents = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
         return ExhibitorEventSerializer(parents, many=True).data
+
+    def get_venue(self, obj):
+        return self.get_join_fields(obj)['venue']
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)
