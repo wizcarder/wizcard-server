@@ -82,7 +82,7 @@ class Event(BaseEntity):
         super(Event, self).delete(*args, **kwargs)
 
     def get_sub_entities_by_venue(self, type=BaseEntityComponent.SUB_ENTITY_CAMPAIGN):
-        sub_entities = self.get_sub_entities_gfk_of_type(type)
+        sub_entities = self.get_sub_entities_gfk_of_type(alias=type)
         venue_d = {}
 
         for s in sub_entities:

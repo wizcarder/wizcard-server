@@ -2405,7 +2405,6 @@ class ParseMsgAndDispatch(object):
         level = self.sender.get('level')
         # Should be in the format "YYYY-mm-ddTHH-MM-SS-HH:MM"
         timestamp = self.sender.get('timestamp', wizlib.get_epoch_time())
-        fields = self.sender.get('fields', None)
 
         try:
             e, s = BaseEntity.entity_cls_ser_from_type_level(
@@ -2422,9 +2421,17 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         # AR: This applies only to EVT
-        if entity_type == 'EVT' and entity.secure and not entity.is_joined(self.user):
+        if entity_type == BaseEntityComponent.EVENT and entity.secure and not entity.is_joined(self.user):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
+
+        # in future, if we need sub_entity_details L2 level, and join fields are needed, app will need to pass
+        # the parent. Presently this isn't needed since app doesn't request L2 level details via entity_details
+        # for things other than Event. For Event, it's handled for sub-entities in the Event serializer since
+        # the Event implicitly is the parent.
+
+        if hasattr(self.sender, 'parent'):
+            self.user_context.update(parent=self.sender['parent'])
 
         out = s(entity, **self.user_context).data
         self.response.add_data("result", out)

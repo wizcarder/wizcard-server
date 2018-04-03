@@ -26,7 +26,32 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One Nested\",\n    \"address\": \"Product One Nested\",\n    \"website\": \"http://www.OneNested.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi/nested\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2018-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product One Nested\",\n    \"address\": \"Product One Nested\",\n    \"website\": \"http://www.OneNested.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi/nested\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2018-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"join_fields\": {\n    \t\"venue\": \"Hall 1\"\n    }\n  }"
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "28.Campaign Update Nested Event 14 venue",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/campaigns/28/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"join_fields\": {\n    \t\"venue\": \"Hall 2\"\n    }\n  }"
 				},
 				"description": null
 			},
@@ -51,7 +76,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"John Doe Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardnested.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/nested\",\n      \"linked\" : \"linkedin.com/john/nested\"\n    },\n    \"description\": \"Nested Campaign\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"John Doe Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"WizCard INc Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardnested.com\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/nested\",\n      \"linked\" : \"linkedin.com/john/nested\"\n    },\n    \"description\": \"Nested Campaign\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ],\n    \"join_fields\": {\n    \t\"venue\": \"Hall 1\"\n    }\n  }"
 				},
 				"description": null
 			},
@@ -76,7 +101,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Cisco Systems Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardNested.com\",\n    \"designation\": \"Nested\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/Nested\",\n      \"linked\" : \"linkedin.com/john/Nested\"\n    },\n    \"description\": \"Nested\",\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"Cisco Systems Nested\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"vcard\": \"\",\n    \"company\": \"Cisco Systems Nested\",\n    \"title\": \"Speaker in Chief Nested\",\n    \"website\": \"http://www.getwizcardNested.com\",\n    \"designation\": \"Nested\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/Nested\",\n      \"linked\" : \"linkedin.com/john/Nested\"\n    },\n    \"description\": \"Nested\",\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ],\n    \"join_fields\": {\n    \t\"venue\": \"Hall 1\"\n    }\n  }"
 				},
 				"description": null
 			},
