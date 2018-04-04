@@ -506,7 +506,8 @@ class CampaignSerializerL2(EntitySerializer):
     venue = serializers.SerializerMethodField()
 
     def get_venue(self, obj):
-        return self.get_join_fields(obj)['venue']
+        join_field = self.get_join_fields(obj)
+        return join_field['venue'] if 'venue' in join_field else None
 
 
 # this is used by portal REST API
@@ -543,7 +544,8 @@ class CampaignSerializer(EntitySerializer):
         return ExhibitorEventSerializer(parents, many=True).data
 
     def get_venue(self, obj):
-        return self.get_join_fields(obj)['venue']
+        join_field = self.get_join_fields(obj)
+        return join_field['venue'] if 'venue' in join_field else None
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)

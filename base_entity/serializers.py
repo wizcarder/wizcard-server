@@ -130,12 +130,12 @@ class EntitySerializer(EntitySerializerL0):
 
     def get_join_fields(self, obj):
         parent = self.context.get('parent')
-
         # get join table row. There should be only a single row.
-        return parent.get_sub_entities_gfk_of_type(
+        value = parent.get_sub_entities_gfk_of_type(
             object_id=obj.id,
             alias=BaseEntityComponent.sub_entity_type_from_entity_type(obj.entity_type)
-        ).values_list('join_fields', flat=True).get()
+        ).values_list('join_fields', flat=True).get() if parent else {}
+        return value
 
     def prepare(self, validated_data):
         self._owners = validated_data.pop('owners', None)
