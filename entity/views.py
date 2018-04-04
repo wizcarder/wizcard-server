@@ -397,24 +397,15 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, event_pk=None, pk=None):
-        is_related_update = False
         try:
             event = Event.objects.get(id=event_pk)
             cpg = Campaign.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if event in cpg.get_parent_entities():
-            is_related_update = True
-
-
         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
         join_fields = request.data.pop('join_fields', {})
-        event.add_subentity_obj(cpg,
-                                BaseEntityComponent.SUB_ENTITY_CAMPAIGN,
-                                join_fields=join_fields,
-                                related_update=is_related_update
-                                )
+        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
         return Response(status=status.HTTP_200_OK)
 
     def destroy(self, request, event_pk=None, pk=None):
