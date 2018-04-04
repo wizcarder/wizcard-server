@@ -23,6 +23,10 @@ from scan.serializers import BadgeTemplateSerializer
 from wizserver import verbs
 from rest_framework.parsers import FileUploadParser, MultiPartParser, JSONParser
 from entity.tasks import create_entities
+from time import strftime
+from wsgiref.util import FileWrapper
+from django.utils import timezone
+from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -139,6 +143,28 @@ class CampaignViewSet(BaseEntityViewSet):
         user = self.request.user
         queryset = Campaign.objects.owners_entities(user)
         return queryset
+
+    @list_route()
+    def download_exhibitors(self, request, pk=None):
+        queryset = self.get_queryset()
+        fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
+        header = "id\tname\temail\tphone\twebsite\tvenue\ttags\n"
+        sample_record = "83\tAny Name\ta@b.com\t9009009009\thttp://www.anyname.com\tHall A\ttag1, tag2, tag3\n"
+        f = open(fname, "w")
+        f.write(header)
+        f.write(sample_record)
+        for q in queryset:
+            record = '\t'.join([q.name, q.email, q.phone, q.website])
+            record = record + "\n"
+            f.write(record)
+
+        f.close()
+        f = open(fname, "rb")
+
+        response = HttpResponse(FileWrapper(f), content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="exhibitors.xls"'
+        return response
+
 
 
 class TableViewSet(BaseEntityViewSet):
@@ -380,7 +406,6 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
         join_fields = request.data.pop('join_fields', {})
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
-
         return Response(status=status.HTTP_200_OK)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -1017,7 +1042,7 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if taganomy in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL):
+        if taganomy in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY):
             return Response("event id %s already associated with taganomy %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
