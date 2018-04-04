@@ -566,8 +566,8 @@ class BaseEntityComponent(PolymorphicModel):
 
         return obj.post_connect_remove(self, **kwargs)
 
-    def get_sub_entities_gfk_of_type(self, entity_type, **kwargs):
-        return self.related.filter(alias=entity_type)
+    def get_sub_entities_gfk_of_type(self, **kwargs):
+        return self.related.filter(**kwargs)
 
     def get_sub_entities_of_type(self, entity_type, **kwargs):
         exclude = kwargs.pop('exclude', [self.ENTITY_STATE_DELETED])

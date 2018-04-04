@@ -5,6 +5,8 @@ from base_entity.models import BaseEntity, EntityEngagementStats, BaseEntityComp
 from entity.models import CoOwners
 from media_components.serializers import MediaEntitiesSerializer
 from wizserver import verbs
+from django.contrib.contenttypes.models import ContentType
+
 import pdb
 
 
@@ -90,6 +92,8 @@ class EntitySerializer(EntitySerializerL0):
     related = RelatedSerializerField(write_only=True, required=False, many=True)
     ext_fields = serializers.DictField(required=False)
     user_state = serializers.SerializerMethodField()
+    # we may not use this directly. Keeping it here for future
+    join_fields = serializers.SerializerMethodField()
 
     MAX_THUMBNAIL_UI_LIMIT = 4
 
@@ -123,6 +127,15 @@ class EntitySerializer(EntitySerializerL0):
     def get_like(self, obj):
         liked, level = obj.engagements.user_liked(self.context.get('user'))
         return dict(liked=liked, like_level=level)
+
+    def get_join_fields(self, obj):
+        parent = self.context.get('parent')
+
+        # get join table row. There should be only a single row.
+        return parent.get_sub_entities_gfk_of_type(
+            object_id=obj.id,
+            alias=BaseEntityComponent.sub_entity_type_from_entity_type(obj.entity_type)
+        ).values_list('join_fields', flat=True).get()
 
     def prepare(self, validated_data):
         self._owners = validated_data.pop('owners', None)

@@ -27,6 +27,7 @@ from time import strftime
 from wsgiref.util import FileWrapper
 from django.utils import timezone
 from django.http import HttpResponse
+from django.contrib.contenttypes.models import ContentType
 
 
 
@@ -227,8 +228,8 @@ class AgendaItemViewSet(BaseEntityComponentViewSet):
     queryset = AgendaItem.objects.all()
     serializer_class = AgendaItemSerializer
 
-    def list(self, request, agenda_pk=None):
-        agn = Agenda.objects.get(id=agenda_pk)
+    def list(self, request, **kwargs):
+        agn = Agenda.objects.get(id=kwargs.get('agenda_pk'))
         return Response(AgendaItemSerializer(agn.items.all(), many=True).data)
 
     def retrieve(self, request, pk=None, agenda_pk=None):
@@ -244,9 +245,9 @@ class AgendaItemViewSet(BaseEntityComponentViewSet):
 
         return Response(AgendaItemSerializer(agi).data)
 
-    def create(self, request, agenda_pk=None):
+    def create(self, request, **kwargs):
         try:
-            agn = Agenda.objects.get(id=agenda_pk)
+            agn = Agenda.objects.get(id=kwargs.get('agenda_pk'))
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -339,10 +340,18 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
     queryset = Campaign.objects.all()
     serializer_class = CampaignSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         cpg = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
-        return Response(CampaignSerializer(cpg, many=True).data)
+        return Response(
+            CampaignSerializer(
+                cpg,
+                many=True,
+                context={
+                    'parent': event
+                }
+            ).data
+        )
 
     def retrieve(self, request, pk=None, event_pk=None):
         try:
@@ -355,17 +364,30 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with Campaign %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(CampaignSerializer(cpg).data)
+        return Response(
+            CampaignSerializer(
+                cpg,
+                many=True,
+                context={
+                    'parent': event
+                }
+            ).data
+        )
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         join_fields = request.data.pop('join_fields', {})
 
-        serializer = CampaignSerializer(data=request.data, context={'user': request.user})
+        context = {
+            'user': request.user,
+            'parent': event
+        }
+
+        serializer = CampaignSerializer(data=request.data, context=context)
 
         if serializer.is_valid():
             inst = serializer.save()
@@ -395,7 +417,6 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                                 )
         return Response(status=status.HTTP_200_OK)
 
-
     def destroy(self, request, event_pk=None, pk=None):
         try:
             event = Event.objects.get(id=event_pk)
@@ -416,8 +437,8 @@ class EventSpeakerViewSet(viewsets.ModelViewSet):
     queryset = Speaker.objects.all()
     serializer_class = SpeakerSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         spk = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_SPEAKER)
         return Response(SpeakerSerializer(spk, many=True).data)
 
@@ -434,9 +455,9 @@ class EventSpeakerViewSet(viewsets.ModelViewSet):
 
         return Response(SpeakerSerializer(spk).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -482,8 +503,8 @@ class EventSponsorViewSet(viewsets.ModelViewSet):
     queryset = Sponsor.objects.all()
     serializer_class = SpeakerSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         spn = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_SPONSOR)
         return Response(SpeakerSerializer(spn, many=True).data)
 
@@ -500,9 +521,9 @@ class EventSponsorViewSet(viewsets.ModelViewSet):
 
         return Response(SponsorSerializer(spn).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -548,8 +569,8 @@ class EventMediaViewSet(viewsets.ModelViewSet):
     queryset = MediaEntities.objects.all()
     serializer_class = MediaEntitiesSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         med = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA)
         return Response(MediaEntitiesSerializer(med, many=True).data)
 
@@ -566,9 +587,9 @@ class EventMediaViewSet(viewsets.ModelViewSet):
 
         return Response(SponsorSerializer(med).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -614,8 +635,8 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
     queryset = AttendeeInvitee.objects.all()
     serializer_class = AttendeeInviteeSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         ati = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
         return Response(AttendeeInviteeSerializer(ati, many=True).data)
 
@@ -632,9 +653,9 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
 
         return Response(AttendeeInviteeSerializer(ati).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -680,8 +701,8 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
     queryset = ExhibitorInvitee.objects.all()
     serializer_class = ExhibitorInviteeSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         exi = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
         return Response(ExhibitorInviteeSerializer(exi, many=True).data)
 
@@ -698,9 +719,9 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
 
         return Response(ExhibitorInviteeSerializer(exi).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -746,8 +767,8 @@ class EventCoOwnerViewSet(viewsets.ModelViewSet):
     queryset = CoOwners.objects.all()
     serializer_class = CoOwnersSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         ati = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER)
         return Response(CoOwnersSerializer(ati, many=True).data)
 
@@ -764,9 +785,9 @@ class EventCoOwnerViewSet(viewsets.ModelViewSet):
 
         return Response(CoOwnersSerializer(coo).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -812,8 +833,8 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
     queryset = Agenda.objects.all()
     serializer_class = AgendaSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         agn = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_AGENDA)
         return Response(AgendaSerializer(agn, many=True).data)
 
@@ -830,9 +851,9 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
 
         return Response(AgendaSerializer(agn).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -883,8 +904,8 @@ class EventPollViewSet(viewsets.ModelViewSet):
     queryset = Poll.objects.all()
     serializer_class = PollSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         pol = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_POLL)
         return Response(PollSerializer(pol, many=True).data)
 
@@ -901,9 +922,9 @@ class EventPollViewSet(viewsets.ModelViewSet):
 
         return Response(PollSerializer(pol).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -956,8 +977,8 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
     queryset = AsyncNotification.objects.all()
     serializer_class = AsyncNotificationSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         ntf = AsyncNotification.objects.event_notifications(event)
 
         return Response(AsyncNotificationSerializer(ntf, many=True).data)
@@ -971,9 +992,9 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
 
         return Response(AsyncNotificationSerializer(ntf).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -990,8 +1011,8 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
     queryset = Taganomy.objects.all()
     serializer_class = TaganomySerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         cat = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY)
         return Response(TaganomySerializer(cat, many=True).data)
 
@@ -1008,9 +1029,9 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
 
         return Response(TaganomySerializer(cat).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -1063,8 +1084,8 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
     queryset = BadgeTemplate.objects.all()
     serializer_class = BadgeTemplateSerializer
 
-    def list(self, request, event_pk=None):
-        event = Event.objects.get(id=event_pk)
+    def list(self, request, **kwargs):
+        event = Event.objects.get(id=kwargs.get('event_pk'))
         badge = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE)
         return Response(BadgeTemplateSerializer(badge, many=True).data)
 
@@ -1081,9 +1102,9 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
 
         return Response(BadgeTemplateSerializer(badge).data)
 
-    def create(self, request, event_pk=None):
+    def create(self, request, **kwargs):
         try:
-            event = Event.objects.get(id=event_pk)
+            event = Event.objects.get(id=kwargs.get('event_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -1133,8 +1154,8 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
     queryset = MediaEntities.objects.all()
     serializer_class = MediaEntitiesSerializer
 
-    def list(self, request, campaigns_pk=None):
-        campaign = Campaign.objects.get(id=campaigns_pk)
+    def list(self, request, **kwargs):
+        campaign = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
         med = campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA)
         return Response(MediaEntitiesSerializer(med, many=True).data)
 
@@ -1151,9 +1172,9 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
 
         return Response(SponsorSerializer(med).data)
 
-    def create(self, request, campaigns_pk=None):
+    def create(self, request, **kwargs):
         try:
-            campaign = Campaign.objects.get(id=campaigns_pk)
+            campaign = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
