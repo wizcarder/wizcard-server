@@ -507,7 +507,7 @@ class CampaignSerializerL2(EntitySerializer):
 
     def get_venue(self, obj):
         join_field = self.get_join_fields(obj)
-        return join_field['venue'] if 'venue' in join_field else None
+        return join_field['venue'] if 'venue' in join_field else ""
 
 
 # this is used by portal REST API
