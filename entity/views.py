@@ -404,7 +404,8 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
 
         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
         join_fields = request.data.pop('join_fields', {})
-        taganomy = request.data.pop('taganomy', {})
+        taganomy = request.data.get('taganomy', {})
+	pdb.set_trace()
         if taganomy:
             context = {
                 'user': request.user,
