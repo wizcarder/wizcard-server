@@ -17,7 +17,7 @@ class UserQueryFilter(django_filters.rest_framework.FilterSet):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username',)
+        fields = ['id', 'email', 'username']
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
