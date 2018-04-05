@@ -404,6 +404,19 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
 
         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
         join_fields = request.data.pop('join_fields', {})
+        taganomy = request.data.pop('taganomy', {})
+        if taganomy:
+            context = {
+                'user': request.user,
+                'parent': event
+            }
+
+            serializer = CampaignSerializer(data=request.data, context=context, partial=True)
+            if serializer.is_valid():
+                inst = serializer.save()
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
         return Response(status=status.HTTP_200_OK)
 
@@ -1204,6 +1217,72 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
         campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA, send_notif=True)
 
         return Response(status=status.HTTP_200_OK)
+
+class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
+    queryset = CoOwners.objects.all()
+    serializer_class = CoOwnersSerializer
+
+    def list(self, request, **kwargs):
+        cmp = Campaign.objects.get(id=kwargs.get('campaign_pk'))
+        coo = cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER)
+        return Response(CoOwnersSerializer(coo, many=True).data)
+
+    def retrieve(self, request, pk=None, event_pk=None):
+        try:
+            coo = CoOwners.objects.get(id=pk)
+            cmp = Campaign.objects.get(id=campaign_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if coo not in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
+            return Response("Campaign id %s not associated with co-owner %s " % (event_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(CoOwnersSerializer(coo).data)
+
+    def create(self, request, **kwargs):
+        try:
+            cmp = Campaign.objects.get(id=kwargs.get('campaign_pk'))
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CoOwnersSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            cmp.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_COOWNER)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, campaign_pk=None, pk=None):
+        try:
+            cmp = Campaign.objects.get(id=campaign_pk)
+            coo = CoOwners.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if coo in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
+            return Response("campaign %s already  associated with CoOwner %s " % (campaign_pk, pk),
+                            status=status.HTTP_200_OK)
+
+        cmp.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, campaign_pk=None, pk=None):
+        try:
+            cmp = Campaign.objects.get(id=campaign_pk)
+            coo = CoOwners.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if coo not in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
+            return Response("campaign id %s not associated with CoOwner %s " % (campaign_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        cmp.remove_sub_entity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
+
+        return Response(status=status.HTTP_200_OK)
+
 
 
 class FileUploader(views.APIView):
