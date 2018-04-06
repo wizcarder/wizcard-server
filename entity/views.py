@@ -1223,26 +1223,26 @@ class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
     serializer_class = CoOwnersSerializer
 
     def list(self, request, **kwargs):
-        cmp = Campaign.objects.get(id=kwargs.get('campaign_pk'))
+        cmp = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
         coo = cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER)
         return Response(CoOwnersSerializer(coo, many=True).data)
 
     def retrieve(self, request, pk=None, event_pk=None):
         try:
             coo = CoOwners.objects.get(id=pk)
-            cmp = Campaign.objects.get(id=campaign_pk)
+            cmp = Campaign.objects.get(id=campaigns_pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if coo not in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
-            return Response("Campaign id %s not associated with co-owner %s " % (event_pk, pk),
+            return Response("Campaign id %s not associated with co-owner %s " % (campaigns_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
         return Response(CoOwnersSerializer(coo).data)
 
     def create(self, request, **kwargs):
         try:
-            cmp = Campaign.objects.get(id=kwargs.get('campaign_pk'))
+            cmp = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -1254,29 +1254,29 @@ class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def update(self, request, campaign_pk=None, pk=None):
+    def update(self, request, campaigns_pk=None, pk=None):
         try:
-            cmp = Campaign.objects.get(id=campaign_pk)
+            cmp = Campaign.objects.get(id=campaigns_pk)
             coo = CoOwners.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if coo in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
-            return Response("campaign %s already  associated with CoOwner %s " % (campaign_pk, pk),
+            return Response("campaign %s already  associated with CoOwner %s " % (campaigns_pk, pk),
                             status=status.HTTP_200_OK)
 
         cmp.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
         return Response(status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, campaign_pk=None, pk=None):
+    def destroy(self, request, campaigns_pk=None, pk=None):
         try:
-            cmp = Campaign.objects.get(id=campaign_pk)
+            cmp = Campaign.objects.get(id=campaigns_pk)
             coo = CoOwners.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if coo not in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
-            return Response("campaign id %s not associated with CoOwner %s " % (campaign_pk, pk),
+            return Response("campaign id %s not associated with CoOwner %s " % (campaigns_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
         cmp.remove_sub_entity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
