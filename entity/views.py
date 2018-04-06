@@ -405,14 +405,13 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
         join_fields = request.data.pop('join_fields', {})
         taganomy = request.data.get('taganomy', {})
-	pdb.set_trace()
         if taganomy:
             context = {
                 'user': request.user,
                 'parent': event
             }
 
-            serializer = CampaignSerializer(data=request.data, context=context, partial=True)
+            serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
             if serializer.is_valid():
                 inst = serializer.save()
             else:
