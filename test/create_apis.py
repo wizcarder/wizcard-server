@@ -363,7 +363,6 @@ numcampaigns = cfg.create_config['campaigns']
 campaignfile = cfg.create_config['campaign_file']
 numexhibits = cfg.create_config['exhibits']
 create_sponsors(numcampaigns, campaignfile, type="campaign")
-pdb.set_trace()
 create_sponsors(numexhibits, campaignfile, type='exhibits')
 
 

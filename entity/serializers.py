@@ -285,6 +285,22 @@ class EventSerializerL0(EntitySerializer):
         model = Event
         fields = ('id', 'name', 'media', 'start', 'end',)
 
+    # # exhibtor_id is the of the vanilla campaign object the organizer created for this
+    # # exhibitor prior to sending him an is_sponsored invite/access.
+    #
+    # # not using this now. Instead, using email so that portal doesn't have to do anything.
+    # # keeping this code here just in case
+    # def get_exhibitor_id(self, obj):
+    #     exi_invs = obj.get_sub_entities_of_type(
+    #         entity_type=BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE,
+    #         exclude=[self.ENTITY_STATE_DELETED, self.ENTITY_STATE_EXPIRED]
+    #     )
+    #
+    #     exi_email = self.context.get('user').email
+    #
+    #     # unless something's weird, there should ideally only be one
+    #     return [exi_inv.exhibitor.id for exi_inv in exi_invs if exi_inv.email == exi_email][0]
+
     def get_media(self, obj):
         return MediaEntitiesSerializer(
             obj.get_media_filter(
@@ -432,7 +448,8 @@ class EventSerializerL2(EntitySerializer):
 
     def get_campaigns(self, obj):
         self.context.update(
-            parent_type=ContentType.objects.get_for_model(model=obj)
+            parent_type=ContentType.objects.get_for_model(model=obj),
+            parent=obj
         )
 
         return CampaignSerializerL2(
@@ -466,6 +483,7 @@ class EventSerializerL2(EntitySerializer):
 
 
 # this is used by App
+
 class CampaignSerializerL1(EntitySerializer):
 
     class Meta:
@@ -499,34 +517,114 @@ class CampaignSerializerL1(EntitySerializer):
 class CampaignSerializerL2(EntitySerializer):
     class Meta:
         model = Campaign
-        my_fields = ('tags', 'like', 'is_sponsored')
+        my_fields = ('tags', 'like', 'is_sponsored', 'related_campaigns', 'parent_exhibitor')
         fields = EntitySerializer.Meta.fields + my_fields
 
     tags = TagListSerializerField(required=False)
     venue = serializers.SerializerMethodField()
+    related_campaigns = serializers.SerializerMethodField()
+    parent_exhibitor = serializers.SerializerMethodField()
 
+    # should get this only for those related campaigns associated with this event
+    def get_related_campaigns(self, obj):
+        parent = self.context.get('parent')
+        related_cpgs = [cpg for cpg in obj.get_sub_entities_of_type(
+            BaseEntityComponent.SUB_ENTITY_CAMPAIGN
+        ) if parent in cpg.get_parent_entities()]
+
+        return EntitySerializerL0(related_cpgs, many=True).data
+
+    def get_parent_exhibitor(self, obj):
+        parent_exhibitor = obj.get_parent_entities_by_contenttype_id(
+            BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.CAMPAIGN)
+        )
+        if parent_exhibitor:
+            return EntitySerializerL0(parent_exhibitor[0]).data
+
+        return ""
+
+    # venue is interesting. it's a property of the join table for a vanilla campaign. For a sponsored campaign
+    # we need to get it from the linked vanilla campaign and it's join-table thereof.
+    # Note: App will need to handle one case (can do it via notif, but app can do it directly). When exhibitor is
+    # changed via notif, app will need to update related_campaign venue as well.
     def get_venue(self, obj):
-        join_field = self.get_join_fields(obj)
+        if obj.is_sponsored:
+            venue_obj = obj.get_parent_entities_by_contenttype_id(
+                BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.CAMPAIGN)
+            )[0]
+        else:
+            venue_obj = obj
+
+        join_field = self.get_join_fields(venue_obj)
         return join_field['venue'] if 'venue' in join_field else ""
 
 
-# this is used by portal REST API
-class CampaignSerializer(EntitySerializer):
+# this is used by Organizer REST API
+class VanillaCampaignSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
         remove_fields = ['user_state', ]
-        super(CampaignSerializer, self).__init__(*args, **kwargs)
+        super(VanillaCampaignSerializer, self).__init__(*args, **kwargs)
 
         for field_name in remove_fields:
             self.fields.pop(field_name)
 
     class Meta:
         model = Campaign
-        my_fields = ('scans', 'is_sponsored', 'events', 'tags', 'taganomy')
+        my_fields = ('tags', 'taganomy', 'is_sponsored', 'related_campaigns')
         fields = EntitySerializer.Meta.fields + my_fields
 
+    venue = serializers.SerializerMethodField()
+    # this is write tags
+    taganomy = TaganomySerializerField(required=False, write_only=True)
+    # this is to read tags
+    tags = TagListSerializerField(required=False)
+
+    related_campaigns = serializers.SerializerMethodField()
+    is_sponsored = serializers.BooleanField(required=False, default=False)
+
+    def get_venue(self, obj):
+        join_field = self.get_join_fields(obj)
+        return join_field['venue'] if 'venue' in join_field else None
+
+    def get_related_campaigns(self, obj):
+        cpgs = obj.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        return EntitySerializerL0(cpgs, many=True).data
+
+    def create(self, validated_data, **kwargs):
+        validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)
+
+        self.prepare(validated_data)
+        obj = super(VanillaCampaignSerializer, self).create(validated_data)
+        self.post_create_update(obj)
+
+        return obj
+
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        obj = super(VanillaCampaignSerializer, self).update(instance, validated_data)
+        self.post_create_update(instance, update=True)
+
+        return obj
+
+
+# this is used by Exhibitor REST API
+
+class CampaignSerializer(VanillaCampaignSerializer):
+    def __init__(self, *args, **kwargs):
+        super(CampaignSerializer, self).__init__(*args, **kwargs)
+        remove_fields = ['related_campaigns', ]
+
+        for field_name in remove_fields:
+            self.fields.pop(field_name)
+
+    class Meta:
+        model = Campaign
+        my_fields = ('scans', 'events', 'is_sponsored')
+        fields = VanillaCampaignSerializer.Meta.fields + my_fields
+
+    is_sponsored = serializers.BooleanField(required=False, default=True)
     scans = serializers.SerializerMethodField()
     events = serializers.SerializerMethodField()
-    venue = serializers.SerializerMethodField()
 
     # this is write tags
     taganomy = TaganomySerializerField(required=False, write_only=True)
@@ -544,8 +642,15 @@ class CampaignSerializer(EntitySerializer):
         return ExhibitorEventSerializer(parents, many=True).data
 
     def get_venue(self, obj):
-        join_field = self.get_join_fields(obj)
-        return join_field['venue'] if 'venue' in join_field else None
+        # get parent exhibitors venue
+        venue_obj = obj.get_parent_entities_by_contenttype_id(
+            BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.CAMPAIGN)
+        )
+        if venue_obj:
+            join_field = self.get_join_fields(venue_obj)
+            return join_field['venue'] if 'venue' in join_field else ""
+        else:
+            return ""
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.CAMPAIGN)

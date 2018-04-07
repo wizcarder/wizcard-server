@@ -106,7 +106,8 @@ class BaseEntityManager(BaseEntityComponentManager):
 
         # argument expand entity_filter
         prefix = 'entity__'
-        mod_filter = dict((prefix+k, v) for k, v in entity_filter.items())
+        postfix = '__in'
+        mod_filter = dict((prefix+k+postfix, v) for k, v in entity_filter.items())
 
         # merge with user_filter
         mod_filter.update(user_filter)
@@ -551,11 +552,13 @@ class BaseEntityComponent(PolymorphicModel):
         to_be_deleted_ids_qs.delete()
 
     def add_subentity_obj(self, obj, alias, **kwargs):
-        join_fields = kwargs.pop('join_fields', {})
         connection = self.related.connect(obj, alias=alias)
 
-        connection.join_fields = join_fields
-        connection.save()
+        if 'join_fields' in kwargs:
+            join_fields = kwargs.pop('join_fields')
+            connection.join_fields = join_fields
+            connection.save()
+
         kwargs.update(notif_operation=verbs.NOTIF_OPERATION_CREATE)
 
         return obj.post_connect_remove(self, **kwargs)
