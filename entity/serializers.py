@@ -208,6 +208,9 @@ class EventSerializer(EntitySerializer):
     badges = serializers.SerializerMethodField()
     taganomy = serializers.SerializerMethodField()
 
+    # these are vanilla campaigns
+    exhibitors = serializers.SerializerMethodField()
+
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         remove_fields = ['user_state', 'engagements', 'users', ]
@@ -219,7 +222,7 @@ class EventSerializer(EntitySerializer):
 
     class Meta:
         model = Event
-        my_fields = ('start', 'end', 'speakers', 'sponsors', 'agenda', 'polls', 'badges', 'taganomy',)
+        my_fields = ('start', 'end', 'speakers', 'sponsors', 'agenda', 'polls', 'badges', 'taganomy', 'exhibitors')
         fields = EntitySerializer.Meta.fields + my_fields
 
     def create(self, validated_data, **kwargs):
@@ -276,6 +279,18 @@ class EventSerializer(EntitySerializer):
         return BadgeTemplateSerializer(
             obj.get_sub_entities_of_type(entity_type=BaseEntityComponent.SUB_ENTITY_BADGE_TEMPLATE),
             many=True
+        ).data
+
+    def get_exhibitors(self, obj):
+        self.context.update(
+            parent_type=ContentType.objects.get_for_model(model=obj),
+            parent=obj
+        )
+
+        return VanillaCampaignSerializer(
+            obj.get_sub_entities_of_type(BaseEntity.SUB_ENTITY_CAMPAIGN),
+            many=True,
+            context=self.context
         ).data
 
 
@@ -647,7 +662,7 @@ class CampaignSerializer(VanillaCampaignSerializer):
             BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.CAMPAIGN)
         )
         if venue_obj:
-            join_field = self.get_join_fields(venue_obj)
+            join_field = self.get_join_fields(venue_obj[0])
             return join_field['venue'] if 'venue' in join_field else ""
         else:
             return ""

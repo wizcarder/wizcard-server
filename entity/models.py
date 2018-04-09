@@ -94,10 +94,11 @@ class Event(BaseEntity):
 
     # get the invite object associated with this (exhibitor) email recipient
     def get_event_invite(self, email):
-        event_invites = self.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_EXHIBITOR_INVITEE)
-
         # should be only 1
-        return [event_invite for event_invite in event_invites if event_invite.email == email][0]
+        if self.exhibitor_invitees.filter(email=email).exists():
+            self.exhibitor_invitees.filter(email=email).get()
+
+        return None
 
     @property
     def send_wizcard_on_access(self):
@@ -275,7 +276,8 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
 
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
-    exhibitor = models.OneToOneField(Campaign, null=True, blank=True, default=None)
+    exhibitor = models.ForeignKey(Campaign, null=True, blank=True, default=None, related_name='exhibitor_invitees')
+    event = models.ForeignKey(Event, related_name='exhibitor_invitees')
 
     objects = ExhibitorInviteeManager()
 
