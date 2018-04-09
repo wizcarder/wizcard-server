@@ -1289,14 +1289,35 @@ class FileUploader(views.APIView):
     parser_classes = (MultiPartParser,)
 
     def post(self, request, filename, format=None):
+        kwargs = {}
         file_obj = request.data['file']
-        type = request.data['data_type']
-        user = request.user
-        result = create_entities(file_obj, type, user)
+        owner = request.user
+        kwargs.update('type', request.data.pop('data_type', BaseEntityComponent.CAMPAIGN))
+        kwargs.update('event', request.data.pop('event', None))
+
+        result = create_entities(file_obj, owner, **kwargs)
 
         returnmesg = "All records uploaded successfully" if not result[1] \
             else "%s Succeeded, Check Lines %s that Failed" % (str(result[0]), result[1])
         return Response(returnmesg, status=201)
+
+
+class FileDownloader(views.APIView):
+
+    parser_classes = (MultiPartParser,)
+
+    def get(self, request, format=None):
+
+        event_id = request.data['event']
+        fname = "/tmp/exhibitors_event.tsv"
+
+        f = open(fname, "rb")
+        response = HttpResponse(f, content_type='text/tab-separated-values')
+        response['Content-Disposition'] = 'attachment; filename=%s' % fname
+        response['X-Accel-Redirect'] = fname
+        return response
+
+
 
 
 
