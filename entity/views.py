@@ -1266,7 +1266,7 @@ class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_200_OK)
 
         cmp.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_200_OK)
 
     def destroy(self, request, campaigns_pk=None, pk=None):
         try:
