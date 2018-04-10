@@ -107,8 +107,9 @@ class CampaignManager(BaseEntityManager):
     def get_existing_entity(self, name, email, owner):
         # Ideally there should be only 1 campaign for each name, email
         # Also need to normalize name - case insensitive, spaces
-        cmp = Campaign.objects.get(name=name, email=email, owner=owner)
-        return cmp
+        cmp = Campaign.objects.filter(name=name, email=email)
+        mycp  = [cp for cp in cmp if cp.is_owner(owner)]
+        return mycp[0] if mycp else None
 
     def users_entities(self, user, user_filter={}, entity_filter={}):
         entity_filter.update(entity_type=BaseEntityComponent.CAMPAIGN)

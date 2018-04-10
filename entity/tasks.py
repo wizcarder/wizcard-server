@@ -26,9 +26,9 @@ def expire():
 def create_entities(file, owner, **kwargs):
     record_no = 0
     problematic_records = []
-    event_id = kwargs.get('event')
-    entity_type = kwargs.get('type')
-    cls, ser = BaseEntityComponent.entity_cls_ser_from_type_and_level(
+    event_id = kwargs.get('event')[0]
+    entity_type = kwargs.get('type')[0]
+    cls, ser = BaseEntityComponent.entity_cls_ser_from_type_level(
         entity_type,
         level=BaseEntityComponent.SERIALIZER_FULL
     )
@@ -46,6 +46,8 @@ def create_entities(file, owner, **kwargs):
         if not line:
             continue
 
+        if line.startswith("#"):
+            continue
         record_no += 1
         ser_data = dict()
         arr = line.split(FEED_SEPERATOR)
@@ -59,26 +61,27 @@ def create_entities(file, owner, **kwargs):
 
         for i in range(0, schema_fields_len):
             ser_data[schema[i]] = arr[i]
-            inst = cls.objects.get_existing_entity(ser_data['name'], ser_data['email'], owner)
+
+        inst = cls.objects.get_existing_entity(ser_data['name'], ser_data['email'], owner)
 
         temp_tags = ser_data.pop('tags', []).split(',')
         taglist = taglist + temp_tags
         venue = ser_data.pop('venue', "")
 
         if inst:
-            ser(inst, data=ser_data, context={'user': owner}, partial=True)
+            ser = ser(inst, data=ser_data, context={'user': owner}, partial=True)
         else:
          # Ideally we can do many=True but we also want to point out faulty records
-            ser(data=ser_data, context={'user': owner})
+            ser = ser(data=ser_data, context={'user': owner})
         if ser.is_valid():
             inst = ser.save()
             if event_id:
                 event = Event.objects.get(id=event_id)
                 event.add_subentity_obj(inst,
-                                        alias=BaseEntityComponent.sub_entity_type_from_entity_type(cls, entity_type),
+                                        alias=BaseEntityComponent.sub_entity_type_from_entity_type(entity_type),
                                         join_fields={'venue': venue}
                                         )
-                inst.tags.set(temp_tags)
+                inst.tags.set(*temp_tags)
 
         else:
             problematic_records.append(str(record_no))
@@ -86,9 +89,9 @@ def create_entities(file, owner, **kwargs):
     if event_id:
         event = Event.objects.get(id=event_id)
 
-        taganomy = event.get_subentities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY)
+        taganomy = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY)[0]
         if taganomy:
-            taganomy.tags.add(taglist)
+            taganomy.tags.add(*taglist)
         else:
             ser = TaganomySerializer(data = {"name": event.name + "_Tags", "tags": taglist}, context={'user': owner})
             if ser.is_valid():

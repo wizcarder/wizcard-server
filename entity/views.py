@@ -418,7 +418,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -1292,8 +1292,8 @@ class FileUploader(views.APIView):
         kwargs = {}
         file_obj = request.data['file']
         owner = request.user
-        kwargs.update('type', request.data.pop('data_type', BaseEntityComponent.CAMPAIGN))
-        kwargs.update('event', request.data.pop('event', None))
+        kwargs.update(type=request.data.pop('data_type', BaseEntityComponent.CAMPAIGN))
+        kwargs.update(event=request.data.pop('event', None))
 
         result = create_entities(file_obj, owner, **kwargs)
 
@@ -1308,13 +1308,11 @@ class FileDownloader(views.APIView):
 
     def get(self, request, format=None):
 
-        event_id = request.data['event']
         fname = "/tmp/exhibitors_event.tsv"
 
         f = open(fname, "rb")
         response = HttpResponse(f, content_type='text/tab-separated-values')
-        response['Content-Disposition'] = 'attachment; filename=%s' % fname
-        response['X-Accel-Redirect'] = fname
+        response['Content-Disposition'] = 'attachment; filename="%s"' % fname
         return response
 
 
