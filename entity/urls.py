@@ -21,7 +21,7 @@ router = SimpleRouter()
 
 # Organizer end-points
 router.register(r'events', EventViewSet, base_name='events')
-router.register(r'tables', TableViewSet)
+router.register(r'tables', TableViewSet, base_name='tables')
 router.register(r'speakers', SpeakerViewSet, base_name='speakers')
 router.register(r'sponsors', SponsorViewSet, base_name='sponsors')
 router.register(r'media', MediaEntitiesViewSet, base_name='media')

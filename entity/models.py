@@ -94,9 +94,9 @@ class Event(BaseEntity):
 
     # get the invite object associated with this (exhibitor) email recipient
     def get_event_invite(self, email):
-        # should be only 1
         if self.exhibitor_invitees.filter(email=email).exists():
-            self.exhibitor_invitees.filter(email=email).get()
+            # should be only 1
+            return self.exhibitor_invitees.filter(email=email).get()
 
         return None
 

@@ -178,6 +178,10 @@ class PollAnswersViewSet(BaseEntityComponentViewSet):
     serializer_class = PollResponseSerializer
 
     def list(self, request, **kwargs):
-        poll = Poll.objects.get(id=kwargs.get('poll_pk'))
+        try:
+            poll = Poll.objects.get(id=kwargs.get('poll_pk'))
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
         return Response(PollResponseSerializer(poll).data)
 

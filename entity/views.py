@@ -237,7 +237,6 @@ class EventViewSet(BaseEntityViewSet):
 
 
 class ExhibitorViewSet(BaseEntityViewSet):
-    queryset = Campaign.objects.all()
     serializer_class = VanillaCampaignSerializer
 
     def get_queryset(self):
@@ -268,7 +267,6 @@ class ExhibitorViewSet(BaseEntityViewSet):
 
 
 class TableViewSet(BaseEntityViewSet):
-    queryset = VirtualTable.objects.all()
     serializer_class = TableSerializer
 
     def get_queryset(self):
@@ -278,7 +276,6 @@ class TableViewSet(BaseEntityViewSet):
 
 
 class SpeakerViewSet(BaseEntityComponentViewSet):
-    queryset = Speaker.objects.all()
 
     def get_queryset(self):
         user = self.request.user
@@ -290,7 +287,6 @@ class SpeakerViewSet(BaseEntityComponentViewSet):
 
 
 class SponsorViewSet(BaseEntityViewSet):
-    queryset = Sponsor.objects.all()
 
     def get_queryset(self):
         user = self.request.user
@@ -438,15 +434,23 @@ All the nested end-points for linking entity to sub-entity
 # Exhibitor Viewsets
 
 class EventCampaignViewSet(viewsets.ModelViewSet):
-    queryset = Campaign.objects.all()
+    # queryset = Campaign.objects.all()
     serializer_class = CampaignSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Campaign.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
-        cpg = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        evt_cpgs = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        my_cpgs = self.get_queryset()
+
+        cpgs = set(set(evt_cpgs) & set(my_cpgs))
         return Response(
             CampaignSerializer(
-                cpg,
+                cpgs,
                 many=True,
                 context={
                     'parent': event
@@ -585,8 +589,12 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
 # Organizer Viewsets
 
 class EventExhibitorViewSet(viewsets.ModelViewSet):
-    queryset = Campaign.objects.all()
     serializer_class = VanillaCampaignSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Campaign.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
@@ -651,6 +659,9 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        if 'join_fields' not in request.data:
+            return Response("Please assign Exhibitor to a hall", status=status.HTTP_400_BAD_REQUEST)
+
         event.add_subentity_obj(
             cpg,
             BaseEntityComponent.SUB_ENTITY_CAMPAIGN,
@@ -674,8 +685,12 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 class EventSpeakerViewSet(viewsets.ModelViewSet):
-    queryset = Speaker.objects.all()
     serializer_class = SpeakerSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Speaker.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
@@ -740,8 +755,12 @@ class EventSpeakerViewSet(viewsets.ModelViewSet):
 
 
 class EventSponsorViewSet(viewsets.ModelViewSet):
-    queryset = Sponsor.objects.all()
     serializer_class = SpeakerSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Sponsor.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
@@ -872,8 +891,12 @@ class EventMediaViewSet(viewsets.ModelViewSet):
 
 
 class EventAttendeeViewSet(viewsets.ModelViewSet):
-    queryset = AttendeeInvitee.objects.all()
     serializer_class = AttendeeInviteeSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = AttendeeInvitee.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
@@ -990,8 +1013,12 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
 
 
 class EventCoOwnerViewSet(viewsets.ModelViewSet):
-    queryset = CoOwners.objects.all()
     serializer_class = CoOwnersSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = CoOwners.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
@@ -1056,8 +1083,12 @@ class EventCoOwnerViewSet(viewsets.ModelViewSet):
 
 
 class EventAgendaViewSet(viewsets.ModelViewSet):
-    queryset = Agenda.objects.all()
     serializer_class = AgendaSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Agenda.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
@@ -1127,8 +1158,12 @@ class EventAgendaViewSet(viewsets.ModelViewSet):
 
 
 class EventPollViewSet(viewsets.ModelViewSet):
-    queryset = Poll.objects.all()
     serializer_class = PollSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Poll.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
@@ -1234,8 +1269,12 @@ class EventNotificationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
 
 class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
                            mixins.RetrieveModelMixin, mixins.ListModelMixin):
-    queryset = Taganomy.objects.all()
     serializer_class = TaganomySerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Taganomy.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
@@ -1309,6 +1348,11 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
 class EventBadgeViewSet(viewsets.ModelViewSet):
     queryset = BadgeTemplate.objects.all()
     serializer_class = BadgeTemplateSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = BadgeTemplate.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))

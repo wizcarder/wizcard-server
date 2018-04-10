@@ -402,6 +402,7 @@ class BaseEntityComponent(PolymorphicModel):
                 cls.SERIALIZER_FULL: ExhibitorInviteeSerializer
             },
             cls.MEDIA: {
+                cls.SERIALIZER_L2: MediaEntitiesSerializer,
                 cls.SERIALIZER_FULL: MediaEntitiesSerializer
             },
             cls.COOWNER: {
