@@ -537,6 +537,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+
         # link the exhibitor to campaign.
 
         # 1. find the Invite for this Event sent to request.user.email
@@ -565,10 +566,26 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                 action_object=exhibitor,
                 notif_operation=verbs.NOTIF_OPERATION_CREATE
             )
+        
+        
+         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
+        join_fields = request.data.pop('join_fields', {})
+        taganomy = request.data.get('taganomy', {})
+        if taganomy:
+            context = {
+                'user': request.user,
+                'parent': event
+            }
 
-        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
+        if serializer.is_valid():
+                inst = serializer.save()
+        else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(status=status.HTTP_200_OK)
+        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
+        return Response(status=status.HTTP_201_CREATED)
+
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -658,16 +675,24 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             cpg = Campaign.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+          
+        join_fields = request.data.pop('join_fields', {})
+        taganomy = request.data.get('taganomy', {})
+        if taganomy:
+            context = {
+                'user': request.user,
+                'parent': event
+            }
 
-        if 'join_fields' not in request.data:
-            return Response("Please assign Exhibitor to a hall", status=status.HTTP_400_BAD_REQUEST)
+        serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
+        if serializer.is_valid():
+                inst = serializer.save()
+        else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        event.add_subentity_obj(
-            cpg,
-            BaseEntityComponent.SUB_ENTITY_CAMPAIGN,
-            join_fields=request.data.get('join_fields')
-        )
-        return Response(status=status.HTTP_200_OK)
+        event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
+        return Response(status=status.HTTP_201_CREATED)
+
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -1420,18 +1445,169 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
+
+class CampaignMediaViewSet(viewsets.ModelViewSet):
+    queryset = MediaEntities.objects.all()
+    serializer_class = MediaEntitiesSerializer
+
+    def list(self, request, **kwargs):
+        campaign = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
+        med = campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA)
+        return Response(MediaEntitiesSerializer(med, many=True).data)
+
+    def retrieve(self, request, pk=None, campaigns_pk=None):
+        try:
+            med = MediaEntities.objects.get(id=pk)
+            campaign = Campaign.objects.get(id=campaigns_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if med not in campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
+            return Response("campaign id %s not associated with Media %s " % (campaigns_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(SponsorSerializer(med).data)
+
+    def create(self, request, **kwargs):
+        try:
+            campaign = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MediaEntitiesSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            campaign.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_MEDIA)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, campaigns_pk=None, pk=None):
+        try:
+            campaign = Campaign.objects.get(id=campaigns_pk)
+            med = MediaEntities.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if med in campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
+            return Response("campaign %s already  associated with Media %s " % (campaigns_pk, pk),
+                            status=status.HTTP_200_OK)
+
+        campaign.add_subentity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, campaigns_pk=None, pk=None):
+        try:
+            campaign = Campaign.objects.get(id=campaigns_pk)
+            med = MediaEntities.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if med not in campaign.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_MEDIA):
+            return Response("campaign id %s not associated with Media %s " % (campaigns_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA, send_notif=True)
+
+        return Response(status=status.HTTP_200_OK)
+
+class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
+    queryset = CoOwners.objects.all()
+    serializer_class = CoOwnersSerializer
+
+    def list(self, request, **kwargs):
+        cmp = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
+        coo = cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER)
+        return Response(CoOwnersSerializer(coo, many=True).data)
+
+    def retrieve(self, request, pk=None, event_pk=None):
+        try:
+            coo = CoOwners.objects.get(id=pk)
+            cmp = Campaign.objects.get(id=campaigns_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if coo not in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
+            return Response("Campaign id %s not associated with co-owner %s " % (campaigns_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(CoOwnersSerializer(coo).data)
+
+    def create(self, request, **kwargs):
+        try:
+            cmp = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CoOwnersSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            inst = serializer.save()
+            cmp.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_COOWNER)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, campaigns_pk=None, pk=None):
+        try:
+            cmp = Campaign.objects.get(id=campaigns_pk)
+            coo = CoOwners.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if coo in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
+            return Response("campaign %s already  associated with CoOwner %s " % (campaigns_pk, pk),
+                            status=status.HTTP_200_OK)
+
+        cmp.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
+        return Response(status=status.HTTP_200_OK)
+
+    def destroy(self, request, campaigns_pk=None, pk=None):
+        try:
+            cmp = Campaign.objects.get(id=campaigns_pk)
+            coo = CoOwners.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if coo not in cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER):
+            return Response("campaign id %s not associated with CoOwner %s " % (campaigns_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        cmp.remove_sub_entity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
+
+        return Response(status=status.HTTP_200_OK)
+
+
 class FileUploader(views.APIView):
     parser_classes = (MultiPartParser,)
 
     def post(self, request, filename, format=None):
+        kwargs = {}
         file_obj = request.data['file']
-        type = request.data['data_type']
-        user = request.user
-        result = create_entities(file_obj, type, user)
+        owner = request.user
+        kwargs.update(type=request.data.pop('data_type', BaseEntityComponent.CAMPAIGN))
+        kwargs.update(event=request.data.pop('event', None))
+
+        result = create_entities(file_obj, owner, **kwargs)
 
         returnmesg = "All records uploaded successfully" if not result[1] \
             else "%s Succeeded, Check Lines %s that Failed" % (str(result[0]), result[1])
         return Response(returnmesg, status=201)
+
+
+class FileDownloader(views.APIView):
+
+    parser_classes = (MultiPartParser,)
+
+    def get(self, request, format=None):
+
+        fname = "/tmp/exhibitors_event.tsv"
+
+        f = open(fname, "rb")
+        response = HttpResponse(f, content_type='text/tab-separated-values')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % fname
+        return response
+
+
 
 
 
