@@ -92,6 +92,14 @@ class Event(BaseEntity):
 
         return venue_d
 
+    # get the invite object associated with this (exhibitor) email recipient
+    def get_event_invite(self, email):
+        if self.exhibitor_invitees.filter(email=email).exists():
+            # should be only 1
+            return self.exhibitor_invitees.filter(email=email).get()
+
+        return None
+
     @property
     def send_wizcard_on_access(self):
         return True
@@ -126,8 +134,8 @@ class Campaign(BaseEntity):
     objects = CampaignManager()
 
     def post_connect_remove(self, parent, **kwargs):
-        # don't send notif here if is parent is Taganomy.
-        if parent.entity_type == BaseEntityComponent.CATEGORY:
+        # don't send notif here if is parent is not event.
+        if parent.entity_type != BaseEntityComponent.EVENT:
             kwargs.update(send_notif=False)
 
         return super(Campaign, self).post_connect_remove(parent, **kwargs)
@@ -270,26 +278,13 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
-    # check if invitee_ids is in User based on email.
-    # returns those users
-    def check_existing_users_exhibitors(self, invitee_ids):
-        matched_users = Wizcard.objects.filter(
-            email__in=self.filter(
-                id__in=invitee_ids
-            ).values_list('email', flat=True)
-        ).values_list('user', flat=True)
-
-        matched_exhibitors = self.filter(
-            email__in=matched_users.values_list('email', flat=True)
-        )
-
-        return matched_users, matched_exhibitors
-
     def check_pending_invites(self, email):
         return self.filter(email=email, state=ExhibitorInvitee.INVITED)
 
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
+    exhibitor = models.ForeignKey(Campaign, null=True, blank=True, default=None, related_name='exhibitor_invitees')
+    event = models.ForeignKey(Event, related_name='exhibitor_invitees')
 
     objects = ExhibitorInviteeManager()
 

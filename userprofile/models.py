@@ -202,6 +202,19 @@ class BaseUser(PolymorphicModel):
     def connect_subentities(self):
         pass
 
+    # check  user based on email.
+    def check_existing_users_exhibitors(self, invitee_ids):
+        matched_users = Wizcard.objects.filter(
+            email__in=self.filter(
+                id__in=invitee_ids
+            ).values_list('email', flat=True)
+        ).values_list('user', flat=True)
+
+        matched_exhibitors = self.filter(
+            email__in=matched_users.values_list('email', flat=True)
+        )
+
+        return matched_users, matched_exhibitors
 
 class AppUser(BaseUser):
     DEVICE_CHOICES = (
@@ -315,7 +328,7 @@ class AppUser(BaseUser):
         tables = VirtualTable.objects.users_entities(
             self.profile.user,
             user_filter={'state': UserEntity.JOIN},
-            entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
+            entity_filter={'entity_state': [BaseEntityComponent.ENTITY_STATE_PUBLISHED]}
         )
 
         if tables:
@@ -332,7 +345,7 @@ class AppUser(BaseUser):
         campaigns = Campaign.objects.users_entities(
             self.profile.user,
             user_filter={'state': UserEntity.PIN},
-            entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
+            entity_filter={'entity_state': [BaseEntityComponent.ENTITY_STATE_PUBLISHED]}
         )
 
         if campaigns:
@@ -373,7 +386,7 @@ class WebExhibitorUser(BaseUser):
         invite_objs = ExhibitorInvitee.objects.check_pending_invites(email=self.profile.user.email)
 
         # each of these invites were related with event when the invite was sent by organizer
-        invited_events = [item for sublist in invite_objs for item in sublist.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))]
+        invited_events = [obj.event for obj in invite_objs]
 
         # join this User to the Event. We can retrieve this users Events on the portal. Additionally, we need to be
         # aware (and potentially filter out) that "joined users" also contain Exhibitor Users.
@@ -384,6 +397,9 @@ class WebExhibitorUser(BaseUser):
 
 class FutureUserManager(models.Manager):
     def check_future_user(self, email=None, phone=None):
+
+        qs = self.all().exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
+
         qlist = []
         if email:
             qlist.append(Q(email=email.lower()))
@@ -391,7 +407,8 @@ class FutureUserManager(models.Manager):
             qlist.append(Q(phone=phone))
 
         if qlist:
-            return self.filter(reduce(operator.or_, qlist))
+            return qs.filter(reduce(operator.or_, qlist))
+
         return None
 
 
@@ -403,6 +420,11 @@ class FutureUser(models.Model):
     phone = TruncatingCharField(max_length=20, blank=True)
     email = EmailField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
+    entity_state = models.CharField(
+        choices=BaseEntityComponent.ENTITY_STATE_CHOICES,
+        default=BaseEntityComponent.ENTITY_STATE_CREATED,
+        max_length=3
+    )
 
     objects = FutureUserManager()
 
@@ -457,6 +479,9 @@ class FutureUser(models.Model):
                 target=self.content_object
             )
 
+    def delete(self, *args, **kwargs):
+        self.entity_state = BaseEntityComponent.ENTITY_STATE_DELETED
+        self.save()
 
 # Model for Address-Book Support. Standard M2M-through
 MIN_MATCHES_FOR_PHONE_DECISION = 3
