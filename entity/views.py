@@ -261,8 +261,8 @@ class ExhibitorViewSet(BaseEntityViewSet):
         f.close()
         f = open(fname, "rb")
 
-        response = HttpResponse(FileWrapper(f), content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename="exhibitors.xls"'
+        response = HttpResponse(f, content_type='text/tab-separated-values')
+        response['Content-Disposition'] = 'attachment; filename="exhibitors.tsv"'
         return response
 
 

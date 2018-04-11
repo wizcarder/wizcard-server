@@ -10,7 +10,7 @@ router.register(r'users', UserViewSet, base_name='users')
 
 urlpatterns = router.urls
 
-urlpatterns = [
+urlpatterns += [
 
 #    url(r'^account-confirm-email/(?P<key>\w+)/$', allauthemailconfirmation, name="account_confirm_email"),
     url(r'^registration/', include('rest_auth.registration.urls')),
