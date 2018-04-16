@@ -10,7 +10,7 @@
 		{
 			"name": "39.Exhibitor Create Nested Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/",
 				"method": "POST",
 				"header": [
 					{
@@ -35,7 +35,7 @@
 		{
 			"name": "39.Campaign Update Nested Event 14 venue",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/39/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/39/",
 				"method": "PUT",
 				"header": [
 					{
@@ -60,7 +60,7 @@
 		{
 			"name": "40.Speaker create Nested Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/speaker/",
+				"url": "http://localhost:8000/entity/events/14/speakers/",
 				"method": "POST",
 				"header": [
 					{
@@ -85,7 +85,7 @@
 		{
 			"name": "41.Sponsor create Nested Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/sponsor/",
+				"url": "http://localhost:8000/entity/events/14/sponsors/",
 				"method": "POST",
 				"header": [
 					{
@@ -283,7 +283,7 @@
 		{
 			"name": "Exhibitor.39 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/39/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/39/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -308,7 +308,7 @@
 		{
 			"name": "Exhibitor. 39 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/39/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/39/",
 				"method": "PUT",
 				"header": [
 					{
@@ -333,7 +333,7 @@
 		{
 			"name": "Speaker.40 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/speaker/40/",
+				"url": "http://localhost:8000/entity/events/14/speakers/40/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -358,7 +358,7 @@
 		{
 			"name": "Speaker.40 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/speaker/40/",
+				"url": "http://localhost:8000/entity/events/14/speakers/40/",
 				"method": "PUT",
 				"header": [
 					{
@@ -383,7 +383,7 @@
 		{
 			"name": "Sponsor.41 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/sponsor/41/",
+				"url": "http://localhost:8000/entity/events/14/sponsors/41/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -408,7 +408,7 @@
 		{
 			"name": "Sponsor.41 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/sponsor/41/",
+				"url": "http://localhost:8000/entity/events/14/sponsors/41/",
 				"method": "PUT",
 				"header": [
 					{

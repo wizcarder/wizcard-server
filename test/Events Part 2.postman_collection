@@ -657,7 +657,7 @@
 		{
 			"name": "34. Exhibitor1 Nested Create Campaign.EVT14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/campaign/",
+				"url": "http://localhost:8000/entity/events/14/campaigns/",
 				"method": "POST",
 				"header": [
 					{
@@ -682,7 +682,7 @@
 		{
 			"name": "36. Exhibitor1 Nested Create Campaign.EVT15",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/campaign/",
+				"url": "http://localhost:8000/entity/events/15/campaigns/",
 				"method": "POST",
 				"header": [
 					{
@@ -707,7 +707,7 @@
 		{
 			"name": "34. Unauthorized Exhibitor2 Nested Create Campaign.EVT15",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/campaign/",
+				"url": "http://localhost:8000/entity/events/15/campaigns/",
 				"method": "POST",
 				"header": [
 					{
