@@ -175,6 +175,7 @@ class EntitySerializer(EntitySerializerL0):
             taganomy = self._tags['taganomy']
             tags = self._tags['tags']
             taganomy.register_object(entity)
+            taganomy.tags.add(*tags)
             entity.tags.set(*tags)
 
         BaseEntityComponent.objects.notify_via_entity_parent(

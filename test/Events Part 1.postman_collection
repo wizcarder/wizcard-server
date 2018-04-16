@@ -258,9 +258,9 @@
 			"response": []
 		},
 		{
-			"name": "12.Basic Campaign Create 1",
+			"name": "12.Exhibitor Create 1",
 			"request": {
-				"url": "http://localhost:8000/entity/campaigns/",
+				"url": "http://localhost:8000/entity/exhibitors/",
 				"method": "POST",
 				"header": [
 					{
@@ -276,16 +276,16 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"owners\": [\n      10\n    ],\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
 				},
 				"description": "Test 1: Basic Product  create"
 			},
 			"response": []
 		},
 		{
-			"name": "12.Basic Campaign Update 1",
+			"name": "12.Exhibitor Update 1",
 			"request": {
-				"url": "http://localhost:8000/entity/campaigns/12/",
+				"url": "http://localhost:8000/entity/exhibitors/12/",
 				"method": "PUT",
 				"header": [
 					{
@@ -295,7 +295,7 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{exhibitor_user1}}",
+						"value": "Token {{organizer_user1}}",
 						"description": ""
 					}
 				],
@@ -308,9 +308,9 @@
 			"response": []
 		},
 		{
-			"name": "13.Basic Campaign Create 2",
+			"name": "13.Exhibitor Create 2",
 			"request": {
-				"url": "http://localhost:8000/entity/campaigns/",
+				"url": "http://localhost:8000/entity/exhibitors/",
 				"method": "POST",
 				"header": [
 					{

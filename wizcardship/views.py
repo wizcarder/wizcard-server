@@ -138,3 +138,20 @@ class WizcardViewSet(viewsets.ModelViewSet):
         serializer = WizcardSerializer(queryset)
         return Response(serializer.data)
 
+from django_filters import rest_framework as filters
+
+class WizcardQueryFilter(filters.FilterSet):
+
+    username = filters.CharFilter(name="user__username")
+
+    class Meta:
+        model = Wizcard
+        fields = ['username']
+
+class WizcardUserExistsView(viewsets.ModelViewSet):
+
+    serializer_class = WizcardSerializer
+    queryset = Wizcard.objects.all()
+    filter_class = WizcardQueryFilter
+    filter_backend = (filters.DjangoFilterBackend,)
+

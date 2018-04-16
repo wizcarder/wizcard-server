@@ -920,7 +920,9 @@ class ParseMsgAndDispatch(object):
             email = self.sender['email']
             if wizcard.email != email:
                 wizcard.email = email
+                self.user.email = email
                 modify = True
+                user_modify = True
 
         if 'ext_fields' in self.sender and self.sender['ext_fields']:
             wizcard.ext_fields = self.sender['ext_fields'].copy()
@@ -2275,7 +2277,7 @@ class ParseMsgAndDispatch(object):
 
         my_events = Event.objects.users_entities(
             self.user,
-            entity_filter={'entity_state': BaseEntityComponent.ENTITY_STATE_PUBLISHED}
+            entity_filter={'entity_state': [BaseEntityComponent.ENTITY_STATE_PUBLISHED]}
         )
 
         # TODO: AR: Move this to a recommender function and that can do nearby or other things as well.
@@ -2424,14 +2426,6 @@ class ParseMsgAndDispatch(object):
         if entity_type == BaseEntityComponent.EVENT and entity.secure and not entity.is_joined(self.user):
             self.response.error_response(err.NOT_AUTHORIZED)
             return self.response
-
-        # in future, if we need sub_entity_details L2 level, and join fields are needed, app will need to pass
-        # the parent. Presently this isn't needed since app doesn't request L2 level details via entity_details
-        # for things other than Event. For Event, it's handled for sub-entities in the Event serializer since
-        # the Event implicitly is the parent.
-
-        if hasattr(self.sender, 'parent'):
-            self.user_context.update(parent=self.sender['parent'])
 
         out = s(entity, **self.user_context).data
         self.response.add_data("result", out)

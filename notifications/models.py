@@ -132,9 +132,13 @@ class BaseNotification(models.Model):
             from base_entity.models import BaseEntityComponent
             ser = BaseEntityComponent.entity_ser_from_type_and_level(
                 self.action_object.entity_type,
-                level=BaseEntityComponent.SERIALIZER_FULL
+                level=BaseEntityComponent.SERIALIZER_L2
             )
-            sub_entity_data = ser(self.action_object, context={'user': self.recipient}).data
+            context = {
+                'user': self.recipient,
+                'parent': self.target
+            }
+            sub_entity_data = ser(self.action_object, context=context).data
 
         return dict(
             entity_id=self.target.id,
