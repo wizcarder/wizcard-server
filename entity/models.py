@@ -42,7 +42,7 @@ class EventManager(BaseEntityManager):
         return super(EventManager, self).users_entities(user, user_filter, entity_filter)
 
     def get_expired(self):
-        return self.filter(end__lt=timezone.now(), entity_state=BaseEntityComponent.ENTITY_STATE_EXPIRED)
+        return self.filter(end__lt=timezone.now(), entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
     def get_tagged_entities(self, tags, entity_type):
         events = Event.objects.filter(entity_state=BaseEntityComponent.ENTITY_STATE_PUBLISHED)
@@ -116,7 +116,7 @@ class CampaignManager(BaseEntityManager):
         # Ideally there should be only 1 campaign for each name, email
         # Also need to normalize name - case insensitive, spaces
         cmp = Campaign.objects.filter(name=name, email=email)
-        mycp  = [cp for cp in cmp if cp.is_owner(owner)]
+        mycp = [cp for cp in cmp if cp.is_owner(owner)]
         return mycp[0] if mycp else None
 
     def users_entities(self, user, user_filter={}, entity_filter={}):

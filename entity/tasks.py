@@ -48,6 +48,7 @@ def create_entities(file, owner, **kwargs):
 
         if line.startswith("#"):
             continue
+
         record_no += 1
         ser_data = dict()
         arr = line.split(FEED_SEPERATOR)
@@ -77,10 +78,11 @@ def create_entities(file, owner, **kwargs):
             inst = ser.save()
             if event_id:
                 event = Event.objects.get(id=event_id)
-                event.add_subentity_obj(inst,
-                                        alias=BaseEntityComponent.sub_entity_type_from_entity_type(entity_type),
-                                        join_fields={'venue': venue}
-                                        )
+                event.add_subentity_obj(
+                    inst,
+                    alias=BaseEntityComponent.sub_entity_type_from_entity_type(entity_type),
+                    join_fields={'venue': venue}
+                )
                 inst.tags.set(*temp_tags)
 
         else:
@@ -93,17 +95,19 @@ def create_entities(file, owner, **kwargs):
         if taganomy:
             taganomy.tags.add(*taglist)
         else:
-            ser = TaganomySerializer(data = {"name": event.name + "_Tags", "tags": taglist}, context={'user': owner})
+            ser = TaganomySerializer(
+                data={"name": event.name+"_Tags", "tags": taglist},
+                context={'user': owner}
+            )
             if ser.is_valid():
                 inst = ser.save()
                 event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CATEGORY)
             else:
                 problematic_records.append(str(record_no))
 
-
     success_records = record_no - len(problematic_records)
 
-    return (success_records, ','.join(problematic_records))
+    return success_records, ','.join(problematic_records)
 
 
 

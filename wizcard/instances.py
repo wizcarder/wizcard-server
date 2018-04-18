@@ -40,29 +40,38 @@ ALLHOSTS = {
     }
 }
 
-RUNHOSTS = {'dev': {'LOCATIONSERVER': ['localhost'],
-         'MEMCACHE': ['localhost:11211'],
-         'NGINX': ['localhost'],
-         'RABBITSERVER': ['localhost'],
-         'RECOSERVER': ['localhost'],
-         'WIZSERVER': ['localhost']},
- 'prod': {'LOCATIONSERVER': ['172.31.28.254'],
-          'MEMCACHE': ['172.31.26.42:11211',
-                       '172.31.28.254:11211'],
-          'NGINX': ['172.31.26.42',
-                    '172.31.28.254'],
-          'RABBITSERVER': ['localhost'],
-          'WIZSERVER': ['172.31.26.42',
-                        '172.31.28.254']},
- 'stage': {'LOCATIONSERVER': ['172.31.9.38'],
-           'MEMCACHE': ['172.31.9.38:11211'],
-           'NGINX': ['172.31.9.38'],
-           'RABBITSERVER': ['localhost'],
-           'RECOSERVER': ['172.31.9.38'],
-           'WIZSERVER': ['172.31.9.38']},
- 'test': {'LOCATIONSERVER': ['172.31.24.237'],
-          'MEMCACHE': ['172.31.24.237:11211'],
-          'NGINX': ['172.31.24.237'],
-          'RABBITSERVER': ['localhost'],
-          'RECOSERVER': ['172.31.24.237'],
-          'WIZSERVER': ['172.31.24.237']}}
+RUNHOSTS = {
+    'dev': {
+        'LOCATIONSERVER': ['localhost'],
+        'MEMCACHE': ['localhost:11211'],
+        'NGINX': ['localhost'],
+        'RABBITSERVER': ['localhost'],
+        'RECOSERVER': ['localhost'],
+        'WIZSERVER': ['localhost']
+    },
+    'prod': {
+        'LOCATIONSERVER': ['172.31.28.254'],
+        'MEMCACHE': ['172.31.26.42:11211',
+                     '172.31.28.254:11211'],
+        'NGINX': ['172.31.26.42',
+                  '172.31.28.254'],
+        'RABBITSERVER': ['localhost'],
+        'WIZSERVER': ['172.31.26.42',
+                      '172.31.28.254']
+    },
+    'stage': {
+        'LOCATIONSERVER': ['172.31.9.38'],
+        'MEMCACHE': ['172.31.9.38:11211'],
+        'NGINX': ['172.31.9.38'],
+        'RABBITSERVER': ['localhost'],
+        'RECOSERVER': ['172.31.9.38'],
+        'WIZSERVER': ['172.31.9.38']
+    },
+    'test': {
+        'LOCATIONSERVER': ['172.31.24.237'],
+        'MEMCACHE': ['172.31.24.237:11211'],
+        'NGINX': ['172.31.24.237'],
+        'RABBITSERVER': ['localhost'],
+        'RECOSERVER': ['172.31.24.237'],
+        'WIZSERVER': ['172.31.24.237']}
+}

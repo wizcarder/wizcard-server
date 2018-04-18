@@ -336,17 +336,17 @@ FEED_SEPERATOR = "\t"
 
 feed_schemas = {
     "CMP": ["name", "description", "address", "phone", "website", "tags", "venue", "email"],
-    "ATI": ["name", "email", "company" , "title"],
+    "ATI": ["name", "email", "company", "title"],
 }
 
 valid_url = 'http://www.abc.com/something'
 
 feed_errors = {
-    "DUPLICATE" : {'count': 0, 'records': [], "help": "Record already exists - on upload the record will be updated"},
-    "LESS_FIELDS" : {'count': 0, 'records': [], "help": "Record has to have the number of fields as in the specifications"},
-    "INVALID_FIELD_VALUE" : {'count': 0, 'records': [], "help": "Invalid %s value - Valid format is %s"},
-    "BLANK_LINES" : {'count': 0, 'records': [], "help": "Blank lines ignored"},
-    "ALL_IS_WELL" : {'count': 0, 'records': [], "help": "Validation successful, ready to upload"}
+    "DUPLICATE": {'count': 0, 'records': [], "help": "Record already exists - on upload the record will be updated"},
+    "LESS_FIELDS": {'count': 0, 'records': [], "help": "Record has to have the number of fields as in the specifications"},
+    "INVALID_FIELD_VALUE": {'count': 0, 'records': [], "help": "Invalid %s value - Valid format is %s"},
+    "BLANK_LINES": {'count': 0, 'records': [], "help": "Blank lines ignored"},
+    "ALL_IS_WELL": {'count': 0, 'records': [], "help": "Validation successful, ready to upload"}
 
 }
 
