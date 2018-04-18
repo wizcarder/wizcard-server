@@ -42,7 +42,7 @@ from datetime import timedelta
 # Review for prod
 BEAT_SCHEDULE_ASYNC = 10
 BEAT_SCHEDULE_SYNC  = 60
-BEAT_SCHEDULE_EVENT = 86400
+BEAT_SCHEDULE_EVENT = 60
 
 beat_schedule = {
     'tick': {
