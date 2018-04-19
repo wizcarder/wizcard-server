@@ -324,6 +324,9 @@ class AgendaItem(BaseEntity):
     def get_parent_entities(self, **kwargs):
         return self.agenda_key.get_parent_entities(**kwargs)
 
+    def delete(self, *args, **kwargs):
+        super(AgendaItem, self).delete(*args, **kwargs)
+
 
 from django.dispatch import receiver
 from django.db.models.signals import post_save

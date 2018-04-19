@@ -223,6 +223,7 @@ class BaseEntityComponent(PolymorphicModel):
     ENTITY_STATE_PUBLISHED = "PUB"
     ENTITY_STATE_EXPIRED = "EXP"
     ENTITY_STATE_DELETED = "DEL"
+    ENTITY_STATE_DESTROY = "DES"
 
     ENTITY_STATE_CHOICES = (
         (ENTITY_STATE_CREATED, "Created"),
@@ -676,8 +677,10 @@ class BaseEntityComponent(PolymorphicModel):
 
         if type == BaseEntityComponent.ENTITY_EXPIRE:
             self.set_entity_state(BaseEntityComponent.ENTITY_STATE_EXPIRED)
-        else:
+        elif type == BaseEntityComponent.ENTITY_DELETE:
             self.set_entity_state(BaseEntityComponent.ENTITY_STATE_DELETED)
+        else:
+            super(BaseEntityComponent, self).delete(*args, **kwargs)
 
     @property
     def push_name_str(self):

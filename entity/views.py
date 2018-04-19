@@ -402,7 +402,7 @@ class AgendaItemViewSet(BaseEntityComponentViewSet):
             return Response("agenda item id %s not associated with Agenda %s " % (pk, agenda_pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        agi.delete()
+        agi.delete(type=BaseEntityComponent.ENTITY_STATE_DESTROY)
 
         return Response(status=status.HTTP_200_OK)
 
