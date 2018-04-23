@@ -4,7 +4,7 @@ from celery import task
 
 from entity.models import Event
 from entity.models import Campaign
-from entity.serializers import CampaignSerializer
+from entity.serializers import VanillaCampaignSerializer
 from wizserver.verbs import feed_schemas, FEED_SEPERATOR
 from base_entity.models import BaseEntityComponent
 from entity.serializers import TaganomySerializer
@@ -26,8 +26,9 @@ def expire():
 def create_entities(file, owner, **kwargs):
     record_no = 0
     problematic_records = []
-    event_id = kwargs.get('event')[0]
-    entity_type = kwargs.get('type')[0]
+    pdb.set_trace()
+    event_id = kwargs.get('event')
+    entity_type = kwargs.get('type')
     cls, ser = BaseEntityComponent.entity_cls_ser_from_type_level(
         entity_type,
         level=BaseEntityComponent.SERIALIZER_FULL
@@ -70,10 +71,10 @@ def create_entities(file, owner, **kwargs):
         venue = ser_data.pop('venue', "")
 
         if inst:
-            ser = ser(inst, data=ser_data, context={'user': owner}, partial=True)
+            ser = VanillaCampaignSerializer(inst, data=ser_data, context={'user': owner}, partial=True)
         else:
          # Ideally we can do many=True but we also want to point out faulty records
-            ser = ser(data=ser_data, context={'user': owner})
+            ser = VanillaCampaignSerializer(data=ser_data, context={'user': owner})
         if ser.is_valid():
             inst = ser.save()
             if event_id:
@@ -91,19 +92,23 @@ def create_entities(file, owner, **kwargs):
     if event_id:
         event = Event.objects.get(id=event_id)
 
-        taganomy = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY)[0]
+        taganomy = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY)
         if taganomy:
-            taganomy.tags.add(*taglist)
+            taganomy_inst = taganomy[0]
+            taganomy_inst.tags.add(*taglist)
         else:
-            ser = TaganomySerializer(
-                data={"name": event.name+"_Tags", "tags": taglist},
-                context={'user': owner}
-            )
-            if ser.is_valid():
-                inst = ser.save()
-                event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+            if taglist:
+                ser = TaganomySerializer(
+                    data={"name": event.name+"_Tags", "tags": taglist},
+                    context={'user': owner}
+                )
+                if ser.is_valid():
+                    inst = ser.save()
+                    event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+                else:
+                    problematic_records.append(str(record_no))
             else:
-                problematic_records.append(str(record_no))
+                pass
 
     success_records = record_no - len(problematic_records)
 

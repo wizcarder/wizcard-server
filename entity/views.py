@@ -1372,8 +1372,11 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
 
         parents = taganomy.get_parent_entities()
         if parents:
-            return Response("Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, event.name),
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+            parent = parents[0]
+            return Response(
+            "Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, parent.name),
+            status=status.HTTP_406_NOT_ACCEPTABLE)
+
 
         event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)
 
@@ -1606,13 +1609,13 @@ class FileUploader(views.APIView):
     parser_classes = (MultiPartParser,)
 
     def post(self, request, filename, format=None):
-        kwargs = {}
+        myargs = {}
         file_obj = request.data['file']
         owner = request.user
-        kwargs.update(type=request.data.pop('data_type', BaseEntityComponent.CAMPAIGN))
-        kwargs.update(event=request.data.pop('event', None))
+        myargs['type']= request.data.get('data_type', BaseEntityComponent.CAMPAIGN)
+        myargs['event']=request.data.get('event', None)
 
-        result = create_entities(file_obj, owner, **kwargs)
+        result = create_entities(file_obj, owner, **myargs)
 
         returnmesg = "All records uploaded successfully" if not result[1] \
             else "%s Succeeded, Check Lines %s that Failed" % (str(result[0]), result[1])
