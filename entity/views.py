@@ -532,6 +532,10 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        context = {
+            'user': request.user,
+            'parent': event
+        }
 
         # link the exhibitor to campaign.
 
@@ -566,15 +570,10 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
         join_fields = request.data.pop('join_fields', {})
         taganomy = request.data.get('taganomy', {})
         if taganomy:
-            context = {
-                'user': request.user,
-                'parent': event
-            }
-
-        serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
-        if serializer.is_valid():
-                inst = serializer.save()
-        else:
+            serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+            else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
@@ -668,20 +667,19 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             cpg = Campaign.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-          
+
+        context = {
+            'user': request.user,
+            'parent': event
+        }
+
         join_fields = request.data.pop('join_fields', {})
         taganomy = request.data.get('taganomy', {})
-        context = {}
         if taganomy:
-            context = {
-                'user': request.user,
-                'parent': event
-            }
-
-        serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
-        if serializer.is_valid():
-                inst = serializer.save()
-        else:
+            serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+            else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
@@ -718,13 +716,13 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
 
         for q in queryset:
             join_field = event.get_sub_entities_gfk_of_type(
-            object_id=q.id,
-            alias=BaseEntityComponent.sub_entity_type_from_entity_type(q.entity_type)
+                object_id=q.id,
+                alias=BaseEntityComponent.sub_entity_type_from_entity_type(q.entity_type)
             ).values_list('join_fields', flat=True).get()
-            venue = join_field['venue'] if venue in join_field else ""
+            venue = join_field['venue'] if 'venue' in join_field else ""
             tags = ",".join(list(q.tags.names()))
             record = '\t'.join([q.id, q.name, q.description, q.address, q.phone, q.website, tags, venue, q.email])
-            record = record + "\n"
+            record += "\n"
             f.write(record)
 
         f.close()
