@@ -31,9 +31,6 @@ from wizcardship.models import Wizcard
 from userprofile.models import WebExhibitorUser
 from notifications.serializers import notify
 from django.contrib.contenttypes.models import ContentType
-
-
-
 import pdb
 
 
@@ -140,7 +137,6 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
 
 
 # Organizer Viewsets
-
 class EventViewSet(BaseEntityViewSet):
     serializer_class = EventSerializer
 
@@ -248,13 +244,12 @@ class ExhibitorViewSet(BaseEntityViewSet):
     def download_exhibitors(self, request, pk=None):
         queryset = self.get_queryset()
         fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
-        header = "id\tname\temail\tphone\twebsite\tvenue\ttags\n"
-        sample_record = "83\tAny Name\ta@b.com\t9009009009\thttp://www.anyname.com\tHall A\ttag1, tag2, tag3\n"
+        header = "#id\tname\tdescription\taddress\tphone\twebsite\ttags\tvenue\temail\n"
+
         f = open(fname, "w")
         f.write(header)
-        f.write(sample_record)
         for q in queryset:
-            record = '\t'.join([q.name, q.email, q.phone, q.website])
+            record = '\t'.join([q.id, q.name, q.description, q.address, q.phone, q.website, "", "", q.email])
             record = record + "\n"
             f.write(record)
 
@@ -431,8 +426,8 @@ class CoOwnerViewSet(BaseEntityComponentViewSet):
 All the nested end-points for linking entity to sub-entity
 """
 
-# Exhibitor Viewsets
 
+# Exhibitor Viewsets
 class EventCampaignViewSet(viewsets.ModelViewSet):
     # queryset = Campaign.objects.all()
     serializer_class = CampaignSerializer
@@ -566,9 +561,8 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                 action_object=exhibitor,
                 notif_operation=verbs.NOTIF_OPERATION_CREATE
             )
-        
-        
-         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
+
+        #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
         join_fields = request.data.pop('join_fields', {})
         taganomy = request.data.get('taganomy', {})
         if taganomy:
@@ -585,7 +579,6 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
 
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
         return Response(status=status.HTTP_201_CREATED)
-
 
     def destroy(self, request, event_pk=None, pk=None):
         try:
@@ -678,6 +671,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
           
         join_fields = request.data.pop('join_fields', {})
         taganomy = request.data.get('taganomy', {})
+        context = {}
         if taganomy:
             context = {
                 'user': request.user,
@@ -693,7 +687,6 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
         return Response(status=status.HTTP_201_CREATED)
 
-
     def destroy(self, request, event_pk=None, pk=None):
         try:
             event = Event.objects.get(id=event_pk)
@@ -708,6 +701,38 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         event.remove_sub_entity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
 
         return Response(status=status.HTTP_200_OK)
+
+    @list_route()
+    def download_exhibitors(self, request, **kwargs):
+        try:
+            event = Event.objects.get(id=kwargs.get('event_pk'))
+            queryset = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
+        header = "#id\tname\tdescription\taddress\tphone\twebsite\ttags\tvenue\temail\n"
+
+        f = open(fname, "w")
+        f.write(header)
+
+        for q in queryset:
+            join_field = event.get_sub_entities_gfk_of_type(
+            object_id=q.id,
+            alias=BaseEntityComponent.sub_entity_type_from_entity_type(q.entity_type)
+            ).values_list('join_fields', flat=True).get()
+            venue = join_field['venue'] if venue in join_field else ""
+            tags = ",".join(list(q.tags.names()))
+            record = '\t'.join([q.id, q.name, q.description, q.address, q.phone, q.website, tags, venue, q.email])
+            record = record + "\n"
+            f.write(record)
+
+        f.close()
+        f = open(fname, "rb")
+
+        response = HttpResponse(f, content_type='text/tab-separated-values')
+        response['Content-Disposition'] = 'attachment; filename="exhibitors.tsv"'
+        return response
 
 class EventSpeakerViewSet(viewsets.ModelViewSet):
     serializer_class = SpeakerSerializer
@@ -1520,7 +1545,7 @@ class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
         coo = cmp.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_COOWNER)
         return Response(CoOwnersSerializer(coo, many=True).data)
 
-    def retrieve(self, request, pk=None, event_pk=None):
+    def retrieve(self, request, pk=None, campaigns_pk=None):
         try:
             coo = CoOwners.objects.get(id=pk)
             cmp = Campaign.objects.get(id=campaigns_pk)
