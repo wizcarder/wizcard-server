@@ -42,7 +42,7 @@ campaigns_router.register(r'media', CampaignMediaViewSet, base_name='campaign-me
 
 # nested end-points for all applicable sub-entities
 
-# oranizer nested
+# organizer nested
 events_router = routers.NestedSimpleRouter(router, r'events', lookup='event')
 events_router.register(r'exhibitors', EventExhibitorViewSet, base_name='event-exhibitors')
 events_router.register(r'speakers', EventSpeakerViewSet, base_name='event-speaker')

@@ -517,7 +517,7 @@ class BaseEntityComponent(PolymorphicModel):
     # caller to handle NOT_FOUND exception
     # returns a queryset
     def get_join_table_row(self, sub_entity):
-        row = self.get_sub_entities_gfk_of_type(
+        return self.get_sub_entities_gfk_of_type(
             object_id=sub_entity.id,
             alias=BaseEntityComponent.sub_entity_type_from_entity_type(sub_entity.entity_type)
         )

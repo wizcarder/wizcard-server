@@ -32,6 +32,12 @@ class CompanyTitleMixin(models.Model):
     company = TruncatingCharField(max_length=100, blank=True)
     title = TruncatingCharField(max_length=200, blank=True)
 
+class PhoneMixin(models.Model):
+    class Meta:
+        abstract = True
+
+    phone = TruncatingCharField(max_length=20, blank=True)
+
 
 class Base411Mixin(models.Model):
     class Meta:
@@ -63,11 +69,9 @@ class Base412Mixin(Base411Mixin, ExtFieldsMixin):
     description = models.CharField(max_length=2000, blank=True)
 
 
-class Base413Mixin(Base412Mixin, VcardMixin):
+class Base413Mixin(Base412Mixin, PhoneMixin, VcardMixin):
     class Meta:
         abstract = True
-
-    phone = TruncatingCharField(max_length=20, blank=True)
 
 
 class Base414Mixin(Base413Mixin):

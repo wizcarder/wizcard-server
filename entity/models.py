@@ -8,7 +8,7 @@ from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManage
     BaseEntityComponentManager, UserEntity
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
-from base.mixins import Base411Mixin, Base412Mixin, Base413Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
+from base.mixins import Base411Mixin, Base412Mixin, PhoneMixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 from taganomy.models import Taganomy
 from django.contrib.contenttypes.models import ContentType
 from notifications.signals import notify
@@ -385,6 +385,8 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 
         # 1. check with phone number
         phone = app_user.profile.phone_number_from_username()
+
+
         # matched_users = User.objects.filter(
         #     email__in=self.filter(
         #         id__in=invitee_ids
@@ -397,16 +399,19 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
         #
         # return matched_users, matched_attendees
         return []
+
+
+
+class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitleMixin):
+    objects = AttendeeInviteeManager()
+
     # check if any app_users match this attendee_invitee
+    # returns Tuple (True/False, [list of matches of type User])
     def check_existing_app_users(self):
         return []
 
-
-class AttendeeInvitee(BaseEntityComponent, Base411Mixin, Base413Mixin, CompanyTitleMixin):
-    objects = AttendeeInviteeManager()
-
     def check_invite_for_event(self, event):
-        pass
+        return bool(event.get_join_table_row(self))
 
     # no notifs required for this one
     def post_connect_remove(self, parent, **kwargs):

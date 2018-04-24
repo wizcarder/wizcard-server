@@ -983,7 +983,28 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             # note to self: If multiple app_users show up (hopefully unlikely) as matches for an attendeeinvitee,
             # then it should/must also be the case that each of those app-users should result in this invitee with
             # the converse search.
-            app_users = inst.check_existing_app_users()
+            exists, app_users = inst.check_existing_app_users()
+
+            # attach each of them to the event.
+            if exists:
+                for au in app_users:
+                    au.user_attach(au, UserEntity.JOIN, do_notify=True)
+
+                    # push notif
+                    notify.send(
+                        event.get_creator(),
+                        recipient=au,
+                        notif_tuple=verbs.WIZCARD_ENTITY_BROADCAST,
+                        target=self,
+                        action_object=au,
+                        do_push=True,
+                        force_sync=True
+                    )
+
+                # send email
+            else:
+                # send email
+                pass
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
