@@ -49,7 +49,6 @@ events_router.register(r'speakers', EventSpeakerViewSet, base_name='event-speake
 events_router.register(r'sponsors', EventSponsorViewSet, base_name='event-sponsor')
 events_router.register(r'media', EventMediaViewSet, base_name='event-media')
 events_router.register(r'attendees', EventAttendeeViewSet, base_name='event-attendees')
-# events_router.register(r'exhibitor_invitee', EventExhibitorInviteeViewSet, base_name='event-exhibitor-invitee')
 events_router.register(r'coowner', EventCoOwnerViewSet, base_name='event-coowners')
 events_router.register(r'agenda', EventAgendaViewSet, base_name='event-agenda')
 events_router.register(r'poll', EventPollViewSet, base_name='event-poll')

@@ -40,6 +40,7 @@ from base.mixins import MediaMixin
 from lib.ocr import OCR
 from base.mixins import CompanyTitleMixin
 from genericm2m.models import RelatedObjectsDescriptor
+from operator import attrgetter
 from notifications.models import BaseNotification
 
 logger = logging.getLogger(__name__)
@@ -197,6 +198,13 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         if qs.exists():
             return qs[0].company
         return None
+
+    def get_latest_cc_fields(self, *args):
+        pdb.set_trace()
+        qs = self.contact_container.all()
+        if qs.exists():
+            cc = qs[0]
+            ret = attrgetter(*args)(cc)
 
     def is_admin_wizcard(self):
         return self.user.profile.is_admin

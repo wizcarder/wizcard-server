@@ -145,16 +145,18 @@ class InviteStateMixin(models.Model):
         abstract = True
 
     CREATED = "CRT"
+    REQUESTED = "REQ"
     INVITED = "INV"
     ACCEPTED = "ACC"
 
     INVITE_CHOICES = (
         (CREATED, "Created"),
         (INVITED, "Invited"),
+        (REQUESTED, 'Requested'),
         (ACCEPTED, "Accepted")
     )
 
-    state = models.CharField(
+    invite_state = models.CharField(
         max_length=3,
         choices=INVITE_CHOICES,
         default=CREATED

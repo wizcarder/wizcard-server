@@ -126,6 +126,9 @@ class UserProfile(PolymorphicModel):
 
     objects = UserProfileManager()
 
+    def phone_num_from_username(self):
+        return self.user.username.split('@')[0]
+
     def app_user(self):
         try:
             return self.baseuser.all().instance_of(AppUser).get()

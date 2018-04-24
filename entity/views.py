@@ -6,6 +6,7 @@ from polls.models import Poll
 from entity.serializers import EventSerializer, EventSerializerL0, VanillaCampaignSerializer, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
     SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, CoOwnersSerializer
+from base.mixins import InviteStateMixin
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
 from notifications.models import AsyncNotification
@@ -715,11 +716,10 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         f.write(header)
 
         for q in queryset:
-            join_field = event.get_sub_entities_gfk_of_type(
-                object_id=q.id,
-                alias=BaseEntityComponent.sub_entity_type_from_entity_type(q.entity_type)
-            ).values_list('join_fields', flat=True).get()
+            join_row = event.get_join_table_row(q)
+            join_field = join_row.values_list('join_fields', flat=True).get()
             venue = join_field['venue'] if 'venue' in join_field else ""
+
             tags = ",".join(list(q.tags.names()))
             record = '\t'.join([q.id, q.name, q.description, q.address, q.phone, q.website, tags, venue, q.email])
             record += "\n"
@@ -973,7 +973,18 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
             inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+            join_fields = {'invite_state': InviteStateMixin.INVITED}
+            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields)
+
+            # hook-up the app side flow if app user for this attendee exists
+
+            # 1: Check if any app_users exists. Ideally should only be one. But who knows...deal with
+            # all of the matches.
+            # note to self: If multiple app_users show up (hopefully unlikely) as matches for an attendeeinvitee,
+            # then it should/must also be the case that each of those app-users should result in this invitee with
+            # the converse search.
+            app_users = inst.check_existing_app_users()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1374,7 +1385,6 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
             return Response(
             "Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, parent.name),
             status=status.HTTP_406_NOT_ACCEPTABLE)
-
 
         event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)
 

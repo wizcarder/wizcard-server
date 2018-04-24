@@ -2201,18 +2201,8 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if state == UserEntity.JOIN:
-            entity.user_attach(self.user, state)
-
-            # don't like this if-else. but will need more
-            # abstraction for a small use-case
-            level = BaseEntityComponent.SERIALIZER_L2 if entity_type == BaseEntityComponent.EVENT \
-                else BaseEntityComponent.SERIALIZER_L1
-
-            s = BaseEntity.entity_ser_from_type_and_level(
-                entity_type=entity_type,
-                level=level
-            )
-            out = s(entity, **self.user_context).data
+            ser = entity.user_attach(self.user, state)
+            out = ser(entity, **self.user_context).data
             self.response.add_data("result", out)
             return self.response
         elif state == UserEntity.LEAVE:

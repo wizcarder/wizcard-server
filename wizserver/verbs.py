@@ -139,6 +139,7 @@ NOTIF_ENTITY_REMINDER           = 27
 NOTIF_INVITE_EXHIBITOR          = 28
 NOTIF_INVITE_ATTENDEE           = 29
 
+
 NOTIF_OPERATION_CREATE = 'C'
 NOTIF_OPERATION_DELETE = 'D'
 
@@ -202,6 +203,7 @@ WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
 WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
 WIZCARD_FORWARD             = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', True, False)
 WIZCARD_ENTITY_ATTACH       = (NOTIF_ENTITY_ATTACH, 'entity join', False, True)
+WIZCARD_ENTITY_REQUEST_ATTACH = (NOTIF_ENTITY_ATTACH, 'entity join', False, True)
 WIZCARD_ENTITY_DETACH       = (NOTIF_ENTITY_DETACH, 'entity leave', False, True)
 WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', True, False)
 WIZCARD_ENTITY_UPDATE       = (NOTIF_ENTITY_UPDATE, 'event_updated', True, True)

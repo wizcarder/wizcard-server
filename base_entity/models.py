@@ -513,6 +513,15 @@ class BaseEntityComponent(PolymorphicModel):
 
         return c
 
+    # gets the join table row between parent<->sub_entity. Expects it to be there.
+    # caller to handle NOT_FOUND exception
+    # returns a queryset
+    def get_join_table_row(self, sub_entity):
+        row = self.get_sub_entities_gfk_of_type(
+            object_id=sub_entity.id,
+            alias=BaseEntityComponent.sub_entity_type_from_entity_type(sub_entity.entity_type)
+        )
+
     # this does not send notif
     def add_subentities(self, ids, type):
         if not ids:
@@ -554,16 +563,17 @@ class BaseEntityComponent(PolymorphicModel):
         to_be_deleted_ids_qs.delete()
 
     def add_subentity_obj(self, obj, alias, **kwargs):
+        join_fields = kwargs.pop('join_fields', None)
+
         connection = self.related.connect(obj, alias=alias)
 
-        if 'join_fields' in kwargs:
-            join_fields = kwargs.pop('join_fields')
+        if join_fields:
             connection.join_fields = join_fields
             connection.save()
 
         kwargs.update(notif_operation=verbs.NOTIF_OPERATION_CREATE)
 
-        return obj.post_connect_remove(self, **kwargs)
+        return connection, obj.post_connect_remove(self, **kwargs)
 
     def remove_sub_entity_obj(self, obj, subentity_type, **kwargs):
         self.related.filter(object_id=obj.id, alias=subentity_type).delete()
@@ -872,10 +882,12 @@ class UserEntity(models.Model):
     PIN = 2
     LEAVE = 3
     UNPIN = 4
+    REQUEST_JOIN = 5
 
     STATE_CHOICES = (
         (JOIN, 'Join'),
         (PIN, 'Pin'),
+        (REQUEST_JOIN, 'Requested')
     )
 
     user = models.ForeignKey(User)
