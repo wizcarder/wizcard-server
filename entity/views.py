@@ -249,7 +249,7 @@ class ExhibitorViewSet(BaseEntityViewSet):
         f = open(fname, "w")
         f.write(header)
         for q in queryset:
-            record = '\t'.join([q.id, q.name, q.description, q.address, q.phone, q.website, "", "", q.email])
+            record = '\t'.join([str(q.id), q.name, q.description, q.address, q.phone, q.website, "", "", q.email])
             record = record + "\n"
             f.write(record)
 
@@ -632,7 +632,6 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         return Response(
             VanillaCampaignSerializer(
                 cpg,
-                many=True,
                 context={
                     'parent': event
                 }
