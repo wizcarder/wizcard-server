@@ -974,7 +974,8 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             inst = serializer.save()
             join_fields = {'invite_state': InviteStateMixin.INVITED}
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields)
+
+            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
 
             # hook-up the app side flow if app user for this attendee exists
 
@@ -1021,7 +1022,39 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             return Response("event %s already  associated with attendee invitee %s " % (event_pk, pk),
                             status=status.HTTP_200_OK)
 
-        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        join_fields = {'invite_state': InviteStateMixin.INVITED}
+        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
+
+        # hook-up the app side flow if app user for this attendee exists
+
+        # 1: Check if any app_users exists. Ideally should only be one. But who knows...deal with
+        # all of the matches.
+        # note to self: If multiple app_users show up (hopefully unlikely) as matches for an attendeeinvitee,
+        # then it should/must also be the case that each of those app-users should result in this invitee with
+        # the converse search.
+        exists, app_users = ati.check_existing_app_users()
+
+        # attach each of them to the event.
+        if exists:
+            for au in app_users:
+                au.user_attach(au, UserEntity.JOIN, do_notify=True)
+
+                # push notif
+                notify.send(
+                    event.get_creator(),
+                    recipient=au,
+                    notif_tuple=verbs.WIZCARD_ENTITY_BROADCAST,
+                    target=self,
+                    action_object=au,
+                    do_push=True,
+                    force_sync=True
+                )
+
+            # send email
+        else:
+            # send email
+            pass
+
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
