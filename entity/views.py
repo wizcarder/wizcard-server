@@ -673,11 +673,34 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         }
 
         join_fields = request.data.pop('join_fields', {})
-        taganomy = request.data.get('taganomy', {})
-        if taganomy:
+        tags = request.data.pop('tags', [])
+
+        # This seems like a less restrictive approach to tags than going via taganomy, this will faciliate the organizer to add
+        # tags to the exhibitor and create a tag cloud implicitly.
+
+        if tags:
+            taganomy = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CATEGORY)
+            if taganomy:
+                taganomy_inst = taganomy[0]
+                taganomy_inst.tags.add(*tags)
+                taganomy_inst.register_object(cpg)
+            else:
+                ser = TaganomySerializer(
+                    data={"name": event.name + "_Tags", "tags": tags},
+                    context={'user': request.user}
+                )
+                if ser.is_valid():
+                    taganomy_inst = ser.save()
+                    event.add_subentity_obj(taganomy_inst, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+                    taganomy_inst.register_object(cpg)
+                else:
+                    return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
             serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
             if serializer.is_valid():
-                serializer.save()
+                inst = serializer.save()
+                inst.tags.set(*tags)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
