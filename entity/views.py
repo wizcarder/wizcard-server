@@ -1002,9 +1002,11 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                         force_sync=True
                     )
 
-                # send email
+                # Send an implicit event join notif
+
+                # AR: send email
             else:
-                # send email
+                # AR: send email
                 pass
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -1050,6 +1052,8 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                     force_sync=True
                 )
 
+                # Send an implicit event join notif
+
             # send email
         else:
             # send email
@@ -1069,6 +1073,8 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+
+        # AA: TODO: We probably need to eject the user out of the event as well ?
 
         return Response(status=status.HTTP_200_OK)
 
