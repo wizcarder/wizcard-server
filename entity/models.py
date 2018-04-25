@@ -408,7 +408,7 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitl
     # check if any app_users match this attendee_invitee
     # returns Tuple (True/False, [list of matches of type User])
     def check_existing_app_users(self):
-        return []
+        return False, []
 
     def check_invite_for_event(self, event):
         return bool(event.get_join_table_row(self))
@@ -427,7 +427,7 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
         )
 
     def check_pending_invites(self, email):
-        return self.filter(email=email, state=ExhibitorInvitee.INVITED)
+        return self.filter(email=email, invite_state=ExhibitorInvitee.INVITED)
 
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):

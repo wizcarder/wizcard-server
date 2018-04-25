@@ -878,7 +878,7 @@ class AttendeeInviteeSerializer(EntitySerializer):
 
     def get_invite_state(self, obj):
         join_field = self.get_join_fields(obj)
-        return join_field.get('invite_state') if join_field else self.entity_state
+        return join_field.get('invite_state') if join_field else obj.entity_state
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.ATTENDEE_INVITEE)

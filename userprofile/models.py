@@ -395,7 +395,7 @@ class WebExhibitorUser(BaseUser):
         # aware (and potentially filter out) that "joined users" also contain Exhibitor Users.
         user = self.profile.user
         [event.user_attach(user, state=UserEntity.JOIN, do_notify=False) for event in invited_events]
-        invite_objs.update(state=ExhibitorInvitee.ACCEPTED)
+        invite_objs.update(invite_state=ExhibitorInvitee.ACCEPTED)
 
 
 class FutureUserManager(models.Manager):

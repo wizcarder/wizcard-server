@@ -184,7 +184,7 @@ class EventViewSet(BaseEntityViewSet):
             email=exhibitor_email,
             event=event,
             defaults={
-                'state': state
+                'invite_state': state
             }
         )
 
@@ -568,7 +568,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
             )
 
         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
-        join_fields = request.data.pop('join_fields', {})
+        join_fields = request.data.pop('join_fields') if 'join_fields' in request.data else {}
         taganomy = request.data.get('taganomy', {})
         if taganomy:
             serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
@@ -674,7 +674,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             'parent': event
         }
 
-        join_fields = request.data.pop('join_fields', {})
+        join_fields = request.data.pop('join_fields') if 'join_fields' in request.data else {}
         taganomy = request.data.get('taganomy', {})
         if taganomy:
             serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
