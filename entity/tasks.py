@@ -26,7 +26,6 @@ def expire():
 def create_entities(file, owner, **kwargs):
     record_no = 0
     problematic_records = []
-    pdb.set_trace()
     event_id = kwargs.get('event')
     entity_type = kwargs.get('type')
     cls, ser = BaseEntityComponent.entity_cls_ser_from_type_level(

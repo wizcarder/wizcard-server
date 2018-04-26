@@ -183,11 +183,11 @@ class Event(BaseEntity):
             company, title = user.wizcard.get_latest_cc_fields('company', 'title')
             ati = AttendeeInvitee.objects.create(
                 # there is a get_name method in Wizcard, but roundabout here since it picks it up from user model
-                user.first_name + "" + user.last_name,
-                user.email,
+                name=user.first_name + "" + user.last_name,
+                email=user.email,
                 company=company,
                 title=title,
-                phone=user.phone_num_from_username()
+                phone=user.profile.phone_num_from_username()
             )
 
             join_row, dont_care = self.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
@@ -228,11 +228,20 @@ class Event(BaseEntity):
             # for approval
 
         if not self.secure:
-            ser = BaseEntityComponent.SERIALIZER_L2
+            ser = BaseEntity.entity_ser_from_type_and_level(
+                entity_type=BaseEntityComponent.EVENT,
+                level=BaseEntityComponent.SERIALIZER_L2
+            )
         elif atleast_one_invited:
-            ser = BaseEntityComponent.SERIALIZER_L2
+            ser = BaseEntity.entity_ser_from_type_and_level(
+                entity_type=BaseEntityComponent.EVENT,
+                level=BaseEntityComponent.SERIALIZER_L2
+            )
         else:
-            ser = BaseEntityComponent.SERIALIZER_L1
+            ser = BaseEntity.entity_ser_from_type_and_level(
+                entity_type=BaseEntityComponent.EVENT,
+                level=BaseEntityComponent.SERIALIZER_L1
+            )
 
         return ser
 
@@ -384,7 +393,7 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
         qs = self.owners_entities(organizer_user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE)
 
         # 1. check with phone number
-        phone = app_user.profile.phone_number_from_username()
+        phone = app_user.profile.phone_num_from_username()
 
 
         # matched_users = User.objects.filter(

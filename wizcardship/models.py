@@ -200,11 +200,8 @@ class WizcardBase(PolymorphicModel, Base413Mixin):
         return None
 
     def get_latest_cc_fields(self, *args):
-        pdb.set_trace()
-        qs = self.contact_container.all()
-        if qs.exists():
-            cc = qs[0]
-            ret = attrgetter(*args)(cc)
+        cc = self.contact_container.all()[0]
+        return attrgetter(*args)(cc)
 
     def is_admin_wizcard(self):
         return self.user.profile.is_admin

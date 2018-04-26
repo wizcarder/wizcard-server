@@ -758,10 +758,11 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def user_attach(self, user, state, do_notify=True):
+    def user_attach(self, user, state, **kwargs):
 
         UserEntity.user_attach(user, self, state=state)
 
+        do_notify = kwargs.pop('do_notify', True)
         if do_notify:
             if hasattr(user, 'wizcard'):
                 notify.send(
@@ -778,11 +779,17 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 self.num_users += 1
                 self.save()
 
-        return self
+        ser = BaseEntity.entity_ser_from_type_and_level(
+            entity_type=self.entity_type,
+            level=BaseEntityComponent.SERIALIZER_L2
+        )
 
-    def user_detach(self, user, state, do_notify=True):
+        return ser
+
+    def user_detach(self, user, state, **kwargs):
         UserEntity.user_detach(user, self)
 
+        do_notify = kwargs.pop('do_notify', True)
         if do_notify:
             if hasattr(user, 'wizcard'):
                 notify.send(

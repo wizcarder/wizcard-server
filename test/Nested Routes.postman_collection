@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "39.Exhibitor Create Nested Event 14",
+			"name": "38. Exhibitor Create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/exhibitors/",
 				"method": "POST",
@@ -33,9 +33,9 @@
 			"response": []
 		},
 		{
-			"name": "39.Campaign Update Nested Event 14 venue",
+			"name": "38.Exhibitor Update Nested Event 14 venue",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitors/39/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/38/",
 				"method": "PUT",
 				"header": [
 					{
@@ -58,7 +58,7 @@
 			"response": []
 		},
 		{
-			"name": "40.Speaker create Nested Event 14",
+			"name": "39.Speaker create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/speakers/",
 				"method": "POST",
@@ -83,7 +83,7 @@
 			"response": []
 		},
 		{
-			"name": "41.Sponsor create Nested Event 14",
+			"name": "40.Sponsor create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/sponsors/",
 				"method": "POST",
@@ -108,7 +108,7 @@
 			"response": []
 		},
 		{
-			"name": "42.Media create Nested Event 14",
+			"name": "41.Media create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/media/",
 				"method": "POST",
@@ -133,9 +133,9 @@
 			"response": []
 		},
 		{
-			"name": "43.Attendee create Nested Event 14",
+			"name": "42.Attendee create Nested Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/attendee/",
+				"url": "http://localhost:8000/entity/events/14/attendees/",
 				"method": "POST",
 				"header": [
 					{
@@ -158,7 +158,7 @@
 			"response": []
 		},
 		{
-			"name": "44.CoOwner create Nested Event 14",
+			"name": "43.CoOwner create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/coowner/",
 				"method": "POST",
@@ -183,7 +183,7 @@
 			"response": []
 		},
 		{
-			"name": "45.Agenda Create Nested Event 14",
+			"name": "44.Agenda Create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/agenda/",
 				"method": "POST",
@@ -208,7 +208,7 @@
 			"response": []
 		},
 		{
-			"name": "48.Poll create Nested Event 14",
+			"name": "47.Poll create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/poll/",
 				"method": "POST",
@@ -233,7 +233,7 @@
 			"response": []
 		},
 		{
-			"name": "49.Taganomy Nested Create Event 14",
+			"name": "48.Taganomy Nested Create Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/taganomy/",
 				"method": "POST",
@@ -256,7 +256,7 @@
 			"response": []
 		},
 		{
-			"name": "50.BadgeTemplate Nested Create Event 14",
+			"name": "49.BadgeTemplate Nested Create Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/badge/",
 				"method": "POST",
@@ -281,9 +281,9 @@
 			"response": []
 		},
 		{
-			"name": "Exhibitor.39 unlink event 14",
+			"name": "Exhibitor.38 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitors/39/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/38/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -293,7 +293,7 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{exhibitor_user1}}",
+						"value": "Token {{organizer_user1}}",
 						"description": ""
 					}
 				],
@@ -306,9 +306,9 @@
 			"response": []
 		},
 		{
-			"name": "Exhibitor. 39 link event 14",
+			"name": "Exhibitor. 38 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitors/39/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/38/",
 				"method": "PUT",
 				"header": [
 					{
@@ -331,9 +331,9 @@
 			"response": []
 		},
 		{
-			"name": "Speaker.40 unlink event 14",
+			"name": "Speaker.39 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/speakers/40/",
+				"url": "http://localhost:8000/entity/events/14/speakers/39/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -356,9 +356,9 @@
 			"response": []
 		},
 		{
-			"name": "Speaker.40 link event 14",
+			"name": "Speaker.39 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/speakers/40/",
+				"url": "http://localhost:8000/entity/events/14/speakers/39/",
 				"method": "PUT",
 				"header": [
 					{
@@ -381,9 +381,9 @@
 			"response": []
 		},
 		{
-			"name": "Sponsor.41 unlink event 14",
+			"name": "Sponsor.40 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/sponsors/41/",
+				"url": "http://localhost:8000/entity/events/14/sponsors/40/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -406,9 +406,9 @@
 			"response": []
 		},
 		{
-			"name": "Sponsor.41 link event 14",
+			"name": "Sponsor.40 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/sponsors/41/",
+				"url": "http://localhost:8000/entity/events/14/sponsors/40/",
 				"method": "PUT",
 				"header": [
 					{
@@ -431,9 +431,9 @@
 			"response": []
 		},
 		{
-			"name": "Media.42 unlink event 14",
+			"name": "Media.41 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/media/42/",
+				"url": "http://localhost:8000/entity/events/14/media/41/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -456,9 +456,9 @@
 			"response": []
 		},
 		{
-			"name": "Media.42 link event 14",
+			"name": "Media.41 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/media/42/",
+				"url": "http://localhost:8000/entity/events/14/media/41/",
 				"method": "PUT",
 				"header": [
 					{
@@ -481,9 +481,9 @@
 			"response": []
 		},
 		{
-			"name": "Attendee.43 unlink event 14",
+			"name": "Attendee.42 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/attendee/43/",
+				"url": "http://localhost:8000/entity/events/14/attendees/42/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -506,9 +506,9 @@
 			"response": []
 		},
 		{
-			"name": "Attendee.43 link event 14",
+			"name": "Attendee.42 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/attendee/43/",
+				"url": "http://localhost:8000/entity/events/14/attendees/42/",
 				"method": "PUT",
 				"header": [
 					{
@@ -531,9 +531,9 @@
 			"response": []
 		},
 		{
-			"name": "CoOwner.44 unlink event 14",
+			"name": "CoOwner.43 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/coowner/44/",
+				"url": "http://localhost:8000/entity/events/14/coowner/43/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -556,9 +556,9 @@
 			"response": []
 		},
 		{
-			"name": "CoOwner.44 link event 14",
+			"name": "CoOwner.43 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/coowner/44/",
+				"url": "http://localhost:8000/entity/events/14/coowner/43/",
 				"method": "PUT",
 				"header": [
 					{
@@ -583,7 +583,7 @@
 		{
 			"name": "Agenda.45 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/agenda/45/",
+				"url": "http://localhost:8000/entity/events/14/agenda/44/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -608,7 +608,7 @@
 		{
 			"name": "Agenda.45 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/agenda/45/",
+				"url": "http://localhost:8000/entity/events/14/agenda/44/",
 				"method": "PUT",
 				"header": [
 					{
@@ -633,7 +633,7 @@
 		{
 			"name": "Poll.48 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/poll/48/",
+				"url": "http://localhost:8000/entity/events/14/poll/47/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -658,7 +658,7 @@
 		{
 			"name": "Poll.48 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/poll/48/",
+				"url": "http://localhost:8000/entity/events/14/poll/47/",
 				"method": "PUT",
 				"header": [
 					{
@@ -681,9 +681,9 @@
 			"response": []
 		},
 		{
-			"name": "Taganomy.49 unlink event 14",
+			"name": "Taganomy.48 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/taganomy/49/",
+				"url": "http://localhost:8000/entity/events/14/taganomy/48/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -706,9 +706,9 @@
 			"response": []
 		},
 		{
-			"name": "Taganomy.49 link event 14",
+			"name": "Taganomy.48 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/taganomy/49/",
+				"url": "http://localhost:8000/entity/events/14/taganomy/48/",
 				"method": "PUT",
 				"header": [
 					{
@@ -731,9 +731,9 @@
 			"response": []
 		},
 		{
-			"name": "BadgeTemplate.50 unlink Event 14",
+			"name": "BadgeTemplate.49 unlink Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/badge/50/",
+				"url": "http://localhost:8000/entity/events/14/badge/49/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -756,9 +756,9 @@
 			"response": []
 		},
 		{
-			"name": "BadgeTemplate.50 link Event 14",
+			"name": "BadgeTemplate.49 link Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/badge/50/",
+				"url": "http://localhost:8000/entity/events/14/badge/49/",
 				"method": "PUT",
 				"header": [
 					{

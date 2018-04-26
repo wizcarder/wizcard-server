@@ -2214,6 +2214,7 @@ class ParseMsgAndDispatch(object):
             entity.user_attach(self.user, state, do_notify=False)
             self.EventsGet()
         elif state == UserEntity.UNPIN:
+            # don't notify others..what the heck, a little bit of "truth omission" doesn't hurt anybody
             entity.user_detach(self.user, state=state, do_notify=False)
             self.EventsGet()
         else:

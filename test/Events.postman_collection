@@ -460,7 +460,7 @@
 		{
 			"name": "14.Event Link Exhibitor 10",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/10/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/10/",
 				"method": "PUT",
 				"header": [
 					{
@@ -485,7 +485,7 @@
 		{
 			"name": "14.Event Link Exhibitor 10 Booth update",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/10/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/10/",
 				"method": "PUT",
 				"header": [
 					{
@@ -510,7 +510,7 @@
 		{
 			"name": "14.Event Link Exhibitor 11",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/11/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/11/",
 				"method": "PUT",
 				"header": [
 					{
@@ -535,7 +535,7 @@
 		{
 			"name": "14.Event Link Exhibitor 12",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/12/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/12/",
 				"method": "PUT",
 				"header": [
 					{
@@ -560,7 +560,7 @@
 		{
 			"name": "14.Event Link Exhibitor 13",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/13/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/13/",
 				"method": "PUT",
 				"header": [
 					{
@@ -585,7 +585,7 @@
 		{
 			"name": "15.Event Link Exhibitor 16",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/exhibitor/16/",
+				"url": "http://localhost:8000/entity/events/15/exhibitors/16/",
 				"method": "PUT",
 				"header": [
 					{
@@ -610,7 +610,7 @@
 		{
 			"name": "15.Event Link Exhibitor16 Booth update copy",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/exhibitor/16/",
+				"url": "http://localhost:8000/entity/events/15/exhibitors/16/",
 				"method": "PUT",
 				"header": [
 					{
@@ -635,7 +635,7 @@
 		{
 			"name": "15.Event Link Exhibitor 17",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/exhibitor/17/",
+				"url": "http://localhost:8000/entity/events/15/exhibitors/17/",
 				"method": "PUT",
 				"header": [
 					{
@@ -660,7 +660,7 @@
 		{
 			"name": "15.Event Link Exhibitor 18",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/exhibitor/18/",
+				"url": "http://localhost:8000/entity/events/15/exhibitors/18/",
 				"method": "PUT",
 				"header": [
 					{
@@ -685,7 +685,7 @@
 		{
 			"name": "15.Event Link Exhibitor 19",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/exhibitor/19/",
+				"url": "http://localhost:8000/entity/events/15/exhibitors/19/",
 				"method": "PUT",
 				"header": [
 					{
@@ -735,7 +735,7 @@
 		{
 			"name": "Exhibitors.Event14 Organizer_user1",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/",
 				"method": "GET",
 				"header": [
 					{
@@ -785,7 +785,7 @@
 		{
 			"name": "Exhibitors.Event15 Organizer_user2",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/exhibitor/",
+				"url": "http://localhost:8000/entity/events/15/exhibitors/",
 				"method": "GET",
 				"header": [
 					{
@@ -1047,7 +1047,7 @@
 		{
 			"name": "24.Campaign link with Invited Event.14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/campaign/24/",
+				"url": "http://localhost:8000/entity/events/14/campaigns/24/",
 				"method": "PUT",
 				"header": [
 					{
@@ -1072,7 +1072,7 @@
 		{
 			"name": "25.exhibitor_future1 Nested Campaign Create Event.14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/campaign/",
+				"url": "http://localhost:8000/entity/events/14/campaigns/",
 				"method": "POST",
 				"header": [
 					{
@@ -1122,7 +1122,7 @@
 		{
 			"name": "26.Campaign link with Invited Event.15",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/campaign/26/",
+				"url": "http://localhost:8000/entity/events/15/campaigns/26/",
 				"method": "PUT",
 				"header": [
 					{
@@ -1147,7 +1147,7 @@
 		{
 			"name": "27.exhibitor_future1 Nested Campaign Create Event.15",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/campaign/",
+				"url": "http://localhost:8000/entity/events/15/campaigns/",
 				"method": "POST",
 				"header": [
 					{
@@ -1417,31 +1417,6 @@
 				],
 				"body": {},
 				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "2.Notification Create",
-			"request": {
-				"url": "http://localhost:8000/entity/notifications/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 28\n  },\n  \"verb\": \"Agenda Update\",\n  \"notification_text\": \"Your event is starting now\"\n}"
-				},
-				"description": ""
 			},
 			"response": []
 		},
@@ -2107,7 +2082,7 @@
 		{
 			"name": "GET Exhibitor.1 Event.14 Campaigns",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/campaign/",
+				"url": "http://localhost:8000/entity/events/14/campaigns/",
 				"method": "GET",
 				"header": [
 					{

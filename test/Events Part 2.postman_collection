@@ -44,7 +44,7 @@
 		{
 			"name": "14.Event Link Exhibitor 12",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/12/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/12/",
 				"method": "PUT",
 				"header": [
 					{
@@ -69,7 +69,7 @@
 		{
 			"name": "15.Event Link Exhibitor 12",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/exhibitor/12/",
+				"url": "http://localhost:8000/entity/events/15/exhibitors/12/",
 				"method": "PUT",
 				"header": [
 					{
@@ -94,7 +94,7 @@
 		{
 			"name": "14.Event Link Exhibitor 13",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitor/13/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/13/",
 				"method": "PUT",
 				"header": [
 					{
@@ -119,7 +119,7 @@
 		{
 			"name": "15.Event Link Exhibitor 13",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/exhibitor/13/",
+				"url": "http://localhost:8000/entity/events/15/exhibitors/13/",
 				"method": "PUT",
 				"header": [
 					{
@@ -142,7 +142,7 @@
 			"response": []
 		},
 		{
-			"name": "22.Org1 invite 12.Exhibitor1 to Event.14",
+			"name": "26.Org1 invite 12.Exhibitor1 to Event.14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/invite_exhibitor/",
 				"method": "POST",
@@ -165,7 +165,7 @@
 			"response": []
 		},
 		{
-			"name": "23.Org1 invite 13.Exhibitor1 to Event.15",
+			"name": "27.Org1 invite 13.Exhibitor1 to Event.15",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/invite_exhibitor/",
 				"method": "POST",
@@ -190,7 +190,7 @@
 			"response": []
 		},
 		{
-			"name": "24.Agenda Create",
+			"name": "28.Agenda Create",
 			"request": {
 				"url": "http://localhost:8000/entity/agenda/",
 				"method": "POST",
@@ -215,9 +215,9 @@
 			"response": []
 		},
 		{
-			"name": "27. Agenda.24 Item Create",
+			"name": "31. Agenda.24 Item Create",
 			"request": {
-				"url": "http://localhost:8000/entity/agenda/24/agenda_item/",
+				"url": "http://localhost:8000/entity/agenda/28/agenda_item/",
 				"method": "POST",
 				"header": [
 					{
@@ -240,9 +240,9 @@
 			"response": []
 		},
 		{
-			"name": "24. Agenda.27 Item update",
+			"name": "28. Agenda.31.Item update",
 			"request": {
-				"url": "http://localhost:8000/entity/agenda/24/agenda_item/27/",
+				"url": "http://localhost:8000/entity/agenda/28/agenda_item/31/",
 				"method": "PUT",
 				"header": [
 					{
@@ -265,7 +265,7 @@
 			"response": []
 		},
 		{
-			"name": "28 Poll Create",
+			"name": "32 Poll Create",
 			"request": {
 				"url": "http://localhost:8000/entity/polls/",
 				"method": "POST",
@@ -290,9 +290,9 @@
 			"response": []
 		},
 		{
-			"name": "28 Poll Update",
+			"name": "32 Poll Update",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/28/",
+				"url": "http://localhost:8000/entity/polls/32/",
 				"method": "PUT",
 				"header": [
 					{
@@ -315,9 +315,9 @@
 			"response": []
 		},
 		{
-			"name": "28.Poll activate",
+			"name": "32.Poll activate",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/28/activate/",
+				"url": "http://localhost:8000/entity/polls/32/activate/",
 				"method": "POST",
 				"header": [
 					{
@@ -332,9 +332,9 @@
 			"response": []
 		},
 		{
-			"name": "28 Poll Update",
+			"name": "32 Poll Update",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/28/",
+				"url": "http://localhost:8000/entity/polls/32/",
 				"method": "PUT",
 				"header": [
 					{
@@ -357,9 +357,9 @@
 			"response": []
 		},
 		{
-			"name": "28 Poll  5.Question Create",
+			"name": "32 Poll  13.Question Create",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/28/question/",
+				"url": "http://localhost:8000/entity/polls/32/question/",
 				"method": "POST",
 				"header": [
 					{
@@ -400,14 +400,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 24\n  },\n  \"verb\": \"Agenda Update\",\n  \"notification_text\": \"Your event is starting now\"\n}"
+					"raw": "{\n  \"target\": {\n    \"type\": \"event\", \n    \"id\": 14\n  }, \n  \"action_object\": {\n    \"type\": \"agenda\", \n    \"id\": 28\n  },\n  \"verb\": \"Agenda Update\",\n  \"notification_text\": \"Your event is starting now\"\n}"
 				},
 				"description": null
 			},
 			"response": []
 		},
 		{
-			"name": "29. Badge template create",
+			"name": "33. Badge template create",
 			"request": {
 				"url": "http://localhost:8000/entity/badges/",
 				"method": "POST",
@@ -432,9 +432,9 @@
 			"response": []
 		},
 		{
-			"name": "29. Badge template update",
+			"name": "33. Badge template update",
 			"request": {
-				"url": "http://localhost:8000/entity/badges/29/",
+				"url": "http://localhost:8000/entity/badges/33/",
 				"method": "PUT",
 				"header": [
 					{
@@ -457,7 +457,7 @@
 			"response": []
 		},
 		{
-			"name": "30. Scans upload",
+			"name": "34. Scans upload",
 			"request": {
 				"url": "http://localhost:8000/entity/scans/",
 				"method": "POST",
@@ -482,9 +482,9 @@
 			"response": []
 		},
 		{
-			"name": "30. Scans update",
+			"name": "34. Scans update",
 			"request": {
-				"url": "http://localhost:8000/entity/scans/30/",
+				"url": "http://localhost:8000/entity/scans/34/",
 				"method": "PUT",
 				"header": [
 					{
@@ -507,9 +507,9 @@
 			"response": []
 		},
 		{
-			"name": "30. Scans attach owner",
+			"name": "34. Scans attach owner",
 			"request": {
-				"url": "http://localhost:8000/entity/scans/30/",
+				"url": "http://localhost:8000/entity/scans/34/",
 				"method": "PUT",
 				"header": [
 					{
@@ -532,7 +532,7 @@
 			"response": []
 		},
 		{
-			"name": "31.Attendee Invitee Create",
+			"name": "35.Attendee Invitee Create",
 			"request": {
 				"url": "http://localhost:8000/entity/attendees/",
 				"method": "POST",
@@ -557,7 +557,7 @@
 			"response": []
 		},
 		{
-			"name": "32.Taganomy 1 Create",
+			"name": "36.Taganomy 1 Create",
 			"request": {
 				"url": "http://localhost:8000/entity/taganomy/",
 				"method": "POST",
@@ -584,7 +584,7 @@
 		{
 			"name": "14.Event Link with Taganomy 1",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/taganomy/32/",
+				"url": "http://localhost:8000/entity/events/14/taganomy/36/",
 				"method": "PUT",
 				"header": [
 					{
@@ -607,7 +607,7 @@
 			"response": []
 		},
 		{
-			"name": "33.Taganomy 2 Create",
+			"name": "37.Taganomy 2 Create",
 			"request": {
 				"url": "http://localhost:8000/entity/taganomy/",
 				"method": "POST",
@@ -632,7 +632,7 @@
 		{
 			"name": "15.Event Link with Taganomy 2",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/taganomy/33/",
+				"url": "http://localhost:8000/entity/events/15/taganomy/37/",
 				"method": "PUT",
 				"header": [
 					{
@@ -655,7 +655,7 @@
 			"response": []
 		},
 		{
-			"name": "34. Exhibitor1 Nested Create Campaign.EVT14",
+			"name": "38. Exhibitor1 Nested Create Campaign.EVT14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/campaigns/",
 				"method": "POST",
@@ -680,7 +680,7 @@
 			"response": []
 		},
 		{
-			"name": "36. Exhibitor1 Nested Create Campaign.EVT15",
+			"name": "39. Exhibitor1 Nested Create Campaign.EVT15",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/campaigns/",
 				"method": "POST",
@@ -705,7 +705,7 @@
 			"response": []
 		},
 		{
-			"name": "34. Unauthorized Exhibitor2 Nested Create Campaign.EVT15",
+			"name": "Unauthorized Exhibitor2 Nested Create Campaign.EVT15",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/campaigns/",
 				"method": "POST",
@@ -748,7 +748,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 32,\n    \"tags\": [\"one\", \"two\", \"three\"]\n  }\n}"
+					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 36,\n    \"tags\": [\"one\", \"two\", \"three\"]\n  }\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -773,7 +773,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 33,\n    \"tags\": [\"4\", \"5\", \"6\"]\n  }\n}"
+					"raw": "{\n  \"taganomy\": {\n    \"taganomy_id\": 37,\n    \"tags\": [\"4\", \"5\", \"6\"]\n  }\n}"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -782,7 +782,7 @@
 		{
 			"name": "Taganomy 1 Update",
 			"request": {
-				"url": "http://localhost:8000/entity/taganomy/32/",
+				"url": "http://localhost:8000/entity/taganomy/36/",
 				"method": "PUT",
 				"header": [
 					{
@@ -807,7 +807,7 @@
 		{
 			"name": "Taganomy 2 Update",
 			"request": {
-				"url": "http://localhost:8000/entity/taganomy/33/",
+				"url": "http://localhost:8000/entity/taganomy/37/",
 				"method": "PUT",
 				"header": [
 					{
@@ -826,106 +826,6 @@
 					"raw": "{\n  \"name\": \"Tag Set 1 from Tagnomy End point create.updated\",\n  \"tags\": [\"one\", \"2\", \"three\", \"4\", \"five\", \"6\"]\n}"
 				},
 				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "14.Event Update with evrything",
-			"request": {
-				"url": "http://localhost:8000/entity/events/14/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [7], \"type\": \"e_speaker\"\n      },\n      {\n        \"ids\": [4, 5], \"type\": \"e_media\"\n      },\n      {\n        \"ids\": [9], \"type\": \"e_sponsor\"\n      },\n      {\n        \"ids\": [22], \"type\": \"e_agenda\"\n      },\n      {\n        \"ids\": [26], \"type\": \"e_poll\"\n      }\n  ],\n  \"users\": [2, 3, 4]\n}"
-				},
-				"description": "Test 1: Basic entity create"
-			},
-			"response": []
-		},
-		{
-			"name": "14.Event Update Selective",
-			"request": {
-				"url": "http://localhost:8000/entity/events/14/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12, 13], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [8], \"type\": \"e_speaker\"\n      }\n  ]\n}"
-				},
-				"description": "Test 1: Basic entity create"
-			},
-			"response": []
-		},
-		{
-			"name": "15.Event Update with evrything",
-			"request": {
-				"url": "http://localhost:8000/entity/events/15/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user2}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 2.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [8], \"type\": \"e_speaker\"\n      },\n      {\n        \"ids\": [5, 6], \"type\": \"e_media\"\n      },\n      {\n        \"ids\": [9], \"type\": \"e_sponsor\"\n      }\n  ],\n  \"users\": [2, 3, 4]\n}"
-				},
-				"description": "Test 1: Basic entity create"
-			},
-			"response": []
-		},
-		{
-			"name": "14.Event Update (PUT)",
-			"request": {
-				"url": "http://localhost:8000/entity/events/14/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "\n{\n    \"entity_type\": \"EVT\",\n    \"name\": \"event 1.updated\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"media\": [\n      {\n        \"media_element\": \"http://www.eventone.updated.com\",\n        \"media_iframe\": \"\",\n        \"media_type\": \"VID\",\n        \"media_sub_type\": \"ROL\"\n      }\n    ],\n    \"related\": [\n      {\n        \"ids\": [12], \"type\": \"e_campaign\"\n      },\n      {\n        \"ids\": [7, 8], \"type\": \"e_speaker\"\n      }\n  ],\n  \"users\": [3, 4]\n}"
-				},
-				"description": "Test 1: Basic entity create"
 			},
 			"response": []
 		},
@@ -980,7 +880,7 @@
 			"response": []
 		},
 		{
-			"name": "33.Table Create",
+			"name": "41.Table Create",
 			"request": {
 				"url": "http://localhost:8000/entity/tables/",
 				"method": "POST",
@@ -1055,7 +955,7 @@
 			"response": []
 		},
 		{
-			"name": "22.Agenda Get",
+			"name": "28.Agenda Get",
 			"request": {
 				"url": "http://localhost:8000/entity/agenda/",
 				"method": "GET",
@@ -1240,28 +1140,6 @@
 			"response": []
 		},
 		{
-			"name": "GET Campaigns copy",
-			"request": {
-				"url": "http://localhost:8000/entity/events/",
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					}
-				],
-				"body": {},
-				"description": ""
-			},
-			"response": []
-		},
-		{
 			"name": "GET Exhibitor Events",
 			"request": {
 				"url": "http://localhost:8000/entity/exhibitor_events/",
@@ -1328,9 +1206,9 @@
 			"response": []
 		},
 		{
-			"name": "20.Poll Answers",
+			"name": "32.Poll Answers",
 			"request": {
-				"url": "http://localhost:8000/entity/polls/26/answers/",
+				"url": "http://localhost:8000/entity/polls/32/answers/",
 				"method": "GET",
 				"header": [
 					{
