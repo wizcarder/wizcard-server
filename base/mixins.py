@@ -152,12 +152,15 @@ class InviteStateMixin(models.Model):
     REQUESTED = "REQ"
     INVITED = "INV"
     ACCEPTED = "ACC"
+    # one more flavor of accepted to distinguish the source of this user
+    APP_ACCEPTED = "APA"
 
     INVITE_CHOICES = (
         (CREATED, "Created"),
         (INVITED, "Invited"),
         (REQUESTED, 'Requested'),
-        (ACCEPTED, "Accepted")
+        (ACCEPTED, "Accepted"),
+        (APP_ACCEPTED, "App Accepted")
     )
 
     invite_state = models.CharField(

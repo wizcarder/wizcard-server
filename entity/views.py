@@ -1020,11 +1020,17 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if ati in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE):
-            return Response("event %s already  associated with attendee invitee %s " % (event_pk, pk),
-                            status=status.HTTP_200_OK)
+        join_row = event.get_join_table_row(ati)
+        if join_row:
+            # this was an app user who requested access. Now organizer is granting access.
+            # set state=APP_ACCEPTED so that going forward we're able to distinguish between
+            # wizcard's contribution to organizer attendee list
+            join_fields = join_row.join_fields
+            assert (join_fields['invite_state'] == InviteStateMixin.REQUESTED), "Invalid Join row state"
+            join_fields.update(invite_state=InviteStateMixin.APP_ACCEPTED)
+        else:
+            join_fields = {'invite_state': InviteStateMixin.INVITED}
 
-        join_fields = {'invite_state': InviteStateMixin.INVITED}
         event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
 
         # hook-up the app side flow if app user for this attendee exists

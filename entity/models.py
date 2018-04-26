@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from wizcardship.models import Wizcard
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, \
-    BaseEntityComponentManager, UserEntity
+    BaseEntityComponentManager, UserEntity, BaseEntityComponentsOwner
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
 from base.mixins import Base411Mixin, Base412Mixin, PhoneMixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
@@ -70,6 +70,9 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
+    def update_state_upon_link_unlink(self):
+        return True
+
     def get_parent_entities(self, **kwargs):
         # no parent for event
         return [self]
@@ -118,7 +121,6 @@ class Event(BaseEntity):
             return super(Event, self).user_attach(user, state, **kwargs)
 
         # now we're left with Join case for App users: Either invited by Organizer or Joined via app.
-
         do_notify = True
         info_push_email = False
 
@@ -182,12 +184,20 @@ class Event(BaseEntity):
             # create ATI & attach to Event
             company, title = user.wizcard.get_latest_cc_fields('company', 'title')
             ati = AttendeeInvitee.objects.create(
+                entity_type=BaseEntityComponent.ATTENDEE_INVITEE,
                 # there is a get_name method in Wizcard, but roundabout here since it picks it up from user model
                 name=user.first_name + "" + user.last_name,
                 email=user.email,
                 company=company,
                 title=title,
                 phone=user.profile.phone_num_from_username()
+            )
+
+            # set the owner
+            BaseEntityComponentsOwner.objects.create(
+                base_entity_component=ati,
+                owner=self.get_creator(),
+                is_creator=True
             )
 
             join_row, dont_care = self.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
@@ -200,7 +210,7 @@ class Event(BaseEntity):
                 info_push_email = True
             else:
                 # can join him directly
-                invite_state = InviteStateMixin.ACCEPTED
+                invite_state = InviteStateMixin.APP_ACCEPTED
                 ser = BaseEntityComponent.SERIALIZER_L2
 
             join_fields = join_row.join_fields
@@ -272,6 +282,9 @@ class Campaign(BaseEntity):
     is_sponsored = models.BooleanField(default=False)
 
     objects = CampaignManager()
+
+    def update_state_upon_link_unlink(self):
+        return True
 
     def post_connect_remove(self, parent, **kwargs):
         # don't send notif here if is parent is not event.
@@ -420,7 +433,7 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitl
         return False, []
 
     def check_invite_for_event(self, event):
-        return bool(event.get_join_table_row(self))
+        return event.has_join_table_row(self)
 
     # no notifs required for this one
     def post_connect_remove(self, parent, **kwargs):
@@ -461,6 +474,9 @@ class AgendaManager(BaseEntityComponentManager):
 
 class Agenda(BaseEntityComponent, Base412Mixin):
     objects = AgendaManager()
+
+    def update_state_upon_link_unlink(self):
+        return True
 
     def delete(self, *args, **kwargs):
         type = kwargs.get('type', BaseEntityComponent.ENTITY_DELETE)
