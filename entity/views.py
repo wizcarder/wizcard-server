@@ -700,7 +700,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
             if serializer.is_valid():
                 inst = serializer.save()
-                inst.tags.set(*tags)
+                inst.tags.add(*tags)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
