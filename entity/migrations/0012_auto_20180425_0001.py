@@ -34,6 +34,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='exhibitorinvitee',
             name='invite_state',
-            field=models.CharField(choices=[(b'CRT', b'Created'), (b'INV', b'Invited'), (b'REQ', b'Requested'), (b'ACC', b'Accepted')], default=b'CRT', max_length=3),
+            field=models.CharField(choices=[(b'CRT', b'Created'), (b'INV', b'Invited'), (b'REQ', b'Requested'), (b'ACC', b'Accepted'), (b'APA', b'App Accepted')], default=b'CRT', max_length=3),
         ),
     ]
