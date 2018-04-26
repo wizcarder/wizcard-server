@@ -872,7 +872,7 @@ class AttendeeInviteeSerializer(EntitySerializer):
 
     class Meta:
         model = AttendeeInvitee
-        fields = ('id', 'name', 'email', 'invite_state',)
+        fields = ('id', 'entity_type', 'name', 'email', 'invite_state',)
 
     invite_state = serializers.SerializerMethodField()
 

@@ -513,14 +513,21 @@ class BaseEntityComponent(PolymorphicModel):
 
         return c
 
-    # gets the join table row between parent<->sub_entity. Expects it to be there.
-    # caller to handle NOT_FOUND exception
-    # returns a queryset
-    def get_join_table_row(self, sub_entity):
+    def has_join_table_row(self, sub_entity):
         return self.get_sub_entities_gfk_of_type(
             object_id=sub_entity.id,
             alias=BaseEntityComponent.sub_entity_type_from_entity_type(sub_entity.entity_type)
-        )
+        ).exists()
+
+    # gets the join table row between parent<->sub_entity.
+    def get_join_table_row(self, sub_entity):
+        if self.has_join_table_row(sub_entity):
+            return self.get_sub_entities_gfk_of_type(
+                object_id=sub_entity.id,
+                alias=BaseEntityComponent.sub_entity_type_from_entity_type(sub_entity.entity_type)
+            ).get()
+
+        return None
 
     # this does not send notif
     def add_subentities(self, ids, type):
@@ -617,6 +624,9 @@ class BaseEntityComponent(PolymorphicModel):
     def is_floodable(self):
         return False
 
+    def update_state_upon_link_unlink(self):
+        return False
+
     def get_creator(self):
         return BaseEntityComponentsOwner.objects.filter(
             base_entity_component=self,
@@ -635,10 +645,10 @@ class BaseEntityComponent(PolymorphicModel):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
         send_notif = kwargs.pop('send_notif', True)
 
-        entity_state = BaseEntityComponent.ENTITY_STATE_CREATED if notif_operation == verbs.NOTIF_OPERATION_DELETE \
-            else BaseEntityComponent.ENTITY_STATE_PUBLISHED
-
-        self.set_entity_state(entity_state)
+        if self.update_state_upon_link_unlink():
+            entity_state = BaseEntityComponent.ENTITY_STATE_CREATED if notif_operation == verbs.NOTIF_OPERATION_DELETE \
+                else BaseEntityComponent.ENTITY_STATE_PUBLISHED
+            self.set_entity_state(entity_state)
 
         if send_notif and parent.is_active():
             notify.send(

@@ -198,33 +198,33 @@ class EventViewSet(BaseEntityViewSet):
 
         return Response(ExhibitorInviteeSerializer(exi_inv).data)
 
-    @detail_route(methods=['post'])
-    def invite_attendees(self, request, pk=None):
-        inst = get_object_or_404(Event, pk=pk)
-        attendee_invitees = request.data['ids']
-
-        existing_users, existing_attendees = AttendeeInvitee.objects.check_existing_users_attendees(
-            attendee_invitees
-        )
-        [inst.user_attach(u, state=UserEntity.JOIN) for u in existing_users]
-
-        for e in existing_attendees:
-            e.state = AttendeeInvitee.ACCEPTED
-            e.save()
-
-        new_attendees = [x for x in attendee_invitees if x not in existing_attendees.values_list('id', flat=True)]
-
-        # relate these with Event
-        invited_attendees = inst.add_subentities(
-            new_attendees,
-            BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE
-        )
-        for i in invited_attendees:
-            i.state = AttendeeInvitee.INVITED
-            i.save()
-
-        result_list = list(chain(existing_attendees, invited_attendees))
-        return Response(AttendeeInviteeSerializer(result_list, many=True).data)
+    # @detail_route(methods=['post'])
+    # def invite_attendees(self, request, pk=None):
+    #     inst = get_object_or_404(Event, pk=pk)
+    #     attendee_invitees = request.data['ids']
+    #
+    #     existing_users, existing_attendees = AttendeeInvitee.objects.check_existing_users_attendees(
+    #         attendee_invitees
+    #     )
+    #     [inst.user_attach(u, state=UserEntity.JOIN) for u in existing_users]
+    #
+    #     for e in existing_attendees:
+    #         e.state = AttendeeInvitee.ACCEPTED
+    #         e.save()
+    #
+    #     new_attendees = [x for x in attendee_invitees if x not in existing_attendees.values_list('id', flat=True)]
+    #
+    #     # relate these with Event
+    #     invited_attendees = inst.add_subentities(
+    #         new_attendees,
+    #         BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE
+    #     )
+    #     for i in invited_attendees:
+    #         i.state = AttendeeInvitee.INVITED
+    #         i.save()
+    #
+    #     result_list = list(chain(existing_attendees, invited_attendees))
+    #     return Response(AttendeeInviteeSerializer(result_list, many=True).data)
 
     @detail_route(methods=['put'])
     def publish_event(self, request, pk=None):
@@ -717,7 +717,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
 
         for q in queryset:
             join_row = event.get_join_table_row(q)
-            join_field = join_row.values_list('join_fields', flat=True).get()
+            join_field = join_row.join_fields
             venue = join_field['venue'] if 'venue' in join_field else ""
 
             tags = ",".join(list(q.tags.names()))
@@ -949,7 +949,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
         ati = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
-        return Response(AttendeeInviteeSerializer(ati, many=True).data)
+        return Response(AttendeeInviteeSerializer(ati, context={'parent': event}, many=True).data)
 
     def retrieve(self, request, pk=None, event_pk=None):
         try:
@@ -962,7 +962,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with invitee %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(AttendeeInviteeSerializer(ati).data)
+        return Response(AttendeeInviteeSerializer(ati, context={'parent': event}).data)
 
     def create(self, request, **kwargs):
         try:
@@ -970,7 +970,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user})
+        serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user, 'parent': event})
         if serializer.is_valid():
             inst = serializer.save()
             join_fields = {'invite_state': InviteStateMixin.INVITED}

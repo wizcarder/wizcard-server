@@ -18,6 +18,8 @@ from notifications.signals import notify
 from notifications.push_tasks import push_notification_to_app
 from lib.create_share import send_event, send_wizcard
 from notifications.serializers import SyncNotificationSerializer
+from wizcard import err
+from base_entity.models import BaseEntityComponent
 
 logger = logging.getLogger(__name__)
 
@@ -177,20 +179,25 @@ class SyncNotifResponse(ResponseN):
     def notifJoinEntity(self, notif):
         # since there is a possibility that the entity got destroyed in-between
         if notif.target:
-            s = EntitySerializerL0(notif.target).data
-            out = dict(
-                entity=s,
-            )
-
-            if notif.target.send_wizcard_on_access:
-                out.update(
-                    wizcard=WizcardSerializerL1(
-                        notif.action_object.wizcard,
-                        context={'user': notif.recipient}
-                    ).data
+            if notif.target.is_active():
+                s = EntitySerializerL0(notif.target).data
+                out = dict(
+                    entity=s,
                 )
 
-            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_ATTACH, notif.id)
+                if notif.target.send_wizcard_on_access:
+                    out.update(
+                        wizcard=WizcardSerializerL1(
+                            notif.action_object.wizcard,
+                            context={'user': notif.recipient}
+                        ).data
+                    )
+
+                self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_ATTACH, notif.id)
+            else:
+                self.error_response(err.ENTITY_DELETED)
+        else:
+            self.error_response(err.OBJECT_DOESNT_EXIST)
 
         return self.response
 
@@ -213,14 +220,16 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifEntityBroadcast(self, notif):
-        out = SyncNotificationSerializer(notif).data
-        self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
+        if notif.target and notif.target.is_active():
+            out = SyncNotificationSerializer(notif).data
+            self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
 
         return self.response
 
     def notifEntity(self, notif):
-        out = notif.build_response_dict()
-        self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
+        if notif.target and notif.target.is_active():
+            out = notif.build_response_dict()
+            self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
 
         return self.response
 
