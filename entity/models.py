@@ -229,7 +229,7 @@ class Event(BaseEntity):
             notify.send(
                 self.get_creator(),
                 recipient=user,
-                notif_tuple=verbs.WIZCARD_ENTITY_BROADCAST,
+                notif_tuple=verbs.WIZCARD_INFO,
                 target=self,
                 action_object=user,
                 do_push=True,

@@ -995,14 +995,22 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                     notify.send(
                         event.get_creator(),
                         recipient=au,
-                        notif_tuple=verbs.WIZCARD_ENTITY_BROADCAST,
+                        notif_tuple=verbs.WIZCARD_INFO,
                         target=self,
                         action_object=au,
                         do_push=True,
                         force_sync=True
                     )
 
-                # Send an implicit event join notif
+                    # Send an implicit event join notif
+                    notify.send(
+                        event.get_creator(),
+                        recipient=au,
+                        notif_tuple=verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH,
+                        target=self,
+                        action_object=au,
+                        do_push=False,
+                    )
 
                 # AR: send email
             else:

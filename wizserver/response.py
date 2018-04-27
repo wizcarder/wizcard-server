@@ -110,7 +110,7 @@ class SyncNotifResponse(ResponseN):
             verbs.get_notif_type(verbs.WIZCARD_DELETE)	            : self.notifRevokedWizcard,
             verbs.get_notif_type(verbs.WIZCARD_FLICK_TIMEOUT)       : self.notifWizcardFlickTimeout,
             verbs.get_notif_type(verbs.WIZCARD_FLICK_PICK)          : self.notifWizcardFlickPick,
-            verbs.get_notif_type(verbs.WIZCARD_TABLE_INVITE)        : self.notifWizcardTableInvite,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH): self.notifImplicitJoinEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_ATTACH)       : self.notifJoinEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_DETACH)       : self.notifLeaveEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notifEntity,
@@ -198,6 +198,21 @@ class SyncNotifResponse(ResponseN):
                 self.error_response(err.ENTITY_DELETED)
         else:
             self.error_response(err.OBJECT_DOESNT_EXIST)
+
+        return self.response
+
+    def notifImplicitJoinEntity(self, notif):
+        if notif.target and notif.target.is_active():
+            ser = BaseEntityComponent.entity_ser_from_type_and_level(
+                notif.target.entity_type,
+                BaseEntityComponent.SERIALIZER_L2
+            )
+
+            out = dict(
+                entity=ser(notif.target, context={'user': notif.recipient}).data,
+            )
+
+            self.add_data_and_seq_with_notif(out, verbs.NOTIF_ENTITY_IMPLICIT_ATTACH, notif.id)
 
         return self.response
 
