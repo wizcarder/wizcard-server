@@ -14,6 +14,8 @@ from django.contrib.contenttypes.models import ContentType
 from notifications.signals import notify
 from wizserver import verbs
 import itertools
+from django.db.models import Q
+import operator
 
 
 import pdb
@@ -140,7 +142,7 @@ class Event(BaseEntity):
             join_row_list = []
             for ati in atis:
                 # have they been invited to this event already ?
-                tmp_join_row = ati.check_invite_for_event(self)
+                dont_care, tmp_join_row = ati.check_invite_for_event(self)
                 join_row_list.append(tmp_join_row)
 
             # if atleast one has been already invited, then we will move all invitees to accepted
@@ -186,7 +188,7 @@ class Event(BaseEntity):
             ati = AttendeeInvitee.objects.create(
                 entity_type=BaseEntityComponent.ATTENDEE_INVITEE,
                 # there is a get_name method in Wizcard, but roundabout here since it picks it up from user model
-                name=user.first_name + "" + user.last_name,
+                name=user.first_name + " " + user.last_name,
                 email=user.email,
                 company=company,
                 title=title,
@@ -407,21 +409,16 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 
         # 1. check with phone number
         phone = app_user.profile.phone_num_from_username()
+        email = app_user.email
 
+        qs = self.all().exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
 
-        # matched_users = User.objects.filter(
-        #     email__in=self.filter(
-        #         id__in=invitee_ids
-        #     ).values_list('email', flat=True)
-        # )
-        #
-        # matched_attendees = self.filter(
-        #     email__in=matched_users.values_list('email', flat=True)
-        # )
-        #
-        # return matched_users, matched_attendees
-        return []
+        qlist = list()
 
+        qlist.append(Q(phone=phone))
+        qlist.append(Q(email=email.lower()))
+
+        return qs.filter(reduce(operator.or_, qlist)).distinct()
 
 
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitleMixin):
@@ -430,10 +427,24 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitl
     # check if any app_users match this attendee_invitee
     # returns Tuple (True/False, [list of matches of type User])
     def check_existing_app_users(self):
-        return False, []
+        from userprofile.models import AppUser, UserProfile
+        qs = AppUser.objects.all()
+
+        qlist = list()
+        if self.phone:
+            username = UserProfile.objects.username_from_phone_num(self.phone)
+            qlist.append(Q(profile__user__username=username))
+        if self.email:
+            qlist.append(Q(profile__user__email=self.email))
+
+        if qlist:
+            res = qs.filter(reduce(operator.or_, qlist)).distinct()
+            return bool(res), res
+
+        return False, AppUser.objects.none()
 
     def check_invite_for_event(self, event):
-        return event.has_join_table_row(self)
+        return event.has_join_table_row(self), event.get_join_table_row(self)
 
     # no notifs required for this one
     def post_connect_remove(self, parent, **kwargs):
