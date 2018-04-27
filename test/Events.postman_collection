@@ -1546,7 +1546,7 @@
 			"response": []
 		},
 		{
-			"name": "35.Attendee Invitee Create",
+			"name": "35.Org1.Attendee Invitee0 Create",
 			"request": {
 				"url": "http://localhost:8000/entity/attendees/",
 				"method": "POST",
@@ -1886,6 +1886,106 @@
 				"body": {
 					"mode": "raw",
 					"raw": "  {\n    \"first_name\": \"Doe\",\n    \"last_name\": \"John\",\n    \"phone\": \"1234\",\n    \"email\": \"john@doe.com\",\n    \"vcard\": \"\",\n    \"org\": \"\",\n    \"designation\": \"\",\n    \"ext_fields\": {\n      \"twitter\": \"twitter.com/john/updated\",\n      \"linked\" : \"linkedin.com/john/updated\"\n    },\n    \"description\": \"UPdated\",\n    \"related\": [\n      {\n        \"ids\": [4, 5], \"type\": \"e_media\"\n      }\n    ]\n  }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "38.Org1.nested.event14.attendee1 create",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/attendees/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"app_user1\",\n  \"email\": \"app_user1@getwizcard.com\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "39.Org1.nested.event14.attendee2 create",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/attendees/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"app_user2\",\n  \"email\": \"app_user2@getwizcard.com\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "40.Org2.nested.event15.attendee1 create",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/attendees/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"app_user1\",\n  \"email\": \"app_user1@getwizcard.com\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "41.Org2.nested.event15.attendee2 create",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/attendees/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"app_user2\",\n  \"email\": \"app_user2@getwizcard.com\"\n}"
 				},
 				"description": ""
 			},
@@ -2262,9 +2362,34 @@
 			"response": []
 		},
 		{
-			"name": "GET Speakers",
+			"name": "GET Organizer2 attendees",
 			"request": {
-				"url": "http://localhost:8000/entity/speakers/",
+				"url": "http://localhost:8000/entity/attendees/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "GET Global Organizer1 attendees",
+			"request": {
+				"url": "http://localhost:8000/entity/attendees/",
 				"method": "GET",
 				"header": [
 					{
@@ -2287,10 +2412,60 @@
 			"response": []
 		},
 		{
-			"name": "14.DELETE Event",
+			"name": "GET Nested Organizer1 attendees",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/",
-				"method": "DELETE",
+				"url": "http://localhost:8000/entity/events/14/attendees/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "GET Nested Organizer2 attendees",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/attendees/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "GET Speakers",
+			"request": {
+				"url": "http://localhost:8000/entity/speakers/",
+				"method": "GET",
 				"header": [
 					{
 						"key": "Content-Type",
