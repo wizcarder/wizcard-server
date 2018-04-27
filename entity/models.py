@@ -124,6 +124,7 @@ class Event(BaseEntity):
 
         # now we're left with Join case for App users: Either invited by Organizer or Joined via app.
         do_notify = True
+        # to track "you have requested access to event" email/push
         info_push_email = False
 
         # 1: Check if this user is already an attendee attached to Organizer.
@@ -224,7 +225,6 @@ class Event(BaseEntity):
         super(Event, self).user_attach(user, state, **kwargs)
 
         # lets send a push+in-app info notif as well
-        # AA: TODO: Change from ENTITY_BROADCAST to appropriate tuple
         if info_push_email:
             notify.send(
                 self.get_creator(),

@@ -990,18 +990,6 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             if exists:
                 for au in app_users:
                     au.user_attach(au, UserEntity.JOIN, do_notify=True)
-
-                    # push notif
-                    notify.send(
-                        event.get_creator(),
-                        recipient=au,
-                        notif_tuple=verbs.WIZCARD_INFO,
-                        target=self,
-                        action_object=au,
-                        do_push=True,
-                        force_sync=True
-                    )
-
                     # Send an implicit event join notif
                     notify.send(
                         event.get_creator(),
@@ -1038,8 +1026,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             join_fields.update(invite_state=InviteStateMixin.APP_ACCEPTED)
         else:
             join_fields = {'invite_state': InviteStateMixin.INVITED}
-
-        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
+            event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
 
         # hook-up the app side flow if app user for this attendee exists
 
@@ -1053,20 +1040,18 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         # attach each of them to the event.
         if exists:
             for au in app_users:
-                au.user_attach(au, UserEntity.JOIN, do_notify=True)
-
-                # push notif
-                notify.send(
-                    event.get_creator(),
-                    recipient=au,
-                    notif_tuple=verbs.WIZCARD_ENTITY_BROADCAST,
-                    target=self,
-                    action_object=au,
-                    do_push=True,
-                    force_sync=True
-                )
+                u = au.profile.user
+                event.user_attach(u, UserEntity.JOIN, do_notify=True)
 
                 # Send an implicit event join notif
+                notify.send(
+                    event.get_creator(),
+                    recipient=u,
+                    notif_tuple=verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH,
+                    target=event,
+                    action_object=u,
+                    do_push=False,
+                )
 
             # send email
         else:
