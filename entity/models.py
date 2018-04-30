@@ -123,7 +123,7 @@ class Event(BaseEntity):
             return super(Event, self).user_attach(user, state, **kwargs)
 
         # now we're left with Join case for App users: Either invited by Organizer or Joined via app.
-        do_notify = True
+        do_notify = kwargs.get('do_notify')
         # to track "you have requested access to event" email/push
         info_push_email = False
 
@@ -147,7 +147,7 @@ class Event(BaseEntity):
                 join_row_list.append(tmp_join_row)
 
             # if atleast one has been already invited, then we will move all invitees to accepted
-            atleast_one_invited = any(item is not None for item in join_row_list)
+            atleast_one_invited = any(item for item in join_row_list)
 
             # do second_pass
             for ati, join_row in itertools.izip(atis, join_row_list):

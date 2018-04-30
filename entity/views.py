@@ -970,6 +970,13 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        if event.is_expired():
+            return Response("Expired events cannot be updated",
+                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+        elif not event.is_active():
+            return Response("Please publish Event before inviting attendees",
+                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+
         serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user, 'parent': event})
         if serializer.is_valid():
             inst = serializer.save()
@@ -1015,6 +1022,13 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             ati = AttendeeInvitee.objects.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if event.is_expired():
+            return Response("Expired events cannot be updated",
+                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+        elif not event.is_active():
+            return Response("Please publish Event before inviting attendees",
+                            status=status.HTTP_428_PRECONDITION_REQUIRED)
 
         join_row = event.get_join_table_row(ati)
         if join_row:
