@@ -1910,13 +1910,12 @@ class ParseMsgAndDispatch(object):
 
     #############OCR MessageS##############
     def OcrReqSelf(self):
-        try:
-            wizcard = self.user.wizcard
-        except ObjectDoesNotExist:
-            #this is the expected case
-            wizcard = Wizcard.objects.create(user=self.user)
-
-        c = ContactContainer.objects.create(wizcard=wizcard)
+        wizcard, w_created = Wizcard.objects.get_or_create(user=self.user)
+        if w_created:
+            c = ContactContainer.objects.create(wizcard=wizcard)
+        else:
+            c = wizcard.contact_container.all()[0]
+            c.media.all().delete()
 
         m = BaseEntityComponent.create(
             MediaEntities,

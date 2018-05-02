@@ -322,7 +322,7 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'WizCard Informational Message',
-        'message': 'Message from {1.name} - {3}'
+        'message': 'Message from {1.name}'
     },
 }
 
