@@ -1008,19 +1008,16 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                 for au in app_users:
                     au.user_attach(au, UserEntity.JOIN, do_notify=True)
 
-                    # push notif, AA: is this necessary??
+                    # push notif,
                     # Send an implicit event join notif
                     notify.send(
                         event.get_creator(),
                         recipient=au,
                         target=event,
                         notif_tuple=verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH,
-                        target=self,
                         action_object=au,
-                        do_push=False,
+                        do_push=True,
                     )
-
-                # AR: send email
             else:
                notify.send(
                    event.get_creator(),
