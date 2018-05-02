@@ -233,6 +233,7 @@ class Event(BaseEntity):
                 target=self,
                 action_object=user,
                 do_push=True,
+                notification_text=verbs.INFO_NOTIFICATION_TEXT[verbs.EVENT_ACCESS_REQUESTED],
                 force_sync=True
             )
 
@@ -255,7 +256,6 @@ class Event(BaseEntity):
                 do_push=False,
                 force_sync=False
             )
-
 
         if not self.secure:
             ser = BaseEntity.entity_ser_from_type_and_level(

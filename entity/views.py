@@ -982,10 +982,10 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
 
         if event.is_expired():
             return Response("Expired events cannot be updated",
-                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
         elif not event.is_active():
             return Response("Please publish Event before inviting attendees",
-                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user, 'parent': event})
         if serializer.is_valid():
@@ -1006,19 +1006,43 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             # attach each of them to the event.
             if exists:
                 for au in app_users:
-                    au.user_attach(au, UserEntity.JOIN, do_notify=True)
+                    u = au.profile.user
+                    event.user_attach(u, UserEntity.JOIN, do_notify=True)
 
                     # push notif,
                     # Send an implicit event join notif
                     notify.send(
                         event.get_creator(),
-                        recipient=au,
+                        recipient=u,
                         target=event,
                         notif_tuple=verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH,
-                        action_object=au,
+                        action_object=u,
+                        do_push=False,
+                    )
+
+                    # in-app notif
+                    notify.send(
+                        event.get_creator(),
+                        recipient=u,
+                        notif_tuple=verbs.WIZCARD_INFO,
+                        target=event,
+                        action_object=u,
                         do_push=True,
+                        notification_text=verbs.INFO_NOTIFICATION_TEXT[verbs.EVENT_ACCESS_GRANTED],
+                        force_sync=True
+                    )
+                    # send email
+                    notify.send(
+                        event.get_creator(),
+                        recipient=au,
+                        notif_tuple=verbs.WIZCARD_INVITE_ATTENDEE,
+                        target=event,
+                        action_object=event,
+                        do_push=False,
+                        force_sync=False
                     )
             else:
+               # send email
                notify.send(
                    event.get_creator(),
                    recipient=inst,
@@ -1042,10 +1066,10 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
 
         if event.is_expired():
             return Response("Expired events cannot be updated",
-                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
         elif not event.is_active():
             return Response("Please publish Event before inviting attendees",
-                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         join_row = event.get_join_table_row(ati)
         if join_row:
@@ -1082,6 +1106,17 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                     target=event,
                     action_object=u,
                     do_push=False,
+                )
+                # in-app notif
+                notify.send(
+                    event.get_creator(),
+                    recipient=au,
+                    notif_tuple=verbs.WIZCARD_INFO,
+                    target=event,
+                    action_object=u,
+                    do_push=True,
+                    notification_text=verbs.INFO_NOTIFICATION_TEXT[verbs.EVENT_ACCESS_GRANTED],
+                    force_sync=True
                 )
 
             # send email
@@ -1473,8 +1508,8 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         if parents:
             parent = parents[0]
             return Response(
-            "Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, parent.name),
-            status=status.HTTP_406_NOT_ACCEPTABLE
+                "Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, parent.name),
+                status=status.HTTP_406_NOT_ACCEPTABLE
             )
 
         event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)

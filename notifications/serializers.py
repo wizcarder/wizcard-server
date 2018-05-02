@@ -92,6 +92,8 @@ class SyncNotificationSerializer(serializers.ModelSerializer):
     target = GenericSerializerField()
     action_object = GenericSerializerField(required=False)
     notif_type = serializers.IntegerField(required=True)
+    notification_text = serializers.SerializerMethodField()
+    verb = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         start = validated_data.pop('start', timezone.now() + timedelta(minutes=1))
@@ -109,5 +111,16 @@ class SyncNotificationSerializer(serializers.ModelSerializer):
 
         return push_notif[0][1]
 
+    def get_notification_text(self, obj):
+        return obj.notification_text.format(
+            obj.target,
+            obj.action_object
+        )
+
+    def get_verb(self, obj):
+        return obj.verb.format(
+            obj.target,
+            obj.action_object
+        )
 
 

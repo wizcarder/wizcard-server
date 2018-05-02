@@ -118,6 +118,7 @@ class SyncNotifResponse(ResponseN):
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notifEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notifEntity,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_BROADCAST)    : self.notifEntityBroadcast,
+            verbs.get_notif_type(verbs.WIZCARD_INFO)                : self.notifEntityBroadcast,
         }
 
         for notification in notifications:
@@ -362,7 +363,6 @@ class AsyncNotifResponse:
         to = notif.recipient.wizcard.get_email
         send_event(event, to, email_details)
 
-
     def notifEntityApproveAttendee(self, notif):
         email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type].copy()
         event = notif.target
@@ -371,7 +371,6 @@ class AsyncNotifResponse:
         name = attendee.name if attendee.name else to
         email_details['subject'] = email_details['subject'] % (name, event.name)
         send_event(event, to, email_details)
-
 
     def notifNewUser(self, notif):
         wizcard = notif.target

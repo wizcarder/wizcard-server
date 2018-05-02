@@ -2201,7 +2201,7 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if state == UserEntity.JOIN:
-            ser = entity.user_attach(self.user, state)
+            ser = entity.user_attach(self.user, state, do_notify=True)
             out = ser(entity, **self.user_context).data
             self.response.add_data("result", out)
             return self.response

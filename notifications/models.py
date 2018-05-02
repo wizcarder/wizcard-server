@@ -62,6 +62,7 @@ class BaseNotification(models.Model):
     recipient_content_type = models.ForeignKey(ContentType,  related_name='notify_recipient', blank=True, null=True)
     recipient_object_id = models.CharField(max_length=255, blank=True, null=True)
     recipient = GenericForeignKey('recipient_content_type', 'recipient_object_id')
+
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
     actor_object_id = models.CharField(max_length=255)
     actor = GenericForeignKey('actor_content_type', 'actor_object_id')
