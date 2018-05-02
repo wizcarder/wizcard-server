@@ -168,7 +168,7 @@ class Event(BaseEntity):
                             BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE
                         )
                         # we won't notify other joinees about this guy until accepted
-                        do_notify=False
+                        do_notify = False
                         info_push_email = True
                 else:
                     invite_state = InviteStateMixin.ACCEPTED
@@ -206,7 +206,7 @@ class Event(BaseEntity):
                 invite_state = InviteStateMixin.REQUESTED
                 ser = BaseEntityComponent.SERIALIZER_L1
                 state = UserEntity.REQUEST_JOIN
-                do_notify=False
+                do_notify = False
                 info_push_email = True
             else:
                 # can join him directly
@@ -221,21 +221,28 @@ class Event(BaseEntity):
         kwargs.update(do_notify=do_notify)
         super(Event, self).user_attach(user, state, **kwargs)
 
-        # lets send a push+in-app info notif as well
-        # AA: TODO: Change from ENTITY_BROADCAST to appropriate tuple
+        creator = self.get_creator()
         if info_push_email:
             notify.send(
-                self.get_creator(),
+                creator,
                 recipient=user,
-                notif_tuple=verbs.WIZCARD_ENTITY_BROADCAST,
+                notif_tuple=verbs.WIZCARD_ENTITY_REQUEST_ATTACH,
                 target=self,
                 action_object=user,
                 do_push=True,
                 force_sync=True
             )
 
-            # AR: TODO: email has to be hooked up here to let the user know that a request has been sent
-            # for approval
+            notify.send(
+                creator,
+                recipient=creator,
+                notif_tuple=verbs.WIZCARD_ENTITY_APPROVE_ATTENDEE,
+                target=self,
+                action_object=creator,
+                do_push=False,
+                force_sync=False
+            )
+
 
         if not self.secure:
             ser = BaseEntity.entity_ser_from_type_and_level(
@@ -254,6 +261,7 @@ class Event(BaseEntity):
             )
 
         return ser
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
@@ -421,7 +429,6 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
         #
         # return matched_users, matched_attendees
         return []
-
 
 
 class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitleMixin):

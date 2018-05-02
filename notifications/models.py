@@ -59,7 +59,9 @@ class BaseNotification(models.Model):
     DELIVERY_TYPE_ASYNC = 1
     DELIVERY_TYPE_SYNC = 2
 
-    recipient = models.ForeignKey(User, blank=False, related_name='notifications')
+    recipient_content_type = models.ForeignKey(ContentType,  related_name='notify_recipient', blank=True, null=True)
+    recipient_object_id = models.CharField(max_length=255, blank=True, null=True)
+    recipient = GenericForeignKey('recipient_content_type', 'recipient_object_id')
     actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor')
     actor_object_id = models.CharField(max_length=255)
     actor = GenericForeignKey('actor_content_type', 'actor_object_id')
@@ -126,7 +128,7 @@ class BaseNotification(models.Model):
 
     def build_response_dict(self):
         sub_entity_data = ""
-        operation=self.notif_operation
+        operation = self.notif_operation
 
         if operation == verbs.NOTIF_OPERATION_CREATE:
             from base_entity.models import BaseEntityComponent
@@ -154,6 +156,10 @@ class BaseNotification(models.Model):
 class AsyncNotificationManager(BaseNotificationManager):
     def unread(self, **kwargs):
         count = kwargs.pop('count', settings.ASYNC_NOTIF_BATCH_SIZE)
+        recipient = kwargs.pop('recipient', None)
+        if recipient:
+            kwargs.update(recipient_object_id=recipient.pk)
+            kwargs.update(recipient_content_type=ContentType.objects.get_for_model(recipient))
         kwargs.update(readed=False)
 
         return self.filter(**kwargs)[:count]
@@ -210,18 +216,23 @@ class AsyncNotification(BaseNotification):
 class SyncNotificationManager(BaseNotificationManager):
     def unread(self, **kwargs):
         count = kwargs.pop('count', settings.SYNC_NOTIF_BATCH_SIZE)
+        recipient = kwargs.pop('recipient', None)
+        if recipient:
+            kwargs.update(recipient_object_id=recipient.pk)
+            kwargs.update(recipient_content_type=ContentType.objects.get_for_model(recipient))
         kwargs.update(readed=False)
 
         return self.filter(**kwargs)[:count]
 
     def unacted(self, user):
-        return self.filter(recipient=user, acted_upon=False)
+        return self.filter(recipient_object_id=user.id, recipient_content_type=ContentType.objects.get_for_model(user), acted_upon=False)
 
     def unread_count(self, user):
-        return self.filter(recipient=user, readed=False).count()
+        return self.filter(recipient_object_id=user.id, recipient_content_type=ContentType.objects.get_for_model(user), readed=False).count()
 
     def migrate_future_user(self, future, current):
-        return self.filter(recipient=future.pk).update(recipient=current.pk)
+        return self.filter(recipient_object_id=future.id, recipient_content_type=ContentType.objects.get_for_model(future)).\
+            update(recipient_object_id=current.pk, recipient_content_type=ContentType.objects.get_for_model(user))
 
 
 class SyncNotification(BaseNotification):
@@ -283,7 +294,8 @@ def notify_handler(sender, **kwargs):
         newnotify = AsyncNotification.objects.create(
             actor_content_type=ContentType.objects.get_for_model(actor),
             actor_object_id=actor.pk,
-            recipient=recipient,
+            recipient_content_type=ContentType.objects.get_for_model(recipient),
+            recipient_object_id=recipient.pk,
             target_content_type=ContentType.objects.get_for_model(target),
             target_object_id=target.pk,
             action_object_content_type=action_object_content_type,
@@ -305,7 +317,8 @@ def notify_handler(sender, **kwargs):
         newnotify, created = SyncNotification.objects.get_or_create(
             actor_content_type=ContentType.objects.get_for_model(actor),
             actor_object_id=actor.pk,
-            recipient=recipient,
+            recipient_content_type=ContentType.objects.get_for_model(recipient),
+            recipient_object_id=recipient.pk,
             readed=False,
             notif_type=verbs.get_notif_type(notif_tuple),
             verb=verb,

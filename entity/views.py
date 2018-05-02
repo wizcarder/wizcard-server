@@ -136,7 +136,6 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-
 # Organizer Viewsets
 class EventViewSet(BaseEntityViewSet):
     serializer_class = EventSerializer
@@ -190,6 +189,16 @@ class EventViewSet(BaseEntityViewSet):
 
         if not created:
             return Response("Exhibitor has already been invited", status=status.HTTP_200_OK)
+        else:
+            notify.send(
+                request.user,
+                recipient=exi_inv,
+                notif_tuple=verbs.WIZCARD_INVITE_EXHIBITOR,
+                target=event,
+                action_object=event,
+                do_push=False,
+                force_sync=False
+            )
 
         if existing_exhibitor_user:
             # join this guy to the Event. We need to be aware now that Event joinees are not only wizcard users
@@ -732,6 +741,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = 'attachment; filename="exhibitors.tsv"'
         return response
 
+
 class EventSpeakerViewSet(viewsets.ModelViewSet):
     serializer_class = SpeakerSerializer
 
@@ -991,12 +1001,12 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                 for au in app_users:
                     au.user_attach(au, UserEntity.JOIN, do_notify=True)
 
-                    # push notif
+                    # push notif, AA: is this necessary??
                     notify.send(
                         event.get_creator(),
                         recipient=au,
-                        notif_tuple=verbs.WIZCARD_ENTITY_BROADCAST,
-                        target=self,
+                        notif_tuple=verbs.WIZCARD_ENTITY_ATTACH,
+                        target=event,
                         action_object=au,
                         do_push=True,
                         force_sync=True
@@ -1006,8 +1016,15 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
 
                 # AR: send email
             else:
-                # AR: send email
-                pass
+               notify.send(
+                   event.get_creator(),
+                   recipient=inst,
+                   notif_tuple=verbs.WIZCARD_INVITE_ATTENDEE,
+                   target=event,
+                   action_object=event,
+                   do_push=False,
+                   force_sync=False
+               )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -1046,21 +1063,6 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         if exists:
             for au in app_users:
                 au.user_attach(au, UserEntity.JOIN, do_notify=True)
-
-                # push notif
-                notify.send(
-                    event.get_creator(),
-                    recipient=au,
-                    notif_tuple=verbs.WIZCARD_ENTITY_BROADCAST,
-                    target=self,
-                    action_object=au,
-                    do_push=True,
-                    force_sync=True
-                )
-
-                # Send an implicit event join notif
-
-            # send email
         else:
             # send email
             pass
@@ -1450,7 +1452,8 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
             parent = parents[0]
             return Response(
             "Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, parent.name),
-            status=status.HTTP_406_NOT_ACCEPTABLE)
+            status=status.HTTP_406_NOT_ACCEPTABLE
+            )
 
         event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)
 
@@ -1547,7 +1550,6 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-
 class CampaignMediaViewSet(viewsets.ModelViewSet):
     queryset = MediaEntities.objects.all()
     serializer_class = MediaEntitiesSerializer
@@ -1612,6 +1614,7 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
         campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA, send_notif=True)
 
         return Response(status=status.HTTP_200_OK)
+
 
 class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
     queryset = CoOwners.objects.all()
@@ -1686,8 +1689,8 @@ class FileUploader(views.APIView):
         myargs = {}
         file_obj = request.data['file']
         owner = request.user
-        myargs['type']= request.data.get('data_type', BaseEntityComponent.CAMPAIGN)
-        myargs['event']=request.data.get('event', None)
+        myargs['type'] = request.data.get('data_type', BaseEntityComponent.CAMPAIGN)
+        myargs['event'] = request.data.get('event', None)
 
         result = create_entities(file_obj, owner, **myargs)
 

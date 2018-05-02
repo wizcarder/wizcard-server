@@ -95,6 +95,7 @@ class ResponseN(Response):
     def add_data_to_dict(self, _dict, k, v):
         _dict[k] = v
 
+
 class SyncNotifResponse(ResponseN):
 
     def __init__(self, notifications):
@@ -291,7 +292,9 @@ class AsyncNotifResponse:
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_DETACH)       : self.notif_async_2_sync,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_UPDATE)       : self.notif_async_2_sync,
             verbs.get_notif_type(verbs.WIZCARD_ENTITY_EXPIRE)       : self.notif_async_2_sync,
-            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notif_async_2_sync
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_DELETE)       : self.notif_async_2_sync,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_REQUEST_ATTACH): self.notifEntityRequestAttach,
+            verbs.get_notif_type(verbs.WIZCARD_ENTITY_APPROVE_ATTENDEE): self.notifEntityApproveAttendee,
         }
 
         for notification in notifications:
@@ -335,10 +338,30 @@ class AsyncNotifResponse:
     def notifEventReminder(self, notif):
         pass
 
+    def notifEntityRequestAttach(self, notif):
+        event = notif.target
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type].copy()
+        event = notif.target
+        email_details['subject'] = email_details['subject'] % event.name
+
+        to = notif.recipient.wizcard.get_email
+        send_event(event, to, email_details)
+
+
+    def notifEntityApproveAttendee(self, notif):
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type].copy()
+        event = notif.target
+        attendee = notif.recipient
+        to = attendee.email
+        name = attendee.name if attendee.name else to
+        email_details['subject'] = email_details['subject'] % (name, event.name)
+        send_event(event, to, email_details)
+
+
     def notifNewUser(self, notif):
         wizcard = notif.target
         to = notif.target.get_email
-        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type].copy()
         send_wizcard(wizcard, to, email_details, half_card=True)
 
         return 0
@@ -346,23 +369,27 @@ class AsyncNotifResponse:
     def notifScannedUser(self, notif):
         wizcard = notif.actor.wizcard
         to = notif.target.get_email
-        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type].copy()
         send_wizcard(wizcard, to, email_details, half_card=True)
 
     def notifInviteUser(self, notif):
         wizcard = notif.actor.wizcard
         to = notif.target.email
-        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type].copy()
         send_wizcard(wizcard, to, email_details)
 
     def notifInviteExhibitor(self, notif):
-        event_organizer = notif.actor
-        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_event(event_organizer, notif.recipient, email_details)
+        event = notif.target
+        to = notif.recipient.email
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type].copy()
+        email_details['subject'] = email_details['subject'] % event.name
+        send_event(event, to, email_details)
 
     def notifInviteAttendee(self, notif):
-        event_organizer = notif.actor
-        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type]
-        send_event(event_organizer, notif.recipient, email_details)
+        event = notif.target
+        to = notif.recipient.email
+        email_details = verbs.EMAIL_TEMPLATE_MAPPINGS[notif.notif_type].copy()
+        email_details['subject'] = email_details['subject'] % event.name
+        send_event(event, to, email_details)
 
 

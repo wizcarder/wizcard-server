@@ -138,6 +138,8 @@ NOTIF_INVITE_USER               = 26
 NOTIF_ENTITY_REMINDER           = 27
 NOTIF_INVITE_EXHIBITOR          = 28
 NOTIF_INVITE_ATTENDEE           = 29
+NOTIF_ENTITY_REQUEST_ATTACH     = 30
+NOTIF_ENTITY_APPROVE_ATTENDEE   = 31
 
 
 NOTIF_OPERATION_CREATE = 'C'
@@ -203,7 +205,7 @@ WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
 WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
 WIZCARD_FORWARD             = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', True, False)
 WIZCARD_ENTITY_ATTACH       = (NOTIF_ENTITY_ATTACH, 'entity join', False, True)
-WIZCARD_ENTITY_REQUEST_ATTACH = (NOTIF_ENTITY_ATTACH, 'entity join', False, True)
+WIZCARD_ENTITY_REQUEST_ATTACH = (NOTIF_ENTITY_REQUEST_ATTACH, 'entity Request', False, True)
 WIZCARD_ENTITY_DETACH       = (NOTIF_ENTITY_DETACH, 'entity leave', False, True)
 WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', True, False)
 WIZCARD_ENTITY_UPDATE       = (NOTIF_ENTITY_UPDATE, 'event_updated', True, True)
@@ -216,6 +218,7 @@ WIZCARD_INVITE_USER         = (NOTIF_INVITE_USER, 'invite_user', False, True)
 WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', False, True)
 WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', False, True)
 WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', True, True)
+WIZCARD_ENTITY_APPROVE_ATTENDEE = (NOTIF_ENTITY_APPROVE_ATTENDEE, 'approve attendee', False, False)
 
 def get_notif_type(ntuple):
     return ntuple[0]
@@ -248,9 +251,12 @@ notif_type_tuple_dict = {
 EMAIL_TEMPLATE_MAPPINGS = {
     NOTIF_NEW_WIZUSER: {"template": "welcome.html", "subject": "Welcome %s to WizCard"},
     NOTIF_SCANNED_USER: {"template": "emailwizcard.html", "subject": "%s has scanned your card on WizCard"},
-    NOTIF_INVITE_ATTENDEE: {"template": "invite_attendee.html", "subject": "%s - has invited you to Create your Campaign"},
-    NOTIF_INVITE_EXHIBITOR: {"template": "invite_exhibitor.html", "subject": "%s - Welcome to %s"},
+    NOTIF_INVITE_ATTENDEE: {"template": "invite_attendee.html", "subject": "%s - Invite Waiting for you!!"},
+    NOTIF_INVITE_EXHIBITOR: {"template": "invite_exhibitor.html", "subject": "%s - Invites you to create a Campaign"},
     NOTIF_INVITE_USER: {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"},
+    NOTIF_ENTITY_REQUEST_ATTACH: {"template": "event_attendee_request.html", "subject": "%s - One Step Away - Pending Approval"},
+    NOTIF_ENTITY_APPROVE_ATTENDEE: {"template": "event_attendee_approve.html", "subject": "%s wants to join %s - Pending Approval"}
+
 }
 
 

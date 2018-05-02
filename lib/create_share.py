@@ -75,7 +75,7 @@ def send_wizcard(from_wizcard, to, email_details, half_card=False):
 
     if not half_card and vcard:
         attach_name = "%s-%s.vcf" % (from_wizcard.user.first_name, from_wizcard.user.last_name)
-        attach_data = {'data' : from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
+        attach_data = {'data': from_wizcard.get_vcard, 'mime': 'text/vcard', 'name': attach_name}
 
     email.send(attach=attach_data)
     return 0
@@ -86,22 +86,20 @@ def send_event(event, to, email_details):
     email_dict = dict()
     html = email_details['template']
     email_dict['event_name'] = event.name
-    event_media = event.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER)[0]
+    event_media = event.get_media_filter(type=MediaEntities.TYPE_IMAGE, sub_type=MediaEntities.SUB_TYPE_BANNER)
+    if event_media:
+        event_media = event_media[0]
 
     # AA: Review. Fix this so we don't forget before production
     email_dict['banner'] = 'http://PlaceholderImage.com'
 
     if event_media:
         email_dict['banner'] = event_media.media_element
-    if html == 'invite_exhibitor.html':
-        email_dict['event_url'] = "http://getwizcard.com/entity/event/%d/product" % event.id
-        subject = "Welcome to %s - Claim your product space" % event.name
-    if html == 'invite_attendee.html':
-        subject = "%s - Official App for the Event" % event.name
 
-    ctx = Context(email_dict)
+    #ctx = Context(email_dict)
+    ctx = email_dict
 
-    email = Email(to=to, subject=subject)
+    email = Email(to=to, subject=email_details['subject'])
     email.html(html, ctx)
     email.send()
 #    email.send(from_addr=emaildetails['from_addr'])
