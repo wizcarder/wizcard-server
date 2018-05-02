@@ -120,7 +120,7 @@ NOTIF_NEARBY_FLICKED_WIZCARDS   = 9
 NOTIF_FLICK_TIMEOUT             = 10
 NOTIF_FLICK_PICK                = 11
 NOTIF_WITHDRAW_REQUEST          = 12
-NOTIF_TABLE_INVITE              = 13
+NOTIF_ENTITY_IMPLICIT_ATTACH    = 13
 NOTIF_WIZCARD_FORWARD           = 14
 
 NOTIF_ENTITY_ATTACH             = 15
@@ -138,8 +138,9 @@ NOTIF_INVITE_USER               = 26
 NOTIF_ENTITY_REMINDER           = 27
 NOTIF_INVITE_EXHIBITOR          = 28
 NOTIF_INVITE_ATTENDEE           = 29
-NOTIF_ENTITY_REQUEST_ATTACH     = 30
-NOTIF_ENTITY_APPROVE_ATTENDEE   = 31
+NOTIF_WIZCARD_INFO              = 30
+NOTIF_ENTITY_REQUEST_ATTACH     = 31
+NOTIF_ENTITY_APPROVE_ATTENDEE   = 32
 
 
 NOTIF_OPERATION_CREATE = 'C'
@@ -202,9 +203,9 @@ WIZCARD_UPDATE_FULL         = (NOTIF_UPDATE_WIZCARD_F, 'wizcard update', True, T
 WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD_H, 'wizcard update half', False, True)
 WIZCARD_FLICK_TIMEOUT       = (NOTIF_FLICK_TIMEOUT, 'flick timeout', True, False)
 WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
-WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
 WIZCARD_FORWARD             = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', True, False)
 WIZCARD_ENTITY_ATTACH       = (NOTIF_ENTITY_ATTACH, 'entity join', False, True)
+WIZCARD_ENTITY_IMPLICIT_ATTACH = (NOTIF_ENTITY_IMPLICIT_ATTACH, 'Event Announcement', False, False)
 WIZCARD_ENTITY_REQUEST_ATTACH = (NOTIF_ENTITY_REQUEST_ATTACH, 'entity Request', False, True)
 WIZCARD_ENTITY_DETACH       = (NOTIF_ENTITY_DETACH, 'entity leave', False, True)
 WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', True, False)
@@ -219,6 +220,8 @@ WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', False
 WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', False, True)
 WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', True, True)
 WIZCARD_ENTITY_APPROVE_ATTENDEE = (NOTIF_ENTITY_APPROVE_ATTENDEE, 'approve attendee', False, False)
+WIZCARD_INFO                = (NOTIF_WIZCARD_INFO, 'WizCard: Message from the Wizard of WizCard', True, False)
+
 
 def get_notif_type(ntuple):
     return ntuple[0]
@@ -313,6 +316,12 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'Event announcement',
+        'message': 'Message from {1.name} - {3}'
+    },
+    get_notif_type(WIZCARD_INFO): {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'title': 'WizCard Informational Message',
         'message': 'Message from {1.name} - {3}'
     },
 }

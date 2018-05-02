@@ -980,6 +980,13 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        if event.is_expired():
+            return Response("Expired events cannot be updated",
+                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+        elif not event.is_active():
+            return Response("Please publish Event before inviting attendees",
+                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+
         serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user, 'parent': event})
         if serializer.is_valid():
             inst = serializer.save()
@@ -1002,17 +1009,16 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                     au.user_attach(au, UserEntity.JOIN, do_notify=True)
 
                     # push notif, AA: is this necessary??
+                    # Send an implicit event join notif
                     notify.send(
                         event.get_creator(),
                         recipient=au,
-                        notif_tuple=verbs.WIZCARD_ENTITY_ATTACH,
                         target=event,
+                        notif_tuple=verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH,
+                        target=self,
                         action_object=au,
-                        do_push=True,
-                        force_sync=True
+                        do_push=False,
                     )
-
-                # Send an implicit event join notif
 
                 # AR: send email
             else:
@@ -1037,6 +1043,13 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        if event.is_expired():
+            return Response("Expired events cannot be updated",
+                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+        elif not event.is_active():
+            return Response("Please publish Event before inviting attendees",
+                            status=status.HTTP_428_PRECONDITION_REQUIRED)
+
         join_row = event.get_join_table_row(ati)
         if join_row:
             # this was an app user who requested access. Now organizer is granting access.
@@ -1047,8 +1060,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             join_fields.update(invite_state=InviteStateMixin.APP_ACCEPTED)
         else:
             join_fields = {'invite_state': InviteStateMixin.INVITED}
-
-        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
+            event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
 
         # hook-up the app side flow if app user for this attendee exists
 
@@ -1062,7 +1074,20 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         # attach each of them to the event.
         if exists:
             for au in app_users:
-                au.user_attach(au, UserEntity.JOIN, do_notify=True)
+                u = au.profile.user
+                event.user_attach(u, UserEntity.JOIN, do_notify=True)
+
+                # Send an implicit event join notif
+                notify.send(
+                    event.get_creator(),
+                    recipient=u,
+                    notif_tuple=verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH,
+                    target=event,
+                    action_object=u,
+                    do_push=False,
+                )
+
+            # send email
         else:
             # send email
             pass

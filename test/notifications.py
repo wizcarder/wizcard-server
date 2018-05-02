@@ -32,7 +32,7 @@ class NotifParser:
             verbs.NOTIF_FLICK_TIMEOUT:          self.flick_timeout,
             verbs.NOTIF_FLICK_PICK:             self.flick_pick,
             verbs.NOTIF_WITHDRAW_REQUEST:       self.withdraw_request,
-            verbs.NOTIF_TABLE_INVITE:           self.table_invite,
+            verbs.NOTIF_ENTITY_IMPLICIT_ATTACH: self.entity_implicit_attach,
             verbs.NOTIF_WIZCARD_FORWARD:        self.wizcard_forward,
             verbs.NOTIF_ENTITY_ATTACH:          self.table_join,
             verbs.NOTIF_ENTITY_DETACH:          self.table_leave,
@@ -109,8 +109,8 @@ class NotifParser:
         print "received withdraw request ", data
         pass
 
-    def table_invite(self, data):
-        print "received table invite ", data
+    def entity_implicit_attach(self, data):
+        print "received entity implicit attach ", data
         pass
 
     def wizcard_forward(self, data):

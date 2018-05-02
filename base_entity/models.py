@@ -527,7 +527,7 @@ class BaseEntityComponent(PolymorphicModel):
                 alias=BaseEntityComponent.sub_entity_type_from_entity_type(sub_entity.entity_type)
             ).get()
 
-        return None
+        return BaseEntityComponent.objects.none()
 
     # this does not send notif
     def add_subentities(self, ids, type):
