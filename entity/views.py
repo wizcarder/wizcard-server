@@ -6,6 +6,7 @@ from polls.models import Poll
 from entity.serializers import EventSerializer, EventSerializerL0, VanillaCampaignSerializer, CampaignSerializer, \
     TableSerializer, AttendeeInviteeSerializer, ExhibitorInviteeSerializer, SponsorSerializer, \
     SpeakerSerializer, AgendaSerializer, AgendaItemSerializer, PollSerializer, CoOwnersSerializer
+from base.mixins import InviteStateMixin
 from media_components.serializers import MediaEntitiesSerializer
 from media_components.models import MediaEntities
 from notifications.models import AsyncNotification
@@ -135,7 +136,6 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-
 # Organizer Viewsets
 class EventViewSet(BaseEntityViewSet):
     serializer_class = EventSerializer
@@ -183,12 +183,22 @@ class EventViewSet(BaseEntityViewSet):
             email=exhibitor_email,
             event=event,
             defaults={
-                'state': state
+                'invite_state': state
             }
         )
 
         if not created:
             return Response("Exhibitor has already been invited", status=status.HTTP_200_OK)
+        else:
+            notify.send(
+                request.user,
+                recipient=exi_inv,
+                notif_tuple=verbs.WIZCARD_INVITE_EXHIBITOR,
+                target=event,
+                action_object=event,
+                do_push=False,
+                force_sync=False
+            )
 
         if existing_exhibitor_user:
             # join this guy to the Event. We need to be aware now that Event joinees are not only wizcard users
@@ -197,33 +207,33 @@ class EventViewSet(BaseEntityViewSet):
 
         return Response(ExhibitorInviteeSerializer(exi_inv).data)
 
-    @detail_route(methods=['post'])
-    def invite_attendees(self, request, pk=None):
-        inst = get_object_or_404(Event, pk=pk)
-        attendee_invitees = request.data['ids']
-
-        existing_users, existing_attendees = AttendeeInvitee.objects.check_existing_users_attendees(
-            attendee_invitees
-        )
-        [inst.user_attach(u, state=UserEntity.JOIN) for u in existing_users]
-
-        for e in existing_attendees:
-            e.state = AttendeeInvitee.ACCEPTED
-            e.save()
-
-        new_attendees = [x for x in attendee_invitees if x not in existing_attendees.values_list('id', flat=True)]
-
-        # relate these with Event
-        invited_attendees = inst.add_subentities(
-            new_attendees,
-            BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE
-        )
-        for i in invited_attendees:
-            i.state = AttendeeInvitee.INVITED
-            i.save()
-
-        result_list = list(chain(existing_attendees, invited_attendees))
-        return Response(AttendeeInviteeSerializer(result_list, many=True).data)
+    # @detail_route(methods=['post'])
+    # def invite_attendees(self, request, pk=None):
+    #     inst = get_object_or_404(Event, pk=pk)
+    #     attendee_invitees = request.data['ids']
+    #
+    #     existing_users, existing_attendees = AttendeeInvitee.objects.check_existing_users_attendees(
+    #         attendee_invitees
+    #     )
+    #     [inst.user_attach(u, state=UserEntity.JOIN) for u in existing_users]
+    #
+    #     for e in existing_attendees:
+    #         e.state = AttendeeInvitee.ACCEPTED
+    #         e.save()
+    #
+    #     new_attendees = [x for x in attendee_invitees if x not in existing_attendees.values_list('id', flat=True)]
+    #
+    #     # relate these with Event
+    #     invited_attendees = inst.add_subentities(
+    #         new_attendees,
+    #         BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE
+    #     )
+    #     for i in invited_attendees:
+    #         i.state = AttendeeInvitee.INVITED
+    #         i.save()
+    #
+    #     result_list = list(chain(existing_attendees, invited_attendees))
+    #     return Response(AttendeeInviteeSerializer(result_list, many=True).data)
 
     @detail_route(methods=['put'])
     def publish_event(self, request, pk=None):
@@ -567,7 +577,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
             )
 
         #TODO : AR Ideally we should have got the previous value of join_fields and used it here.
-        join_fields = request.data.pop('join_fields', {})
+        join_fields = request.data.pop('join_fields') if 'join_fields' in request.data else {}
         taganomy = request.data.get('taganomy', {})
         if taganomy:
             serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
@@ -672,7 +682,8 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             'parent': event
         }
 
-        join_fields = request.data.pop('join_fields', {})
+
+        join_fields = request.data.pop('join_fields') if 'join_fields' in request.data else {}
         tags = request.data.pop('tags', [])
 
         # This seems like a less restrictive approach to tags than going via taganomy, this will faciliate the organizer to add
@@ -695,7 +706,6 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
                     taganomy_inst.register_object(cpg)
                 else:
                     return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
             serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
             if serializer.is_valid():
@@ -737,11 +747,10 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         f.write(header)
 
         for q in queryset:
-            join_field = event.get_sub_entities_gfk_of_type(
-                object_id=q.id,
-                alias=BaseEntityComponent.sub_entity_type_from_entity_type(q.entity_type)
-            ).values_list('join_fields', flat=True).get()
+            join_row = event.get_join_table_row(q)
+            join_field = join_row.join_fields
             venue = join_field['venue'] if 'venue' in join_field else ""
+
             tags = ",".join(list(q.tags.names()))
             record = '\t'.join([q.id, q.name, q.description, q.address, q.phone, q.website, tags, venue, q.email])
             record += "\n"
@@ -753,6 +762,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         response = HttpResponse(f, content_type='text/tab-separated-values')
         response['Content-Disposition'] = 'attachment; filename="exhibitors.tsv"'
         return response
+
 
 class EventSpeakerViewSet(viewsets.ModelViewSet):
     serializer_class = SpeakerSerializer
@@ -971,7 +981,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
     def list(self, request, **kwargs):
         event = Event.objects.get(id=kwargs.get('event_pk'))
         ati = event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
-        return Response(AttendeeInviteeSerializer(ati, many=True).data)
+        return Response(AttendeeInviteeSerializer(ati, context={'parent': event}, many=True).data)
 
     def retrieve(self, request, pk=None, event_pk=None):
         try:
@@ -984,7 +994,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
             return Response("event id %s not associated with invitee %s " % (event_pk, pk),
                             status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(AttendeeInviteeSerializer(ati).data)
+        return Response(AttendeeInviteeSerializer(ati, context={'parent': event}).data)
 
     def create(self, request, **kwargs):
         try:
@@ -992,10 +1002,79 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user})
+        if event.is_expired():
+            return Response("Expired events cannot be updated",
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        elif not event.is_active():
+            return Response("Please publish Event before inviting attendees",
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        serializer = AttendeeInviteeSerializer(data=request.data, context={'user': request.user, 'parent': event})
         if serializer.is_valid():
             inst = serializer.save()
-            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+            join_fields = {'invite_state': InviteStateMixin.INVITED}
+
+            event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
+
+            # hook-up the app side flow if app user for this attendee exists
+
+            # 1: Check if any app_users exists. Ideally should only be one. But who knows...deal with
+            # all of the matches.
+            # note to self: If multiple app_users show up (hopefully unlikely) as matches for an attendeeinvitee,
+            # then it should/must also be the case that each of those app-users should result in this invitee with
+            # the converse search.
+            exists, app_users = inst.check_existing_app_users()
+
+            # attach each of them to the event.
+            if exists:
+                for au in app_users:
+                    u = au.profile.user
+                    event.user_attach(u, UserEntity.JOIN, do_notify=True)
+
+                    # push notif,
+                    # Send an implicit event join notif
+                    notify.send(
+                        event.get_creator(),
+                        recipient=u,
+                        target=event,
+                        notif_tuple=verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH,
+                        action_object=u,
+                        do_push=False,
+                    )
+
+                    # in-app notif
+                    notify.send(
+                        event.get_creator(),
+                        recipient=u,
+                        notif_tuple=verbs.WIZCARD_INFO,
+                        target=event,
+                        action_object=u,
+                        do_push=True,
+                        notification_text=verbs.INFO_NOTIFICATION_TEXT[verbs.EVENT_ACCESS_GRANTED],
+                        force_sync=True
+                    )
+                    # send email
+                    notify.send(
+                        event.get_creator(),
+                        recipient=au,
+                        notif_tuple=verbs.WIZCARD_INVITE_ATTENDEE,
+                        target=event,
+                        action_object=event,
+                        do_push=False,
+                        force_sync=False
+                    )
+            else:
+               # send email
+               notify.send(
+                   event.get_creator(),
+                   recipient=inst,
+                   notif_tuple=verbs.WIZCARD_INVITE_ATTENDEE,
+                   target=event,
+                   action_object=event,
+                   do_push=False,
+                   force_sync=False
+               )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1007,11 +1086,66 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if ati in event.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE):
-            return Response("event %s already  associated with attendee invitee %s " % (event_pk, pk),
-                            status=status.HTTP_200_OK)
+        if event.is_expired():
+            return Response("Expired events cannot be updated",
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        elif not event.is_active():
+            return Response("Please publish Event before inviting attendees",
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+        join_row = event.get_join_table_row(ati)
+        if join_row:
+            # this was an app user who requested access. Now organizer is granting access.
+            # set state=APP_ACCEPTED so that going forward we're able to distinguish between
+            # wizcard's contribution to organizer attendee list
+            join_fields = join_row.join_fields
+            assert (join_fields['invite_state'] == InviteStateMixin.REQUESTED), "Invalid Join row state"
+            join_fields.update(invite_state=InviteStateMixin.APP_ACCEPTED)
+        else:
+            join_fields = {'invite_state': InviteStateMixin.INVITED}
+            event.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE, join_fields=join_fields)
+
+        # hook-up the app side flow if app user for this attendee exists
+
+        # 1: Check if any app_users exists. Ideally should only be one. But who knows...deal with
+        # all of the matches.
+        # note to self: If multiple app_users show up (hopefully unlikely) as matches for an attendeeinvitee,
+        # then it should/must also be the case that each of those app-users should result in this invitee with
+        # the converse search.
+        exists, app_users = ati.check_existing_app_users()
+
+        # attach each of them to the event.
+        if exists:
+            for au in app_users:
+                u = au.profile.user
+                event.user_attach(u, UserEntity.JOIN, do_notify=True)
+
+                # Send an implicit event join notif
+                notify.send(
+                    event.get_creator(),
+                    recipient=u,
+                    notif_tuple=verbs.WIZCARD_ENTITY_IMPLICIT_ATTACH,
+                    target=event,
+                    action_object=u,
+                    do_push=False,
+                )
+                # in-app notif
+                notify.send(
+                    event.get_creator(),
+                    recipient=au,
+                    notif_tuple=verbs.WIZCARD_INFO,
+                    target=event,
+                    action_object=u,
+                    do_push=True,
+                    notification_text=verbs.INFO_NOTIFICATION_TEXT[verbs.EVENT_ACCESS_GRANTED],
+                    force_sync=True
+                )
+
+            # send email
+        else:
+            # send email
+            pass
+
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -1026,6 +1160,8 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         event.remove_sub_entity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+
+        # AA: TODO: We probably need to eject the user out of the event as well ?
 
         return Response(status=status.HTTP_200_OK)
 
@@ -1394,9 +1530,9 @@ class EventTaganomyViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin,
         if parents:
             parent = parents[0]
             return Response(
-            "Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, parent.name),
-            status=status.HTTP_406_NOT_ACCEPTABLE)
-
+                "Operation Failed - Detach Taganomy - %s from  Event - %s and Retry" % (taganomy.name, parent.name),
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
 
         event.add_subentity_obj(taganomy, BaseEntityComponent.SUB_ENTITY_CATEGORY)
 
@@ -1493,7 +1629,6 @@ class EventBadgeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-
 class CampaignMediaViewSet(viewsets.ModelViewSet):
     queryset = MediaEntities.objects.all()
     serializer_class = MediaEntitiesSerializer
@@ -1558,6 +1693,7 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
         campaign.remove_sub_entity_obj(med, BaseEntityComponent.SUB_ENTITY_MEDIA, send_notif=True)
 
         return Response(status=status.HTTP_200_OK)
+
 
 class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
     queryset = CoOwners.objects.all()
@@ -1632,8 +1768,8 @@ class FileUploader(views.APIView):
         myargs = {}
         file_obj = request.data['file']
         owner = request.user
-        myargs['type']= request.data.get('data_type', BaseEntityComponent.CAMPAIGN)
-        myargs['event']=request.data.get('event', None)
+        myargs['type'] = request.data.get('data_type', BaseEntityComponent.CAMPAIGN)
+        myargs['event'] = request.data.get('event', None)
 
         result = create_entities(file_obj, owner, **myargs)
 

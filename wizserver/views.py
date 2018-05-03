@@ -1910,13 +1910,12 @@ class ParseMsgAndDispatch(object):
 
     #############OCR MessageS##############
     def OcrReqSelf(self):
-        try:
-            wizcard = self.user.wizcard
-        except ObjectDoesNotExist:
-            #this is the expected case
-            wizcard = Wizcard.objects.create(user=self.user)
-
-        c = ContactContainer.objects.create(wizcard=wizcard)
+        wizcard, w_created = Wizcard.objects.get_or_create(user=self.user)
+        if w_created:
+            c = ContactContainer.objects.create(wizcard=wizcard)
+        else:
+            c = wizcard.contact_container.all()[0]
+            c.media.all().delete()
 
         m = BaseEntityComponent.create(
             MediaEntities,
@@ -2201,18 +2200,8 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         if state == UserEntity.JOIN:
-            entity.user_attach(self.user, state)
-
-            # don't like this if-else. but will need more
-            # abstraction for a small use-case
-            level = BaseEntityComponent.SERIALIZER_L2 if entity_type == BaseEntityComponent.EVENT \
-                else BaseEntityComponent.SERIALIZER_L1
-
-            s = BaseEntity.entity_ser_from_type_and_level(
-                entity_type=entity_type,
-                level=level
-            )
-            out = s(entity, **self.user_context).data
+            ser = entity.user_attach(self.user, state, do_notify=True)
+            out = ser(entity, **self.user_context).data
             self.response.add_data("result", out)
             return self.response
         elif state == UserEntity.LEAVE:
@@ -2224,6 +2213,7 @@ class ParseMsgAndDispatch(object):
             entity.user_attach(self.user, state, do_notify=False)
             self.EventsGet()
         elif state == UserEntity.UNPIN:
+            # don't notify others..what the heck, a little bit of "truth omission" doesn't hurt anybody
             entity.user_detach(self.user, state=state, do_notify=False)
             self.EventsGet()
         else:

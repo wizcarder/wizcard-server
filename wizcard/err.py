@@ -1,11 +1,11 @@
-OK = {'errno':0, 'Description':""}
+OK = {'errno':0, 'Description': ""}
 NONE_FOUND = {'errno': 1, 'str': "Query returned no results"}
 EXISTING_MEMBER = {'errno': 2, 'str': "already joined table"}
 INVALID_USERNAME_PASSWORD = {'errno': 3, 'str': "invalid username or password"}
 AUTHENTICATION_FAILED = {'errno': 4, 'str': "authentication failed"}
 USER_DOESNT_EXIST = {'errno': 5, 'str': "user doesn't exist"}
 TABLE_DOESNT_EXIST = {'errno': 6, 'str': "table doesn't exist"}
-OBJECT_DOESNT_EXIST = {'errno': 7, 'str': "object doesn't exist"}
+OBJECT_DOESNT_EXIST = {'errno': 7, 'str': "sorry, we couldn't complete your request"}
 LOCATION_UNKNOWN = {'errno': 8, 'str': "location error"}
 INTERNAL_ERROR = {'errno': 9, 'str': "internal error"}
 EXISTING_CONNECTION = {'errno': 10, 'str': "your request is pending"}
@@ -35,6 +35,8 @@ POLL_ID_INVALID = {'errno': 30, 'str': "sorry, we couldn't find this poll"}
 POLL_RESPONSE_INVALID_QUESTION = {'errno': 31, 'str': "sorry, we couldn't find this poll question"}
 POLL_RESPONSE_INVALID_ANSWER = {'errno': 32, 'str': "sorry, this answer choice is invalid"}
 SCAN_USER_AUTH_ERROR = {'errno': 33, 'str': "Couldn't find campaign to attach lead scan"}
+ENTITY_DELETED = {'errno': 34, 'str': "sorry, this event is no longer active"}
+
 
 
 IGNORE = {'result': 1, 'ignore': 1, 'errStr': ""}

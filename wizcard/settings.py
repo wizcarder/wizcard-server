@@ -18,7 +18,7 @@ DEBUG_PROPAGATE_EXCEPTIONS = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-     ('Wizard of WizCard', 'wizcarder@getwizcard.com'),
+     ('Wizard of WizCard', 'admin@getwizcard.com'),
 )
 
 MANAGERS = ADMINS
@@ -30,7 +30,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'wizcard-dev-celery',
+                'NAME': 'wizcard-dev-demo',
                 'USER': 'kappu',
                 'PASSWORD': '',
                 'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
@@ -43,6 +43,7 @@ WIZCARD_SETTINGS = {
             'LOCATION': 'default-cache'
             }
         },
+        'EMAIL_BACKEND': 'django_amazon_ses.EmailBackend',
     },
     'test': {
         'databases': {
@@ -60,7 +61,11 @@ WIZCARD_SETTINGS = {
                 'LOCATION': instances.RUNHOSTS[RUNENV]['MEMCACHE']
             }
         },
+
+        'EMAIL_BACKEND' : 'django_amazon_ses.EmailBackend',
+
     },
+
     'stage': {
         'databases': {
             'default': {
@@ -96,7 +101,10 @@ WIZCARD_SETTINGS = {
         },
         'raven_config': {
             'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@sentry.io/87350'
-        }
+        },
+
+        'EMAIL_BACKEND':  "sgbackend.SendGridBackend",
+
     }
 }
 
@@ -257,7 +265,7 @@ NEXMO_OWN_NUMBER = '12184294228'
 NEXMO_SENDERID = 'WZCARD'
 
 EMAIL_TEMPLATE = '/invites/email_templatev4.png'
-EMAIL_FROM_ADDR='WizCard Inc <wizcarder@getwizcard.com>'
+EMAIL_FROM_ADDR='WizCard Inc <admin@getwizcard.com>'
 
 PHONE_CHECK_MESSAGE = {
         'reqtype': 'json',
@@ -351,6 +359,12 @@ AWS_ACCESS_KEY_ID = 'AKIAJ7JLJSP4BCEZ72EQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_BUCKET_ENV = "-" + RUNENV
 AWS_QUERYSTRING_AUTH = False
+
+#SES Settings
+AWS_SES_ACCESS_KEY_ID = 'AKIAILIBB22I2SUSCMBQ'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_SES_REGION = "us-west-2"
+
 #Expiry set to 100 years
 AWS_QUERYSTRING_EXPIRE = 3153600000
 AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV 
@@ -362,7 +376,8 @@ STATIC_DIRECTORY = '/static/'
 MEDIA_DIRECTORY = '/media/'
 
 # SENDGRID SETTINGS
-EMAIL_BACKEND = "sgbackend.SendGridBackend"
+
+EMAIL_BACKEND = WIZCARD_SETTINGS[RUNENV]['EMAIL_BACKEND']
 SENDGRID_API_KEY = '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'
 
 AWS_RETURN_PATH='admin@getwizcard.com'
@@ -408,7 +423,7 @@ AUTH_PROFILE_MODULE = 'wizcard.UserProfile'
 
 
 
-MYLOG = {}
+MYLOG = dict()
 MYLOG['dev'] = {
     'version': 1,
     'disable_existing_loggers': False,

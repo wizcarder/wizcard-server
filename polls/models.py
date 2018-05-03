@@ -29,6 +29,8 @@ class Poll(BaseEntityComponent):
 
     objects = PollManager()
 
+    def update_state_upon_link_unlink(self):
+        return True
 
     def question_count(self):
         return self.questions.count()

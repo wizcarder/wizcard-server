@@ -513,6 +513,22 @@ class BaseEntityComponent(PolymorphicModel):
 
         return c
 
+    def has_join_table_row(self, sub_entity):
+        return self.get_sub_entities_gfk_of_type(
+            object_id=sub_entity.id,
+            alias=BaseEntityComponent.sub_entity_type_from_entity_type(sub_entity.entity_type)
+        ).exists()
+
+    # gets the join table row between parent<->sub_entity.
+    def get_join_table_row(self, sub_entity):
+        if self.has_join_table_row(sub_entity):
+            return self.get_sub_entities_gfk_of_type(
+                object_id=sub_entity.id,
+                alias=BaseEntityComponent.sub_entity_type_from_entity_type(sub_entity.entity_type)
+            ).get()
+
+        return BaseEntityComponent.objects.none()
+
     # this does not send notif
     def add_subentities(self, ids, type):
         if not ids:
@@ -554,16 +570,17 @@ class BaseEntityComponent(PolymorphicModel):
         to_be_deleted_ids_qs.delete()
 
     def add_subentity_obj(self, obj, alias, **kwargs):
+        join_fields = kwargs.pop('join_fields', None)
+
         connection = self.related.connect(obj, alias=alias)
 
-        if 'join_fields' in kwargs:
-            join_fields = kwargs.pop('join_fields')
+        if join_fields:
             connection.join_fields = join_fields
             connection.save()
 
         kwargs.update(notif_operation=verbs.NOTIF_OPERATION_CREATE)
 
-        return obj.post_connect_remove(self, **kwargs)
+        return connection, obj.post_connect_remove(self, **kwargs)
 
     def remove_sub_entity_obj(self, obj, subentity_type, **kwargs):
         self.related.filter(object_id=obj.id, alias=subentity_type).delete()
@@ -607,6 +624,9 @@ class BaseEntityComponent(PolymorphicModel):
     def is_floodable(self):
         return False
 
+    def update_state_upon_link_unlink(self):
+        return False
+
     def get_creator(self):
         return BaseEntityComponentsOwner.objects.filter(
             base_entity_component=self,
@@ -625,10 +645,10 @@ class BaseEntityComponent(PolymorphicModel):
         notif_operation = kwargs.pop('notif_operation', verbs.NOTIF_OPERATION_CREATE)
         send_notif = kwargs.pop('send_notif', True)
 
-        entity_state = BaseEntityComponent.ENTITY_STATE_CREATED if notif_operation == verbs.NOTIF_OPERATION_DELETE \
-            else BaseEntityComponent.ENTITY_STATE_PUBLISHED
-
-        self.set_entity_state(entity_state)
+        if self.update_state_upon_link_unlink():
+            entity_state = BaseEntityComponent.ENTITY_STATE_CREATED if notif_operation == verbs.NOTIF_OPERATION_DELETE \
+                else BaseEntityComponent.ENTITY_STATE_PUBLISHED
+            self.set_entity_state(entity_state)
 
         if send_notif and parent.is_active():
             notify.send(
@@ -748,10 +768,11 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
         return entity_friends[:limit]
 
-    def user_attach(self, user, state, do_notify=True):
+    def user_attach(self, user, state, **kwargs):
 
         UserEntity.user_attach(user, self, state=state)
 
+        do_notify = kwargs.pop('do_notify', True)
         if do_notify:
             if hasattr(user, 'wizcard'):
                 notify.send(
@@ -768,11 +789,17 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                 self.num_users += 1
                 self.save()
 
-        return self
+        ser = BaseEntity.entity_ser_from_type_and_level(
+            entity_type=self.entity_type,
+            level=BaseEntityComponent.SERIALIZER_L2
+        )
 
-    def user_detach(self, user, state, do_notify=True):
+        return ser
+
+    def user_detach(self, user, state, **kwargs):
         UserEntity.user_detach(user, self)
 
+        do_notify = kwargs.pop('do_notify', True)
         if do_notify:
             if hasattr(user, 'wizcard'):
                 notify.send(
@@ -872,10 +899,12 @@ class UserEntity(models.Model):
     PIN = 2
     LEAVE = 3
     UNPIN = 4
+    REQUEST_JOIN = 5
 
     STATE_CHOICES = (
         (JOIN, 'Join'),
         (PIN, 'Pin'),
+        (REQUEST_JOIN, 'Requested')
     )
 
     user = models.ForeignKey(User)
