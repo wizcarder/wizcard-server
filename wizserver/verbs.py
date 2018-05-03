@@ -206,7 +206,6 @@ WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
 WIZCARD_FORWARD             = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', True, False)
 WIZCARD_ENTITY_ATTACH       = (NOTIF_ENTITY_ATTACH, 'entity join', False, True)
 WIZCARD_ENTITY_IMPLICIT_ATTACH = (NOTIF_ENTITY_IMPLICIT_ATTACH, 'Event Announcement', False, False)
-WIZCARD_ENTITY_REQUEST_ATTACH = (NOTIF_ENTITY_REQUEST_ATTACH, 'entity Request', False, True)
 WIZCARD_ENTITY_DETACH       = (NOTIF_ENTITY_DETACH, 'entity leave', False, True)
 WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', True, False)
 WIZCARD_ENTITY_UPDATE       = (NOTIF_ENTITY_UPDATE, 'event_updated', True, True)
@@ -219,8 +218,9 @@ WIZCARD_INVITE_USER         = (NOTIF_INVITE_USER, 'invite_user', False, True)
 WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', False, True)
 WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', False, True)
 WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', True, True)
+WIZCARD_INFO                = (NOTIF_WIZCARD_INFO, 'Message: {0.name}', True, False)
 WIZCARD_ENTITY_APPROVE_ATTENDEE = (NOTIF_ENTITY_APPROVE_ATTENDEE, 'approve attendee', False, False)
-WIZCARD_INFO                = (NOTIF_WIZCARD_INFO, 'WizCard: Message from the Wizard of WizCard', True, False)
+WIZCARD_ENTITY_REQUEST_ATTACH = (NOTIF_ENTITY_REQUEST_ATTACH, 'entity Request', False, True)
 
 
 def get_notif_type(ntuple):
@@ -322,7 +322,7 @@ apns_notification_dictionary = {
         'sound': 'flynn.caf',
         'badge': 0,
         'title': 'WizCard Informational Message',
-        'message': 'Message from {1.name} - {3}'
+        'message': 'Message from {1.name}'
     },
 }
 
@@ -367,3 +367,10 @@ feed_errors = {
 
 }
 
+EVENT_ACCESS_REQUESTED = 1
+EVENT_ACCESS_GRANTED = 2
+
+INFO_NOTIFICATION_TEXT = {
+    EVENT_ACCESS_REQUESTED  : "Your request for Access to Event {0.name} has been requested",
+    EVENT_ACCESS_GRANTED    : "You have been granted acess to Event {0.name}"
+}
