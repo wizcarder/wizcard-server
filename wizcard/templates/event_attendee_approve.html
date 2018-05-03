@@ -1,0 +1,513 @@
+<html>
+<head> <title> Official App for {{event_name}}</title>
+<style>
+
+/* -------------------------------------
+		GLOBAL
+------------------------------------- */
+* {
+	margin:0;
+	padding:0;
+}
+* { font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; }
+img {
+	max-width: 100%;
+}
+.collapse {
+	margin:0;
+	padding:0;
+}
+body {
+	-webkit-font-smoothing:antialiased;
+	-webkit-text-size-adjust:none;
+	width: 100%!important;
+	/*height: 100%;*/
+}
+
+
+/* -------------------------------------
+		ELEMENTS
+------------------------------------- */
+a { color: #2BA6CB;}
+
+.btn {
+	text-decoration:none;
+	color: #FFF;
+	background-color: #666;
+	padding:10px 16px;
+	font-weight:bold;
+	margin-right:10px;
+	text-align:center;
+	cursor:pointer;
+	display: inline-block;
+}
+
+p.callout {
+	padding:15px;
+	background-color:#ECF8FF;
+	margin-bottom: 15px;
+}
+.callout a {
+	font-weight:bold;
+	color: #2BA6CB;
+}
+
+table.social {
+/* 	padding:15px; */
+	background-color: #ebebeb;
+
+}
+.social .soc-btn {
+	padding: 3px 7px;
+	font-size:12px;
+	margin-bottom:10px;
+	text-decoration:none;
+	color: #FFF;font-weight:bold;
+	display:block;
+	text-align:center;
+}
+a.fb { background-color: #3B5998!important; }
+a.tw { background-color: #1daced!important; }
+a.gp { background-color: #DB4A39!important; }
+a.ms { background-color: #000!important; }
+
+.sidebar .soc-btn {
+	display:block;
+	width:100%;
+}
+
+.fb1 {
+  margin: 0px auto !important;
+}
+
+/* -------------------------------------
+		HEADER
+------------------------------------- */
+table.head-wrap { width: 100%;}
+
+.header.container table td.logo { padding: 15px; }
+.header.container table td.label { padding: 15px; padding-left:0px;}
+
+
+/* -------------------------------------
+		BODY
+------------------------------------- */
+table.body-wrap { width: 100%;}
+
+
+/* -------------------------------------
+		FOOTER
+------------------------------------- */
+table.footer-wrap { width: 100%;	clear:both!important;
+}
+.footer-wrap .container td.content  p { border-top: 1px solid rgb(215,215,215); padding-top:15px;}
+.footer-wrap .container td.content p {
+	font-size:10px;
+	font-weight: bold;
+
+}
+
+
+/* -------------------------------------
+		TYPOGRAPHY
+------------------------------------- */
+h1,h2,h3,h4,h5,h6 {
+font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; line-height: 1.1; margin-bottom:15px; color:#000;
+}
+h1 small, h2 small, h3 small, h4 small, h5 small, h6 small { font-size: 60%; color: #6f6f6f; line-height: 0; text-transform: none; }
+
+h1 { font-weight:200; font-size: 44px;}
+h2 { font-weight:200; font-size: 37px;}
+h3 { font-weight:500; font-size: 27px;}
+h4 { font-weight:500; font-size: 23px;}
+h5 { font-weight:500; font-size: 17px;}
+h6 { font-weight:900; font-size: 14px; text-transform: uppercase; color:#444;}
+
+.collapse { margin:0!important;}
+
+p, ul {
+	margin-bottom: 10px;
+	font-weight: normal;
+	font-size:14px;
+	line-height:1.6;
+}
+p.lead { font-size:17px; }
+p.last { margin-bottom:0px;}
+
+ul li {
+	margin-left:5px;
+	list-style-position: inside;
+}
+
+/* -------------------------------------
+		SIDEBAR
+------------------------------------- */
+ul.sidebar {
+	background:#ebebeb;
+	display:block;
+	list-style-type: none;
+}
+ul.sidebar li { display: block; margin:0;}
+ul.sidebar li a {
+	text-decoration:none;
+	color: #666;
+	padding:10px 16px;
+/* 	font-weight:bold; */
+	margin-right:10px;
+/* 	text-align:center; */
+	cursor:pointer;
+	display:block;
+	margin:0;
+}
+ul.sidebar li a.last { border-bottom-width:0px;}
+ul.sidebar li a h1,ul.sidebar li a h2,ul.sidebar li a h3,ul.sidebar li a h4,ul.sidebar li a h5,ul.sidebar li a h6,ul.sidebar li a p { margin-bottom:0!important;}
+
+
+
+/* ---------------------------------------------------
+		RESPONSIVENESS
+		Nuke it from orbit. It's the only way to be sure.
+------------------------------------------------------ */
+
+/* Set a max-width, and make it display as block so it will automatically stretch to that width, but will also shrink down on a phone or something */
+.container {
+  background-image: url('http://imageshack.com/a/img923/6028/fVEobx.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+	display:block!important;
+	max-width:900px!important;
+	margin:0 auto!important; /* makes it centered */
+	clear:both!important;
+}
+
+/* This should also be a block element, so that it will fill 100% of the .container */
+.content {
+	max-width:100%;
+	margin:0 auto;
+	display:block;
+}
+
+/* Let's make sure tables in the content area are 100% wide */
+.content table { width: 100%; }
+
+
+/* Odds and ends */
+.column {
+	width: 300px;
+	float:left;
+}
+.column tr td { padding: 15px; }
+.column-wrap {
+	padding:0!important;
+	margin:0 auto;
+	max-width:600px!important;
+}
+.column table { width:100%;}
+.social .column {
+	width: 280px;
+	min-width: 279px;
+	float:left;
+}
+
+.section1 {
+  min-height: 150px;
+  background-size: cover;
+  background-position: center;
+}
+
+.section1 img {
+  margin: 90px auto 0px auto;
+  min-height: 100px;
+  min-width: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle
+}
+
+.section2 {
+  /*background-image: url('https://imageshack.com/i/poqrMOmip');
+  max-height: 200px;*/
+  min-height: 200px;
+  background-size: cover;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.section2 .card-width {
+  width: 90%;
+  margin: 0px auto;
+}
+
+.section2 .card-width .sidebar .top {
+  background-color: transparent;
+}
+.section2 .card-width .sidebar .top  .user-name {
+  margin-top: 60px !important;
+  font-size: 30px;
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: normal;
+  letter-spacing: 0.3px;
+  color: #1d8bae;
+  text-align: left;
+}
+.section2 .card-width .sidebar .top .name {
+  font-size: 20px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: normal;
+  letter-spacing: 0.2px;
+  color: #303c54;
+  padding-top: 10px;
+  padding-bottom: 5px;
+  text-align: left;
+}
+.section2 .card-width .sidebar .top .description {
+  font-size: 20px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: normal;
+  letter-spacing: 0.2px;
+  color: #1d8bae;
+  text-align: left;
+}
+.user-image {
+  width: 120px;
+  border-radius: 50%;
+  margin-top: 33px !important;
+  border: 5px solid #fff;
+}
+.pb0 {
+  padding-bottom: 0px;
+}
+.pt0 {
+  padding-top: 0px;
+}
+/* Be sure to place a .clear element after each set of columns, just to be safe */
+.clear { display: block; clear: both; }
+
+@media screen and (max-width:482px) {
+  .user-image {
+    width: 90px;
+    border-radius: 100%;
+    margin-top: 45px !important;
+    border: 5px solid #fff;
+    left: 10% !important;
+  }
+  .section2 {
+    margin-bottom: 50px !important;
+  }
+}
+
+.video {
+  margin: 50px 0px 10px 65px !important;
+}
+
+.fb a  {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.other-link {
+  text-align: left;
+}
+
+.card_head {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  background-color: #CCC;
+}
+
+.card_head img {
+  margin-top: 10px !important;
+}
+
+.social {
+  margin: 0px 0px 10px 65px !important;
+  text-align: left;
+}
+
+.social-table {
+  width: 70px;
+}
+
+.fb {
+  width: 50px;
+  height: 50px;
+}
+.sidebar {
+  background-color: transparent;
+}
+.sidbar-gradient {
+  min-height: 400px;
+    background: -webkit-linear-gradient(#313D53 110px, white 0%) !important; /* For Safari 5.1 to 6.0 */
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,2989d8+50,207cca+51,7db9e8+100;Blue+Gloss+Default */
+    background: #1e5799; /* Old browsers */
+    background: -webkit-linear-gradient(#303C54 20%, white 0%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(#303C54 20%, white 0%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 ); /* IE6-9 */
+    box-shadow: 0 2px 53px 0 rgba(0, 0, 0, 0.17) !important;
+    -moz-box-shadow: 0 2px 53px 0 rgba(0, 0, 0, 0.17) !important;
+    -webkit-box-shadow: 0 2px 53px 0 rgba(0, 0, 0, 0.17) !important;
+    border-radius: 4px !important;
+    border: solid 1px gainsboro;
+}
+
+.horizontal-bar {
+  border: solid 1px #d9d9d9;
+  margin: 0px 20px !important;
+}
+
+.pt10 {
+  padding-top: 10px !important;
+}
+.pb10 {
+  padding-bottom: 10px !important;
+}
+.mobile-number, .contact-email {
+    font-size: 20px;
+    font-weight: normal;
+    font-style: normal;
+    font-stretch: normal;
+    line-height: 1.1;
+    letter-spacing: 0.1px;
+    color: #555a5d;
+    text-align: left;
+    padding: 3px 5px;
+}
+.pb15 {
+  padding-bottom: 15px;
+}
+.soc-icon-style {
+  margin-left: auto;
+  margin-right: auto;
+  display: table;
+}
+.soc-icon-style {
+  width: 320px;
+}
+.section3 {
+    margin-bottom: 100px !important;
+    font-family: 'Roboto', 'sans-sarif';
+    font-size: 30px;
+    font-weight: 300;
+    font-style: normal;
+    font-stretch: normal;
+    line-height: normal;
+    letter-spacing: 0.3px;
+    text-align: center;
+    color: #4a4a4a;
+    background-color: #fff;
+    width: 90%;
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+.section3 .change-color, .section3 .change-color a:hover, .section3 .change-color a:active, .section3 .change-color a:visited {
+    color: #2e9fbd;
+    text-decoration: none !important;
+    font-size: 38px;
+}
+.welcome-sub-text {
+  color: #252b37;
+  font-size: 22px;
+  margin-top: 10px !important;
+  width: 80%;
+  display: table;
+  margin: 0px auto;
+}
+.section3 .user-name {
+    font-weight: bold;
+}
+.padd-10-15px {
+  padding: 10px 15px;
+}
+.email-id {
+  margin-right: 23px;
+}
+.contact-email1 {
+  padding: 0px 5px 10px 5px;
+  font-size: 20px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  letter-spacing: 0.1px;
+  color: #555a5d;
+  text-align: left;
+}
+/* -------------------------------------------
+		PHONE
+		For clients that support media queries.
+		Nothing fancy.
+-------------------------------------------- */
+@media only screen and (max-width: 600px) {
+
+	a[class="btn"] { display:block!important; margin-bottom:10px!important; background-image:none!important; margin-right:0!important;}
+
+	div[class="column"] { width: auto!important; float:none!important;}
+
+	table.social div[class="column"] {
+		width:auto!important;
+	}
+
+}
+
+</style>
+</head>
+<link rel="stylesheet" type="text/css" href="stylesheets/email.css" />
+
+</head>
+
+<body bgcolor="#FFFFFF" topmargin="0" leftmargin="0" marginheight="0" marginwidth="0">
+
+<img height=300 width=800 src='{{banner}}'/>
+
+<h3> Hello {{event_name}} Attendee</h3>
+
+
+<h4>For your upcoming event {{event_name}}, the organizers are trying out an exciting new App called WizCard.</h4>
+<br>
+
+<h4>WizCard is an App (Android only presently) that promises to make this event, well, Eventful.</h4>
+
+<h4>Using WizCard, you can instantly discover, engage and connect with other attendees, while engaging virtually with the Event content.</h4>
+
+<br>
+<a href='https://play.google.com/store/apps/details?id=com.wizcard.wizcardapp&hl=en&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img align=middle height=100 width=250 alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png'/></a>
+<br>
+<h4>Go ahead, get a head start with knowing more about the event, attendees, speakers and content.</h4>
+<br>
+
+<h4>WizEvent Technologies</h4>
+<hr>
+
+<h5>Note from the founders:</h5>
+<br>
+
+
+<h5>Hello,</h5>
+<br>
+<h5>WizCard is a startup that is attempting to do something unique, useful and disruptive in the Event Technology space. We will be the first to admit that we are not a beautiful butterfly, yet.</h5>
+<h5>While we do hope to get there, our path is a series of incremental steps, each step being better than the previous and worse than the next :-)</h5>
+<br>
+<h5>We would love for you to download, use and most importantly, critique the app.</h5>
+<br>
+
+<h5>We hope you have an eventful day</h5>
+<br>
+<h5>Best</h5>
+<br>
+
+<h5>A&A</h5>
+
+
+</body>
+</html>
