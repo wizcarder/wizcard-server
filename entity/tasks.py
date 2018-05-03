@@ -102,8 +102,9 @@ def create_entities(file, owner, **kwargs):
                     context={'user': owner}
                 )
                 if ser.is_valid():
-                    inst = ser.save()
-                    event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+                    taganomy_inst = ser.save()
+                    event.add_subentity_obj(taganomy_inst, BaseEntityComponent.SUB_ENTITY_CATEGORY)
+                    taganomy_inst.register_object(inst)
                 else:
                     problematic_records.append(str(record_no))
             else:
