@@ -5,12 +5,18 @@ from django.contrib.auth.models import User
 from wizcardship.models import Wizcard
 from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, \
-    BaseEntityComponentManager
+    BaseEntityComponentManager, UserEntity, BaseEntityComponentsOwner
 from base_entity.models import EntityEngagementStats
 from userprofile.signals import user_type_created
-from base.mixins import Base411Mixin, Base412Mixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
+from base.mixins import Base411Mixin, Base412Mixin, PhoneMixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 from taganomy.models import Taganomy
 from django.contrib.contenttypes.models import ContentType
+from notifications.signals import notify
+from wizserver import verbs
+import itertools
+from django.db.models import Q
+import operator
+
 
 import pdb
 
@@ -66,6 +72,9 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
+    def update_state_upon_link_unlink(self):
+        return True
+
     def get_parent_entities(self, **kwargs):
         # no parent for event
         return [self]
@@ -104,6 +113,168 @@ class Event(BaseEntity):
     def send_wizcard_on_access(self):
         return True
 
+    def user_attach(self, user, state, **kwargs):
+        # get PIN out of the way
+        if state == UserEntity.PIN:
+            return super(Event, self).user_attach(user, state, **kwargs)
+
+        # user_attach can come for non-app users as well. Get that out of the way
+        if not user.profile.is_app_user():
+            return super(Event, self).user_attach(user, state, **kwargs)
+
+        # now we're left with Join case for App users: Either invited by Organizer or Joined via app.
+        do_notify = kwargs.get('do_notify')
+        # to track "you have requested access to event" email/push
+        info_push_email = False
+
+        # 1: Check if this user is already an attendee attached to Organizer.
+
+        # although unlikely, and should be actively checked for during creation, what if there
+        # are multiple matching AttendeeInvitees ? Guess the only way is to do the invite flow
+        # for each of them
+        atis = AttendeeInvitee.objects.check_existing_attendee_invitees(user, self.get_creator())
+
+        # 2: If so, go through invite flow for secure event or add directly to event for open event
+        # we use 2 states. one (state) between user<->event (UserEntity) for the app to keep track
+        # and another (invite_state) for the join table between event<->sub-entity. The latter is for portal
+
+        if atis:
+            # do 1st pass to gather invite, join_row for each of them.
+            join_row_list = []
+            for ati in atis:
+                # have they been invited to this event already ?
+                dont_care, tmp_join_row = ati.check_invite_for_event(self)
+                join_row_list.append(tmp_join_row)
+
+            # if atleast one has been already invited, then we will move all invitees to accepted
+            atleast_one_invited = any(item for item in join_row_list)
+
+            # do second_pass
+            for ati, join_row in itertools.izip(atis, join_row_list):
+                if self.secure:
+                    # if anyone is invited, we'll do the same for all
+                    if atleast_one_invited:
+                        invite_state = InviteStateMixin.ACCEPTED
+                        if not join_row:
+                            # can join him directly. But also relate sub-entity
+                            join_row, dont_care = self.add_subentity_obj(
+                                ati,
+                                BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE
+                            )
+                    # no one invited yet
+                    else:
+                        # join user with new state so that app can keep track
+                        state = UserEntity.REQUEST_JOIN
+                        invite_state = InviteStateMixin.REQUESTED
+                        join_row, dont_care = self.add_subentity_obj(
+                            ati,
+                            BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE
+                        )
+                        # we won't notify other joinees about this guy until accepted
+                        do_notify = False
+                        info_push_email = True
+                else:
+                    invite_state = InviteStateMixin.ACCEPTED
+                    if not join_row:
+                        join_row, dont_care = self.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+
+                join_fields = join_row.join_fields
+                join_fields.update(invite_state=invite_state)
+                join_row.join_fields = join_fields
+                join_row.save()
+        else:
+            atleast_one_invited = False
+            # create ATI & attach to Event
+            company, title = user.wizcard.get_latest_cc_fields('company', 'title')
+            ati = AttendeeInvitee.objects.create(
+                entity_type=BaseEntityComponent.ATTENDEE_INVITEE,
+                # there is a get_name method in Wizcard, but roundabout here since it picks it up from user model
+                name=user.first_name + " " + user.last_name,
+                email=user.email,
+                company=company,
+                title=title,
+                phone=user.profile.phone_num_from_username()
+            )
+
+            # set the owner
+            BaseEntityComponentsOwner.objects.create(
+                base_entity_component=ati,
+                owner=self.get_creator(),
+                is_creator=True
+            )
+
+            join_row, dont_care = self.add_subentity_obj(ati, BaseEntityComponent.SUB_ENTITY_ATTENDEE_INVITEE)
+
+            if self.secure:
+                invite_state = InviteStateMixin.REQUESTED
+                ser = BaseEntityComponent.SERIALIZER_L1
+                state = UserEntity.REQUEST_JOIN
+                do_notify = False
+                info_push_email = True
+            else:
+                # can join him directly
+                invite_state = InviteStateMixin.APP_ACCEPTED
+                ser = BaseEntityComponent.SERIALIZER_L2
+
+            join_fields = join_row.join_fields
+            join_fields.update(invite_state=invite_state)
+            join_row.join_fields = join_fields
+            join_row.save()
+
+        kwargs.update(do_notify=do_notify)
+        super(Event, self).user_attach(user, state, **kwargs)
+
+        creator = self.get_creator()
+        if info_push_email:
+            notify.send(
+                creator,
+                recipient=user,
+                notif_tuple=verbs.WIZCARD_INFO,
+                target=self,
+                action_object=user,
+                do_push=True,
+                notification_text=verbs.INFO_NOTIFICATION_TEXT[verbs.EVENT_ACCESS_REQUESTED],
+                force_sync=True
+            )
+
+            notify.send(
+                creator,
+                recipient=user,
+                notif_tuple=verbs.WIZCARD_ENTITY_REQUEST_ATTACH,
+                target=self,
+                action_object=user,
+                do_push=False,
+                force_sync=False
+            )
+
+            notify.send(
+                creator,
+                recipient=creator,
+                notif_tuple=verbs.WIZCARD_ENTITY_APPROVE_ATTENDEE,
+                target=self,
+                action_object=creator,
+                do_push=False,
+                force_sync=False
+            )
+
+        if not self.secure:
+            ser = BaseEntity.entity_ser_from_type_and_level(
+                entity_type=BaseEntityComponent.EVENT,
+                level=BaseEntityComponent.SERIALIZER_L2
+            )
+        elif atleast_one_invited:
+            ser = BaseEntity.entity_ser_from_type_and_level(
+                entity_type=BaseEntityComponent.EVENT,
+                level=BaseEntityComponent.SERIALIZER_L2
+            )
+        else:
+            ser = BaseEntity.entity_ser_from_type_and_level(
+                entity_type=BaseEntityComponent.EVENT,
+                level=BaseEntityComponent.SERIALIZER_L1
+            )
+
+        return ser
+
 
 class CampaignManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.CAMPAIGN):
@@ -132,6 +303,9 @@ class Campaign(BaseEntity):
     is_sponsored = models.BooleanField(default=False)
 
     objects = CampaignManager()
+
+    def update_state_upon_link_unlink(self):
+        return True
 
     def post_connect_remove(self, parent, **kwargs):
         # don't send notif here if is parent is not event.
@@ -215,7 +389,7 @@ class SponsorManager(BaseEntityManager):
         return super(SponsorManager, self).users_entities(user, user_filter=user_filter, entity_filter=entity_filter)
 
 
-class Sponsor(BaseEntity, InviteStateMixin):
+class Sponsor(BaseEntity):
     caption = models.CharField(max_length=50, default='Not Available')
 
     objects = SponsorManager()
@@ -248,22 +422,47 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
             entity_type=entity_type
         )
 
-    def check_existing_users_attendees(self, invitee_ids):
-        matched_users = User.objects.filter(
-            email__in=self.filter(
-                id__in=invitee_ids
-            ).values_list('email', flat=True)
-        )
+    # see if any attendee_invitees exist for the organizer that match this app_user
+    def check_existing_attendee_invitees(self, app_user, organizer_user):
+        qs = self.owners_entities(organizer_user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE)
 
-        matched_attendees = self.filter(
-            email__in=matched_users.values_list('email', flat=True)
-        )
+        # 1. check with phone number
+        phone = app_user.profile.phone_num_from_username()
+        email = app_user.email
 
-        return matched_users, matched_attendees
+        qs = self.all().exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
 
+        qlist = list()
 
-class AttendeeInvitee(BaseEntityComponent, Base411Mixin, CompanyTitleMixin, InviteStateMixin):
+        qlist.append(Q(phone=phone))
+        qlist.append(Q(email=email.lower()))
+
+        return qs.filter(reduce(operator.or_, qlist)).distinct()
+
+class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitleMixin):
     objects = AttendeeInviteeManager()
+
+    # check if any app_users match this attendee_invitee
+    # returns Tuple (True/False, [list of matches of type User])
+    def check_existing_app_users(self):
+        from userprofile.models import AppUser, UserProfile
+        qs = AppUser.objects.all()
+
+        qlist = list()
+        if self.phone:
+            username = UserProfile.objects.username_from_phone_num(self.phone)
+            qlist.append(Q(profile__user__username=username))
+        if self.email:
+            qlist.append(Q(profile__user__email=self.email))
+
+        if qlist:
+            res = qs.filter(reduce(operator.or_, qlist)).distinct()
+            return bool(res), res
+
+        return False, AppUser.objects.none()
+
+    def check_invite_for_event(self, event):
+        return event.has_join_table_row(self), event.get_join_table_row(self)
 
     # no notifs required for this one
     def post_connect_remove(self, parent, **kwargs):
@@ -279,7 +478,7 @@ class ExhibitorInviteeManager(BaseEntityComponentManager):
         )
 
     def check_pending_invites(self, email):
-        return self.filter(email=email, state=ExhibitorInvitee.INVITED)
+        return self.filter(email=email, invite_state=ExhibitorInvitee.INVITED)
 
 
 class ExhibitorInvitee(BaseEntityComponent, Base411Mixin, InviteStateMixin):
@@ -304,6 +503,9 @@ class AgendaManager(BaseEntityComponentManager):
 
 class Agenda(BaseEntityComponent, Base412Mixin):
     objects = AgendaManager()
+
+    def update_state_upon_link_unlink(self):
+        return True
 
     def delete(self, *args, **kwargs):
         type = kwargs.get('type', BaseEntityComponent.ENTITY_DELETE)

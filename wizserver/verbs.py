@@ -120,7 +120,7 @@ NOTIF_NEARBY_FLICKED_WIZCARDS   = 9
 NOTIF_FLICK_TIMEOUT             = 10
 NOTIF_FLICK_PICK                = 11
 NOTIF_WITHDRAW_REQUEST          = 12
-NOTIF_TABLE_INVITE              = 13
+NOTIF_ENTITY_IMPLICIT_ATTACH    = 13
 NOTIF_WIZCARD_FORWARD           = 14
 
 NOTIF_ENTITY_ATTACH             = 15
@@ -138,6 +138,10 @@ NOTIF_INVITE_USER               = 26
 NOTIF_ENTITY_REMINDER           = 27
 NOTIF_INVITE_EXHIBITOR          = 28
 NOTIF_INVITE_ATTENDEE           = 29
+NOTIF_WIZCARD_INFO              = 30
+NOTIF_ENTITY_REQUEST_ATTACH     = 31
+NOTIF_ENTITY_APPROVE_ATTENDEE   = 32
+
 
 NOTIF_OPERATION_CREATE = 'C'
 NOTIF_OPERATION_DELETE = 'D'
@@ -199,9 +203,9 @@ WIZCARD_UPDATE_FULL         = (NOTIF_UPDATE_WIZCARD_F, 'wizcard update', True, T
 WIZCARD_UPDATE_HALF         = (NOTIF_UPDATE_WIZCARD_H, 'wizcard update half', False, True)
 WIZCARD_FLICK_TIMEOUT       = (NOTIF_FLICK_TIMEOUT, 'flick timeout', True, False)
 WIZCARD_FLICK_PICK          = (NOTIF_FLICK_PICK, 'flick pick', True, False)
-WIZCARD_TABLE_INVITE        = (NOTIF_TABLE_INVITE, 'table invite', True, False)
 WIZCARD_FORWARD             = (NOTIF_WIZCARD_FORWARD, 'wizcard forward', True, False)
 WIZCARD_ENTITY_ATTACH       = (NOTIF_ENTITY_ATTACH, 'entity join', False, True)
+WIZCARD_ENTITY_IMPLICIT_ATTACH = (NOTIF_ENTITY_IMPLICIT_ATTACH, 'Event Announcement', False, False)
 WIZCARD_ENTITY_DETACH       = (NOTIF_ENTITY_DETACH, 'entity leave', False, True)
 WIZCARD_RECO_READY          = (NOTIF_NEW_RECO, 'new recommendations ready', True, False)
 WIZCARD_ENTITY_UPDATE       = (NOTIF_ENTITY_UPDATE, 'event_updated', True, True)
@@ -214,6 +218,10 @@ WIZCARD_INVITE_USER         = (NOTIF_INVITE_USER, 'invite_user', False, True)
 WIZCARD_INVITE_EXHIBITOR    = (NOTIF_INVITE_EXHIBITOR, 'invite_exhibitor', False, True)
 WIZCARD_INVITE_ATTENDEE     = (NOTIF_INVITE_ATTENDEE, 'invite_attendee', False, True)
 WIZCARD_ENTITY_BROADCAST    = (NOTIF_ENTITY_BROADCAST, 'event broadcast', True, True)
+WIZCARD_INFO                = (NOTIF_WIZCARD_INFO, 'Message: {0.name}', True, False)
+WIZCARD_ENTITY_APPROVE_ATTENDEE = (NOTIF_ENTITY_APPROVE_ATTENDEE, 'approve attendee', False, False)
+WIZCARD_ENTITY_REQUEST_ATTACH = (NOTIF_ENTITY_REQUEST_ATTACH, 'entity Request', False, True)
+
 
 def get_notif_type(ntuple):
     return ntuple[0]
@@ -246,9 +254,12 @@ notif_type_tuple_dict = {
 EMAIL_TEMPLATE_MAPPINGS = {
     NOTIF_NEW_WIZUSER: {"template": "welcome.html", "subject": "Welcome %s to WizCard"},
     NOTIF_SCANNED_USER: {"template": "emailwizcard.html", "subject": "%s has scanned your card on WizCard"},
-    NOTIF_INVITE_ATTENDEE: {"template": "invite_attendee.html", "subject": "%s - has invited you to Create your Campaign"},
-    NOTIF_INVITE_EXHIBITOR: {"template": "invite_exhibitor.html", "subject": "%s - Welcome to %s"},
+    NOTIF_INVITE_ATTENDEE: {"template": "invite_attendee.html", "subject": "%s - Invite Waiting for you!!"},
+    NOTIF_INVITE_EXHIBITOR: {"template": "invite_exhibitor.html", "subject": "%s - Invites you to create a Campaign"},
     NOTIF_INVITE_USER: {"template": "emailwizcard.html", "subject": "%s has invited you to Connect on WizCard"},
+    NOTIF_ENTITY_REQUEST_ATTACH: {"template": "event_attendee_request.html", "subject": "%s - One Step Away - Pending Approval"},
+    NOTIF_ENTITY_APPROVE_ATTENDEE: {"template": "event_attendee_approve.html", "subject": "%s wants to join %s - Pending Approval"}
+
 }
 
 
@@ -307,6 +318,12 @@ apns_notification_dictionary = {
         'title': 'Event announcement',
         'message': 'Message from {1.name} - {3}'
     },
+    get_notif_type(WIZCARD_INFO): {
+        'sound': 'flynn.caf',
+        'badge': 0,
+        'title': 'WizCard Informational Message',
+        'message': 'Message from {1.name}'
+    },
 }
 
 def get_apns_dict(notif_type):
@@ -350,3 +367,10 @@ feed_errors = {
 
 }
 
+EVENT_ACCESS_REQUESTED = 1
+EVENT_ACCESS_GRANTED = 2
+
+INFO_NOTIFICATION_TEXT = {
+    EVENT_ACCESS_REQUESTED  : "Your request for Access to Event {0.name} has been requested",
+    EVENT_ACCESS_GRANTED    : "You have been granted acess to Event {0.name}"
+}

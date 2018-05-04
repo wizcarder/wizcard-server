@@ -847,9 +847,9 @@ class ExhibitorInviteeSerializer(EntitySerializer):
 
     class Meta:
         model = ExhibitorInvitee
-        fields = ('id', 'name', 'email', 'state',)
+        fields = ('id', 'name', 'email', 'invite_state',)
 
-    state = serializers.ChoiceField(
+    invite_state = serializers.ChoiceField(
         choices=ExhibitorInvitee.INVITE_CHOICES,
         required=False,
         read_only=True,
@@ -872,13 +872,13 @@ class AttendeeInviteeSerializer(EntitySerializer):
 
     class Meta:
         model = AttendeeInvitee
-        fields = ('id', 'name', 'email', 'state',)
+        fields = ('id', 'entity_type', 'name', 'email', 'phone', 'invite_state',)
 
-    state = serializers.ChoiceField(
-        choices=AttendeeInvitee.INVITE_CHOICES,
-        required=False,
-        read_only=True,
-    )
+    invite_state = serializers.SerializerMethodField()
+
+    def get_invite_state(self, obj):
+        join_field = self.get_join_fields(obj)
+        return join_field.get('invite_state') if join_field else obj.entity_state
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.ATTENDEE_INVITEE)

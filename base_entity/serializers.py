@@ -130,12 +130,7 @@ class EntitySerializer(EntitySerializerL0):
 
     def get_join_fields(self, obj):
         parent = self.context.get('parent')
-        # get join table row. There should be only a single row.
-        value = parent.get_sub_entities_gfk_of_type(
-            object_id=obj.id,
-            alias=BaseEntityComponent.sub_entity_type_from_entity_type(obj.entity_type)
-        ).values_list('join_fields', flat=True).get() if parent else {}
-        return value
+        return parent.get_join_table_row(obj).join_fields if parent else {}
 
     def prepare(self, validated_data):
         self._owners = validated_data.pop('owners', None)
@@ -174,7 +169,9 @@ class EntitySerializer(EntitySerializerL0):
         if hasattr(self, '_tags') and self._tags:
             taganomy = self._tags['taganomy']
             tags = self._tags['tags']
+
             taganomy.register_object(entity)
+
             taganomy.tags.add(*tags)
             entity.tags.set(*tags)
 

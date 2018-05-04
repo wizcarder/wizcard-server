@@ -137,3 +137,4 @@ vine==1.1.4
 vobject==0.9.5
 wcwidth==0.1.7
 zope.interface==4.4.3
+django-amazon-ses
