@@ -25,7 +25,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
 from userprofile.signals import user_type_created
-from base_entity.models import UserEntity, BaseEntityComponent
+from base_entity.models import UserEntity, BaseEntityComponent, BaseEntityComponentsOwner
 import uuid
 import string
 import random
@@ -375,6 +375,20 @@ class AppUser(BaseUser):
         # This way, these notifs will be sent natively via get_cards
         SyncNotification.objects.unacted(self.profile.user).update(readed=False)
         return s
+
+    def connect_subentities(self):
+        # future user stuff
+
+        # 1. any campaigns I'm the owner for ?
+        cpgs = BaseEntityComponentsOwner.match_user(self.profile.user, BaseEntityComponent.CAMPAIGN)
+        for cpg in cpgs:
+            BaseEntityComponentsOwner.objects.get_or_create(
+                base_entity_component=Campaign.objects.get(id=cpg),
+                owner=self,
+                defaults={
+                    'is_creator': False
+                }
+            )
 
 
 class WebOrganizerUser(BaseUser):

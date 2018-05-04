@@ -724,6 +724,13 @@ class BaseEntityComponentsOwner(models.Model):
     class Meta:
         unique_together = (("base_entity_component", "owner"),)
 
+    @classmethod
+    def match_user(cls, user, entity_type):
+        return cls.objects.filter(
+            owner__email=user.email,
+            base_entity_component__entity_type=entity_type
+        ).values_list('base_entity_component', flat=True)
+
 
 class BaseEntity(BaseEntityComponent, Base414Mixin):
     secure = models.BooleanField(default=False)
