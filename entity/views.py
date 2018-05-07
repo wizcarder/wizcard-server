@@ -32,6 +32,7 @@ from wizcardship.models import Wizcard
 from userprofile.models import WebExhibitorUser
 from notifications.serializers import notify
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 import pdb
 
 
@@ -259,7 +260,7 @@ class ExhibitorViewSet(BaseEntityViewSet):
         f = open(fname, "w")
         f.write(header)
         for q in queryset:
-            record = '\t'.join([str(q.id), q.name, q.description, q.address, q.phone, q.website, "", "", q.email])
+            record = '\t'.join([q.name, q.description, q.address, q.phone, q.website, "", "", q.email])
             record = record + "\n"
             f.write(record)
 
@@ -710,7 +711,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
             if serializer.is_valid():
                 inst = serializer.save()
-                inst.tags.set(*tags)
+                inst.tags.add(*tags)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -741,7 +742,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
-        header = "#id\tname\tdescription\taddress\tphone\twebsite\ttags\tvenue\temail\n"
+        header = "#name\tdescription\taddress\tphone\twebsite\ttags\tvenue\temail\n"
 
         f = open(fname, "w")
         f.write(header)
@@ -752,7 +753,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             venue = join_field['venue'] if 'venue' in join_field else ""
 
             tags = ",".join(list(q.tags.names()))
-            record = '\t'.join([q.id, q.name, q.description, q.address, q.phone, q.website, tags, venue, q.email])
+            record = '\t'.join([q.name, q.description, q.address, q.phone, q.website, tags, venue, q.email])
             record += "\n"
             f.write(record)
 
@@ -1784,7 +1785,8 @@ class FileDownloader(views.APIView):
 
     def get(self, request, format=None):
 
-        fname = "/tmp/exhibitors_event.tsv"
+        template_dir = settings.TEMPLATES[0]['DIRS'][0]
+        fname = template_dir + "/" + settings.EXHIBITOR_TEMPLATE
 
         f = open(fname, "rb")
         response = HttpResponse(f, content_type='text/tab-separated-values')

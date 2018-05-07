@@ -583,3 +583,4 @@ feed_schemas = {
     "CMP": ["name", "email", "phone", "website", "venue"],
     "ATI": ["name", "email", "company" , "title"],
 }
+EXHIBITOR_TEMPLATE = "event_exhibitors.tsv"
