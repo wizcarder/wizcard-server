@@ -527,6 +527,8 @@ class AgendaItem(BaseEntity):
         return self.agenda_key.get_parent_entities(**kwargs)
 
     def delete(self, *args, **kwargs):
+        # clear related join table
+        self.related.all().delete()
         super(AgendaItem, self).delete(*args, **kwargs)
 
 
