@@ -379,15 +379,14 @@ class AppUser(BaseUser):
     def connect_subentities(self):
         # future user stuff
 
+        user = self.profile.user
         # 1. any campaigns I'm the owner for ?
         cpgs = BaseEntityComponentsOwner.match_user(self.profile.user, BaseEntityComponent.CAMPAIGN)
         for cpg in cpgs:
-            BaseEntityComponentsOwner.objects.get_or_create(
+            BaseEntityComponentsOwner.objects.create(
                 base_entity_component=Campaign.objects.get(id=cpg),
-                owner=self,
-                defaults={
-                    'is_creator': False
-                }
+                owner=user,
+                is_creator=True
             )
 
 

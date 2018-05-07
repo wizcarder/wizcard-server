@@ -686,7 +686,11 @@ class CampaignSerializer(VanillaCampaignSerializer):
 
     def post_create_update(self, instance, update=False):
         if not update:
-            # add any wizcard users who have this owners email, as a scan owner
+            # add any wizcard users who have this owners email, as a scan owner. There is an issue here. What if
+            # we find multiple matches ? We use email wily-nily...but we're not validating email. Thus anyone
+            # is free to add any email they want and we'll end up making them a scan owner. The only way is to
+            # validate email during app signup. If we do that, we would expect to get only 1 user here.
+            # This would automatically happen when/if we move to using email for login in the app as well.
             user = self.context.get('user')
             owners = Wizcard.objects.filter(user__email=user.email)
             # a little sneaky here. add_owners adds it as owner.user. Used that
