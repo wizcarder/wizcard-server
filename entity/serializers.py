@@ -20,6 +20,7 @@ from taggit_serializer.serializers import TagListSerializerField, TaggitSerializ
 from taganomy.serializers import TaganomySerializerField
 from taganomy.models import Taganomy
 from lib.wizlib import get_dates_between
+from wizcardship.models import Wizcard
 from time import strftime
 import pdb
 
@@ -682,6 +683,18 @@ class CampaignSerializer(VanillaCampaignSerializer):
         self.post_create_update(instance, update=True)
 
         return obj
+
+    def post_create_update(self, instance, update=False):
+        if not update:
+            # add any wizcard users who have this owners email, as a scan owner
+            user = self.context.get('user')
+            owners = Wizcard.objects.filter(user__email=user.email)
+            # a little sneaky here. add_owners adds it as owner.user. Used that
+            # to sneak in a wizcard into the param since wizcard.user is what we're
+            # looking for
+            BaseEntityComponent.add_owners(instance, owners)
+
+        super(CampaignSerializer, self).post_create_update(instance, update=update)
 
 
 class TableSerializerL1(EntitySerializer):
