@@ -133,6 +133,12 @@ class BaseNotification(models.Model):
 
         if operation == verbs.NOTIF_OPERATION_CREATE:
             from base_entity.models import BaseEntityComponent
+
+            if not self.action_object:
+                # I believe this will happen only if the entity was deleted
+                # subsequently and all the notifs are piled up for this user
+                return None
+
             ser = BaseEntityComponent.entity_ser_from_type_and_level(
                 self.action_object.entity_type,
                 level=BaseEntityComponent.SERIALIZER_L2
