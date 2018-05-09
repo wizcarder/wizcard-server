@@ -258,7 +258,7 @@ class ExhibitorViewSet(BaseEntityViewSet):
         fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
         header = "#id\tname\tdescription\taddress\tphone\twebsite\ttags\tvenue\temail\n"
 
-        f = open(fname, "w", encoding='utf-8')
+        f = open(fname, "w")
         f.write(header)
         for q in queryset:
             record = '\t'.join([q.name, q.description, q.address, q.phone, q.website, "", "", q.email])
@@ -266,7 +266,7 @@ class ExhibitorViewSet(BaseEntityViewSet):
             f.write(record)
 
         f.close()
-        f = open(fname, "rb", encoding='utf-8')
+        f = open(fname, "rb")
 
         response = HttpResponse(f, content_type='text/tab-separated-values')
         response['Content-Disposition'] = 'attachment; filename="exhibitors.tsv"'
@@ -744,7 +744,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         fname = timezone.now().strftime("/tmp/%Y%b%d%H%m%s.tsv")
         header = "#name\tdescription\taddress\tphone\twebsite\ttags\tvenue\temail\n"
 
-        f = open(fname, "w", encoding='utf-8')
+        f = open(fname, "w")
         f.write(header)
 
         for q in queryset:
@@ -758,7 +758,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             f.write(record)
 
         f.close()
-        f = open(fname, "rb", encoding='utf-8')
+        f = open(fname, "rb")
 
         response = HttpResponse(f, content_type='text/tab-separated-values')
         response['Content-Disposition'] = 'attachment; filename="exhibitors.tsv"'
@@ -1789,7 +1789,7 @@ class FileDownloader(views.APIView):
         template_dir = settings.TEMPLATES[0]['DIRS'][0]
         fname = template_dir + "/" + settings.EXHIBITOR_TEMPLATE
 
-        f = open(fname, "rb", encoding='utf-8')
+        f = open(fname, "rb")
         response = HttpResponse(f, content_type='text/tab-separated-values')
         response['Content-Disposition'] = 'attachment; filename="%s"' % fname
         return response
