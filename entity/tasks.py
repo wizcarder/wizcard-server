@@ -1,6 +1,10 @@
 import logging
 
+
 from celery import task
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 from entity.models import Event
 from entity.models import Campaign
@@ -9,6 +13,7 @@ from wizserver.verbs import feed_schemas, FEED_SEPERATOR
 from base_entity.models import BaseEntityComponent
 from entity.serializers import TaganomySerializer
 import pdb
+from django.utils.encoding import smart_str, smart_bytes
 
 
 logger = logging.getLogger(__name__)
@@ -58,10 +63,9 @@ def create_entities(file, owner, **kwargs):
             problematic_records.append(str(record_no))
             continue
 
-        existing_entities = cls.objects.owners_entities(owner)
 
         for i in range(0, schema_fields_len):
-            ser_data[schema[i]] = arr[i]
+            ser_data[schema[i]] = smart_str(arr[i], encoding='utf-8')
 
         inst = cls.objects.get_existing_entity(ser_data['name'], ser_data['email'], owner)
 
@@ -69,11 +73,13 @@ def create_entities(file, owner, **kwargs):
         taglist = taglist + temp_tags
         venue = ser_data.pop('venue', "")
 
+
         if inst:
             ser = VanillaCampaignSerializer(inst, data=ser_data, context={'user': owner}, partial=True)
         else:
          # Ideally we can do many=True but we also want to point out faulty records
             ser = VanillaCampaignSerializer(data=ser_data, context={'user': owner})
+        print line
         if ser.is_valid():
             inst = ser.save()
             if event_id:

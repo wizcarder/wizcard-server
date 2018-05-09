@@ -1,5 +1,8 @@
 __author__ = 'aammundi'
 from random import sample
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 from rest_framework import serializers
 from entity.models import Event, Campaign, VirtualTable
