@@ -79,7 +79,6 @@ def create_entities(file, owner, **kwargs):
         else:
          # Ideally we can do many=True but we also want to point out faulty records
             ser = VanillaCampaignSerializer(data=ser_data, context={'user': owner})
-        print line
         if ser.is_valid():
             inst = ser.save()
             if event_id:
