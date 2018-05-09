@@ -246,6 +246,10 @@ class SyncNotifResponse(ResponseN):
     def notifEntity(self, notif):
         if notif.target and notif.target.is_active():
             out = notif.build_response_dict()
+            if not out:
+                # I think return nothing should be ok sine it'll not anything to
+                # notif dict.
+                return
             self.add_data_and_seq_with_notif(out, notif.notif_type, notif.id)
 
         return self.response

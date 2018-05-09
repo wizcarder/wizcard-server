@@ -527,6 +527,17 @@ class AgendaItem(BaseEntity):
         return self.agenda_key.get_parent_entities(**kwargs)
 
     def delete(self, *args, **kwargs):
+        # clear related join table
+        self.related.all().delete()
+
+        # have to trigger notif from here since this is not coming via
+        # the add_remove_subentity path
+        BaseEntityComponent.objects.notify_via_entity_parent(
+            self,
+            verbs.WIZCARD_ENTITY_DELETE,
+            verbs.NOTIF_OPERATION_DELETE
+        )
+
         super(AgendaItem, self).delete(*args, **kwargs)
 
 

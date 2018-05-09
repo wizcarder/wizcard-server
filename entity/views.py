@@ -684,7 +684,6 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
             'parent': event
         }
 
-
         join_fields = request.data.pop('join_fields') if 'join_fields' in request.data else {}
         tags = request.data.pop('tags', [])
 
