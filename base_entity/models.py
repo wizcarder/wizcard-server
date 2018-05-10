@@ -719,7 +719,7 @@ class BaseEntityComponent(PolymorphicModel):
 class BaseEntityComponentsOwner(models.Model):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
     owner = models.ForeignKey(User)
-    is_creator = models.BooleanField(default=True)
+    is_creator = models.BooleanField(default=False)
 
     class Meta:
         unique_together = (("base_entity_component", "owner"),)

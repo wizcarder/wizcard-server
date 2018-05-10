@@ -386,7 +386,6 @@ class AppUser(BaseUser):
             BaseEntityComponentsOwner.objects.create(
                 base_entity_component=Campaign.objects.get(id=cpg),
                 owner=user,
-                is_creator=True
             )
 
 
