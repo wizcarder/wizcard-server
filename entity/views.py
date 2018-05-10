@@ -34,6 +34,7 @@ from notifications.serializers import notify
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 import pdb
+import codecs
 
 
 # Create your views here.
@@ -1767,11 +1768,12 @@ class FileUploader(views.APIView):
     def post(self, request, filename, format=None):
         myargs = {}
         file_obj = request.data['file']
+        utf_file = codecs.EncodedFile(file_obj, "utf-8")
         owner = request.user
         myargs['type'] = request.data.get('data_type', BaseEntityComponent.CAMPAIGN)
         myargs['event'] = request.data.get('event', None)
 
-        result = create_entities(file_obj, owner, **myargs)
+        result = create_entities(utf_file, owner, **myargs)
 
         returnmesg = "All records uploaded successfully" if not result[1] \
             else "%s Succeeded, Check Lines %s that Failed" % (str(result[0]), result[1])
