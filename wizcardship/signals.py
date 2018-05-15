@@ -2,6 +2,8 @@ from django.dispatch import Signal
 from lib import wizlib
 import logging
 
+wizcard_created = Signal()
+
 wizcardship_accepted = Signal()
 
 

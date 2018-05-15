@@ -187,7 +187,6 @@ class UserProfile(PolymorphicModel):
 
         self.save()
 
-        # things like future user etc can be done here.
         user_type_created.send(sender=self, user_type=user_type)
         return user_obj
 
@@ -377,16 +376,7 @@ class AppUser(BaseUser):
         return s
 
     def connect_subentities(self):
-        # future user stuff
-
-        user = self.profile.user
-        # 1. any campaigns I'm the owner for ?
-        cpgs = BaseEntityComponentsOwner.match_user(self.profile.user, BaseEntityComponent.CAMPAIGN)
-        for cpg in cpgs:
-            BaseEntityComponentsOwner.objects.create(
-                base_entity_component=Campaign.objects.get(id=cpg),
-                owner=user,
-            )
+        pass
 
 
 class WebOrganizerUser(BaseUser):
@@ -664,3 +654,11 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 
 post_save.connect(create_user_profile, sender=User, dispatch_uid="users-profilecreation-signal")
+
+from django.dispatch import receiver
+
+@receiver(user_type_created)
+def connect_subentities(sender, **kwargs):
+    # AA: Review. What happens when multiple user_types exist for User
+    b_usr = sender.get_baseuser_by_type(kwargs.pop('user_type'))
+    b_usr.connect_subentities()

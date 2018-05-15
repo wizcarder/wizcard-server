@@ -27,15 +27,14 @@ router.register(r'sponsors', SponsorViewSet, base_name='sponsors')
 router.register(r'media', MediaEntitiesViewSet, base_name='media')
 router.register(r'exhibitors', ExhibitorViewSet, base_name='exhibitors')
 router.register(r'attendees', AttendeeViewSet, base_name='attendees')
-router.register(r'owners', CoOwnerViewSet, base_name='owners')
 router.register(r'taganomy', TaganomyViewSet, base_name='taganomy')
 router.register(r'agenda', AgendaViewSet, base_name='agenda')
-router.register(r'coowner', CoOwnerViewSet, base_name='coowner')
 agenda_item_router = routers.NestedSimpleRouter(router, r'agenda', lookup='agenda')
 agenda_item_router.register(r'agenda_item', AgendaItemViewSet, base_name='agenda-item')
 
 # Exhibitor End-points
 router.register(r'exhibitor_events', ExhibitorEventViewSet, base_name='exhibitor_events')
+router.register(r'coowners', CoOwnerViewSet, base_name='owners')
 router.register(r'campaigns', CampaignViewSet, base_name='campaigns')
 campaigns_router = routers.NestedSimpleRouter(router, r'campaigns', lookup='campaigns')
 campaigns_router.register(r'media', CampaignMediaViewSet, base_name='campaign-media')
@@ -49,7 +48,6 @@ events_router.register(r'speakers', EventSpeakerViewSet, base_name='event-speake
 events_router.register(r'sponsors', EventSponsorViewSet, base_name='event-sponsor')
 events_router.register(r'media', EventMediaViewSet, base_name='event-media')
 events_router.register(r'attendees', EventAttendeeViewSet, base_name='event-attendees')
-events_router.register(r'coowner', EventCoOwnerViewSet, base_name='event-coowners')
 events_router.register(r'agenda', EventAgendaViewSet, base_name='event-agenda')
 events_router.register(r'poll', EventPollViewSet, base_name='event-poll')
 events_router.register(r'notification', EventNotificationViewSet, base_name='event-notification')
@@ -62,7 +60,7 @@ events_router.register(r'campaigns', EventCampaignViewSet, base_name='event-camp
 
 campaigns_router = routers.NestedSimpleRouter(router, r'campaigns', lookup='campaigns')
 campaigns_router.register(r'media', CampaignMediaViewSet, base_name='campaign-media')
-campaigns_router.register(r'coowner', CampaignCoOwnerViewSet, base_name='campaign-coowner')
+campaigns_router.register(r'coowners', CampaignCoOwnerViewSet, base_name='campaign-coowner')
 
 
 urlpatterns = [

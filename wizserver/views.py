@@ -59,6 +59,7 @@ from media_components.signals import media_create
 from polls.models import Poll, UserResponse
 from scan.serializers import ScannedEntitySerializer
 from base_entity.models import UserEntity
+from wizcardship.signals import wizcard_created
 
 import pdb
 
@@ -1012,15 +1013,6 @@ class ParseMsgAndDispatch(object):
                 action_object=rel21
             )
 
-        # check if futureUser states exist for this phone or email
-        future_users = FutureUser.objects.check_future_user(wizcard.email, wizcard.phone)
-
-        for f in future_users:
-            f.generate_self_invite(self.user)
-
-        if future_users.count():
-            future_users.delete()
-
         # flood to contacts
         if modify:
             wizcard.flood()
@@ -1033,6 +1025,8 @@ class ParseMsgAndDispatch(object):
                 target=wizcard,
             )
 
+            # future user stuff should ideally be done here
+            wizcard_created.send(sender=wizcard)
         self.response.add_data("wizcard", WizcardSerializerL2(wizcard).data)
         return self.response
 
@@ -2455,8 +2449,14 @@ class ParseMsgAndDispatch(object):
 
         # get the campaigns this user is owner for
 
-        # AA: TODO filter by active campaigns. For this, need to do the **kwargs thing in owners_entities
-        campaigns = BaseEntityComponent.objects.owners_entities(self.user, BaseEntityComponent.CAMPAIGN)
+        # 1. Any co-owner object associated with me ?
+        if hasattr(self.user, 'coowner_for'):
+            co_owner = self.user.coowner_for
+        else:
+            self.response.error_response(err.SCAN_USER_AUTH_ERROR)
+            return self.response
+
+        campaigns = co_owner.get_parent_entities()
 
         # though this can accept scans in bulk, they all need to have the same event_id, otherwise things
         # will get wonky. We will just pick the event from the 1st entry
@@ -2467,7 +2467,9 @@ class ParseMsgAndDispatch(object):
             return self.response
 
         # get the specific campaign associated with this event.
-        campaign_set = set([c for c in campaigns if event in c.get_parent_entities()])
+        campaign_set = set([c for c in campaigns if event in c.get_parent_entities() and
+                            c.entity_state == BaseEntityComponent.ENTITY_STATE_PUBLISHED
+                            and event.entity_state == BaseEntityComponent.ENTITY_STATE_PUBLISHED])
         if not bool(campaign_set):
             self.response.error_response(err.SCAN_USER_AUTH_ERROR)
             return self.response

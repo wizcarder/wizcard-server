@@ -7,7 +7,6 @@ from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, \
     BaseEntityComponentManager, UserEntity, BaseEntityComponentsOwner
 from base_entity.models import EntityEngagementStats
-from userprofile.signals import user_type_created
 from base.mixins import Base411Mixin, Base412Mixin, PhoneMixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
 from taganomy.models import Taganomy
 from django.contrib.contenttypes.models import ContentType
@@ -404,8 +403,13 @@ class CoOwnersManager(BaseEntityComponentManager):
 
 
 class CoOwners(BaseEntityComponent):
+    BITMAP_BASE = 0
+    BITMAP_ALLOW_SCAN = 1
+    BITMAP_ALLOW_MANAGE = BITMAP_ALLOW_SCAN << 1
+
     # the user model for this guy
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, related_name='coowner_for')
+    permission_bitmap = models.IntegerField(default=BITMAP_ALLOW_SCAN)
 
     objects = CoOwnersManager()
 
@@ -413,6 +417,13 @@ class CoOwners(BaseEntityComponent):
     def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)
         return super(CoOwners, self).post_connect_remove(parent, **kwargs)
+
+    @classmethod
+    # take an app users email and see if I have anything matching this email.
+    # note that the matched coowner object will actually have the exhibitor_user
+    # personality linked to it, not the app_user.
+    def match_user(cls, user):
+        return cls.objects.filter(user__email=user.email)
 
 
 class AttendeeInviteeManager(BaseEntityComponentManager):
@@ -554,11 +565,4 @@ def create_engagement_stats(sender, instance, created, **kwargs):
         e = EntityEngagementStats.objects.create()
         instance.engagements = e
         instance.save()
-
-
-@receiver(user_type_created)
-def connect_subentities(sender, **kwargs):
-    # AA: Review. What happens when multiple user_types exist for User
-    b_usr = sender.get_baseuser_by_type(kwargs.pop('user_type'))
-    b_usr.connect_subentities()
 

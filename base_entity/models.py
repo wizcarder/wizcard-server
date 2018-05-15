@@ -716,20 +716,13 @@ class BaseEntityComponent(PolymorphicModel):
         }
         return entity_to_push_name_str[self.entity_type] if self.entity_type in entity_to_push_name_str else " "
 
-class BaseEntityComponentsOwner(models.Model):
+class BaseEntityComponentsOwner(PolymorphicModel):
     base_entity_component = models.ForeignKey(BaseEntityComponent)
     owner = models.ForeignKey(User)
     is_creator = models.BooleanField(default=False)
 
     class Meta:
         unique_together = (("base_entity_component", "owner"),)
-
-    @classmethod
-    def match_user(cls, user, entity_type):
-        return cls.objects.filter(
-            owner__email=user.email,
-            base_entity_component__entity_type=entity_type
-        ).values_list('base_entity_component', flat=True)
 
 
 class BaseEntity(BaseEntityComponent, Base414Mixin):

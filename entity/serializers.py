@@ -23,6 +23,7 @@ from taggit_serializer.serializers import TagListSerializerField, TaggitSerializ
 from taganomy.serializers import TaganomySerializerField
 from taganomy.models import Taganomy
 from lib.wizlib import get_dates_between
+from entity.models import BaseEntityComponentsOwner
 from wizcardship.models import Wizcard
 from time import strftime
 import pdb
@@ -570,7 +571,7 @@ class CampaignSerializerL2(EntitySerializer):
         if obj.is_sponsored:
             venue_obj = obj.get_parent_entities_by_contenttype_id(
                 BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.CAMPAIGN)
-            )[0]
+            ).get()
         else:
             venue_obj = obj
 
@@ -628,23 +629,26 @@ class VanillaCampaignSerializer(EntitySerializer):
 
 # this is used by Exhibitor REST API
 
-class CampaignSerializer(VanillaCampaignSerializer):
+# note: Lets not inherit from VanillaCampaignSerializer since it causes some
+# re-entry issues during create/update because super.create ends up calling create of
+# VanillaSerializer which then ends up executing post_create_update there as well...
+class CampaignSerializer(EntitySerializer):
     def __init__(self, *args, **kwargs):
         super(CampaignSerializer, self).__init__(*args, **kwargs)
-        remove_fields = ['related_campaigns', ]
+        remove_fields = ['user_state',]
 
         for field_name in remove_fields:
             self.fields.pop(field_name)
 
     class Meta:
         model = Campaign
-        my_fields = ('scans', 'events', 'is_sponsored')
-        fields = VanillaCampaignSerializer.Meta.fields + my_fields
+        my_fields = ('tags', 'taganomy', 'scans', 'events', 'is_sponsored')
+        fields = EntitySerializer.Meta.fields + my_fields
 
     is_sponsored = serializers.BooleanField(required=False, default=True)
     scans = serializers.SerializerMethodField()
     events = serializers.SerializerMethodField()
-
+    venue = serializers.SerializerMethodField()
     # this is write tags
     taganomy = TaganomySerializerField(required=False, write_only=True)
     # this is to read tags
@@ -689,17 +693,41 @@ class CampaignSerializer(VanillaCampaignSerializer):
 
     def post_create_update(self, instance, update=False):
         if not update:
-            # add any wizcard users who have this owners email, as a scan owner. There is an issue here. What if
-            # we find multiple matches ? We use email wily-nily...but we're not validating email. Thus anyone
-            # is free to add any email they want and we'll end up making them a scan owner. The only way is to
-            # validate email during app signup. If we do that, we would expect to get only 1 user here.
-            # This would automatically happen when/if we move to using email for login in the app as well.
             user = self.context.get('user')
             owners = Wizcard.objects.filter(user__email=user.email)
-            # a little sneaky here. add_owners adds it as owner.user. Used that
-            # to sneak in a wizcard into the param since wizcard.user is what we're
-            # looking for
-            BaseEntityComponent.add_owners(instance, owners)
+
+            if not owners:
+                # add the campaign creator as an implicit scan coowner based on email.
+
+                # important note: CoOwner needs a user pointer. However, the user given
+                # here is not really the actual user who will be eventually added to the campaign
+                # as a scanner. This is because it's really the AppUser we want. But the AppUser in
+                # this case is not yet created. We're only putting this (exhibitor) user here as a
+                # future user case. The other option is to create a new model (or reuse and point to FutureUser)
+                # with a GFK type thing in CoOwner (probably the cleanest way).
+                # Anyway, with the current approach, we will need to update this CoOwner instance, upon
+                # finding a match, with the actual AppUser with whom the match is found.
+                coo, created = CoOwners.objects.get_or_create(user=user)
+                if created:
+                    # add owner
+                    BaseEntityComponentsOwner.objects.create(
+                        base_entity_component=coo,
+                        owner=user,
+                        is_creator=True
+                    )
+                instance.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
+            else:
+                for o in owners:
+                    coo, created = CoOwners.objects.get_or_create(user=o.user)
+                    if created:
+                        # add owner
+                        BaseEntityComponentsOwner.objects.create(
+                            base_entity_component=coo,
+                            owner=user,
+                            is_creator=True
+                        )
+
+                    instance.add_subentity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
 
         super(CampaignSerializer, self).post_create_update(instance, update=update)
 

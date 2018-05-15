@@ -41,6 +41,7 @@ from lib.ocr import OCR
 from base.mixins import CompanyTitleMixin
 from genericm2m.models import RelatedObjectsDescriptor
 from operator import attrgetter
+from wizcardship.signals import wizcard_created
 from notifications.models import BaseNotification
 
 logger = logging.getLogger(__name__)
@@ -717,6 +718,36 @@ class UserBlocks(models.Model):
 
 
 # Signal connections
+from django.dispatch import receiver
+
+@receiver(wizcard_created)
+def connect_subentities(sender, **kwargs):
+    from userprofile.models import FutureUser
+
+    # legacy future user stuff.
+    # check if futureUser states exist for this phone or email
+    future_users = FutureUser.objects.check_future_user(sender.email, sender.phone)
+
+    for f in future_users:
+        f.generate_self_invite(sender.user)
+
+    if future_users.count():
+        future_users.delete()
+
+    # See if there are any CoOwners that match me.
+    # note that these CoOwners are really exhibitor_users with whom my
+    # email matches.
+    from entity.models import CoOwners
+    user = sender.user
+
+    matched_coowner_qs = CoOwners.match_user(user)
+    if matched_coowner_qs:
+        # there is something wrong if there is more than 1 match!!
+        matched_coowner = matched_coowner_qs.get()
+
+        # update the user inside coowner object with me as the user.
+        matched_coowner.user = user
+        matched_coowner.save()
 
 #models.signals.post_save.connect(signals.create_wizcardship_instance,
 #                                 sender=User,

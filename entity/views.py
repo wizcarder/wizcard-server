@@ -62,6 +62,16 @@ class ExhibitorEventViewSet(BaseEntityViewSet):
         return queryset
 
 
+class CoOwnerViewSet(BaseEntityComponentViewSet):
+    queryset = CoOwners.objects.all()
+    serializer_class = CoOwnersSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = CoOwners.objects.owners_entities(user)
+        return queryset
+
+
 class CampaignViewSet(BaseEntityViewSet):
     queryset = Campaign.objects.all()
     serializer_class = CampaignSerializer
@@ -424,16 +434,6 @@ class AttendeeViewSet(BaseEntityComponentViewSet):
         return queryset
 
 
-class CoOwnerViewSet(BaseEntityComponentViewSet):
-    queryset = CoOwners.objects.all()
-    serializer_class = CoOwnersSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = CoOwners.objects.owners_entities(user)
-        return queryset
-
-
 """
 All the nested end-points for linking entity to sub-entity
 """
@@ -532,6 +532,7 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
 
             # link campaign to event
             event.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_CAMPAIGN)
+            inst.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -589,6 +590,8 @@ class EventCampaignViewSet(viewsets.ModelViewSet):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
+        cpg.set_entity_state(BaseEntityComponent.ENTITY_STATE_PUBLISHED)
+
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
@@ -1697,8 +1700,12 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
 
 
 class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
-    queryset = CoOwners.objects.all()
     serializer_class = CoOwnersSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = CoOwners.objects.owners_entities(user)
+        return queryset
 
     def list(self, request, **kwargs):
         cmp = Campaign.objects.get(id=kwargs.get('campaigns_pk'))
