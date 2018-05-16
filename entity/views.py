@@ -688,7 +688,8 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         }
 
         join_fields = request.data.pop('join_fields') if 'join_fields' in request.data else {}
-        tags = request.data.pop('tags', [])
+
+        tags = request.data.pop('tags') if 'tags' in request.data else {}
 
         # This seems like a less restrictive approach to tags than going via taganomy, this will faciliate the organizer to add
         # tags to the exhibitor and create a tag cloud implicitly.

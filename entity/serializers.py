@@ -571,7 +571,7 @@ class CampaignSerializerL2(EntitySerializer):
         if obj.is_sponsored:
             venue_obj = obj.get_parent_entities_by_contenttype_id(
                 BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.CAMPAIGN)
-            ).get()
+            )[0]
         else:
             venue_obj = obj
 

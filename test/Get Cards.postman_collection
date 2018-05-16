@@ -1,0 +1,31 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Get Cards",
+		"_postman_id": "c82130f2-a421-323f-b1fc-754f451b80f9",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Cards",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"get_cards\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n    \t\"device_type\": \"android\",\n\t    \"lat\": 37.885938,\n\t    \"lng\": 122.506419,\n\t    \"user_id\": \"7ef14755-2e50-4a25-b308-0198ad8184c2\",\n\t    \"wizuser_id\": 13\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

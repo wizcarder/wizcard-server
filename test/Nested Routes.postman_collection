@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "42. Exhibitor Create Nested Event 14",
+			"name": "43. Exhibitor Create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/exhibitors/",
 				"method": "POST",
@@ -33,9 +33,9 @@
 			"response": []
 		},
 		{
-			"name": "42.Exhibitor Update Nested Event 14 venue",
+			"name": "43.Exhibitor Update Nested Event 14 venue",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitors/42/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/43/",
 				"method": "PUT",
 				"header": [
 					{
@@ -58,7 +58,7 @@
 			"response": []
 		},
 		{
-			"name": "43.Speaker create Nested Event 14",
+			"name": "44.Speaker create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/speakers/",
 				"method": "POST",
@@ -83,7 +83,7 @@
 			"response": []
 		},
 		{
-			"name": "44.Sponsor create Nested Event 14",
+			"name": "45.Sponsor create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/sponsors/",
 				"method": "POST",
@@ -108,7 +108,7 @@
 			"response": []
 		},
 		{
-			"name": "45.Media create Nested Event 14",
+			"name": "46.Media create Nested Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/media/",
 				"method": "POST",
@@ -133,7 +133,7 @@
 			"response": []
 		},
 		{
-			"name": "46.Org2.Attendee3 Create Nested Event.15",
+			"name": "47.Org2.Attendee3 Create Nested Event.15",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/attendees/",
 				"method": "POST",
@@ -152,31 +152,6 @@
 				"body": {
 					"mode": "raw",
 					"raw": "  {\n    \"name\": \"app_user3\",\n    \"email\": \"app_user3@getwizcard.com\"\n  }"
-				},
-				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "47.CoOwner create Nested Event 14",
-			"request": {
-				"url": "http://localhost:8000/entity/events/14/coowner/",
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"user\": 4\n}"
 				},
 				"description": null
 			},
@@ -281,9 +256,9 @@
 			"response": []
 		},
 		{
-			"name": "Exhibitor.42 unlink event 14",
+			"name": "Exhibitor.43 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitors/42/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/43/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -306,9 +281,9 @@
 			"response": []
 		},
 		{
-			"name": "Exhibitor. 42 link event 14",
+			"name": "Exhibitor. 43 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/exhibitors/42/",
+				"url": "http://localhost:8000/entity/events/14/exhibitors/43/",
 				"method": "PUT",
 				"header": [
 					{
@@ -331,9 +306,9 @@
 			"response": []
 		},
 		{
-			"name": "Speaker.43 unlink event 14",
+			"name": "Speaker.44 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/speakers/43/",
+				"url": "http://localhost:8000/entity/events/14/speakers/44/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -356,9 +331,9 @@
 			"response": []
 		},
 		{
-			"name": "Speaker.43 link event 14",
+			"name": "Speaker.44 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/speakers/43/",
+				"url": "http://localhost:8000/entity/events/14/speakers/44/",
 				"method": "PUT",
 				"header": [
 					{
@@ -381,9 +356,9 @@
 			"response": []
 		},
 		{
-			"name": "Sponsor.44 unlink event 14",
+			"name": "Sponsor.45 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/sponsors/44/",
+				"url": "http://localhost:8000/entity/events/14/sponsors/45/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -406,9 +381,9 @@
 			"response": []
 		},
 		{
-			"name": "Sponsor.44 link event 14",
+			"name": "Sponsor.45 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/sponsors/44/",
+				"url": "http://localhost:8000/entity/events/14/sponsors/45/",
 				"method": "PUT",
 				"header": [
 					{
@@ -431,9 +406,9 @@
 			"response": []
 		},
 		{
-			"name": "Media.45 unlink event 14",
+			"name": "Media.46 unlink event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/media/45/",
+				"url": "http://localhost:8000/entity/events/14/media/46/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -456,59 +431,9 @@
 			"response": []
 		},
 		{
-			"name": "Media.45 link event 14",
+			"name": "Media.46 link event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/media/45/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{exhibitor_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "CoOwner.47 unlink event 14",
-			"request": {
-				"url": "http://localhost:8000/entity/events/14/coowner/47/",
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{exhibitor_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "CoOwner.47 link event 14",
-			"request": {
-				"url": "http://localhost:8000/entity/events/14/coowner/47/",
+				"url": "http://localhost:8000/entity/events/14/media/46/",
 				"method": "PUT",
 				"header": [
 					{
@@ -731,9 +656,9 @@
 			"response": []
 		},
 		{
-			"name": "Org1.35.Attendee Invitee0 link with Event 14 copy",
+			"name": "Org1.36.Attendee Invitee0 link with Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/14/attendees/35/",
+				"url": "http://localhost:8000/entity/events/14/attendees/36/",
 				"method": "PUT",
 				"header": [
 					{
@@ -756,57 +681,7 @@
 			"response": []
 		},
 		{
-			"name": "38.Org1.Attendee Invitee1 unlink with Event 14",
-			"request": {
-				"url": "http://localhost:8000/entity/events/14/attendees/38/",
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "38.Org1.Attendee Invitee1 link with Event 14",
-			"request": {
-				"url": "http://localhost:8000/entity/events/14/attendees/38/",
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"description": ""
-					},
-					{
-						"key": "Authorization",
-						"value": "Token {{organizer_user1}}",
-						"description": ""
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"description": null
-			},
-			"response": []
-		},
-		{
-			"name": "39.Org1.Attendee Invitee2 unlink with Event 14",
+			"name": "39.Org1.Attendee Invitee1 unlink with Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/attendees/39/",
 				"method": "DELETE",
@@ -831,7 +706,7 @@
 			"response": []
 		},
 		{
-			"name": "39.Org1.Attendee Invitee2 link with Event 14",
+			"name": "39.Org1.Attendee Invitee1 link with Event 14",
 			"request": {
 				"url": "http://localhost:8000/entity/events/14/attendees/39/",
 				"method": "PUT",
@@ -856,9 +731,9 @@
 			"response": []
 		},
 		{
-			"name": "40.Org2.Attendee Invitee1 unlink with Event 15",
+			"name": "40.Org1.Attendee Invitee2 unlink with Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/attendees/40/",
+				"url": "http://localhost:8000/entity/events/14/attendees/40/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -868,7 +743,7 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user2}}",
+						"value": "Token {{organizer_user1}}",
 						"description": ""
 					}
 				],
@@ -881,9 +756,9 @@
 			"response": []
 		},
 		{
-			"name": "40.Org2.Attendee Invitee1 link with Event 15",
+			"name": "40.Org1.Attendee Invitee2 link with Event 14",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/attendees/40/",
+				"url": "http://localhost:8000/entity/events/14/attendees/40/",
 				"method": "PUT",
 				"header": [
 					{
@@ -893,7 +768,7 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{organizer_user2}}",
+						"value": "Token {{organizer_user1}}",
 						"description": ""
 					}
 				],
@@ -906,7 +781,7 @@
 			"response": []
 		},
 		{
-			"name": "41.Attendee Invitee2 unlink with Event 15",
+			"name": "41.Org2.Attendee Invitee1 unlink with Event 15",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/attendees/41/",
 				"method": "DELETE",
@@ -931,7 +806,7 @@
 			"response": []
 		},
 		{
-			"name": "41.Org2.Attendee Invitee2 link with Event 15",
+			"name": "41.Org2.Attendee Invitee1 link with Event 15",
 			"request": {
 				"url": "http://localhost:8000/entity/events/15/attendees/41/",
 				"method": "PUT",
@@ -956,9 +831,9 @@
 			"response": []
 		},
 		{
-			"name": "Org2.Attendee.3.46 unlink event 15",
+			"name": "42.Attendee Invitee2 unlink with Event 15",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/attendees/46/",
+				"url": "http://localhost:8000/entity/events/15/attendees/42/",
 				"method": "DELETE",
 				"header": [
 					{
@@ -981,9 +856,59 @@
 			"response": []
 		},
 		{
-			"name": "Org2.Attendee.3.46 link event 15",
+			"name": "42.Org2.Attendee Invitee2 link with Event 15",
 			"request": {
-				"url": "http://localhost:8000/entity/events/15/attendees/46/",
+				"url": "http://localhost:8000/entity/events/15/attendees/42/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Org2.Attendee.3.47 unlink event 15",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/attendees/47/",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Org2.Attendee.3.47 link event 15",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/attendees/47/",
 				"method": "PUT",
 				"header": [
 					{

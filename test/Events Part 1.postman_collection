@@ -208,9 +208,257 @@
 			"response": []
 		},
 		{
-			"name": "10.Coowner.1 Create",
+			"name": "phone_check_req 1",
 			"request": {
-				"url": "http://localhost:8000/entity/owners/",
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_req\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"response_mode\" : \"SMS\",\n        \"target\" : \"+919884415358\",\n        \"test_mode\": \"True\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "phone_check_req 2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"\",\n    \t\"msg_type\" : \"phone_check_req\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415359@wizcard.com\",\n        \"response_mode\" : \"SMS\",\n        \"target\" : \"+919884415359\",\n        \"test_mode\": \"True\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "phone_check_rsp 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"user_id_1\", jsonData.data.user_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_rsp\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"response_key\": \"1234\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "phone_check_rsp 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"user_id_2\", jsonData.data.user_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_rsp\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415359@wizcard.com\",\n        \"response_key\": \"1234\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "login 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"wizuser_id_1\", jsonData.data.wizuser_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"login\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"user_id\": \"{{user_id_1}}\",\n        \"password\": \"{{user_id_1}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "login 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"wizuser_id_2\", jsonData.data.wizuser_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"login\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415359@wizcard.com\",\n        \"user_id\": \"{{user_id_2}}\",\n        \"password\": \"{{user_id_2}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "register 1",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"register\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"reg_token\": \"eiwkyJ6Hh0E:APA91bEpCRVAAdlOMbLMimWo-xC8vrW2gLX_lmMlAalfgAG-G5jM0pRfZKu6QrV0CIDajnAwLgkihHcMc1JqfoguoqjsETSKanVgPIdQEbB87MWFbsEgYRvpMBiB2GC3XoIFATljDoz4\",\n        \"lat\" : 37.785835,\n        \"lng\" : -122.406416,\n        \"device_type\": \"android\",\n        \"user_id\" : \"{{user_id_1}}\",\n        \"wizuser_id\" : \"{{wizuser_id_1}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "register 2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"register\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"reg_token\": \"eiwkyJ6Hh0E:APA91bEpCRVAAdlOMbLMimWo-xC8vrW2gLX_lmMlAalfgAG-G5jM0pRfZKu6QrV0CIDajnAwLgkihHcMc1JqfoguoqjsETSKanVgPIdQEbB87MWFbsEgYRvpMBiB2GC3XoIFATljDoz4\",\n        \"lat\" : 37.785835,\n        \"lng\" : -122.406416,\n        \"device_type\": \"android\",\n        \"user_id\" : \"{{user_id_2}}\",\n        \"wizuser_id\" : \"{{wizuser_id_2}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "edit_card 1",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"edit_card\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"email\" : \"user1@getwizcard.com\",\n        \"first_name\" : \"Anand\",\n        \"last_name\" : \"Ammundi1\",\n        \"user_id\" : \"{{user_id_1}}\",\n        \"wizuser_id\" : \"{{wizuser_id_1}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "edit_card 2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"edit_card\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"email\" : \"user2@getwizcard.com\",\n        \"first_name\" : \"Anand\",\n        \"last_name\" : \"Ammundi2\",\n        \"user_id\" : \"{{user_id_2}}\",\n        \"wizuser_id\" : \"{{wizuser_id_2}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "10.Org1.Attendee Invitee 1 Create",
+			"request": {
+				"url": "http://localhost:8000/entity/attendees/",
 				"method": "POST",
 				"header": [
 					{
@@ -226,16 +474,16 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"user\": 2\n}"
+					"raw": "  {\n    \"name\": \"app_user1\",\n    \"email\": \"app_user1@getwizcard.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
 		{
-			"name": "11.Coowner.2 Create",
+			"name": "11.Org2.Attendee Invitee 1 Create",
 			"request": {
-				"url": "http://localhost:8000/entity/owners/",
+				"url": "http://localhost:8000/entity/attendees/",
 				"method": "POST",
 				"header": [
 					{
@@ -251,14 +499,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"user\": 3\n}"
+					"raw": "  {\n    \"name\": \"app_user1\",\n    \"email\": \"app_user1@getwizcard.com\"\n  }"
 				},
-				"description": ""
+				"description": null
 			},
 			"response": []
 		},
 		{
-			"name": "12.Exhibitor Create 1",
+			"name": "12.Org1.Exhibitor Create 1",
 			"request": {
 				"url": "http://localhost:8000/entity/exhibitors/",
 				"method": "POST",
@@ -270,13 +518,13 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{exhibitor_user1}}",
+						"value": "Token {{organizer_user1}}",
 						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product One\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\"\n  }"
 				},
 				"description": "Test 1: Basic Product  create"
 			},
@@ -301,14 +549,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product One Updated\",\n    \"address\": \"Product One Updated\",\n    \"website\": \"http://www.OneUpdated.com\",\n    \"description\": \"One Updated\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundiUpdated\"\n    },\n    \"owners\": [\n      10, 11\n    ],\n    \"related\": [\n      {\n        \"ids\": [6, 5], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product One Updated\",\n    \"address\": \"Product One Updated\",\n    \"website\": \"http://www.OneUpdated.com\",\n    \"description\": \"One Updated\"\n  }"
 				},
 				"description": "Test 1: Basic Product  create"
 			},
 			"response": []
 		},
 		{
-			"name": "13.Exhibitor Create 2",
+			"name": "13.Org2.Exhibitor Create 2",
 			"request": {
 				"url": "http://localhost:8000/entity/exhibitors/",
 				"method": "POST",
@@ -320,13 +568,13 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{exhibitor_user2}}",
+						"value": "Token {{organizer_user2}}",
 						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\",\n    \"owners\": [\n      11\n    ],\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+					"raw": "  {\n    \"name\": \"Product Two\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.Two.com\",\n    \"description\": \"Two\"\n  }"
 				},
 				"description": "Test 1: Basic Product  create"
 			},
@@ -334,6 +582,18 @@
 		},
 		{
 			"name": "14.Basic Event Create One",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"event_1\", jsonData.id);"
+						]
+					}
+				}
+			],
 			"request": {
 				"url": "http://localhost:8000/entity/events/",
 				"method": "POST",
@@ -351,7 +611,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"highlights\": {\n      \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"event 1\",\n    \"address\": \"Event one\",\n    \"website\": \"http://www.eventone.com\",\n    \"description\": \"event one\",\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"highlights\": {\n      \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
 				"description": "Test 1: Basic entity create"
 			},
@@ -359,6 +619,18 @@
 		},
 		{
 			"name": "15.Basic Event Create two",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"event_2\", jsonData.id);"
+						]
+					}
+				}
+			],
 			"request": {
 				"url": "http://localhost:8000/entity/events/",
 				"method": "POST",
@@ -376,9 +648,223 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\n    \"name\": \"event 2\",\n    \"address\": \"Event Two\",\n    \"website\": \"http://www.eventwo.com\",\n    \"description\": \"event two\",\n    \"owners\": [\n      10\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n  \"highlights\": {\n        \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
+					"raw": "  {\n    \"name\": \"event 2\",\n    \"address\": \"Event Two\",\n    \"website\": \"http://www.eventwo.com\",\n    \"description\": \"event two\",\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n  \"highlights\": {\n        \"text\": \"value\"\n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2018-10-25 19:30:59\",\n    \"related\": [\n      {\n        \"ids\": [4], \"type\": \"e_media\"\n      }\n    ]\n  }"
 				},
 				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "14.Event Publish",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/publish_event/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "15.Event Publish",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/publish_event/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Event 14 Join user 1",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"entity_access\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"user_id\" : \"{{user_id_1}}\",\n        \"wizuser_id\" : \"{{wizuser_id_1}}\",\n        \"entity_id\" : \"{{event_1}}\",\n        \"entity_type\": \"EVT\",\n        \"state\": 1\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Event 14 Join user 2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"entity_access\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"user_id\" : \"{{user_id_2}}\",\n        \"wizuser_id\" : \"{{wizuser_id_2}}\",\n        \"entity_id\" : \"{{event_1}}\",\n        \"entity_type\": \"EVT\",\n        \"state\": 1\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Event 15 Join user 1",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"entity_access\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"user_id\" : \"{{user_id_1}}\",\n        \"wizuser_id\" : \"{{wizuser_id_1}}\",\n        \"entity_id\" : \"{{event_2}}\",\n        \"entity_type\": \"EVT\",\n        \"state\": 1\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Event 15 Join user 2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"entity_access\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"user_id\" : \"{{user_id_2}}\",\n        \"wizuser_id\" : \"{{wizuser_id_2}}\",\n        \"entity_id\" : \"{{event_2}}\",\n        \"entity_type\": \"EVT\",\n        \"state\": 1\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "14.Event Link Exhibitor 12",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/exhibitors/12/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n{\n\t\"join_fields\": {\n\t\t\"venue\": \"Booth 1214\"\n\t}\n}"
+				},
+				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "15.Event Link Exhibitor 13",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/exhibitors/13/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n{\n\t\"join_fields\": {\n\t\t\"venue\": \"Booth 1315\"\n\t}\n}"
+				},
+				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "18.Org1 invite 12.Exhibitor.1 to Event.14",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/invite_exhibitor/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"email\": \"exhibitor1@getwizcard.com\",\n    \"id\": 12\n  }"
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "19.Org2 invite 13.Exhibitor.2 to Event.15",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/invite_exhibitor/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{organizer_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"email\": \"exhibitor2@getwizcard.com\",\n    \"id\": 13\n  }"
+				},
+				"description": null
 			},
 			"response": []
 		}

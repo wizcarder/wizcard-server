@@ -1,0 +1,589 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Event Part 2 (Campaigns)",
+		"_postman_id": "96f5bc15-53af-2742-2688-59f3a4a153db",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "20.Exhibitor_user1 Campaign Create",
+			"request": {
+				"url": "http://localhost:8000/entity/campaigns/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"Exhibitor1 CPG.Event14\",\n    \"address\": \"Product One\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"related\": [\n      {\n        \"ids\": [6], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+				},
+				"description": "Test 1: Basic Product  create"
+			},
+			"response": []
+		},
+		{
+			"name": "14.Event Link Campaign 20",
+			"request": {
+				"url": "http://localhost:8000/entity/events/14/campaigns/20/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n{\n\t\"join_fields\": {\n\t\t\"venue\": \"Booth 1815\"\n\t},\n\t\"tags\": [\"one\", \"two\", \"three\"]\n}"
+				},
+				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "22.Exhibitor_user2 Evt.15 Nested Campaign Create",
+			"request": {
+				"url": "http://localhost:8000/entity/events/15/campaigns/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"Exhibitor2 CPG.Event15\",\n    \"address\": \"Product Two\",\n    \"website\": \"http://www.One.com\",\n    \"description\": \"One\",\n    \"ext_fields\": {\n      \"linkedIn\": \"www.linkedin.com/aammundi\"\n    },\n    \"related\": [\n      {\n        \"ids\": [5], \"type\": \"e_media\"\n      }\n    ],\n    \"location\": {\n      \"lat\": 37.885938,\n      \"lng\": -122.506419  \n    },\n    \"start\": \"2017-10-25 14:30:59\",\n    \"end\": \"2017-10-25 19:30:59\"\n  }"
+				},
+				"description": "Test 1: Basic Product  create"
+			},
+			"response": []
+		},
+		{
+			"name": "24.exhibitor1.scan.coowner.create copy",
+			"request": {
+				"url": "http://localhost:8000/entity/coowners/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"user\": \"{{wizuser_id_1}}\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "20.Campaign link CoOwner.24",
+			"request": {
+				"url": "http://localhost:8000/entity/campaigns/20/coowners/24/",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": "Test 1: Basic entity create"
+			},
+			"response": []
+		},
+		{
+			"name": "25.Campaign.22 Nested scan.coowner.create",
+			"request": {
+				"url": "http://localhost:8000/entity/campaigns/22/coowners/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"user\": \"{{wizuser_id_2}}\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "phone_check_req.1",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_req\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415360@wizcard.com\",\n        \"response_mode\" : \"SMS\",\n        \"target\" : \"+919884415360\",\n        \"test_mode\": \"True\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "phone_check_req.2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_req\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415361@wizcard.com\",\n        \"response_mode\" : \"SMS\",\n        \"target\" : \"+919884415361\",\n        \"test_mode\": \"True\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "phone_check_rsp.1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"exhibitor_user_id_1\", jsonData.data.user_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_rsp\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415360@wizcard.com\",\n        \"response_key\": \"1234\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "phone_check_rsp.2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"exhibitor_user_id_2\", jsonData.data.user_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_rsp\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415361@wizcard.com\",\n        \"response_key\": \"1234\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "login.1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"exhibitor_wizuser_id_1\", jsonData.data.wizuser_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"login\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415360@wizcard.com\",\n        \"user_id\": \"{{exhibitor_user_id_1}}\",\n        \"password\": \"{{exhibitor_user_id_1}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "login.2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"exhibitor_wizuser_id_2\", jsonData.data.wizuser_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"login\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415361@wizcard.com\",\n        \"user_id\": \"{{exhibitor_user_id_2}}\",\n        \"password\": \"{{exhibitor_user_id_2}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "register.1",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"register\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"reg_token\": \"eiwkyJ6Hh0E:APA91bEpCRVAAdlOMbLMimWo-xC8vrW2gLX_lmMlAalfgAG-G5jM0pRfZKu6QrV0CIDajnAwLgkihHcMc1JqfoguoqjsETSKanVgPIdQEbB87MWFbsEgYRvpMBiB2GC3XoIFATljDoz4\",\n        \"lat\" : 37.785835,\n        \"lng\" : -122.406416,\n        \"device_type\": \"android\",\n        \"user_id\" : \"{{exhibitor_user_id_1}}\",\n        \"wizuser_id\" : \"{{exhibitor_wizuser_id_1}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "register.2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"register\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"reg_token\": \"eiwkyJ6Hh0E:APA91bEpCRVAAdlOMbLMimWo-xC8vrW2gLX_lmMlAalfgAG-G5jM0pRfZKu6QrV0CIDajnAwLgkihHcMc1JqfoguoqjsETSKanVgPIdQEbB87MWFbsEgYRvpMBiB2GC3XoIFATljDoz4\",\n        \"lat\" : 37.785835,\n        \"lng\" : -122.406416,\n        \"device_type\": \"android\",\n        \"user_id\" : \"{{exhibitor_user_id_2}}\",\n        \"wizuser_id\" : \"{{exhibitor_wizuser_id_2}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "edit_card.1",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"edit_card\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415360@wizcard.com\",\n        \"email\" : \"exhibitor1@getwizcard.com\",\n        \"first_name\" : \"Anand\",\n        \"last_name\" : \"Ammundi1\",\n        \"user_id\" : \"{{exhibitor_user_id_1}}\",\n        \"wizuser_id\" : \"{{exhibitor_wizuser_id_1}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "edit_card.2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"edit_card\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415361@wizcard.com\",\n        \"email\" : \"exhibitor2@getwizcard.com\",\n        \"first_name\" : \"Anand\",\n        \"last_name\" : \"Ammundi2\",\n        \"user_id\" : \"{{exhibitor_user_id_2}}\",\n        \"wizuser_id\" : \"{{exhibitor_wizuser_id_2}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "lead scan user_1 event.14",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"lead_scan\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n\t\t\"scans\" : [\n\t\t\t{\n\t\t\t\t\"event_id\": 14,\n\t\t\t\t\"name\": \"John Doe\",\n\t\t\t\t\"email\": \"john@getwizcard.com\",\n\t\t\t\t\"company\": \"WizCard Inc\",\n\t\t\t\t\"title\": \"WTF\"\n\t\t\t}\n\t\t],\n        \"user_id\" : \"{{user_id_1}}\",\n        \"wizuser_id\" : \"{{wizuser_id_1}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "lead scan exhibitor_user_1 event.14",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"lead_scan\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n\t\t\"scans\" : [\n\t\t\t{\n\t\t\t\t\"event_id\": 14,\n\t\t\t\t\"name\": \"John Doe\",\n\t\t\t\t\"email\": \"john@getwizcard.com\",\n\t\t\t\t\"company\": \"WizCard Inc\",\n\t\t\t\t\"title\": \"WTF\"\n\t\t\t}\n\t\t],\n        \"user_id\" : \"{{exhibitor_user_id_1}}\",\n        \"wizuser_id\" : \"{{exhibitor_wizuser_id_1}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "lead scan user_2 event.15",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"lead_scan\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n\t\t\"scans\" : [\n\t\t\t{\n\t\t\t\t\"event_id\": 15,\n\t\t\t\t\"name\": \"John Doe\",\n\t\t\t\t\"email\": \"john@getwizcard.com\",\n\t\t\t\t\"company\": \"WizCard Inc\",\n\t\t\t\t\"title\": \"WTF\"\n\t\t\t}\n\t\t],\n        \"user_id\" : \"{{user_id_2}}\",\n        \"wizuser_id\" : \"{{wizuser_id_2}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "lead scan exhibitor_user_2 event.15",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"lead_scan\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n\t\t\"scans\" : [\n\t\t\t{\n\t\t\t\t\"event_id\": 15,\n\t\t\t\t\"name\": \"John Doe\",\n\t\t\t\t\"email\": \"john@getwizcard.com\",\n\t\t\t\t\"company\": \"WizCard Inc\",\n\t\t\t\t\"title\": \"WTF\"\n\t\t\t}\n\t\t],\n        \"user_id\" : \"{{exhibitor_user_id_2}}\",\n        \"wizuser_id\" : \"{{exhibitor_wizuser_id_2}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Exhibitor1 Get Scans",
+			"request": {
+				"url": "http://localhost:8000/entity/scans/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"1\",\n    \"email\": \"1@gmail.com\"\n  }"
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Exhibitor1 Nested Get Scans Campaign 1",
+			"request": {
+				"url": "http://localhost:8000/entity/campaigns/12/scans/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"1\",\n    \"email\": \"1@gmail.com\"\n  }"
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Exhibitor2 Nested Get Scans Campaign 2",
+			"request": {
+				"url": "http://localhost:8000/entity/campaigns/13/scans/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user1}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"1\",\n    \"email\": \"1@gmail.com\"\n  }"
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Exhibitor2 Get Scans",
+			"request": {
+				"url": "http://localhost:8000/entity/scans/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Token {{exhibitor_user2}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "  {\n    \"name\": \"1\",\n    \"email\": \"1@gmail.com\"\n  }"
+				},
+				"description": null
+			},
+			"response": []
+		}
+	]
+}

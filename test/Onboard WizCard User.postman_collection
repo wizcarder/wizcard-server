@@ -1,0 +1,155 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Onboard WizCard User",
+		"_postman_id": "6ce9a204-8828-0212-ff88-62db18a2653b",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "phone_check_req",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_req\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"response_mode\" : \"SMS\",\n        \"target\" : \"+919884415358\",\n        \"test_mode\": \"True\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "phone_check_rsp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"user_id\", jsonData.data.user_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"phone_check_rsp\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"response_key\": \"1234\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"wizuser_id\", jsonData.data.wizuser_id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"login\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"user_id\": \"{{user_id}}\",\n        \"password\": \"{{user_id}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "register",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"register\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"reg_token\": \"eiwkyJ6Hh0E:APA91bEpCRVAAdlOMbLMimWo-xC8vrW2gLX_lmMlAalfgAG-G5jM0pRfZKu6QrV0CIDajnAwLgkihHcMc1JqfoguoqjsETSKanVgPIdQEbB87MWFbsEgYRvpMBiB2GC3XoIFATljDoz4\",\n        \"lat\" : 37.785835,\n        \"lng\" : -122.406416,\n        \"device_type\": \"android\",\n        \"user_id\" : \"{{user_id}}\",\n        \"wizuser_id\" : \"{{wizuser_id}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "edit_card",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"edit_card\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"username\" : \"+919884415358@wizcard.com\",\n        \"email\" : \"exhibitor1@getwizcard.com\",\n        \"first_name\" : \"Anand\",\n        \"last_name\" : \"Ammundi\",\n        \"user_id\" : \"{{user_id}}\",\n        \"wizuser_id\" : \"{{wizuser_id}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "lead scan",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"17b90b2e03dc7b38\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"lead_scan\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n\t\t\"scans\" : [\n\t\t\t{\n\t\t\t\t\"event_id\": 7,\n\t\t\t\t\"name\": \"John Doe\",\n\t\t\t\t\"email\": \"john@getwizcard.com\",\n\t\t\t\t\"company\": \"WizCard Inc\",\n\t\t\t\t\"title\": \"WTF\"\n\t\t\t}\n\t\t],\n        \"user_id\" : \"{{user_id}}\",\n        \"wizuser_id\" : \"{{wizuser_id}}\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

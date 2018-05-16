@@ -1191,7 +1191,8 @@ class ParseMsgAndDispatch(object):
                     # notif 2 for wizcard2 and set rel to clean state
                     if wizcard1.get_relationship(wizcard2).status == verbs.PENDING:
                         n = SyncNotification.objects.filter(
-                                recipient=wizcard2.user,
+                                recipient_object_id=wizcard2.user,
+                                recipient_content_type=ContentType.objects.get_for_model(wizcard2.user),
                                 target_object_id=wizcard1.id,
                                 readed=False,
                                 verb=verbs.WIZREQ_U[0])
