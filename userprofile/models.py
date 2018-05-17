@@ -197,7 +197,6 @@ class UserProfile(PolymorphicModel):
         return self.is_user_of_type(self.APP_USER)
 
 
-
 class BaseUser(PolymorphicModel):
     profile = models.ForeignKey(UserProfile, related_name='%(class)s')
 

@@ -604,7 +604,7 @@ class VanillaCampaignSerializer(EntitySerializer):
 
     def get_venue(self, obj):
         join_field = self.get_join_fields(obj)
-        return join_field['venue'] if 'venue' in join_field else None
+        return join_field['venue'] if 'venue' in join_field else ""
 
     def get_related_campaigns(self, obj):
         cpgs = obj.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_CAMPAIGN)

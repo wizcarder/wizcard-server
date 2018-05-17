@@ -435,13 +435,13 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 
     # see if any attendee_invitees exist for the organizer that match this app_user
     def check_existing_attendee_invitees(self, app_user, organizer_user):
-        qs = self.owners_entities(organizer_user, entity_type=BaseEntityComponent.ATTENDEE_INVITEE)
+        qs = self.owners_entities(organizer_user)
 
         # 1. check with phone number
         phone = app_user.profile.phone_num_from_username()
         email = app_user.email
 
-        qs = self.all().exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
+        qs = qs.exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
 
         qlist = list()
 

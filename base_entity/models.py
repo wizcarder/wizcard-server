@@ -637,7 +637,7 @@ class BaseEntityComponent(PolymorphicModel):
         return bool(user == self.get_creator())
 
     def is_owner(self, user):
-        return bool(set(self.owners.all()) & set(user.profile.baseuser.all()))
+        return user in self.owners.all()
 
     # when a sub-entity gets related, it might want to do things like sending notifications
     # override this in the derived classes to achieve the same

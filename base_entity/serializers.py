@@ -130,6 +130,12 @@ class EntitySerializer(EntitySerializerL0):
 
     def get_join_fields(self, obj):
         parent = self.context.get('parent')
+
+        # AA: Yes it's tempting to check if there is indeed a join_table row
+        # before accessing join_fields. However, if there isn't a join_table
+        # row in this path, considering there is a valid 'parent' provided,
+        # there is something else that's wrong. masking the access will simply
+        # push the real issue under the rug
         return parent.get_join_table_row(obj).join_fields if parent else {}
 
     def prepare(self, validated_data):
