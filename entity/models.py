@@ -146,7 +146,8 @@ class Event(BaseEntity):
                 join_row_list.append(tmp_join_row)
 
             # if atleast one has been already invited, then we will move all invitees to accepted
-            atleast_one_invited = any(item for item in join_row_list)
+            atleast_one_invited = any(item.join_fields['invite_state'] not in
+                                      [InviteStateMixin.CREATED, InviteStateMixin.REQUESTED] for item in join_row_list)
 
             # do second_pass
             for ati, join_row in itertools.izip(atis, join_row_list):
