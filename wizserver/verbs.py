@@ -195,7 +195,6 @@ WIZCARD_NULL                = (NOTIF_NULL, "Empty notif", False, False)
 WIZREQ_U                    = (NOTIF_ACCEPT_EXPLICIT, 'wizconnection request untrusted', True, False)
 WIZREQ_T                    = (NOTIF_ACCEPT_IMPLICIT, 'wizconnection request trusted', True, False)
 WIZREQ_T_HALF               = (NOTIF_ACCEPT_IMPLICIT_H, 'wizconnection request trusted half', False, False)
-WIZCARD_ACCEPT              = (NOTIF_ACCEPT_EXPLICIT, 'accepted wizcard', True, False)
 WIZCARD_REVOKE              = (NOTIF_DELETE_IMPLICIT, 'revoked wizcard', False, False)
 WIZCARD_WITHDRAW_REQUEST    = (NOTIF_WITHDRAW_REQUEST, 'withdraw request', False, False)
 WIZCARD_DELETE              = (NOTIF_DELETE_IMPLICIT, 'deleted wizcard', False, False)
@@ -275,12 +274,6 @@ apns_notification_dictionary = {
         'badge': 0,
         'title': 'Connected',
         'message': 'you have a new contact {0.first_name} {0.last_name}',
-    },
-    get_notif_type(WIZCARD_ACCEPT): {
-        'sound': 'flynn.caf',
-        'badge': 0,
-        'title': 'Accepted',
-        'message': '{0.first_name} {0.last_name} accepted your invitation',
     },
     get_notif_type(WIZCARD_ENTITY_UPDATE): {
         'sound': 'flynn.caf',
