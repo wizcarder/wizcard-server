@@ -513,7 +513,7 @@
 		{
 			"name": "Exhibitor1 Nested Get Scans Campaign 1",
 			"request": {
-				"url": "http://localhost:8000/entity/campaigns/12/scans/",
+				"url": "http://localhost:8000/entity/campaigns/20/scans/",
 				"method": "GET",
 				"header": [
 					{
@@ -538,7 +538,7 @@
 		{
 			"name": "Exhibitor2 Nested Get Scans Campaign 2",
 			"request": {
-				"url": "http://localhost:8000/entity/campaigns/13/scans/",
+				"url": "http://localhost:8000/entity/campaigns/22/scans/",
 				"method": "GET",
 				"header": [
 					{
@@ -548,7 +548,7 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Token {{exhibitor_user1}}",
+						"value": "Token {{exhibitor_user2}}",
 						"description": ""
 					}
 				],

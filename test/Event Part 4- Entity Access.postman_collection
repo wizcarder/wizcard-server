@@ -1,0 +1,31 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Event Part 4: Entity Access",
+		"_postman_id": "e7b53bb5-5450-d1a9-cf03-36d345211fe7",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Event.14 user_1 join",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"entity_access\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"user_id\" : \"{{user_id_1}}\",\n        \"wizuser_id\" : \"{{wizuser_id_1}}\",\n        \"entity_id\": \"{{event_1}}\",\n        \"state\": 1,\n        \"entity_type\": \"EVT\"\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

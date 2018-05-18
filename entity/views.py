@@ -19,8 +19,8 @@ from base_entity.views import BaseEntityViewSet, BaseEntityComponentViewSet
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from itertools import chain
-from scan.models import BadgeTemplate
-from scan.serializers import BadgeTemplateSerializer
+from scan.models import ScannedEntity, BadgeTemplate
+from scan.serializers import BadgeTemplateSerializer, ScannedEntitySerializer
 from wizserver import verbs
 from rest_framework.parsers import FileUploadParser, MultiPartParser, JSONParser
 from entity.tasks import create_entities
@@ -191,6 +191,7 @@ class EventViewSet(BaseEntityViewSet):
         # becomes the future user construct This also serves as the glue between
         # event<->exhibitor(vanilla campaign object)<->sponsored campaign
         exi_inv, created = ExhibitorInvitee.objects.get_or_create(
+            entity_type=BaseEntityComponent.EXHIBITOR_INVITEE,
             exhibitor=exhibitor,
             email=exhibitor_email,
             event=event,
@@ -1768,6 +1769,34 @@ class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
         cmp.remove_sub_entity_obj(coo, BaseEntityComponent.SUB_ENTITY_COOWNER)
 
         return Response(status=status.HTTP_200_OK)
+
+
+class CampaignScansViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ScannedEntitySerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = ScannedEntity.objects.owners_entities(user)
+        return queryset
+
+    def list(self, request, **kwargs):
+        cpg = get_object_or_404(Campaign, pk=kwargs.get('campaigns_pk'))
+        scans = cpg.get_sub_entities_of_type(BaseEntityComponent.SUB_ENTITY_SCANNED_USER)
+
+        return Response(ScannedEntitySerializer(scans, many=True).data)
+
+    def retrieve(self, request, pk=None, campaigns_pk=None):
+        try:
+            scn = ScannedEntity.objects.get(id=pk)
+            cpg = Campaign.objects.get(id=campaigns_pk)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if cpg not in scn.get_parent_entities():
+            return Response("Campaign id %s not associated with Scanned User %s " % (campaigns_pk, pk),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ScannedEntitySerializer(scn).data)
 
 
 class FileUploader(views.APIView):

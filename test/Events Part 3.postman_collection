@@ -623,6 +623,46 @@
 			"response": []
 		},
 		{
+			"name": "Event 14 Join user 2",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"entity_access\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"user_id\" : \"{{user_id_2}}\",\n        \"wizuser_id\" : \"{{wizuser_id_2}}\",\n        \"entity_id\" : \"{{event_1}}\",\n        \"entity_type\": \"EVT\",\n        \"state\": 1\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Event 15 Join user 1",
+			"request": {
+				"url": "http://localhost:8000/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"header\" : {\n\t\t\"device_id\" : \"\",\n\t\t\"hash\" : \"da0f7402460b85205c85618edf685916\",\n    \t\"msg_type\" : \"entity_access\",\n    \t\"version\": \"2.1\"\n    },\n    \"sender\" : {\n        \"user_id\" : \"{{user_id_1}}\",\n        \"wizuser_id\" : \"{{wizuser_id_1}}\",\n        \"entity_id\" : \"{{event_2}}\",\n        \"entity_type\": \"EVT\",\n        \"state\": 1\n    }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
 			"name": "Notification Get-Org User 1",
 			"request": {
 				"url": "http://localhost:8000/entity/notifications/",
