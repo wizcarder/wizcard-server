@@ -435,18 +435,16 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 
     # see if any attendee_invitees exist for the organizer that match this app_user
     def check_existing_attendee_invitees(self, app_user, organizer_user):
-        qs = self.owners_entities(organizer_user)
+        qs = self.owners_entities(organizer_user).exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
 
         # 1. check with phone number
         phone = app_user.profile.phone_num_from_username()
         email = app_user.email
 
-        qs = qs.exclude(entity_state=BaseEntityComponent.ENTITY_STATE_DELETED)
-
         qlist = list()
 
-        qlist.append(Q(phone=phone))
-        qlist.append(Q(email=email.lower()))
+        qlist.append(Q(attendeeinvitee__phone=phone))
+        qlist.append(Q(attendeeinvitee__email=email.lower()))
 
         return qs.filter(reduce(operator.or_, qlist)).distinct()
 
@@ -457,7 +455,6 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitl
     # returns Tuple (True/False, [list of matches of type User])
     def check_existing_app_users(self):
         from userprofile.models import AppUser, UserProfile
-        qs = AppUser.objects.all()
 
         qlist = list()
         if self.phone:
@@ -467,7 +464,7 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitl
             qlist.append(Q(profile__user__email=self.email))
 
         if qlist:
-            res = qs.filter(reduce(operator.or_, qlist)).distinct()
+            res = AppUser.objects.filter(reduce(operator.or_, qlist)).distinct()
             return bool(res), res
 
         return False, AppUser.objects.none()
@@ -479,6 +476,12 @@ class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitl
     def post_connect_remove(self, parent, **kwargs):
         kwargs.update(send_notif=False)
         return super(AttendeeInvitee, self).post_connect_remove(parent, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # clear related join table
+        self.related.all().delete()
+
+        super(AttendeeInvitee, self).delete(*args, **kwargs)
 
 
 class ExhibitorInviteeManager(BaseEntityComponentManager):
