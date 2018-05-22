@@ -27,6 +27,9 @@ class Poll(BaseEntityComponent):
     created = models.DateTimeField(auto_now_add=True)
     num_responders = models.PositiveIntegerField(default=0)
 
+    class Meta:
+        ordering = ['created']
+
     objects = PollManager()
 
     def update_state_upon_link_unlink(self):
@@ -110,6 +113,7 @@ class Question(PolymorphicModel):
         choices=UI_TYPE_CHOICES,
         default=SELECT_OPTION_TYPE
     )
+    created = models.DateTimeField(auto_now_add=True)
 
     # can user select all answers that apply ?
     single_answer = models.BooleanField(default=True)
@@ -125,6 +129,7 @@ class Question(PolymorphicModel):
     class Meta:
         verbose_name = 'poll'
         verbose_name_plural = 'polls'
+        ordering = ['created']
 
     def __str__(self):
         return self.question
@@ -186,7 +191,7 @@ class QuestionChoices1ToX(QuestionChoicesBase):
         [
             out.update(
                 {
-                    k: self.answers_userresponse_related.filter(user_value=v).aggregate(
+                    k: self.answers_userresponse_related.filter(user_value=k).aggregate(
                         count=Count('id', distinct=True)
                     ).get('count')
                 }
