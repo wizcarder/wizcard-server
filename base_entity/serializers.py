@@ -181,10 +181,11 @@ class EntitySerializer(EntitySerializerL0):
             taganomy.tags.add(*tags)
             entity.tags.set(*tags)
 
+        notif_operation = verbs.NOTIF_OPERATION_UPDATE if update else verbs.NOTIF_OPERATION_CREATE
         BaseEntityComponent.objects.notify_via_entity_parent(
             entity,
             verbs.WIZCARD_ENTITY_UPDATE,
-            verbs.NOTIF_OPERATION_CREATE
+            notif_operation
         )
 
         return entity

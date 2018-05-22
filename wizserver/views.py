@@ -2485,8 +2485,8 @@ class ParseMsgAndDispatch(object):
         ser = ScannedEntitySerializer(data=scans, many=True, context={'user': campaign_owner})
         if ser.is_valid():
             inst = ser.save()
-            # also attach this guy to the campaign
-            campaign.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_SCANNED_USER)
+            # also attach these guys to the campaign
+            [campaign.add_subentity_obj(i, BaseEntityComponent.SUB_ENTITY_SCANNED_USER) for i in inst]
         else:
             self.response.error_response(err.INVALID_MESSAGE)
 

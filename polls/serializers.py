@@ -137,7 +137,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         # clear all choices
         instance.choices.all().delete()
         obj = super(QuestionSerializer, self).update(instance, validated_data)
-        self.post_create_update(obj)
+        self.post_create_update(obj, update=True)
 
         return obj
 

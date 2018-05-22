@@ -43,6 +43,6 @@ class BadgeTemplateSerializer(EntitySerializer):
     def update(self, instance, validated_data):
         self.prepare(validated_data)
         obj = super(BadgeTemplateSerializer, self).update(instance, validated_data)
-        self.post_create_update(obj)
+        self.post_create_update(obj, update=True)
 
         return obj
