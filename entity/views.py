@@ -660,7 +660,7 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        join_fields = request.data.pop('join_fields')
+        join_fields = request.data.pop('join_fields', {})
 
         context = {
             'user': request.user,
