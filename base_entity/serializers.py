@@ -129,7 +129,9 @@ class EntitySerializer(EntitySerializerL0):
         return dict(liked=liked, like_level=level)
 
     def get_join_fields(self, obj):
-        parent = self.context.get('parent')
+        parent = self.context.get('parent', None)
+        if not parent:
+            return {}
 
         # AA: Yes it's tempting to check if there is indeed a join_table row
         # before accessing join_fields. However, if there isn't a join_table
@@ -137,11 +139,11 @@ class EntitySerializer(EntitySerializerL0):
         # there is something else that's wrong. masking the access will simply
         # push the real issue under the rug
 
+        join_table_row = parent.get_join_table_row(obj)
         # AA: Later Found a valid case to error check. If an exhibitor gets
         # linked and then unlinked...if those notifs are sent in the same
         # envelope to the app, then when building the response for the "C"
         # part, the join table won't be there.
-        join_table_row = parent.get_join_table_row(obj)
         if join_table_row:
             return join_table_row.join_fields
 
