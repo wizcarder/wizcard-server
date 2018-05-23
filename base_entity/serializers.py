@@ -136,7 +136,16 @@ class EntitySerializer(EntitySerializerL0):
         # row in this path, considering there is a valid 'parent' provided,
         # there is something else that's wrong. masking the access will simply
         # push the real issue under the rug
-        return parent.get_join_table_row(obj).join_fields if parent else {}
+
+        # AA: Later Found a valid case to error check. If an exhibitor gets
+        # linked and then unlinked...if those notifs are sent in the same
+        # envelope to the app, then when building the response for the "C"
+        # part, the join table won't be there.
+        join_table_row = parent.get_join_table_row(obj)
+        if join_table_row:
+            return join_table_row.join_fields
+
+        return {}
 
     def prepare(self, validated_data):
         self._owners = validated_data.pop('owners', None)
