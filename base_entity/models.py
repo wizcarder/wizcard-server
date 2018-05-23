@@ -873,15 +873,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         if self.location.exists():
             self.location.get().delete()
 
-        notif_tuple = verbs.WIZCARD_ENTITY_DELETE if delete_type == self.ENTITY_DELETE else verbs.WIZCARD_ENTITY_EXPIRE
-
-        notify.send(
-            self.get_creator(),
-            recipient=self.get_creator(),
-            notif_tuple=notif_tuple,
-            target=self
-        )
-
         super(BaseEntity, self).delete(*args, **kwargs)
 
     def do_expire(self, *args, **kwargs):
