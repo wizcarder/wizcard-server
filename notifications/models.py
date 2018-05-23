@@ -131,7 +131,7 @@ class BaseNotification(models.Model):
         sub_entity_data = ""
         operation = self.notif_operation
 
-        if operation == verbs.NOTIF_OPERATION_CREATE:
+        if operation in [verbs.NOTIF_OPERATION_CREATE, verbs.NOTIF_OPERATION_UPDATE]:
             from base_entity.models import BaseEntityComponent
 
             if not self.action_object:
@@ -148,12 +148,21 @@ class BaseNotification(models.Model):
                 'parent': self.target
             }
             sub_entity_data = ser(self.action_object, context=context).data
+            sub_entity_type = self.action_object.entity_type if self.action_object else ""
+        else:
+            # for delete, the action_object would have vanished. However, we will have the values
+            # for action_object_object_id and content_type
+            c_type = ContentType.objects.get_for_id(self.action_object_content_type_id)
+            from base_entity.models import BaseEntityComponent
+            sub_entity_type = BaseEntityComponent.sub_entity_type_from_entity_type(
+                c_type.model_class().my_entity_type()
+            )
 
         return dict(
             entity_id=self.target.id,
             entity_type=self.target.entity_type,
             sub_entity_id=self.action_object_object_id if self.action_object_object_id else "",
-            sub_entity_type=self.action_object.entity_type if self.action_object else "",
+            sub_entity_type=sub_entity_type,
             operation=operation,
             sub_entity_data=sub_entity_data,
             message=self.notification_text

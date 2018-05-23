@@ -294,6 +294,10 @@ class BaseEntityComponent(PolymorphicModel):
 
         return obj
 
+    @classmethod
+    def my_entity_type(cls):
+        return ""
+
     """
     updates an existing entry, which was already created. This method
     may not really be required since creator is set during creation time
@@ -466,6 +470,10 @@ class BaseEntityComponent(PolymorphicModel):
     def content_type_from_entity_type(cls, entity_type):
         c = BaseEntityComponent.entity_cls_from_type(entity_type=entity_type)
         return ContentType.objects.get_for_model(c)
+
+    @classmethod
+    def entity_type_from_content_type(cls, content_type_id):
+        ContentType.objects.get_for_id(content_type_id).model_class()
 
     @classmethod
     def sub_entity_type_from_entity_type(cls, entity_type):

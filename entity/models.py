@@ -71,6 +71,10 @@ class Event(BaseEntity):
 
     objects = EventManager()
 
+    @classmethod
+    def my_entity_type(cls):
+        return BaseEntityComponent.EVENT
+
     def update_state_upon_link_unlink(self):
         return True
 
@@ -305,6 +309,10 @@ class Campaign(BaseEntity):
 
     objects = CampaignManager()
 
+    @classmethod
+    def my_entity_type(cls):
+        return BaseEntityComponent.CAMPAIGN
+
     def update_state_upon_link_unlink(self):
         return True
 
@@ -348,6 +356,10 @@ class VirtualTable(BaseEntity):
 
     objects = VirtualTableManager()
 
+    @classmethod
+    def my_entity_type(cls):
+        return BaseEntityComponent.TABLE
+
     def table_exchange(self, joinee):
         joined = self.users.all().exclude(id=joinee.id)
         wizcard1 = User.objects.get(id=joinee.pk).wizcard
@@ -377,6 +389,10 @@ class SpeakerManager(BaseEntityComponentManager):
 class Speaker(BaseEntityComponent, Base412Mixin, CompanyTitleMixin, VcardMixin):
     objects = SpeakerManager()
 
+    @classmethod
+    def my_entity_type(cls):
+        return BaseEntityComponent.SPEAKER
+
 
 class SponsorManager(BaseEntityManager):
     def owners_entities(self, user, entity_type=BaseEntityComponent.SPONSOR):
@@ -394,6 +410,10 @@ class Sponsor(BaseEntity):
     caption = models.CharField(max_length=50, default='Not Available')
 
     objects = SponsorManager()
+
+    @classmethod
+    def my_entity_type(cls):
+        return BaseEntityComponent.SPONSOR
 
 
 class CoOwnersManager(BaseEntityComponentManager):
@@ -520,6 +540,10 @@ class AgendaManager(BaseEntityComponentManager):
 class Agenda(BaseEntityComponent, Base412Mixin):
     objects = AgendaManager()
 
+    @classmethod
+    def my_entity_type(cls):
+        return BaseEntityComponent.AGENDA
+
     def update_state_upon_link_unlink(self):
         return True
 
@@ -537,6 +561,10 @@ class AgendaItem(BaseEntity):
     start = models.DateTimeField(default=timezone.now)
     end = models.DateTimeField(default=timezone.now)
     where = models.CharField(max_length=100, blank=True)
+
+    @classmethod
+    def my_entity_type(cls):
+        return BaseEntityComponent.AGENDA_ITEM
 
     # override method to skip immediate parent and get agenda's parent
     def get_parent_entities(self, **kwargs):
