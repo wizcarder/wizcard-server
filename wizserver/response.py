@@ -342,6 +342,10 @@ class AsyncNotifResponse:
                 notif_tuple=ntuple,
                 target=notif.target,
                 action_object=notif.action_object,
+                # pass these 2 (action_object_object_id, and content_type) also in since in the case of delete,
+                # the action_object would not be around by the time the async2sync kicks in
+                action_object_object_id=notif.action_object_object_id,
+                action_object_content_type=notif.action_object_content_type,
                 notif_operation=notif.notif_operation,
                 notification_text=notif.notification_text,
                 verb=notif.verb,

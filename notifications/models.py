@@ -276,15 +276,19 @@ def notify_handler(sender, **kwargs):
     """
     Handler function to create SyncNotification instance upon action signal call.
     """
-
     kwargs.pop('signal', None)
     actor = sender
     recipient = kwargs.pop('recipient')
     notif_tuple = kwargs.pop('notif_tuple')
     target = kwargs.pop('target', None)
     action_object = kwargs.pop('action_object', None)
-    action_object_content_type = ContentType.objects.get_for_model(action_object) if action_object else None
-    action_object_object_id = action_object.pk if action_object else None
+    if action_object:
+        action_object_object_id = action_object.pk
+        action_object_content_type = ContentType.objects.get_for_model(action_object)
+    else:
+        action_object_object_id = kwargs.pop('action_object_object_id', None)
+        action_object_content_type = kwargs.pop('action_object_content_type', None)
+
     start = kwargs.pop('start_date', timezone.now()+timedelta(minutes=1))
     end = kwargs.pop('end_date', start)
     # hidden side-effects of changing do_push to false. Check with me before changing
