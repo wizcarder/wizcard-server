@@ -578,7 +578,7 @@ class AgendaItem(BaseEntity):
         # the add_remove_subentity path
         BaseEntityComponent.objects.notify_via_entity_parent(
             self,
-            verbs.WIZCARD_ENTITY_DELETE,
+            verbs.WIZCARD_ENTITY_UPDATE,
             verbs.NOTIF_OPERATION_DELETE
         )
 
