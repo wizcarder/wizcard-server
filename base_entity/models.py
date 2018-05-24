@@ -212,6 +212,7 @@ class BaseEntityComponent(PolymorphicModel):
     SUB_ENTITY_MEDIA = 'e_media'
     SUB_ENTITY_COOWNER = 'e_coowner'
     SUB_ENTITY_AGENDA = 'e_agenda'
+    SUB_ENTITY_AGENDA_ITEM = 'e_agendaitem'
     SUB_ENTITY_POLL = 'e_poll'
     SUB_ENTITY_EXHIBITOR_INVITEE = 'e_exhibitor'
     SUB_ENTITY_ATTENDEE_INVITEE = 'e_attendee'
@@ -472,8 +473,9 @@ class BaseEntityComponent(PolymorphicModel):
         return ContentType.objects.get_for_model(c)
 
     @classmethod
-    def entity_type_from_content_type(cls, content_type_id):
-        ContentType.objects.get_for_id(content_type_id).model_class()
+    def entity_type_from_content_type(cls, c_type):
+        _cls = c_type.model_class()
+        return _cls.my_entity_type()
 
     @classmethod
     def sub_entity_type_from_entity_type(cls, entity_type):

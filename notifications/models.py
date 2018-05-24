@@ -152,11 +152,10 @@ class BaseNotification(models.Model):
         else:
             # for delete, the action_object would have vanished. However, we will have the values
             # for action_object_object_id and content_type
-            c_type = ContentType.objects.get_for_id(self.action_object_content_type_id)
+            c_type = ContentType.objects.get_for_id(self.action_object_content_type)
             from base_entity.models import BaseEntityComponent
-            sub_entity_type = BaseEntityComponent.sub_entity_type_from_entity_type(
-                c_type.model_class().my_entity_type()
-            )
+            # app wants entity_type instead of sub_entity_type
+            sub_entity_type = BaseEntityComponent.entity_type_from_content_type(c_type)
 
         return dict(
             entity_id=self.target.id,
