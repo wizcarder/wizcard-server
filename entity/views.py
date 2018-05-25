@@ -713,12 +713,13 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
                 else:
                     return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = CampaignSerializer(cpg, data=request.data, context=context, partial=True)
-            if serializer.is_valid():
-                inst = serializer.save()
+        serializer = VanillaCampaignSerializer(cpg, data=request.data, context=context, partial=True)
+        if serializer.is_valid():
+            inst = serializer.save()
+            if tags:
                 inst.tags.add(*tags)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         event.add_subentity_obj(cpg, BaseEntityComponent.SUB_ENTITY_CAMPAIGN, join_fields=join_fields)
         return Response(status=status.HTTP_201_CREATED)

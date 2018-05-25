@@ -780,10 +780,10 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
 
     def user_attach(self, user, state, **kwargs):
 
-        UserEntity.user_attach(user, self, state=state)
+        ue, created = UserEntity.user_attach(user, self, state=state)
 
         do_notify = kwargs.pop('do_notify', True)
-        if do_notify:
+        if do_notify and created:
             if hasattr(user, 'wizcard'):
                 notify.send(
                     user,
@@ -795,7 +795,7 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
                     do_push=False
                 )
 
-            if state == UserEntity.JOIN:
+            if state == UserEntity.JOIN and created:
                 self.num_users += 1
                 self.save()
 
