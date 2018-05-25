@@ -320,7 +320,7 @@ class Campaign(BaseEntity):
         # there are really 2 (overlapping) flood-sets.
 
         # 1. Campaign followers
-        fs = set(super(Campaign, self).flood_set(kwargs))
+        fs = set(super(Campaign, self).flood_set(**kwargs))
 
         # 2. Event attendees
         events = self.get_parent_entities_by_contenttype_id(
