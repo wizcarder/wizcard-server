@@ -326,9 +326,7 @@ class Campaign(BaseEntity):
         events = self.get_parent_entities_by_contenttype_id(
             BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.EVENT)
         )
-        [fs.union(e.flood_set()) for e in events]
-
-        return list(fs)
+        return list([fs.union(e.flood_set()) for e in events])
 
     def post_connect_remove(self, parent, **kwargs):
         # don't send notif here if is parent is not event.
