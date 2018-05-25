@@ -326,7 +326,9 @@ class Campaign(BaseEntity):
         events = self.get_parent_entities_by_contenttype_id(
             BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.EVENT)
         )
-        [fs.union(e.flood_set()) for e in events]
+
+        for e in events:
+            fs = fs.union(e.flood_set())
 
         return list(fs)
 
