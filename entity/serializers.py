@@ -662,7 +662,9 @@ class CampaignSerializer(EntitySerializer):
         ).data
 
     def get_events(self, obj):
-        parents = obj.get_parent_entities_by_contenttype_id(ContentType.objects.get(model="event"))
+        parents = obj.get_parent_entities_by_contenttype_id(
+            BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.EVENT)
+        )
         return ExhibitorEventSerializer(parents, many=True).data
 
     def get_venue(self, obj):

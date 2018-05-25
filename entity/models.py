@@ -316,6 +316,20 @@ class Campaign(BaseEntity):
     def update_state_upon_link_unlink(self):
         return True
 
+    def flood_set(self, **kwargs):
+        # there are really 2 (overlapping) flood-sets.
+
+        # 1. Campaign followers
+        fs = set(super(Campaign, self).flood_set(kwargs))
+
+        # 2. Event attendees
+        events = self.get_parent_entities_by_contenttype_id(
+            BaseEntityComponent.content_type_from_entity_type(BaseEntityComponent.EVENT)
+        )
+        [fs.union(e.flood_set()) for e in events]
+
+        return list(fs)
+
     def post_connect_remove(self, parent, **kwargs):
         # don't send notif here if is parent is not event.
         if parent.entity_type != BaseEntityComponent.EVENT:
