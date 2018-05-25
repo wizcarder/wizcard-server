@@ -304,7 +304,7 @@ class EventSerializer(EntitySerializer):
 class EventSerializerL0(EntitySerializer):
     class Meta:
         model = Event
-        fields = ('id', 'name', 'media', 'start', 'end', 'venue', 'address')
+        fields = ('id', 'name', 'media', 'start', 'end', 'venue', 'address', 'entity_state')
 
     # # exhibtor_id is the of the vanilla campaign object the organizer created for this
     # # exhibitor prior to sending him an is_sponsored invite/access.
