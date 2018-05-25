@@ -300,10 +300,11 @@ class EventSerializer(EntitySerializer):
 
 
 # presently used by portal to show mini-event summary in sub-entity views
+# and in Event Select dropdown
 class EventSerializerL0(EntitySerializer):
     class Meta:
         model = Event
-        fields = ('id', 'name', 'media', 'start', 'end',)
+        fields = ('id', 'name', 'media', 'start', 'end', 'venue', 'address')
 
     # # exhibtor_id is the of the vanilla campaign object the organizer created for this
     # # exhibitor prior to sending him an is_sponsored invite/access.
