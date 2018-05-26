@@ -332,6 +332,10 @@ class Campaign(BaseEntity):
 
         return list(fs)
 
+    def get_parent_entities(self, **kwargs):
+        pe = super(Campaign, self).get_parent_entities(**kwargs)
+        return [e for e in pe if e.entity_type == BaseEntityComponent.EVENT]
+
     def post_connect_remove(self, parent, **kwargs):
         # don't send notif here if is parent is not event.
         if parent.entity_type != BaseEntityComponent.EVENT:
