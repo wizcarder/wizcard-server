@@ -699,6 +699,14 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
 
         tags = request.data.pop('tags') if 'tags' in request.data else {}
 
+        # serializer below will send notif. Don't send notif for this one
+        event.add_subentity_obj(
+            cpg,
+            BaseEntityComponent.SUB_ENTITY_CAMPAIGN,
+            join_fields=join_fields,
+            send_notif=False
+        )
+
         # This seems like a less restrictive approach to tags than going via taganomy, this will faciliate the organizer to add
         # tags to the exhibitor and create a tag cloud implicitly.
 
@@ -728,13 +736,6 @@ class EventExhibitorViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # serializer above will send notif. Don't send notif for this one
-        event.add_subentity_obj(
-            cpg,
-            BaseEntityComponent.SUB_ENTITY_CAMPAIGN,
-            join_fields=join_fields,
-            send_notif=False
-        )
         return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, event_pk=None, pk=None):
