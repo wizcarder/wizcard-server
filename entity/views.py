@@ -151,13 +151,16 @@ class CampaignMediaViewSet(viewsets.ModelViewSet):
 # Organizer Viewsets
 class EventViewSet(BaseEntityViewSet):
     def get_serializer_class(self):
-        level = int(self.request.query_params.get('level', BaseEntity.SERIALIZER_L0))
+        if self.request.method == 'GET':
+            level = int(self.request.query_params.get('level', BaseEntity.SERIALIZER_L0))
 
-        # level the level to 0 or Full. the 1&2 are not meant for portal
-        if level:
-            level = BaseEntity.SERIALIZER_FULL
+            # level the level to 0 or Full. the 1&2 are not meant for portal
+            if level:
+                level = BaseEntity.SERIALIZER_FULL
 
-        return BaseEntity.entity_ser_from_type_and_level(BaseEntityComponent.EVENT, level)
+            return BaseEntity.entity_ser_from_type_and_level(BaseEntityComponent.EVENT, level)
+
+        return EventSerializer
 
     def get_queryset(self):
         user = self.request.user
