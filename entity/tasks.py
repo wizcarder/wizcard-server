@@ -65,7 +65,7 @@ def create_entities(file, owner, **kwargs):
 
 
         for i in range(0, schema_fields_len):
-            ser_data[schema[i]] = smart_str(arr[i], encoding='utf-8')
+            ser_data[schema[i]] = smart_str(arr[i], encoding='utf-8').replace('"', '')
 
         inst = cls.objects.get_existing_entity(ser_data['name'], ser_data['email'], owner)
 
