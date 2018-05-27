@@ -7,7 +7,8 @@ from base.cctx import ConnectionContext
 from base_entity.models import BaseEntityComponent, BaseEntity, BaseEntityManager, \
     BaseEntityComponentManager, UserEntity, BaseEntityComponentsOwner
 from base_entity.models import EntityEngagementStats
-from base.mixins import Base411Mixin, Base412Mixin, PhoneMixin, CompanyTitleMixin, VcardMixin, InviteStateMixin
+from base.mixins import Base411Mixin, Base412Mixin, PhoneMixin, CompanyTitleMixin, \
+    VcardMixin, InviteStateMixin, ExtFieldsMixin
 from taganomy.models import Taganomy
 from django.contrib.contenttypes.models import ContentType
 from notifications.signals import notify
@@ -198,7 +199,8 @@ class Event(BaseEntity):
                 email=user.email,
                 company=company,
                 title=title,
-                phone=user.profile.phone_num_from_username()
+                phone=user.profile.phone_num_from_username(),
+                ext_fields=user.wizcard.ext_fields
             )
 
             # set the owner
@@ -490,7 +492,7 @@ class AttendeeInviteeManager(BaseEntityComponentManager):
 
         return qs.filter(reduce(operator.or_, qlist)).distinct()
 
-class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitleMixin):
+class AttendeeInvitee(BaseEntityComponent, Base411Mixin, PhoneMixin, CompanyTitleMixin, ExtFieldsMixin):
     objects = AttendeeInviteeManager()
 
     # check if any app_users match this attendee_invitee
