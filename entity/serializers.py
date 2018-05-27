@@ -823,24 +823,11 @@ class SpeakerSerializer(EntitySerializer):
         return obj
 
 
-"""
-used by App
-"""
-
-
-class SpeakerSerializerL2(EntitySerializer):
-
-    class Meta:
-        model = Speaker
-        fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
-                  'description', 'ext_fields', 'company', 'title', 'media')
-
-
 class SponsorSerializer(EntitySerializer):
 
     class Meta:
         model = Sponsor
-        fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related')
+        fields = ('id', 'name', 'email', 'entity_type', 'website', 'caption', 'media', 'related', 'ext_fields')
 
     def create(self, validated_data, **kwargs):
         validated_data.update(entity_type=BaseEntityComponent.SPONSOR)
@@ -857,6 +844,18 @@ class SponsorSerializer(EntitySerializer):
         self.post_create_update(obj, update=True)
 
         return obj
+
+"""
+used by App
+"""
+
+
+class SpeakerSerializerL2(EntitySerializer):
+
+    class Meta:
+        model = Speaker
+        fields = ('id', 'name', 'email', 'entity_type', 'website', 'vcard',
+                  'description', 'ext_fields', 'company', 'title', 'media')
 
 
 class SponsorSerializerL1(EntitySerializer):
