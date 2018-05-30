@@ -244,7 +244,9 @@ class SyncNotifResponse(ResponseN):
         return self.response
 
     def notifEntity(self, notif):
-        if notif.target and notif.target.is_active():
+        if ((notif.target and notif.target.is_active()) or
+                (notif.notif_type in [verbs.NOTIF_ENTITY_EXPIRE, verbs.NOTIF_ENTITY_DELETE] and
+                 notif.action_object.entity_type == BaseEntityComponent.EVENT)):
             out = notif.build_response_dict()
             if not out:
                 # I think return nothing should be ok sine it'll not anything to

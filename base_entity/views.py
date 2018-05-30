@@ -19,11 +19,12 @@ class BaseEntityViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         parents = instance.get_parent_entities()
-        if len(parents):
+
+        if parents and not instance.can_destroy_when_linked():
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
 
-        # notif stuff. Doesn't look like this path will ever be exersised though since we don't allow
-        # delete of instance when it's linked.
+        # notif stuff. This will probably only happen for Event delete/expire since others will get rejected
+        # on account of being linked to a parent.
         BaseEntityComponent.objects.notify_via_entity_parent(
             instance,
             verbs.WIZCARD_ENTITY_DELETE,
@@ -61,7 +62,8 @@ class BaseEntityComponentViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         parents = instance.get_parent_entities()
-        if len(parents):
+
+        if parents and not instance.can_destroy_when_linked():
             return Response(data="Instance is being used", status=status.HTTP_403_FORBIDDEN)
         else:
             instance.related.all().delete()

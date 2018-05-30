@@ -76,6 +76,11 @@ class Event(BaseEntity):
     def my_entity_type(cls):
         return BaseEntityComponent.EVENT
 
+    # applies to child not parent. ie, self is the child. For Event alone, we will
+    # allow destroy/expire...in this case, child and parent are the same
+    def can_destroy_when_linked(self):
+        return True
+
     def update_state_upon_link_unlink(self):
         return True
 
