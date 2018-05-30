@@ -68,7 +68,11 @@ class BaseEntityComponentManager(PolymorphicManager):
                 target=parent,
                 action_object=entity,
                 notif_operation=notif_operation
-            ) for parent in parents if parent.is_active() & parent.is_floodable
+            ) for parent in parents if (
+                (parent.is_active() and parent.is_floodable) or
+                (verbs.get_notif_type(notif_tuple) in [verbs.NOTIF_ENTITY_EXPIRE, verbs.NOTIF_ENTITY_DELETE] and
+                 parent.entity_type == BaseEntityComponent.EVENT)
+            )
         ]
 
 
@@ -635,6 +639,10 @@ class BaseEntityComponent(PolymorphicModel):
         return False
 
     def update_state_upon_link_unlink(self):
+        return False
+
+    # applies to child not parent. ie, self is the child
+    def can_destroy_when_linked(self):
         return False
 
     def get_creator(self):
