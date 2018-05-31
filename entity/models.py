@@ -91,11 +91,14 @@ class Event(BaseEntity):
     def delete(self, *args, **kwargs):
         type = kwargs.get('type', BaseEntityComponent.ENTITY_DELETE)
 
-        if type == BaseEntityComponent.ENTITY_EXPIRE:
-            for subent in self.related.all().generic_objects():
-                subent.delete(*args, **kwargs)
-        else:
+        if type == BaseEntityComponent.ENTITY_DELETE:
             self.related.all().delete()
+
+        BaseEntityComponent.objects.notify_via_entity_parent(
+            self,
+            verbs.WIZCARD_ENTITY_EXPIRE,
+            verbs.NOTIF_OPERATION_DELETE
+        )
 
         super(Event, self).delete(*args, **kwargs)
 

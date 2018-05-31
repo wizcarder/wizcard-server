@@ -886,8 +886,6 @@ class BaseEntity(BaseEntityComponent, Base414Mixin):
         return flood_list
 
     def delete(self, *args, **kwargs):
-        delete_type = kwargs.get('type', self.ENTITY_DELETE)
-
         if self.location.exists():
             self.location.get().delete()
 
