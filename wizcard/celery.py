@@ -22,9 +22,9 @@ wizcard_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS + ("lib.ocr", "li
 
 # Celery signal registration
 if hasattr(settings, 'RAVEN_CONFIG'):
-        client = Client(dsn=settings.RAVEN_CONFIG['dsn'])
-        register_signal(client)
+    client = Client(dsn=settings.RAVEN_CONFIG['dsn'])
+    register_signal(client)
 
 @wizcard_app.task(bind=True)
 def debug_task(self):
-        print('Request: {0!r}'.format(self.request))
+    print('Request: {0!r}'.format(self.request))

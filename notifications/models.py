@@ -92,6 +92,8 @@ class BaseNotification(models.Model):
     notification_text = models.CharField(max_length=254, default="")
     notif_operation = models.CharField(max_length=1, default="")
 
+    exception_count = models.PositiveIntegerField(default=0)
+
     class Meta:
         ordering = ('timestamp', )
 

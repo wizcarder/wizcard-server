@@ -60,6 +60,7 @@ from polls.models import Poll, UserResponse
 from scan.serializers import ScannedEntitySerializer
 from base_entity.models import UserEntity
 from wizcardship.signals import wizcard_created
+from raven.contrib.django.raven_compat.models import client
 
 import pdb
 
@@ -75,11 +76,12 @@ class WizRequestHandler(View):
 
         # Dispatch to appropriate message handler
         pdispatch = ParseMsgAndDispatch(self.request)
-        #try:
-        pdispatch.dispatch()
-        #except:
-        #    client.captureException()
-        #    pdispatch.response.error_response(err.INTERNAL_ERROR)
+        try:
+            pdispatch.dispatch()
+        except:
+            client.captureException()
+            pdispatch.response.error_response(err.INTERNAL_ERROR)
+
         #send response
         return pdispatch.response.respond()
 

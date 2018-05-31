@@ -30,6 +30,7 @@ WIZCARD_SETTINGS = {
         'databases': {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                #'ENGINE': 'django.db.backends.mysql',
                 'NAME': 'wizcard-dev-demo',
                 'USER': 'kappu',
                 'PASSWORD': '',
@@ -100,7 +101,7 @@ WIZCARD_SETTINGS = {
             }
         },
         'raven_config': {
-            'dsn': 'https://1caf9d8960e44c059330d3fea68bf1c5:5a1631aedc54436a97bd908fefa458cb@sentry.io/87350'
+            'dsn': 'https://e8e4feeca28c42ef930846da8e28424d:bb88d71772d544f89fce69ac950ed050@sentry.io/1216798'
         },
 
         'EMAIL_BACKEND':  "sgbackend.SendGridBackend",
@@ -114,6 +115,8 @@ CACHES = WIZCARD_SETTINGS[RUNENV]['caches']
 # RAVEN config for Sentry
 if RUNENV == 'prod':
     RAVEN_CONFIG = WIZCARD_SETTINGS[RUNENV]['raven_config']
+else:
+    RAVEN_CONFIG = {'dsn': 'https://79b41e0d7de14e23ac69a8c59a0e9096:1765a158a7d64553ad1fc5c2d69c8e5f@sentry.io/1216793'}
 
 
 # Local time zone for this installation. Choices can be found here:

@@ -20,6 +20,7 @@ from lib.create_share import send_event, send_wizcard
 from notifications.serializers import SyncNotificationSerializer
 from wizcard import err
 from base_entity.models import BaseEntityComponent
+from raven.contrib.django.raven_compat.models import client
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +123,12 @@ class SyncNotifResponse(ResponseN):
         }
 
         for notification in notifications:
-            notif_handler[notification.notif_type](notification)
+            try:
+                notif_handler[notification.notif_type](notification)
+            except:
+                client.captureException()
+                notification.exception_count += 1
+                notification.save()
 
     def notifWizcard(self, notif):
         wizcard = notif.target
@@ -323,7 +329,12 @@ class AsyncNotifResponse:
             # AA: TODO: IMPORTANT: before prod, put a try except here and raise
             # any errors so that the loop is not interrupted by some bug in a
             # particular notif handling.
-            notifHandler[notification.notif_type](notification)
+            try:
+                notifHandler[notification.notif_type](notification)
+            except:
+                client.captureException()
+                notification.exception_count += 1
+                notification.save()
 
     def notif_async_2_sync(self, notif):
         target_ct = notif.target_content_type
