@@ -16,11 +16,12 @@ ext_fields = {
     'twitter': 'https://twitter.com/wizcarder',
     'linkedin': 'https://www.linkedin.com/in/wizcard-administrator-2a866696',
     'web': 'http://www.getwizcard.com',
-    'about_me': "I believe when people meet, they should be able to exchange more than just a piece of Dead paper. "
-                "They should be able to instantly ANNOUNCE their PERSONA - What I call WizCard...An Alive digital expression of WHO YOU ARE. "
-                "I help WizCarders like you Discover, Exchange and Connect with People, Entities, THINGS: around you. "
-                "I hope to get better as I evolve. "
-                "I also hope you will help spread the Green Word. "
+    'about_me': "Hello. I am the Wizard of WizCard. I'm your personal Event guide. I help put any event in your pocket"
+                 "I come packed with loads of helpful tools for you to get the MOST OUT OF ANY EVENT "
+                "I also help WizCarders like you Discover, Exchange and Connect with People, Entities, THINGS: around you. "
+                "BTW, you can use me in place of your Instant Business Card as well. All your contacts will be safely and"
+                "securely stored in your Rolodex. "
+                "I hope to get better as I evolve. I also hope you will help spread the Green Word. "
                 "Happy WizCarding"
 }
 
@@ -43,7 +44,7 @@ wizcard_media = [
         "media_sub_type": "ROL"
       },
       {
-        "media_element": "http://www.eventone.com",
+        "media_element": THUMBNAIL_IMAGE_PATH,
         "media_iframe": "",
         "media_type": "IMG",
         "media_sub_type": "THB"
