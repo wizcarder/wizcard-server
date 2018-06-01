@@ -460,7 +460,7 @@ class CoOwners(BaseEntityComponent):
     BITMAP_ALLOW_MANAGE = BITMAP_ALLOW_SCAN << 1
 
     # the user model for this guy
-    user = models.ForeignKey(User, related_name='coowner_for')
+    user = models.OneToOneField(User, related_name='coowner_for')
     permission_bitmap = models.IntegerField(default=BITMAP_ALLOW_SCAN)
 
     objects = CoOwnersManager()

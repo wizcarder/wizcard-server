@@ -33,6 +33,7 @@ from userprofile.models import WebExhibitorUser
 from notifications.serializers import notify
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from django.contrib.auth.models import User
 import pdb
 import codecs
 
@@ -1744,13 +1745,24 @@ class CampaignCoOwnerViewSet(viewsets.ModelViewSet):
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = CoOwnersSerializer(data=request.data, context={'user': request.user})
-        if serializer.is_valid():
-            inst = serializer.save()
-            cmp.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_COOWNER)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # check if this user is already a co-owner
+        user = request.data.get('user')
+        try:
+            user = User.objects.get(id=user)
+        except:
+            return Response("User doesn't exist", status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if hasattr(user, 'coowner_for'):
+            inst = user.coowner_for
+        else:
+            serializer = CoOwnersSerializer(data=request.data, context={'user': request.user})
+            if serializer.is_valid():
+                inst = serializer.save()
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        cmp.add_subentity_obj(inst, BaseEntityComponent.SUB_ENTITY_COOWNER)
+        return Response(status=status.HTTP_201_CREATED)
 
     def update(self, request, campaigns_pk=None, pk=None):
         try:
