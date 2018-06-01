@@ -2448,18 +2448,24 @@ class ParseMsgAndDispatch(object):
         return self.response
 
     def LeadScan(self):
+        pdb.set_trace()
         scans = self.sender['scans']
 
         # get the campaigns this user is owner for
 
         # 1. Any co-owner object associated with me ?
         if hasattr(self.user, 'coowner_for'):
-            co_owner = self.user.coowner_for
+            co_owner_for = self.user.coowner_for.all()
         else:
             self.response.error_response(err.SCAN_USER_AUTH_ERROR)
             return self.response
 
-        campaigns = co_owner.get_parent_entities()
+        co_owner_campaigns = map(lambda x: x.get_parent_entities(
+            exclude=[BaseEntityComponent.ENTITY_STATE_DELETED,
+                     BaseEntityComponent.ENTITY_STATE_EXPIRED]), co_owner_for)
+
+        # flatten the list. Could be done in a 1-liner above, but a bit difficult to read
+        campaigns = list(set([item for sublist in co_owner_campaigns for item in sublist]))
 
         # though this can accept scans in bulk, they all need to have the same event_id, otherwise things
         # will get wonky. We will just pick the event from the 1st entry
