@@ -357,7 +357,8 @@ class AppUser(BaseUser):
 
         events = Event.objects.users_entities(
             self.profile.user,
-            user_filter={'state__in': [UserEntity.JOIN, UserEntity.PIN]}
+            user_filter={'state__in': [UserEntity.JOIN, UserEntity.PIN]},
+            entity_filter={'entity_state': [BaseEntityComponent.ENTITY_STATE_PUBLISHED]}
         )
 
         if len(events):
