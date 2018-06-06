@@ -144,7 +144,7 @@ class BaseEntityManager(BaseEntityComponentManager):
         if not entity_type:
             return BaseEntity.objects.annotate(rank=SearchRank(sv, q)).order_by('-rank')
         cls = BaseEntityComponent.entity_cls_from_type(entity_type=entity_type)
-        return cls.objects.annotate(rank=SearchRank(sv, q)).order_by('-rank')
+        return cls.objects.annotate(rank=SearchRank(sv, q)).filter(entity_state='PUB', rank__gte=0.4).order_by('-rank')
 
     def combine_search(self, query, entity_type=None):
         rs = []

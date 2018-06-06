@@ -2353,7 +2353,7 @@ class ParseMsgAndDispatch(object):
 
         e, s = BaseEntity.entity_cls_ser_from_type_level(
             entity_type=entity_type,
-            level=BaseEntityComponent.SERIALIZER_L2
+            level=BaseEntityComponent.SERIALIZER_L0
         )
 
         result, count = e.objects.combine_search(query_str)
