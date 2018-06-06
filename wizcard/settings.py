@@ -29,10 +29,11 @@ WIZCARD_SETTINGS = {
     'dev': {
         'databases': {
             'default': {
-                'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                #'ENGINE': 'django.db.backends.mysql',
-                'NAME': 'wizcard-dev-demo',
-                'USER': 'kappu',
+                #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'ENGINE': 'django.db.backends.mysql',
+                #'NAME': 'wizcard-dev-demo',
+                'NAME': 'wizcard',
+                'USER': 'root',
                 'PASSWORD': '',
                 'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
                 # 'CONN_MAX_AGE' : 60,
@@ -365,14 +366,14 @@ AWS_QUERYSTRING_AUTH = False
 
 #SES Settings
 AWS_SES_ACCESS_KEY_ID = 'AKIAILIBB22I2SUSCMBQ'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_SES_REGION = "us-west-2"
+#AWS_SECRET_ACCESS_KEY = 'CZmIft06hO2hOkP5dyf1ZrF3bUhAD9ki4zUOnyjJ'
+#AWS_SES_REGION = "us-west-2"
 
 #Expiry set to 100 years
 AWS_QUERYSTRING_EXPIRE = 3153600000
-AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV 
+AWS_STORAGE_BUCKET_NAME = 'wizcard-image-bucket' + AWS_BUCKET_ENV
 S3_URL = 'http://s3.us-west-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
-EMAIL_DEFAULT_IMAGE = S3_URL +  "/invites/email_info.png"
+EMAIL_DEFAULT_IMAGE = S3_URL + "/invites/email_info.png"
 DEFAULT_VIDEO_THUMBNAIL = AWS_STORAGE_BUCKET_NAME+ "/thumbnails/no-video-uploaded.gif"
 
 STATIC_DIRECTORY = '/static/'
