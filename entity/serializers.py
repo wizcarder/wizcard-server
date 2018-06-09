@@ -356,7 +356,7 @@ class EventSerializerL1(EventSerializerL0):
         model = Event
 
         parent_fields = ('id', 'entity_type', 'num_users', 'name', 'address', 'secure', 'description', 'media',
-                         'location', 'users', 'friends', 'like',  'engagements', 'user_state')
+                         'location', 'users', 'friends', 'like',  'engagements', 'user_state', 'venue')
         my_fields = ('start', 'end',)
 
         fields = parent_fields + my_fields
